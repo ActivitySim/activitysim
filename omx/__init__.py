@@ -2,6 +2,8 @@
 # release 1
 
 import tables
+import numpy as np
+
 from File import *
 from Exceptions import *
 
@@ -25,7 +27,8 @@ def openFile(filename, mode='r', title='', root_uep='/',
 
         # shape
         if shape:
-            f.root._v_attrs['SHAPE'] = shape
+            storeshape = numpy.array([shape[0],shape[1]], dtype='int32')
+            f.root._v_attrs['SHAPE'] = storeshape
 
         # /data and /lookup folders
         if 'data' not in f.root:

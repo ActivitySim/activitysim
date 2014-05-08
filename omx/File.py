@@ -1,6 +1,7 @@
 # OMX package
 # release 1
 
+import numpy as np
 import tables  # requires pytables >= 2.4
 
 from Exceptions import *
@@ -29,7 +30,8 @@ class File(tables.File):
         if self.shape() != None and obj != None and obj.shape != self.shape():
             raise ShapeError('%s has shape %s but this file requires shape %s' %
                 (name, obj.shape, self.shape()))
-
+                
+        # Create the HDF5 array
         if tables.__version__.startswith('3'):
             matrix = self.createCArray(self.root.data, name, atom, shape, title, filters,
                                        chunkshape, byteorder, createparents, obj)
@@ -39,6 +41,12 @@ class File(tables.File):
                                        chunkshape, byteorder, createparents)
             if (obj != None):
                 matrix[:] = obj
+
+        # Store shape if we don't have one yet
+        if self._shape == None:
+            storeshape = np.array([matrix.shape[0],matrix.shape[1]], dtype='int32')
+            self.root._v_attrs['SHAPE'] = storeshape
+            self._shape = matrix.shape
 
         # attributes
         if attrs:
@@ -56,7 +64,11 @@ class File(tables.File):
 
         # If shape is already set in root node attributes, grab it
         if 'SHAPE' in self.root._v_attrs:
-            self._shape = self.root._v_attrs['SHAPE']
+            # Shape is stored as a numpy.array:
+            arrayshape = self.root._v_attrs['SHAPE']
+            # which must be converted to a tuple:
+            realshape = (array[0],array[1])
+            self._shape = realshape
             return self._shape
 
         # Inspect the first CArray object to determine its shape
@@ -65,7 +77,10 @@ class File(tables.File):
 
             # Store it if we can
             if self._isWritable():
-                self.root._v_attrs['SHAPE'] = self._shape
+                storeshape = np.array(
+                    [self._shape[0],self._shape[1]],
+                    dtype='int32')
+                self.root._v_attrs['SHAPE'] = storeshape
 
             return self._shape
 

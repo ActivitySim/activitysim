@@ -67,7 +67,7 @@ class File(tables.File):
             # Shape is stored as a numpy.array:
             arrayshape = self.root._v_attrs['SHAPE']
             # which must be converted to a tuple:
-            realshape = (array[0],array[1])
+            realshape = (arrayshape[0],arrayshape[1])
             self._shape = realshape
             return self._shape
 

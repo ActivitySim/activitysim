@@ -171,7 +171,7 @@ class File(tables.File):
 
         # Write the mapping!
         mymap = self.createArray(self.root.lookup, title, atom=tables.UInt16Atom(),
-                                 shape=(len(entries)) )
+                                 shape=(len(entries),) )
         mymap[:] = entries
 
         return mymap

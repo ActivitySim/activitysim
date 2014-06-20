@@ -7,6 +7,7 @@ install:
 - |
   conda create -p $HOME/py --yes pip numpy pandas pytest "python=$TRAVIS_PYTHON_VERSION"
 - export PATH=$HOME/py/bin:$PATH
+- easy_install -U setuptools
 - pip install pytest-cov coveralls pep8
 - pip install .
 script:
@@ -16,4 +17,4 @@ after_success:
 - coveralls
 notifications:
   slack:
-    secure: XTKQdhpJNhVCaT7X+VHD+vST0W+pwIjp3hDe/E1eVCqvp7iE2sBCtlnxVioMjo8z3EPtQMHZcNlpm6LOoVQlHT7idg40CDJMpTMrQGLqpDRo1ixUygK1Qfs1ZHrzg2CL3IgUtQwEDK3jVGAe2qmn/3RS1sKiYPMRACkkNtWQfMk=
+    secure: eD/LGUBVwbaFBsBALGmPVerRwF6/PRV3PoBpUYUmL7bKyBJZYwcFCb5t8thZvMF8lcHoF0e5xO7L8DoPuws2+mJCiSDH7QD3oGsLE9DoVMFKsIqvzv0oc6qrWf8LjPqcn3XBnXHOvmogRDaaeTCr8KuYEFtwqmwu3YW0/oWYPWk=

@@ -1,1 +1,12 @@
 store: mtc_asim.h5
+
+county_map:
+    San Francico: 1
+    San Mateo: 2
+    Santa Clara: 3
+    Alameda: 4
+    Contra Costa: 5
+    Solano: 6
+    Napa: 7
+    Sonoma: 8
+    Marin: 9

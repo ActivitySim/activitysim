@@ -69,4 +69,5 @@ def density_index(land_use):
 @sim.column("land_use")
 def county_name(land_use, settings):
     assert "county_map" in settings
-    return land_use.county_id.map(settings["county_map"])
+    inv_map = {v: k for k, v in settings["county_map"].items()}
+    return land_use.county_id.map(inv_map)

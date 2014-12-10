@@ -62,3 +62,6 @@ def households(store):
 @sim.table(cache=True)
 def persons(store):
     return store["persons"]
+
+
+sim.broadcast('land_use', 'households', cast_index=True, onto_on='TAZ')

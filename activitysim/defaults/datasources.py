@@ -44,21 +44,21 @@ def scenario(settings):
     return settings["scenario"]
 
 
-@sim.table("land_use", cache=True)
-def land_use_data(store):
+@sim.table(cache=True)
+def land_use(store):
     return store["land_use/taz_data"]
 
 
-@sim.table("accessibility", cache=True)
-def land_use(store):
+@sim.table(cache=True)
+def accessibility(store):
     return store["skims/accessibility"]
 
 
-@sim.table("households", cache=True)
-def land_use(store):
+@sim.table(cache=True)
+def households(store):
     return store["households"]
 
 
-@sim.table("persons", cache=True)
-def land_use(store):
+@sim.table(cache=True)
+def persons(store):
     return store["persons"]

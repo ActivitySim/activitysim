@@ -38,13 +38,11 @@ def simple_simulate(choosers, alternatives, spec):
     model_design=pd.concat([merged.eval(s) for s in exprs], axis=1)
     print "Describe of design matrix:\n", model_design.describe()
 
-    probabilities = mnl.mnl_simulate(
+    choices = mnl.mnl_simulate(
         model_design.as_matrix(),
         coeffs,
-        numalts=len(alternatives), returnprobs=True)
-
-    def rand(x): return np.random.choice(alternatives.index, p=x)
-    choices = np.apply_along_axis(rand, 1, probabilities)
+        numalts=len(alternatives),
+        returnprobs=False)
 
     return pd.Series(choices, index=choosers.index)
 
@@ -67,4 +65,4 @@ def auto_ownership_simulate(households, auto_alts, auto_ownership_spec):
     alternatives = auto_alts.to_frame()
     choices = simple_simulate(choosers, alternatives, auto_ownership_spec)
 
-    print "Choices\n", choices.describe()
+    print "Choices\n", choices.value_counts()

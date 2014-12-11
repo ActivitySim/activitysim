@@ -5,8 +5,7 @@ import numpy as np
 import pytest
 import tables
 
-from .. import open_omxfile
-from ..exceptions import ShapeError
+from .. import open_omxfile, ShapeError
 
 
 @pytest.fixture
@@ -29,7 +28,7 @@ def test_create_file(tmpomx):
 
 
 def test_open_readonly_hdf5_file(tmpomx):
-    f = tables.openFile(tmpomx, 'w')
+    f = tables.open_file(tmpomx, 'w')
     f.close()
     f = open_omxfile(tmpomx, 'r')
     f.close()
@@ -43,11 +42,11 @@ def test_add_numpy_matrix_using_brackets(tmpomx):
 
 def test_add_np_matrix_using_create_matrix(tmpomx):
     f = open_omxfile(tmpomx, 'w')
-    f.createMatrix('m1', obj=np.ones((5, 5)))
+    f.create_matrix('m1', obj=np.ones((5, 5)))
 
     # test check for shape matching
     with pytest.raises(ShapeError):
-        f.createMatrix('m2', obj=np.ones((8, 8)))
+        f.create_matrix('m2', obj=np.ones((8, 8)))
 
     f.close()
 
@@ -83,9 +82,9 @@ def test_get_length_of_file(tmpomx):
     f['m4'] = np.ones((5, 5))
     f['m5'] = np.ones((5, 5))
     assert len(f) == 5
-    assert len(f.listMatrices()) == 5
+    assert len(f.list_matrices()) == 5
     f.close()
 
 
 def add_m1_node(f):
-    f.createMatrix('m1', obj=np.ones((7, 7)))
+    f.create_matrix('m1', obj=np.ones((7, 7)))

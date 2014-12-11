@@ -6,10 +6,12 @@ import tables  # requires pytables >= 2.4
 
 from .exceptions import ShapeError
 
+OMX_VERSION = '0.2'
 
-class File(tables.File):
-    def __init__(self, f, m, t, r, f1, **kwargs):
-        tables.File.__init__(self, f, m, t, r, f1, **kwargs)
+
+class OMXFile(tables.File):
+    def __init__(self, *args, **kwargs):
+        super(OMXFile, self).__init__(*args, **kwargs)
         self._shape = None
 
     def version(self):
@@ -18,7 +20,7 @@ class File(tables.File):
         else:
             return None
 
-    def createMatrix(
+    def create_matrix(
             self, name, atom=None, shape=None, title='', filters=None,
             chunkshape=None, byteorder=None, createparents=False, obj=None,
             attrs=None):
@@ -35,12 +37,12 @@ class File(tables.File):
 
         # Create the HDF5 array
         if tables.__version__.startswith('3'):
-            matrix = self.createCArray(
+            matrix = self.create_carray(
                 self.root.data, name, atom, shape, title, filters,
                 chunkshape, byteorder, createparents, obj)
         else:
             # this version is tables 2.4-compatible:
-            matrix = self.createCArray(
+            matrix = self.create_carray(
                 self.root.data, name, atom, shape, title, filters,
                 chunkshape, byteorder, createparents)
             if (obj is not None):
@@ -78,13 +80,12 @@ class File(tables.File):
 
         # Inspect the first CArray object to determine its shape
         if len(self) > 0:
-            self._shape = self.iterNodes(self.root.data, 'CArray').next().shape
+            self._shape = self.iter_nodes(
+                self.root.data, 'CArray').next().shape
 
             # Store it if we can
-            if self._isWritable():
-                storeshape = np.array(
-                    [self._shape[0], self._shape[1]],
-                    dtype='int32')
+            if self._iswritable():
+                storeshape = np.array(self._shape, dtype='int32')
                 self.root._v_attrs['SHAPE'] = storeshape
 
             return self._shape
@@ -92,32 +93,33 @@ class File(tables.File):
         else:
             return None
 
-    def listMatrices(self):
+    def list_matrices(self):
         """Return list of Matrix names in this File"""
-        return [node.name for node in self.listNodes(self.root.data, 'CArray')]
+        return [
+            node.name for node in self.list_nodes(self.root.data, 'CArray')]
 
-    def listAllAttributes(self):
+    def list_all_attributes(self):
         """
         Return combined list of all attributes used for
         any Matrix in this File
 
         """
         all_tags = set()
-        for m in self.listNodes(self.root, 'CArray'):
+        for m in self.list_nodes(self.root, 'CArray'):
             if m.attrs is not None:
                 all_tags.update(m.attrs._v_attrnames)
         return sorted(list(all_tags))
 
     # MAPPINGS -----------------------------------------------
-    def listMappings(self):
+    def list_mappings(self):
         try:
-            return [m.name for m in self.listNodes(self.root.lookup)]
+            return [m.name for m in self.list_nodes(self.root.lookup)]
         except:
             return []
 
-    def deleteMapping(self, title):
+    def delete_mapping(self, title):
         try:
-            self.removeNode(self.root.lookup, title)
+            self.remove_node(self.root.lookup, title)
         except:
             raise LookupError('No such mapping: ' + title)
 
@@ -127,7 +129,7 @@ class File(tables.File):
         try:
             # fetch entries
             entries = []
-            entries.extend(self.getNode(self.root.lookup, title)[:])
+            entries.extend(self.get_node(self.root.lookup, title)[:])
 
             # build reverse key-lookup
             keymap = {}
@@ -144,14 +146,14 @@ class File(tables.File):
         try:
             # fetch entries
             entries = []
-            entries.extend(self.getNode(self.root.lookup, title)[:])
+            entries.extend(self.get_node(self.root.lookup, title)[:])
 
             return (keymap, entries)
 
         except:
             raise LookupError('No such mapping: '+title)
 
-    def createMapping(self, title, entries, overwrite=False):
+    def create_mapping(self, title, entries, overwrite=False):
         """Create an equivalency index, which maps a raw data dimension to
            another integer value. Once created, mappings can be referenced by
            offset or by key."""
@@ -162,18 +164,18 @@ class File(tables.File):
                 raise ShapeError('Mapping must match one data dimension')
 
         # Handle case where mapping already exists:
-        if title in self.listMappings():
+        if title in self.list_mappings():
             if overwrite:
-                self.deleteMapping(title)
+                self.delete_mapping(title)
             else:
                 raise LookupError(title+' mapping already exists.')
 
         # Create lookup group under root if it doesn't already exist.
         if 'lookup' not in self.root:
-            self.createGroup(self.root, 'lookup')
+            self.create_group(self.root, 'lookup')
 
         # Write the mapping!
-        mymap = self.createArray(
+        mymap = self.create_array(
             self.root.lookup, title, atom=tables.UInt16Atom(),
             shape=(len(entries),))
         mymap[:] = entries
@@ -185,24 +187,24 @@ class File(tables.File):
         """Return a matrix by name, or a list of matrices by attributes"""
 
         if isinstance(key, str):
-            return self.getNode(self.root.data, key)
+            return self.get_node(self.root.data, key)
 
         if 'keys' not in dir(key):
             raise LookupError('Key %s not found' % key)
 
         # Loop through key/value pairs
-        mats = self.listNodes(self.root.data, 'CArray')
+        mats = self.list_nodes(self.root.data, 'CArray')
         for a in key.keys():
-            mats = self._getMatricesByAttribute(a, key[a], mats)
+            mats = self._get_matrices_by_attribute(a, key[a], mats)
 
         return mats
 
-    def _getMatricesByAttribute(self, key, value, matrices=None):
+    def _get_matrices_by_attribute(self, key, value, matrices=None):
 
         answer = []
 
         if matrices is None:
-            matrices = self.listNodes(self.root.data, 'CArray')
+            matrices = self.list_nodes(self.root.data, 'CArray')
 
         for m in matrices:
             if m.attrs is None:
@@ -215,7 +217,7 @@ class File(tables.File):
         return answer
 
     def __len__(self):
-        return len(self.listNodes(self.root.data, 'CArray'))
+        return len(self.list_nodes(self.root.data, 'CArray'))
 
     def __setitem__(self, key, dataset):
         # We need to determine atom and shape from the object that's
@@ -229,14 +231,44 @@ class File(tables.File):
         if dataset.__class__.__name__ == 'CArray':
             return dataset.copy(self.root.data, key)
         else:
-            return self.createMatrix(key, atom, shape, obj=dataset)
+            return self.create_matrix(key, atom, shape, obj=dataset)
 
     def __delitem__(self, key):
-        self.removeNode(self.root.data, key)
+        self.remove_node(self.root.data, key)
 
     def __iter__(self):
         """Iterate over the keys in this container"""
-        return self.iterNodes(self.root.data, 'CArray')
+        return self.iter_nodes(self.root.data, 'CArray')
 
     def __contains__(self, item):
         return item in self.root.data._v_children
+
+
+def open_omxfile(
+        filename, mode='r', title='', root_uep='/',
+        filters=tables.Filters(
+            complevel=1, shuffle=True, fletcher32=False, complib='zlib'),
+        shape=None, **kwargs):
+    """Open or create a new OMX file. New files will be created with default
+       zlib compression enabled."""
+
+    f = OMXFile(filename, mode, title, root_uep, filters, **kwargs)
+
+    # add omx structure if file is writable
+    if mode != 'r':
+        # version number
+        if 'OMX_VERSION' not in f.root._v_attrs:
+            f.root._v_attrs['OMX_VERSION'] = OMX_VERSION
+
+        # shape
+        if shape:
+            storeshape = np.array([shape[0], shape[1]], dtype='int32')
+            f.root._v_attrs['SHAPE'] = storeshape
+
+        # /data and /lookup folders
+        if 'data' not in f.root:
+            f.create_group(f.root, "data")
+        if 'lookup' not in f.root:
+            f.create_group(f.root, "lookup")
+
+    return f

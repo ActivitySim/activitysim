@@ -1,3 +1,2 @@
 class ShapeError(Exception):
     pass
-

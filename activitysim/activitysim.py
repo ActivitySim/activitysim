@@ -54,7 +54,7 @@ def simple_simulate(choosers, alternatives, spec):
                 raise e
         names.append(expr)
         vars.append(s)
-    model_design=pd.concat(vars, axis=1)
+    model_design = pd.concat(vars, axis=1)
     model_design.columns = names
 
     df = random_rows(model_design, 100000).describe().transpose()

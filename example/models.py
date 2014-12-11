@@ -5,7 +5,7 @@ from activitysim import activitysim as asim
 
 @sim.table()
 def auto_alts():
-    return asim.identity_matrix(["cars%d"%i for i in range(5)])
+    return asim.identity_matrix(["cars%d" % i for i in range(5)])
 
 
 @sim.injectable()

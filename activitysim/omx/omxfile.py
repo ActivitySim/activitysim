@@ -132,19 +132,7 @@ class OMXFile(tables.File):
             return keymap
 
         except:
-            raise LookupError('No such mapping: '+title)
-
-    def mapentries(self, title):
-        """Return entries[] with key for each array offset."""
-        try:
-            # fetch entries
-            entries = []
-            entries.extend(self.get_node(self.root.lookup, title)[:])
-
-            return (keymap, entries)
-
-        except:
-            raise LookupError('No such mapping: '+title)
+            raise LookupError('No such mapping: ' + title)
 
     def create_mapping(self, title, entries, overwrite=False):
         """Create an equivalency index, which maps a raw data dimension to
@@ -255,7 +243,7 @@ def open_omxfile(
 
         # shape
         if shape:
-            storeshape = np.array([shape[0], shape[1]], dtype='int32')
+            storeshape = np.array(shape, dtype='int32')
             f.root._v_attrs['SHAPE'] = storeshape
 
         # /data and /lookup folders

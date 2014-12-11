@@ -4,7 +4,7 @@
 import numpy
 import tables
 
-from .omxile import File
+from .omxfile import File
 from .exceptions import ShapeError
 
 # GLOBAL VARIABLES -----------

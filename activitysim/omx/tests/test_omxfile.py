@@ -1,90 +1,91 @@
 import os
+import tempfile
 
-import nose.tools as nt
-import numpy
+import numpy as np
+import pytest
 import tables
 
 from .. import open_omxfile
+from ..exceptions import ShapeError
 
 
-def setup_clean():
-    try:
-        os.remove('test1.omx')
-    except:
-        pass
+@pytest.fixture
+def tmpomx(request):
+    with tempfile.NamedTemporaryFile() as f:
+        fname = f.name
+
+    def cleanup():
+        if os.path.exists(fname):
+            os.remove(fname)
+    request.addfinalizer(cleanup)
+
+    return fname
 
 
-def setup_empty_file():
-    try:
-        os.remove('test1.omx')
-        f = open_omxfile('test.omx', 'w')
-        f.close()
-    except:
-        pass
-
-
-def teardown_clean():
-    try:
-        os.remove('test2.omx')
-    except:
-        pass
-
-
-@nt.with_setup(setup_clean, teardown_clean)
-def test_create_file():
-    f = open_omxfile('test1.omx', 'w')
+def test_create_file(tmpomx):
+    f = open_omxfile(tmpomx, 'w')
     f.close()
-    nt.assert(os.path.exists('test1.omx'))
+    assert os.path.exists(tmpomx)
 
 
-def test_open_readonly_hdf5_file():
-    f = tables.openFile('test2.omx', 'w')
+def test_open_readonly_hdf5_file(tmpomx):
+    f = tables.openFile(tmpomx, 'w')
     f.close()
-    f = open_omxfile('test2.omx', 'r')
+    f = open_omxfile(tmpomx, 'r')
     f.close()
 
 
-def test_add_numpy_matrix_using_brackets():
-    f = open_omxfile('test3.omx', 'w')
-    f['m1'] = numpy.ones((5, 5))
+def test_add_numpy_matrix_using_brackets(tmpomx):
+    f = open_omxfile(tmpomx, 'w')
+    f['m1'] = np.ones((5, 5))
     f.close()
 
 
-def test_add_numpy_matrix_using_create_matrix():
-    f = open_omxfile('test4.omx', 'w')
-    f.createMatrix('m1', obj=numpy.ones((5, 5)))
+def test_add_np_matrix_using_create_matrix(tmpomx):
+    f = open_omxfile(tmpomx, 'w')
+    f.createMatrix('m1', obj=np.ones((5, 5)))
+
+    # test check for shape matching
+    with pytest.raises(ShapeError):
+        f.createMatrix('m2', obj=np.ones((8, 8)))
+
     f.close()
 
 
-def test_add_matrix_to_readonly_file():
-    f = open_omxfile('test6.omx', 'w')
-    f['m2'] = numpy.ones((5, 5))
+def test_add_matrix_to_readonly_file(tmpomx):
+    f = open_omxfile(tmpomx, 'w')
+    f['m2'] = np.ones((7, 7))
     f.close()
-    f = open_omxfile('test6.omx', 'r')
-    nt.assert_raises(tables.FileModeError, add_m1_node, f)
+    f = open_omxfile(tmpomx, 'r')
+
+    with pytest.raises(tables.FileModeError):
+        add_m1_node(f)
+
     f.close()
 
 
-def test_add_matrix_with_same_name():
-    f = open_omxfile('test5.omx', 'w')
+def test_add_matrix_with_same_name(tmpomx):
+    f = open_omxfile(tmpomx, 'w')
     add_m1_node(f)
     # now add m1 again:
-    nt.assert_raises(tables.NodeError, add_m1_node, f)
+
+    with pytest.raises(tables.NodeError):
+        add_m1_node(f)
+
     f.close()
 
 
-@nt.with_setup(setup_clean, teardown_clean)
-def test_get_length_of_file():
-    f = open_omxfile('test7.omx', 'w')
-    f['m1'] = numpy.ones((5, 5))
-    f['m2'] = numpy.ones((5, 5))
-    f['m3'] = numpy.ones((5, 5))
-    f['m4'] = numpy.ones((5, 5))
-    f['m5'] = numpy.ones((5, 5))
-    nt.assert(len(f) == 5)
-    nt.assert(len(f.listMatrices()) == 5)
+def test_get_length_of_file(tmpomx):
+    f = open_omxfile(tmpomx, 'w')
+    f['m1'] = np.ones((5, 5))
+    f['m2'] = np.ones((5, 5))
+    f['m3'] = np.ones((5, 5))
+    f['m4'] = np.ones((5, 5))
+    f['m5'] = np.ones((5, 5))
+    assert len(f) == 5
+    assert len(f.listMatrices()) == 5
     f.close()
 
 
 def add_m1_node(f):
-    f.createMatrix('m1', obj=numpy.ones((7, 7)))
+    f.createMatrix('m1', obj=np.ones((7, 7)))

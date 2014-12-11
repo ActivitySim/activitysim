@@ -5,6 +5,7 @@ import uuid
 import yaml
 from urbansim.utils import misc
 import urbansim.sim.simulation as sim
+from .. import activitysim as asim
 
 import warnings
 
@@ -51,11 +52,16 @@ def land_use(store):
 
 @sim.table(cache=True)
 def accessibility(store):
-    return store["skims/accessibility"]
+    df = store["skims/accessibility"]
+    df.columns = [c.upper() for c in df.columns]
+    return df
 
 
 @sim.table(cache=True)
-def households(store):
+def households(store, settings):
+    if "households_sample_size" in settings:
+        return asim.random_rows(store["households"],
+                                settings["households_sample_size"])
     return store["households"]
 
 
@@ -65,3 +71,4 @@ def persons(store):
 
 
 sim.broadcast('land_use', 'households', cast_index=True, onto_on='TAZ')
+sim.broadcast('accessibility', 'households', cast_index=True, onto_on='TAZ')

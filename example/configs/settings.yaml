@@ -1,5 +1,7 @@
 store: mtc_asim.h5
 
+households_sample_size: 100000
+
 county_map:
     San Francisco: 1
     San Mateo: 2

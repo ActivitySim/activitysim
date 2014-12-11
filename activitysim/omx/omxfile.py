@@ -2,7 +2,7 @@
 # release 1
 
 import numpy as np
-import tables  # requires pytables >= 2.4
+import tables
 
 from .exceptions import ShapeError
 
@@ -40,13 +40,6 @@ class OMXFile(tables.File):
             matrix = self.create_carray(
                 self.root.data, name, atom, shape, title, filters,
                 chunkshape, byteorder, createparents, obj)
-        else:
-            # this version is tables 2.4-compatible:
-            matrix = self.create_carray(
-                self.root.data, name, atom, shape, title, filters,
-                chunkshape, byteorder, createparents)
-            if (obj is not None):
-                matrix[:] = obj
 
         # Store shape if we don't have one yet
         if self._shape is None:

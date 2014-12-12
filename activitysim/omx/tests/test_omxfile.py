@@ -27,6 +27,18 @@ def ones5x5():
     return np.ones((5, 5))
 
 
+@pytest.fixture
+def basic_omx(request, tmpomx, ones5x5):
+    f = open_omxfile(tmpomx, mode='w')
+    f['m1'] = ones5x5
+
+    def fin():
+        f.close()
+    request.addfinalizer(fin)
+
+    return f
+
+
 def test_open_readonly_hdf5_file(tmpomx):
     f = tables.open_file(tmpomx, 'w')
     f.close()
@@ -35,11 +47,13 @@ def test_open_readonly_hdf5_file(tmpomx):
     f.close()
 
 
-def test_setitem_getitem(tmpomx, ones5x5):
+def test_set_get_del(tmpomx, ones5x5):
     with open_omxfile(tmpomx, 'w') as f:
         f['m1'] = ones5x5
         npt.assert_array_equal(f['m1'], ones5x5)
         assert f.shape() == (5, 5)
+        del f['m1']
+        assert 'm1' not in f
 
 
 def test_create_matrix(tmpomx, ones5x5):
@@ -71,13 +85,17 @@ def test_add_matrix_with_same_name(tmpomx, ones5x5):
             f['m1'] = ones5x5
 
 
-def test_get_length_of_file(tmpomx, ones5x5):
-    mats = ['m{}'.format(x) for x in range(5)]
+def test_len_list_iter(tmpomx, ones5x5):
+    names = ['m{}'.format(x) for x in range(5)]
     with open_omxfile(tmpomx, 'w') as f:
-        for m in mats:
+        for m in names:
             f[m] = ones5x5
 
-        assert f.list_matrices() == mats
+        for mat in f:
+            npt.assert_array_equal(mat, ones5x5)
+
+        assert len(f) == len(names)
+        assert f.list_matrices() == names
 
 
 def test_shape(tmpomx):
@@ -86,3 +104,25 @@ def test_shape(tmpomx):
 
         with pytest.raises(ShapeError):
             f['test'] = np.ones(10)
+
+
+def test_contains(basic_omx):
+    assert 'm1' in basic_omx
+
+
+def test_list_all_attrs(basic_omx, ones5x5):
+    basic_omx['m2'] = ones5x5
+
+    assert basic_omx.list_all_attributes() == []
+
+    basic_omx['m1'].attrs['a1'] = 'a1'
+    basic_omx['m1'].attrs['a2'] = 'a2'
+    basic_omx['m2'].attrs['a2'] = 'a2'
+    basic_omx['m2'].attrs['a3'] = 'a3'
+
+    assert basic_omx.list_all_attributes() == ['a1', 'a2', 'a3']
+
+
+def test_set_with_carray(basic_omx):
+    basic_omx['m2'] = basic_omx['m1']
+    npt.assert_array_equal(basic_omx['m2'], basic_omx['m1'])

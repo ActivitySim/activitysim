@@ -1,6 +1,3 @@
-# OMX package
-# release 1
-
 import numpy as np
 import tables
 
@@ -43,8 +40,7 @@ class OMXFile(tables.File):
 
         # Store shape if we don't have one yet
         if self._shape is None:
-            storeshape = np.array(
-                [matrix.shape[0], matrix.shape[1]], dtype='int32')
+            storeshape = np.array(matrix.shape, dtype='int32')
             self.root._v_attrs['SHAPE'] = storeshape
             self._shape = matrix.shape
 
@@ -98,10 +94,9 @@ class OMXFile(tables.File):
 
         """
         all_tags = set()
-        for m in self.list_nodes(self.root, 'CArray'):
-            if m.attrs is not None:
-                all_tags.update(m.attrs._v_attrnames)
-        return sorted(list(all_tags))
+        for m in self.iter_nodes(self.root.data, 'CArray'):
+            all_tags.update(m.attrs._v_attrnamesuser)
+        return sorted(all_tags)
 
     # MAPPINGS -----------------------------------------------
     def list_mappings(self):
@@ -149,7 +144,7 @@ class OMXFile(tables.File):
             if overwrite:
                 self.delete_mapping(title)
             else:
-                raise LookupError(title+' mapping already exists.')
+                raise LookupError(title + ' mapping already exists.')
 
         # Create lookup group under root if it doesn't already exist.
         if 'lookup' not in self.root:
@@ -181,7 +176,6 @@ class OMXFile(tables.File):
         return mats
 
     def _get_matrices_by_attribute(self, key, value, matrices=None):
-
         answer = []
 
         if matrices is None:
@@ -192,7 +186,7 @@ class OMXFile(tables.File):
                 continue
 
             # Only test if key is present in matrix attributes
-            if key in m.attrs._v_attrnames and m.attrs[key] == value:
+            if key in m.attrs and m.attrs[key] == value:
                 answer.append(m)
 
         return answer
@@ -201,17 +195,17 @@ class OMXFile(tables.File):
         return len(self.list_nodes(self.root.data, 'CArray'))
 
     def __setitem__(self, key, dataset):
-        # We need to determine atom and shape from the object that's
-        # been passed in.
-        # This assumes 'dataset' is a numpy object.
-        atom = tables.Atom.from_dtype(dataset.dtype)
-        shape = dataset.shape
-
         # checks to see if it is already a tables instance, and if so,
         # copies it
-        if dataset.__class__.__name__ == 'CArray':
+        if isinstance(dataset, tables.CArray):
             return dataset.copy(self.root.data, key)
         else:
+            # We need to determine atom and shape from the object that's
+            # been passed in.
+            # This assumes 'dataset' is a numpy object.
+            atom = tables.Atom.from_dtype(dataset.dtype)
+            shape = dataset.shape
+
             return self.create_matrix(key, atom, shape, obj=dataset)
 
     def __delitem__(self, key):
@@ -222,7 +216,7 @@ class OMXFile(tables.File):
         return self.iter_nodes(self.root.data, 'CArray')
 
     def __contains__(self, item):
-        return item in self.root.data._v_children
+        return item in self.root.data
 
 
 def open_omxfile(

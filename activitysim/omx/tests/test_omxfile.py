@@ -123,6 +123,26 @@ def test_list_all_attrs(basic_omx, ones5x5):
     assert basic_omx.list_all_attributes() == ['a1', 'a2', 'a3']
 
 
+def test_matrices_by_attr(basic_omx, ones5x5):
+    bo = basic_omx
+    bo['m2'] = ones5x5
+    bo['m3'] = ones5x5
+
+    for m in bo:
+        m.attrs['a1'] = 'a1'
+        m.attrs['a2'] = 'a2'
+    bo['m3'].attrs['a2'] = 'a22'
+    bo['m3'].attrs['a3'] = 'a3'
+
+    gmba = bo.get_matrices_by_attr
+
+    assert gmba('zz', 'zz') == []
+    assert gmba('a1', 'a1') == [bo['m1'], bo['m2'], bo['m3']]
+    assert gmba('a2', 'a2') == [bo['m1'], bo['m2']]
+    assert gmba('a2', 'a22') == [bo['m3']]
+    assert gmba('a3', 'a3') == [bo['m3']]
+
+
 def test_set_with_carray(basic_omx):
     basic_omx['m2'] = basic_omx['m1']
     npt.assert_array_equal(basic_omx['m2'], basic_omx['m1'])

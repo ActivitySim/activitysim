@@ -158,38 +158,30 @@ class OMXFile(tables.File):
 
         return mymap
 
-    # The following functions implement Python list/dictionary lookups. ----
     def __getitem__(self, key):
         """Return a matrix by name, or a list of matrices by attributes"""
+        return self.get_node(self.root.data, key)
 
-        if isinstance(key, str):
-            return self.get_node(self.root.data, key)
+    def get_matrices_by_attr(self, key, value):
+        """
+        Returns a list of matrices that have an attribute matching
+        a certain value.
 
-        if 'keys' not in dir(key):
-            raise LookupError('Key %s not found' % key)
+        Parameters
+        ----------
+        key : str
+            Attribute name to match.
+        value : object
+            Attribute value to match.
 
-        # Loop through key/value pairs
-        mats = self.list_nodes(self.root.data, 'CArray')
-        for a in key.keys():
-            mats = self._get_matrices_by_attribute(a, key[a], mats)
+        Returns
+        -------
+        matrices : list
 
-        return mats
-
-    def _get_matrices_by_attribute(self, key, value, matrices=None):
-        answer = []
-
-        if matrices is None:
-            matrices = self.list_nodes(self.root.data, 'CArray')
-
-        for m in matrices:
-            if m.attrs is None:
-                continue
-
-            # Only test if key is present in matrix attributes
-            if key in m.attrs and m.attrs[key] == value:
-                answer.append(m)
-
-        return answer
+        """
+        return [
+            m for m in self
+            if key in m.attrs and m.attrs[key] == value]
 
     def __len__(self):
         return len(self.list_nodes(self.root.data, 'CArray'))

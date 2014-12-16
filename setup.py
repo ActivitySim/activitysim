@@ -20,5 +20,7 @@ setup(
     install_requires=[
         'numpy>=1.8.0',
         'pandas>=0.13.1',
+        'tables>=3.1.0',
+        'urbansim>=1.3'
     ]
 )

@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 import urbansim.sim.simulation as sim
 from activitysim.defaults import datasources
 
@@ -5,6 +7,13 @@ from activitysim.defaults import datasources
 @sim.column("households")
 def income_in_thousands(households):
     return households.income / 1000
+
+
+@sim.column("households")
+def income_segment(households):
+    return pd.cut(households.income_in_thousands,
+                  bins=[-np.inf, 30, 60, 100, np.inf],
+                  labels=[1, 2, 3, 4])
 
 
 @sim.column("households")

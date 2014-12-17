@@ -1,5 +1,5 @@
 example/data/*
-
+.idea
 .ipynb_checkpoints
 
 # Byte-compiled / optimized / DLL files

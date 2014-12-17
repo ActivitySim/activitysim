@@ -59,16 +59,25 @@ def accessibility(store):
 
 @sim.table(cache=True)
 def households(store, settings):
+
     if "households_sample_size" in settings:
         return asim.random_rows(store["households"],
                                 settings["households_sample_size"])
+
     return store["households"]
 
 
 @sim.table(cache=True)
-def persons(store):
-    return store["persons"]
+def persons(store, settings, households):
+    df = store["persons"]
+
+    if "households_sample_size" in settings:
+        # keep all persons in the sampled households
+        df = df[df.household_id.isin(households.index)]
+
+    return df
 
 
+sim.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
 sim.broadcast('land_use', 'households', cast_index=True, onto_on='TAZ')
 sim.broadcast('accessibility', 'households', cast_index=True, onto_on='TAZ')

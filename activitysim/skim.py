@@ -16,6 +16,10 @@ class Skim(object):
 
     """
     def __init__(self, data, offset=None):
+
+        if not isinstance(data, np.ndarray):
+            data = np.array(data)
+
         self.data = data
         self.offset = offset
 

@@ -105,6 +105,7 @@ def simple_simulate(choosers, alternatives, spec,
                 print "Failed with DataFrame eval:\n%s" % expr
                 raise e
         vars[expr] = s
+        vars[expr] = vars[expr].astype('float')  # explicit cast
     model_design = pd.DataFrame(vars, index=df.index)
 
     df = random_rows(model_design, min(100000, len(model_design)))\

@@ -1,0 +1,14 @@
+store: mtc_asim.h5
+
+households_sample_size: 100000
+
+county_map:
+    San Francisco: 1
+    San Mateo: 2
+    Santa Clara: 3
+    Alameda: 4
+    Contra Costa: 5
+    Solano: 6
+    Napa: 7
+    Sonoma: 8
+    Marin: 9

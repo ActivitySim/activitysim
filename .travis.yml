@@ -18,7 +18,7 @@ install:
 - >
   conda create -q -c synthicity -n test-environment
   python=$TRAVIS_PYTHON_VERSION
-  numpy pandas pip pytest urbansim
+  numpy pandas pip pytables pytest urbansim
 - source activate test-environment
 - pip install pytest-cov coveralls pep8
 - pip install .

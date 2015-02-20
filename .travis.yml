@@ -20,6 +20,7 @@ install:
   python=$TRAVIS_PYTHON_VERSION
   numpy pandas pip pytables pytest urbansim
 - source activate test-environment
+- pip install openmatrix
 - pip install pytest-cov coveralls pep8
 - pip install .
 script:

@@ -1,7 +1,7 @@
 import urbansim.sim.simulation as sim
 import os
 from activitysim import activitysim as asim
-from activitysim import omx
+import openmatrix as omx
 from activitysim import skim
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ def zones():
 
 @sim.injectable()
 def nonmotskm_omx():
-    return omx.open_omxfile('data/nonmotskm.omx')
+    return omx.openFile('data/nonmotskm.omx')
 
 
 @sim.injectable()

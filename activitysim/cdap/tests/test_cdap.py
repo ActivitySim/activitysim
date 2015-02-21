@@ -75,3 +75,31 @@ def test_make_interactions(people, hh_id_col, p_type_col):
 
     pdt.assert_series_equal(two, expected_two)
     pdt.assert_series_equal(three, expected_three)
+
+
+def test_make_interactions_no_interactions(people, hh_id_col, p_type_col):
+    people = people.loc[[1, 2, 3]]
+
+    two, three = cdap.make_interactions(people, hh_id_col, p_type_col)
+
+    pdt.assert_series_equal(two, pd.Series())
+    pdt.assert_series_equal(three, pd.Series())
+
+
+def test_make_interactions_only_twos(people, hh_id_col, p_type_col):
+    people = people.loc[[1, 2, 3, 4, 5, 6]]
+
+    expected_two = pd.Series(
+        [
+            '11',  # household 3; person 3
+            '11',  # household 3; person 4
+            '32',  # household 4; person 5
+            '23',  # household 4; person 6
+        ],
+        index=[3, 4, 5, 6]
+    )
+
+    two, three = cdap.make_interactions(people, hh_id_col, p_type_col)
+
+    pdt.assert_series_equal(two, expected_two)
+    pdt.assert_series_equal(three, pd.Series())

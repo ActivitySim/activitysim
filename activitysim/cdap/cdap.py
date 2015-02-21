@@ -60,8 +60,15 @@ def make_interactions(people, hh_id_col, p_type_col):
             combo = three_fmt(*ptypes[list(idx)])
             three.extend((p, combo) for p in idx)
 
-    two_idx, two_val = zip(*two)
-    three_idx, three_val = zip(*three)
+    if two:
+        two_idx, two_val = zip(*two)
+    else:
+        two_idx, two_val = [], []
+
+    if three:
+        three_idx, three_val = zip(*three)
+    else:
+        three_idx, three_val = [], []
 
     return (
         pd.Series(two_val, index=two_idx),

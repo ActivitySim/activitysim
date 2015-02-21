@@ -10,7 +10,8 @@ from .. import cdap
 @pytest.fixture(scope='module')
 def people():
     return pd.read_csv(
-        os.path.join(os.path.dirname(__file__), 'data', 'people.csv'))
+        os.path.join(os.path.dirname(__file__), 'data', 'people.csv'),
+        index_col='id')
 
 
 @pytest.fixture(scope='module')
@@ -53,21 +54,21 @@ def test_make_interactions(people, hh_id_col, p_type_col):
 
     expected_three = pd.Series(
         [
-            '322', '232', '232',  # household 5; people 7, 8, 9
-            '131', '311', '113',  # household 6; people 10, 11, 12
-            '132', '132', '122',  # household 7; person 13
-            '312', '312', '322',  # household 7; person 14
-            '213', '212', '232',  # household 7; person 15
-            '213', '212', '232',  # household 7; person 16
-            '132', '131', '121',  # household 8; person 17
-            '312', '311', '321',  # household 8; person 18
-            '213', '211', '231',  # household 8; person 19
-            '113', '112', '132'   # household 8; person 20
+            '322', '322', '322',  # household 5; people 7, 8, 9
+            '131', '131', '131',  # household 6; people 10, 11, 12
+            '132', '132', '132',  # household 7; people 13, 14, 15
+            '132', '132', '132',  # household 7; people 13, 14, 16
+            '122', '122', '122',  # household 7; people 13, 15, 16
+            '322', '322', '322',  # household 7; people 14, 15, 16
+            '132', '132', '132',  # household 8; people 17, 18, 19
+            '131', '131', '131',  # household 8; people 17, 18, 20
+            '121', '121', '121',  # household 8; people 17, 19, 20
+            '321', '321', '321'   # household 8; people 18, 19, 20
         ],
         index=[
             7, 8, 9, 10, 11, 12,
-            13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16,
-            17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20
+            13, 14, 15, 13, 14, 16, 13, 15, 16, 14, 15, 16,
+            17, 18, 19, 17, 18, 20, 17, 19, 20, 18, 19, 20
         ])
 
     two, three = cdap.make_interactions(people, hh_id_col, p_type_col)

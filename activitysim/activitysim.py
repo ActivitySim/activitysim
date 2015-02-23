@@ -17,7 +17,30 @@ def read_model_spec(fname,
                     expression_name="Expression",
                     stack=True):
     """
-    Read in the excel file and reformat for machines
+    Read a CSV model specification into a Pandas Series.
+
+    The CSV is expected to have columns for component descriptions
+    and expressions, plus one or more alternatives.
+
+    The CSV is required to have a header with column names. For example:
+
+        Description,Expression,alt0,alt1,alt2
+
+    Parameters
+    ----------
+    fname : str
+        Name of a CSV spec file.
+    description_name : str, optional
+        Name of the column in `fname` that contains the component description.
+    expression_name : str, optional
+        Name of the column in `fname` that contains the component expression.
+
+    Returns
+    -------
+    spec : pandas.Series
+        The description column is dropped from the returned data and the table
+        is stacked so that it has a multi-index of (expression, alt-name)
+        and values are the alternative specific utilities.
     """
     cfg = pd.read_csv(fname)
     # don't need description and set the expression to the index

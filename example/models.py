@@ -28,6 +28,7 @@ def mandatory_tour_frequency_alts():
     return asim.identity_matrix(["work1", "work2", "school1", "school2",
                                  "work_and_school"])
 
+
 # these are the alternatives for the workplace choice
 @sim.table()
 def zones():
@@ -151,7 +152,8 @@ def auto_ownership_simulate(households,
                              mult_by_alt_col=True)
 
     # map these back to integers
-    choices = choices.map(dict([("cars%d"%i, i) for i in range(MAX_NUM_CARS)]))
+    choices = choices.map(dict([("cars%d" % i, i)
+                                for i in range(MAX_NUM_CARS)]))
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("households", "auto_ownership", choices)
@@ -258,6 +260,7 @@ def county_id(land_use):
 for households
 """
 
+
 # just a rename / alias
 @sim.column("households")
 def home_taz(households):
@@ -295,6 +298,8 @@ def num_under16_not_at_school(persons, households):
 """
 for the persons table
 """
+
+
 # FIXME - this is my "placeholder" for the CDAP model ;)
 @sim.column("persons")
 def cdap_activity(persons):

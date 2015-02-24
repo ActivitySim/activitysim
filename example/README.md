@@ -20,8 +20,8 @@ categories are shared?  Income categories are unique?
 
 A few overarching principles
 
-* A little discussion of NOT so object oriented - this is more like a 
-database - data is in tables, NOT in objects
+* A little discussion of "NOT so object oriented" - this is more like a 
+database - data is in standard tables, NOT in objects
 
 * The implications of this are that most of the core code is pandas and thus 
 the quality is controlled by the larger community.  We are thankful that its 
@@ -45,12 +45,18 @@ Case study of `num_under16_not_at_school` to show the inter-dependencies.
 A few questions about "best practices"
 
 * What to put into the default data sources and variable specs and what to 
-put in the examples / client-specific stuff?
+put in the example / client-specific stuff?
 
 * Want to split up injectables from variables from tables or all one big file
  so it's easier to search?
 
 * How much variable computation to put in excel versus Python
+
+* There were some hard coded limits in the original csv - (area_type < 4 and 
+distance_to_work < 3) - these are now just left in the csv spec.  Why would 
+this be different than (income_in_thousands > 50)?  I've made an effort to 
+not have such "magic numbers" in Python code.  (Elizabeth: MAX_NUM_AUTOS 
+exists now) 
 
 * Want to name or number the person types in the spec files?
 

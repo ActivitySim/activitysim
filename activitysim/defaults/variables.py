@@ -21,6 +21,11 @@ def income_segment(households):
 
 
 @sim.column("households")
+def non_workers(households, persons):
+    return persons.household_id.value_counts() - households.workers
+
+
+@sim.column("households")
 def drivers(households, persons):
     # we assume that everyone 16 and older is a potential driver
     return persons.local.query("16 <= age").\

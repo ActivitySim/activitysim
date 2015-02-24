@@ -10,3 +10,49 @@ This is a list of items to double check before using in practice:
  
 * Go back to the 3 school location choices, and run the models for the 
 appropriate persons.
+
+* Probably needs code review of the variable definitions.  How much of the 
+variable definitions are shared between regions and how much unique?  Age 
+categories are shared?  Income categories are unique?
+
+
+
+
+A few overarching principles
+
+* A little discussion of NOT so object oriented - this is more like a 
+database - data is in tables, NOT in objects
+
+* The implications of this are that most of the core code is pandas and thus 
+the quality is controlled by the larger community.  We are thankful that its 
+quality is very high.  Specifically, there's not so much code in activitysim 
+"proper"
+
+* What it takes to add a new model
+    * define a new model 
+    * define any new data sources necessary 
+    * add any new assumptions in settings.yaml
+    * co-create the spec and any variables that are too complicated (or 
+    reusable) for the spec
+    * run in notebook
+
+* Literally everything is really Python functions that compute something.  
+Case study of `num_under16_not_at_school` to show the inter-dependencies.
+
+
+
+
+A few questions about "best practices"
+
+* What to put into the default data sources and variable specs and what to 
+put in the examples / client-specific stuff?
+
+* Want to split up injectables from variables from tables or all one big file
+ so it's easier to search?
+
+* How much variable computation to put in excel versus Python
+
+* Want to name or number the person types in the spec files?
+
+* Testing for client-specific code?  It's harder because outputs are "data 
+dependent."  It's easier to take a small dataset and make sure it always runs.

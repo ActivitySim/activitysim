@@ -8,9 +8,12 @@ import numpy as np
 import pandas as pd
 
 
+MAX_NUM_CARS = 5
+
+
 @sim.table()
 def auto_alts():
-    return asim.identity_matrix(["cars%d" % i for i in range(5)])
+    return asim.identity_matrix(["cars%d" % i for i in range(MAX_NUM_CARS)])
 
 
 @sim.table()
@@ -68,7 +71,7 @@ def workplace_location_spec():
 @sim.injectable()
 def mandatory_tour_frequency_spec():
     f = os.path.join('configs', "mandatory_tour_frequency.csv")
-    return asim.read_model_spec(f).head(87)
+    return asim.read_model_spec(f)
 
 
 @sim.table()
@@ -117,6 +120,9 @@ def auto_ownership_simulate(households,
         asim.simple_simulate(choosers, alternatives, auto_ownership_spec,
                              mult_by_alt_col=True)
 
+    # map these back to integers
+    choices = choices.map(dict([("cars%d"%i, i) for i in range(MAX_NUM_CARS)]))
+
     print "Choices:\n", choices.value_counts()
     sim.add_column("households", "auto_ownership", choices)
 
@@ -155,11 +161,14 @@ def workplace_location_simulate(persons,
 
 @sim.model()
 def mandatory_tour_frequency(persons,
+                             households,
+                             land_use,
                              mandatory_tour_frequency_alts,
                              mandatory_tour_frequency_spec):
 
-    choosers = persons.to_frame()
-    print mandatory_tour_frequency_spec
+    choosers = sim.merge_tables(persons.name, tables=[persons,
+                                                      households,
+                                                      land_use])
 
     choices, model_design = \
         asim.simple_simulate(choosers,
@@ -199,6 +208,46 @@ def home_taz(households):
     return households.TAZ
 
 
+@sim.column("households")
+def household_type(households, settings):
+    return households.HHT.map(settings["household_type_map"])
+
+
+@sim.column("households")
+def non_family(households):
+    return households.household_type.isin(["nonfamily_male_alone",
+                                           "nonfamily_male_notalone",
+                                           "nonfamily_female_alone",
+                                           "nonfamily_female_notalone"])
+
+
+# can't just invert these unfortunately because there's a null household type
+@sim.column("households")
+def family(households):
+    return households.household_type.isin(["family_married",
+                                           "family_male",
+                                           "family_female"])
+
+
+@sim.column("households")
+def num_under16_not_at_school(persons, households):
+    return persons.under16_not_at_school.groupby(persons.household_id).size().\
+        reindex(households.index).fillna(0)
+
+
+# TODO - this is my "placeholder" for the CDAP model ;)
+@sim.column("persons")
+def cdap_activity(persons):
+    return pd.Series(np.random.randint(3, size=len(persons)),
+                     index=persons.index).map({0: 'M', 1: 'N', 2: 'H'})
+
+
+@sim.column("persons")
+def under16_not_at_school(persons):
+    return (persons.ptype_cat.isin(["school", "preschool"]) &
+            persons.cdap_activity.isin(["N", "H"]))
+
+
 # for now, this really is just a dictionary lookup
 @sim.column("persons")
 def employed_cat(persons, settings):
@@ -211,17 +260,24 @@ def student_cat(persons, settings):
 
 
 @sim.column("persons")
-def student_is_employed(persons):
-    ec = persons.employed_cat
-    sc = persons.student_cat
-    return ((ec == 'full') | (ec == 'part')) & \
-           ((sc == 'high') | (sc == 'college'))
+def ptype_cat(persons, settings):
+    return persons.ptype.map(settings["person_type_map"])
 
 
 @sim.column("persons")
-def home_taz(households, persons):
-    return usim_misc.reindex(households.home_taz,
-                             persons.household_id)
+def student_is_employed(persons):
+    pt = persons.ptype_cat
+    ec = persons.employed_cat
+    return (pt.isin(['university', 'driving']) &
+            ec.isin(['full', 'part']))
+
+
+@sim.column("persons")
+def nonstudent_to_school(persons):
+    pt = persons.ptype_cat
+    sc = persons.student_cat
+    return (pt.isin(['full', 'part', 'nonwork', 'retired']) &
+            sc.isin(['high', 'college']))
 
 
 @sim.column("persons")
@@ -234,6 +290,12 @@ def distance_to_work(persons, distance_skim):
 @sim.column("persons")
 def workplace_taz(persons):
     return pd.Series(1, persons.index)
+
+
+@sim.column("persons")
+def home_taz(households, persons):
+    return usim_misc.reindex(households.home_taz,
+                             persons.household_id)
 
 
 @sim.column("persons")

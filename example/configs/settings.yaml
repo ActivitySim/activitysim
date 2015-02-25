@@ -1,6 +1,6 @@
 store: mtc_asim.h5
 
-households_sample_size: 10000
+households_sample_size: 1000
 
 county_map:
     San Francisco: 1

@@ -52,7 +52,7 @@ Read in the omx files and create the skim objects
 
 @sim.injectable()
 def nonmotskm_omx():
-    return omx.openFile(os.path.join('data', "nonmotskm.omx.csv"))
+    return omx.openFile(os.path.join('data', "nonmotskm.omx"))
 
 
 @sim.injectable()
@@ -106,7 +106,7 @@ def mandatory_tour_frequency_spec():
 @sim.injectable()
 def non_mandatory_tour_frequency_spec():
     f = os.path.join('configs', "non_mandatory_tour_frequency_ftw.csv")
-    return asim.read_model_spec(f).head(10)
+    return asim.read_model_spec(f).head(55)
 
 
 @sim.table()
@@ -232,6 +232,10 @@ def mandatory_tour_frequency(persons,
                                                       households,
                                                       land_use])
 
+    # filter based on results of CDAP
+    choosers = choosers[choosers.cdap_activity == 'M']
+    print "%d persons run for mandatory tour model" % len(choosers)
+
     choices, model_design = \
         asim.simple_simulate(choosers,
                              mandatory_tour_frequency_alts.to_frame(),
@@ -262,17 +266,26 @@ def non_mandatory_tour_frequency(persons,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec):
 
+    print non_mandatory_tour_frequency_spec.tail()
+
     choosers = sim.merge_tables(persons.name, tables=[persons,
                                                       households,
                                                       land_use])
+
+    # filter based on results of CDAP
+    choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
+    print "%d persons run for non-mandatory tour model" % len(choosers)
 
     choices, model_design = \
         asim.simple_simulate(choosers,
                              non_mandatory_tour_frequency_alts.to_frame(),
                              non_mandatory_tour_frequency_spec,
-                             mult_by_alt_col=True)
+                             mult_by_alt_col=False)
 
     print "Choices:\n", choices.value_counts()
+    # this is adding the INDEX of the alternative that is chosen - when
+    # we use the results of this choice we will need both these indexes AND
+    # the alternatives themselves
     sim.add_column("persons", "non_mandatory_tour_frequency", choices)
 
     return model_design
@@ -402,13 +415,27 @@ def num_joint_tours(persons):
 # count the number of mandatory tours for each person
 @sim.column("persons")
 def num_mand(persons):
-    return persons.mandatory_tour_frequency.map({
+    # FIXME this is really because we ask for ALL columns in the persons data
+    # FIXME frame - urbansim actually only asks for the columns that are used by
+    # FIXME the model specs in play at that time
+    if "mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    s = persons.mandatory_tour_frequency.map({
         "work1": 1,
         "work2": 2,
         "school1": 1,
         "school2": 2,
         "work_and_school": 2
     })
+    return s
+
+
+# FIXME now totally sure what this is but it's used in non mandatory tour
+# FIXME generation and probably has to do with remaining unscheduled time
+@sim.column('persons')
+def max_window(persons):
+    return pd.Series(0, persons.index)
 
 
 # convert employment categories to string descriptors

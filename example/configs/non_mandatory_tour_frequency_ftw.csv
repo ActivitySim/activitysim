@@ -13,50 +13,50 @@ Number of Mandatory tours & tour frequency =2,num_mand*(tot_tours == 2),-0.8887
 Number of Mandatory tours & tour frequency =3,num_mand*(tot_tours == 3),-2.3343
 Number of Mandatory tours & tour frequency =4,num_mand*(tot_tours == 4),-2.3343
 Number of Mandatory tours & tour frequency = 5+,num_mand*(tot_tours > 5),-2.3343
-Number of Joint tours & tour frequency =0,"num_joint_tours*IF(tot_tours==0,1,0)",0
-Number of Joint tours & tour frequency =1,"num_joint_tours*IF(tot_tours==1,1,0)",0
-Number of Joint tours & tour frequency =2,"num_joint_tours*IF(tot_tours==2,1,0)",0
-Number of Joint tours & tour frequency =3,"num_joint_tours*IF(tot_tours==3,1,0)",0
-Number of Joint tours & tour frequency =4,"num_joint_tours*IF(tot_tours==4,1,0)",0
-Number of Joint tours & tour frequency = 5+,"num_joint_tours*IF(tot_tours>4,1,0)",0
+Number of Joint tours & tour frequency =0,num_joint_tours*(tot_tours == 0),0
+Number of Joint tours & tour frequency =1,num_joint_tours*(tot_tours == 1),0
+Number of Joint tours & tour frequency =2,num_joint_tours*(tot_tours == 2),0
+Number of Joint tours & tour frequency =3,num_joint_tours*(tot_tours == 3),0
+Number of Joint tours & tour frequency =4,num_joint_tours*(tot_tours == 4),0
+Number of Joint tours & tour frequency = 5+,num_joint_tours*(tot_tours == 5),0
 Number of Joint Shopping tours,num_shop_j,0
 Number of Joint Maintenance tours,num_main_j,0
 Number of Joint Eating Out tours,num_eat_j,-0.5866
 Number of Joint Visit tours,num_visi_j,0
 Number of Joint Discretionary tours,num_disc_j,0
-"Logged Maximum Residual Window, tour frequency =0","maxwindow*IF(tot_tours==0,1,0)",0
-"Logged Maximum Residual Window, tour frequency =1","maxwindow*IF(tot_tours==1,1,0)",1.2562
-"Logged Maximum Residual Window, tour frequency =2","maxwindow*IF(tot_tours==2,1,0)",1.2868
-"Logged Maximum Residual Window, tour frequency =3","maxwindow*IF(tot_tours==3,1,0)",1.3993
-"Logged Maximum Residual Window, tour frequency =4","maxwindow*IF(tot_tours==4,1,0)",1.3993
-"Logged Maximum Residual Window, tour frequency =5+","maxwindow*IF(tot_tours>4,1,0)",1.3993
-Dummy for Mediumlow Income group (20K-50K) & tour frequency=1,"IF(med1inc==1,1,0)*IF(tot_tours==1,1,0)",0.4981
-Dummy for Mediumlow Income group (20K-50K) & tour frequency=2,"IF(med1inc==1,1,0)*IF(tot_tours==2,1,0)",0.8345
-Dummy for Mediumlow Income group (20K-50K) & tour frequency=3,"IF(med1inc==1,1,0)*IF(tot_tours==3,1,0)",1.0213
-Dummy for Mediumlow Income group (20K-50K) & tour frequency=4,"IF(med1inc==1,1,0)*IF(tot_tours==4,1,0)",1.0213
-Dummy for Mediumlow Income group (20K-50K) & tour frequency=5+,"IF(med1inc==1,1,0)*IF(tot_tours>4,1,0)",1.0213
-Dummy for MediumHigh Income group (50K-100K) & tour frequency=1,"IF(med2inc==1,1,0)*IF(tot_tours==1,1,0)",0.4981
-Dummy for MediumHigh Income group (50K-100K) & tour frequency=2,"IF(med2inc==1,1,0)*IF(tot_tours==2,1,0)",0.8345
-Dummy for MediumHigh Income group (50K-100K) & tour frequency=3,"IF(med2inc==1,1,0)*IF(tot_tours==3,1,0)",1.0213
-Dummy for MediumHigh Income group (50K-100K) & tour frequency=4,"IF(med2inc==1,1,0)*IF(tot_tours==4,1,0)",1.0213
-Dummy for MediumHigh Income group (50K-100K) & tour frequency=5+,"IF(med2inc==1,1,0)*IF(tot_tours>4,1,0)",1.0213
-Dummy for High Income group (>100K) & tour frequency=1,"IF(highinc==1,1,0)*IF(tot_tours==1,1,0)",0.5189
-Dummy for High Income group (>100K) & tour frequency=2,"IF(highinc==1,1,0)*IF(tot_tours==2,1,0)",1.1336
-Dummy for High Income group (>100K) & tour frequency=3,"IF(highinc==1,1,0)*IF(tot_tours==3,1,0)",1.3899
-Dummy for High Income group (>100K) & tour frequency=4,"IF(highinc==1,1,0)*IF(tot_tours==4,1,0)",1.3899
-Dummy for High Income group (>100K) & tour frequency=5+,"IF(highinc==1,1,0)*IF(tot_tours>4,1,0)",1.3899
-Dummy for Mediumlow Income group (20K-50K) & shopping tour,"shopping*IF(med1inc==1,1,0)",0
-Dummy for Mediumhigh Income group (50K-100K) & shopping tour,"shopping*IF(med2inc==1,1,0)",0
-Dummy for High Income group (>100K) & shopping tour,"shopping*IF(highinc==1,1,0)",0
-Dummy for Mediumlow Income group (20K-50K) & maintenance tour,"othmaint*IF(med1inc==1,1,0)",0
-Dummy for Mediumhigh Income group (50K-100K) & maintenance tour,"othmaint*IF(med2inc==1,1,0)",0
-Dummy for High Income group (>100K) & maintenance tour,"othmaint*IF(highinc==1,1,0)",0
-Dummy for Mediumlow Income group (20K-50K) & Eating out tour,"eatout*IF(med1inc==1,1,0)",0
-Dummy for Mediumhigh Income group (50K-100K) & Eating out tour,"eatout*IF(med2inc==1,1,0)",0.5581
-Dummy for High Income group (>100K) & Eating out tour,"eatout*IF(highinc==1,1,0)",0.5581
-Dummy for Mediumlow Income group (20K-50K) & Discretionary tour,"othdiscr*IF(med1inc==1,1,0)",0
-Dummy for Mediumhigh Income group (50K-100K) & Discretionary tour,"othdiscr*IF(med2inc==1,1,0)",0.2565
-Dummy for High Income group (>100K) & Discretionary tour,"othdiscr*IF(highinc==1,1,0)",0.2565
+"Logged Maximum Residual Window, tour frequency =0",max_window*(tot_tours == 0),0
+"Logged Maximum Residual Window, tour frequency =1",max_window*(tot_tours == 1),1.2562
+"Logged Maximum Residual Window, tour frequency =2",max_window*(tot_tours == 2),1.2868
+"Logged Maximum Residual Window, tour frequency =3",max_window*(tot_tours == 3),1.3993
+"Logged Maximum Residual Window, tour frequency =4",max_window*(tot_tours == 4),1.3993
+"Logged Maximum Residual Window, tour frequency =5+",max_window*(tot_tours == 5),1.3993
+Dummy for Mediumlow Income group (20K-50K) & tour frequency=1,(20 < income_in_thousands <= 50) & (tot_tours == 1),0.4981
+Dummy for Mediumlow Income group (20K-50K) & tour frequency=2,(20 < income_in_thousands <= 50) & (tot_tours == 2),0.8345
+Dummy for Mediumlow Income group (20K-50K) & tour frequency=3,(20 < income_in_thousands <= 50) & (tot_tours == 3),1.0213
+Dummy for Mediumlow Income group (20K-50K) & tour frequency=4,(20 < income_in_thousands <= 50) & (tot_tours == 4),1.0213
+Dummy for Mediumlow Income group (20K-50K) & tour frequency=5+,(20 < income_in_thousands <= 50) & (tot_tours == 5),1.0213
+Dummy for MediumHigh Income group (50K-100K) & tour frequency=1,(50 < income_in_thousands <= 100) & (tot_tours == 1),0.4981
+Dummy for MediumHigh Income group (50K-100K) & tour frequency=2,(50 < income_in_thousands <= 100) & (tot_tours == 2),0.8345
+Dummy for MediumHigh Income group (50K-100K) & tour frequency=3,(50 < income_in_thousands <= 100) & (tot_tours == 3),1.0213
+Dummy for MediumHigh Income group (50K-100K) & tour frequency=4,(50 < income_in_thousands <= 100) & (tot_tours == 4),1.0213
+Dummy for MediumHigh Income group (50K-100K) & tour frequency=5+,(50 < income_in_thousands <= 100) & (tot_tours == 5),1.0213
+Dummy for High Income group (>100K) & tour frequency=1,(100 < income_in_thousands) & (tot_tours == 1),0.5189
+Dummy for High Income group (>100K) & tour frequency=2,(100 < income_in_thousands) & (tot_tours == 2),1.1336
+Dummy for High Income group (>100K) & tour frequency=3,(100 < income_in_thousands) & (tot_tours == 3),1.3899
+Dummy for High Income group (>100K) & tour frequency=4,(100 < income_in_thousands) & (tot_tours == 4),1.3899
+Dummy for High Income group (>100K) & tour frequency=5+,(100 < income_in_thousands) & (tot_tours == 5),1.3899
+Dummy for Mediumlow Income group (20K-50K) & shopping tour,(20 < income_in_thousands <= 50) & (shopping > 0),0
+Dummy for Mediumhigh Income group (50K-100K) & shopping tour,(50 < income_in_thousands <= 100) & (shopping > 0),0
+Dummy for High Income group (>100K) & shopping tour,(100 < income_in_thousands) & (shopping > 0),0
+Dummy for Mediumlow Income group (20K-50K) & maintenance tour,(20 < income_in_thousands <= 50) & (othmaint > 0),0
+Dummy for Mediumhigh Income group (50K-100K) & maintenance tour,(50 < income_in_thousands <= 100) & (othmaint > 0),0
+Dummy for High Income group (>100K) & maintenance tour,(100 < income_in_thousands) & (othmaint > 0),0
+Dummy for Mediumlow Income group (20K-50K) & Eating out tour,(20 < income_in_thousands <= 50) & (eatout > 0),0
+Dummy for Mediumhigh Income group (50K-100K) & Eating out tour,(50 < income_in_thousands <= 100) & (eatout > 0),0.5581
+Dummy for High Income group (>100K) & Eating out tour,(100 < income_in_thousands) & (eatout > 0),0.5581
+Dummy for Mediumlow Income group (20K-50K) & Discretionary tour,(20 < income_in_thousands <= 50) & (othdiscr > 0),0
+Dummy for Mediumhigh Income group (50K-100K) & Discretionary tour,(50 < income_in_thousands <= 100) & (othdiscr > 0),0.2565
+Dummy for High Income group (>100K) & Discretionary tour,(100 < income_in_thousands) & (othdiscr > 0),0.2565
 Dummy for Mediumlow Income group (20K-50K) & Visiting tour,"social*IF(med1inc==1,1,0)",0
 Dummy for Mediumhigh Income group (50K-100K) & Visiting tour,"social*IF(med2inc==1,1,0)",-0.2423
 Dummy for High Income group (>100K) & Visiting tour,"social*IF(highinc==1,1,0)",-0.2423

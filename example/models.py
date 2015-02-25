@@ -36,6 +36,15 @@ def zones():
     return pd.DataFrame({"TAZ": np.arange(1454)+1}).set_index("TAZ")
 
 
+@sim.table()
+def non_mandatory_tour_frequency_alts():
+    f = os.path.join("configs",
+                     "non_mandatory_tour_frequency_alternatives.csv")
+    df = pd.read_csv(f)
+    df["tot_tours"] = df.sum(axis=1)
+    return df
+
+
 """
 Read in the omx files and create the skim objects
 """
@@ -43,7 +52,7 @@ Read in the omx files and create the skim objects
 
 @sim.injectable()
 def nonmotskm_omx():
-    return omx.openFile('data/nonmotskm.omx')
+    return omx.openFile(os.path.join('data', "nonmotskm.omx.csv"))
 
 
 @sim.injectable()
@@ -92,6 +101,12 @@ def workplace_location_spec():
 def mandatory_tour_frequency_spec():
     f = os.path.join('configs', "mandatory_tour_frequency.csv")
     return asim.read_model_spec(f)
+
+
+@sim.injectable()
+def non_mandatory_tour_frequency_spec():
+    f = os.path.join('configs', "non_mandatory_tour_frequency_ftw.csv")
+    return asim.read_model_spec(f).head(10)
 
 
 @sim.table()
@@ -168,6 +183,8 @@ assume there are workplaces for the people to work.
 """
 
 
+# FIXME there are three school models that go along with this one which have
+# FIXME not been implemented yet
 @sim.model()
 def workplace_location_simulate(persons,
                                 households,
@@ -223,6 +240,40 @@ def mandatory_tour_frequency(persons,
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("persons", "mandatory_tour_frequency", choices)
+
+    return model_design
+
+
+"""
+This model predicts the frequency of making non-mandatory trips (
+alternatives for this model come from a seaparate csv file which is
+configured by the user) - these trips include escort, shopping, othmaint,
+othdiscr, eatout, and social trips in various combination.
+"""
+
+
+# FIXME there are 8 different person types, all of which have a different
+# FIXME specification for this model - at this time, only the full time
+# FIXME worker person type is being implemented
+@sim.model()
+def non_mandatory_tour_frequency(persons,
+                                 households,
+                                 land_use,
+                                 non_mandatory_tour_frequency_alts,
+                                 non_mandatory_tour_frequency_spec):
+
+    choosers = sim.merge_tables(persons.name, tables=[persons,
+                                                      households,
+                                                      land_use])
+
+    choices, model_design = \
+        asim.simple_simulate(choosers,
+                             non_mandatory_tour_frequency_alts.to_frame(),
+                             non_mandatory_tour_frequency_spec,
+                             mult_by_alt_col=True)
+
+    print "Choices:\n", choices.value_counts()
+    sim.add_column("persons", "non_mandatory_tour_frequency", choices)
 
     return model_design
 
@@ -305,6 +356,59 @@ for the persons table
 def cdap_activity(persons):
     return pd.Series(np.random.randint(3, size=len(persons)),
                      index=persons.index).map({0: 'M', 1: 'N', 2: 'H'})
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_shop_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_main_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_eat_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_visi_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_disc_j(persons):
+    return pd.Series(0, persons.index)
+
+
+@sim.column("persons")
+def num_joint_tours(persons):
+    return persons.num_shop_j + persons.num_main_j + persons.num_eat_j +\
+        persons.num_visi_j + persons.num_disc_j
+
+
+# count the number of mandatory tours for each person
+@sim.column("persons")
+def num_mand(persons):
+    return persons.mandatory_tour_frequency.map({
+        "work1": 1,
+        "work2": 2,
+        "school1": 1,
+        "school2": 2,
+        "work_and_school": 2
+    })
 
 
 # convert employment categories to string descriptors

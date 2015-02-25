@@ -1,18 +1,18 @@
 Description,Expression,Alt
-Total Number of Tours  = 0 (No Prior Tours),"IF(tot_tours==0,1,0)",-999
-Total Number of Tours  = 0 (1 or more Prior Tours),"IF(tot_tours==0,1,0)",0
-Total Number of Tours  = 1,"IF(tot_tours==1,1,0)",-7.3572
-Total Number of Tours  = 2,"IF(tot_tours==2,1,0)",-10.647
-Total Number of Tours  = 3,"IF(tot_tours==3,1,0)",-13.5005
-Total Number of Tours  = 4,"IF(tot_tours==4,1,0)",-16.3965
-Total Number of Tours  = 5,"IF(tot_tours==5,1,0)",-19.6843
-Total Number of Tours  = 6+,"IF(tot_tours>5,1,0)",-999
-Number of Mandatory tours & tour frequency =0,"num_mand*IF(tot_tours==0,1,0)",0
-Number of Mandatory tours & tour frequency =1,"num_mand*IF(tot_tours==1,1,0)",0
-Number of Mandatory tours & tour frequency =2,"num_mand*IF(tot_tours==2,1,0)",-0.8887
-Number of Mandatory tours & tour frequency =3,"num_mand*IF(tot_tours==3,1,0)",-2.3343
-Number of Mandatory tours & tour frequency =4,"num_mand*IF(tot_tours==4,1,0)",-2.3343
-Number of Mandatory tours & tour frequency = 5+,"num_mand*IF(tot_tours>4,1,0)",-2.3343
+Total Number of Tours  = 0 (No Prior Tours),(tot_tours == 0) & (num_mand == 0) & (num_joint_tours == 0),-999
+Total Number of Tours  = 0 (1 or more Prior Tours),(tot_tours == 0) & ((num_mand > 0) | (num_joint_tours > 0)),0
+Total Number of Tours  = 1,tot_tours == 1,-7.3572
+Total Number of Tours  = 2,tot_tours == 2,-10.647
+Total Number of Tours  = 3,tot_tours == 3,-13.5005
+Total Number of Tours  = 4,tot_tours == 4,-16.3965
+Total Number of Tours  = 5,tot_tours == 5,-19.6843
+Total Number of Tours  = 6+,tot_tours > 5,-999
+Number of Mandatory tours & tour frequency =0,num_mand*(tot_tours == 0),0
+Number of Mandatory tours & tour frequency =1,num_mand*(tot_tours == 1),0
+Number of Mandatory tours & tour frequency =2,num_mand*(tot_tours == 2),-0.8887
+Number of Mandatory tours & tour frequency =3,num_mand*(tot_tours == 3),-2.3343
+Number of Mandatory tours & tour frequency =4,num_mand*(tot_tours == 4),-2.3343
+Number of Mandatory tours & tour frequency = 5+,num_mand*(tot_tours > 5),-2.3343
 Number of Joint tours & tour frequency =0,"num_joint_tours*IF(tot_tours==0,1,0)",0
 Number of Joint tours & tour frequency =1,"num_joint_tours*IF(tot_tours==1,1,0)",0
 Number of Joint tours & tour frequency =2,"num_joint_tours*IF(tot_tours==2,1,0)",0

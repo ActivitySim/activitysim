@@ -113,8 +113,8 @@ Dummy for Presence of University Student (other than modeled person) & Escorting
 Dummy for Presence of Driving School Kid (other than modeled person) & Escorting tour ,has_driving_kid * escort,0.3601
 Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Escorting tour ,has_school_kid * escort,1.3974
 Dummy for Presence of Pre-School Kid (other than modeled person) & Escorting tour ,has_preschool_kid * escort,0.6842
-Dummy for At home Pre-Driving School Kid & Escorting tour ,,-0.2746
-Dummy for At homef Pre-School Kid & Escorting tour ,,-1.5675
+Dummy for At home Pre-Driving School Kid & Escorting tour ,has_school_kid_at_home * escort,-0.2746
+Dummy for At homef Pre-School Kid & Escorting tour ,has_preschool_kid_at_home * escort,-1.5675
 Dummy for Presence of Full time Worker (other than modeled person) & Shopping tour ,has_full_time * shopping,-0.3059
 Dummy for Presence of Part time Worker (other than modeled person) & Shopping tour ,has_part_time * shopping,-0.1541
 Dummy for Presence of Non-Worker (other than modeled person) & Shopping tour ,has_non_worker * shopping,-0.416
@@ -123,8 +123,8 @@ Dummy for Presence of University Student (other than modeled person) & Shopping 
 Dummy for Presence of Driving School Kid (other than modeled person) & Shopping tour ,has_driving_kid * shopping,0
 Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Shopping tour ,has_school_kid * shopping,0
 Dummy for Presence of Pre-School Kid (other than modeled person) & Shopping tour ,has_preschool_kid * shopping,-0.208
-Dummy for At home Pre-Driving School Kid & Shopping tour ,,0
-Dummy for At homef Pre-School Kid & Shopping tour ,,0
+Dummy for At home Pre-Driving School Kid & Shopping tour ,has_school_kid_at_home * shopping,0
+Dummy for At homef Pre-School Kid & Shopping tour ,has_preschool_kid_at_home * shopping,0
 Dummy for Presence of Full time Worker (other than modeled person) & Maintenance tour ,has_full_time * othmaint,-0.1685
 Dummy for Presence of Part time Worker (other than modeled person) & Maintenance tour ,has_part_time * othmaint,-0.1584
 Dummy for Presence of Non-Worker(other than modeled person) & Maintenance tour ,has_non_worker * othmaint,-0.3237
@@ -133,8 +133,8 @@ Dummy for Presence of University Student (other than modeled person) & Maintenan
 Dummy for Presence of Driving School Kid (other than modeled person) & Maintenance tour ,has_driving_kid * othmaint,0
 Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Maintenance tour ,has_school_kid * othmaint,0
 Dummy for Presence of Pre-School Kid (other than modeled person) & Maintenance tour ,has_preschool_kid * othmaint,0
-Dummy for At home Pre-Driving School Kid & Maintenance tour ,,0
-Dummy for At homef Pre-School Kid & Maintenance tour ,,0
+Dummy for At home Pre-Driving School Kid & Maintenance tour ,has_school_kid_at_home * othmaint,0
+Dummy for At homef Pre-School Kid & Maintenance tour ,has_preschool_kid_at_home * othmaint,0
 Dummy for Presence of Full time Worker (other than modeled person) & Eating Out tour ,has_full_time * eatout,-0.3571
 Dummy for Presence of Part time Worker (other than modeled person) & Eating Out tour ,has_part_time * eatout,0
 Dummy for Presence of Non-Worker (other than modeled person) & Eating Out tour ,has_non_worker * eatout,-0.2014
@@ -143,18 +143,18 @@ Dummy for Presence of University Student (other than modeled person) & Eating Ou
 Dummy for Presence of Driving School Kid (other than modeled person) & Eating Out tour ,has_driving_kid * eatout,0
 Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Eating Out tour ,has_school_kid * eatout,0
 Dummy for Presence of Pre-School Kid (other than modeled person) & Eating Out tour ,has_preschool_kid * eatout,-0.4225
-Dummy for At home Pre-Driving School Kid & Eating Out tour ,,0
-Dummy for At homef Pre-School Kid & Eating Out tour ,,0
-Dummy for Presence of Full time Worker (other than modeled person) & Discretionary tour ,has_full_time * othdisc,-0.667
-Dummy for Presence of Part time Worker (other than modeled person) & Discretionary tour ,has_part_time * othdisc,-0.2102
-Dummy for Presence of Non-Worker  (other than modeled person) & Discretionary tour ,has_non_worker * othdisc,-0.4281
-Dummy for Presence of Retiree (other than modeled person) & Discretionary tour ,has_retiree * othdisc,-0.9104
-Dummy for Presence of University Student (other than modeled person) & Discretionary tour ,has_university * othdisc,-0.8551
-Dummy for Presence of Driving School Kid (other than modeled person) & Discretionary tour ,has_driving_kid * othdisc,-0.3963
-Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Discretionary tour ,has_school_kid * othdisc,-0.3959
-Dummy for Presence of Pre-School Kid (other than modeled person) & Discretionary tour ,has_preschool_kid * othdisc,-0.5081
-Dummy for At home Pre-Driving School Kid & Discretionary tour ,,-0.4703
-Dummy for At homef Pre-School Kid & Discretionary tour ,,-0.4703
+Dummy for At home Pre-Driving School Kid & Eating Out tour ,has_school_kid_at_home * eatout,0
+Dummy for At homef Pre-School Kid & Eating Out tour ,has_preschool_kid_at_home * eatout,0
+Dummy for Presence of Full time Worker (other than modeled person) & Discretionary tour ,has_full_time * othdiscr,-0.667
+Dummy for Presence of Part time Worker (other than modeled person) & Discretionary tour ,has_part_time * othdiscr,-0.2102
+Dummy for Presence of Non-Worker  (other than modeled person) & Discretionary tour ,has_non_worker * othdiscr,-0.4281
+Dummy for Presence of Retiree (other than modeled person) & Discretionary tour ,has_retiree * othdiscr,-0.9104
+Dummy for Presence of University Student (other than modeled person) & Discretionary tour ,has_university * othdiscr,-0.8551
+Dummy for Presence of Driving School Kid (other than modeled person) & Discretionary tour ,has_driving_kid * othdiscr,-0.3963
+Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Discretionary tour ,has_school_kid * othdiscr,-0.3959
+Dummy for Presence of Pre-School Kid (other than modeled person) & Discretionary tour ,has_preschool_kid * othdiscr,-0.5081
+Dummy for At home Pre-Driving School Kid & Discretionary tour ,has_school_kid_at_home * othdiscr,-0.4703
+Dummy for At homef Pre-School Kid & Discretionary tour ,has_preschool_kid_at_home * othdiscr,-0.4703
 Walk Access to Retail & Tour Frequency =1,NONMOTORIZEDRETAIL * (tot_tours == 1),0
 Walk Access to Retail & Tour Frequency =2,NONMOTORIZEDRETAIL * (tot_tours == 2),0
 Walk Access to Retail & Tour Frequency =3,NONMOTORIZEDRETAIL * (tot_tours == 3),0
@@ -202,4 +202,4 @@ Urban Areatype & Discretionary tour,home_is_urban * othdiscr,0
 1+ Eating Out Tours Constant,eatout >= 1,0.0097
 1+ Visting Tours Constant,social >= 1,0.0522
 1+ Other Discretionary Tours Constant,othdiscr >= 1,0.7412
-Dummy for 0-auto household & Escorting Tour,escort & no_auto,-2
+Dummy for 0-auto household & Escorting Tour,escort * no_cars,-2

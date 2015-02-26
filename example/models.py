@@ -263,6 +263,7 @@ othdiscr, eatout, and social trips in various combination.
 def non_mandatory_tour_frequency(persons,
                                  households,
                                  land_use,
+                                 accessibility,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec):
 
@@ -270,7 +271,8 @@ def non_mandatory_tour_frequency(persons,
 
     choosers = sim.merge_tables(persons.name, tables=[persons,
                                                       households,
-                                                      land_use])
+                                                      land_use,
+                                                      accessibility])
 
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
@@ -385,9 +387,15 @@ def car_sufficiency(households, persons):
 
 # this is an idiom to grab the person of the specified type and check to see if
 # there is 1 or more of that kind of person in each household
-def presence_of(ptype, persons, households):
-    return (persons.household_id[persons.ptype_cat == ptype].\
-        value_counts() > 0).reindex(households.index).fillna(False)
+def presence_of(ptype, persons, households, at_home=False):
+    if at_home:
+        # if at_home, they need to be of given type AND at home
+        s = persons.household_id[(persons.ptype_cat == ptype) &
+                                 (persons.cdap_activity == "H")]
+    else:
+        s = persons.household_id[persons.ptype_cat == ptype]
+
+    return (s.value_counts() > 0).reindex(households.index).fillna(False)
 
 
 # FIXME this is in non-mandatory tour generation - and should really be from
@@ -414,6 +422,13 @@ def has_preschool_kid(persons, households):
 # FIXME this is in non-mandatory tour generation - and should really be from
 # FIXME the perspective of the current chooser - which it's not right now
 @sim.column('households')
+def has_preschool_kid_at_home(persons, households):
+    return presence_of("preschool", persons, households, at_home=True)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
 def has_driving_kid(persons, households):
     return presence_of("driving", persons, households)
 
@@ -428,6 +443,13 @@ def has_school_kid(persons, households):
 # FIXME this is in non-mandatory tour generation - and should really be from
 # FIXME the perspective of the current chooser - which it's not right now
 @sim.column('households')
+def has_school_kid_at_home(persons, households):
+    return presence_of("school", persons, households, at_home=True)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
 def has_full_time(persons, households):
     return presence_of("full", persons, households)
 
@@ -437,13 +459,6 @@ def has_full_time(persons, households):
 @sim.column('households')
 def has_part_time(persons, households):
     return presence_of("part", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_university(persons, households):
-    return presence_of("university", persons, households)
 
 
 """

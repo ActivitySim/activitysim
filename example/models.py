@@ -46,7 +46,7 @@ def non_mandatory_tour_frequency_alts():
 @sim.column("non_mandatory_tour_frequency_alts")
 def tot_tours(non_mandatory_tour_frequency_alts):
     # this assumes that the alt dataframe is only counts of trip types
-    return non_mandatory_tour_frequency_alts.sum(axis=1)
+    return non_mandatory_tour_frequency_alts.local.sum(axis=1)
 
 
 """
@@ -377,11 +377,17 @@ def destination_choice(non_mandatory_tours,
 
     tours = non_mandatory_tours
 
+    # FIXME these models don't have size terms at the moment
+
+    # FIXME these models don't use stratified sampling
+
+    # FIXME is the distance to the second trip based on the choice of the
+    # FIXME first trip - ouch!
+
     # choosers are tours - in a sense tours are choosing their destination
     choosers = sim.merge_tables(tours.name, tables=[tours,
                                                     persons,
-                                                    households,
-                                                    land_use])
+                                                    households])
 
     skims = {
         "distance": distance_skim
@@ -410,7 +416,7 @@ def destination_choice(non_mandatory_tours,
 
     choices = pd.concat(choices_list)
 
-    print "Choices:\n", choices.value_counts()
+    print "Choices:\n", choices.describe()
     # every trip now has a destination which is the index from the
     # alternatives table - in this case it's the destination taz
     sim.add_column("non_mandatory_tours", "destination", choices)

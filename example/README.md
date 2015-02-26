@@ -15,6 +15,9 @@ appropriate persons.
 variable definitions are shared between regions and how much unique?  Age
 categories are shared?  Income categories are unique?
 
+* This will be pretty easy to catch, but need to make sure the 
+non_mandatory_tour model runs with Matt's changes to simple simulate that are
+ coming.
 
 
 
@@ -56,10 +59,17 @@ put in the example / client-specific stuff?
 * There were some hard coded limits in the original csv - (area_type < 4 and
 distance_to_work < 3) - these are now just left in the csv spec.  Why would
 this be different than (income_in_thousands > 50)?  I've made an effort to
-not have such "magic numbers" in Python code.  (Elizabeth: MAX_NUM_AUTOS
-exists now)
+not have such "magic numbers" in Python code.  EDIT: I've now added an 
+`isurban` variable which reads the area_type from the settings.yaml.  So my 
+convention so far is to leave hard-coded numbers out of the Python, 
+but putting them in the CSV is ok.  (Elizabeth: MAX_NUM_AUTOS exists now)
 
 * Want to name or number the person types in the spec files?
+
+* We're verging on the need to use YAML to configure the model runs - give 
+the non_mandatory_tour model as an example.  Is this too much code for a 
+modeler to manage or is this just right as it makes the model execution 
+transparent to the modeler?
 
 * Big issue: testing for client-specific code?  It's harder because outputs are "data
 dependent."  It's easier to take a small dataset and make sure it always runs.

@@ -105,8 +105,10 @@ def mandatory_tour_frequency_spec():
 
 @sim.injectable()
 def non_mandatory_tour_frequency_spec():
-    f = os.path.join('configs', "non_mandatory_tour_frequency_ftw.csv")
-    return asim.read_model_spec(f)
+    f = os.path.join('configs', "non_mandatory_tour_frequency.csv")
+    # this is a spec in already stacked format
+    # it also has multiple segments in different columns in the spec
+    return asim.read_model_spec(f, stack=False)
 
 
 @sim.table()
@@ -256,9 +258,6 @@ othdiscr, eatout, and social trips in various combination.
 """
 
 
-# FIXME there are 8 different person types, all of which have a different
-# FIXME specification for this model - at this time, only the full time
-# FIXME worker person type is being implemented
 @sim.model()
 def non_mandatory_tour_frequency(persons,
                                  households,
@@ -266,8 +265,6 @@ def non_mandatory_tour_frequency(persons,
                                  accessibility,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec):
-
-    print non_mandatory_tour_frequency_spec.tail()
 
     choosers = sim.merge_tables(persons.name, tables=[persons,
                                                       households,
@@ -278,19 +275,28 @@ def non_mandatory_tour_frequency(persons,
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
     print "%d persons run for non-mandatory tour model" % len(choosers)
 
-    choices, model_design = \
-        asim.simple_simulate(choosers,
-                             non_mandatory_tour_frequency_alts.to_frame(),
-                             non_mandatory_tour_frequency_spec,
-                             mult_by_alt_col=False)
+    choices_list = []
+    # segment by person type and pick the right spec for each person type
+    for name, segment in choosers.groupby('ptype_cat'):
+
+        print "Running segment '%s' of size %d" % (name, len(segment))
+
+        choices, _ = \
+            asim.simple_simulate(segment,
+                                 non_mandatory_tour_frequency_alts.to_frame(),
+                                 # notice that we pick the column for the
+                                 # segment for each segment we run
+                                 non_mandatory_tour_frequency_spec[name],
+                                 mult_by_alt_col=False)
+        choices_list.append(choices)
+
+    choices = pd.concat(choices_list)
 
     print "Choices:\n", choices.value_counts()
     # this is adding the INDEX of the alternative that is chosen - when
     # we use the results of this choice we will need both these indexes AND
     # the alternatives themselves
     sim.add_column("persons", "non_mandatory_tour_frequency", choices)
-
-    return model_design
 
 
 """
@@ -459,6 +465,13 @@ def has_full_time(persons, households):
 @sim.column('households')
 def has_part_time(persons, households):
     return presence_of("part", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_university(persons, households):
+    return presence_of("university", persons, households)
 
 
 """

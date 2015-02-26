@@ -92,6 +92,7 @@ def simple_simulate(choosers, alternatives, spec,
     # evaluate the expressions to build the final matrix
     vars = {}
     for expr in exprs:
+        print expr
         if expr[0][0] == "@":
             if mult_by_alt_col:
                 expr = "({}) * df.{}".format(expr[0][1:], expr[1])

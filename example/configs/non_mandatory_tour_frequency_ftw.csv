@@ -45,31 +45,31 @@ Dummy for High Income group (>100K) & tour frequency=2,(100 < income_in_thousand
 Dummy for High Income group (>100K) & tour frequency=3,(100 < income_in_thousands) & (tot_tours == 3),1.3899
 Dummy for High Income group (>100K) & tour frequency=4,(100 < income_in_thousands) & (tot_tours == 4),1.3899
 Dummy for High Income group (>100K) & tour frequency=5+,(100 < income_in_thousands) & (tot_tours >  4),1.3899
-Dummy for Mediumlow Income group (20K-50K) & shopping tour,(20 < income_in_thousands <= 50) & (shopping > 0),0
-Dummy for Mediumhigh Income group (50K-100K) & shopping tour,(50 < income_in_thousands <= 100) & (shopping > 0),0
-Dummy for High Income group (>100K) & shopping tour,(100 < income_in_thousands) & (shopping > 0),0
-Dummy for Mediumlow Income group (20K-50K) & maintenance tour,(20 < income_in_thousands <= 50) & (othmaint > 0),0
-Dummy for Mediumhigh Income group (50K-100K) & maintenance tour,(50 < income_in_thousands <= 100) & (othmaint > 0),0
-Dummy for High Income group (>100K) & maintenance tour,(100 < income_in_thousands) & (othmaint > 0),0
-Dummy for Mediumlow Income group (20K-50K) & Eating out tour,(20 < income_in_thousands <= 50) & (eatout > 0),0
-Dummy for Mediumhigh Income group (50K-100K) & Eating out tour,(50 < income_in_thousands <= 100) & (eatout > 0),0.5581
-Dummy for High Income group (>100K) & Eating out tour,(100 < income_in_thousands) & (eatout > 0),0.5581
-Dummy for Mediumlow Income group (20K-50K) & Discretionary tour,(20 < income_in_thousands <= 50) & (othdiscr > 0),0
-Dummy for Mediumhigh Income group (50K-100K) & Discretionary tour,(50 < income_in_thousands <= 100) & (othdiscr > 0),0.2565
-Dummy for High Income group (>100K) & Discretionary tour,(100 < income_in_thousands) & (othdiscr > 0),0.2565
-Dummy for Mediumlow Income group (20K-50K) & Visiting tour,(20 < income_in_thousands <= 50) & (social > 0),0
-Dummy for Mediumhigh Income group (50K-100K) & Visiting tour,(50 < income_in_thousands <= 100) & (social > 0),-0.2423
-Dummy for High Income group (>100K) & Visiting tour,(100 < income_in_thousands) & (social > 0),-0.2423
+Dummy for Mediumlow Income group (20K-50K) & shopping tour,(20 < income_in_thousands <= 50) * shopping,0
+Dummy for Mediumhigh Income group (50K-100K) & shopping tour,(50 < income_in_thousands <= 100) * shopping,0
+Dummy for High Income group (>100K) & shopping tour,(100 < income_in_thousands) * shopping,0
+Dummy for Mediumlow Income group (20K-50K) & maintenance tour,(20 < income_in_thousands <= 50) * othmaint,0
+Dummy for Mediumhigh Income group (50K-100K) & maintenance tour,(50 < income_in_thousands <= 100) * othmaint,0
+Dummy for High Income group (>100K) & maintenance tour,(100 < income_in_thousands) * othmaint,0
+Dummy for Mediumlow Income group (20K-50K) & Eating out tour,(20 < income_in_thousands <= 50) * eatout,0
+Dummy for Mediumhigh Income group (50K-100K) & Eating out tour,(50 < income_in_thousands <= 100) * eatout,0.5581
+Dummy for High Income group (>100K) & Eating out tour,(100 < income_in_thousands) * eatout,0.5581
+Dummy for Mediumlow Income group (20K-50K) & Discretionary tour,(20 < income_in_thousands <= 50) * othdiscr,0
+Dummy for Mediumhigh Income group (50K-100K) & Discretionary tour,(50 < income_in_thousands <= 100) * othdiscr,0.2565
+Dummy for High Income group (>100K) & Discretionary tour,(100 < income_in_thousands) * othdiscr,0.2565
+Dummy for Mediumlow Income group (20K-50K) & Visiting tour,(20 < income_in_thousands <= 50) * social,0
+Dummy for Mediumhigh Income group (50K-100K) & Visiting tour,(50 < income_in_thousands <= 100) * social,-0.2423
+Dummy for High Income group (>100K) & Visiting tour,(100 < income_in_thousands) * social,-0.2423
 Dummy for Female & tour frequency =1,female & (tot_tours == 1),-0.0766
 Dummy for Female & tour frequency =2,female & (tot_tours == 2),-0.1062
 Dummy for Female & tour frequency =3,female & (tot_tours == 3),-0.3274
 Dummy for Female & tour frequency =4,female & (tot_tours == 4),-0.3274
 Dummy for Female & tour frequency =5,female & (tot_tours == 5),-0.3274
-Dummy for Female & Escorting Tour,female & (escort > 0),0.1824
-Dummy for Female & Shopping Tour,female & (shopping > 0),0
-Dummy for Female & Maintenance Tour,female & (othmaint > 0),0
-Dummy for Female & EatingOut Tour,female & (eatout > 0),0
-Dummy for Female & Discretionary Tour,female & (othdiscr > 0),0
+Dummy for Female & Escorting Tour,female * escort,0.1824
+Dummy for Female & Shopping Tour,female * shopping,0
+Dummy for Female & Maintenance Tour,female * othmaint,0
+Dummy for Female & EatingOut Tour,female * eatout,0
+Dummy for Female & Discretionary Tour,female * othdiscr,0
 Dummy for zero car ownership & tour frequency =1,no_cars & (tot_tours == 1),-0.3486
 Dummy for zero car ownership & tour frequency =2,no_cars & (tot_tours == 2),-0.3486
 Dummy for zero car ownership & tour frequency =3,no_cars & (tot_tours == 3),-0.3486
@@ -105,101 +105,101 @@ Dummy for Presence of Predriving School Kid (other than modeled person) in House
 Dummy for Presence of Predriving School Kid (other than modeled person) in Household & tour frequency =3,has_school_kid & (tot_tours == 3),0
 Dummy for Presence of Predriving School Kid (other than modeled person) in Household & tour frequency =4,has_school_kid & (tot_tours == 4),0
 Dummy for Presence of Predriving School Kid (other than modeled person) in Household & tour frequency =5,has_school_kid & (tot_tours == 5),0
-Dummy for Presence of Full time Worker (other than modeled person) & Escorting tour ,has_full_time & (escort > 0),0
-Dummy for Presence of Part time Worker (other than modeled person) & Escorting tour ,has_part_time & (escort > 0),0
-Dummy for Presence of Non-Worker (other than modeled person) & Escorting tour ,has_non_worker & (escort > 0),-0.4815
-Dummy for Presence of Retiree (other than modeled person) & Escorting tour ,has_retiree & (escort > 0),-0.808
-Dummy for Presence of University Student (other than modeled person) & Escorting tour ,has_university & (escort > 0),0
-Dummy for Presence of Driving School Kid (other than modeled person) & Escorting tour ,has_driving_kid & (escort > 0),0.3601
-Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Escorting tour ,has_school_kid & (escort > 0),1.3974
-Dummy for Presence of Pre-School Kid (other than modeled person) & Escorting tour ,has_preschool_kid & (escort > 0),0.6842
-Dummy for At home Pre-Driving School Kid & Escorting tour ,"IF(predkid_home==1,1,0)*escort",-0.2746
-Dummy for At homef Pre-School Kid & Escorting tour ,"IF(presch_home==1,1,0)*escort",-1.5675
-Dummy for Presence of Full time Worker (other than modeled person) & Shopping tour ,"IF(fwork_hh==1,1,0)*shopping",-0.3059
-Dummy for Presence of Part time Worker (other than modeled person) & Shopping tour ,"IF(pwork_hh==1,1,0)*shopping",-0.1541
-Dummy for Presence of Non-Worker (other than modeled person) & Shopping tour ,"IF(nwrker_hh==1,1,0)*shopping",-0.416
-Dummy for Presence of Retiree (other than modeled person) & Shopping tour ,"IF(retiree_hh==1,1,0)*shopping",0
-Dummy for Presence of University Student (other than modeled person) & Shopping tour ,"IF(univ_hh==1,1,0)*shopping",0
-Dummy for Presence of Driving School Kid (other than modeled person) & Shopping tour ,"IF(drvkid_hh==1,1,0)*shopping",0
-Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Shopping tour ,"IF(predkid_hh==1,1,0)*shopping",0
-Dummy for Presence of Pre-School Kid (other than modeled person) & Shopping tour ,"IF(presch_hh==1,1,0)*shopping",-0.208
-Dummy for At home Pre-Driving School Kid & Shopping tour ,"IF(predkid_home==1,1,0)*shopping",0
-Dummy for At homef Pre-School Kid & Shopping tour ,"IF(presch_home==1,1,0)*shopping",0
-Dummy for Presence of Full time Worker (other than modeled person) & Maintenance tour ,"IF(fwork_hh==1,1,0)*othmaint",-0.1685
-Dummy for Presence of Part time Worker (other than modeled person) & Maintenance tour ,"IF(pwork_hh==1,1,0)*othmaint",-0.1584
-Dummy for Presence of Non-Worker(other than modeled person) & Maintenance tour ,"IF(nwrker_hh==1,1,0)*othmaint",-0.3237
-Dummy for Presence of Retiree (other than modeled person) & Maintenance tour ,"IF(retiree_hh==1,1,0)*othmaint",0
-Dummy for Presence of University Student (other than modeled person) & Maintenance tour ,"IF(univ_hh==1,1,0)*othmaint",0
-Dummy for Presence of Driving School Kid (other than modeled person) & Maintenance tour ,"IF(drvkid_hh==1,1,0)*othmaint",0
-Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Maintenance tour ,"IF(predkid_hh==1,1,0)*othmaint",0
-Dummy for Presence of Pre-School Kid (other than modeled person) & Maintenance tour ,"IF(presch_hh==1,1,0)*othmaint",0
-Dummy for At home Pre-Driving School Kid & Maintenance tour ,"IF(predkid_home==1,1,0)*othmaint",0
-Dummy for At homef Pre-School Kid & Maintenance tour ,"IF(presch_home==1,1,0)*othmaint",0
-Dummy for Presence of Full time Worker (other than modeled person) & Eating Out tour ,"IF(fwork_hh==1,1,0)*eatout",-0.3571
-Dummy for Presence of Part time Worker (other than modeled person) & Eating Out tour ,"IF(pwork_hh==1,1,0)*eatout",0
-Dummy for Presence of Non-Worker (other than modeled person) & Eating Out tour ,"IF(nwrker_hh==1,1,0)*eatout",-0.2014
-Dummy for Presence of Retiree (other than modeled person) & Eating Out tour ,"IF(retiree_hh==1,1,0)*eatout",-0.5708
-Dummy for Presence of University Student (other than modeled person) & Eating Out tour ,"IF(univ_hh==1,1,0)*eatout",0
-Dummy for Presence of Driving School Kid (other than modeled person) & Eating Out tour ,"IF(drvkid_hh==1,1,0)*eatout",0
-Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Eating Out tour ,"IF(predkid_hh==1,1,0)*eatout",0
-Dummy for Presence of Pre-School Kid (other than modeled person) & Eating Out tour ,"IF(presch_hh==1,1,0)*eatout",-0.4225
-Dummy for At home Pre-Driving School Kid & Eating Out tour ,"IF(predkid_home==1,1,0)*eatout",0
-Dummy for At homef Pre-School Kid & Eating Out tour ,"IF(presch_home==1,1,0)*eatout",0
-Dummy for Presence of Full time Worker (other than modeled person) & Discretionary tour ,"IF(fwork_hh==1,1,0)*othdiscr",-0.667
-Dummy for Presence of Part time Worker (other than modeled person) & Discretionary tour ,"IF(pwork_hh==1,1,0)*othdiscr",-0.2102
-Dummy for Presence of Non-Worker  (other than modeled person) & Discretionary tour ,"IF(nwrker_hh==1,1,0)*othdiscr",-0.4281
-Dummy for Presence of Retiree (other than modeled person) & Discretionary tour ,"IF(retiree_hh==1,1,0)*othdiscr",-0.9104
-Dummy for Presence of University Student (other than modeled person) & Discretionary tour ,"IF(univ_hh==1,1,0)*othdiscr",-0.8551
-Dummy for Presence of Driving School Kid (other than modeled person) & Discretionary tour ,"IF(drvkid_hh==1,1,0)*othdiscr",-0.3963
-Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Discretionary tour ,"IF(predkid_hh==1,1,0)*othdiscr",-0.3959
-Dummy for Presence of Pre-School Kid (other than modeled person) & Discretionary tour ,"IF(presch_hh==1,1,0)*othdiscr",-0.5081
-Dummy for At home Pre-Driving School Kid & Discretionary tour ,"IF(predkid_home==1,1,0)*othdiscr",-0.4703
-Dummy for At homef Pre-School Kid & Discretionary tour ,"IF(presch_home==1,1,0)*othdiscr",-0.4703
-Walk Access to Retail & Tour Frequency =1,"retailWalkAccess*IF(tot_tours==1,1,0)",0
-Walk Access to Retail & Tour Frequency =2,"retailWalkAccess*IF(tot_tours==2,1,0)",0
-Walk Access to Retail & Tour Frequency =3,"retailWalkAccess*IF(tot_tours==3,1,0)",0
-Walk Access to Retail & Tour Frequency =4,"retailWalkAccess*IF(tot_tours==4,1,0)",0
-Walk Access to Retail & Tour Frequency =5+,"retailWalkAccess*IF(tot_tours>5,1,0)",0
-Transit Access to Retail & Tour Frequency =1,"retailTransitAccess*IF(tot_tours==1,1,0)",0.0226
-Transit Access to Retail & Tour Frequency =2,"retailTransitAccess*IF(tot_tours==2,1,0)",0.0226
-Transit Access to Retail & Tour Frequency =3,"retailTransitAccess*IF(tot_tours==3,1,0)",0.0226
-Transit Access to Retail & Tour Frequency =4,"retailTransitAccess*IF(tot_tours==4,1,0)",0.0226
-Transit Access to Retail & Tour Frequency =5+,"retailTransitAccess*IF(tot_tours>5,1,0)",0.0226
-Auto Access to Retail & Tour Frequency =1,"retailAutoAccess*IF(tot_tours==1,1,0)",0
-Auto Access to Retail & Tour Frequency =2,"retailAutoAccess*IF(tot_tours==2,1,0)",0
-Auto Access to Retail & Tour Frequency =3,"retailAutoAccess*IF(tot_tours==3,1,0)",0
-Auto Access to Retail & Tour Frequency =4,"retailAutoAccess*IF(tot_tours==4,1,0)",0
-Auto Access to Retail & Tour Frequency =5+,"retailAutoAccess*IF(tot_tours>5,1,0)",0
-Walk Access to Retail & Escorting ,retailWalkAccess*escort,0.0451
-Transit Access to Retail  & Escorting ,retailTransitAccess*escort,0
-Auto Access to Retail  & Escorting ,retailAutoAccess*escort,0
-Walk Access to Retail & Shopping ,retailWalkAccess*shopping,0.033
-Transit Access to Retail  & Shopping ,retailTransitAccess*shopping,0
-Auto Access to Retail  & Shopping ,retailAutoAccess*shopping,0.1067
-Walk Access to Retail & Maintenance ,retailWalkAccess*othmaint,0
-Transit Access to Retail  & Maintenance ,retailTransitAccess*othmaint,0
-Auto Access to Retail  & Maintenance ,retailAutoAccess*othmaint,0.0749
-Walk Access to Retail & Eating Out ,retailWalkAccess*eatout,0.145
-Transit Access to Retail  & Eating Out ,retailTransitAccess*eatout,0
-Auto Access to Retail  & Eating Out ,retailAutoAccess*eatout,0
-Walk Access to Retail & Discretionary ,retailWalkAccess*othdiscr,0.0567
-Transit Access to Retail  & Discretionary ,retailTransitAccess*othdiscr,0
-Auto Access to Retail  & Discretionary ,retailAutoAccess*othdiscr,0.0844
-Urban Areatype & Tour Frequency =1,"originUrbanAreaType*IF(tot_tours==1,1,0)",0
-Urban Areatype & Tour Frequency =2,"originUrbanAreaType*IF(tot_tours==2,1,0)",0
-Urban Areatype & Tour Frequency =3,"originUrbanAreaType*IF(tot_tours==3,1,0)",0
-Urban Areatype & Tour Frequency =4,"originUrbanAreaType*IF(tot_tours==4,1,0)",0
-Urban Areatype & Tour Frequency =5+,"originUrbanAreaType*IF(tot_tours>5,1,0)",0
-Urban Areatype & Escorting tour,originUrbanAreaType*escort,-0.4316
-Urban Areatype &Shopping tour,originUrbanAreaType*shopping,0
-Urban Areatype & Maintenance tour,originUrbanAreaType*othmaint,0
-Urban Areatype & EatingOut tour,originUrbanAreaType*eatout,0
-Urban Areatype & Discretionary tour,originUrbanAreaType*othdiscr,0
-1 Escort Tour Constant,"if(escort==1,1,0)",0.0298
-2+ Escort Tours Constant,"if(escort==2,1,0)",0.7402
-1+ Shopping Tours Constant,"if(shopping==1,1,0)",0.4774
-1+ Maintenance Tours Constant,"if(othmaint==1,1,0)",0.1202
-1+ Eating Out Tours Constant,"if(eatout==1,1,0)",0.0097
-1+ Visting Tours Constant,"if(social==1,1,0)",0.0522
-1+ Other Discretionary Tours Constant,"if(othdiscr==1,1,0)",0.7412
-Dummy for 0-auto household & Escorting Tour,"escort*IF(num_auto==0,1,0)",-2
+Dummy for Presence of Full time Worker (other than modeled person) & Escorting tour ,has_full_time * escort,0
+Dummy for Presence of Part time Worker (other than modeled person) & Escorting tour ,has_part_time * escort,0
+Dummy for Presence of Non-Worker (other than modeled person) & Escorting tour ,has_non_worker * escort,-0.4815
+Dummy for Presence of Retiree (other than modeled person) & Escorting tour ,has_retiree * escort,-0.808
+Dummy for Presence of University Student (other than modeled person) & Escorting tour ,has_university * escort,0
+Dummy for Presence of Driving School Kid (other than modeled person) & Escorting tour ,has_driving_kid * escort,0.3601
+Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Escorting tour ,has_school_kid * escort,1.3974
+Dummy for Presence of Pre-School Kid (other than modeled person) & Escorting tour ,has_preschool_kid * escort,0.6842
+Dummy for At home Pre-Driving School Kid & Escorting tour ,,-0.2746
+Dummy for At homef Pre-School Kid & Escorting tour ,,-1.5675
+Dummy for Presence of Full time Worker (other than modeled person) & Shopping tour ,has_full_time * shopping,-0.3059
+Dummy for Presence of Part time Worker (other than modeled person) & Shopping tour ,has_part_time * shopping,-0.1541
+Dummy for Presence of Non-Worker (other than modeled person) & Shopping tour ,has_non_worker * shopping,-0.416
+Dummy for Presence of Retiree (other than modeled person) & Shopping tour ,has_retiree * shopping,0
+Dummy for Presence of University Student (other than modeled person) & Shopping tour ,has_university * shopping,0
+Dummy for Presence of Driving School Kid (other than modeled person) & Shopping tour ,has_driving_kid * shopping,0
+Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Shopping tour ,has_school_kid * shopping,0
+Dummy for Presence of Pre-School Kid (other than modeled person) & Shopping tour ,has_preschool_kid * shopping,-0.208
+Dummy for At home Pre-Driving School Kid & Shopping tour ,,0
+Dummy for At homef Pre-School Kid & Shopping tour ,,0
+Dummy for Presence of Full time Worker (other than modeled person) & Maintenance tour ,has_full_time * othmaint,-0.1685
+Dummy for Presence of Part time Worker (other than modeled person) & Maintenance tour ,has_part_time * othmaint,-0.1584
+Dummy for Presence of Non-Worker(other than modeled person) & Maintenance tour ,has_non_worker * othmaint,-0.3237
+Dummy for Presence of Retiree (other than modeled person) & Maintenance tour ,has_retiree * othmaint,0
+Dummy for Presence of University Student (other than modeled person) & Maintenance tour ,has_university * othmaint,0
+Dummy for Presence of Driving School Kid (other than modeled person) & Maintenance tour ,has_driving_kid * othmaint,0
+Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Maintenance tour ,has_school_kid * othmaint,0
+Dummy for Presence of Pre-School Kid (other than modeled person) & Maintenance tour ,has_preschool_kid * othmaint,0
+Dummy for At home Pre-Driving School Kid & Maintenance tour ,,0
+Dummy for At homef Pre-School Kid & Maintenance tour ,,0
+Dummy for Presence of Full time Worker (other than modeled person) & Eating Out tour ,has_full_time * eatout,-0.3571
+Dummy for Presence of Part time Worker (other than modeled person) & Eating Out tour ,has_part_time * eatout,0
+Dummy for Presence of Non-Worker (other than modeled person) & Eating Out tour ,has_non_worker * eatout,-0.2014
+Dummy for Presence of Retiree (other than modeled person) & Eating Out tour ,has_retiree * eatout,-0.5708
+Dummy for Presence of University Student (other than modeled person) & Eating Out tour ,has_university * eatout,0
+Dummy for Presence of Driving School Kid (other than modeled person) & Eating Out tour ,has_driving_kid * eatout,0
+Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Eating Out tour ,has_school_kid * eatout,0
+Dummy for Presence of Pre-School Kid (other than modeled person) & Eating Out tour ,has_preschool_kid * eatout,-0.4225
+Dummy for At home Pre-Driving School Kid & Eating Out tour ,,0
+Dummy for At homef Pre-School Kid & Eating Out tour ,,0
+Dummy for Presence of Full time Worker (other than modeled person) & Discretionary tour ,has_full_time * othdisc,-0.667
+Dummy for Presence of Part time Worker (other than modeled person) & Discretionary tour ,has_part_time * othdisc,-0.2102
+Dummy for Presence of Non-Worker  (other than modeled person) & Discretionary tour ,has_non_worker * othdisc,-0.4281
+Dummy for Presence of Retiree (other than modeled person) & Discretionary tour ,has_retiree * othdisc,-0.9104
+Dummy for Presence of University Student (other than modeled person) & Discretionary tour ,has_university * othdisc,-0.8551
+Dummy for Presence of Driving School Kid (other than modeled person) & Discretionary tour ,has_driving_kid * othdisc,-0.3963
+Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Discretionary tour ,has_school_kid * othdisc,-0.3959
+Dummy for Presence of Pre-School Kid (other than modeled person) & Discretionary tour ,has_preschool_kid * othdisc,-0.5081
+Dummy for At home Pre-Driving School Kid & Discretionary tour ,,-0.4703
+Dummy for At homef Pre-School Kid & Discretionary tour ,,-0.4703
+Walk Access to Retail & Tour Frequency =1,NONMOTORIZEDRETAIL * (tot_tours == 1),0
+Walk Access to Retail & Tour Frequency =2,NONMOTORIZEDRETAIL * (tot_tours == 2),0
+Walk Access to Retail & Tour Frequency =3,NONMOTORIZEDRETAIL * (tot_tours == 3),0
+Walk Access to Retail & Tour Frequency =4,NONMOTORIZEDRETAIL * (tot_tours == 4),0
+Walk Access to Retail & Tour Frequency =5+,NONMOTORIZEDRETAIL * (tot_tours > 4),0
+Transit Access to Retail & Tour Frequency =1,TRANSITOFFPEAKRETAIL * (tot_tours == 1),0.0226
+Transit Access to Retail & Tour Frequency =2,TRANSITOFFPEAKRETAIL * (tot_tours == 2),0.0226
+Transit Access to Retail & Tour Frequency =3,TRANSITOFFPEAKRETAIL * (tot_tours == 3),0.0226
+Transit Access to Retail & Tour Frequency =4,TRANSITOFFPEAKRETAIL * (tot_tours == 4),0.0226
+Transit Access to Retail & Tour Frequency =5+,TRANSITOFFPEAKRETAIL * (tot_tours > 4),0.0226
+Auto Access to Retail & Tour Frequency =1,AUTOOFFPEAKRETAIL * (tot_tours == 1),0
+Auto Access to Retail & Tour Frequency =2,AUTOOFFPEAKRETAIL * (tot_tours == 2),0
+Auto Access to Retail & Tour Frequency =3,AUTOOFFPEAKRETAIL * (tot_tours == 3),0
+Auto Access to Retail & Tour Frequency =4,AUTOOFFPEAKRETAIL * (tot_tours == 4),0
+Auto Access to Retail & Tour Frequency =5+,AUTOOFFPEAKRETAIL * (tot_tours > 4),0
+Walk Access to Retail & Escorting ,NONMOTORIZEDRETAIL * escort,0.0451
+Transit Access to Retail  & Escorting ,TRANSITOFFPEAKRETAIL * escort,0
+Auto Access to Retail  & Escorting ,AUTOOFFPEAKRETAIL * escort,0
+Walk Access to Retail & Shopping ,NONMOTORIZEDRETAIL * shopping,0.033
+Transit Access to Retail  & Shopping ,TRANSITOFFPEAKRETAIL * shopping,0
+Auto Access to Retail  & Shopping ,AUTOOFFPEAKRETAIL * shopping,0.1067
+Walk Access to Retail & Maintenance ,NONMOTORIZEDRETAIL * othmaint,0
+Transit Access to Retail  & Maintenance ,TRANSITOFFPEAKRETAIL * othmaint,0
+Auto Access to Retail  & Maintenance ,AUTOOFFPEAKRETAIL * othmaint,0.0749
+Walk Access to Retail & Eating Out ,NONMOTORIZEDRETAIL * eatout,0.145
+Transit Access to Retail  & Eating Out ,TRANSITOFFPEAKRETAIL * eatout,0
+Auto Access to Retail  & Eating Out ,AUTOOFFPEAKRETAIL * eatout,0
+Walk Access to Retail & Discretionary ,NONMOTORIZEDRETAIL * othdiscr,0.0567
+Transit Access to Retail  & Discretionary ,TRANSITOFFPEAKRETAIL * othdiscr,0
+Auto Access to Retail  & Discretionary ,AUTOOFFPEAKRETAIL * othdiscr,0.0844
+Urban Areatype & Tour Frequency =1,home_is_urban & (tot_tours == 1),0
+Urban Areatype & Tour Frequency =2,home_is_urban & (tot_tours == 2),0
+Urban Areatype & Tour Frequency =3,home_is_urban & (tot_tours == 3),0
+Urban Areatype & Tour Frequency =4,home_is_urban & (tot_tours == 4),0
+Urban Areatype & Tour Frequency =5+,home_is_urban & (tot_tours > 4),0
+Urban Areatype & Escorting tour,home_is_urban * escort,-0.4316
+Urban Areatype &Shopping tour,home_is_urban * shopping,0
+Urban Areatype & Maintenance tour,home_is_urban * othmaint,0
+Urban Areatype & EatingOut tour,home_is_urban * eatout,0
+Urban Areatype & Discretionary tour,home_is_urban * othdiscr,0
+1 Escort Tour Constant,escort == 1,0.0298
+2+ Escort Tours Constant,escort >= 2,0.7402
+1+ Shopping Tours Constant,shopping >= 1,0.4774
+1+ Maintenance Tours Constant,othmaint >= 1,0.1202
+1+ Eating Out Tours Constant,eatout >= 1,0.0097
+1+ Visting Tours Constant,social >= 1,0.0522
+1+ Other Discretionary Tours Constant,othdiscr >= 1,0.7412
+Dummy for 0-auto household & Escorting Tour,escort & no_auto,-2

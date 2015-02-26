@@ -106,7 +106,7 @@ def mandatory_tour_frequency_spec():
 @sim.injectable()
 def non_mandatory_tour_frequency_spec():
     f = os.path.join('configs', "non_mandatory_tour_frequency_ftw.csv")
-    return asim.read_model_spec(f).head(114)
+    return asim.read_model_spec(f)
 
 
 @sim.table()
@@ -360,16 +360,22 @@ def num_under16_not_at_school(persons, households):
 
 
 @sim.column("households")
-def auto_ownership(persons):
+def auto_ownership(households):
     # FIXME this is really because we ask for ALL columns in the persons data
     # FIXME frame - urbansim actually only asks for the columns that are used by
     # FIXME the model specs in play at that time
-    return pd.Series(0, persons.index)
+    return pd.Series(0, households.index)
 
 
 @sim.column('households')
 def no_cars(households):
-    return households.auto_ownership == 0
+    return (households.auto_ownership == 0)
+
+
+@sim.column('households')
+def home_is_urban(households, land_use, settings):
+    s = usim_misc.reindex(land_use.area_type, households.home_taz)
+    return s < settings['urban_threshold']
 
 
 @sim.column('households')

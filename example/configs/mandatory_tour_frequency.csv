@@ -83,13 +83,13 @@ Number of children under 16 not at school - Non-working adult interaction,(ptype
 Number of children under 16 not at school - Retired,(ptype == 5) * num_under16_not_at_school,,0.1804,,,
 Number of children under 16 not at school - Driving-age student interaction,(ptype == 6) * num_under16_not_at_school,,,,0.0866,-0.1955
 Number of children under 16 not at school - Pre-driving age child who is in school interaction,(ptype == 7) * num_under16_not_at_school,,,,0.0866,
-Home is in urban area - Full-time worker interaction,(ptype == 1) & (area_type < 4),0,0.2308,-0.1361,,-0.3509
-Home is in urban area - Part-time worker interaction,(ptype == 2) & (area_type < 4),0,0.2308,-0.1361,,-0.3509
-Home is in urban area - University student interaction,(ptype == 3) & (area_type < 4),-0.2831,0.2308,0,0.317,-0.3509
-Home is in urban area - Non-working adult interaction,(ptype == 4) & (area_type < 4),0,0.238,-0.1361,,
-Home is in urban area - Retired interaction,(ptype == 5) & (area_type < 4),0,0.2308,-0.1361,,
-Home is in urban area - Driving-age student interaction,(ptype == 6) & (area_type < 4),-0.2831,,0,0.317,-0.3509
-Home is in urban area - Pre-driving age child who is in school interaction,(ptype == 7) & (area_type < 4),-0.2831,,0,0.317,
+Home is in urban area - Full-time worker interaction,(ptype == 1) & home_is_urban,0,0.2308,-0.1361,,-0.3509
+Home is in urban area - Part-time worker interaction,(ptype == 2) & home_is_urban,0,0.2308,-0.1361,,-0.3509
+Home is in urban area - University student interaction,(ptype == 3) & home_is_urban,-0.2831,0.2308,0,0.317,-0.3509
+Home is in urban area - Non-working adult interaction,(ptype == 4) & home_is_urban,0,0.238,-0.1361,,
+Home is in urban area - Retired interaction,(ptype == 5) & home_is_urban,0,0.2308,-0.1361,,
+Home is in urban area - Driving-age student interaction,(ptype == 6) & home_is_urban,-0.2831,,0,0.317,-0.3509
+Home is in urban area - Pre-driving age child who is in school interaction,(ptype == 7) & home_is_urban,-0.2831,,0,0.317,
 Unavailable: Full-time worker,ptype == 1,,,,-999,
 Unavailable: Part-time worker,ptype == 2,,,,-999,
 Unavailable: Non-working adult,ptype == 4,,,,-999,-999

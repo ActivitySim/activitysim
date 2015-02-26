@@ -55,6 +55,38 @@ def identity_matrix(alt_names):
                         index=alt_names)
 
 
+def eval_variables(exprs, df):
+    """
+    Evaluate a set of variable expressions from a spec in the context
+    of a given data table.
+
+    There are two kinds of supported expressions: "simple" expressions are
+    evaluated in the context of the DataFrame using DataFrame.eval.
+    This is the default type of expression.
+
+    Python expressions are evaluated in the context of this function using
+    Python's eval function. Because we use Python's eval this type of
+    expression supports more complex operations than a simple expression.
+    Python expressions are denoted by beginning with the @ character.
+    Users should take care that these expressions must result in
+    a Pandas Series.
+
+    Parameters
+    ----------
+    exprs : sequence of str
+    df : pandas.DataFrame
+
+    Returns
+    -------
+    variables : pandas.DataFrame
+        Will have the index of `df` and columns of `exprs`.
+
+    """
+    return pd.DataFrame.from_items(
+        [(e, eval(e[1:]) if e.startswith('@') else df.eval(e))
+         for e in exprs])
+
+
 def simple_simulate(choosers, alternatives, spec,
                     skims=None, skim_join_name='zone_id',
                     mult_by_alt_col=False, sample_size=None):

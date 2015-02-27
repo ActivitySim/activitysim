@@ -73,3 +73,44 @@ def make_interactions(people, hh_id_col, p_type_col):
     return (
         pd.Series(two_val, index=two_idx),
         pd.Series(three_val, index=three_idx))
+
+
+def individual_utilities(df, one_spec, two_spec, three_spec, final_rules):
+    """
+    Calculate CDAP utilities for all individuals.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame of individual people data.
+    one_spec : ModelSpec
+    two_spec : ModelSpec
+    three_spec : ModelSpec
+    final_rules : CDAPFinalRules
+
+    Returns
+    -------
+    utilities : pandas.DataFrame
+        Will have index of `df` and columns for each of the alternatives.
+
+    """
+    # calculate single person utilities
+    #     evaluate variables from one_spec expressions
+    #     multiply by one_spec alternative values
+
+    # make two- and three-person interactions
+
+    # calculate two-interaction utilities
+    #     evaluate variables from two_spec expressions
+    #     multiply by two_spec alternative values
+    #     groupby person and sum
+
+    # calculate three-interaction utilities
+    #     evaluate variables from three_spec expressions
+    #     multiply by three_spec alternative values
+    #     groupby person and sum
+
+    # add one-, two-, and three-person utilities
+
+    # apply final rules
+    pass

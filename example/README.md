@@ -73,3 +73,5 @@ transparent to the modeler?
 
 * Big issue: testing for client-specific code?  It's harder because outputs are "data
 dependent."  It's easier to take a small dataset and make sure it always runs.
+
+* Should I go back and put the Q&A I've had with Dave as issues on github to save for posterity?

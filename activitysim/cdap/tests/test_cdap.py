@@ -25,8 +25,8 @@ def p_type_col():
 
 
 def test_make_interactions(people, hh_id_col, p_type_col):
-    expected_two = pd.Series(
-        [
+    expected_two = pd.DataFrame(
+        {'interaction': [
             '11',  # household 3; person 3
             '11',  # household 3; person 4
             '32',  # household 4; person 5
@@ -45,15 +45,15 @@ def test_make_interactions(people, hh_id_col, p_type_col):
             '31', '32', '31',  # household 8; person 18
             '21', '23', '21',  # household 8; person 19
             '11', '13', '12'   # household 8; person 20
-        ],
+        ]},
         index=[
             3, 4, 5, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12,
             13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16,
             17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20
         ])
 
-    expected_three = pd.Series(
-        [
+    expected_three = pd.DataFrame(
+        {'interaction': [
             '322', '322', '322',  # household 5; people 7, 8, 9
             '131', '131', '131',  # household 6; people 10, 11, 12
             '132', '132', '132',  # household 7; people 13, 14, 15
@@ -64,7 +64,7 @@ def test_make_interactions(people, hh_id_col, p_type_col):
             '131', '131', '131',  # household 8; people 17, 18, 20
             '121', '121', '121',  # household 8; people 17, 19, 20
             '321', '321', '321'   # household 8; people 18, 19, 20
-        ],
+        ]},
         index=[
             7, 8, 9, 10, 11, 12,
             13, 14, 15, 13, 14, 16, 13, 15, 16, 14, 15, 16,
@@ -73,8 +73,8 @@ def test_make_interactions(people, hh_id_col, p_type_col):
 
     two, three = cdap.make_interactions(people, hh_id_col, p_type_col)
 
-    pdt.assert_series_equal(two, expected_two)
-    pdt.assert_series_equal(three, expected_three)
+    pdt.assert_frame_equal(two, expected_two)
+    pdt.assert_frame_equal(three, expected_three)
 
 
 def test_make_interactions_no_interactions(people, hh_id_col, p_type_col):
@@ -82,24 +82,24 @@ def test_make_interactions_no_interactions(people, hh_id_col, p_type_col):
 
     two, three = cdap.make_interactions(people, hh_id_col, p_type_col)
 
-    pdt.assert_series_equal(two, pd.Series())
-    pdt.assert_series_equal(three, pd.Series())
+    pdt.assert_frame_equal(two, pd.DataFrame(columns=['interaction']))
+    pdt.assert_frame_equal(three, pd.DataFrame(columns=['interaction']))
 
 
 def test_make_interactions_only_twos(people, hh_id_col, p_type_col):
     people = people.loc[[1, 2, 3, 4, 5, 6]]
 
-    expected_two = pd.Series(
-        [
+    expected_two = pd.DataFrame(
+        {'interaction': [
             '11',  # household 3; person 3
             '11',  # household 3; person 4
             '32',  # household 4; person 5
             '23',  # household 4; person 6
-        ],
+        ]},
         index=[3, 4, 5, 6]
     )
 
     two, three = cdap.make_interactions(people, hh_id_col, p_type_col)
 
-    pdt.assert_series_equal(two, expected_two)
-    pdt.assert_series_equal(three, pd.Series())
+    pdt.assert_frame_equal(two, expected_two)
+    pdt.assert_frame_equal(three, pd.DataFrame(columns=['interaction']))

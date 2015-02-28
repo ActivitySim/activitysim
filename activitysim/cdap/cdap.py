@@ -5,7 +5,7 @@ import pandas as pd
 
 def make_interactions(people, hh_id_col, p_type_col):
     """
-    Make two Pandas series associating people IDs with two
+    Make two Pandas DataFrames associating people IDs with two
     and three person interactions they have within their households.
 
     Interactions are strings of numbers representing the makeup
@@ -29,12 +29,14 @@ def make_interactions(people, hh_id_col, p_type_col):
 
     Returns
     -------
-    two_interaction : pandas.Series
+    two_interaction : pandas.DataFrame
         Interactions between two people. Index will be person IDs taken
         from the index of `people`.
-    three_interaction : pandas.Series
+        The table will have one column called `interaction`.
+    three_interaction : pandas.DataFrame
         Interactions between three people. Index will be person IDs taken
         from the index of `people`.
+        The table will have one column called `interaction`.
 
     """
     two_fmt = '{}{}'.format
@@ -71,27 +73,27 @@ def make_interactions(people, hh_id_col, p_type_col):
         three_idx, three_val = [], []
 
     return (
-        pd.Series(two_val, index=two_idx),
-        pd.Series(three_val, index=three_idx))
+        pd.DataFrame({'interaction': two_val}, index=two_idx),
+        pd.DataFrame({'interaction': three_val}, index=three_idx))
 
 
-def individual_utilities(df, one_spec, two_spec, three_spec, final_rules):
+def individual_utilities(people, one_spec, two_spec, three_spec, final_rules):
     """
     Calculate CDAP utilities for all individuals.
 
     Parameters
     ----------
-    df : pandas.DataFrame
+    people : pandas.DataFrame
         DataFrame of individual people data.
-    one_spec : ModelSpec
-    two_spec : ModelSpec
-    three_spec : ModelSpec
-    final_rules : CDAPFinalRules
+    one_spec : pandas.DataFrame
+    two_spec : pandas.DataFrame
+    three_spec : pandas.DataFrame
+    final_rules : pandas.DataFrame
 
     Returns
     -------
     utilities : pandas.DataFrame
-        Will have index of `df` and columns for each of the alternatives.
+        Will have index of `people` and columns for each of the alternatives.
 
     """
     # calculate single person utilities

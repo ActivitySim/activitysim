@@ -146,7 +146,7 @@ def destination_choice_spec():
 @sim.table()
 def tour_departure_and_duration_spec():
     f = os.path.join('configs', 'tour_departure_and_duration.csv')
-    return asim.read_model_spec(f, stack=False).head(4)
+    return asim.read_model_spec(f, stack=False)
 
 
 """
@@ -382,6 +382,55 @@ sim.broadcast('persons', 'non_mandatory_tours',
 
 
 """
+This does the same as the above but for mandatory tours.  Ending format is
+the same as in the comment above except trip types are "work" and "school"
+"""
+
+@sim.table()
+def mandatory_tours(persons):
+
+    persons = persons.to_frame(columns=["mandatory_tour_frequency",
+                                        "is_worker"])
+    persons = persons[~persons.mandatory_tour_frequency.isnull()]
+
+    tours = []
+    # this is probably easier to do in non-vectorized fashion (at least for now)
+    for key, row in persons.iterrows():
+
+        mtour = row.mandatory_tour_frequency
+        is_worker = row.is_worker
+
+        # 1 work trip
+        if mtour == "work1":
+            tours += [(key, "work", 1)]
+        # 2 work trips
+        elif mtour == "work2":
+            tours += [(key, "work", 1), (key, "work", 2)]
+        # 1 school trip
+        elif mtour == "school1":
+            tours += [(key, "school", 1)]
+        # 2 school trips
+        elif mtour == "school2":
+            tours += [(key, "school", 1), (key, "school", 2)]
+        # 1 work and 1 school trip
+        elif mtour == "work_and_school":
+            if is_worker:
+                # is worker, work trip goes first
+                tours += [(key, "work", 1), (key, "school", 2)]
+            else:
+                # is student, work trip goes second
+                tours += [(key, "school", 1), (key, "work", 2)]
+        else:
+            assert 0
+
+    return pd.DataFrame(tours, columns=["person_id", "trip_type", "tour_num"])
+
+
+sim.broadcast('persons', 'mandatory_tours',
+              cast_index=True, onto_on='person_id')
+
+
+"""
 Given the tour generation from the above, each tour needs to have a
 destination, so in this case tours are the choosers (with the associated
 person that's making the tour)
@@ -450,33 +499,60 @@ This model predicts the departure time and duration of each activity
 
 
 @sim.model()
-def mandatory_tour_departure_and_duration(persons,
+def mandatory_tour_departure_and_duration(mandatory_tours,
+                                          persons,
                                           households,
                                           land_use,
                                           tour_departure_and_duration_alts,
                                           tour_departure_and_duration_spec):
 
-    print tour_departure_and_duration_spec.to_frame().tail()
+    choosers = sim.merge_tables(mandatory_tours.name, tables=[mandatory_tours,
+                                                              persons,
+                                                              households,
+                                                              land_use])
 
-    choosers = sim.merge_tables(persons.name, tables=[persons,
-                                                      households,
-                                                      land_use])
+    print "Running %d mandatory tour scheduling choices" % len(choosers)
 
-    # filter based on results of CDAP
-    choosers = choosers[choosers.cdap_activity == 'M']
-    print "%d persons run for workplace tour departure and duration model" % \
-          len(choosers)
+    # assert there's only a first or second mandatory tour - that's a basic
+    # assumption of this model formulation right now
+    assert choosers.tour_num.isin([1, 2]).value_counts()[True] == len(choosers)
 
-    choices, _ = \
-        asim.simple_simulate(choosers,
-                             tour_departure_and_duration_alts.to_frame(),
-                             tour_departure_and_duration_spec['work'],
-                             mult_by_alt_col=False)
+    first_tours = choosers[choosers.tour_num == 1]
+    second_tours = choosers[choosers.tour_num == 2]
+
+    spec = tour_departure_and_duration_spec.work.head(27)
+    alts = tour_departure_and_duration_alts.to_frame()
+
+    print choosers.mandatory_tour_frequency.value_counts()
+    print spec
+
+    # this is a bit odd to python - we can't run through in for loops for
+    # performance reasons - we first have to do a pass for the first tours and
+    # then for the second tours - this is mainly because the second tours are
+    # dependent on the first tours' scheduling
+
+    print "Running %d mandatory first tour choices" % len(first_tours)
+
+    alts["end_of_previous_tour"] = -1
+
+    # FIXME - a note to remember that this also needs the mode choice logsum
+    alts["mode_choice_logsum"] = 0
+
+    first_choices, _ = \
+        asim.simple_simulate(first_tours, alts, spec, mult_by_alt_col=False)
+
+    print "Running %d mandatory second tour choices" % len(second_tours)
+
+    # FIXME need to set end_of_previous_tour to the ends computed above
+    second_choices, _ = \
+        asim.simple_simulate(second_tours, alts, spec, mult_by_alt_col=False)
+
+    choices = pd.concat([first_choices, second_choices])
 
     # as with non-mandatory tour generation, this stores the INDEX of
     # the alternative in the tour_departure and_duration_alts dataframe -
     # to actually use it we'll have ot go back and grab the start and end times
-    print "Choices:\n", choices.value_counts()
+    print "Choices:\n", choices.describe()
 
     sim.add_column("persons", "mandatory_tour_departure_and_duration", choices)
 
@@ -566,6 +642,12 @@ def no_cars(households):
 def home_is_urban(households, land_use, settings):
     s = usim_misc.reindex(land_use.area_type, households.home_taz)
     return s < settings['urban_threshold']
+
+
+@sim.column('households')
+def home_is_rural(households, land_use, settings):
+    s = usim_misc.reindex(land_use.area_type, households.home_taz)
+    return s > settings['rural_threshold']
 
 
 @sim.column('households')
@@ -783,6 +865,16 @@ def under16_not_at_school(persons):
 
 
 @sim.column("persons")
+def is_worker(persons):
+    return persons.employed_cat.isin(['full', 'part'])
+
+
+@sim.column("persons")
+def is_student(persons):
+    return persons.student_cat.isin(['high', 'college'])
+
+
+@sim.column("persons")
 def workplace_taz(persons):
     # FIXME this is really because we ask for ALL columns in the persons data
     # FIXME frame - urbansim actually only asks for the columns that are used by
@@ -838,3 +930,10 @@ def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
                      sovmd_skim.get(persons.school_taz,
                                     persons.home_taz),
                      index=persons.index)
+
+
+@sim.column('persons')
+def workplace_in_cbd(persons, land_use, settings):
+    s = usim_misc.reindex(land_use.area_type, persons.workplace_taz)
+    return s < settings['cbd_threshold']
+

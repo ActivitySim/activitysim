@@ -49,6 +49,22 @@ def tot_tours(non_mandatory_tour_frequency_alts):
     return non_mandatory_tour_frequency_alts.local.sum(axis=1)
 
 
+@sim.table()
+def tour_departure_and_duration_alts():
+    # right now this file just contains the start and end hour
+    f = os.path.join("configs",
+                     "tour_departure_and_duration_alternatives.csv")
+    return pd.read_csv(f)
+
+
+# used to have duration in the actual alternative csv file,
+# but this is probably better as a computed column
+@sim.column("tour_departure_and_duration_alts")
+def duration(tour_departure_and_duration_alts):
+    return tour_departure_and_duration_alts.end - \
+        tour_departure_and_duration_alts.start
+
+
 """
 Read in the omx files and create the skim objects
 """
@@ -125,6 +141,12 @@ def destination_choice_size_terms():
 def destination_choice_spec():
     f = os.path.join('configs', 'destination_choice_alternatives_sample.csv')
     return asim.read_model_spec(f, stack=False).head(5)
+
+
+@sim.table()
+def tour_departure_and_duration_spec():
+    f = os.path.join('configs', 'tour_departure_and_duration.csv')
+    return asim.read_model_spec(f, stack=False).head(4)
 
 
 """
@@ -420,6 +442,43 @@ def destination_choice(non_mandatory_tours,
     # every trip now has a destination which is the index from the
     # alternatives table - in this case it's the destination taz
     sim.add_column("non_mandatory_tours", "destination", choices)
+
+
+"""
+This model predicts the departure time and duration of each activity
+"""
+
+
+@sim.model()
+def mandatory_tour_departure_and_duration(persons,
+                                          households,
+                                          land_use,
+                                          tour_departure_and_duration_alts,
+                                          tour_departure_and_duration_spec):
+
+    print tour_departure_and_duration_spec.to_frame().tail()
+
+    choosers = sim.merge_tables(persons.name, tables=[persons,
+                                                      households,
+                                                      land_use])
+
+    # filter based on results of CDAP
+    choosers = choosers[choosers.cdap_activity == 'M']
+    print "%d persons run for workplace tour departure and duration model" % \
+          len(choosers)
+
+    choices, _ = \
+        asim.simple_simulate(choosers,
+                             tour_departure_and_duration_alts.to_frame(),
+                             tour_departure_and_duration_spec['work'],
+                             mult_by_alt_col=False)
+
+    # as with non-mandatory tour generation, this stores the INDEX of
+    # the alternative in the tour_departure and_duration_alts dataframe -
+    # to actually use it we'll have ot go back and grab the start and end times
+    print "Choices:\n", choices.value_counts()
+
+    sim.add_column("persons", "mandatory_tour_departure_and_duration", choices)
 
 
 """

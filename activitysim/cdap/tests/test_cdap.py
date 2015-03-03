@@ -115,7 +115,8 @@ def test_make_interactions_only_twos(people, hh_id_col, p_type_col):
 
 def test_apply_final_rules(people, final_rules):
     utilities = pd.DataFrame(
-        [[1, 1, 1]] * len(people), index=people.index, columns=['M', 'N', 'H'])
+        [[1, 1, 1]] * len(people), index=people.index,
+        columns=['Mandatory', 'NonMandatory', 'Home'])
     cdap.apply_final_rules(people, final_rules, utilities)
 
-    assert utilities.loc[19, 'M'] == 0
+    assert utilities.loc[19, 'Mandatory'] == 0

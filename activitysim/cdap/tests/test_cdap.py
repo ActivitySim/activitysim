@@ -5,6 +5,7 @@ import pandas.util.testing as pdt
 import pytest
 
 from .. import cdap
+from ...activitysim import read_model_spec
 
 
 @pytest.fixture(scope='module')
@@ -12,6 +13,13 @@ def people():
     return pd.read_csv(
         os.path.join(os.path.dirname(__file__), 'data', 'people.csv'),
         index_col='id')
+
+
+@pytest.fixture(scope='module')
+def final_rules():
+    return read_model_spec(
+        os.path.join(
+            os.path.dirname(__file__), 'data', 'cdap_final_rules.csv'))
 
 
 @pytest.fixture(scope='module')
@@ -103,3 +111,11 @@ def test_make_interactions_only_twos(people, hh_id_col, p_type_col):
 
     pdt.assert_frame_equal(two, expected_two)
     pdt.assert_frame_equal(three, pd.DataFrame(columns=['interaction']))
+
+
+def test_apply_final_rules(people, final_rules):
+    utilities = pd.DataFrame(
+        [[1, 1, 1]] * len(people), index=people.index, columns=['M', 'N', 'H'])
+    cdap.apply_final_rules(people, final_rules, utilities)
+
+    assert utilities.loc[19, 'M'] == 0

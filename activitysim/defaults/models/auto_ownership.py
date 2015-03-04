@@ -29,7 +29,7 @@ def auto_ownership_simulate(households_merged,
                             auto_alts,
                             auto_ownership_spec):
 
-    choices, _ = asim.simple_simulate(households_merged.to_frame(), 
+    choices, _ = asim.simple_simulate(households_merged.to_frame(),
                                       auto_alts.to_frame(),
                                       auto_ownership_spec,
                                       mult_by_alt_col=True)

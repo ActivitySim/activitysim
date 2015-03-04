@@ -7,7 +7,7 @@ import numpy as np
 """
 The workplace location model predicts the zones in which various people will
 work.  Interestingly there's not really any supply side to this model - we
-assume that in a properly calibrated model there are workplaces for the people 
+assume that in a properly calibrated model there are workplaces for the people
 to work.
 """
 

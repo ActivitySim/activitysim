@@ -107,7 +107,9 @@ def apply_final_rules(people, final_rules, utilities):
         utilities.loc[flags[expr], row.iloc[0]] = row.iloc[1]
 
 
-def individual_utilities(people, one_spec, two_spec, three_spec, final_rules):
+def individual_utilities(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules):
     """
     Calculate CDAP utilities for all individuals.
 
@@ -115,10 +117,19 @@ def individual_utilities(people, one_spec, two_spec, three_spec, final_rules):
     ----------
     people : pandas.DataFrame
         DataFrame of individual people data.
+    hh_id_col : str
+        Name of the column in `people` that has their household ID.
+    p_type_col : str
+        Name of the column in `people` that contains the person type number.
     one_spec : pandas.DataFrame
     two_spec : pandas.DataFrame
     three_spec : pandas.DataFrame
     final_rules : pandas.DataFrame
+        This table is expected to have a specific form:
+        the index should be expressions (as with other model specs),
+        but the columns should be alternatives and values, in that order.
+        The column names are not important, but their order is.
+        Expressions will be evaluated in the context of the `people` table.
 
     Returns
     -------
@@ -129,20 +140,31 @@ def individual_utilities(people, one_spec, two_spec, three_spec, final_rules):
     # calculate single person utilities
     #     evaluate variables from one_spec expressions
     #     multiply by one_spec alternative values
+    one_vars = eval_variables(one_spec.index, people)
+    one_utils = one_vars.dot(one_spec)
 
     # make two- and three-person interactions
+    two_int, three_int = make_interactions(people, hh_id_col, p_type_col)
 
     # calculate two-interaction utilities
     #     evaluate variables from two_spec expressions
     #     multiply by two_spec alternative values
     #     groupby person and sum
+    two_vars = eval_variables(two_spec.index, two_int)
+    two_utils = two_vars.dot(two_spec).groupby(level=0).sum()
 
     # calculate three-interaction utilities
     #     evaluate variables from three_spec expressions
     #     multiply by three_spec alternative values
     #     groupby person and sum
+    three_vars = eval_variables(three_spec.index, three_int)
+    three_utils = three_vars.dot(three_spec).groupby(level=0).sum()
 
     # add one-, two-, and three-person utilities
+    utils = one_utils.add(
+        two_utils, fill_value=0).add(three_utils, fill_value=0)
 
     # apply final rules
-    pass
+    apply_final_rules(people, final_rules, utils)
+
+    return utils

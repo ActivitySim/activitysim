@@ -56,11 +56,9 @@ def p_type_col():
 
 @pytest.fixture(scope='module')
 def individual_utils(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules):
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec):
     return cdap.individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules)
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec)
 
 
 def test_make_interactions(people, hh_id_col, p_type_col):
@@ -144,15 +142,6 @@ def test_make_interactions_only_twos(people, hh_id_col, p_type_col):
     pdt.assert_frame_equal(three, pd.DataFrame(columns=['interaction']))
 
 
-def test_apply_final_rules(people, final_rules):
-    utilities = pd.DataFrame(
-        [[1, 1, 1]] * len(people), index=people.index,
-        columns=['Mandatory', 'NonMandatory', 'Home'])
-    cdap.apply_final_rules(people, final_rules, utilities)
-
-    assert utilities.loc[19, 'Mandatory'] == 0
-
-
 def test_individual_utilities(people, one_spec, individual_utils):
     expected = pd.DataFrame([
         [2, 0, 0],  # person 1
@@ -173,7 +162,7 @@ def test_individual_utilities(people, one_spec, individual_utils):
         [0, 4, 0],  # person 16
         [0, 0, 4],  # person 17
         [0, 0, 5],  # person 18
-        [0, 0, 4],  # person 19
+        [50, 0, 4],  # person 19
         [2, 0, 0]  # person 20
         ], index=people.index, columns=one_spec.columns)
 

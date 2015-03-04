@@ -41,7 +41,7 @@ def read_model_spec(fname,
         The description column is dropped from the returned data and the
         expression values are set as the table index.
     """
-    cfg = pd.read_csv(fname)
+    cfg = pd.read_csv(fname, comment='#')
     # don't need description and set the expression to the index
     cfg = cfg.drop(description_name, axis=1).set_index(expression_name)
     if stack:

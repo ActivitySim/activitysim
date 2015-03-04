@@ -11,15 +11,15 @@ Person 6 -> M,age == 25,0,-1,0
 Person 7 -> M,age == 26,2,-2,99
 Person 8 -> N,age == 27,-1,0,99
 Person 9 -> H,age == 28,-1,-2,100
-Person 10 -> M,age == 29,0,-1,98
-Person 11 -> H,age == 30,0,-2,100
-Person 12 -> H,age == 31,-1,-2,100
-Person 13 -> M,age == 32,0,99,-2
-Person 14 -> M,age == 33,1,97,-3
+Person 10 -> M,age == 29,0,0,98
+Person 11 -> H,age == 30,0,-1,100
+Person 12 -> H,age == 31,-1,-1,100
+Person 13 -> M,age == 32,0,99,-3
+Person 14 -> M,age == 33,1,97,-4
 Person 15 -> N,age == 34,-1,100,-2
-Person 16 -> N,age == 35,0,100,-3
+Person 16 -> N,age == 35,-1,100,-3
 Person 17 -> H,age == 36,-2,99,0
 Person 18 -> H,age == 37,0,98,0
 # This 50 will get zeroed out later by the forbidden alternatives rules
 Person 19 -> H,age == 38,50,96,0
-Person 20 -> M,age == 39,0,99,-3
+Person 20 -> M,age == 39,0,99,-4

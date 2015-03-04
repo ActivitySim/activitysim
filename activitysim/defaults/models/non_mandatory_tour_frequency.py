@@ -14,16 +14,16 @@ othdiscr, eatout, and social trips in various combination.
 
 
 @sim.injectable()
-def non_mandatory_tour_frequency_spec():
-    f = os.path.join('configs', "non_mandatory_tour_frequency.csv")
+def non_mandatory_tour_frequency_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs', "non_mandatory_tour_frequency.csv")
     # this is a spec in already stacked format
     # it also has multiple segments in different columns in the spec
     return asim.read_model_spec(f, stack=False)
 
 
 @sim.table()
-def non_mandatory_tour_frequency_alts():
-    f = os.path.join("configs",
+def non_mandatory_tour_frequency_alts(configs_dir):
+    f = os.path.join(configs_dir, "configs",
                      "non_mandatory_tour_frequency_alternatives.csv")
     return pd.read_csv(f)
 

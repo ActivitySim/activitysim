@@ -11,8 +11,9 @@ non-mandatory tours
 
 
 @sim.table()
-def tdd_non_mandatory_spec():
-    f = os.path.join('configs', 'tour_departure_and_duration_nonmandatory.csv')
+def tdd_non_mandatory_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs',
+                     'tour_departure_and_duration_nonmandatory.csv')
     return asim.read_model_spec(f, stack=False)
 
 
@@ -50,11 +51,11 @@ def vectorize_tour_schedules(tours, alts, spec):
 
 
 @sim.model()
-def tour_departure_and_duration_non_mandatory(non_mandatory_tours_merged,
-                                              tdd_alts,
-                                              tdd_non_mandatory_spec):
+def non_mandatory_scheduling(non_mandatory_tours_merged,
+                             tdd_alts,
+                             tdd_non_mandatory_spec):
 
-    tours = non_mandatory_tours_merged
+    tours = non_mandatory_tours_merged.to_frame()
 
     print "Running %d non-mandatory tour scheduling choices" % len(tours)
 

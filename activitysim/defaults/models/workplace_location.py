@@ -13,8 +13,9 @@ to work.
 
 
 @sim.injectable()
-def workplace_location_spec():
-    f = os.path.join('configs', "workplace_location.csv")
+def workplace_location_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs',
+                     "workplace_location.csv")
     # FIXME should read in all variables and comment out ones not used
     return asim.read_model_spec(f).head(15)
 

@@ -11,9 +11,9 @@ mandatory tours
 
 
 @sim.table()
-def tdd_alts():
+def tdd_alts(configs_dir):
     # right now this file just contains the start and end hour
-    f = os.path.join("configs",
+    f = os.path.join(configs_dir, "configs",
                      "tour_departure_and_duration_alternatives.csv")
     return pd.read_csv(f)
 
@@ -26,17 +26,18 @@ def duration(tdd_alts):
 
 
 @sim.table()
-def tdd_mandatory_spec():
-    f = os.path.join('configs', 'tour_departure_and_duration_mandatory.csv')
+def tdd_mandatory_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs',
+                     'tour_departure_and_duration_mandatory.csv')
     return asim.read_model_spec(f, stack=False)
 
 
 @sim.model()
-def tour_departure_and_duration_mandatory(mandatory_tours_merged,
-                                          tdd_alts,
-                                          tdd_mandatory_spec):
+def mandatory_scheduling(mandatory_tours_merged,
+                         tdd_alts,
+                         tdd_mandatory_spec):
 
-    tours = mandatory_tours_merged
+    tours = mandatory_tours_merged.to_frame()
 
     print "Running %d mandatory tour scheduling choices" % len(tours)
 

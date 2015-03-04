@@ -16,8 +16,8 @@ def mandatory_tour_frequency_alts():
 
 
 @sim.injectable()
-def mandatory_tour_frequency_spec():
-    f = os.path.join('configs', "mandatory_tour_frequency.csv")
+def mandatory_tour_frequency_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs', "mandatory_tour_frequency.csv")
     return asim.read_model_spec(f)
 
 
@@ -102,4 +102,6 @@ def mandatory_tours(persons):
 
 # broadcast mandatory_tours on to persons using the person_id foreign key
 sim.broadcast('persons', 'mandatory_tours',
+              cast_index=True, onto_on='person_id')
+sim.broadcast('persons_merged', 'mandatory_tours',
               cast_index=True, onto_on='person_id')

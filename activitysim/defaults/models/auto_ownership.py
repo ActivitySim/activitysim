@@ -18,8 +18,8 @@ def auto_alts():
 
 
 @sim.injectable()
-def auto_ownership_spec():
-    f = os.path.join('configs', "auto_ownership.csv")
+def auto_ownership_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs', "auto_ownership.csv")
     # FIXME should read in all variables and comment out ones not used
     return asim.read_model_spec(f).head(4*26)
 

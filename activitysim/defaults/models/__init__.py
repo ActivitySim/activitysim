@@ -6,5 +6,6 @@ import auto_ownership
 import destination
 import mandatory_tour_frequency
 import non_mandatory_tour_frequency
-import scheduling
+import mandatory_scheduling
+import non_mandatory_scheduling
 import workplace_location

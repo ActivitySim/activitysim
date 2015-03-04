@@ -10,15 +10,26 @@ warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
 
+@sim.injectable()
+def configs_dir():
+    return '.'
+
+
+@sim.injectable()
+def data_dir():
+    return '.'
+
+
 @sim.injectable(cache=True)
-def settings():
-    with open(os.path.join("configs", "settings.yaml")) as f:
+def settings(configs_dir):
+    with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
         return yaml.load(f)
 
 
 @sim.injectable(cache=True)
-def store(settings):
-    return pd.HDFStore(os.path.join("data", settings["store"]), mode='r')
+def store(data_dir, settings):
+    return pd.HDFStore(os.path.join(data_dir, "data", settings["store"]),
+                       mode='r')
 
 
 # these are the alternatives for the workplace choice, among other things
@@ -43,3 +54,16 @@ def persons_merged(persons, households, land_use, accessibility):
                                                   households,
                                                   land_use,
                                                   accessibility])
+
+
+@sim.table()
+def mandatory_tours_merged(mandatory_tours, persons_merged):
+    return sim.merge_tables(mandatory_tours.name,
+                            [mandatory_tours, persons_merged])
+
+
+@sim.table()
+def non_mandatory_tours_merged(non_mandatory_tours, persons_merged):
+    tours = non_mandatory_tours
+    return sim.merge_tables(tours.name, tables=[tours,
+                                                persons_merged])

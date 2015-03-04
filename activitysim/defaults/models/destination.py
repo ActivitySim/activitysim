@@ -11,23 +11,18 @@ person that's making the tour)
 
 
 @sim.table()
-def destination_choice_size_terms():
-    f = os.path.join('configs', 'destination_choice_size_terms.csv')
+def destination_choice_size_terms(configs_dir):
+    f = os.path.join(configs_dir, 'configs',
+                     'destination_choice_size_terms.csv')
     return pd.read_csv(f)
 
 
 @sim.table()
-def destination_choice_spec():
-    f = os.path.join('configs', 'destination_choice_alternatives_sample.csv')
+def destination_choice_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs',
+                     'destination_choice_alternatives_sample.csv')
     # FIXME not using all the variables yet
     return asim.read_model_spec(f, stack=False).head(5)
-
-
-@sim.table()
-def non_mandatory_tours_merged(non_mandatory_tours, persons_merged):
-    tours = non_mandatory_tours
-    return sim.merge_tables(tours.name, tables=[tours,
-                                                persons_merged])
 
 
 @sim.model()
@@ -56,7 +51,7 @@ def destination_choice(non_mandatory_tours_merged,
 
         # FIXME - there are two options here escort with kids and without
         if name == "escort":
-            continuex
+            continue
 
         print "Running segment '%s' of size %d" % (name, len(segment))
 

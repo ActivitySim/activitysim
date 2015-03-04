@@ -16,6 +16,27 @@ def people():
 
 
 @pytest.fixture(scope='module')
+def one_spec():
+    return read_model_spec(
+        os.path.join(
+            os.path.dirname(__file__), 'data', 'cdap_1_person.csv'))
+
+
+@pytest.fixture(scope='module')
+def two_spec():
+    return read_model_spec(
+        os.path.join(
+            os.path.dirname(__file__), 'data', 'cdap_2_person.csv'))
+
+
+@pytest.fixture(scope='module')
+def three_spec():
+    return read_model_spec(
+        os.path.join(
+            os.path.dirname(__file__), 'data', 'cdap_3_person.csv'))
+
+
+@pytest.fixture(scope='module')
 def final_rules():
     return read_model_spec(
         os.path.join(
@@ -120,3 +141,37 @@ def test_apply_final_rules(people, final_rules):
     cdap.apply_final_rules(people, final_rules, utilities)
 
     assert utilities.loc[19, 'Mandatory'] == 0
+
+
+def test_individual_utilities(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules):
+    utilities = cdap.individual_utilities(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules)
+
+    expected = pd.DataFrame([
+        [2, 0, 0],  # person 1
+        [0, 0, 1],  # person 2
+        [3, 0, 0],  # person 3
+        [3, 0, 0],  # person 4
+        [0, 1, 0],  # person 5
+        [1, 0, 0],  # person 6
+        [3, 0, 100],  # person 7
+        [0, 2, 100],  # person 8
+        [0, 0, 101],  # person 9
+        [2, 0, 100],  # person 10
+        [0, 0, 103],  # person 11
+        [0, 0, 102],  # person 12
+        [3, 100, 0],  # person 13
+        [1, 100, 0],  # person 14
+        [0, 104, 0],  # person 15
+        [0, 104, 0],  # person 16
+        [0, 100, 4],  # person 17
+        [0, 100, 5],  # person 18
+        [0, 100, 4],  # person 19
+        [2, 100, 0]  # person 20
+        ], index=people.index, columns=one_spec.columns)
+
+    pdt.assert_frame_equal(
+        utilities, expected, check_dtype=False, check_names=False)

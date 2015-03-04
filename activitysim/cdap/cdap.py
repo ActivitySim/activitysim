@@ -79,37 +79,8 @@ def make_interactions(people, hh_id_col, p_type_col):
         pd.DataFrame({'interaction': three_val}, index=three_idx))
 
 
-def apply_final_rules(people, final_rules, utilities):
-    """
-    Apply any final rules to the set of individual utilities.
-    These rules specify a final value (often 0) for utilities
-    for certain people. The `utilities` table is modified inplace.
-
-    Parameters
-    ----------
-    people : pandas.DataFrame
-        DataFrame of individual people data.
-    final_rules : pandas.DataFrame
-        This table is expected to have a specific form:
-        the index should be expressions (as with other model specs),
-        but the columns should be alternatives and values, in that order.
-        The column names are not important, but their order is.
-        Expressions will be evaluated in the context of the `people` table,
-        and matching rows in the `utilities` table will be modified.
-        The values of the alternative column should match column names
-        of the `utilities` table.
-    utilities : pandas.DataFrame
-        Will have index of `people` and columns for each of the alternatives.
-
-    """
-    flags = eval_variables(final_rules.index, people)
-    for expr, row in final_rules.iterrows():
-        utilities.loc[flags[expr], row.iloc[0]] = row.iloc[1]
-
-
 def individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules):
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec):
     """
     Calculate CDAP utilities for all individuals.
 
@@ -124,12 +95,6 @@ def individual_utilities(
     one_spec : pandas.DataFrame
     two_spec : pandas.DataFrame
     three_spec : pandas.DataFrame
-    final_rules : pandas.DataFrame
-        This table is expected to have a specific form:
-        the index should be expressions (as with other model specs),
-        but the columns should be alternatives and values, in that order.
-        The column names are not important, but their order is.
-        Expressions will be evaluated in the context of the `people` table.
 
     Returns
     -------
@@ -163,9 +128,6 @@ def individual_utilities(
     # add one-, two-, and three-person utilities
     utils = one_utils.add(
         two_utils, fill_value=0).add(three_utils, fill_value=0)
-
-    # apply final rules
-    apply_final_rules(people, final_rules, utils)
 
     return utils
 

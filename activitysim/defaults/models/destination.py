@@ -1,3 +1,8 @@
+import urbansim.sim.simulation as sim
+from activitysim import activitysim as asim
+import os
+import pandas as pd
+
 """
 Given the tour generation from the above, each tour needs to have a
 destination, so in this case tours are the choosers (with the associated

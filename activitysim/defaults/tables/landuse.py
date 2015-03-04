@@ -1,3 +1,6 @@
+import urbansim.sim.simulation as sim
+
+
 @sim.table(cache=True)
 def land_use(store):
     return store["land_use/taz_data"]

@@ -1,3 +1,8 @@
+import os
+import pandas as pd
+import urbansim.sim.simulation as sim
+from activitysim import activitysim as asim
+
 """
 This model predicts the frequency of making mandatory trips (see the
 alternatives above) - these trips include work and school in some combination.
@@ -47,6 +52,7 @@ def mandatory_tour_frequency(persons,
 This does the same as the above but for mandatory tours.  Ending format is
 the same as in the comment above except trip types are "work" and "school"
 """
+
 
 @sim.table()
 def mandatory_tours(persons):

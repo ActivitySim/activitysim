@@ -1,3 +1,6 @@
+import urbansim.sim.simulation as sim
+
+
 @sim.table(cache=True)
 def accessibility(store):
     df = store["skims/accessibility"]

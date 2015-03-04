@@ -1,3 +1,10 @@
+import pandas as pd
+import numpy as np
+import urbansim.sim.simulation as sim
+import urbansim.utils.misc as usim_misc
+from activitysim import activitysim as asim
+
+
 @sim.table(cache=True)
 def households(store, settings):
 
@@ -7,7 +14,7 @@ def households(store, settings):
 
     return store["households"]
 
-    
+
 sim.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
 
 
@@ -69,6 +76,7 @@ def num_young_adults(households, persons):
     return persons.local.query("25 <= age <= 34").\
         groupby("household_id").size().\
         reindex(households.index).fillna(0)
+
 
 # just a rename / alias
 @sim.column("households")

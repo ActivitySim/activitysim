@@ -1,12 +1,9 @@
 import urbansim.sim.simulation as sim
-import urbansim.utils.misc as usim_misc
+import warnings
 import os
-from activitysim import activitysim as asim
-import openmatrix as omx
-from activitysim import skim
-import numpy as np
+import yaml
 import pandas as pd
-
+import numpy as np
 
 """
 Definition of terms:
@@ -22,7 +19,7 @@ pd.options.mode.chained_assignment = None
 
 @sim.injectable(cache=True)
 def settings():
-    with open(os.path.join(misc.configs_dir(), "settings.yaml")) as f:
+    with open(os.path.join("configs", "settings.yaml")) as f:
         settings = yaml.load(f)
         # monkey patch on the settings object since it's pretty global
         # but will also be available as injectable
@@ -33,7 +30,7 @@ def settings():
 @sim.injectable(cache=True)
 def store(settings):
     return pd.HDFStore(
-        os.path.join(misc.data_dir(), settings["store"]),
+        os.path.join("data", settings["store"]),
         mode='r')
 
 

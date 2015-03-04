@@ -128,7 +128,7 @@ def simple_simulate(choosers, alternatives, spec,
         .describe().transpose()
     df = df[df["std"] == 0]
     if len(df):
-        print "WARNING: Describe of columns with no variability:\n", df
+        print "WARNING: Some columns have no variability:\n", df.index.values
 
     positions = mnl.mnl_simulate(
         model_design.as_matrix(),

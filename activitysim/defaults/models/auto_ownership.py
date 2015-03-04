@@ -1,3 +1,7 @@
+import os
+import urbansim.sim.simulation as sim
+from activitysim import activitysim as asim
+
 """
 Auto ownership is a standard model which predicts how many cars a household
 with given characteristics owns

@@ -1,4 +1,5 @@
 import os.path
+from itertools import product
 
 import pandas as pd
 import pandas.util.testing as pdt
@@ -51,6 +52,15 @@ def hh_id_col():
 @pytest.fixture(scope='module')
 def p_type_col():
     return 'ptype'
+
+
+@pytest.fixture(scope='module')
+def individual_utils(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules):
+    return cdap.individual_utilities(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules)
 
 
 def test_make_interactions(people, hh_id_col, p_type_col):
@@ -143,13 +153,7 @@ def test_apply_final_rules(people, final_rules):
     assert utilities.loc[19, 'Mandatory'] == 0
 
 
-def test_individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules):
-    utilities = cdap.individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules)
-
+def test_individual_utilities(people, one_spec, individual_utils):
     expected = pd.DataFrame([
         [2, 0, 0],  # person 1
         [0, 0, 1],  # person 2
@@ -157,21 +161,21 @@ def test_individual_utilities(
         [3, 0, 0],  # person 4
         [0, 1, 0],  # person 5
         [1, 0, 0],  # person 6
-        [3, 0, 100],  # person 7
-        [0, 2, 100],  # person 8
-        [0, 0, 101],  # person 9
-        [2, 0, 100],  # person 10
-        [0, 0, 103],  # person 11
-        [0, 0, 102],  # person 12
-        [3, 100, 0],  # person 13
-        [1, 100, 0],  # person 14
-        [0, 104, 0],  # person 15
-        [0, 104, 0],  # person 16
-        [0, 100, 4],  # person 17
-        [0, 100, 5],  # person 18
-        [0, 100, 4],  # person 19
-        [2, 100, 0]  # person 20
+        [3, 0, 0],  # person 7
+        [0, 2, 0],  # person 8
+        [0, 0, 1],  # person 9
+        [2, 0, 0],  # person 10
+        [0, 0, 3],  # person 11
+        [0, 0, 2],  # person 12
+        [3, 0, 0],  # person 13
+        [1, 0, 0],  # person 14
+        [0, 4, 0],  # person 15
+        [0, 4, 0],  # person 16
+        [0, 0, 4],  # person 17
+        [0, 0, 5],  # person 18
+        [0, 0, 4],  # person 19
+        [2, 0, 0]  # person 20
         ], index=people.index, columns=one_spec.columns)
 
     pdt.assert_frame_equal(
-        utilities, expected, check_dtype=False, check_names=False)
+        individual_utils, expected, check_dtype=False, check_names=False)

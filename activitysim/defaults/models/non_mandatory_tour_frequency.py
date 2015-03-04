@@ -4,9 +4,10 @@ import numpy as np
 import urbansim.sim.simulation as sim
 from activitysim import activitysim as asim
 
+
 """
-This model predicts the frequency of making non-mandatory trips (
-alternatives for this model come from a seaparate csv file which is
+This model predicts the frequency of making non-mandatory trips
+(alternatives for this model come from a seaparate csv file which is
 configured by the user) - these trips include escort, shopping, othmaint,
 othdiscr, eatout, and social trips in various combination.
 """
@@ -35,17 +36,11 @@ def tot_tours(non_mandatory_tour_frequency_alts):
 
 
 @sim.model()
-def non_mandatory_tour_frequency(persons,
-                                 households,
-                                 land_use,
-                                 accessibility,
+def non_mandatory_tour_frequency(persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec):
 
-    choosers = sim.merge_tables(persons.name, tables=[persons,
-                                                      households,
-                                                      land_use,
-                                                      accessibility])
+    choosers = persons_merged.to_frame()
 
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
@@ -57,12 +52,13 @@ def non_mandatory_tour_frequency(persons,
 
         print "Running segment '%s' of size %d" % (name, len(segment))
 
-        choices, _ = asim.simple_simulate(segment,
-                                          non_mandatory_tour_frequency_alts.to_frame(),
-                                          # notice that we pick the column for the
-                                          # segment for each segment we run
-                                          non_mandatory_tour_frequency_spec[name],
-                                          mult_by_alt_col=False)
+        choices, _ = \
+            asim.simple_simulate(segment,
+                                 non_mandatory_tour_frequency_alts.to_frame(),
+                                 # notice that we pick the column for the
+                                 # segment for each segment we run
+                                 non_mandatory_tour_frequency_spec[name],
+                                 mult_by_alt_col=False)
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
@@ -75,8 +71,8 @@ def non_mandatory_tour_frequency(persons,
 
 
 """
-We have now generated mandatory and non-mandatory tours, but they are
-attributes of the person table - this function creates a "tours" table which
+We have now generated non-mandatory tours, but they are attributes of the
+person table - this function creates a "tours" table which
 has one row per tour that has been generated (and the person id it is
 associated with)
 """
@@ -120,5 +116,8 @@ def non_mandatory_tours(persons,
     return tours
 
 
+# broadcast trips onto persons using the person_id
 sim.broadcast('persons', 'non_mandatory_tours',
+              cast_index=True, onto_on='person_id')
+sim.broadcast('persons_merged', 'non_mandatory_tours',
               cast_index=True, onto_on='person_id')

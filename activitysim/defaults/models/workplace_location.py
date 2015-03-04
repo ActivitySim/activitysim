@@ -7,7 +7,8 @@ import numpy as np
 """
 The workplace location model predicts the zones in which various people will
 work.  Interestingly there's not really any supply side to this model - we
-assume there are workplaces for the people to work.
+assume that in a properly calibrated model there are workplaces for the people 
+to work.
 """
 
 
@@ -18,6 +19,8 @@ def workplace_location_spec():
     return asim.read_model_spec(f).head(15)
 
 
+# FIXME there's enough here that this needs to be a utility in activitysim
+# FIXME core and documented and tested
 @sim.table()
 def workplace_size_terms(land_use, destination_choice_size_terms):
     """
@@ -59,14 +62,13 @@ def workplace_location_simulate(persons,
         "distance": distance_skim
     }
 
-    choices, model_design = \
-        asim.simple_simulate(choosers,
-                             alternatives,
-                             workplace_location_spec,
-                             skims,
-                             skim_join_name="TAZ",
-                             mult_by_alt_col=False,
-                             sample_size=50)
+    choices, model_design = asim.simple_simulate(choosers,
+                                                 alternatives,
+                                                 workplace_location_spec,
+                                                 skims,
+                                                 skim_join_name="TAZ",
+                                                 mult_by_alt_col=False,
+                                                 sample_size=50)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)

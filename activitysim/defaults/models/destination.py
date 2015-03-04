@@ -19,32 +19,33 @@ def destination_choice_size_terms():
 @sim.table()
 def destination_choice_spec():
     f = os.path.join('configs', 'destination_choice_alternatives_sample.csv')
+    # FIXME not using all the variables yet
     return asim.read_model_spec(f, stack=False).head(5)
 
 
+@sim.table()
+def non_mandatory_tours_merged(non_mandatory_tours, persons_merged):
+    tours = non_mandatory_tours
+    return sim.merge_tables(tours.name, tables=[tours,
+                                                persons_merged])
+
+
 @sim.model()
-def destination_choice(non_mandatory_tours,
-                       persons,
-                       households,
-                       land_use,
+def destination_choice(non_mandatory_tours_merged,
                        zones,
                        distance_skim,
                        destination_choice_spec):
 
-    tours = non_mandatory_tours
+    # choosers are tours - in a sense tours are choosing their destination
+    choosers = non_mandatory_tours_merged.to_frame()
 
     # FIXME these models don't have size terms at the moment
 
-    # FIXME these models don't use stratified sampling
+    # FIXME these models don't use stratified sampling - we're just making
+    # FIXME the choice with the sampling model
 
-    # FIXME is the distance to the second trip based on the choice of the
-    # FIXME first trip - ouch!
-
-    # choosers are tours - in a sense tours are choosing their destination
-    choosers = sim.merge_tables(tours.name, tables=[tours,
-                                                    persons,
-                                                    households])
-
+    # all these tours are home based by definition so we use distance to the
+    # home as the relevant distance here
     skims = {
         "distance": distance_skim
     }
@@ -55,7 +56,7 @@ def destination_choice(non_mandatory_tours,
 
         # FIXME - there are two options here escort with kids and without
         if name == "escort":
-            continue
+            continuex
 
         print "Running segment '%s' of size %d" % (name, len(segment))
 

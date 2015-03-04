@@ -13,6 +13,7 @@ MAX_NUM_CARS = 5
 
 @sim.table()
 def auto_alts():
+    # alts can't be integers directly as they're used in expressions
     return asim.identity_matrix(["cars%d" % i for i in range(MAX_NUM_CARS)])
 
 
@@ -24,26 +25,18 @@ def auto_ownership_spec():
 
 
 @sim.model()
-def auto_ownership_simulate(households,
+def auto_ownership_simulate(households_merged,
                             auto_alts,
-                            auto_ownership_spec,
-                            land_use,
-                            accessibility):
+                            auto_ownership_spec):
 
-    choosers = sim.merge_tables(households.name, tables=[households,
-                                                         land_use,
-                                                         accessibility])
-    alternatives = auto_alts.to_frame()
+    choices, _ = asim.simple_simulate(households_merged.to_frame(), 
+                                      auto_alts.to_frame(),
+                                      auto_ownership_spec,
+                                      mult_by_alt_col=True)
 
-    choices, model_design = \
-        asim.simple_simulate(choosers, alternatives, auto_ownership_spec,
-                             mult_by_alt_col=True)
-
-    # map these back to integers
-    choices = choices.map(dict([("cars%d" % i, i)
-                                for i in range(MAX_NUM_CARS)]))
+    # map these back to integers - this is the actual number of cars chosen
+    car_map = dict([("cars%d" % i, i) for i in range(MAX_NUM_CARS)])
+    choices = choices.map(car_map)
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("households", "auto_ownership", choices)
-
-    return model_design

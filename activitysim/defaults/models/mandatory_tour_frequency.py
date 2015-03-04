@@ -22,16 +22,11 @@ def mandatory_tour_frequency_spec():
 
 
 @sim.model()
-def mandatory_tour_frequency(persons,
-                             households,
-                             land_use,
+def mandatory_tour_frequency(persons_merged,
                              mandatory_tour_frequency_alts,
                              mandatory_tour_frequency_spec):
 
-    choosers = sim.merge_tables(persons.name, tables=[persons,
-                                                      households,
-                                                      land_use])
-
+    choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'M']
     print "%d persons run for mandatory tour model" % len(choosers)
@@ -49,8 +44,9 @@ def mandatory_tour_frequency(persons,
 
 
 """
-This does the same as the above but for mandatory tours.  Ending format is
-the same as in the comment above except trip types are "work" and "school"
+This reprocesses the choice of index of the mandatory tour frequency
+alternatives into an actual dataframe of tours.  Ending format is
+the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
@@ -62,7 +58,7 @@ def mandatory_tours(persons):
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
 
     tours = []
-    # this is probably easier to do in non-vectorized fashion (at least for now)
+    # this is probably easier to do in non-vectorized fashion like this
     for key, row in persons.iterrows():
 
         mtour = row.mandatory_tour_frequency
@@ -91,8 +87,19 @@ def mandatory_tours(persons):
         else:
             assert 0
 
+    """
+    Pretty basic at this point - trip table looks like this so far
+           person_id tour_type tour_num
+    0          4419    work     1
+    1          4419    school   2
+    4          4650    school   1
+    5         10001    school   1
+    6         10001    work     2
+    """
+
     return pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num"])
 
 
+# broadcast mandatory_tours on to persons using the person_id foreign key
 sim.broadcast('persons', 'mandatory_tours',
               cast_index=True, onto_on='person_id')

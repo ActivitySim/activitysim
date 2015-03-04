@@ -168,3 +168,27 @@ def individual_utilities(
     apply_final_rules(people, final_rules, utils)
 
     return utils
+
+
+def initial_household_utilities(utilities, people, hh_id_col):
+    """
+    Create initial household utilities by grouping and summing utilities
+    from individual household members.
+
+    Parameters
+    ----------
+    utilities : pandas.DataFrame
+        Should have the index of `people` and columns for each alternative.
+    people : pandas.DataFrame
+        DataFrame of individual people data.
+    hh_id_col : str
+        Name of the column in `people` that has their household ID.
+
+    Returns
+    -------
+    hh_util : dict of pandas.Series
+        Keys will be household IDs and values will be Series
+        mapping alternative choices to their utility.
+
+    """
+    pass

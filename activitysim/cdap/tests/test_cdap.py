@@ -168,3 +168,57 @@ def test_individual_utilities(people, one_spec, individual_utils):
 
     pdt.assert_frame_equal(
         individual_utils, expected, check_dtype=False, check_names=False)
+
+
+def test_initial_household_utilities(people, individual_utils, hh_id_col):
+    alts = ['Mandatory', 'NonMandatory', 'Home']
+    one_alts = list(product(alts, repeat=1))
+    two_alts = list(product(alts, repeat=2))
+    three_alts = list(product(alts, repeat=3))
+    four_alts = list(product(alts, repeat=4))
+
+    hh_utils = cdap.initial_household_utilities(
+        individual_utils, people, hh_id_col)
+
+    expected = {
+        1: pd.Series([2, 0, 0], index=one_alts),
+        2: pd.Series([0, 0, 1], index=one_alts),
+        3: pd.Series([6, 3, 3, 3, 0, 0, 3, 0, 0], index=two_alts),
+        4: pd.Series([1, 0, 0, 2, 1, 1, 1, 0, 0], index=two_alts),
+        5: pd.Series([
+            1, 1, 2, 3, 3, 4, 1, 1, 2,
+            0, 0, 1, 2, 2, 3, 0, 0, 1,
+            0, 0, 1, 2, 2, 3, 0, 0, 1,
+            ], index=three_alts),
+        6: pd.Series([
+            2, 2, 4, 2, 2, 4, 5, 5, 7,
+            0, 0, 2, 0, 0, 2, 3, 3, 5,
+            0, 0, 2, 0, 0, 2, 3, 3, 5,
+            ], index=three_alts),
+        7: pd.Series([
+            4, 8, 4, 8, 12, 8, 4, 8, 4,
+            3, 7, 3, 7, 11, 7, 3, 7, 3,
+            3, 7, 3, 7, 11, 7, 3, 7, 3,
+            1, 5, 1, 5, 9, 5, 1, 5, 1,
+            0, 4, 0, 4, 8, 4, 0, 4, 0,
+            0, 4, 0, 4, 8, 4, 0, 4, 0,
+            1, 5, 1, 5, 9, 5, 1, 5, 1,
+            0, 4, 0, 4, 8, 4, 0, 4, 0,
+            0, 4, 0, 4, 8, 4, 0, 4, 0
+            ], index=four_alts),
+        8: pd.Series([
+            52, 50, 50, 2, 0, 0, 6, 4, 4,
+            52, 50, 50, 2, 0, 0, 6, 4, 4,
+            57, 55, 55, 7, 5, 5, 11, 9, 9,
+            52, 50, 50, 2, 0, 0, 6, 4, 4,
+            52, 50, 50, 2, 0, 0, 6, 4, 4,
+            57, 55, 55, 7, 5, 5, 11, 9, 9,
+            56, 54, 54, 6, 4, 4, 10, 8, 8,
+            56, 54, 54, 6, 4, 4, 10, 8, 8,
+            61, 59, 59, 11, 9, 9, 15, 13, 13
+            ], index=four_alts)
+    }
+
+    assert list(hh_utils.keys()) == list(expected.keys())
+    for k in expected:
+        pdt.assert_series_equal(hh_utils[k], expected[k], check_dtype=False)

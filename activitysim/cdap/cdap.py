@@ -153,4 +153,19 @@ def initial_household_utilities(utilities, people, hh_id_col):
         mapping alternative choices to their utility.
 
     """
-    pass
+    hh_util = {}
+
+    alts = utilities.columns
+
+    for hh_id, df in people.groupby(hh_id_col, sort=False):
+        utils = utilities.loc[df.index]
+        hh = []
+
+        for combo in itertools.product(alts, repeat=len(df)):
+            hh.append(
+                (combo, utils.lookup(df.index, combo).sum()))
+
+        idx, u = zip(*hh)
+        hh_util[hh_id] = pd.Series(u, index=idx)
+
+    return hh_util

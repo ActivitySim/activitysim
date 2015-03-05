@@ -1,5 +1,6 @@
 import itertools
 
+import numpy as np
 import pandas as pd
 
 from ..activitysim import eval_variables
@@ -169,3 +170,53 @@ def initial_household_utilities(utilities, people, hh_id_col):
         hh_util[hh_id] = pd.Series(u, index=idx)
 
     return hh_util
+
+
+def apply_final_rules(hh_util, people, hh_id_col, final_rules):
+    """
+    Final rules can be used to set the utility values for certain
+    household alternatives. Often they are set to zero to reflect
+    the unavailability of certain alternatives to certain types of people.
+
+    This modifies the `hh_util` data inplace.
+
+    Parameters
+    ----------
+    hh_util : dict of pandas.Series
+        Keys will be household IDs and values will be Series
+        mapping alternative choices to their utility.
+    people : pandas.DataFrame
+        DataFrame of individual people data.
+    hh_id_col : str
+        Name of the column in `people` that has their household ID.
+    final_rules : pandas.DataFrame
+        This table must have an index of expressions that can be used
+        to filter the `people` table. It must have two columns:
+        the first must have the name of the alternative to which the rule
+        applies, and the second must have the value of the utility for that
+        alternative. The names of the columns is not important, but
+        the order is.
+
+    """
+    rule_mask = eval_variables(final_rules.index, people)
+
+    for hh_id, df in people.groupby(hh_id_col, sort=False):
+        mask = rule_mask.loc[df.index]
+        utils = hh_util[hh_id]
+
+        for exp, row in final_rules.iterrows():
+            m = mask[exp].as_matrix()
+
+            # this crazy business combines three things to figure out
+            # which household alternatives need to be modified by this rule.
+            # the three things are:
+            # - the mask of people for whom the rule expression is true (m)
+            # - the individual alternative to which the rule applies
+            #   (row.iloc[0])
+            # - the alternative combinations for the household (combo)
+            app = [
+                ((np.array([row.iloc[0]] * len(utils.index[0])) == combo) & m
+                 ).any()
+                for combo in utils.index]
+
+            utils[app] = row.iloc[1]

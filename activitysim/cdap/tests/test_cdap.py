@@ -226,3 +226,23 @@ def test_initial_household_utilities(hh_utils):
     assert list(hh_utils.keys()) == list(expected.keys())
     for k in expected:
         pdt.assert_series_equal(hh_utils[k], expected[k], check_dtype=False)
+
+
+def test_apply_final_rules(hh_utils, final_rules, people, hh_id_col):
+    expected = hh_utils.copy()
+    expected[8] = pd.Series([
+        0, 0, 0, 2, 0, 0, 6, 4, 4,
+        0, 0, 0, 2, 0, 0, 6, 4, 4,
+        0, 0, 0, 7, 5, 5, 11, 9, 9,
+        0, 0, 0, 2, 0, 0, 6, 4, 4,
+        0, 0, 0, 2, 0, 0, 6, 4, 4,
+        0, 0, 0, 7, 5, 5, 11, 9, 9,
+        0, 0, 0, 6, 4, 4, 10, 8, 8,
+        0, 0, 0, 6, 4, 4, 10, 8, 8,
+        0, 0, 0, 11, 9, 9, 15, 13, 13
+        ], index=expected[7].index)
+
+    cdap.apply_final_rules(hh_utils, people, hh_id_col, final_rules)
+
+    for k in expected:
+        pdt.assert_series_equal(hh_utils[k], expected[k], check_dtype=False)

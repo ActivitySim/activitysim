@@ -61,6 +61,13 @@ def individual_utils(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec)
 
 
+@pytest.fixture
+def hh_utils(individual_utils, people, hh_id_col):
+    hh_utils = cdap.initial_household_utilities(
+        individual_utils, people, hh_id_col)
+    return hh_utils
+
+
 def test_make_interactions(people, hh_id_col, p_type_col):
     expected_two = pd.DataFrame(
         {'interaction': [
@@ -170,15 +177,12 @@ def test_individual_utilities(people, one_spec, individual_utils):
         individual_utils, expected, check_dtype=False, check_names=False)
 
 
-def test_initial_household_utilities(people, individual_utils, hh_id_col):
+def test_initial_household_utilities(hh_utils):
     alts = ['Mandatory', 'NonMandatory', 'Home']
     one_alts = list(product(alts, repeat=1))
     two_alts = list(product(alts, repeat=2))
     three_alts = list(product(alts, repeat=3))
     four_alts = list(product(alts, repeat=4))
-
-    hh_utils = cdap.initial_household_utilities(
-        individual_utils, people, hh_id_col)
 
     expected = {
         1: pd.Series([2, 0, 0], index=one_alts),

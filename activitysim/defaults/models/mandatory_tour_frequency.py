@@ -31,7 +31,7 @@ def mandatory_tour_frequency(persons_merged,
     choosers = choosers[choosers.cdap_activity == 'M']
     print "%d persons run for mandatory tour model" % len(choosers)
 
-    choices, model_design = \
+    choices, _ = \
         asim.simple_simulate(choosers,
                              mandatory_tour_frequency_alts.to_frame(),
                              mandatory_tour_frequency_spec,
@@ -39,8 +39,6 @@ def mandatory_tour_frequency(persons_merged,
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("persons", "mandatory_tour_frequency", choices)
-
-    return model_design
 
 
 """
@@ -50,6 +48,7 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
+# TODO this needs a simple input / output unit test
 @sim.table()
 def mandatory_tours(persons):
 
@@ -63,6 +62,11 @@ def mandatory_tours(persons):
 
         mtour = row.mandatory_tour_frequency
         is_worker = row.is_worker
+
+        # this logic came from the CTRAMP model - I copied it as best as I
+        # could from the previous code - basically we need to know which
+        # tours are the first tour and which are subsequent, and work /
+        # school depends on the status of the person (is_worker variable)
 
         # 1 work trip
         if mtour == "work1":

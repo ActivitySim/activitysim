@@ -13,15 +13,15 @@ MAX_NUM_CARS = 5
 
 @sim.table()
 def auto_alts():
-    # alts can't be integers directly as they're used in expressions
+    # alts can't be integers directly as they're used in expressions - they
+    # won't be evaluated correctly by DataFrame.eval unless they're strings
     return asim.identity_matrix(["cars%d" % i for i in range(MAX_NUM_CARS)])
 
 
 @sim.injectable()
 def auto_ownership_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "auto_ownership.csv")
-    # FIXME should read in all variables and comment out ones not used
-    return asim.read_model_spec(f).head(4*26)
+    return asim.read_model_spec(f)
 
 
 @sim.model()
@@ -35,7 +35,7 @@ def auto_ownership_simulate(households_merged,
                                       mult_by_alt_col=True)
 
     # map these back to integers - this is the actual number of cars chosen
-    car_map = dict([("cars%d" % i, i) for i in range(MAX_NUM_CARS)])
+    car_map = {"cars%d" % i: i for i in range(MAX_NUM_CARS)}
     choices = choices.map(car_map)
 
     print "Choices:\n", choices.value_counts()

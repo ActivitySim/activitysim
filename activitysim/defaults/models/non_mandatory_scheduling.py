@@ -17,7 +17,7 @@ def tdd_non_mandatory_spec(configs_dir):
     return asim.read_model_spec(f, stack=False)
 
 
-# FIXME - move to activitysim
+# FIXME - move to activitysim, test, document
 def vectorize_tour_schedules(tours, alts, spec):
 
     max_num_trips = tours.groupby('person_id').size().max()
@@ -36,7 +36,7 @@ def vectorize_tour_schedules(tours, alts, spec):
         print "Running %d non-mandatory #%d tour choices" % \
               (len(nth_tours), i+1)
 
-        # FIXME below two lines are placeholders
+        # FIXME below two lines are placeholders - need a general way to do this
 
         alts["mode_choice_logsum"] = 0
         nth_tours["end_of_previous_tour"] = -1
@@ -59,6 +59,7 @@ def non_mandatory_scheduling(non_mandatory_tours_merged,
 
     print "Running %d non-mandatory tour scheduling choices" % len(tours)
 
+    # FIXME we're not even halfway down the specfile
     spec = tdd_non_mandatory_spec.Coefficient.head(4)
     alts = tdd_alts.to_frame()
 

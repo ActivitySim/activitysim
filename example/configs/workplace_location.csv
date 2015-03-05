@@ -14,4 +14,4 @@ Description,Expression,Alt
 "No attractions full-time worker, medium income",@(df.income_segment==2)&(df.size_med==0),-999
 "No attractions full-time worker, high income",@(df.income_segment==3)&(df.size_high==0),-999
 "No attractions full-time worker, very high income",@(df.income_segment==4)&(df.size_veryhigh==0),-999
-Mode choice logsum,#mcLogsum,0.3
+Mode choice logsum,mode_choice_logsums,0.3

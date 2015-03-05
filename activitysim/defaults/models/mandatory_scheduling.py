@@ -41,6 +41,7 @@ def mandatory_scheduling(mandatory_tours_merged,
 
     print "Running %d mandatory tour scheduling choices" % len(tours)
 
+    # FIXME we're about halfway down the specfile
     spec = tdd_mandatory_spec.to_frame().head(27)
     alts = tdd_alts.to_frame()
 

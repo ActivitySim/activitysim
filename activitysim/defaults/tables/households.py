@@ -142,6 +142,12 @@ def car_sufficiency(households, persons):
     return households.auto_ownership - persons.household_id.value_counts()
 
 
+@sim.column('households')
+def work_tour_auto_time_savings(households):
+    # TODO fix this variable from auto ownership model
+    return pd.Series(0, households.index)
+
+
 # this is an idiom to grab the person of the specified type and check to see if
 # there is 1 or more of that kind of person in each household
 def presence_of(ptype, persons, households, at_home=False):

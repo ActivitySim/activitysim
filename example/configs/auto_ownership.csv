@@ -27,4 +27,4 @@ Marin county,county_name == 'Marin',,-0.2434,0,0,0
 "Retail accessibility (0.66*PK + 0.34*OP) by transit, if 1+ workers",(workers>0)*(0.66*TRANSITPEAKRETAIL+0.34*TRANSITOFFPEAKRETAIL),,-0.5117,-0.5117,-0.5117,-0.5117
 "Retail accessibility by non-motorized, if 0 workers",(workers==0)*NONMOTORIZEDRETAIL,,-0.03,-0.03,-0.03,-0.03
 "Retail accessibility by non-motorized, if 1+ workers",(workers>0)*NONMOTORIZEDRETAIL,,-0.03,-0.03,-0.03,-0.03
-"Auto time savings per worker (over walk or transit, max 120) to work",workTourAutoTimeSavings/workers,,0.4707,0.6142,0.5705,0.7693
+"Auto time savings per worker (over walk or transit, max 120) to work",work_tour_auto_time_savings / (workers+1),,0.4707,0.6142,0.5705,0.7693

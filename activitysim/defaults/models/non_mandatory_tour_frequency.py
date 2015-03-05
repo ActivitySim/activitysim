@@ -78,6 +78,7 @@ associated with)
 """
 
 
+# TODO this needs a simple input / output unit test
 @sim.table()
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):

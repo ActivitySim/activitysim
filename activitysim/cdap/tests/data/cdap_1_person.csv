@@ -7,7 +7,7 @@ Type 2 and high age,(ptype == 2) & (age >= 35),0,0,1
 Person 2 -> H,age == 21,-1,0,1
 Person 5 -> N,age == 24,-1,0,0
 Person 6 -> M,age == 25,0,-1,0
-Person 7 -> M,age == 26,2,-2,-1
+Person 7 -> M,age == 26,0,-2,-1
 Person 8 -> N,age == 27,-1,0,-1
 Person 9 -> H,age == 28,-1,-2,0
 Person 10 -> M,age == 29,0,0,-2

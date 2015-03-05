@@ -150,7 +150,7 @@ def test_individual_utilities(people, one_spec, individual_utils):
         [3, 0, 0],  # person 4
         [0, 1, 0],  # person 5
         [1, 0, 0],  # person 6
-        [3, 0, 0],  # person 7
+        [1, 0, 0],  # person 7
         [0, 2, 0],  # person 8
         [0, 0, 1],  # person 9
         [2, 0, 0],  # person 10

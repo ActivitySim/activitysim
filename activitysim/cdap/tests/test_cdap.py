@@ -44,6 +44,14 @@ def final_rules():
             os.path.dirname(__file__), 'data', 'cdap_final_rules.csv'))
 
 
+@pytest.fixture
+def all_people():
+    return read_model_spec(
+        os.path.join(
+            os.path.dirname(__file__), 'data', 'cdap_all_people.csv'),
+        expression_name='Alternative')
+
+
 @pytest.fixture(scope='module')
 def hh_id_col():
     return 'household'
@@ -243,6 +251,50 @@ def test_apply_final_rules(hh_utils, final_rules, people, hh_id_col):
         ], index=expected[7].index)
 
     cdap.apply_final_rules(hh_utils, people, hh_id_col, final_rules)
+
+    for k in expected:
+        pdt.assert_series_equal(hh_utils[k], expected[k], check_dtype=False)
+
+
+def test_apply_all_people(hh_utils, all_people):
+    all_people.at["('Mandatory',) * 3", 'Value'] = 300
+    all_people.at["('Home',) * 4", 'Value'] = 500
+
+    expected = hh_utils.copy()
+    expected[5] = pd.Series([
+        301, 1, 2, 3, 3, 4, 1, 1, 2,
+        0, 0, 1, 2, 2, 3, 0, 0, 1,
+        0, 0, 1, 2, 2, 3, 0, 0, 1,
+        ], index=hh_utils[5].index)
+    expected[6] = pd.Series([
+        302, 2, 4, 2, 2, 4, 5, 5, 7,
+        0, 0, 2, 0, 0, 2, 3, 3, 5,
+        0, 0, 2, 0, 0, 2, 3, 3, 5,
+        ], index=hh_utils[6].index)
+    expected[7] = pd.Series([
+        4, 8, 4, 8, 12, 8, 4, 8, 4,
+        3, 7, 3, 7, 11, 7, 3, 7, 3,
+        3, 7, 3, 7, 11, 7, 3, 7, 3,
+        1, 5, 1, 5, 9, 5, 1, 5, 1,
+        0, 4, 0, 4, 8, 4, 0, 4, 0,
+        0, 4, 0, 4, 8, 4, 0, 4, 0,
+        1, 5, 1, 5, 9, 5, 1, 5, 1,
+        0, 4, 0, 4, 8, 4, 0, 4, 0,
+        0, 4, 0, 4, 8, 4, 0, 4, 500
+        ], index=hh_utils[7].index)
+    expected[8] = pd.Series([
+        52, 50, 50, 2, 0, 0, 6, 4, 4,
+        52, 50, 50, 2, 0, 0, 6, 4, 4,
+        57, 55, 55, 7, 5, 5, 11, 9, 9,
+        52, 50, 50, 2, 0, 0, 6, 4, 4,
+        52, 50, 50, 2, 0, 0, 6, 4, 4,
+        57, 55, 55, 7, 5, 5, 11, 9, 9,
+        56, 54, 54, 6, 4, 4, 10, 8, 8,
+        56, 54, 54, 6, 4, 4, 10, 8, 8,
+        61, 59, 59, 11, 9, 9, 15, 13, 513
+        ], index=hh_utils[8].index)
+
+    cdap.apply_all_people(hh_utils, all_people)
 
     for k in expected:
         pdt.assert_series_equal(hh_utils[k], expected[k], check_dtype=False)

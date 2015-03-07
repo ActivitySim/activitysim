@@ -220,3 +220,29 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
                 for combo in utils.index]
 
             utils[app] = row.iloc[1]
+
+
+def apply_all_people(hh_util, all_people):
+    """
+    Apply utility adjustments to household alternatives.
+
+    This modifies the `hh_util` data inplace.
+
+    Parameters
+    ----------
+    hh_util : dict of pandas.Series
+        Keys will be household IDs and values will be Series
+        mapping alternative choices to their utility.
+    all_people : pandas.DataFrame
+        Adjustments to household alternatives, with alternatives in the
+        index and the adjustment values in the first column.
+        Index should be household alternatives in the form of tuples
+        containing individual alternatives, e.g.
+        ('Mandatory', 'Mandatory', 'Mandatory'), where 'Mandatory' is
+        one of the alternatives available to individual household members.
+        Note that these may also be expressed as Python code to save space,
+        so the previous could also be written as ('Mandatory',) * 3.
+
+    """
+    # evaluate all the expressions in the all_people index
+    all_people.index = [eval(x) for x in all_people.index]

@@ -17,7 +17,7 @@ def read_model_spec(fname,
                     expression_name="Expression",
                     stack=True):
     """
-    Read a CSV model specification into a Pandas DataFrame.
+    Read a CSV model specification into a Pandas DataFrame or Series.
 
     The CSV is expected to have columns for component descriptions
     and expressions, plus one or more alternatives.
@@ -34,6 +34,10 @@ def read_model_spec(fname,
         Name of the column in `fname` that contains the component description.
     expression_name : str, optional
         Name of the column in `fname` that contains the component expression.
+    stack : bool, optional
+        If True, the returned data will be stacked so that it has a
+        multi-index of (expression, alt-name) and values are the
+        alternative specific utilities.
 
     Returns
     -------

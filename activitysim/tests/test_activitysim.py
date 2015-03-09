@@ -19,10 +19,20 @@ def data_name():
 
 
 @pytest.fixture(scope='module')
-def spec(spec_name):
+def desc_name():
+    return 'description'
+
+
+@pytest.fixture(scope='module')
+def expr_name():
+    return 'expression'
+
+
+@pytest.fixture(scope='module')
+def spec(spec_name, desc_name, expr_name):
     return asim.read_model_spec(
-        spec_name,
-        description_name='description', expression_name='expression')
+        spec_name, description_name=desc_name, expression_name=expr_name,
+        stack=False)
 
 
 @pytest.fixture(scope='module')
@@ -30,14 +40,24 @@ def data(data_name):
     return pd.read_csv(data_name)
 
 
-def test_read_model_spec(spec_name):
+def test_read_model_spec_no_stack(spec_name, desc_name, expr_name):
     spec = asim.read_model_spec(
-        spec_name,
-        description_name='description', expression_name='expression')
+        spec_name, description_name=desc_name, expression_name=expr_name,
+        stack=False)
 
     assert len(spec) == 3
     assert spec.index.name == 'expression'
     assert list(spec.columns) == ['alt0', 'alt1']
+
+
+def test_read_model_spec_stack(spec_name, desc_name, expr_name):
+    spec = asim.read_model_spec(
+        spec_name, description_name=desc_name, expression_name=expr_name,
+        stack=True)
+
+    assert len(spec) == 6
+    npt.assert_array_equal(
+        spec.values, [11, 111, 22, 222, 33, 333])
 
 
 def test_identity_matrix():

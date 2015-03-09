@@ -13,6 +13,14 @@ MAX_NUM_CARS = 5
 
 
 """
+Definition of terms:
+
+CDAP = coordinated daily activity pattern
+TDD = tour departure and duration
+"""
+
+
+"""
 This part of this file is currently creating small tables to serve as
 alternatives in the various models
 """
@@ -50,7 +58,7 @@ def tot_tours(non_mandatory_tour_frequency_alts):
 
 
 @sim.table()
-def tour_departure_and_duration_alts():
+def tdd_alts():
     # right now this file just contains the start and end hour
     f = os.path.join("configs",
                      "tour_departure_and_duration_alternatives.csv")
@@ -59,10 +67,9 @@ def tour_departure_and_duration_alts():
 
 # used to have duration in the actual alternative csv file,
 # but this is probably better as a computed column
-@sim.column("tour_departure_and_duration_alts")
-def duration(tour_departure_and_duration_alts):
-    return tour_departure_and_duration_alts.end - \
-        tour_departure_and_duration_alts.start
+@sim.column("tdd_alts")
+def duration(tdd_alts):
+    return tdd_alts.end - tdd_alts.start
 
 
 """
@@ -144,8 +151,14 @@ def destination_choice_spec():
 
 
 @sim.table()
-def tour_departure_and_duration_spec():
-    f = os.path.join('configs', 'tour_departure_and_duration.csv')
+def tdd_mandatory_spec():
+    f = os.path.join('configs', 'tour_departure_and_duration_mandatory.csv')
+    return asim.read_model_spec(f, stack=False)
+
+
+@sim.table()
+def tdd_non_mandatory_spec():
+    f = os.path.join('configs', 'tour_departure_and_duration_nonmandatory.csv')
     return asim.read_model_spec(f, stack=False)
 
 
@@ -354,7 +367,7 @@ def non_mandatory_tours(persons,
 
     # reformat with the columns given below
     tours = tours.stack().reset_index()
-    tours.columns = ["person_id", "trip_type", "num_tours"]
+    tours.columns = ["person_id", "tour_type", "num_tours"]
 
     # now do a repeat and a take, so if you have two trips of given type you
     # now have two rows, and zero trips yields zero rows
@@ -365,7 +378,7 @@ def non_mandatory_tours(persons,
 
     """
     Pretty basic at this point - trip table looks like this so far
-              person_id trip_type
+              person_id tour_type
     0          4419    escort
     1          4419    escort
     2          4419  othmaint
@@ -423,7 +436,7 @@ def mandatory_tours(persons):
         else:
             assert 0
 
-    return pd.DataFrame(tours, columns=["person_id", "trip_type", "tour_num"])
+    return pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num"])
 
 
 sim.broadcast('persons', 'mandatory_tours',
@@ -466,7 +479,7 @@ def destination_choice(non_mandatory_tours,
 
     choices_list = []
     # segment by trip type and pick the right spec for each person type
-    for name, segment in choosers.groupby('trip_type'):
+    for name, segment in choosers.groupby('tour_type'):
 
         # FIXME - there are two options here escort with kids and without
         if name == "escort":
@@ -475,7 +488,7 @@ def destination_choice(non_mandatory_tours,
         print "Running segment '%s' of size %d" % (name, len(segment))
 
         choices, _ = \
-            asim.simple_simulate(choosers,
+            asim.simple_simulate(segment,
                                  zones.to_frame(),
                                  destination_choice_spec[name],
                                  skims,
@@ -494,17 +507,18 @@ def destination_choice(non_mandatory_tours,
 
 
 """
-This model predicts the departure time and duration of each activity
+This model predicts the departure time and duration of each activity for
+mandatory tours
 """
 
 
 @sim.model()
-def mandatory_tour_departure_and_duration(mandatory_tours,
+def tour_departure_and_duration_mandatory(mandatory_tours,
                                           persons,
                                           households,
                                           land_use,
-                                          tour_departure_and_duration_alts,
-                                          tour_departure_and_duration_spec):
+                                          tdd_alts,
+                                          tdd_mandatory_spec):
 
     choosers = sim.merge_tables(mandatory_tours.name, tables=[mandatory_tours,
                                                               persons,
@@ -520,11 +534,17 @@ def mandatory_tour_departure_and_duration(mandatory_tours,
     first_tours = choosers[choosers.tour_num == 1]
     second_tours = choosers[choosers.tour_num == 2]
 
-    spec = tour_departure_and_duration_spec.work.head(27)
-    alts = tour_departure_and_duration_alts.to_frame()
+    spec = tdd_mandatory_spec.to_frame().head(27)
+    alts = tdd_alts.to_frame()
 
     print choosers.mandatory_tour_frequency.value_counts()
-    print spec
+    print spec.tail()
+
+    # FIXME the "windowing" variables are not currently implemented
+
+    # FIXME this version hard-codes the 2 passes of the mandatory models -
+    # FIXME the non-mandatory version below does not - might should use that
+    # FIXME kind of structure here instead?
 
     # this is a bit odd to python - we can't run through in for loops for
     # performance reasons - we first have to do a pass for the first tours and
@@ -554,7 +574,63 @@ def mandatory_tour_departure_and_duration(mandatory_tours,
     # to actually use it we'll have ot go back and grab the start and end times
     print "Choices:\n", choices.describe()
 
-    sim.add_column("persons", "mandatory_tour_departure_and_duration", choices)
+    sim.add_column("mandatory_tours", "mandatory_tdd", choices)
+
+
+"""
+This model predicts the departure time and duration of each activity for
+non-mandatory tours
+"""
+
+
+@sim.model()
+def tour_departure_and_duration_non_mandatory(non_mandatory_tours,
+                                              persons,
+                                              households,
+                                              land_use,
+                                              tdd_alts,
+                                              tdd_non_mandatory_spec):
+
+    tours = sim.merge_tables(non_mandatory_tours.name,
+                             tables=[non_mandatory_tours,
+                                     persons,
+                                     households,
+                                     land_use])
+
+    print "Running %d non-mandatory tour scheduling choices" % len(tours)
+
+    spec = tdd_non_mandatory_spec.Coefficient.head(4)
+    print spec
+    alts = tdd_alts.to_frame()
+
+    max_num_trips = tours.groupby('person_id').size().max()
+
+    # because this is Python, we have to vectorize everything by doing the
+    # "nth" trip for each person in a for loop (in other words, because each
+    # trip is dependent on the time windows left by the previous decision) -
+    # hopefully this will work out ok!
+
+    choices = []
+
+    for i in range(max_num_trips):
+
+        nth_tours = tours.groupby('person_id').nth(i)
+
+        print "Running %d non-mandatory #%d tour choices" % \
+              (len(nth_tours), i+1)
+
+        nth_tours["end_of_previous_tour"] = -1
+
+        nth_choices, _ = \
+            asim.simple_simulate(nth_tours, alts, spec, mult_by_alt_col=False)
+
+        choices.append(nth_choices)
+
+    choices = pd.concat(choices)
+
+    print "Choices:\n", choices.describe()
+
+    sim.add_column("non_mandatory_tours", "non_mandatory_tdd", choices)
 
 
 """

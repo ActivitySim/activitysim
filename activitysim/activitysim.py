@@ -90,7 +90,7 @@ def simple_simulate(choosers, alternatives, spec,
                                 df[skim_join_name+"_r"])
 
     # evaluate the expressions to build the final matrix
-    vars = {}
+    vars = []
     for expr in exprs:
         if expr[0][0] == "@":
             if mult_by_alt_col:
@@ -120,15 +120,15 @@ def simple_simulate(choosers, alternatives, spec,
             except Exception as e:
                 print "Failed with DataFrame eval:\n%s" % expr
                 raise e
-        vars[expr] = s
-        vars[expr] = vars[expr].astype('float')  # explicit cast
-    model_design = pd.DataFrame(vars, index=df.index)
+        vars.append((expr, s.astype('float')))
+    model_design = pd.DataFrame.from_items(vars)
+    model_design.index = df.index
 
     df = random_rows(model_design, min(100000, len(model_design)))\
         .describe().transpose()
     df = df[df["std"] == 0]
     if len(df):
-        print "WARNING: Describe of columns with no variability:\n", df
+        print "WARNING: Some columns have no variability:\n", df.index.values
 
     positions = mnl.mnl_simulate(
         model_design.as_matrix(),

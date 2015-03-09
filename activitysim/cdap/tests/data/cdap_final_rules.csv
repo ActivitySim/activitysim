@@ -1,0 +1,2 @@
+Description,Expression,Alternative,Value
+M not allowed for Age 38 and Income 1900,(age == 38) & (income == 1900),Mandatory,0

@@ -14,13 +14,38 @@ def random_rows(df, n):
 
 def read_model_spec(fname,
                     description_name="Description",
-                    expression_name="Expression"):
+                    expression_name="Expression",
+                    stack=True):
     """
-    Read in the excel file and reformat for machines
+    Read a CSV model specification into a Pandas DataFrame.
+
+    The CSV is expected to have columns for component descriptions
+    and expressions, plus one or more alternatives.
+
+    The CSV is required to have a header with column names. For example:
+
+        Description,Expression,alt0,alt1,alt2
+
+    Parameters
+    ----------
+    fname : str
+        Name of a CSV spec file.
+    description_name : str, optional
+        Name of the column in `fname` that contains the component description.
+    expression_name : str, optional
+        Name of the column in `fname` that contains the component expression.
+
+    Returns
+    -------
+    spec : pandas.DataFrame
+        The description column is dropped from the returned data and the
+        expression values are set as the table index.
     """
-    cfg = pd.read_csv(fname)
+    cfg = pd.read_csv(fname, comment='#')
     # don't need description and set the expression to the index
-    cfg = cfg.drop(description_name, axis=1).set_index(expression_name).stack()
+    cfg = cfg.drop(description_name, axis=1).set_index(expression_name)
+    if stack:
+        cfg = cfg.stack()
     return cfg
 
 
@@ -28,6 +53,38 @@ def identity_matrix(alt_names):
     return pd.DataFrame(np.identity(len(alt_names)),
                         columns=alt_names,
                         index=alt_names)
+
+
+def eval_variables(exprs, df):
+    """
+    Evaluate a set of variable expressions from a spec in the context
+    of a given data table.
+
+    There are two kinds of supported expressions: "simple" expressions are
+    evaluated in the context of the DataFrame using DataFrame.eval.
+    This is the default type of expression.
+
+    Python expressions are evaluated in the context of this function using
+    Python's eval function. Because we use Python's eval this type of
+    expression supports more complex operations than a simple expression.
+    Python expressions are denoted by beginning with the @ character.
+    Users should take care that these expressions must result in
+    a Pandas Series.
+
+    Parameters
+    ----------
+    exprs : sequence of str
+    df : pandas.DataFrame
+
+    Returns
+    -------
+    variables : pandas.DataFrame
+        Will have the index of `df` and columns of `exprs`.
+
+    """
+    return pd.DataFrame.from_items(
+        [(e, eval(e[1:]) if e.startswith('@') else df.eval(e))
+         for e in exprs])
 
 
 def simple_simulate(choosers, alternatives, spec,
@@ -87,13 +144,17 @@ def simple_simulate(choosers, alternatives, spec,
                                 df[skim_join_name+"_r"])
 
     # evaluate the expressions to build the final matrix
-    vars = {}
+    vars = []
     for expr in exprs:
         if expr[0][0] == "@":
             if mult_by_alt_col:
                 expr = "({}) * df.{}".format(expr[0][1:], expr[1])
             else:
-                expr = expr[0][1:]
+                if isinstance(expr, tuple):
+                    expr = expr[0][1:]
+                else:
+                    # it's already a string, but need to remove the "@"
+                    expr = expr[1:]
             try:
                 s = eval(expr)
             except Exception as e:
@@ -103,21 +164,25 @@ def simple_simulate(choosers, alternatives, spec,
             if mult_by_alt_col:
                 expr = "({}) * {}".format(*expr)
             else:
-                expr = expr[0]
+                if isinstance(expr, tuple):
+                    expr = expr[0]
+                else:
+                    # it's already a string, which is fine
+                    pass
             try:
                 s = df.eval(expr)
             except Exception as e:
                 print "Failed with DataFrame eval:\n%s" % expr
                 raise e
-        vars[expr] = s
-        vars[expr] = vars[expr].astype('float')  # explicit cast
-    model_design = pd.DataFrame(vars, index=df.index)
+        vars.append((expr, s.astype('float')))
+    model_design = pd.DataFrame.from_items(vars)
+    model_design.index = df.index
 
     df = random_rows(model_design, min(100000, len(model_design)))\
         .describe().transpose()
     df = df[df["std"] == 0]
     if len(df):
-        print "WARNING: Describe of columns with no variability:\n", df
+        print "WARNING: Some columns have no variability:\n", df.index.values
 
     positions = mnl.mnl_simulate(
         model_design.as_matrix(),

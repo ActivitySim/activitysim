@@ -40,9 +40,13 @@ def zones():
 def non_mandatory_tour_frequency_alts():
     f = os.path.join("configs",
                      "non_mandatory_tour_frequency_alternatives.csv")
-    df = pd.read_csv(f)
-    df["tot_tours"] = df.sum(axis=1)
-    return df
+    return pd.read_csv(f)
+
+
+@sim.column("non_mandatory_tour_frequency_alts")
+def tot_tours(non_mandatory_tour_frequency_alts):
+    # this assumes that the alt dataframe is only counts of trip types
+    return non_mandatory_tour_frequency_alts.local.sum(axis=1)
 
 
 """
@@ -112,9 +116,15 @@ def non_mandatory_tour_frequency_spec():
 
 
 @sim.table()
-def workplace_size_spec():
-    f = os.path.join('configs', 'workplace_location_size_terms.csv')
+def destination_choice_size_terms():
+    f = os.path.join('configs', 'destination_choice_size_terms.csv')
     return pd.read_csv(f)
+
+
+@sim.table()
+def destination_choice_spec():
+    f = os.path.join('configs', 'destination_choice_alternatives_sample.csv')
+    return asim.read_model_spec(f, stack=False).head(5)
 
 
 """
@@ -123,7 +133,7 @@ This is a special submodel for the workplace location choice
 
 
 @sim.table()
-def workplace_size_terms(land_use, workplace_size_spec):
+def workplace_size_terms(land_use, destination_choice_size_terms):
     """
     This method takes the land use data and multiplies various columns of the
     land use data by coefficients from the workplace_size_spec table in order
@@ -132,7 +142,7 @@ def workplace_size_terms(land_use, workplace_size_spec):
     income)
     """
     land_use = land_use.to_frame()
-    df = workplace_size_spec.to_frame().query("purpose == 'work'")
+    df = destination_choice_size_terms.to_frame().query("purpose == 'work'")
     df = df.drop("purpose", axis=1).set_index("segment")
     new_df = {}
     for index, row in df.iterrows():
@@ -297,6 +307,119 @@ def non_mandatory_tour_frequency(persons,
     # we use the results of this choice we will need both these indexes AND
     # the alternatives themselves
     sim.add_column("persons", "non_mandatory_tour_frequency", choices)
+
+
+"""
+We have now generated mandatory and non-mandatory tours, but they are
+attributes of the person table - this function creates a "tours" table which
+has one row per tour that has been generated (and the person id it is
+associated with)
+"""
+
+
+@sim.table()
+def non_mandatory_tours(persons,
+                        non_mandatory_tour_frequency_alts):
+
+    # get the actual alternatives for each person - have to go back to the
+    # non_mandatory_tour_frequency_alts dataframe to get this - the choice
+    # above just stored the index values for the chosen alts
+    tours = non_mandatory_tour_frequency_alts.local.\
+        loc[persons.non_mandatory_tour_frequency]
+
+    # assign person ids to the index
+    tours.index = persons.index[~persons.non_mandatory_tour_frequency.isnull()]
+
+    # reformat with the columns given below
+    tours = tours.stack().reset_index()
+    tours.columns = ["person_id", "trip_type", "num_tours"]
+
+    # now do a repeat and a take, so if you have two trips of given type you
+    # now have two rows, and zero trips yields zero rows
+    tours = tours.take(np.repeat(tours.index.values, tours.num_tours.values))
+
+    # make index unique and drop num_tours since we don't need it anymore
+    tours = tours.reset_index(drop=True).drop("num_tours", axis=1)
+
+    """
+    Pretty basic at this point - trip table looks like this so far
+              person_id trip_type
+    0          4419    escort
+    1          4419    escort
+    2          4419  othmaint
+    3          4419    eatout
+    4          4419    social
+    5         10001    escort
+    6         10001    escort
+    """
+    return tours
+
+
+sim.broadcast('persons', 'non_mandatory_tours',
+              cast_index=True, onto_on='person_id')
+
+
+"""
+Given the tour generation from the above, each tour needs to have a
+destination, so in this case tours are the choosers (with the associated
+person that's making the tour)
+"""
+
+
+@sim.model()
+def destination_choice(non_mandatory_tours,
+                       persons,
+                       households,
+                       land_use,
+                       zones,
+                       distance_skim,
+                       destination_choice_spec):
+
+    tours = non_mandatory_tours
+
+    # FIXME these models don't have size terms at the moment
+
+    # FIXME these models don't use stratified sampling
+
+    # FIXME is the distance to the second trip based on the choice of the
+    # FIXME first trip - ouch!
+
+    # choosers are tours - in a sense tours are choosing their destination
+    choosers = sim.merge_tables(tours.name, tables=[tours,
+                                                    persons,
+                                                    households])
+
+    skims = {
+        "distance": distance_skim
+    }
+
+    choices_list = []
+    # segment by trip type and pick the right spec for each person type
+    for name, segment in choosers.groupby('trip_type'):
+
+        # FIXME - there are two options here escort with kids and without
+        if name == "escort":
+            continue
+
+        print "Running segment '%s' of size %d" % (name, len(segment))
+
+        choices, _ = \
+            asim.simple_simulate(choosers,
+                                 zones.to_frame(),
+                                 destination_choice_spec[name],
+                                 skims,
+                                 skim_join_name="TAZ",
+                                 mult_by_alt_col=False,
+                                 sample_size=50)
+
+        choices_list.append(choices)
+
+    choices = pd.concat(choices_list)
+
+    print "Choices:\n", choices.describe()
+    # every trip now has a destination which is the index from the
+    # alternatives table - in this case it's the destination taz
+    sim.add_column("non_mandatory_tours", "destination", choices)
 
 
 """

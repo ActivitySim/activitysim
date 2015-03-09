@@ -1,0 +1,9 @@
+Description,Expression,worklow,workmed,workhigh,workveryhigh,university,highschool,gradeschool,escortkids,escortnokids,shopping,eatout,othmaint,social,othdiscr,workbased
+"Distance, piecewise linear from 0 to 1 miles",@df.distance.clip(1),-0.8428,-0.8428,-0.8428,-0.8428,-3.2451,-0.9523,-1.6419,-0.1499,-0.1499,0,-0.5609,0,-0.7841,-0.1677,-0.7926
+"Distance, piecewise linear from 1 to 2 miles","@(df.distance-1).clip(0,1)",-0.3104,-0.3104,-0.3104,-0.3104,-2.7011,-0.57,-0.57,-0.1499,-0.1499,0,-0.5609,0,-0.7841,-0.1677,-0.7926
+"Distance, piecewise linear from 2 to 5 miles","@(df.distance-2).clip(0,3)",-0.3783,-0.3783,-0.3783,-0.3783,-0.5707,-0.57,-0.57,-0.8671,-0.8671,-0.5655,-0.3192,-0.6055,-0.3485,-0.4955,-0.5197
+"Distance, piecewise linear from 5 to 15 miles","@(df.distance-5).clip(0,10)",-0.1285,-0.1285,-0.1285,-0.1285,-0.5002,-0.193,-0.2031,-0.2137,-0.2137,-0.1832,-0.1238,-0.1093,-0.1306,-0.1193,-0.2045
+"Distance, piecewise linear for 15+ miles",@(df.distance-15.0).clip(0),-0.0917,-0.0917,-0.0917,-0.0917,-0.073,-0.1882,-0.046,-0.2137,-0.2137,-0.1832,-0.1238,-0.1093,-0.1306,-0.1193,-0.2045
+Size variable,@(df.income_segment==1)*df.size_low,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+No attractions,@(df.income_segment==1)*df.size_low == 0,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Destination taz is home taz,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

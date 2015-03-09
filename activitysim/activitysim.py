@@ -14,13 +14,16 @@ def random_rows(df, n):
 
 def read_model_spec(fname,
                     description_name="Description",
-                    expression_name="Expression"):
+                    expression_name="Expression",
+                    stack=True):
     """
     Read in the excel file and reformat for machines
     """
     cfg = pd.read_csv(fname)
     # don't need description and set the expression to the index
-    cfg = cfg.drop(description_name, axis=1).set_index(expression_name).stack()
+    cfg = cfg.drop(description_name, axis=1).set_index(expression_name)
+    if stack:
+        cfg = cfg.stack()
     return cfg
 
 
@@ -93,7 +96,11 @@ def simple_simulate(choosers, alternatives, spec,
             if mult_by_alt_col:
                 expr = "({}) * df.{}".format(expr[0][1:], expr[1])
             else:
-                expr = expr[0][1:]
+                if isinstance(expr, tuple):
+                    expr = expr[0][1:]
+                else:
+                    # it's already a string, but need to remove the "@"
+                    expr = expr[1:]
             try:
                 s = eval(expr)
             except Exception as e:
@@ -103,7 +110,11 @@ def simple_simulate(choosers, alternatives, spec,
             if mult_by_alt_col:
                 expr = "({}) * {}".format(*expr)
             else:
-                expr = expr[0]
+                if isinstance(expr, tuple):
+                    expr = expr[0]
+                else:
+                    # it's already a string, which is fine
+                    pass
             try:
                 s = df.eval(expr)
             except Exception as e:

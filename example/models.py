@@ -28,11 +28,21 @@ def mandatory_tour_frequency_alts():
     return asim.identity_matrix(["work1", "work2", "school1", "school2",
                                  "work_and_school"])
 
+
 # these are the alternatives for the workplace choice
 @sim.table()
 def zones():
     # I grant this is a weird idiom but it helps to name the index
     return pd.DataFrame({"TAZ": np.arange(1454)+1}).set_index("TAZ")
+
+
+@sim.table()
+def non_mandatory_tour_frequency_alts():
+    f = os.path.join("configs",
+                     "non_mandatory_tour_frequency_alternatives.csv")
+    df = pd.read_csv(f)
+    df["tot_tours"] = df.sum(axis=1)
+    return df
 
 
 """
@@ -42,7 +52,7 @@ Read in the omx files and create the skim objects
 
 @sim.injectable()
 def nonmotskm_omx():
-    return omx.openFile('data/nonmotskm.omx')
+    return omx.openFile(os.path.join('data', "nonmotskm.omx"))
 
 
 @sim.injectable()
@@ -91,6 +101,14 @@ def workplace_location_spec():
 def mandatory_tour_frequency_spec():
     f = os.path.join('configs', "mandatory_tour_frequency.csv")
     return asim.read_model_spec(f)
+
+
+@sim.injectable()
+def non_mandatory_tour_frequency_spec():
+    f = os.path.join('configs', "non_mandatory_tour_frequency.csv")
+    # this is a spec in already stacked format
+    # it also has multiple segments in different columns in the spec
+    return asim.read_model_spec(f, stack=False)
 
 
 @sim.table()
@@ -151,7 +169,8 @@ def auto_ownership_simulate(households,
                              mult_by_alt_col=True)
 
     # map these back to integers
-    choices = choices.map(dict([("cars%d"%i, i) for i in range(MAX_NUM_CARS)]))
+    choices = choices.map(dict([("cars%d" % i, i)
+                                for i in range(MAX_NUM_CARS)]))
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("households", "auto_ownership", choices)
@@ -166,6 +185,8 @@ assume there are workplaces for the people to work.
 """
 
 
+# FIXME there are three school models that go along with this one which have
+# FIXME not been implemented yet
 @sim.model()
 def workplace_location_simulate(persons,
                                 households,
@@ -213,6 +234,10 @@ def mandatory_tour_frequency(persons,
                                                       households,
                                                       land_use])
 
+    # filter based on results of CDAP
+    choosers = choosers[choosers.cdap_activity == 'M']
+    print "%d persons run for mandatory tour model" % len(choosers)
+
     choices, model_design = \
         asim.simple_simulate(choosers,
                              mandatory_tour_frequency_alts.to_frame(),
@@ -223,6 +248,55 @@ def mandatory_tour_frequency(persons,
     sim.add_column("persons", "mandatory_tour_frequency", choices)
 
     return model_design
+
+
+"""
+This model predicts the frequency of making non-mandatory trips (
+alternatives for this model come from a seaparate csv file which is
+configured by the user) - these trips include escort, shopping, othmaint,
+othdiscr, eatout, and social trips in various combination.
+"""
+
+
+@sim.model()
+def non_mandatory_tour_frequency(persons,
+                                 households,
+                                 land_use,
+                                 accessibility,
+                                 non_mandatory_tour_frequency_alts,
+                                 non_mandatory_tour_frequency_spec):
+
+    choosers = sim.merge_tables(persons.name, tables=[persons,
+                                                      households,
+                                                      land_use,
+                                                      accessibility])
+
+    # filter based on results of CDAP
+    choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
+    print "%d persons run for non-mandatory tour model" % len(choosers)
+
+    choices_list = []
+    # segment by person type and pick the right spec for each person type
+    for name, segment in choosers.groupby('ptype_cat'):
+
+        print "Running segment '%s' of size %d" % (name, len(segment))
+
+        choices, _ = \
+            asim.simple_simulate(segment,
+                                 non_mandatory_tour_frequency_alts.to_frame(),
+                                 # notice that we pick the column for the
+                                 # segment for each segment we run
+                                 non_mandatory_tour_frequency_spec[name],
+                                 mult_by_alt_col=False)
+        choices_list.append(choices)
+
+    choices = pd.concat(choices_list)
+
+    print "Choices:\n", choices.value_counts()
+    # this is adding the INDEX of the alternative that is chosen - when
+    # we use the results of this choice we will need both these indexes AND
+    # the alternatives themselves
+    sim.add_column("persons", "non_mandatory_tour_frequency", choices)
 
 
 """
@@ -258,6 +332,7 @@ def county_id(land_use):
 for households
 """
 
+
 # just a rename / alias
 @sim.column("households")
 def home_taz(households):
@@ -292,14 +367,200 @@ def num_under16_not_at_school(persons, households):
         reindex(households.index).fillna(0)
 
 
+@sim.column("households")
+def auto_ownership(households):
+    # FIXME this is really because we ask for ALL columns in the persons data
+    # FIXME frame - urbansim actually only asks for the columns that are used by
+    # FIXME the model specs in play at that time
+    return pd.Series(0, households.index)
+
+
+@sim.column('households')
+def no_cars(households):
+    return (households.auto_ownership == 0)
+
+
+@sim.column('households')
+def home_is_urban(households, land_use, settings):
+    s = usim_misc.reindex(land_use.area_type, households.home_taz)
+    return s < settings['urban_threshold']
+
+
+@sim.column('households')
+def car_sufficiency(households, persons):
+    return households.auto_ownership - persons.household_id.value_counts()
+
+
+# this is an idiom to grab the person of the specified type and check to see if
+# there is 1 or more of that kind of person in each household
+def presence_of(ptype, persons, households, at_home=False):
+    if at_home:
+        # if at_home, they need to be of given type AND at home
+        s = persons.household_id[(persons.ptype_cat == ptype) &
+                                 (persons.cdap_activity == "H")]
+    else:
+        s = persons.household_id[persons.ptype_cat == ptype]
+
+    return (s.value_counts() > 0).reindex(households.index).fillna(False)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_non_worker(persons, households):
+    return presence_of("nonwork", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_retiree(persons, households):
+    return presence_of("retired", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_preschool_kid(persons, households):
+    return presence_of("preschool", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_preschool_kid_at_home(persons, households):
+    return presence_of("preschool", persons, households, at_home=True)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_driving_kid(persons, households):
+    return presence_of("driving", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_school_kid(persons, households):
+    return presence_of("school", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_school_kid_at_home(persons, households):
+    return presence_of("school", persons, households, at_home=True)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_full_time(persons, households):
+    return presence_of("full", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_part_time(persons, households):
+    return presence_of("part", persons, households)
+
+
+# FIXME this is in non-mandatory tour generation - and should really be from
+# FIXME the perspective of the current chooser - which it's not right now
+@sim.column('households')
+def has_university(persons, households):
+    return presence_of("university", persons, households)
+
+
 """
 for the persons table
 """
+
+
 # FIXME - this is my "placeholder" for the CDAP model ;)
 @sim.column("persons")
 def cdap_activity(persons):
     return pd.Series(np.random.randint(3, size=len(persons)),
                      index=persons.index).map({0: 'M', 1: 'N', 2: 'H'})
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_shop_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_main_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_eat_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_visi_j(persons):
+    return pd.Series(0, persons.index)
+
+
+# FIXME - these are my "placeholder" for joint trip generation
+# number of joint shopping tours
+@sim.column("persons")
+def num_disc_j(persons):
+    return pd.Series(0, persons.index)
+
+
+@sim.column("persons")
+def num_joint_tours(persons):
+    return persons.num_shop_j + persons.num_main_j + persons.num_eat_j +\
+        persons.num_visi_j + persons.num_disc_j
+
+
+@sim.column("persons")
+def male(persons):
+    return persons.sex == 1
+
+
+@sim.column("persons")
+def female(persons):
+    return persons.sex == 1
+
+
+# count the number of mandatory tours for each person
+@sim.column("persons")
+def num_mand(persons):
+    # FIXME this is really because we ask for ALL columns in the persons data
+    # FIXME frame - urbansim actually only asks for the columns that are used by
+    # FIXME the model specs in play at that time
+    if "mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    s = persons.mandatory_tour_frequency.map({
+        "work1": 1,
+        "work2": 2,
+        "school1": 1,
+        "school2": 2,
+        "work_and_school": 2
+    })
+    return s
+
+
+# FIXME now totally sure what this is but it's used in non mandatory tour
+# FIXME generation and probably has to do with remaining unscheduled time
+@sim.column('persons')
+def max_window(persons):
+    return pd.Series(0, persons.index)
 
 
 # convert employment categories to string descriptors

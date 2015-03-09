@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
 
-@sim.injectable('settings', cache=True)
+@sim.injectable(cache=True)
 def settings():
     with open(os.path.join(misc.configs_dir(), "settings.yaml")) as f:
         settings = yaml.load(f)
@@ -27,24 +27,24 @@ def settings():
         return settings
 
 
-@sim.injectable('run_number')
+@sim.injectable()
 def run_number():
     return misc.get_run_number()
 
 
-@sim.injectable('uuid', cache=True)
-def uuid_hex():
+@sim.injectable(cache=True)
+def uuid():
     return uuid.uuid4().hex
 
 
-@sim.injectable('store', cache=True)
-def hdfstore(settings):
+@sim.injectable(cache=True)
+def store(settings):
     return pd.HDFStore(
         os.path.join(misc.data_dir(), settings["store"]),
         mode='r')
 
 
-@sim.injectable("scenario")
+@sim.injectable()
 def scenario(settings):
     return settings["scenario"]
 

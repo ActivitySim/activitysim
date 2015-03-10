@@ -21,7 +21,7 @@ def auto_alts():
 @sim.injectable()
 def auto_ownership_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "auto_ownership.csv")
-    return asim.read_model_spec(f)
+    return asim.read_model_spec(f, stack=True)
 
 
 @sim.model()

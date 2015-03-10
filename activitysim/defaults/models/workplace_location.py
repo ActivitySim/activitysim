@@ -15,7 +15,7 @@ to work.
 @sim.injectable()
 def workplace_location_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "workplace_location.csv")
-    return asim.read_model_spec(f)
+    return asim.read_model_spec(f, stack=True)
 
 
 # FIXME there's enough here that this needs to be a utility in activitysim

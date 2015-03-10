@@ -18,7 +18,7 @@ def mandatory_tour_frequency_alts():
 @sim.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "mandatory_tour_frequency.csv")
-    return asim.read_model_spec(f)
+    return asim.read_model_spec(f, stack=True)
 
 
 @sim.model()

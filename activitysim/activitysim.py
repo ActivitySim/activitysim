@@ -15,7 +15,7 @@ def random_rows(df, n):
 def read_model_spec(fname,
                     description_name="Description",
                     expression_name="Expression",
-                    stack=True):
+                    stack=False):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 

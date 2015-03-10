@@ -45,9 +45,12 @@ def test_read_model_spec_no_stack(spec_name, desc_name, expr_name):
         spec_name, description_name=desc_name, expression_name=expr_name,
         stack=False)
 
-    assert len(spec) == 3
+    assert len(spec) == 4
     assert spec.index.name == 'expression'
     assert list(spec.columns) == ['alt0', 'alt1']
+    npt.assert_array_equal(
+        spec.as_matrix(),
+        [[11, 111], [22, 222], [33, 333], [44, 444]])
 
 
 def test_read_model_spec_stack(spec_name, desc_name, expr_name):
@@ -55,9 +58,9 @@ def test_read_model_spec_stack(spec_name, desc_name, expr_name):
         spec_name, description_name=desc_name, expression_name=expr_name,
         stack=True)
 
-    assert len(spec) == 6
+    assert len(spec) == 8
     npt.assert_array_equal(
-        spec.values, [11, 111, 22, 222, 33, 333])
+        spec.values, [11, 111, 22, 222, 33, 333, 44, 444])
 
 
 def test_identity_matrix():
@@ -78,8 +81,8 @@ def test_eval_variables(spec, data):
     pdt.assert_frame_equal(
         result,
         pd.DataFrame([
-            [True, False, 4],
-            [False, True, 4],
-            [False, True, 5]],
+            [True, False, 4, 1],
+            [False, True, 4, 1],
+            [False, True, 5, 1]],
             index=data.index, columns=spec.index),
         check_names=False)

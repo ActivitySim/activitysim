@@ -86,8 +86,12 @@ def eval_variables(exprs, df):
         Will have the index of `df` and columns of `exprs`.
 
     """
+    def to_series(x):
+        if np.isscalar(x):
+            return pd.Series([x] * len(df), index=df.index)
+        return x
     return pd.DataFrame.from_items(
-        [(e, eval(e[1:]) if e.startswith('@') else df.eval(e))
+        [(e, to_series(eval(e[1:])) if e.startswith('@') else df.eval(e))
          for e in exprs])
 
 

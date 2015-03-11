@@ -67,4 +67,6 @@ def non_mandatory_scheduling(non_mandatory_tours_merged,
 
     print "Choices:\n", choices.describe()
 
-    sim.add_column("non_mandatory_tours", "non_mandatory_tdd", choices)
+    sim.add_column("non_mandatory_tours",
+                   "tour_departure_and_duration",
+                   choices)

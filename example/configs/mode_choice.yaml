@@ -1,0 +1,27 @@
+NESTS:
+    AUTO:
+        DRIVEALONE:
+            - DRIVEALONEFREE
+            - DRIVEALONEPAY
+        SHAREDRIDE2:
+            - SHARED2FREE
+            - SHARED2PAY
+        SHAREDRIDE3:
+            - SHARED3FREE
+            - SHARED3PAY
+    NONMOTORIZED:
+        - WALK
+        - BIKE
+    TRANSIT:
+        WALKACCESS:
+            - WALK_LOC
+            - WALK_LRF
+            - WALK_EXP
+            - WALK_HVY
+            - WALK_COM
+        DRIVEACCESS:
+            - DRIVE_LOC
+            - DRIVE_LRF
+            - DRIVE_EXP
+            - DRIVE_HVY
+            - DRIVE_COM

@@ -35,3 +35,29 @@ def utils_to_probs(utils):
     np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
 
     return pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
+
+
+def make_choices(probs):
+    """
+    Make choices for each chooser from among a set of alternatives.
+
+    Parameters
+    ----------
+    probs : pandas.DataFrame
+        Rows for choosers and columns for the alternatives from which they
+        are choosing. Values are expected to be valid probabilities across
+        each row, e.g. they should sum to 1.
+
+    Returns
+    -------
+    choices : pandas.Series
+        Maps chooser IDs (from `probs` index) to a choice, where the choice
+        is an index into the columns of `probs`.
+
+    """
+    nchoosers = len(probs)
+    probs_arr = (
+        probs.as_matrix().cumsum(axis=1) - np.random.random((nchoosers, 1)))
+    rows, cols = np.where(probs_arr > 0)
+    choices = (s.iat[0] for _, s in pd.Series(cols).groupby(rows))
+    return pd.Series(choices, index=probs.index)

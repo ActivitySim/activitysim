@@ -4,12 +4,24 @@
 
 import os.path
 
+import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 
 from ..activitysim import eval_variables
 from .. import mnl
+
+
+@pytest.fixture
+def seed(request):
+    current = np.random.get_state()
+
+    def fin():
+        np.random.set_state(current)
+    request.addfinalizer(fin)
+
+    np.random.seed(0)
 
 
 # this is lifted straight from urbansim's test_mnl.py
@@ -58,6 +70,25 @@ def utilities(choosers_dm, spec, test_data):
         columns=test_data['probabilities'].columns)
 
 
-def test_mnl(utilities, test_data):
+def test_utils_to_probs(utilities, test_data):
     probs = mnl.utils_to_probs(utilities)
     pdt.assert_frame_equal(probs, test_data['probabilities'])
+
+
+def test_make_choices_only_one():
+    probs = pd.DataFrame(
+        [[1, 0, 0], [0, 1, 0]], columns=['a', 'b', 'c'], index=['x', 'y'])
+    choices = mnl.make_choices(probs)
+
+    pdt.assert_series_equal(
+        choices,
+        pd.Series([0, 1], index=['x', 'y']))
+
+
+def test_make_choices_real_probs(seed, utilities):
+    probs = mnl.utils_to_probs(utilities)
+    choices = mnl.make_choices(probs)
+
+    pdt.assert_series_equal(
+        choices,
+        pd.Series([1, 2], index=[0, 1]))

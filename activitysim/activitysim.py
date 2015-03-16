@@ -95,9 +95,10 @@ def eval_variables(exprs, df):
          for e in exprs])
 
 
-def simple_simulate(choosers, alternatives, spec,
-                    skims=None, skim_join_name='zone_id',
-                    mult_by_alt_col=False, sample_size=None):
+def interaction_simulate(
+        choosers, alternatives, spec,
+        skims=None, skim_join_name='zone_id',
+        mult_by_alt_col=False, sample_size=None):
     """
     A simple discrete choice simulation routine
 

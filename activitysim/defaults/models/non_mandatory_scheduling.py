@@ -42,7 +42,8 @@ def vectorize_tour_schedules(tours, alts, spec):
         nth_tours["end_of_previous_tour"] = -1
 
         nth_choices, _ = \
-            asim.simple_simulate(nth_tours, alts, spec, mult_by_alt_col=False)
+            asim.interaction_simulate(
+                nth_tours, alts, spec, mult_by_alt_col=False)
 
         choices.append(nth_choices)
 

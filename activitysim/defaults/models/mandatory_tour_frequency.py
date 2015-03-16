@@ -32,10 +32,9 @@ def mandatory_tour_frequency(persons_merged,
     print "%d persons run for mandatory tour model" % len(choosers)
 
     choices, _ = \
-        asim.simple_simulate(choosers,
-                             mandatory_tour_frequency_alts.to_frame(),
-                             mandatory_tour_frequency_spec,
-                             mult_by_alt_col=True)
+        asim.interaction_simulate(
+            choosers, mandatory_tour_frequency_alts.to_frame(),
+            mandatory_tour_frequency_spec, mult_by_alt_col=True)
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("persons", "mandatory_tour_frequency", choices)

@@ -66,13 +66,9 @@ def workplace_location_simulate(persons_merged,
         "distance": distance_skim
     }
 
-    choices, _ = asim.simple_simulate(choosers,
-                                      alternatives,
-                                      workplace_location_spec,
-                                      skims,
-                                      skim_join_name="TAZ",
-                                      mult_by_alt_col=False,
-                                      sample_size=50)
+    choices, _ = asim.interaction_simulate(
+        choosers, alternatives, workplace_location_spec, skims,
+        skim_join_name="TAZ", mult_by_alt_col=False, sample_size=50)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)

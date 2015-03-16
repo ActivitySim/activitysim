@@ -56,14 +56,10 @@ def destination_choice(non_mandatory_tours_merged,
         print "Running segment '%s' of size %d" % (name, len(segment))
 
         choices, _ = \
-            asim.simple_simulate(segment,
-                                 zones.to_frame(),
-                                 destination_choice_spec[name],
-                                 skims,
-                                 skim_join_name="TAZ",
-                                 mult_by_alt_col=False,
-                                 sample_size=50)
-
+            asim.interaction_simulate(
+                segment, zones.to_frame(), destination_choice_spec[name],
+                skims, skim_join_name="TAZ", mult_by_alt_col=False,
+                sample_size=50)
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)

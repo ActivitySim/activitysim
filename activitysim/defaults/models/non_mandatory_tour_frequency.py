@@ -53,12 +53,13 @@ def non_mandatory_tour_frequency(persons_merged,
         print "Running segment '%s' of size %d" % (name, len(segment))
 
         choices, _ = \
-            asim.simple_simulate(segment,
-                                 non_mandatory_tour_frequency_alts.to_frame(),
-                                 # notice that we pick the column for the
-                                 # segment for each segment we run
-                                 non_mandatory_tour_frequency_spec[name],
-                                 mult_by_alt_col=False)
+            asim.interaction_simulate(
+                segment,
+                non_mandatory_tour_frequency_alts.to_frame(),
+                # notice that we pick the column for the
+                # segment for each segment we run
+                non_mandatory_tour_frequency_spec[name],
+                mult_by_alt_col=False)
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)

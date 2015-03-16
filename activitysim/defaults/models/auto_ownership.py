@@ -29,10 +29,9 @@ def auto_ownership_simulate(households_merged,
                             auto_alts,
                             auto_ownership_spec):
 
-    choices, _ = asim.simple_simulate(households_merged.to_frame(),
-                                      auto_alts.to_frame(),
-                                      auto_ownership_spec,
-                                      mult_by_alt_col=True)
+    choices, _ = asim.interaction_simulate(
+        households_merged.to_frame(), auto_alts.to_frame(),
+        auto_ownership_spec, mult_by_alt_col=True)
 
     # map these back to integers - this is the actual number of cars chosen
     car_map = {"cars%d" % i: i for i in range(MAX_NUM_CARS)}

@@ -1,358 +1,1 @@
-Description,Expression,Alternative,Coefficient
-Drive alone - Unavailable,sov_available == False,DRIVEALONEFREE,-999
-Drive alone - Unavailable for zero auto households,1,DRIVEALONEFREE,-999
-Drive alone - Unavailable for persons less than 16,1,DRIVEALONEFREE,-999
-Drive alone - Unavailable for joint tours,1,DRIVEALONEFREE,-999
-Drive alone - Unavailable if didn't drive to work,workTourModeIsSOV==0,DRIVEALONEFREE,-999
-Drive alone - In-vehicle time,c_ivt*(SOV_TIME[outPeriod]+SOV_TIME[inPeriod]),DRIVEALONEFREE,1
-Drive alone - Terminal time,c_walkTimeShort*(2*terminalTime),DRIVEALONEFREE,1
-Drive alone - Operating cost ,c_cost*(costPerMile*(SOV_DIST[outPeriod]+SOV_DIST[inPeriod])),DRIVEALONEFREE,1
-Drive alone - Parking cost ,c_cost*dailyParkingCost,DRIVEALONEFREE,1
-Drive alone - Bridge toll ,c_cost*(SOV_BTOLL[outPeriod]+SOV_BTOLL[inPeriod]),DRIVEALONEFREE,1
-Drive alone - Person is between 16 and 19 years old,c_age1619_da,DRIVEALONEFREE,1
-Drive alone toll - Unavailable,sovtollAvailable==0,DRIVEALONEPAY,-999
-Drive alone toll - Unavailable for zero auto households,1,DRIVEALONEPAY,-999
-Drive alone toll - Unavailable for persons less than 16,1,DRIVEALONEPAY,-999
-Drive alone toll - Unavailable for joint tours,1,DRIVEALONEPAY,-999
-Drive alone toll - Unavailable if didn't drive to work,workTourModeIsSOV==0,DRIVEALONEPAY,-999
-Drive alone toll - In-vehicle time,c_ivt*(SOVTOLL_TIME[outPeriod]+SOVTOLL_TIME[inPeriod]),DRIVEALONEPAY,1
-Drive alone toll - Terminal time,c_walkTimeShort*(2*terminalTime),DRIVEALONEPAY,1
-Drive alone toll - Operating cost ,c_cost*(costPerMile*(SOVTOLL_DIST[outPeriod]+SOVTOLL_DIST[inPeriod])),DRIVEALONEPAY,1
-Drive alone toll - Parking cost ,c_cost*dailyParkingCost,DRIVEALONEPAY,1
-Drive alone toll - Bridge toll ,c_cost*(SOVTOLL_BTOLL[outPeriod]+SOVTOLL_BTOLL[inPeriod]),DRIVEALONEPAY,1
-Drive alone toll - Value toll ,c_cost*(SOVTOLL_VTOLL[outPeriod]+SOVTOLL_VTOLL[inPeriod]),DRIVEALONEPAY,1
-Drive alone toll - Person is between 16 and 19 years old,c_age1619_da,DRIVEALONEPAY,1
-Shared ride 2 - Unavailable,hov2Available==0,SHARED2FREE,-999
-Shared ride 2 - Unavailable based on party size,numberOfParticipantsInJointTour>2,SHARED2FREE,-999
-Shared ride 2 - In-vehicle time,c_ivt*(HOV2_TIME[outPeriod]+HOV2_TIME[inPeriod]),SHARED2FREE,1
-Shared ride 2 - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED2FREE,1
-Shared ride 2 - Operating cost ,c_cost*(costPerMile*(HOV2_DIST[outPeriod]+HOV2_DIST[inPeriod])),SHARED2FREE,1
-Shared ride 2 - Parking cost ,c_cost*dailyParkingCost/costShareSr2,SHARED2FREE,1
-Shared ride 2 - Bridge toll ,c_cost*(HOV2_BTOLL[outPeriod]+HOV2_BTOLL[inPeriod])/costShareSr2,SHARED2FREE,1
-Shared ride 2 - One person household,c_hhsize1_sr,SHARED2FREE,1
-Shared ride 2 - Two person household,c_hhsize2_sr,SHARED2FREE,1
-Shared ride 2 - Person is 16 years old or older,c_age16p_sr,SHARED2FREE,1
-Shared ride 2 toll - Unavailable,hov2tollAvailable==0,SHARED2PAY,-999
-Shared ride 2 toll - Unavailable based on party size,numberOfParticipantsInJointTour>2,SHARED2PAY,-999
-Shared ride 2 toll - In-vehicle time,c_ivt*(HOV2TOLL_TIME[outPeriod]+HOV2TOLL_TIME[inPeriod]),SHARED2PAY,1
-Shared ride 2 toll - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED2PAY,1
-Shared ride 2 toll - Operating cost ,c_cost*(costPerMile*(HOV2TOLL_DIST[outPeriod]+HOV2TOLL_DIST[inPeriod])),SHARED2PAY,1
-Shared ride 2 toll - Parking cost ,c_cost*dailyParkingCost/costShareSr2,SHARED2PAY,1
-Shared ride 2 toll - Bridge toll ,c_cost*(HOV2TOLL_BTOLL[outPeriod]+HOV2TOLL_BTOLL[inPeriod])/costShareSr2,SHARED2PAY,1
-Shared ride 2 toll - Value toll ,c_cost*(HOV2TOLL_VTOLL[outPeriod]+HOV2TOLL_VTOLL[inPeriod])/costShareSr2,SHARED2PAY,1
-Shared ride 2 toll - One person household,c_hhsize1_sr,SHARED2PAY,1
-Shared ride 2 toll - Two person household,c_hhsize2_sr,SHARED2PAY,1
-Shared ride 2 toll - Person is 16 years old or older,c_age16p_sr,SHARED2PAY,1
-Shared ride 3+ - Unavailable,hov3Available==0,SHARED3FREE,-999
-Shared ride 3+ - In-vehicle time,c_ivt*(HOV3_TIME[outPeriod]+HOV3_TIME[inPeriod]),SHARED3FREE,1
-Shared ride 3+ - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED3FREE,1
-Shared ride 3+ - Operating cost ,c_cost*(costPerMile*(HOV3_DIST[outPeriod]+HOV3_DIST[inPeriod])),SHARED3FREE,1
-Shared ride 3+ - Parking cost ,c_cost*dailyParkingCost/costShareSr3,SHARED3FREE,1
-Shared ride 3+ - Bridge toll ,c_cost*(HOV3_BTOLL[outPeriod]+HOV3_BTOLL[inPeriod])/costShareSr3,SHARED3FREE,1
-Shared ride 3+ - One person household,c_hhsize1_sr,SHARED3FREE,1
-Shared ride 3+ - Two person household,c_hhsize2_sr,SHARED3FREE,1
-Shared ride 3+ - Person is 16 years old or older,c_age16p_sr,SHARED3FREE,1
-Shared ride 3+ toll - Unavailable,hov3tollAvailable==0,SHARED3PAY,-999
-Shared ride 3+ toll - In-vehicle time,c_ivt*(HOV3TOLL_TIME[outPeriod]+HOV3TOLL_TIME[inPeriod]),SHARED3PAY,1
-Shared ride 3+ - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED3PAY,1
-Shared ride 3+ toll - Operating cost ,c_cost*(costPerMile*(HOV3TOLL_DIST[outPeriod]+HOV3TOLL_DIST[inPeriod])),SHARED3PAY,1
-Shared ride 3+ toll - Parking cost ,c_cost*dailyParkingCost/costShareSr3,SHARED3PAY,1
-Shared ride 3+ toll - Bridge toll ,c_cost*(HOV3TOLL_BTOLL[outPeriod]+HOV3TOLL_BTOLL[inPeriod])/costShareSr3,SHARED3PAY,1
-Shared ride 3+ toll - Value toll ,c_cost*(HOV3TOLL_VTOLL[outPeriod]+HOV3TOLL_VTOLL[inPeriod])/costShareSr3,SHARED3PAY,1
-Shared ride 3+ toll - One person household,c_hhsize1_sr,SHARED3PAY,1
-Shared ride 3+ toll - Two person household,c_hhsize2_sr,SHARED3PAY,1
-Shared ride 3+ toll - Person is 16 years old or older,c_age16p_sr,SHARED3PAY,1
-Walk - Time up to 2 miles,"c_walkTimeShort*min((DISTWALK+DISTWALK)*60/walkSpeed, walkThresh*2*60/walkSpeed)",WALK,1
-Walk - Time beyond 2 of a miles,"c_walkTimeLong*max((DISTWALK+DISTWALK)*60/walkSpeed - walkThresh*2*60/walkSpeed, 0)",WALK,1
-Walk - Destination zone densityIndex,c_densityIndex*densityIndex,WALK,1
-Walk - Topology,c_topology_walk*destTopology,WALK,1
-Bike - Unavailable if didn't bike to work,1,BIKE,-999
-Bike - Time up to 2 miles,"c_bikeTimeShort*min((DISTBIKE+DISTBIKE)*60/bikeSpeed, bikeThresh*2*60/bikeSpeed)",BIKE,1
-Bike - Time beyond 2 of a miles,"c_bikeTimeLong*max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,1
-Bike - Destination zone densityIndex,c_densityIndex*densityIndex,BIKE,1
-Bike - Topology,c_topology_bike*destTopology,BIKE,1
-Walk to Local - Unavailable,walkLocalAvailable==0,WALK_LOC,-999
-Walk to Local - In-vehicle time,c_ivt*(WLK_LOC_WLK_TOTIVT[outPeriod]/100+WLK_LOC_WLK_TOTIVT[inPeriod]/100),WALK_LOC,1
-Walk to Local - Short iwait time,"c_shortiwait*(min(WLK_LOC_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LOC_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LOC,1
-Walk to Local - Long iwait time,"c_longiwait*(max(WLK_LOC_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LOC_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LOC,1
-Walk to Local - transfer wait time,c_xwait*(WLK_LOC_WLK_XWAIT[outPeriod]/100+WLK_LOC_WLK_XWAIT[inPeriod]/100),WALK_LOC,1
-Walk to Local - number of transfers,"c_xfers_wlk*(max(WLK_LOC_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LOC_WLK_BOARDS[inPeriod]-1,0))",WALK_LOC,1
-Walk to Local - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LOC,1
-Walk to Local - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LOC,1
-Walk to Local - Walk other time,c_waux*(WLK_LOC_WLK_WAUX[outPeriod]/100+WLK_LOC_WLK_WAUX[inPeriod]/100),WALK_LOC,1
-Walk to Local - Fare ,c_cost*(WLK_LOC_WLK_FAR[outPeriod]+WLK_LOC_WLK_FAR[inPeriod]),WALK_LOC,1
-Walk to Local - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LOC,1
-Walk to Local - Topology,c_topology_trn*destTopology,WALK_LOC,1
-Walk to Local - Person is less than 10 years old,c_age010_trn,WALK_LOC,1
-Walk to Light rail/Ferry - Unavailable,walkLrfAvailable==0,WALK_LRF,-999
-Walk to Light rail/Ferry - In-vehicle time,c_ivt*(WLK_LRF_WLK_TOTIVT[outPeriod]/100+WLK_LRF_WLK_TOTIVT[inPeriod]/100),WALK_LRF,1
-Walk to Light rail/Ferry - In-vehicle time on Light Rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(WLK_LRF_WLK_KEYIVT[outPeriod]/100+WLK_LRF_WLK_KEYIVT[inPeriod]/100),WALK_LRF,1
-Walk to Light rail/Ferry - In-vehicle time on Ferry (incremental w/ keyivt),(c_ivt_ferry-c_ivt_lrt)*(WLK_LRF_WLK_FERRYIVT[outPeriod]/100+WLK_LRF_WLK_FERRYIVT[inPeriod]/100),WALK_LRF,1
-Walk to Light rail/Ferry - Short iwait time,"c_shortiwait*(min(WLK_LRF_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LRF_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LRF,1
-Walk to Light rail/Ferry - Long iwait time,"c_longiwait*(max(WLK_LRF_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LRF_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LRF,1
-Walk to Light rail/Ferry - transfer wait time,c_xwait*(WLK_LRF_WLK_XWAIT[outPeriod]/100+WLK_LRF_WLK_XWAIT[inPeriod]/100),WALK_LRF,1
-Walk to Light rail/Ferry - number of transfers,"c_xfers_wlk*(max(WLK_LRF_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LRF_WLK_BOARDS[inPeriod]-1,0))",WALK_LRF,1
-Walk to Light rail/Ferry - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LRF,1
-Walk to Light rail/Ferry - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LRF,1
-Walk to Light rail/Ferry - Walk other time,c_waux*(WLK_LRF_WLK_WAUX[outPeriod]/100+WLK_LRF_WLK_WAUX[inPeriod]/100),WALK_LRF,1
-Walk to Light rail/Ferry - Fare ,c_cost*(WLK_LRF_WLK_FAR[outPeriod]+WLK_LRF_WLK_FAR[inPeriod]),WALK_LRF,1
-Walk to Light rail/Ferry - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LRF,1
-Walk to Light rail/Ferry - Topology,c_topology_trn*destTopology,WALK_LRF,1
-Walk to Light rail/Ferry - Person is less than 10 years old,c_age010_trn,WALK_LRF,1
-Walk to Express bus - Unavailable,walkExpressAvailable==0,WALK_EXP,-999
-Walk to Express bus - In-vehicle time,c_ivt*(WLK_EXP_WLK_TOTIVT[outPeriod]/100+WLK_EXP_WLK_TOTIVT[inPeriod]/100),WALK_EXP,1
-Walk to Express bus - In-vehicle time on Express bus (incremental w/ ivt),(c_ivt_exp-c_ivt)*(WLK_EXP_WLK_KEYIVT[outPeriod]/100+WLK_EXP_WLK_KEYIVT[inPeriod]/100),WALK_EXP,1
-Walk to Express bus - Short iwait time,"c_shortiwait*(min(WLK_EXP_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_EXP_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_EXP,1
-Walk to Express bus - Long iwait time,"c_longiwait*(max(WLK_EXP_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_EXP_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_EXP,1
-Walk to Express bus - transfer wait time,c_xwait*(WLK_EXP_WLK_XWAIT[outPeriod]/100+WLK_EXP_WLK_XWAIT[inPeriod]/100),WALK_EXP,1
-Walk to Express bus - number of transfers,"c_xfers_wlk*(max(WLK_EXP_WLK_BOARDS[outPeriod]-1,0)+max(WLK_EXP_WLK_BOARDS[inPeriod]-1,0))",WALK_EXP,1
-Walk to Express bus - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_EXP,1
-Walk to Express bus - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_EXP,1
-Walk to Express bus - Walk other time,c_waux*(WLK_EXP_WLK_WAUX[outPeriod]/100+WLK_EXP_WLK_WAUX[inPeriod]/100),WALK_EXP,1
-Walk to Express bus - Fare ,c_cost*(WLK_EXP_WLK_FAR[outPeriod]+WLK_EXP_WLK_FAR[inPeriod]),WALK_EXP,1
-Walk to Express bus - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_EXP,1
-Walk to Express bus - Topology,c_topology_trn*destTopology,WALK_EXP,1
-Walk to Express bus - Person is less than 10 years old,c_age010_trn,WALK_EXP,1
-Walk to heavy rail - Unavailable,walkHeavyRailAvailable==0,WALK_HVY,-999
-Walk to heavy rail - In-vehicle time,c_ivt*(WLK_HVY_WLK_TOTIVT[outPeriod]/100+WLK_HVY_WLK_TOTIVT[inPeriod]/100),WALK_HVY,1
-Walk to heavy rail - In-vehicle time on heavy rail (incremental w/ ivt),(c_ivt_hvy-c_ivt)*(WLK_HVY_WLK_KEYIVT[outPeriod]/100+WLK_HVY_WLK_KEYIVT[inPeriod]/100),WALK_HVY,1
-Walk to heavy rail - Short iwait time,"c_shortiwait*(min(WLK_HVY_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_HVY_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_HVY,1
-Walk to heavy rail - Long iwait time,"c_longiwait*(max(WLK_HVY_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_HVY_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_HVY,1
-Walk to heavy rail - transfer wait time,c_xwait*(WLK_HVY_WLK_XWAIT[outPeriod]/100+WLK_HVY_WLK_XWAIT[inPeriod]/100),WALK_HVY,1
-Walk to heavy rail - number of transfers,"c_xfers_wlk*(max(WLK_HVY_WLK_BOARDS[outPeriod]-1,0)+max(WLK_HVY_WLK_BOARDS[inPeriod]-1,0))",WALK_HVY,1
-Walk to heavy rail - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_HVY,1
-Walk to heavy rail - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_HVY,1
-Walk to heavy rail - Walk other time,c_waux*(WLK_HVY_WLK_WAUX[outPeriod]/100+WLK_HVY_WLK_WAUX[inPeriod]/100),WALK_HVY,1
-Walk to heavy rail - Fare ,c_cost*(WLK_HVY_WLK_FAR[outPeriod]+WLK_HVY_WLK_FAR[inPeriod]),WALK_HVY,1
-Walk to heavy rail - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_HVY,1
-Walk to heavy rail - Topology,c_topology_trn*destTopology,WALK_HVY,1
-Walk to heavy rail - Person is less than 10 years old,c_age010_trn,WALK_HVY,1
-Walk to Commuter rail - Unavailable,walkCommuterAvailable==0,WALK_COM,-999
-Walk to Commuter rail - In-vehicle time,c_ivt*(WLK_COM_WLK_TOTIVT[outPeriod]/100+WLK_COM_WLK_TOTIVT[inPeriod]/100),WALK_COM,1
-Walk to Commuter rail - In-vehicle time on commuter rail (incremental w/ ivt),(c_ivt_com-c_ivt)*(WLK_COM_WLK_KEYIVT[outPeriod]/100+WLK_COM_WLK_KEYIVT[inPeriod]/100),WALK_COM,1
-Walk to Commuter rail - Short iwait time,"c_shortiwait*(min(WLK_COM_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_COM_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_COM,1
-Walk to Commuter rail - Long iwait time,"c_longiwait*(max(WLK_COM_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_COM_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_COM,1
-Walk to Commuter rail - transfer wait time,c_xwait*(WLK_COM_WLK_XWAIT[outPeriod]/100+WLK_COM_WLK_XWAIT[inPeriod]/100),WALK_COM,1
-Walk to Commuter rail - number of transfers,"c_xfers_wlk*(max(WLK_COM_WLK_BOARDS[outPeriod]-1,0)+max(WLK_COM_WLK_BOARDS[inPeriod]-1,0))",WALK_COM,1
-Walk to Commuter rail - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_COM,1
-Walk to Commuter rail - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_COM,1
-Walk to Commuter rail - Walk other time,c_waux*(WLK_COM_WLK_WAUX[outPeriod]/100+WLK_COM_WLK_WAUX[inPeriod]/100),WALK_COM,1
-Walk to Commuter rail - Fare ,c_cost*(WLK_COM_WLK_FAR[outPeriod]+WLK_COM_WLK_FAR[inPeriod]),WALK_COM,1
-Walk to Commuter rail - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_COM,1
-Walk to Commuter rail - Topology,c_topology_trn*destTopology,WALK_COM,1
-Walk to Commuter rail - Person is less than 10 years old,c_age010_trn,WALK_COM,1
-Drive to Local - Unavailable,driveLocalAvailable==0,DRIVE_LOC,-999
-Drive to Local - Unavailable for zero auto households,1,DRIVE_LOC,-999
-Drive to Local - Unavailable for persons less than 16,1,DRIVE_LOC,-999
-Drive to Local - In-vehicle time,c_ivt*(DRV_LOC_WLK_TOTIVT[outPeriod]/100+WLK_LOC_DRV_TOTIVT[inPeriod]/100),DRIVE_LOC,1
-Drive to Local - Short iwait time,"c_shortiwait*(min(DRV_LOC_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LOC_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_LOC,1
-Drive to Local - Long iwait time,"c_longiwait*(max(DRV_LOC_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LOC_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_LOC,1
-Drive to Local - transfer wait time,c_xwait*(DRV_LOC_WLK_XWAIT[outPeriod]/100+WLK_LOC_DRV_XWAIT[inPeriod]/100),DRIVE_LOC,1
-Drive to Local - number of transfers,"c_xfers_wlk*(max(DRV_LOC_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LOC_DRV_BOARDS[inPeriod]-1,0))",DRIVE_LOC,1
-Drive to Local - Drive time,c_dtim*(DRV_LOC_WLK_DTIM[outPeriod]/100+WLK_LOC_DRV_DTIM[inPeriod]/100),DRIVE_LOC,1
-Drive to Local - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_LOC,1
-Drive to Local - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_LOC,1
-Drive to Local - Walk other time,c_waux*(DRV_LOC_WLK_WAUX[outPeriod]/100+WLK_LOC_DRV_WAUX[inPeriod]/100),DRIVE_LOC,1
-Drive to Local - Fare and operating cost ,c_cost*((DRV_LOC_WLK_FAR[outPeriod]+WLK_LOC_DRV_FAR[inPeriod])+(DRV_LOC_WLK_DDIST[outPeriod]/100+WLK_LOC_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_LOC,1
-Drive to Local - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_LOC_WLK_DDIST[outPeriod]/100+WLK_LOC_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_LOC,1
-Drive to Local  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_LOC,1
-Drive to Local  - Topology,c_topology_trn*destTopology,DRIVE_LOC,1
-Drive to Local  - Person is less than 10 years old,c_age010_trn,DRIVE_LOC,1
-Drive to Light rail/Ferry - Unavailable,driveLrfAvailable==0,DRIVE_LRF,-999
-Drive to Light rail/Ferry - Unavailable for zero auto households,1,DRIVE_LRF,-999
-Drive to Light rail/Ferry - Unavailable for persons less than 16,1,DRIVE_LRF,-999
-Drive to Light rail/Ferry - In-vehicle time,c_ivt*(DRV_LRF_WLK_TOTIVT[outPeriod]/100+WLK_LRF_DRV_TOTIVT[inPeriod]/100),DRIVE_LRF,1
-Drive to Light rail/Ferry - In-vehicle time on Light Rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_LRF_WLK_KEYIVT[outPeriod]/100+WLK_LRF_DRV_KEYIVT[inPeriod]/100),DRIVE_LRF,1
-Drive to Light rail/Ferry - In-vehicle time on Ferry (incremental w/ keyivt),(c_ivt_ferry-c_ivt_lrt)*(DRV_LRF_WLK_FERRYIVT[outPeriod]/100+WLK_LRF_DRV_FERRYIVT[inPeriod]/100),DRIVE_LRF,1
-drive to Light rail/Ferry - Short iwait time,"c_shortiwait*(min(DRV_LRF_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LRF_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_LRF,1
-drive to Light rail/Ferry - Long iwait time,"c_longiwait*(max(DRV_LRF_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LRF_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_LRF,1
-drive to Light rail/Ferry - transfer wait time,c_xwait*(DRV_LRF_WLK_XWAIT[outPeriod]/100+WLK_LRF_DRV_XWAIT[inPeriod]/100),DRIVE_LRF,1
-drive to Light rail/Ferry - number of transfers,"c_xfers_wlk*(max(DRV_LRF_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LRF_DRV_BOARDS[inPeriod]-1,0))",DRIVE_LRF,1
-Drive to Light rail/Ferry - Drive time,c_dtim*(DRV_LRF_WLK_DTIM[outPeriod]/100+WLK_LRF_DRV_DTIM[inPeriod]/100),DRIVE_LRF,1
-Drive to Light rail/Ferry - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_LRF,1
-Drive to Light rail/Ferry - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_LRF,1
-Drive to Light rail/Ferry - Walk other time,c_waux*(DRV_LRF_WLK_WAUX[outPeriod]/100+WLK_LRF_DRV_WAUX[inPeriod]/100),DRIVE_LRF,1
-Drive to Light rail/Ferry - Fare and operating cost ,c_cost*((DRV_LRF_WLK_FAR[outPeriod]+WLK_LRF_DRV_FAR[inPeriod])+(DRV_LRF_WLK_DDIST[outPeriod]/100+WLK_LRF_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_LRF,1
-Drive to Light rail/Ferry - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_LRF_WLK_DDIST[outPeriod]/100+WLK_LRF_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_LRF,1
-Drive to Light rail/Ferry  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_LRF,1
-Drive to Light rail/Ferry  - Topology,c_topology_trn*destTopology,DRIVE_LRF,1
-Drive to Light rail/Ferry  - Person is less than 10 years old,c_age010_trn,DRIVE_LRF,1
-Drive to Express bus - Unavailable,driveExpressAvailable==0,DRIVE_EXP,-999
-Drive to Express bus - Unavailable for zero auto households,1,DRIVE_EXP,-999
-Drive to Express bus - Unavailable for persons less than 16,1,DRIVE_EXP,-999
-Drive to Express bus - In-vehicle time,c_ivt*(DRV_EXP_WLK_TOTIVT[outPeriod]/100+WLK_EXP_DRV_TOTIVT[inPeriod]/100),DRIVE_EXP,1
-Drive to Express bus - In-vehicle time on Express bus (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_EXP_WLK_KEYIVT[outPeriod]/100+WLK_EXP_DRV_KEYIVT[inPeriod]/100),DRIVE_EXP,1
-drive to Express bus - Short iwait time,"c_shortiwait*(min(DRV_EXP_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_EXP_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_EXP,1
-drive to Express bus - Long iwait time,"c_longiwait*(max(DRV_EXP_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_EXP_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_EXP,1
-drive to Express bus - transfer wait time,c_xwait*(DRV_EXP_WLK_XWAIT[outPeriod]/100+WLK_EXP_DRV_XWAIT[inPeriod]/100),DRIVE_EXP,1
-drive to Express bus - number of transfers,"c_xfers_wlk*(max(DRV_EXP_WLK_BOARDS[outPeriod]-1,0)+max(WLK_EXP_DRV_BOARDS[inPeriod]-1,0))",DRIVE_EXP,1
-Drive to Express bus - Drive time,c_dtim*(DRV_EXP_WLK_DTIM[outPeriod]/100+WLK_EXP_DRV_DTIM[inPeriod]/100),DRIVE_EXP,1
-Drive to Express bus - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_EXP,1
-Drive to Express bus - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_EXP,1
-Drive to Express bus - Walk other time,c_waux*(DRV_EXP_WLK_WAUX[outPeriod]/100+WLK_EXP_DRV_WAUX[inPeriod]/100),DRIVE_EXP,1
-Drive to Express bus - Fare and operating cost ,c_cost*((DRV_EXP_WLK_FAR[outPeriod]+WLK_EXP_DRV_FAR[inPeriod])+(DRV_EXP_WLK_DDIST[outPeriod]/100+WLK_EXP_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_EXP,1
-Drive to Express bus - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_EXP_WLK_DDIST[outPeriod]/100+WLK_EXP_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_EXP,1
-Drive to Express bus  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_EXP,1
-Drive to Express bus  - Topology,c_topology_trn*destTopology,DRIVE_EXP,1
-Drive to Express bus  - Person is less than 10 years old,c_age010_trn,DRIVE_EXP,1
-Drive to heavy rail - Unavailable,driveHeavyRailAvailable==0,DRIVE_HVY,-999
-Drive to heavy rail - Unavailable for zero auto households,1,DRIVE_HVY,-999
-Drive to heavy rail - Unavailable for persons less than 16,1,DRIVE_HVY,-999
-Drive to heavy rail - In-vehicle time,c_ivt*(DRV_HVY_WLK_TOTIVT[outPeriod]/100+WLK_HVY_DRV_TOTIVT[inPeriod]/100),DRIVE_HVY,1
-Drive to heavy rail - In-vehicle time on heavy rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_HVY_WLK_KEYIVT[outPeriod]/100+WLK_HVY_DRV_KEYIVT[inPeriod]/100),DRIVE_HVY,1
-drive to heavy rail - Short iwait time,"c_shortiwait*(min(DRV_HVY_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_HVY_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_HVY,1
-drive to heavy rail - Long iwait time,"c_longiwait*(max(DRV_HVY_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_HVY_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_HVY,1
-drive to heavy rail - transfer wait time,c_xwait*(DRV_HVY_WLK_XWAIT[outPeriod]/100+WLK_HVY_DRV_XWAIT[inPeriod]/100),DRIVE_HVY,1
-drive to heavy rail - number of transfers,"c_xfers_wlk*(max(DRV_HVY_WLK_BOARDS[outPeriod]-1,0)+max(WLK_HVY_DRV_BOARDS[inPeriod]-1,0))",DRIVE_HVY,1
-Drive to heavy rail - Drive time,c_dtim*(DRV_HVY_WLK_DTIM[outPeriod]/100+WLK_HVY_DRV_DTIM[inPeriod]/100),DRIVE_HVY,1
-Drive to heavy rail - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_HVY,1
-Drive to heavy rail - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_HVY,1
-Drive to heavy rail - Walk other time,c_waux*(DRV_HVY_WLK_WAUX[outPeriod]/100+WLK_HVY_DRV_WAUX[inPeriod]/100),DRIVE_HVY,1
-Drive to heavy rail - Fare and operating cost ,c_cost*((DRV_HVY_WLK_FAR[outPeriod]+WLK_HVY_DRV_FAR[inPeriod])+(DRV_HVY_WLK_DDIST[outPeriod]/100+WLK_HVY_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_HVY,1
-Drive to heavy rail - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_HVY_WLK_DDIST[outPeriod]/100+WLK_HVY_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_HVY,1
-Drive to heavy rail  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_HVY,1
-Drive to heavy rail  - Topology,c_topology_trn*destTopology,DRIVE_HVY,1
-Drive to heavy rail  - Person is less than 10 years old,c_age010_trn,DRIVE_HVY,1
-Drive to Commuter rail - Unavailable,driveCommuterAvailable==0,DRIVE_COM,-999
-Drive to Commuter rail - Unavailable for zero auto households,1,DRIVE_COM,-999
-Drive to Commuter rail - Unavailable for persons less than 16,1,DRIVE_COM,-999
-Drive to Commuter rail - In-vehicle time,c_ivt*(DRV_COM_WLK_TOTIVT[outPeriod]/100+WLK_COM_DRV_TOTIVT[inPeriod]/100),DRIVE_COM,1
-Drive to Commuter rail - In-vehicle time on commuter rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_COM_WLK_KEYIVT[outPeriod]/100+WLK_COM_DRV_KEYIVT[inPeriod]/100),DRIVE_COM,1
-drive to Commuter rail - Short iwait time,"c_shortiwait*(min(DRV_COM_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_COM_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_COM,1
-drive to Commuter rail - Long iwait time,"c_longiwait*(max(DRV_COM_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_COM_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_COM,1
-drive to Commuter rail - transfer wait time,c_xwait*(DRV_COM_WLK_XWAIT[outPeriod]/100+WLK_COM_DRV_XWAIT[inPeriod]/100),DRIVE_COM,1
-drive to Commuter rail - number of transfers,"c_xfers_wlk*(max(DRV_COM_WLK_BOARDS[outPeriod]-1,0)+max(WLK_COM_DRV_BOARDS[inPeriod]-1,0))",DRIVE_COM,1
-Drive to Commuter rail - Drive time,c_dtim*(DRV_COM_WLK_DTIM[outPeriod]/100+WLK_COM_DRV_DTIM[inPeriod]/100),DRIVE_COM,1
-Drive to Commuter rail - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_COM,1
-Drive to Commuter rail - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_COM,1
-Drive to Commuter rail - Walk other time,c_waux*(DRV_COM_WLK_WAUX[outPeriod]/100+WLK_COM_DRV_WAUX[inPeriod]/100),DRIVE_COM,1
-Drive to Commuter rail - Fare and operating cost ,c_cost*((DRV_COM_WLK_FAR[outPeriod]+WLK_COM_DRV_FAR[inPeriod])+(DRV_COM_WLK_DDIST[outPeriod]/100+WLK_COM_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_COM,1
-Drive to Commuter rail - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_COM_WLK_DDIST[outPeriod]/100+WLK_COM_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_COM,1
-Drive to Commuter rail  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_COM,1
-Drive to Commuter rail  - Topology,c_topology_trn*destTopology,DRIVE_COM,1
-Drive to Commuter rail - Person is less than 10 years old,c_age010_trn,DRIVE_COM,1
-Walk - Alternative-specific constant - Zero auto,5.7672,WALK,1
-Walk - Alternative-specific constant - Auto deficient,2.401,WALK,1
-Walk - Alternative-specific constant - Auto sufficient,0.0533,WALK,1
-Bike - Alternative-specific constant - Zero auto,3.194,BIKE,1
-Bike - Alternative-specific constant - Auto deficient,0.2532,BIKE,1
-Bike - Alternative-specific constant - Auto sufficient,-1.58,BIKE,1
-Shared ride 2 - Alternative-specific constant - Zero auto,0,SHARED2FREE,1
-Shared ride 2 - Alternative-specific constant - Zero auto,0,SHARED2PAY,1
-Shared ride 2 - Alternative-specific constant - Auto deficient,-0.338,SHARED2FREE,1
-Shared ride 2 - Alternative-specific constant - Auto deficient,-0.338,SHARED2PAY,1
-Shared ride 2 - Alternative-specific constant - Auto sufficient,-1.0857,SHARED2FREE,1
-Shared ride 2 - Alternative-specific constant - Auto sufficient,-1.0857,SHARED2PAY,1
-Shared ride 3+ - Alternative-specific constant - Zero auto,-0.5831,SHARED3FREE,1
-Shared ride 3+ - Alternative-specific constant - Zero auto,-0.5831,SHARED3PAY,1
-Shared ride 3+ - Alternative-specific constant - Auto deficient,-0.8527,SHARED3FREE,1
-Shared ride 3+ - Alternative-specific constant - Auto deficient,-0.8527,SHARED3PAY,1
-Shared ride 3+ - Alternative-specific constant - Auto sufficient,-1.47,SHARED3FREE,1
-Shared ride 3+ - Alternative-specific constant - Auto sufficient,-1.47,SHARED3PAY,1
-Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_LOC,1
-Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_LRF,1
-Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_EXP,1
-Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_HVY,1
-Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_COM,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_LOC,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_LRF,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_EXP,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_HVY,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_COM,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_LOC,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_LRF,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_EXP,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_HVY,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_COM,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_LOC,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_LRF,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_EXP,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_HVY,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_COM,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_LOC,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_LRF,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_EXP,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_HVY,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_COM,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_LOC,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_LRF,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_EXP,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_HVY,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_COM,1
-Walk - Alternative-specific constant - Joint Tours,-0.2127,WALK,1
-Walk - Alternative-specific constant - Joint Tours,-1.9608,WALK,1
-Walk - Alternative-specific constant - Joint Tours,-3.2352,WALK,1
-Bike - Alternative-specific constant - Joint Tours,-2.8672,BIKE,1
-Bike - Alternative-specific constant - Joint Tours,-6.0764,BIKE,1
-Bike - Alternative-specific constant - Joint Tours,-6.3761,BIKE,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,0.5631,SHARED3FREE,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,0.5631,SHARED3PAY,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-1.8842,SHARED3FREE,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-1.8842,SHARED3PAY,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-2.2348,SHARED3FREE,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-2.2348,SHARED3PAY,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_LOC,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_LRF,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_EXP,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_HVY,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_COM,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_LOC,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_LRF,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_EXP,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_HVY,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_COM,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_LOC,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_LRF,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_EXP,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_HVY,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_COM,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_LOC,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_LRF,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_EXP,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_HVY,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_COM,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_LOC,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_LRF,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_EXP,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_HVY,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_COM,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_LOC,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_LRF,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_EXP,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_HVY,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_COM,1
-Local bus,0.0669,WALK_LOC,1
-Local bus,0.0669,DRIVE_LOC,1
-Light rail - Alternative-specific constant (walk access),0.8256,WALK_LRF,1
-Light rail - Alternative-specific constant (drive access),0.8256,DRIVE_LRF,1
-Ferry - Alternative-specific constant (walk access),0.9332,WALK_LRF,1
-Ferry - Alternative-specific constant (drive access),0.9332,DRIVE_LRF,1
-Express bus - Alternative-specific constant,-0.5165,WALK_EXP,1
-Express bus - Alternative-specific constant,-0.5165,DRIVE_EXP,1
-Heavy rail - Alternative-specific constant ,0.6477,WALK_HVY,1
-Heavy rail - Alternative-specific constant ,0.6477,DRIVE_HVY,1
-Commuter rail - Alternative-specific constant ,0.7255,WALK_COM,1
-Commuter rail - Alternative-specific constant ,0.7255,DRIVE_COM,1
-Walk to Transit - CBD dummy,0.804,WALK_LOC,1
-Walk to Transit - CBD dummy,0.804,WALK_LRF,1
-Walk to Transit - CBD dummy,0.804,WALK_EXP,1
-Walk to Transit - CBD dummy,0.804,WALK_HVY,1
-Walk to Transit - CBD dummy,0.804,WALK_COM,1
-Drive to Transit  - CBD dummy,1.1,DRIVE_LOC,1
-Drive to Transit  - CBD dummy,1.1,DRIVE_LRF,1
-Drive to Transit  - CBD dummy,1.1,DRIVE_EXP,1
-Drive to Transit  - CBD dummy,1.1,DRIVE_HVY,1
-Drive to Transit  - CBD dummy,1.1,DRIVE_COM,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_LOC,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_LRF,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_EXP,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_HVY,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_COM,1
-Walk not available for long distances,1,WALK,-999
-Bike not available for long distances,1,BIKE,-999
+Description,Expression,Alternative,workDrive alone - Unavailable,sov_available == False,DRIVEALONEFREE,-999Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEFREE,-999Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999Drive alone - Unavailable for joint tours,is_joint,DRIVEALONEFREE,-999Drive alone - Unavailable if didn't drive to work,work_tour_is_da,DRIVEALONEFREE,-999Drive alone - In-vehicle time,"@skims[('SOV', out_period)] + skims[('SOV', in_period)]",DRIVEALONEFREE,ivtDrive alone - Terminal time,2 * terminal_time,DRIVEALONEFREE,walktimeshortDrive alone - Operating cost ,costPerMile*(SOV_DIST[outPeriod]+SOV_DIST[inPeriod]),DRIVEALONEFREE,costDrive alone - Parking cost ,dailyParkingCost,DRIVEALONEFREE,costDrive alone - Bridge toll ,SOV_BTOLL[outPeriod]+SOV_BTOLL[inPeriod],DRIVEALONEFREE,costDrive alone - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEFREE,age1619_daDrive alone toll - Unavailable,sovtollAvailable==0,DRIVEALONEPAY,-999Drive alone toll - Unavailable for zero auto households,1,DRIVEALONEPAY,-999Drive alone toll - Unavailable for persons less than 16,1,DRIVEALONEPAY,-999Drive alone toll - Unavailable for joint tours,1,DRIVEALONEPAY,-999Drive alone toll - Unavailable if didn't drive to work,workTourModeIsSOV==0,DRIVEALONEPAY,-999Drive alone toll - In-vehicle time,c_ivt*(SOVTOLL_TIME[outPeriod]+SOVTOLL_TIME[inPeriod]),DRIVEALONEPAY,1Drive alone toll - Terminal time,c_walkTimeShort*(2*terminalTime),DRIVEALONEPAY,1Drive alone toll - Operating cost ,c_cost*(costPerMile*(SOVTOLL_DIST[outPeriod]+SOVTOLL_DIST[inPeriod])),DRIVEALONEPAY,1Drive alone toll - Parking cost ,c_cost*dailyParkingCost,DRIVEALONEPAY,1Drive alone toll - Bridge toll ,c_cost*(SOVTOLL_BTOLL[outPeriod]+SOVTOLL_BTOLL[inPeriod]),DRIVEALONEPAY,1Drive alone toll - Value toll ,c_cost*(SOVTOLL_VTOLL[outPeriod]+SOVTOLL_VTOLL[inPeriod]),DRIVEALONEPAY,1Drive alone toll - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEPAY,age1619_daShared ride 2 - Unavailable,hov2Available==0,SHARED2FREE,-999Shared ride 2 - Unavailable based on party size,numberOfParticipantsInJointTour>2,SHARED2FREE,-999Shared ride 2 - In-vehicle time,c_ivt*(HOV2_TIME[outPeriod]+HOV2_TIME[inPeriod]),SHARED2FREE,1Shared ride 2 - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED2FREE,1Shared ride 2 - Operating cost ,c_cost*(costPerMile*(HOV2_DIST[outPeriod]+HOV2_DIST[inPeriod])),SHARED2FREE,1Shared ride 2 - Parking cost ,c_cost*dailyParkingCost/costShareSr2,SHARED2FREE,1Shared ride 2 - Bridge toll ,c_cost*(HOV2_BTOLL[outPeriod]+HOV2_BTOLL[inPeriod])/costShareSr2,SHARED2FREE,1Shared ride 2 - One person household,c_hhsize1_sr,SHARED2FREE,1Shared ride 2 - Two person household,c_hhsize2_sr,SHARED2FREE,1Shared ride 2 - Person is 16 years old or older,c_age16p_sr,SHARED2FREE,1Shared ride 2 toll - Unavailable,hov2tollAvailable==0,SHARED2PAY,-999Shared ride 2 toll - Unavailable based on party size,numberOfParticipantsInJointTour>2,SHARED2PAY,-999Shared ride 2 toll - In-vehicle time,c_ivt*(HOV2TOLL_TIME[outPeriod]+HOV2TOLL_TIME[inPeriod]),SHARED2PAY,1Shared ride 2 toll - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED2PAY,1Shared ride 2 toll - Operating cost ,c_cost*(costPerMile*(HOV2TOLL_DIST[outPeriod]+HOV2TOLL_DIST[inPeriod])),SHARED2PAY,1Shared ride 2 toll - Parking cost ,c_cost*dailyParkingCost/costShareSr2,SHARED2PAY,1Shared ride 2 toll - Bridge toll ,c_cost*(HOV2TOLL_BTOLL[outPeriod]+HOV2TOLL_BTOLL[inPeriod])/costShareSr2,SHARED2PAY,1Shared ride 2 toll - Value toll ,c_cost*(HOV2TOLL_VTOLL[outPeriod]+HOV2TOLL_VTOLL[inPeriod])/costShareSr2,SHARED2PAY,1Shared ride 2 toll - One person household,c_hhsize1_sr,SHARED2PAY,1Shared ride 2 toll - Two person household,c_hhsize2_sr,SHARED2PAY,1Shared ride 2 toll - Person is 16 years old or older,c_age16p_sr,SHARED2PAY,1Shared ride 3+ - Unavailable,hov3Available==0,SHARED3FREE,-999Shared ride 3+ - In-vehicle time,c_ivt*(HOV3_TIME[outPeriod]+HOV3_TIME[inPeriod]),SHARED3FREE,1Shared ride 3+ - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED3FREE,1Shared ride 3+ - Operating cost ,c_cost*(costPerMile*(HOV3_DIST[outPeriod]+HOV3_DIST[inPeriod])),SHARED3FREE,1Shared ride 3+ - Parking cost ,c_cost*dailyParkingCost/costShareSr3,SHARED3FREE,1Shared ride 3+ - Bridge toll ,c_cost*(HOV3_BTOLL[outPeriod]+HOV3_BTOLL[inPeriod])/costShareSr3,SHARED3FREE,1Shared ride 3+ - One person household,c_hhsize1_sr,SHARED3FREE,1Shared ride 3+ - Two person household,c_hhsize2_sr,SHARED3FREE,1Shared ride 3+ - Person is 16 years old or older,c_age16p_sr,SHARED3FREE,1Shared ride 3+ toll - Unavailable,hov3tollAvailable==0,SHARED3PAY,-999Shared ride 3+ toll - In-vehicle time,c_ivt*(HOV3TOLL_TIME[outPeriod]+HOV3TOLL_TIME[inPeriod]),SHARED3PAY,1Shared ride 3+ - Terminal time,c_walkTimeShort*(2*terminalTime),SHARED3PAY,1Shared ride 3+ toll - Operating cost ,c_cost*(costPerMile*(HOV3TOLL_DIST[outPeriod]+HOV3TOLL_DIST[inPeriod])),SHARED3PAY,1Shared ride 3+ toll - Parking cost ,c_cost*dailyParkingCost/costShareSr3,SHARED3PAY,1Shared ride 3+ toll - Bridge toll ,c_cost*(HOV3TOLL_BTOLL[outPeriod]+HOV3TOLL_BTOLL[inPeriod])/costShareSr3,SHARED3PAY,1Shared ride 3+ toll - Value toll ,c_cost*(HOV3TOLL_VTOLL[outPeriod]+HOV3TOLL_VTOLL[inPeriod])/costShareSr3,SHARED3PAY,1Shared ride 3+ toll - One person household,c_hhsize1_sr,SHARED3PAY,1Shared ride 3+ toll - Two person household,c_hhsize2_sr,SHARED3PAY,1Shared ride 3+ toll - Person is 16 years old or older,c_age16p_sr,SHARED3PAY,1Walk - Time up to 2 miles,"c_walkTimeShort*min((DISTWALK+DISTWALK)*60/walkSpeed, walkThresh*2*60/walkSpeed)",WALK,1Walk - Time beyond 2 of a miles,"c_walkTimeLong*max((DISTWALK+DISTWALK)*60/walkSpeed - walkThresh*2*60/walkSpeed, 0)",WALK,1Walk - Destination zone densityIndex,c_densityIndex*densityIndex,WALK,1Walk - Topology,c_topology_walk*destTopology,WALK,1Bike - Unavailable if didn't bike to work,1,BIKE,-999Bike - Time up to 2 miles,"c_bikeTimeShort*min((DISTBIKE+DISTBIKE)*60/bikeSpeed, bikeThresh*2*60/bikeSpeed)",BIKE,1Bike - Time beyond 2 of a miles,"c_bikeTimeLong*max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,1Bike - Destination zone densityIndex,c_densityIndex*densityIndex,BIKE,1Bike - Topology,c_topology_bike*destTopology,BIKE,1Walk to Local - Unavailable,walkLocalAvailable==0,WALK_LOC,-999Walk to Local - In-vehicle time,c_ivt*(WLK_LOC_WLK_TOTIVT[outPeriod]/100+WLK_LOC_WLK_TOTIVT[inPeriod]/100),WALK_LOC,1Walk to Local - Short iwait time,"c_shortiwait*(min(WLK_LOC_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LOC_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LOC,1Walk to Local - Long iwait time,"c_longiwait*(max(WLK_LOC_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LOC_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LOC,1Walk to Local - transfer wait time,c_xwait*(WLK_LOC_WLK_XWAIT[outPeriod]/100+WLK_LOC_WLK_XWAIT[inPeriod]/100),WALK_LOC,1Walk to Local - number of transfers,"c_xfers_wlk*(max(WLK_LOC_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LOC_WLK_BOARDS[inPeriod]-1,0))",WALK_LOC,1Walk to Local - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LOC,1Walk to Local - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LOC,1Walk to Local - Walk other time,c_waux*(WLK_LOC_WLK_WAUX[outPeriod]/100+WLK_LOC_WLK_WAUX[inPeriod]/100),WALK_LOC,1Walk to Local - Fare ,c_cost*(WLK_LOC_WLK_FAR[outPeriod]+WLK_LOC_WLK_FAR[inPeriod]),WALK_LOC,1Walk to Local - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LOC,1Walk to Local - Topology,c_topology_trn*destTopology,WALK_LOC,1Walk to Local - Person is less than 10 years old,c_age010_trn,WALK_LOC,1Walk to Light rail/Ferry - Unavailable,walkLrfAvailable==0,WALK_LRF,-999Walk to Light rail/Ferry - In-vehicle time,c_ivt*(WLK_LRF_WLK_TOTIVT[outPeriod]/100+WLK_LRF_WLK_TOTIVT[inPeriod]/100),WALK_LRF,1Walk to Light rail/Ferry - In-vehicle time on Light Rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(WLK_LRF_WLK_KEYIVT[outPeriod]/100+WLK_LRF_WLK_KEYIVT[inPeriod]/100),WALK_LRF,1Walk to Light rail/Ferry - In-vehicle time on Ferry (incremental w/ keyivt),(c_ivt_ferry-c_ivt_lrt)*(WLK_LRF_WLK_FERRYIVT[outPeriod]/100+WLK_LRF_WLK_FERRYIVT[inPeriod]/100),WALK_LRF,1Walk to Light rail/Ferry - Short iwait time,"c_shortiwait*(min(WLK_LRF_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LRF_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LRF,1Walk to Light rail/Ferry - Long iwait time,"c_longiwait*(max(WLK_LRF_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LRF_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LRF,1Walk to Light rail/Ferry - transfer wait time,c_xwait*(WLK_LRF_WLK_XWAIT[outPeriod]/100+WLK_LRF_WLK_XWAIT[inPeriod]/100),WALK_LRF,1Walk to Light rail/Ferry - number of transfers,"c_xfers_wlk*(max(WLK_LRF_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LRF_WLK_BOARDS[inPeriod]-1,0))",WALK_LRF,1Walk to Light rail/Ferry - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LRF,1Walk to Light rail/Ferry - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LRF,1Walk to Light rail/Ferry - Walk other time,c_waux*(WLK_LRF_WLK_WAUX[outPeriod]/100+WLK_LRF_WLK_WAUX[inPeriod]/100),WALK_LRF,1Walk to Light rail/Ferry - Fare ,c_cost*(WLK_LRF_WLK_FAR[outPeriod]+WLK_LRF_WLK_FAR[inPeriod]),WALK_LRF,1Walk to Light rail/Ferry - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LRF,1Walk to Light rail/Ferry - Topology,c_topology_trn*destTopology,WALK_LRF,1Walk to Light rail/Ferry - Person is less than 10 years old,c_age010_trn,WALK_LRF,1Walk to Express bus - Unavailable,walkExpressAvailable==0,WALK_EXP,-999Walk to Express bus - In-vehicle time,c_ivt*(WLK_EXP_WLK_TOTIVT[outPeriod]/100+WLK_EXP_WLK_TOTIVT[inPeriod]/100),WALK_EXP,1Walk to Express bus - In-vehicle time on Express bus (incremental w/ ivt),(c_ivt_exp-c_ivt)*(WLK_EXP_WLK_KEYIVT[outPeriod]/100+WLK_EXP_WLK_KEYIVT[inPeriod]/100),WALK_EXP,1Walk to Express bus - Short iwait time,"c_shortiwait*(min(WLK_EXP_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_EXP_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_EXP,1Walk to Express bus - Long iwait time,"c_longiwait*(max(WLK_EXP_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_EXP_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_EXP,1Walk to Express bus - transfer wait time,c_xwait*(WLK_EXP_WLK_XWAIT[outPeriod]/100+WLK_EXP_WLK_XWAIT[inPeriod]/100),WALK_EXP,1Walk to Express bus - number of transfers,"c_xfers_wlk*(max(WLK_EXP_WLK_BOARDS[outPeriod]-1,0)+max(WLK_EXP_WLK_BOARDS[inPeriod]-1,0))",WALK_EXP,1Walk to Express bus - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_EXP,1Walk to Express bus - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_EXP,1Walk to Express bus - Walk other time,c_waux*(WLK_EXP_WLK_WAUX[outPeriod]/100+WLK_EXP_WLK_WAUX[inPeriod]/100),WALK_EXP,1Walk to Express bus - Fare ,c_cost*(WLK_EXP_WLK_FAR[outPeriod]+WLK_EXP_WLK_FAR[inPeriod]),WALK_EXP,1Walk to Express bus - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_EXP,1Walk to Express bus - Topology,c_topology_trn*destTopology,WALK_EXP,1Walk to Express bus - Person is less than 10 years old,c_age010_trn,WALK_EXP,1Walk to heavy rail - Unavailable,walkHeavyRailAvailable==0,WALK_HVY,-999Walk to heavy rail - In-vehicle time,c_ivt*(WLK_HVY_WLK_TOTIVT[outPeriod]/100+WLK_HVY_WLK_TOTIVT[inPeriod]/100),WALK_HVY,1Walk to heavy rail - In-vehicle time on heavy rail (incremental w/ ivt),(c_ivt_hvy-c_ivt)*(WLK_HVY_WLK_KEYIVT[outPeriod]/100+WLK_HVY_WLK_KEYIVT[inPeriod]/100),WALK_HVY,1Walk to heavy rail - Short iwait time,"c_shortiwait*(min(WLK_HVY_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_HVY_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_HVY,1Walk to heavy rail - Long iwait time,"c_longiwait*(max(WLK_HVY_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_HVY_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_HVY,1Walk to heavy rail - transfer wait time,c_xwait*(WLK_HVY_WLK_XWAIT[outPeriod]/100+WLK_HVY_WLK_XWAIT[inPeriod]/100),WALK_HVY,1Walk to heavy rail - number of transfers,"c_xfers_wlk*(max(WLK_HVY_WLK_BOARDS[outPeriod]-1,0)+max(WLK_HVY_WLK_BOARDS[inPeriod]-1,0))",WALK_HVY,1Walk to heavy rail - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_HVY,1Walk to heavy rail - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_HVY,1Walk to heavy rail - Walk other time,c_waux*(WLK_HVY_WLK_WAUX[outPeriod]/100+WLK_HVY_WLK_WAUX[inPeriod]/100),WALK_HVY,1Walk to heavy rail - Fare ,c_cost*(WLK_HVY_WLK_FAR[outPeriod]+WLK_HVY_WLK_FAR[inPeriod]),WALK_HVY,1Walk to heavy rail - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_HVY,1Walk to heavy rail - Topology,c_topology_trn*destTopology,WALK_HVY,1Walk to heavy rail - Person is less than 10 years old,c_age010_trn,WALK_HVY,1Walk to Commuter rail - Unavailable,walkCommuterAvailable==0,WALK_COM,-999Walk to Commuter rail - In-vehicle time,c_ivt*(WLK_COM_WLK_TOTIVT[outPeriod]/100+WLK_COM_WLK_TOTIVT[inPeriod]/100),WALK_COM,1Walk to Commuter rail - In-vehicle time on commuter rail (incremental w/ ivt),(c_ivt_com-c_ivt)*(WLK_COM_WLK_KEYIVT[outPeriod]/100+WLK_COM_WLK_KEYIVT[inPeriod]/100),WALK_COM,1Walk to Commuter rail - Short iwait time,"c_shortiwait*(min(WLK_COM_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_COM_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_COM,1Walk to Commuter rail - Long iwait time,"c_longiwait*(max(WLK_COM_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_COM_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_COM,1Walk to Commuter rail - transfer wait time,c_xwait*(WLK_COM_WLK_XWAIT[outPeriod]/100+WLK_COM_WLK_XWAIT[inPeriod]/100),WALK_COM,1Walk to Commuter rail - number of transfers,"c_xfers_wlk*(max(WLK_COM_WLK_BOARDS[outPeriod]-1,0)+max(WLK_COM_WLK_BOARDS[inPeriod]-1,0))",WALK_COM,1Walk to Commuter rail - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_COM,1Walk to Commuter rail - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_COM,1Walk to Commuter rail - Walk other time,c_waux*(WLK_COM_WLK_WAUX[outPeriod]/100+WLK_COM_WLK_WAUX[inPeriod]/100),WALK_COM,1Walk to Commuter rail - Fare ,c_cost*(WLK_COM_WLK_FAR[outPeriod]+WLK_COM_WLK_FAR[inPeriod]),WALK_COM,1Walk to Commuter rail - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_COM,1Walk to Commuter rail - Topology,c_topology_trn*destTopology,WALK_COM,1Walk to Commuter rail - Person is less than 10 years old,c_age010_trn,WALK_COM,1Drive to Local - Unavailable,driveLocalAvailable==0,DRIVE_LOC,-999Drive to Local - Unavailable for zero auto households,1,DRIVE_LOC,-999Drive to Local - Unavailable for persons less than 16,1,DRIVE_LOC,-999Drive to Local - In-vehicle time,c_ivt*(DRV_LOC_WLK_TOTIVT[outPeriod]/100+WLK_LOC_DRV_TOTIVT[inPeriod]/100),DRIVE_LOC,1Drive to Local - Short iwait time,"c_shortiwait*(min(DRV_LOC_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LOC_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_LOC,1Drive to Local - Long iwait time,"c_longiwait*(max(DRV_LOC_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LOC_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_LOC,1Drive to Local - transfer wait time,c_xwait*(DRV_LOC_WLK_XWAIT[outPeriod]/100+WLK_LOC_DRV_XWAIT[inPeriod]/100),DRIVE_LOC,1Drive to Local - number of transfers,"c_xfers_wlk*(max(DRV_LOC_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LOC_DRV_BOARDS[inPeriod]-1,0))",DRIVE_LOC,1Drive to Local - Drive time,c_dtim*(DRV_LOC_WLK_DTIM[outPeriod]/100+WLK_LOC_DRV_DTIM[inPeriod]/100),DRIVE_LOC,1Drive to Local - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_LOC,1Drive to Local - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_LOC,1Drive to Local - Walk other time,c_waux*(DRV_LOC_WLK_WAUX[outPeriod]/100+WLK_LOC_DRV_WAUX[inPeriod]/100),DRIVE_LOC,1Drive to Local - Fare and operating cost ,c_cost*((DRV_LOC_WLK_FAR[outPeriod]+WLK_LOC_DRV_FAR[inPeriod])+(DRV_LOC_WLK_DDIST[outPeriod]/100+WLK_LOC_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_LOC,1Drive to Local - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_LOC_WLK_DDIST[outPeriod]/100+WLK_LOC_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_LOC,1Drive to Local  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_LOC,1Drive to Local  - Topology,c_topology_trn*destTopology,DRIVE_LOC,1Drive to Local  - Person is less than 10 years old,c_age010_trn,DRIVE_LOC,1Drive to Light rail/Ferry - Unavailable,driveLrfAvailable==0,DRIVE_LRF,-999Drive to Light rail/Ferry - Unavailable for zero auto households,1,DRIVE_LRF,-999Drive to Light rail/Ferry - Unavailable for persons less than 16,1,DRIVE_LRF,-999Drive to Light rail/Ferry - In-vehicle time,c_ivt*(DRV_LRF_WLK_TOTIVT[outPeriod]/100+WLK_LRF_DRV_TOTIVT[inPeriod]/100),DRIVE_LRF,1Drive to Light rail/Ferry - In-vehicle time on Light Rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_LRF_WLK_KEYIVT[outPeriod]/100+WLK_LRF_DRV_KEYIVT[inPeriod]/100),DRIVE_LRF,1Drive to Light rail/Ferry - In-vehicle time on Ferry (incremental w/ keyivt),(c_ivt_ferry-c_ivt_lrt)*(DRV_LRF_WLK_FERRYIVT[outPeriod]/100+WLK_LRF_DRV_FERRYIVT[inPeriod]/100),DRIVE_LRF,1drive to Light rail/Ferry - Short iwait time,"c_shortiwait*(min(DRV_LRF_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LRF_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_LRF,1drive to Light rail/Ferry - Long iwait time,"c_longiwait*(max(DRV_LRF_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LRF_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_LRF,1drive to Light rail/Ferry - transfer wait time,c_xwait*(DRV_LRF_WLK_XWAIT[outPeriod]/100+WLK_LRF_DRV_XWAIT[inPeriod]/100),DRIVE_LRF,1drive to Light rail/Ferry - number of transfers,"c_xfers_wlk*(max(DRV_LRF_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LRF_DRV_BOARDS[inPeriod]-1,0))",DRIVE_LRF,1Drive to Light rail/Ferry - Drive time,c_dtim*(DRV_LRF_WLK_DTIM[outPeriod]/100+WLK_LRF_DRV_DTIM[inPeriod]/100),DRIVE_LRF,1Drive to Light rail/Ferry - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_LRF,1Drive to Light rail/Ferry - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_LRF,1Drive to Light rail/Ferry - Walk other time,c_waux*(DRV_LRF_WLK_WAUX[outPeriod]/100+WLK_LRF_DRV_WAUX[inPeriod]/100),DRIVE_LRF,1Drive to Light rail/Ferry - Fare and operating cost ,c_cost*((DRV_LRF_WLK_FAR[outPeriod]+WLK_LRF_DRV_FAR[inPeriod])+(DRV_LRF_WLK_DDIST[outPeriod]/100+WLK_LRF_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_LRF,1Drive to Light rail/Ferry - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_LRF_WLK_DDIST[outPeriod]/100+WLK_LRF_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_LRF,1Drive to Light rail/Ferry  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_LRF,1Drive to Light rail/Ferry  - Topology,c_topology_trn*destTopology,DRIVE_LRF,1Drive to Light rail/Ferry  - Person is less than 10 years old,c_age010_trn,DRIVE_LRF,1Drive to Express bus - Unavailable,driveExpressAvailable==0,DRIVE_EXP,-999Drive to Express bus - Unavailable for zero auto households,1,DRIVE_EXP,-999Drive to Express bus - Unavailable for persons less than 16,1,DRIVE_EXP,-999Drive to Express bus - In-vehicle time,c_ivt*(DRV_EXP_WLK_TOTIVT[outPeriod]/100+WLK_EXP_DRV_TOTIVT[inPeriod]/100),DRIVE_EXP,1Drive to Express bus - In-vehicle time on Express bus (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_EXP_WLK_KEYIVT[outPeriod]/100+WLK_EXP_DRV_KEYIVT[inPeriod]/100),DRIVE_EXP,1drive to Express bus - Short iwait time,"c_shortiwait*(min(DRV_EXP_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_EXP_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_EXP,1drive to Express bus - Long iwait time,"c_longiwait*(max(DRV_EXP_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_EXP_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_EXP,1drive to Express bus - transfer wait time,c_xwait*(DRV_EXP_WLK_XWAIT[outPeriod]/100+WLK_EXP_DRV_XWAIT[inPeriod]/100),DRIVE_EXP,1drive to Express bus - number of transfers,"c_xfers_wlk*(max(DRV_EXP_WLK_BOARDS[outPeriod]-1,0)+max(WLK_EXP_DRV_BOARDS[inPeriod]-1,0))",DRIVE_EXP,1Drive to Express bus - Drive time,c_dtim*(DRV_EXP_WLK_DTIM[outPeriod]/100+WLK_EXP_DRV_DTIM[inPeriod]/100),DRIVE_EXP,1Drive to Express bus - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_EXP,1Drive to Express bus - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_EXP,1Drive to Express bus - Walk other time,c_waux*(DRV_EXP_WLK_WAUX[outPeriod]/100+WLK_EXP_DRV_WAUX[inPeriod]/100),DRIVE_EXP,1Drive to Express bus - Fare and operating cost ,c_cost*((DRV_EXP_WLK_FAR[outPeriod]+WLK_EXP_DRV_FAR[inPeriod])+(DRV_EXP_WLK_DDIST[outPeriod]/100+WLK_EXP_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_EXP,1Drive to Express bus - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_EXP_WLK_DDIST[outPeriod]/100+WLK_EXP_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_EXP,1Drive to Express bus  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_EXP,1Drive to Express bus  - Topology,c_topology_trn*destTopology,DRIVE_EXP,1Drive to Express bus  - Person is less than 10 years old,c_age010_trn,DRIVE_EXP,1Drive to heavy rail - Unavailable,driveHeavyRailAvailable==0,DRIVE_HVY,-999Drive to heavy rail - Unavailable for zero auto households,1,DRIVE_HVY,-999Drive to heavy rail - Unavailable for persons less than 16,1,DRIVE_HVY,-999Drive to heavy rail - In-vehicle time,c_ivt*(DRV_HVY_WLK_TOTIVT[outPeriod]/100+WLK_HVY_DRV_TOTIVT[inPeriod]/100),DRIVE_HVY,1Drive to heavy rail - In-vehicle time on heavy rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_HVY_WLK_KEYIVT[outPeriod]/100+WLK_HVY_DRV_KEYIVT[inPeriod]/100),DRIVE_HVY,1drive to heavy rail - Short iwait time,"c_shortiwait*(min(DRV_HVY_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_HVY_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_HVY,1drive to heavy rail - Long iwait time,"c_longiwait*(max(DRV_HVY_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_HVY_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_HVY,1drive to heavy rail - transfer wait time,c_xwait*(DRV_HVY_WLK_XWAIT[outPeriod]/100+WLK_HVY_DRV_XWAIT[inPeriod]/100),DRIVE_HVY,1drive to heavy rail - number of transfers,"c_xfers_wlk*(max(DRV_HVY_WLK_BOARDS[outPeriod]-1,0)+max(WLK_HVY_DRV_BOARDS[inPeriod]-1,0))",DRIVE_HVY,1Drive to heavy rail - Drive time,c_dtim*(DRV_HVY_WLK_DTIM[outPeriod]/100+WLK_HVY_DRV_DTIM[inPeriod]/100),DRIVE_HVY,1Drive to heavy rail - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_HVY,1Drive to heavy rail - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_HVY,1Drive to heavy rail - Walk other time,c_waux*(DRV_HVY_WLK_WAUX[outPeriod]/100+WLK_HVY_DRV_WAUX[inPeriod]/100),DRIVE_HVY,1Drive to heavy rail - Fare and operating cost ,c_cost*((DRV_HVY_WLK_FAR[outPeriod]+WLK_HVY_DRV_FAR[inPeriod])+(DRV_HVY_WLK_DDIST[outPeriod]/100+WLK_HVY_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_HVY,1Drive to heavy rail - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_HVY_WLK_DDIST[outPeriod]/100+WLK_HVY_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_HVY,1Drive to heavy rail  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_HVY,1Drive to heavy rail  - Topology,c_topology_trn*destTopology,DRIVE_HVY,1Drive to heavy rail  - Person is less than 10 years old,c_age010_trn,DRIVE_HVY,1Drive to Commuter rail - Unavailable,driveCommuterAvailable==0,DRIVE_COM,-999Drive to Commuter rail - Unavailable for zero auto households,1,DRIVE_COM,-999Drive to Commuter rail - Unavailable for persons less than 16,1,DRIVE_COM,-999Drive to Commuter rail - In-vehicle time,c_ivt*(DRV_COM_WLK_TOTIVT[outPeriod]/100+WLK_COM_DRV_TOTIVT[inPeriod]/100),DRIVE_COM,1Drive to Commuter rail - In-vehicle time on commuter rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(DRV_COM_WLK_KEYIVT[outPeriod]/100+WLK_COM_DRV_KEYIVT[inPeriod]/100),DRIVE_COM,1drive to Commuter rail - Short iwait time,"c_shortiwait*(min(DRV_COM_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_COM_DRV_IWAIT[inPeriod]/100,waitThresh))",DRIVE_COM,1drive to Commuter rail - Long iwait time,"c_longiwait*(max(DRV_COM_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_COM_DRV_IWAIT[inPeriod]/100-waitThresh,0))",DRIVE_COM,1drive to Commuter rail - transfer wait time,c_xwait*(DRV_COM_WLK_XWAIT[outPeriod]/100+WLK_COM_DRV_XWAIT[inPeriod]/100),DRIVE_COM,1drive to Commuter rail - number of transfers,"c_xfers_wlk*(max(DRV_COM_WLK_BOARDS[outPeriod]-1,0)+max(WLK_COM_DRV_BOARDS[inPeriod]-1,0))",DRIVE_COM,1Drive to Commuter rail - Drive time,c_dtim*(DRV_COM_WLK_DTIM[outPeriod]/100+WLK_COM_DRV_DTIM[inPeriod]/100),DRIVE_COM,1Drive to Commuter rail - Walk access time (at attraction end),c_wacc*(destinationWalkTime),DRIVE_COM,1Drive to Commuter rail - Walk egress time (at attraction end),c_wegr*(destinationWalkTime),DRIVE_COM,1Drive to Commuter rail - Walk other time,c_waux*(DRV_COM_WLK_WAUX[outPeriod]/100+WLK_COM_DRV_WAUX[inPeriod]/100),DRIVE_COM,1Drive to Commuter rail - Fare and operating cost ,c_cost*((DRV_COM_WLK_FAR[outPeriod]+WLK_COM_DRV_FAR[inPeriod])+(DRV_COM_WLK_DDIST[outPeriod]/100+WLK_COM_DRV_DDIST[inPeriod]/100)*costPerMile),DRIVE_COM,1Drive to Commuter rail - Ratio of drive access distance to OD distance,c_dacc_ratio*((DRV_COM_WLK_DDIST[outPeriod]/100+WLK_COM_DRV_DDIST[inPeriod]/100)/(DIST+DIST)),DRIVE_COM,1Drive to Commuter rail  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_COM,1Drive to Commuter rail  - Topology,c_topology_trn*destTopology,DRIVE_COM,1Drive to Commuter rail - Person is less than 10 years old,c_age010_trn,DRIVE_COM,1Walk - Alternative-specific constant - Zero auto,5.7672,WALK,1Walk - Alternative-specific constant - Auto deficient,2.401,WALK,1Walk - Alternative-specific constant - Auto sufficient,0.0533,WALK,1Bike - Alternative-specific constant - Zero auto,3.194,BIKE,1Bike - Alternative-specific constant - Auto deficient,0.2532,BIKE,1Bike - Alternative-specific constant - Auto sufficient,-1.58,BIKE,1Shared ride 2 - Alternative-specific constant - Zero auto,0,SHARED2FREE,1Shared ride 2 - Alternative-specific constant - Zero auto,0,SHARED2PAY,1Shared ride 2 - Alternative-specific constant - Auto deficient,-0.338,SHARED2FREE,1Shared ride 2 - Alternative-specific constant - Auto deficient,-0.338,SHARED2PAY,1Shared ride 2 - Alternative-specific constant - Auto sufficient,-1.0857,SHARED2FREE,1Shared ride 2 - Alternative-specific constant - Auto sufficient,-1.0857,SHARED2PAY,1Shared ride 3+ - Alternative-specific constant - Zero auto,-0.5831,SHARED3FREE,1Shared ride 3+ - Alternative-specific constant - Zero auto,-0.5831,SHARED3PAY,1Shared ride 3+ - Alternative-specific constant - Auto deficient,-0.8527,SHARED3FREE,1Shared ride 3+ - Alternative-specific constant - Auto deficient,-0.8527,SHARED3PAY,1Shared ride 3+ - Alternative-specific constant - Auto sufficient,-1.47,SHARED3FREE,1Shared ride 3+ - Alternative-specific constant - Auto sufficient,-1.47,SHARED3PAY,1Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_LOC,1Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_LRF,1Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_EXP,1Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_HVY,1Walk to Transit - Alternative-specific constant - Zero auto,5.0354,WALK_COM,1Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_LOC,1Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_LRF,1Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_EXP,1Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_HVY,1Walk to Transit - Alternative-specific constant - Auto deficient,0.653,WALK_COM,1Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_LOC,1Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_LRF,1Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_EXP,1Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_HVY,1Walk to Transit - Alternative-specific constant - Auto sufficient,-0.8917,WALK_COM,1Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_LOC,1Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_LRF,1Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_EXP,1Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_HVY,1Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_COM,1Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_LOC,1Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_LRF,1Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_EXP,1Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_HVY,1Drive to Transit  - Alternative-specific constant - Auto deficient,0.1008,DRIVE_COM,1Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_LOC,1Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_LRF,1Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_EXP,1Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_HVY,1Drive to Transit  - Alternative-specific constant - Auto sufficient,-1.0045,DRIVE_COM,1Walk - Alternative-specific constant - Joint Tours,-0.2127,WALK,1Walk - Alternative-specific constant - Joint Tours,-1.9608,WALK,1Walk - Alternative-specific constant - Joint Tours,-3.2352,WALK,1Bike - Alternative-specific constant - Joint Tours,-2.8672,BIKE,1Bike - Alternative-specific constant - Joint Tours,-6.0764,BIKE,1Bike - Alternative-specific constant - Joint Tours,-6.3761,BIKE,1Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1Shared ride 3+ - Alternative-specific constant - Joint Tours,0.5631,SHARED3FREE,1Shared ride 3+ - Alternative-specific constant - Joint Tours,0.5631,SHARED3PAY,1Shared ride 3+ - Alternative-specific constant - Joint Tours,-1.8842,SHARED3FREE,1Shared ride 3+ - Alternative-specific constant - Joint Tours,-1.8842,SHARED3PAY,1Shared ride 3+ - Alternative-specific constant - Joint Tours,-2.2348,SHARED3FREE,1Shared ride 3+ - Alternative-specific constant - Joint Tours,-2.2348,SHARED3PAY,1Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_LOC,1Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_LRF,1Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_EXP,1Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_HVY,1Walk to Transit - Alternative-specific constant - Joint Tours,0.6229,WALK_COM,1Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_LOC,1Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_LRF,1Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_EXP,1Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_HVY,1Walk to Transit - Alternative-specific constant - Joint Tours,-5.1634,WALK_COM,1Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_LOC,1Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_LRF,1Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_EXP,1Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_HVY,1Walk to Transit - Alternative-specific constant - Joint Tours,-18.2645,WALK_COM,1Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_LOC,1Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_LRF,1Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_EXP,1Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_HVY,1Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_COM,1Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_LOC,1Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_LRF,1Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_EXP,1Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_HVY,1Drive to Transit  - Alternative-specific constant - Joint Tours,-5.9632,DRIVE_COM,1Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_LOC,1Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_LRF,1Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_EXP,1Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_HVY,1Drive to Transit  - Alternative-specific constant - Joint Tours,-8.0453,DRIVE_COM,1Local bus,0.0669,WALK_LOC,1Local bus,0.0669,DRIVE_LOC,1Light rail - Alternative-specific constant (walk access),0.8256,WALK_LRF,1Light rail - Alternative-specific constant (drive access),0.8256,DRIVE_LRF,1Ferry - Alternative-specific constant (walk access),0.9332,WALK_LRF,1Ferry - Alternative-specific constant (drive access),0.9332,DRIVE_LRF,1Express bus - Alternative-specific constant,-0.5165,WALK_EXP,1Express bus - Alternative-specific constant,-0.5165,DRIVE_EXP,1Heavy rail - Alternative-specific constant ,0.6477,WALK_HVY,1Heavy rail - Alternative-specific constant ,0.6477,DRIVE_HVY,1Commuter rail - Alternative-specific constant ,0.7255,WALK_COM,1Commuter rail - Alternative-specific constant ,0.7255,DRIVE_COM,1Walk to Transit - CBD dummy,0.804,WALK_LOC,1Walk to Transit - CBD dummy,0.804,WALK_LRF,1Walk to Transit - CBD dummy,0.804,WALK_EXP,1Walk to Transit - CBD dummy,0.804,WALK_HVY,1Walk to Transit - CBD dummy,0.804,WALK_COM,1Drive to Transit  - CBD dummy,1.1,DRIVE_LOC,1Drive to Transit  - CBD dummy,1.1,DRIVE_LRF,1Drive to Transit  - CBD dummy,1.1,DRIVE_EXP,1Drive to Transit  - CBD dummy,1.1,DRIVE_HVY,1Drive to Transit  - CBD dummy,1.1,DRIVE_COM,1Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_LOC,1Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_LRF,1Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_EXP,1Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_HVY,1Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_COM,1Walk not available for long distances,1,WALK,-999Bike not available for long distances,1,BIKE,-999

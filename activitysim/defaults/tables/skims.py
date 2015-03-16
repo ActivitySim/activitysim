@@ -39,3 +39,13 @@ def sovmd_skim(nonmotskm_matrix):
 def sovpm_skim(nonmotskm_matrix):
     # FIXME use the right omx file
     return skim.Skim(nonmotskm_matrix, offset=-1)
+
+
+@sim.injectable(cache=True)
+def skims():
+    skims = skim.Skims()
+    skims[("SOV", "AM")] = sim.get_injectable("sovam_skim")
+    skims[("SOV", "MD")] = sim.get_injectable("sovmd_skim")
+    skims[("SOV", "PM")] = sim.get_injectable("sovpm_skim")
+    skims["DISTANCE"] = sim.get_injectable("distance_skim")
+    return skims

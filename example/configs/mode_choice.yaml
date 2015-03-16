@@ -25,3 +25,56 @@ NESTS:
             - DRIVE_EXP
             - DRIVE_HVY
             - DRIVE_COM
+
+COEFFICIENTS:
+    - ivt: -0.01750
+    - ivt_lrt: 0.90 * ivt
+    - ivt_ferry: 0.80 * ivt
+    - ivt_exp: 1.00 * ivt
+    - ivt_hvy: 0.80 * ivt
+    - ivt_com: 0.70 * ivt
+    - walktimeshort: 2.00 * ivt
+    - walktimelong: 10.00 * ivt
+    - biketimeshort: 4.00 * ivt
+    - biketimelong: 20.00 * ivt
+    - cost: (0.60 * ivt) / valueOfTime
+    - shortiWait: 2.00 * ivt
+    - longiWait: 1.00 * ivt
+    - wacc: 2.00 * ivt
+    - wegr: 2.00 * ivt
+    - waux: 2.00 * ivt
+    - dtim: 2.00 * ivt
+    - xwait: 2.00 * ivt
+    - dacc_ratio: 0.00000
+    - xfers_wlk: 10.00 * ivt
+    - xfers_drv: 20.00 * ivt
+    - drvtrn_distpen_0: 270.00 * ivt
+    - drvtrn_distpen_max: 15.0000
+    - topology_walk: 15.00 * ivt
+    - topology_bike: 20.00 * ivt
+    - topology_trn: 2.20 * ivt
+    - densityindex: -0.20 * ivt
+    - age1619_da: 0.00000
+    - age010_trn: 0.00000
+    - age16p_sr: 78.05714286 * ivt
+    - hhsize1_sr: 0.00000
+    - hhsize2_sr: 0.00000
+
+CONSTANTS:
+    valueOfTime: 8.00
+    costPerMile: 18.48
+    costShareSr2: 1.75
+    costShareSr3: 2.50
+    waitThresh: 10.00
+    walkThresh: 1.50
+    shortWalk: 0.333
+    longWalk: 0.667
+    walkSpeed: 3.00
+    bikeThresh: 6.00
+    bikeSpeed: 12.00
+    maxCbdAreaTypeThresh: 2
+    indivTour: 1.00000
+    upperEA: 5
+    upperAM: 10
+    upperMD: 15
+    upperPM: 19

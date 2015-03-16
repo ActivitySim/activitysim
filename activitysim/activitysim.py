@@ -2,7 +2,7 @@
 # Copyright (C) 2014-2015 Synthicity, LLC
 # See full license in LICENSE.txt.
 
-import urbansim.sim.simulation as sim
+from skim import Skims
 from urbansim.urbanchoice import interaction, mnl
 import pandas as pd
 import numpy as np
@@ -34,7 +34,8 @@ def identity_matrix(alt_names):
 
 
 def simple_simulate(choosers, alternatives, spec,
-                    skims=None, skim_join_name='zone_id',
+                    skims=None,
+                    locals_d=None,
                     mult_by_alt_col=False, sample_size=None):
     """
     A simple discrete choice simulation routine
@@ -49,15 +50,17 @@ def simple_simulate(choosers, alternatives, spec,
     spec : Series
         A Pandas series that gives the specification of the variables to
         compute and the coefficients - more on this later
-    skims : Dict
-        Keys will be used as variable names and values are Skim objects - it
-        will be assumed that there is a field zone_id in both choosers and
-        alternatives which is used to dereference the given Skim object as
-        the "origin" (on choosers) and destination (on alternatives)
-    skim_join_name : str
-        The name of the column that contains the origin in the choosers table
-        and the destination in the alternates table - is required to be the
-        same in both tables - is 'zone_id' by default
+    skims : Skims object
+        The skims object is used to contain multiple matrices of
+        origin-destination impedances.  Make sure to also add it to the
+        locals_d below in order to access it in expressions.  The *only* job
+        of this method in regards to skims is to call set_df with the
+        dataframe that comes back from interacting choosers with
+        alternatives.  See the skims module for more documentation on how
+        the skims object is intended to be used.
+    locals_d : Dict
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
     mult_by_alt_col : boolean
         Whether to multiply the expression by the name of the column in the
         specification - this is useful for alternative specific coefficients
@@ -76,6 +79,9 @@ def simple_simulate(choosers, alternatives, spec,
     coeffs = spec.values
     sample_size = sample_size or len(alternatives)
 
+    if locals_d is None:
+        locals_d = {}
+
     # now the index is also in the dataframe, which means it will be
     # available as the "destination" for the skims dereference below
     alternatives[alternatives.index.name] = alternatives.index
@@ -85,9 +91,8 @@ def simple_simulate(choosers, alternatives, spec,
         choosers, alternatives, sample_size)
 
     if skims:
-        for key, value in skims.iteritems():
-            df[key] = value.get(df[skim_join_name],
-                                df[skim_join_name+"_r"])
+        assert isinstance(skims, Skims)
+        skims.set_df(df)
 
     # evaluate the expressions to build the final matrix
     vars = []
@@ -102,7 +107,7 @@ def simple_simulate(choosers, alternatives, spec,
                     # it's already a string, but need to remove the "@"
                     expr = expr[1:]
             try:
-                s = eval(expr)
+                s = eval(expr, locals_d, locals())
             except Exception as e:
                 print "Failed with Python eval:\n%s" % expr
                 raise e

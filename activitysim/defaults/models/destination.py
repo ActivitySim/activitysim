@@ -28,7 +28,7 @@ def destination_choice_spec(configs_dir):
 @sim.model()
 def destination_choice(non_mandatory_tours_merged,
                        zones,
-                       distance_skim,
+                       skims,
                        destination_choice_spec):
 
     # choosers are tours - in a sense tours are choosing their destination
@@ -39,11 +39,11 @@ def destination_choice(non_mandatory_tours_merged,
     # FIXME these models don't use stratified sampling - we're just making
     # FIXME the choice with the sampling model
 
-    # all these tours are home based by definition so we use distance to the
-    # home as the relevant distance here
-    skims = {
-        "distance": distance_skim
-    }
+    # set the keys for this lookup - in this case there is a TAZ in the choosers
+    # and a TAZ in the alternatives which get merged during interaction
+    skims.set_keys("TAZ", "TAZ_r")
+    # the skims will be available under the name "skims" for any @ expressions
+    locals_d = {"skims": skims}
 
     choices_list = []
     # segment by trip type and pick the right spec for each person type
@@ -59,8 +59,8 @@ def destination_choice(non_mandatory_tours_merged,
             asim.simple_simulate(segment,
                                  zones.to_frame(),
                                  destination_choice_spec[name],
-                                 skims,
-                                 skim_join_name="TAZ",
+                                 skims=skims,
+                                 locals_d=locals_d,
                                  mult_by_alt_col=False,
                                  sample_size=50)
 

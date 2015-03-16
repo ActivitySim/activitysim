@@ -56,21 +56,23 @@ def workplace_size_terms(land_use, destination_choice_size_terms):
 def workplace_location_simulate(persons_merged,
                                 zones,
                                 workplace_location_spec,
-                                distance_skim,
+                                skims,
                                 workplace_size_terms):
 
     choosers = persons_merged.to_frame()
     alternatives = zones.to_frame().join(workplace_size_terms.to_frame())
 
-    skims = {
-        "distance": distance_skim
-    }
+    # set the keys for this lookup - in this case there is a TAZ in the choosers
+    # and a TAZ in the alternatives which get merged during interaction
+    skims.set_keys("TAZ", "TAZ_r")
+    # the skims will be available under the name "skims" for any @ expressions
+    locals_d = {"skims": skims}
 
     choices, _ = asim.simple_simulate(choosers,
                                       alternatives,
                                       workplace_location_spec,
-                                      skims,
-                                      skim_join_name="TAZ",
+                                      skims=skims,
+                                      locals_d=locals_d,
                                       mult_by_alt_col=False,
                                       sample_size=50)
 

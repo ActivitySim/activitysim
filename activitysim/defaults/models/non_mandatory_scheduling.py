@@ -31,7 +31,11 @@ def vectorize_tour_schedules(tours, alts, spec):
 
     for i in range(max_num_trips):
 
-        nth_tours = tours.groupby('person_id').nth(i)
+        # this reset_index / set_index stuff keeps the index as the tours
+        # index rather that switching to person_id as the index which is
+        # what happens when you groupby person_id
+        nth_tours = tours.reset_index().\
+            groupby('person_id').nth(i).set_index('index')
 
         print "Running %d non-mandatory #%d tour choices" % \
               (len(nth_tours), i+1)

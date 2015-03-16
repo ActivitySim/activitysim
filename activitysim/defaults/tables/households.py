@@ -15,6 +15,14 @@ def households(store, settings):
     return store["households"]
 
 
+# this is a common merge so might as well define it once here and use it
+@sim.table()
+def households_merged(households, land_use, accessibility):
+    return sim.merge_tables(households.name, tables=[households,
+                                                     land_use,
+                                                     accessibility])
+
+
 sim.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
 
 

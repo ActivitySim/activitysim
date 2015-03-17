@@ -95,6 +95,33 @@ def eval_variables(exprs, df):
          for e in exprs])
 
 
+def add_skims(df, skims, skim_join_name):
+    """
+    Add skim data to a table. The table must contain the relevant skim
+    indexers for both origin and destination.
+
+    The table is modified in-place.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Table to which to add skim data as new columns.
+        `df` is modified in-place.
+    skims : dict
+        Keys will be used as variable names and values are Skim objects - it
+        will be assumed that there is a field zone_id in both choosers and
+        alternatives which is used to dereference the given Skim object as
+        the "origin" (on choosers) and destination (on alternatives).
+    skim_join_name : str
+        The name of the column that contains the origin in the choosers table
+        and the destination in the alternates table - is required to be the
+        same in both tables.
+
+    """
+    for key, value in skims.iteritems():
+        df[key] = value.get(df[skim_join_name], df[skim_join_name + "_r"])
+
+
 def interaction_simulate(
         choosers, alternatives, spec,
         skims=None, skim_join_name='zone_id',
@@ -112,19 +139,19 @@ def interaction_simulate(
     spec : Series
         A Pandas series that gives the specification of the variables to
         compute and the coefficients - more on this later
-    skims : Dict
+    skims : dict, optional
         Keys will be used as variable names and values are Skim objects - it
         will be assumed that there is a field zone_id in both choosers and
         alternatives which is used to dereference the given Skim object as
         the "origin" (on choosers) and destination (on alternatives)
-    skim_join_name : str
+    skim_join_name : str, optional
         The name of the column that contains the origin in the choosers table
         and the destination in the alternates table - is required to be the
         same in both tables - is 'zone_id' by default
-    mult_by_alt_col : boolean
+    mult_by_alt_col : boolean, optional
         Whether to multiply the expression by the name of the column in the
         specification - this is useful for alternative specific coefficients
-    sample_size : int
+    sample_size : int, optional
         Sample alternatives with sample of given size.  By default is None,
         which does not sample alternatives.
 
@@ -148,9 +175,7 @@ def interaction_simulate(
         choosers, alternatives, sample_size)
 
     if skims:
-        for key, value in skims.iteritems():
-            df[key] = value.get(df[skim_join_name],
-                                df[skim_join_name+"_r"])
+        add_skims(df, skims, skim_join_name)
 
     # evaluate the expressions to build the final matrix
     vars = []

@@ -94,7 +94,7 @@ def mode_choice_simulate(tours_merged,
                          mode_choice_settings,
                          skims):
 
-    mode_choice_spec = mode_choice_spec.head(6)
+    mode_choice_spec = mode_choice_spec.head(33)
     print mode_choice_spec
 
     # set the keys for this lookup - in this case orig and dest are both

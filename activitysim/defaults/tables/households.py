@@ -129,6 +129,11 @@ def auto_ownership(households):
 
 
 @sim.column('households')
+def hhsize(households):
+    return households.PERSONS
+
+
+@sim.column('households')
 def no_cars(households):
     return (households.auto_ownership == 0)
 

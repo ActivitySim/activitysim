@@ -24,8 +24,14 @@ def persons_merged(persons, households, land_use, accessibility):
                                                   accessibility])
 
 
+@sim.column("persons")
 def age_16_to_19(persons):
-    return 16 <= persons.age <= 19
+    return persons.to_frame(["age"]).eval("16 <= age <= 19")
+
+
+@sim.column("persons")
+def age_16_p(persons):
+    return persons.to_frame(["age"]).eval("16 <= age")
 
 
 # FIXME - this is my "placeholder" for the CDAP model ;)

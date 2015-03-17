@@ -44,8 +44,12 @@ def sovpm_skim(nonmotskm_matrix):
 @sim.injectable(cache=True)
 def skims():
     skims = skim.Skims()
-    skims[("SOV", "AM")] = sim.get_injectable("sovam_skim")
-    skims[("SOV", "MD")] = sim.get_injectable("sovmd_skim")
-    skims[("SOV", "PM")] = sim.get_injectable("sovpm_skim")
-    skims["DISTANCE"] = sim.get_injectable("distance_skim")
+    # FIXME - this is reusing the same skim as all the different kinds of skims
+    for typ in ["SOV_TIME", "SOVTOLL_TIME", "HOV2_TIME",
+                "SOV_DIST", "SOVTOLL_DIST", "HOV2_DIST",
+                "SOV_BTOLL", "SOVTOLL_BTOLL", "HOV2_BTOLL",
+                "SOVTOLL_VTOLL"]:
+        for period in ["AM", "MD", "PM"]:
+            skims[(typ, period)] = sim.get_injectable("distance_skim")
+    skims['DISTANCE'] = sim.get_injectable("distance_skim")
     return skims

@@ -38,18 +38,36 @@ sim.broadcast('persons_merged', 'tours', cast_index=True, onto_on='person_id')
 
 @sim.column("tours")
 def sov_available(tours):
-    # FIXME this means cars can be appear magically during the day
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def hov2_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def sovtoll_available(tours):
+    # FIXME
     return pd.Series(1, index=tours.index)
 
 
 @sim.column("tours")
 def is_joint(tours):
     # FIXME
-    return pd.Series(0, index=tours.index)
+    return pd.Series(False, index=tours.index)
 
 
 @sim.column("tours")
-def work_tour_is_da(tours):
+def number_of_participants(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def work_tour_is_drive(tours):
     # FIXME
     return pd.Series(0, index=tours.index)
 
@@ -57,6 +75,12 @@ def work_tour_is_da(tours):
 @sim.column("tours")
 def terminal_time(tours):
     # FIXME
+    return pd.Series(0, index=tours.index)
+
+
+@sim.column("tours")
+def daily_parking_cost(tours):
+    # FIXME - this is a computation based on the tour destination
     return pd.Series(0, index=tours.index)
 
 

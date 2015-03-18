@@ -4,31 +4,31 @@ Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALON
 Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999
 Drive alone - Unavailable for joint tours,is_joint,DRIVEALONEFREE,-999
 Drive alone - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEFREE,-999
-Drive alone - In-vehicle time,"@skims[('SOV_TIME', out_period)] + skims[('SOV_TIME', in_period)]",DRIVEALONEFREE,ivt
+Drive alone - In-vehicle time,@out_skims['SOV_TIME'] + in_skims['SOV_TIME'],DRIVEALONEFREE,ivt
 Drive alone - Terminal time,2 * terminal_time,DRIVEALONEFREE,walktimeshort
-Drive alone - Operating cost ,"@costPerMile * skims[('SOV_DIST', out_period)] + skims[('SOV_DIST', in_period)]",DRIVEALONEFREE,cost
+Drive alone - Operating cost ,@costPerMile * (out_skims['SOV_DIST'] + in_skims['SOV_DIST']),DRIVEALONEFREE,cost
 Drive alone - Parking cost ,daily_parking_cost,DRIVEALONEFREE,cost
-Drive alone - Bridge toll ,"@skims[('SOV_BTOLL', out_period)] + skims[('SOV_BTOLL', in_period)]",DRIVEALONEFREE,cost
+Drive alone - Bridge toll ,@out_skims['SOV_BTOLL'] + in_skims['SOV_BTOLL'],DRIVEALONEFREE,cost
 Drive alone - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEFREE,age1619_da
 Drive alone toll - Unavailable,sovtoll_available == False,DRIVEALONEPAY,-999
-Drive alone toll - Unavailable for zero auto households,auto_ownership == False,DRIVEALONEPAY,-999
+Drive alone toll - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEPAY,-999
 Drive alone toll - Unavailable for persons less than 16,age < 16,DRIVEALONEPAY,-999
 Drive alone toll - Unavailable for joint tours,is_joint,DRIVEALONEPAY,-999
 Drive alone toll - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEPAY,-999
-Drive alone toll - In-vehicle time,"@skims[('SOVTOLL_TIME', out_period)] + skims[('SOVTOLL_TIME', in_period)]",DRIVEALONEPAY,ivt
+Drive alone toll - In-vehicle time,@out_skims['SOVTOLL_TIME'] + in_skims['SOVTOLL_TIME'],DRIVEALONEPAY,ivt
 Drive alone toll - Terminal time,2 * terminal_time,DRIVEALONEPAY,walktimeshort
-Drive alone toll - Operating cost ,"@costPerMile * skims[('SOVTOLL_DIST', out_period)] + skims[('SOVTOLL_DIST', in_period)]",DRIVEALONEPAY,cost
+Drive alone toll - Operating cost ,@costPerMile * (out_skims['SOVTOLL_DIST'] + in_skims['SOVTOLL_DIST']),DRIVEALONEPAY,cost
 Drive alone toll - Parking cost ,daily_parking_cost,DRIVEALONEPAY,cost
-Drive alone toll - Bridge toll ,"@skims[('SOVTOLL_BTOLL', out_period)] + skims[('SOVTOLL_BTOLL', in_period)]",DRIVEALONEPAY,cost
-Drive alone toll - Value toll ,"@skims[('SOVTOLL_VTOLL', out_period)] + skims[('SOVTOLL_VTOLL', in_period)]",DRIVEALONEPAY,cost
+Drive alone toll - Bridge toll ,@out_skims['SOVTOLL_BTOLL'] + in_skims['SOVTOLL_BTOLL'],DRIVEALONEPAY,cost
+Drive alone toll - Value toll ,@out_skims['SOVTOLL_VTOLL'] + in_skims['SOVTOLL_VTOLL'],DRIVEALONEPAY,cost
 Drive alone toll - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEPAY,age1619_da
 Shared ride 2 - Unavailable,hov2_available == False,SHARED2FREE,-999
 Shared ride 2 - Unavailable based on party size,is_joint & (number_of_participants > 2),SHARED2FREE,-999
-Shared ride 2 - In-vehicle time,"@skims[('HOV2_TIME', out_period)] + skims[('HOV2_TIME', in_period)]",SHARED2FREE,ivt
+Shared ride 2 - In-vehicle time,@out_skims['HOV2_TIME'] + in_skims['HOV2_TIME'],SHARED2FREE,ivt
 Shared ride 2 - Terminal time,2 * terminal_time,SHARED2FREE,walktimeshort
-Shared ride 2 - Operating cost ,"@costPerMile * skims[('HOV2_DIST', out_period)] + skims[('HOV2_DIST', in_period)]",SHARED2FREE,cost
+Shared ride 2 - Operating cost ,@costPerMile * (out_skims['HOV2_DIST'] + in_skims['HOV2_DIST']),SHARED2FREE,cost
 Shared ride 2 - Parking cost ,@df.daily_parking_cost / costShareSr2   ,SHARED2FREE,cost
-Shared ride 2 - Bridge toll ,"@(skims[('HOV2_BTOLL', out_period)] + skims[('HOV2_BTOLL', in_period)]) / costShareSr2   ",SHARED2FREE,cost
+Shared ride 2 - Bridge toll ,@(out_skims['HOV2_BTOLL'] + in_skims['HOV2_BTOLL']) / costShareSr2   ,SHARED2FREE,cost
 Shared ride 2 - One person household,hhsize == 1,SHARED2FREE,hhsize1_sr
 Shared ride 2 - Two person household,hhsize == 2,SHARED2FREE,hhsize2_sr
 Shared ride 2 - Person is 16 years old or older,age_16_p,SHARED2FREE,age16p_sr

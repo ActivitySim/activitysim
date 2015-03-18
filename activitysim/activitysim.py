@@ -2,7 +2,7 @@
 # Copyright (C) 2014-2015 Synthicity, LLC
 # See full license in LICENSE.txt.
 
-from skim import Skims
+from skim import Skims, Skims3D
 from urbansim.urbanchoice import interaction, mnl
 import pandas as pd
 import numpy as np
@@ -91,8 +91,13 @@ def simple_simulate(choosers, alternatives, spec,
         choosers, alternatives, sample_size)
 
     if skims:
-        assert isinstance(skims, Skims)
-        skims.set_df(df)
+        if not isinstance(skims, list):
+            assert isinstance(skims, Skims) or isinstance(skims, Skims3D)
+            skims.set_df(df)
+        else:
+            for skim in skims:
+                assert isinstance(skim, Skims) or isinstance(skim, Skims3D)
+                skim.set_df(df)
 
     # evaluate the expressions to build the final matrix
     vars = []

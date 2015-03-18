@@ -87,10 +87,10 @@ def daily_parking_cost(tours):
 @sim.column("tours")
 def out_period(tours):
     # FIXME these are time periods that should come from the scheduling process
-    return pd.Series("am", index=tours.index)
+    return pd.Series("PM", index=tours.index)
 
 
 @sim.column("tours")
 def in_period(tours):
     # FIXME these are time periods that should come from the scheduling process
-    return pd.Series("am", index=tours.index)
+    return pd.Series("AM", index=tours.index)

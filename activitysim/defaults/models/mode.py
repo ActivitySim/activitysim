@@ -4,6 +4,7 @@ import yaml
 import pandas as pd
 import urbansim.sim.simulation as sim
 from activitysim import activitysim as asim
+from activitysim import skim as askim
 
 """
 Mode choice is run for all tours to determine the transportation mode that
@@ -97,14 +98,14 @@ def mode_choice_simulate(tours_merged,
     mode_choice_spec = mode_choice_spec.head(33)
     print mode_choice_spec
 
-    # set the keys for this lookup - in this case orig and dest are both
-    # already part of the trip
-    skims.set_keys("TAZ", "workplace_taz")
     # the skims will be available under the name "skims" for any @ expressions
+    in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
+                             "in_period", -1)
+    out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),
+                              "out_period", -1)
     locals_d = {
-        "skims": skims,
-        "out_period": "AM",
-        "in_period": "PM"
+        "in_skims": in_skims,
+        "out_skims": out_skims
     }
     locals_d.update(mode_choice_settings['CONSTANTS'])
 
@@ -115,7 +116,7 @@ def mode_choice_simulate(tours_merged,
     choices, _ = asim.simple_simulate(tours_merged.to_frame(),
                                       mode_choice_alts.to_frame(),
                                       mode_choice_spec,
-                                      skims=skims,
+                                      skims=[in_skims, out_skims],
                                       locals_d=locals_d,
                                       mult_by_alt_col=False)
 

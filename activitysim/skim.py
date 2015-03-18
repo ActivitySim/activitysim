@@ -53,28 +53,28 @@ class Skim(object):
 
 
 class Skims(object):
+    """
+    A skims object is a wrapper around multiple skim objects,
+    where each object is identified by a key.  It operates like a
+    dictionary - i.e. use brackets to add and get skim objects - but also
+    has information on how to lookup against the skim objects.
+    Specifically, this object has a dataframe, a left_key and right_key.
+    It is assumed that left_key and right_key identify columns in df.  The
+    parameter df is usually set by the simulation itself as it's a result of
+    interacting choosers and alternatives.
+    When the user calls skims[key], key is an identifier for which skim
+    to use, and the object automatically looks up impedances of that skim
+    using the specified left_key column in df as the origin and
+    the right_key column in df as the destination.  In this way, the user
+    does not do the O-D lookup by hand and only specifies which skim to use
+    for this lookup.  This is the only purpose of this object: to
+    abstract away the O-D lookup and use skims by specifiying which skim
+    to use in the expressions.
+    Note that keys are any hashable object, not just strings.  So calling
+    skim[('AM', 'SOV')] is valid and useful.
+    """
 
     def __init__(self):
-        """
-        A skims object is a wrapper around multiple skim objects,
-        where each object is identified by a key.  It operates like a
-        dictionary - i.e. use brackets to add and get skim objects - but also
-        has information on how to lookup against the skim objects.
-        Specifically, this object has a dataframe, a left_key and right_key.
-        It is assumed that left_key and right_key identify columns in df.  The
-        parameter df is usually set by the simulation itself as it's a result of
-        interacting choosers and alternatives.
-        When the user calls skims[key], key is an identifier for which skim
-        to use, and the object automatically looks up impedances of that skim
-        using the specified left_key column in df as the origin and
-        the right_key column in df as the destination.  In this way, the user
-        does not do the O-D lookup by hand and only specifies which skim to use
-        for this lookup.  This is the only purpose of this object: to
-        abstract away the O-D lookup and use skims by specifiying which skim
-        to use in the expressions.
-        Note that keys are any hashable object, not just strings.  So calling
-        skim[('AM', 'SOV')] is valid and useful.
-        """
         self.skims = {}
         self.left_key = "TAZ"
         self.right_key = "TAZ_r"
@@ -83,12 +83,14 @@ class Skims(object):
     def set_keys(self, left_key, right_key):
         """
         Set the left and right keys.
+
         Parameters
         ----------
         left_key : String
             The left key (origin) column in the dataframe
         right_key : String
             The right key (destination) column in the dataframe
+
         Returns
         --------
         Nothing
@@ -100,10 +102,12 @@ class Skims(object):
     def set_df(self, df):
         """
         Set the dataframe
+
         Parameters
         ----------
         df : DataFrame
             The dataframe which contains the origin and destination ids
+
         Returns
         -------
         Nothing
@@ -113,11 +117,13 @@ class Skims(object):
     def lookup(self, skim):
         """
         Generally not called by the user - use __getitem__ instead
+
         Parameters
         ----------
         skim: Skim
             The skim object to perform the lookup using df[left_key] as the
             origin and df[right_key] as the destination
+
         Returns
         -------
         impedances: pd.Series
@@ -132,12 +138,14 @@ class Skims(object):
     def __setitem__(self, key, value):
         """
         Set an available skim object
+
         Parameters
         ----------
         key : hashable
              The key (identifier) for this skim object
         value : Skim
              The skim object
+
         Returns
         -------
         Nothing
@@ -147,10 +155,12 @@ class Skims(object):
     def __getitem__(self, key):
         """
         Get an available skim object
+
         Parameters
         ----------
         key : hashable
              The key (identifier) for this skim object
+
         Returns
         -------
         skim: Skim
@@ -160,34 +170,34 @@ class Skims(object):
 
 
 class Skims3D(object):
+    """
+    A 3DSkims object wraps a skim objects to add an additional wrinkle of
+    lookup functionality.  Upon init the separate skims objects are
+    processed into a 3D matrix so that lookup of the different skims can
+    be performed quickly for each row in the dataframe.  In this very
+    particular formulation, the keys are assumed to be tuples with two
+    elements - the second element of which will be taken from the
+    different rows in the dataframe.  The first element can then be
+    dereferenced like an array.  This is useful, for instance, to have a
+    certain skim vary by time of day - the skims are set with keys of
+    ('SOV', 'AM"), ('SOV', 'PM') etc.  The time of day is then taken to
+    be different for every row in the tours table, and the 'SOV' portion
+    of the key can be used below.
+
+    Parameters
+    ----------
+    skims: Skims
+        This is the Skims object to wrap
+    skim_key : str
+        This identifies the column in the dataframe which is used to
+        select among Skim object using the SECOND item in each tuple (see
+        above for a more complete description)
+    offset : int, optional
+        A single offset must be used for all Skim objects - previous
+        offsets will be ignored
+    """
 
     def __init__(self, skims, skim_key, offset=None):
-        """
-        A 3DSkims object wraps a skim objects to add an additional wrinkle of
-        lookup functionality.  Upon init the separate skims objects are
-        processed into a 3D matrix so that lookup of the different skims can
-        be performed quickly for each row in the dataframe.  In this very
-        particular formulation, the keys are assumed to be tuples with two
-        elements - the second element of which will be taken from the
-        different rows in the dataframe.  The first element can then be
-        dereferenced like an array.  This is useful, for instance, to have a
-        certain skim vary by time of day - the skims are set with keys of
-        ('SOV', 'AM"), ('SOV', 'PM') etc.  The time of day is then taken to
-        be different for every row in the tours table, and the 'SOV' portion
-        of the key can be used below.
-
-        Parameters
-        ----------
-        skims: Skims
-            This is the Skims object to wrap
-        skim_key : str
-            This identifies the column in the dataframe which is used to
-            select among Skim object using the SECOND item in each tuple (see
-            above for a more complete description)
-        offset : int, optional
-            A single offset must be used for all Skim objects - previous
-            offsets will be ignored
-        """
         self.left_key = skims.left_key
         self.right_key = skims.right_key
         self.offset = offset
@@ -216,10 +226,12 @@ class Skims3D(object):
     def set_df(self, df):
         """
         Set the dataframe
+
         Parameters
         ----------
         df : DataFrame
             The dataframe which contains the origin and destination ids
+            
         Returns
         -------
         Nothing

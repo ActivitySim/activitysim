@@ -2,10 +2,12 @@
 # Copyright (C) 2014-2015 Synthicity, LLC
 # See full license in LICENSE.txt.
 
+import numpy as np
+import pandas as pd
 import urbansim.sim.simulation as sim
 from urbansim.urbanchoice import interaction, mnl
-import pandas as pd
-import numpy as np
+
+from .mnl import utils_to_probs, make_choices
 
 
 def random_rows(df, n):
@@ -120,6 +122,47 @@ def add_skims(df, skims, skim_join_name):
     """
     for key, value in skims.iteritems():
         df[key] = value.get(df[skim_join_name], df[skim_join_name + "_r"])
+
+
+def simple_simulate(choosers, spec, skims=None, skim_join_name='zone_id'):
+    """
+    Run a simulation for when the model spec does not involve alternative
+    specific data, e.g. there are no interactions with alternative
+    properties and no need to sample from alternatives.
+
+    Parameters
+    ----------
+    choosers : pandas.DataFrame
+    spec : pandas.DataFrame
+        A table of variable specifications and coefficient values.
+        Variable expressions should be in the table index and the table
+        should have a column for each alternative.
+    skims : dict, optional
+        Keys will be used as variable names and values are Skim objects - it
+        will be assumed that there is a field zone_id in both choosers and
+        alternatives which is used to dereference the given Skim object as
+        the "origin" (on choosers) and destination (on alternatives)
+    skim_join_name : str, optional
+        The name of the column that contains the origin in the choosers table
+        and the destination in the alternates table - is required to be the
+        same in both tables - is 'zone_id' by default
+
+    Returns
+    -------
+    choices : pandas.Series
+        Index will be that of `choosers`, values will match the columns
+        of `spec`.
+
+    """
+    if skims:
+        add_skims(df, skims, skim_join_name)
+
+    variables = eval_variables(spec.index, choosers)
+    utilities = variables.dot(spec)
+    probs = utils_to_probs(utilities)
+    choices = make_choices(probs)
+
+    return choices
 
 
 def interaction_simulate(

@@ -33,7 +33,8 @@ def tdd_mandatory_spec(configs_dir):
 
 
 @sim.model()
-def mandatory_scheduling(mandatory_tours_merged,
+def mandatory_scheduling(set_random_seed,
+                         mandatory_tours_merged,
                          tdd_alts,
                          tdd_mandatory_spec):
 

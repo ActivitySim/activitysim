@@ -6,7 +6,7 @@ from activitysim import activitysim as asim
 
 
 @sim.table(cache=True)
-def households(store, settings):
+def households(set_random_seed, store, settings):
 
     if "households_sample_size" in settings:
         return asim.random_rows(store["households"],

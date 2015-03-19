@@ -36,7 +36,8 @@ def tot_tours(non_mandatory_tour_frequency_alts):
 
 
 @sim.model()
-def non_mandatory_tour_frequency(persons_merged,
+def non_mandatory_tour_frequency(set_random_seed,
+                                 persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec):
 

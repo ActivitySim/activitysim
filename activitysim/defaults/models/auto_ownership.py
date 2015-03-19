@@ -25,7 +25,8 @@ def auto_ownership_spec(configs_dir):
 
 
 @sim.model()
-def auto_ownership_simulate(households_merged,
+def auto_ownership_simulate(set_random_seed,
+                            households_merged,
                             auto_alts,
                             auto_ownership_spec):
 

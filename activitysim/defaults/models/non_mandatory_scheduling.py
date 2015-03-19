@@ -52,7 +52,8 @@ def vectorize_tour_schedules(tours, alts, spec):
 
 
 @sim.model()
-def non_mandatory_scheduling(non_mandatory_tours_merged,
+def non_mandatory_scheduling(set_random_seed,
+                             non_mandatory_tours_merged,
                              tdd_alts,
                              tdd_non_mandatory_spec):
 

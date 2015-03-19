@@ -22,7 +22,8 @@ def mandatory_tour_frequency_spec(configs_dir):
 
 
 @sim.model()
-def mandatory_tour_frequency(persons_merged,
+def mandatory_tour_frequency(set_random_seed,
+                             persons_merged,
                              mandatory_tour_frequency_alts,
                              mandatory_tour_frequency_spec):
 

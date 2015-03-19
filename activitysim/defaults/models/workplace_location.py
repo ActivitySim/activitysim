@@ -53,7 +53,8 @@ def workplace_size_terms(land_use, destination_choice_size_terms):
 # FIXME there are three school models that go along with this one which have
 # FIXME not been implemented yet
 @sim.model()
-def workplace_location_simulate(persons_merged,
+def workplace_location_simulate(set_random_seed,
+                                persons_merged,
                                 zones,
                                 workplace_location_spec,
                                 distance_skim,

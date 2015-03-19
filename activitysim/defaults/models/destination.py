@@ -26,7 +26,8 @@ def destination_choice_spec(configs_dir):
 
 
 @sim.model()
-def destination_choice(non_mandatory_tours_merged,
+def destination_choice(set_random_seed,
+                       non_mandatory_tours_merged,
                        zones,
                        distance_skim,
                        destination_choice_spec):

@@ -11,32 +11,16 @@ with given characteristics owns
 MAX_NUM_CARS = 5
 
 
-@sim.table()
-def auto_alts():
-    # alts can't be integers directly as they're used in expressions - they
-    # won't be evaluated correctly by DataFrame.eval unless they're strings
-    return asim.identity_matrix(["cars%d" % i for i in range(MAX_NUM_CARS)])
-
-
 @sim.injectable()
 def auto_ownership_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "auto_ownership.csv")
-    return asim.read_model_spec(f, stack=True)
+    return asim.read_model_spec(f).fillna(0)
 
 
 @sim.model()
-def auto_ownership_simulate(set_random_seed,
-                            households_merged,
-                            auto_alts,
-                            auto_ownership_spec):
-
-    choices, _ = asim.interaction_simulate(
-        households_merged.to_frame(), auto_alts.to_frame(),
-        auto_ownership_spec, mult_by_alt_col=True)
-
-    # map these back to integers - this is the actual number of cars chosen
-    car_map = {"cars%d" % i: i for i in range(MAX_NUM_CARS)}
-    choices = choices.map(car_map)
+def auto_ownership_simulate(households_merged, auto_ownership_spec):
+    choices = asim.simple_simulate(
+        households_merged.to_frame(), auto_ownership_spec)
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("households", "auto_ownership", choices)

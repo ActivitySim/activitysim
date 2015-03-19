@@ -6,6 +6,7 @@
 import pytest
 import os
 import pandas as pd
+import pandas.util.testing as pdt
 import numpy as np
 import urbansim.sim.simulation as sim
 from .. import __init__
@@ -40,6 +41,14 @@ def test_mini_run(store):
     # run the models in the expected order
     sim.run(["workplace_location_simulate"])
     sim.run(["auto_ownership_simulate"])
+
+    # this is a regression test so that we know if these numbers change
+    auto_choice = sim.get_table('households').get_column('auto_ownership')
+    pdt.assert_series_equal(
+        auto_choice[[2306822, 652072, 2542402, 651907, 788657]],
+        pd.Series(
+            [4, 1, 2, 1, 1], index=[2306822, 652072, 2542402, 651907, 788657]))
+
     sim.run(['mandatory_tour_frequency'])
     sim.run(['non_mandatory_tour_frequency'])
     sim.get_table("non_mandatory_tours").tour_type.value_counts()

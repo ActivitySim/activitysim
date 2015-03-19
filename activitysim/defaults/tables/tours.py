@@ -3,10 +3,14 @@ import urbansim.sim.simulation as sim
 
 
 @sim.table()
-def tours(non_mandatory_tours, mandatory_tours):
-    return pd.concat([non_mandatory_tours.to_frame(),
+def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
+    tours = pd.concat([non_mandatory_tours.to_frame(),
                       mandatory_tours.to_frame()],
-                     ignore_index=True)
+                      ignore_index=True)
+    # go ahead here and add the start, end, and duration here for future use
+    chosen_tours = tdd_alts.to_frame().loc[tours.tour_departure_and_duration]
+    chosen_tours.index = tours.index
+    return pd.concat([tours, chosen_tours], axis=1)
 
 
 @sim.table()
@@ -85,12 +89,14 @@ def daily_parking_cost(tours):
 
 
 @sim.column("tours")
-def out_period(tours):
-    # FIXME these are time periods that should come from the scheduling process
-    return pd.Series("PM", index=tours.index)
+def out_period(tours, settings):
+    return pd.cut(tours.end,
+                  settings['time_periods']['hours'],
+                  labels=settings['time_periods']['labels'])
 
 
 @sim.column("tours")
-def in_period(tours):
-    # FIXME these are time periods that should come from the scheduling process
-    return pd.Series("AM", index=tours.index)
+def in_period(tours, settings):
+    return pd.cut(tours.start,
+                  settings['time_periods']['hours'],
+                  labels=settings['time_periods']['labels'])

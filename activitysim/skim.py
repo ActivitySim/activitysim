@@ -135,6 +135,41 @@ class Skims(object):
                      self.df[self.right_key])
         return pd.Series(s, index=self.df.index)
 
+    def set_3d(self, key, key_3d, value):
+        """
+        If you want to use the Skims3D object below, you will need to do that
+        explicitly by setting first the key which will be used by __getattr__
+        and second the key that relates to the 3rd dimension of the dataframe.
+
+        Parameters
+        ----------
+        key : String or any hashable
+            Will be accessible using __getitem__ in Skims3d
+        key_3d : String or any hashable
+            Relates to the 3rd dimension lookup column set by Skims3D
+        value : Skim
+            the skim object for these keys
+        """
+        self.skims[(key, key_3d)] = value
+
+    def get_3d(self, key, key_3d):
+        """
+        If you want
+
+        Parameters
+        ----------
+        key : String or any hashable
+            Will be accessible using __getitem__ in Skims3d
+        key_3d : String or any hashable
+            Relates to the 3rd dimension lookup column set by Skims3D
+
+        Returns
+        -------
+        skims : Skim
+            the skim object for these keys
+        """
+        return self.skims[(key, key_3d)]
+
     def __setitem__(self, key, value):
         """
         Set an available skim object
@@ -182,7 +217,24 @@ class Skims3D(object):
     certain skim vary by time of day - the skims are set with keys of
     ('SOV', 'AM"), ('SOV', 'PM') etc.  The time of day is then taken to
     be different for every row in the tours table, and the 'SOV' portion
-    of the key can be used below.
+    of the key can be used in __getitem__.
+    To be more explicit, the input is a dictionary of Skims objects, each of
+    which contains a 2D matrix.  These are stacked into a 3D matrix with a
+    mapping of keys to indexes which is applied using pandas .map to a third
+    column in the object dataframe.  The three columns - left_key and
+    right_key from the Skims object and skim_key from this one, are then used to
+    dereference the 3D matrix.  The tricky part comes in defining the key which
+    matches the 3rd dimension of the matrix, and the key which is passed into
+    __getitem__ below (i.e. the one used in the specs).  By convention,
+    every key in the Skims object that is passed in MUST be a tuple with 2
+    items.  The second item in the tuple maps to the items in the dataframe
+    referred to be the skim_key column and the first item in the tuple is
+    then available to pass directly to __getitem__.  This is now made
+    explicit by adding the set_3d and get_3d methods in the Skims object which
+    take the two keys independently and convert to the tuple internally.
+    The sum conclusion of this is that in the specs, you can say something
+    like out_skim['SOV'] and it will automatically dereference the 3D matrix
+    using origin, destination, and time of day.
 
     Parameters
     ----------
@@ -231,7 +283,7 @@ class Skims3D(object):
         ----------
         df : DataFrame
             The dataframe which contains the origin and destination ids
-            
+
         Returns
         -------
         Nothing

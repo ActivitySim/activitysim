@@ -49,3 +49,14 @@ household_type_map:
     6: nonfamily_female_alone
     7: nonfamily_female_notalone
 
+time_periods:
+    hours:
+        - 0
+        - 11
+        - 16
+        - 24
+    labels:
+        - AM
+        - MD
+        - PM
+

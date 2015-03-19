@@ -56,7 +56,7 @@ def test_mini_run(store):
     pdt.assert_series_equal(
         mtf_choice[[1015, 9998, 28064, 29035, 34241]],
         pd.Series(
-            ['school1', 'work2', 'work1', 'work1', 'work1'],
+            ['school1', 'work2', 'work2', 'work2', 'work2'],
             index=[1015, 9998, 28064, 29035, 34241]))
 
     sim.run(['non_mandatory_tour_frequency'])

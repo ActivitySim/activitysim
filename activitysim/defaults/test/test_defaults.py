@@ -50,6 +50,15 @@ def test_mini_run(store):
             [4, 1, 2, 1, 1], index=[2306822, 652072, 2542402, 651907, 788657]))
 
     sim.run(['mandatory_tour_frequency'])
+
+    mtf_choice = sim.get_table('persons').get_column(
+        'mandatory_tour_frequency')
+    pdt.assert_series_equal(
+        mtf_choice[[1015, 9998, 28064, 29035, 34241]],
+        pd.Series(
+            ['school1', 'work2', 'work1', 'work1', 'work1'],
+            index=[1015, 9998, 28064, 29035, 34241]))
+
     sim.run(['non_mandatory_tour_frequency'])
     sim.get_table("non_mandatory_tours").tour_type.value_counts()
     sim.run(["destination_choice"])

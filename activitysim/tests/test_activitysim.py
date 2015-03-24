@@ -77,6 +77,6 @@ def test_eval_variables(spec, data):
 
 
 def test_simple_simulate(random_seed, data, spec):
-    choices = asim.simple_simulate(data, spec)
+    choices, _ = asim.simple_simulate(data, spec)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)

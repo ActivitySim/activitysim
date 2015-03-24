@@ -19,25 +19,6 @@ def mode_choice_settings(configs_dir):
 
 
 # FIXME move into activitysim as a utility function
-def get_leaves(d):
-    # returns the leaves of a multi-level dictionary
-
-    def walk(node, out):
-        # pass the dict and the list of outputs
-        for key, item in node.items():
-            # ignore keys at this point
-            if isinstance(item, dict):
-                out = walk(item, out)
-            elif isinstance(item, list):
-                out += item
-            else:
-                out += [item]
-        return out
-
-    return walk(d, [])
-
-
-# FIXME move into activitysim as a utility function
 def evaluate_expression_list(expressions, locals_d):
     """
     Evaluate a list of expressions - each one can depend on the one before it
@@ -73,12 +54,6 @@ def mode_choice_coefficients(mode_choice_settings):
     return evaluate_expression_list(expressions, locals_d=constants)
 
 
-@sim.table()
-def mode_choice_alts(mode_choice_settings):
-    mode_choice_alts = get_leaves(mode_choice_settings['NESTS'])
-    return asim.identity_matrix(mode_choice_alts)
-
-
 @sim.injectable()
 def mode_choice_spec(configs_dir, mode_choice_coefficients):
     f = os.path.join(configs_dir, 'configs', "mode_choice_work.csv")
@@ -94,7 +69,6 @@ def get_segment_and_unstack(spec, segment):
 
 @sim.model()
 def mode_choice_simulate(tours_merged,
-                         mode_choice_alts,
                          mode_choice_spec,
                          mode_choice_settings,
                          skims):

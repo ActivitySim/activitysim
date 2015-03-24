@@ -1,0 +1,10 @@
+Description,Expression,cars0,cars1,cars2,cars3,cars4
+2 Adults (age 16+),drivers==2,,0,3.0773,3.1962,2.6616
+3 Adults (age 16+),drivers==3,,0,3.5401,5.5131,5.208
+4+ Adults (age 16+),drivers>3,,2.0107,6.3662,8.5148,9.5807
+"Piecewise Linear household income, $0-30k","@df.income_in_thousands.clip(0, 30)",,0.0383,0.054,0.0559,0.0619
+"Piecewise Linear household income, $30-75k","@(df.income_in_thousands-30).clip(0, 45)",,0,0.0083,0.011,0.0147
+"Piecewise Linear household income, $75k+, capped at $125k","@(df.income_in_thousands-75).clip(0, 50)",,0,0.0083,0.011,0.0147
+Constants,@1,,1.1865,-1.0846,-3.2502,-5.313
+San Francisco county,county_name == 'San Francisco',,0.4259,0.4683,0.1458,0.1458
+Solano county,county_name == 'Solano',,-0.566,-0.4429,-0.2372,-0.2372

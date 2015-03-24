@@ -16,8 +16,7 @@ def random_rows(df, n):
 
 def read_model_spec(fname,
                     description_name="Description",
-                    expression_name="Expression",
-                    stack=False):
+                    expression_name="Expression"):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -36,10 +35,6 @@ def read_model_spec(fname,
         Name of the column in `fname` that contains the component description.
     expression_name : str, optional
         Name of the column in `fname` that contains the component expression.
-    stack : bool, optional
-        If True, the returned data will be stacked so that it has a
-        multi-index of (expression, alt-name) and values are the
-        alternative specific utilities.
 
     Returns
     -------
@@ -50,8 +45,6 @@ def read_model_spec(fname,
     cfg = pd.read_csv(fname)
     # don't need description and set the expression to the index
     cfg = cfg.drop(description_name, axis=1).set_index(expression_name)
-    if stack:
-        cfg = cfg.stack()
     return cfg
 
 

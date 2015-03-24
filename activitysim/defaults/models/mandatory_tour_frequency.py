@@ -30,7 +30,7 @@ def mandatory_tour_frequency(set_random_seed,
     # convert indexes to alternative names
     choices = pd.Series(
         mandatory_tour_frequency_spec.columns[choices.values],
-        index=choices.index)
+        index=choices.index).reindex(persons_merged.local.index)
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("persons", "mandatory_tour_frequency", choices)

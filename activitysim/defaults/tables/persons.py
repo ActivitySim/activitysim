@@ -88,8 +88,8 @@ def num_mand(persons):
         "school1": 1,
         "school2": 2,
         "work_and_school": 2
-    })
-    return s
+    }, na_action='ignore')
+    return s.fillna(0)
 
 
 # FIXME now totally sure what this is but it's used in non mandatory tour

@@ -140,7 +140,6 @@ def _check_for_variability(model_design):
         print "WARNING: Some columns have no variability:\n", sample.index.values
 
 
-
 def simple_simulate(choosers, spec, skims=None, locals_d=None):
     """
     Run a simulation for when the model spec does not involve alternative

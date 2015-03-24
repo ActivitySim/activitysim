@@ -9,21 +9,15 @@ alternatives above) - these trips include work and school in some combination.
 """
 
 
-@sim.table()
-def mandatory_tour_frequency_alts():
-    return asim.identity_matrix(["work1", "work2", "school1", "school2",
-                                 "work_and_school"])
-
-
 @sim.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "mandatory_tour_frequency.csv")
-    return asim.read_model_spec(f)
+    return asim.read_model_spec(f).fillna(0)
 
 
 @sim.model()
-def mandatory_tour_frequency(persons_merged,
-                             mandatory_tour_frequency_alts,
+def mandatory_tour_frequency(set_random_seed,
+                             persons_merged,
                              mandatory_tour_frequency_spec):
 
     choosers = persons_merged.to_frame()
@@ -31,11 +25,12 @@ def mandatory_tour_frequency(persons_merged,
     choosers = choosers[choosers.cdap_activity == 'M']
     print "%d persons run for mandatory tour model" % len(choosers)
 
-    choices, _ = \
-        asim.simple_simulate(choosers,
-                             mandatory_tour_frequency_alts.to_frame(),
-                             mandatory_tour_frequency_spec,
-                             mult_by_alt_col=True)
+    choices, _ = asim.simple_simulate(choosers, mandatory_tour_frequency_spec)
+
+    # convert indexes to alternative names
+    choices = pd.Series(
+        mandatory_tour_frequency_spec.columns[choices.values],
+        index=choices.index).reindex(persons_merged.local.index)
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("persons", "mandatory_tour_frequency", choices)

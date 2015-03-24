@@ -21,11 +21,7 @@ class Skim(object):
 
     """
     def __init__(self, data, offset=None):
-
-        if not isinstance(data, np.ndarray):
-            data = np.array(data)
-
-        self.data = data
+        self.data = np.asanyarray(data)
         self.offset = offset
 
     def get(self, orig, dest):

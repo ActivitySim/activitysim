@@ -18,7 +18,7 @@ def non_mandatory_tour_frequency_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "non_mandatory_tour_frequency.csv")
     # this is a spec in already stacked format
     # it also has multiple segments in different columns in the spec
-    return asim.read_model_spec(f, stack=False)
+    return asim.read_model_spec(f).fillna(0)
 
 
 @sim.table()
@@ -36,7 +36,8 @@ def tot_tours(non_mandatory_tour_frequency_alts):
 
 
 @sim.model()
-def non_mandatory_tour_frequency(persons_merged,
+def non_mandatory_tour_frequency(set_random_seed,
+                                 persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec):
 
@@ -53,12 +54,12 @@ def non_mandatory_tour_frequency(persons_merged,
         print "Running segment '%s' of size %d" % (name, len(segment))
 
         choices, _ = \
-            asim.simple_simulate(segment,
-                                 non_mandatory_tour_frequency_alts.to_frame(),
-                                 # notice that we pick the column for the
-                                 # segment for each segment we run
-                                 non_mandatory_tour_frequency_spec[name],
-                                 mult_by_alt_col=False)
+            asim.interaction_simulate(
+                segment,
+                non_mandatory_tour_frequency_alts.to_frame(),
+                # notice that we pick the column for the
+                # segment for each segment we run
+                non_mandatory_tour_frequency_spec[[name]])
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)

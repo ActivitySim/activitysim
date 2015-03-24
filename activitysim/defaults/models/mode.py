@@ -82,10 +82,14 @@ def mode_choice_alts(mode_choice_settings):
 @sim.injectable()
 def mode_choice_spec(configs_dir, mode_choice_coefficients):
     f = os.path.join(configs_dir, 'configs', "mode_choice_work.csv")
-    df = asim.read_model_spec(f, stack=False)
+    df = asim.read_model_spec(f)
     df['work'] = evaluate_expression_list(df['work'],
                                           mode_choice_coefficients.to_dict())
     return df.set_index('Alternative', append=True)
+
+
+def get_segment_and_unstack(spec, segment):
+    return spec[segment].unstack().fillna(0)
 
 
 @sim.model()
@@ -114,11 +118,10 @@ def mode_choice_simulate(tours_merged,
     # FIXME note that in particular the spec above only has work tours in it
 
     choices, _ = asim.simple_simulate(tours_merged.to_frame(),
-                                      mode_choice_alts.to_frame(),
-                                      mode_choice_spec,
+                                      get_segment_and_unstack(mode_choice_spec,
+                                                              'work'),
                                       skims=[in_skims, out_skims],
-                                      locals_d=locals_d,
-                                      mult_by_alt_col=False)
+                                      locals_d=locals_d)
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("tours", "mode", choices)

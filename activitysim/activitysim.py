@@ -160,21 +160,24 @@ def simple_simulate(choosers, spec, skims=None, skim_join_name='zone_id'):
 
 def interaction_simulate(
         choosers, alternatives, spec,
-        skims=None, skim_join_name='zone_id',
-        mult_by_alt_col=False, sample_size=None):
+        skims=None, skim_join_name='zone_id', sample_size=None):
     """
-    A simple discrete choice simulation routine
+    Run a simulation in the situation in which alternatives must
+    be merged with choosers because there are interaction terms or
+    because alternatives are being sampled.
 
     Parameters
     ----------
-    choosers : DataFrame
+    choosers : pandas.DataFrame
         DataFrame of choosers
-    alternatives : DataFrame
+    alternatives : pandas.DataFrame
         DataFrame of alternatives - will be merged with choosers, currently
         without sampling
-    spec : Series
-        A Pandas series that gives the specification of the variables to
-        compute and the coefficients - more on this later
+    spec : pandas.DataFrame
+        A Pandas DataFrame that gives the specification of the variables to
+        compute and the coefficients for each variable.
+        Variable specifications must be in the table index and the
+        table should have only one column of coefficients.
     skims : dict, optional
         Keys will be used as variable names and values are Skim objects - it
         will be assumed that there is a field zone_id in both choosers and
@@ -184,22 +187,20 @@ def interaction_simulate(
         The name of the column that contains the origin in the choosers table
         and the destination in the alternates table - is required to be the
         same in both tables - is 'zone_id' by default
-    mult_by_alt_col : boolean, optional
-        Whether to multiply the expression by the name of the column in the
-        specification - this is useful for alternative specific coefficients
     sample_size : int, optional
         Sample alternatives with sample of given size.  By default is None,
         which does not sample alternatives.
 
     Returns
     -------
-    ret : Series
+    ret : pandas.Series
         A series where index should match the index of the choosers DataFrame
         and values will match the index of the alternatives DataFrame -
         choices are simulated in the standard Monte Carlo fashion
     """
-    exprs = spec.index
-    coeffs = spec.values
+    if len(spec.columns) > 1:
+        raise RuntimeError('spec must have only one column')
+
     sample_size = sample_size or len(alternatives)
 
     # now the index is also in the dataframe, which means it will be
@@ -213,56 +214,28 @@ def interaction_simulate(
     if skims:
         add_skims(df, skims, skim_join_name)
 
-    # evaluate the expressions to build the final matrix
-    vars = []
-    for expr in exprs:
-        if expr[0][0] == "@":
-            if mult_by_alt_col:
-                expr = "({}) * df.{}".format(expr[0][1:], expr[1])
-            else:
-                if isinstance(expr, tuple):
-                    expr = expr[0][1:]
-                else:
-                    # it's already a string, but need to remove the "@"
-                    expr = expr[1:]
-            try:
-                s = eval(expr)
-            except Exception as e:
-                print "Failed with Python eval:\n%s" % expr
-                raise e
-        else:
-            if mult_by_alt_col:
-                expr = "({}) * {}".format(*expr)
-            else:
-                if isinstance(expr, tuple):
-                    expr = expr[0]
-                else:
-                    # it's already a string, which is fine
-                    pass
-            try:
-                s = df.eval(expr)
-            except Exception as e:
-                print "Failed with DataFrame eval:\n%s" % expr
-                raise e
-        vars.append((expr, s.astype('float')))
-    model_design = pd.DataFrame.from_items(vars)
-    model_design.index = df.index
+    # evaluate variables from the spec
+    model_design = eval_variables(spec.index, df)
 
-    df = random_rows(model_design, min(100000, len(model_design)))\
+    sample = random_rows(model_design, min(100000, len(model_design)))\
         .describe().transpose()
-    df = df[df["std"] == 0]
-    if len(df):
-        print "WARNING: Some columns have no variability:\n", df.index.values
+    sample = sample[sample["std"] == 0]
+    if len(sample):
+        print "WARNING: Some columns have no variability:\n", sample.index.values
 
-    positions = mnl.mnl_simulate(
-        model_design.as_matrix(),
-        coeffs,
-        numalts=sample_size,
-        returnprobs=False)
+    # multiply by coefficients and reshape into choosers by alts
+    utilities = model_design.dot(spec).astype('float')
+    utilities = pd.DataFrame(
+        utilities.as_matrix().reshape(len(choosers), sample_size),
+        index=choosers.index)
+
+    # convert to probabilities and make choices
+    probs = utils_to_probs(utilities)
+    positions = make_choices(probs)
 
     # positions come back between zero and num alternatives in the sample -
     # need to get back to the indexes
-    offsets = np.arange(positions.size) * sample_size
+    offsets = np.arange(len(positions)) * sample_size
     choices = model_design.index.take(positions + offsets)
 
     return pd.Series(choices, index=choosers.index), model_design

@@ -15,7 +15,7 @@ to work.
 @sim.injectable()
 def workplace_location_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "workplace_location.csv")
-    return asim.read_model_spec(f, stack=True)
+    return asim.read_model_spec(f).fillna(0)
 
 
 # FIXME there's enough here that this needs to be a utility in activitysim
@@ -69,7 +69,7 @@ def workplace_location_simulate(set_random_seed,
 
     choices, _ = asim.interaction_simulate(
         choosers, alternatives, workplace_location_spec, skims,
-        skim_join_name="TAZ", mult_by_alt_col=False, sample_size=50)
+        skim_join_name="TAZ", sample_size=50)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)

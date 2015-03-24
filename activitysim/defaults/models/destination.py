@@ -22,7 +22,7 @@ def destination_choice_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs',
                      'destination_choice_alternatives_sample.csv')
     # FIXME not using all the variables yet
-    return asim.read_model_spec(f, stack=False).head(5)
+    return asim.read_model_spec(f).fillna(0).head(5)
 
 
 @sim.model()
@@ -58,9 +58,9 @@ def destination_choice(set_random_seed,
 
         choices, _ = \
             asim.interaction_simulate(
-                segment, zones.to_frame(), destination_choice_spec[name],
-                skims, skim_join_name="TAZ", mult_by_alt_col=False,
-                sample_size=50)
+                segment, zones.to_frame(),
+                destination_choice_spec.to_frame()[[name]],
+                skims, skim_join_name="TAZ", sample_size=50)
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)

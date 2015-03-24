@@ -29,7 +29,7 @@ def duration(tdd_alts):
 def tdd_mandatory_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs',
                      'tour_departure_and_duration_mandatory.csv')
-    return asim.read_model_spec(f, stack=False)
+    return asim.read_model_spec(f).fillna(0)
 
 
 @sim.model()

@@ -78,4 +78,3 @@ def test_mini_run(store):
         pd.Series(
             ['school2', 'work2', 'school1', 'work1', 'work1'],
             index=[1015, 9998, 28064, 29035, 34241]))
-    

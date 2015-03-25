@@ -48,6 +48,7 @@ def test_run(store):
     sim.run(["destination_choice"])
     sim.run(["mandatory_scheduling"])
     sim.run(["non_mandatory_scheduling"])
+    sim.run(["mode_choice_simulate"])
 
 
 def test_mini_run(store):

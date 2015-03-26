@@ -24,7 +24,7 @@ def utils_to_probs(utils):
 
     """
     prob_min = 1e-300
-    prob_max = 1e20
+    prob_max = 1e300
 
     utils_arr = np.exp(utils.as_matrix().astype('float'))
     np.clip(utils_arr, prob_min, prob_max, out=utils_arr)

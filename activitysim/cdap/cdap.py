@@ -248,6 +248,14 @@ def apply_all_people(hh_util, all_people):
     all_people.index = [eval(x) for x in all_people.index]
     all_people = all_people.icol(0)
 
+    matching_idx = {}
+
     for hh in hh_util.values():
-        matching = hh.index.intersection(all_people.index)
+        l = len(hh)
+        if l in matching_idx:
+            matching = matching_idx[l]
+        else:
+            matching = hh.index.intersection(all_people.index)
+            matching_idx[l] = matching
+
         hh.loc[matching] += all_people.loc[matching]

@@ -6,10 +6,10 @@ Description,Expression,Alt
 "Distance, piecewise linear for 15+ miles",@(df.distance-15.0).clip(0),-0.0917
 "Distance 0 to 5 mi, high and very high income",@(df.income_segment>=3)*df.distance.clip(upper=5),0.15
 "Distance 5+ mi, high and very high income",@(df.income_segment>=3)*(df.distance-5).clip(0),0.02
-"Size variable full-time worker, low income",@(df.income_segment==1)*df.size_low,1
-"Size variable full-time worker, medium income",@(df.income_segment==2)*df.size_med,1
-"Size variable full-time worker, high income",@(df.income_segment==3)*df.size_high,1
-"Size variable full-time worker, very high income",@(df.income_segment==4)*df.size_veryhigh,1
+# "Size variable full-time worker, low income",@(df.income_segment==1)*df.size_low,1
+# "Size variable full-time worker, medium income",@(df.income_segment==2)*df.size_med,1
+# "Size variable full-time worker, high income",@(df.income_segment==3)*df.size_high,1
+# "Size variable full-time worker, very high income",@(df.income_segment==4)*df.size_veryhigh,1
 "No attractions full-time worker, low income",@(df.income_segment==1)&(df.size_low==0),-999
 "No attractions full-time worker, medium income",@(df.income_segment==2)&(df.size_med==0),-999
 "No attractions full-time worker, high income",@(df.income_segment==3)&(df.size_high==0),-999

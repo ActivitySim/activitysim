@@ -6,6 +6,7 @@
 import pytest
 import os
 import pandas as pd
+import pandas.util.testing as pdt
 import numpy as np
 import urbansim.sim.simulation as sim
 from .. import __init__

@@ -1,8 +1,8 @@
 language: python
+sudo: false
 python:
 - '2.7'
 install:
-- sudo apt-get update
 - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
     wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
   else
@@ -18,8 +18,10 @@ install:
 - >
   conda create -q -c synthicity -n test-environment
   python=$TRAVIS_PYTHON_VERSION
-  numpy pandas pip pytables pytest
+  ipython-notebook jinja2 matplotlib numpy pandas pandana patsy pip pytables
+  pytest pyyaml scipy statsmodels toolz
 - source activate test-environment
+- pip install simplejson bottle prettytable
 - pip install https://github.com/synthicity/urbansim/archive/master.zip
 - pip install openmatrix
 - pip install pytest-cov coveralls pep8

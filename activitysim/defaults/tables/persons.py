@@ -17,7 +17,7 @@ def persons(store, settings, households):
 
 # FIXME - this is my "placeholder" for the CDAP model ;)
 @sim.column("persons")
-def cdap_activity(persons):
+def cdap_activity(set_random_seed, persons):
     return pd.Series(np.random.randint(3, size=len(persons)),
                      index=persons.index).map({0: 'M', 1: 'N', 2: 'H'})
 
@@ -88,8 +88,8 @@ def num_mand(persons):
         "school1": 1,
         "school2": 2,
         "work_and_school": 2
-    })
-    return s
+    }, na_action='ignore')
+    return s.fillna(0)
 
 
 # FIXME now totally sure what this is but it's used in non mandatory tour

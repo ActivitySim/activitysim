@@ -11,6 +11,11 @@ pd.options.mode.chained_assignment = None
 
 
 @sim.injectable()
+def set_random_seed():
+    pass
+
+
+@sim.injectable()
 def configs_dir():
     return '.'
 

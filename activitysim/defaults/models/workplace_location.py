@@ -15,7 +15,7 @@ to work.
 @sim.injectable()
 def workplace_location_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "workplace_location.csv")
-    return asim.read_model_spec(f)
+    return asim.read_model_spec(f).fillna(0)
 
 
 # FIXME there's enough here that this needs to be a utility in activitysim
@@ -53,7 +53,8 @@ def workplace_size_terms(land_use, destination_choice_size_terms):
 # FIXME there are three school models that go along with this one which have
 # FIXME not been implemented yet
 @sim.model()
-def workplace_location_simulate(persons_merged,
+def workplace_location_simulate(set_random_seed,
+                                persons_merged,
                                 zones,
                                 workplace_location_spec,
                                 distance_skim,
@@ -66,13 +67,9 @@ def workplace_location_simulate(persons_merged,
         "distance": distance_skim
     }
 
-    choices, _ = asim.simple_simulate(choosers,
-                                      alternatives,
-                                      workplace_location_spec,
-                                      skims,
-                                      skim_join_name="TAZ",
-                                      mult_by_alt_col=False,
-                                      sample_size=50)
+    choices, _ = asim.interaction_simulate(
+        choosers, alternatives, workplace_location_spec, skims,
+        skim_join_name="TAZ", sample_size=50)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)

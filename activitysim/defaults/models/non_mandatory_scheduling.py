@@ -14,7 +14,7 @@ non-mandatory tours
 def tdd_non_mandatory_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs',
                      'tour_departure_and_duration_nonmandatory.csv')
-    return asim.read_model_spec(f, stack=False)
+    return asim.read_model_spec(f).fillna(0)
 
 
 # FIXME - move to activitysim, test, document
@@ -41,8 +41,7 @@ def vectorize_tour_schedules(tours, alts, spec):
         alts["mode_choice_logsum"] = 0
         nth_tours["end_of_previous_tour"] = -1
 
-        nth_choices, _ = \
-            asim.simple_simulate(nth_tours, alts, spec, mult_by_alt_col=False)
+        nth_choices, _ = asim.interaction_simulate(nth_tours, alts, spec)
 
         choices.append(nth_choices)
 
@@ -51,7 +50,8 @@ def vectorize_tour_schedules(tours, alts, spec):
 
 
 @sim.model()
-def non_mandatory_scheduling(non_mandatory_tours_merged,
+def non_mandatory_scheduling(set_random_seed,
+                             non_mandatory_tours_merged,
                              tdd_alts,
                              tdd_non_mandatory_spec):
 
@@ -60,7 +60,7 @@ def non_mandatory_scheduling(non_mandatory_tours_merged,
     print "Running %d non-mandatory tour scheduling choices" % len(tours)
 
     # FIXME we're not even halfway down the specfile
-    spec = tdd_non_mandatory_spec.Coefficient.head(4)
+    spec = tdd_non_mandatory_spec.to_frame().head(4)[['Coefficient']]
     alts = tdd_alts.to_frame()
 
     choices = vectorize_tour_schedules(tours, alts, spec)

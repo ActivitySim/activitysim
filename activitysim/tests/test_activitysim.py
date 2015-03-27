@@ -48,7 +48,7 @@ def test_read_model_spec(spec_name, desc_name, expr_name):
     assert list(spec.columns) == ['alt0', 'alt1']
     npt.assert_array_equal(
         spec.as_matrix(),
-        [[11, 111], [22, 222], [33, 333], [44, 444]])
+        [[1.1, 11], [2.2, 22], [3.3, 33], [4.4, 44]])
 
 
 def test_identity_matrix():

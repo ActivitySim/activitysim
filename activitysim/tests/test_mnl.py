@@ -4,6 +4,7 @@
 
 import os.path
 
+import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
@@ -61,6 +62,12 @@ def utilities(choosers_dm, spec, test_data):
 def test_utils_to_probs(utilities, test_data):
     probs = mnl.utils_to_probs(utilities)
     pdt.assert_frame_equal(probs, test_data['probabilities'])
+
+
+def test_utils_to_probs_raises():
+    with pytest.raises(RuntimeError):
+        mnl.utils_to_probs(
+            pd.DataFrame([[1, 2, np.inf, 3]]))
 
 
 def test_make_choices_only_one():

@@ -24,12 +24,17 @@ def utils_to_probs(utils):
 
     """
     prob_min = 1e-300
-    prob_max = 1e300
+    prob_max = np.inf
 
     utils_arr = np.exp(utils.as_matrix().astype('float'))
+    arr_sum = utils_arr.sum(axis=1)
+
+    if np.isinf(arr_sum).any():
+        raise RuntimeError('utilities have infinite values')
+
     np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
     np.divide(
-        utils_arr, utils_arr.sum(axis=1).reshape(len(utils_arr), 1),
+        utils_arr, arr_sum.reshape(len(utils_arr), 1),
         out=utils_arr)
     utils_arr[np.isnan(utils_arr)] = prob_min
     np.clip(utils_arr, prob_min, prob_max, out=utils_arr)

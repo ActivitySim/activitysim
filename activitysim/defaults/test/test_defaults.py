@@ -51,6 +51,10 @@ def test_run(store):
     sim.run(["mode_choice_simulate"])
 
 
+def set_random_seed():
+    np.random.seed(0)
+
+
 def test_mini_run(store):
     sim.add_injectable("configs_dir",
                        os.path.join(os.path.dirname(__file__)))
@@ -58,6 +62,7 @@ def test_mini_run(store):
     sim.add_injectable("store", store)
 
     sim.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
+    sim.add_injectable("set_random_seed", set_random_seed)
 
     # run the models in the expected order
     sim.run(["workplace_location_simulate"])
@@ -65,10 +70,11 @@ def test_mini_run(store):
 
     # this is a regression test so that we know if these numbers change
     auto_choice = sim.get_table('households').get_column('auto_ownership')
+    print auto_choice[[2306822, 652072, 2542402, 651907, 788657]]
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 2542402, 651907, 788657]],
         pd.Series(
-            [4, 1, 2, 1, 1], index=[2306822, 652072, 2542402, 651907, 788657]))
+            [4, 1, 2, 1, 2], index=[2306822, 652072, 2542402, 651907, 788657]))
 
     sim.run(['mandatory_tour_frequency'])
 

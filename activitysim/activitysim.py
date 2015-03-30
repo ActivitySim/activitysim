@@ -2,10 +2,12 @@
 # Copyright (C) 2014-2015 Synthicity, LLC
 # See full license in LICENSE.txt.
 
+from skim import Skims, Skims3D
+
 import numpy as np
 import pandas as pd
-import urbansim.sim.simulation as sim
-from urbansim.urbanchoice import interaction, mnl
+
+from urbansim.urbanchoice import interaction
 
 from .mnl import utils_to_probs, make_choices
 
@@ -54,7 +56,7 @@ def identity_matrix(alt_names):
                         index=alt_names)
 
 
-def eval_variables(exprs, df):
+def eval_variables(exprs, df, locals_d={}):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -74,6 +76,9 @@ def eval_variables(exprs, df):
     ----------
     exprs : sequence of str
     df : pandas.DataFrame
+    locals_d : Dict
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
 
     Returns
     -------
@@ -86,38 +91,56 @@ def eval_variables(exprs, df):
             return pd.Series([x] * len(df), index=df.index)
         return x
     return pd.DataFrame.from_items(
-        [(e, to_series(eval(e[1:])) if e.startswith('@') else df.eval(e))
-         for e in exprs])
+        [(e, to_series(eval(e[1:], locals_d, locals())) if e.startswith('@')
+            else df.eval(e)) for e in exprs])
 
 
-def add_skims(df, skims, skim_join_name):
+def add_skims(df, skims):
     """
-    Add skim data to a table. The table must contain the relevant skim
-    indexers for both origin and destination.
-
-    The table is modified in-place.
+    Add the dataframe to the Skims object so that it can be dereferenced
+    using the parameters of the skims object.
 
     Parameters
     ----------
     df : pandas.DataFrame
         Table to which to add skim data as new columns.
         `df` is modified in-place.
-    skims : dict
-        Keys will be used as variable names and values are Skim objects - it
-        will be assumed that there is a field zone_id in both choosers and
-        alternatives which is used to dereference the given Skim object as
-        the "origin" (on choosers) and destination (on alternatives).
-    skim_join_name : str
-        The name of the column that contains the origin in the choosers table
-        and the destination in the alternates table - is required to be the
-        same in both tables.
-
+    skims : Skims object
+        The skims object is used to contain multiple matrices of
+        origin-destination impedances.  Make sure to also add it to the
+        locals_d below in order to access it in expressions.  The *only* job
+        of this method in regards to skims is to call set_df with the
+        dataframe that comes back from interacting choosers with
+        alternatives.  See the skims module for more documentation on how
+        the skims object is intended to be used.
     """
-    for key, value in skims.iteritems():
-        df[key] = value.get(df[skim_join_name], df[skim_join_name + "_r"])
+    if not isinstance(skims, list):
+        assert isinstance(skims, Skims) or isinstance(skims, Skims3D)
+        skims.set_df(df)
+    else:
+        for skim in skims:
+            assert isinstance(skim, Skims) or isinstance(skim, Skims3D)
+            skim.set_df(df)
 
 
-def simple_simulate(choosers, spec, skims=None, skim_join_name='zone_id'):
+def _check_for_variability(model_design):
+    """
+    This is an internal method which checks for variability in each
+    expression - under the assumption that you probably wouldn't be using a
+    variable (in live simulations) if it had no variability.  This is a
+    warning to the user that they might have constructed the variable
+    incorrectly.  It samples 100k rows in order to not hurt performance -
+    it's likely that if 100k rows have no variability, the whole dataframe
+    will have no variability.
+    """
+    sample = random_rows(model_design, min(100000, len(model_design)))\
+        .describe().transpose()
+    sample = sample[sample["std"] == 0]
+    if len(sample):
+        print "WARNING: Some columns have no variability:\n", sample.index.values
+
+
+def simple_simulate(choosers, spec, skims=None, locals_d=None):
     """
     Run a simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -130,37 +153,41 @@ def simple_simulate(choosers, spec, skims=None, skim_join_name='zone_id'):
         A table of variable specifications and coefficient values.
         Variable expressions should be in the table index and the table
         should have a column for each alternative.
-    skims : dict, optional
-        Keys will be used as variable names and values are Skim objects - it
-        will be assumed that there is a field zone_id in both choosers and
-        alternatives which is used to dereference the given Skim object as
-        the "origin" (on choosers) and destination (on alternatives)
-    skim_join_name : str, optional
-        The name of the column that contains the origin in the choosers table
-        and the destination in the alternates table - is required to be the
-        same in both tables - is 'zone_id' by default
+    skims : Skims object
+        The skims object is used to contain multiple matrices of
+        origin-destination impedances.  Make sure to also add it to the
+        locals_d below in order to access it in expressions.  The *only* job
+        of this method in regards to skims is to call set_df with the
+        dataframe that comes back from interacting choosers with
+        alternatives.  See the skims module for more documentation on how
+        the skims object is intended to be used.
+    locals_d : Dict
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
 
     Returns
     -------
     choices : pandas.Series
         Index will be that of `choosers`, values will match the columns
         of `spec`.
-
     """
     if skims:
-        add_skims(df, skims, skim_join_name)
+        add_skims(choosers, skims)
 
-    variables = eval_variables(spec.index, choosers)
-    utilities = variables.dot(spec)
+    model_design = eval_variables(spec.index, choosers, locals_d)
+
+    _check_for_variability(model_design)
+
+    utilities = model_design.dot(spec)
     probs = utils_to_probs(utilities)
     choices = make_choices(probs)
 
-    return choices
+    return choices, model_design
 
 
 def interaction_simulate(
         choosers, alternatives, spec,
-        skims=None, skim_join_name='zone_id', sample_size=None):
+        skims=None, locals_d=None, sample_size=None):
     """
     Run a simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -178,15 +205,17 @@ def interaction_simulate(
         compute and the coefficients for each variable.
         Variable specifications must be in the table index and the
         table should have only one column of coefficients.
-    skims : dict, optional
-        Keys will be used as variable names and values are Skim objects - it
-        will be assumed that there is a field zone_id in both choosers and
-        alternatives which is used to dereference the given Skim object as
-        the "origin" (on choosers) and destination (on alternatives)
-    skim_join_name : str, optional
-        The name of the column that contains the origin in the choosers table
-        and the destination in the alternates table - is required to be the
-        same in both tables - is 'zone_id' by default
+    skims : Skims object
+        The skims object is used to contain multiple matrices of
+        origin-destination impedances.  Make sure to also add it to the
+        locals_d below in order to access it in expressions.  The *only* job
+        of this method in regards to skims is to call set_df with the
+        dataframe that comes back from interacting choosers with
+        alternatives.  See the skims module for more documentation on how
+        the skims object is intended to be used.
+    locals_d : Dict
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
     sample_size : int, optional
         Sample alternatives with sample of given size.  By default is None,
         which does not sample alternatives.
@@ -212,16 +241,12 @@ def interaction_simulate(
         choosers, alternatives, sample_size)
 
     if skims:
-        add_skims(df, skims, skim_join_name)
+        add_skims(df, skims)
 
     # evaluate variables from the spec
-    model_design = eval_variables(spec.index, df)
+    model_design = eval_variables(spec.index, df, locals_d)
 
-    sample = random_rows(model_design, min(100000, len(model_design)))\
-        .describe().transpose()
-    sample = sample[sample["std"] == 0]
-    if len(sample):
-        print "WARNING: Some columns have no variability:\n", sample.index.values
+    _check_for_variability(model_design)
 
     # multiply by coefficients and reshape into choosers by alts
     utilities = model_design.dot(spec).astype('float')

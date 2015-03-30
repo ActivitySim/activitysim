@@ -57,19 +57,21 @@ def workplace_location_simulate(set_random_seed,
                                 persons_merged,
                                 zones,
                                 workplace_location_spec,
-                                distance_skim,
+                                skims,
                                 workplace_size_terms):
 
     choosers = persons_merged.to_frame()
     alternatives = zones.to_frame().join(workplace_size_terms.to_frame())
 
-    skims = {
-        "distance": distance_skim
-    }
+    # set the keys for this lookup - in this case there is a TAZ in the choosers
+    # and a TAZ in the alternatives which get merged during interaction
+    skims.set_keys("TAZ", "TAZ_r")
+    # the skims will be available under the name "skims" for any @ expressions
+    locals_d = {"skims": skims}
 
     choices, _ = asim.interaction_simulate(
-        choosers, alternatives, workplace_location_spec, skims,
-        skim_join_name="TAZ", sample_size=50)
+        choosers, alternatives, workplace_location_spec, skims=skims,
+        locals_d=locals_d, sample_size=50)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)

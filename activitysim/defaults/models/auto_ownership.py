@@ -18,8 +18,9 @@ def auto_ownership_spec(configs_dir):
 
 
 @sim.model()
-def auto_ownership_simulate(households_merged, auto_ownership_spec):
-    choices = asim.simple_simulate(
+def auto_ownership_simulate(set_random_seed, households_merged,
+                            auto_ownership_spec):
+    choices, _ = asim.simple_simulate(
         households_merged.to_frame(), auto_ownership_spec)
 
     print "Choices:\n", choices.value_counts()

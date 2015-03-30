@@ -15,6 +15,25 @@ def persons(store, settings, households):
     return df
 
 
+# another common merge for persons
+@sim.table()
+def persons_merged(persons, households, land_use, accessibility):
+    return sim.merge_tables(persons.name, tables=[persons,
+                                                  households,
+                                                  land_use,
+                                                  accessibility])
+
+
+@sim.column("persons")
+def age_16_to_19(persons):
+    return persons.to_frame(["age"]).eval("16 <= age <= 19")
+
+
+@sim.column("persons")
+def age_16_p(persons):
+    return persons.to_frame(["age"]).eval("16 <= age")
+
+
 # FIXME - this is my "placeholder" for the CDAP model ;)
 @sim.column("persons")
 def cdap_activity(set_random_seed, persons):

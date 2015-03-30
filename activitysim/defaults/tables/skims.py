@@ -39,3 +39,17 @@ def sovmd_skim(nonmotskm_matrix):
 def sovpm_skim(nonmotskm_matrix):
     # FIXME use the right omx file
     return skim.Skim(nonmotskm_matrix, offset=-1)
+
+
+@sim.injectable(cache=True)
+def skims():
+    skims = skim.Skims()
+    # FIXME - this is reusing the same skim as all the different kinds of skims
+    for typ in ["SOV_TIME", "SOVTOLL_TIME", "HOV2_TIME",
+                "SOV_DIST", "SOVTOLL_DIST", "HOV2_DIST",
+                "SOV_BTOLL", "SOVTOLL_BTOLL", "HOV2_BTOLL",
+                "SOVTOLL_VTOLL"]:
+        for period in ["AM", "MD", "PM"]:
+            skims[(typ, period)] = sim.get_injectable("distance_skim")
+    skims['DISTANCE'] = sim.get_injectable("distance_skim")
+    return skims

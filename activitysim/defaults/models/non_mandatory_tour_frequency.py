@@ -116,10 +116,3 @@ def non_mandatory_tours(persons,
     6         10001    escort
     """
     return tours
-
-
-# broadcast trips onto persons using the person_id
-sim.broadcast('persons', 'non_mandatory_tours',
-              cast_index=True, onto_on='person_id')
-sim.broadcast('persons_merged', 'non_mandatory_tours',
-              cast_index=True, onto_on='person_id')

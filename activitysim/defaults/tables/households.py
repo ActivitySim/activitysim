@@ -15,6 +15,14 @@ def households(set_random_seed, store, settings):
     return store["households"]
 
 
+# this is a common merge so might as well define it once here and use it
+@sim.table()
+def households_merged(households, land_use, accessibility):
+    return sim.merge_tables(households.name, tables=[households,
+                                                     land_use,
+                                                     accessibility])
+
+
 sim.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
 
 
@@ -118,6 +126,11 @@ def auto_ownership(households):
     # FIXME frame - urbansim actually only asks for the columns that are used by
     # FIXME the model specs in play at that time
     return pd.Series(0, households.index)
+
+
+@sim.column('households')
+def hhsize(households):
+    return households.PERSONS
 
 
 @sim.column('households')

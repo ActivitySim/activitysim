@@ -52,4 +52,6 @@ def mandatory_scheduling(set_random_seed,
 
     print "Choices:\n", choices.describe()
 
-    sim.add_column("mandatory_tours", "mandatory_tdd", choices)
+    sim.add_column("mandatory_tours",
+                   "tour_departure_and_duration",
+                   choices)

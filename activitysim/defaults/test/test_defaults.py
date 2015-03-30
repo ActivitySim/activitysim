@@ -50,6 +50,8 @@ def test_run(store):
     sim.run(["non_mandatory_scheduling"])
     sim.run(["mode_choice_simulate"])
 
+    sim.clear_cache()
+
 
 def set_random_seed():
     np.random.seed(0)
@@ -70,11 +72,10 @@ def test_mini_run(store):
 
     # this is a regression test so that we know if these numbers change
     auto_choice = sim.get_table('households').get_column('auto_ownership')
-    print auto_choice[[2306822, 652072, 2542402, 651907, 788657]]
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 2542402, 651907, 788657]],
         pd.Series(
-            [4, 1, 2, 1, 2], index=[2306822, 652072, 2542402, 651907, 788657]))
+            [4, 1, 2, 1, 1], index=[2306822, 652072, 2542402, 651907, 788657]))
 
     sim.run(['mandatory_tour_frequency'])
 
@@ -85,3 +86,5 @@ def test_mini_run(store):
         pd.Series(
             ['school2', 'work2', 'school1', 'work1', 'work1'],
             index=[1015, 9998, 28064, 29035, 34241]))
+
+    sim.clear_cache()

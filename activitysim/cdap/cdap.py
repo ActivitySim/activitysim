@@ -2,8 +2,10 @@ import itertools
 
 import numpy as np
 import pandas as pd
+from zbox import toolz as tz
 
 from ..activitysim import eval_variables
+from .. import mnl
 
 
 def make_interactions(people, hh_id_col, p_type_col):
@@ -259,3 +261,41 @@ def apply_all_people(hh_util, all_people):
             matching_idx[l] = matching
 
         hh.loc[matching] += all_people.loc[matching]
+
+
+def make_household_choices(hh_util):
+    """
+    Decide on the activity pattern for each household.
+
+    Parameters
+    ----------
+    hh_util : dict of pandas.Series
+        Keys will be household IDs and values will be Series
+        mapping alternative choices to their utility.
+
+    Returns
+    -------
+    choices : pandas.Series
+        Maps household ID to chosen alternative, where the alternative
+        is a tuple of individual utilities.
+
+    """
+    # convert hh_util dict to a few DFs with alternatives in the columns
+    # and household IDs in the index
+    df_func = tz.compose(
+        pd.DataFrame.transpose,
+        pd.DataFrame.from_dict)
+    grouped_by_size = (
+        tz.valfilter(lambda x: len(x) == l, hh_util)
+        for l in tz.unique(tz.map(len, hh_util.values())))
+    dfs = tz.map(df_func, grouped_by_size)
+
+    # go over all the DFs and do utils_to_probs and make_choices
+    choices = (
+        pd.Series(
+            df.columns[mnl.make_choices(mnl.utils_to_probs(df))].values,
+            index=df.index)
+        for df in dfs)
+
+    # concat all the resulting Series
+    return pd.concat(choices)

@@ -76,6 +76,11 @@ def hh_utils(individual_utils, people, hh_id_col):
     return hh_utils
 
 
+@pytest.fixture
+def hh_choices(random_seed, hh_utils):
+    return cdap.make_household_choices(hh_utils)
+
+
 def test_make_interactions(people, hh_id_col, p_type_col):
     expected_two = pd.DataFrame(
         {'interaction': [
@@ -298,3 +303,18 @@ def test_apply_all_people(hh_utils, all_people):
 
     for k in expected:
         pdt.assert_series_equal(hh_utils[k], expected[k], check_dtype=False)
+
+
+def test_make_household_choices(hh_choices):
+    expected = pd.Series([
+        ('Mandatory',),
+        ('Home',),
+        ('Mandatory', 'Mandatory'),
+        ('NonMandatory', 'NonMandatory'),
+        ('Mandatory', 'NonMandatory', 'Home'),
+        ('Mandatory', 'Home', 'Home'),
+        ('Mandatory', 'Mandatory', 'NonMandatory', 'NonMandatory'),
+        ('Home', 'Home', 'Mandatory', 'NonMandatory')],
+        index=range(1, 9))
+    hh_choices, expected = hh_choices.align(expected)
+    pdt.assert_series_equal(hh_choices, expected)

@@ -53,4 +53,3 @@ def destination_size_terms(land_use, size_terms):
                       index=land_use.index)
     df.index.name = "TAZ"
     return df
-

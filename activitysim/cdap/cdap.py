@@ -2,7 +2,7 @@ import itertools
 
 import numpy as np
 import pandas as pd
-from zbox import toolz as tz
+from zbox import toolz as tz, gen
 
 from ..activitysim import eval_variables
 from .. import mnl
@@ -299,3 +299,28 @@ def make_household_choices(hh_util):
 
     # concat all the resulting Series
     return pd.concat(choices)
+
+
+def household_choices_to_people(hh_choices, people, hh_id_col):
+    """
+    Map household choices to people so that we know the activity pattern
+    for individuals.
+
+    Parameters
+    ----------
+    hh_choices : pandas.Series
+        Maps household ID to chosen alternative, where the alternative
+        is a tuple of individual utilities.
+    people : pandas.DataFrame
+        DataFrame of individual people data.
+    hh_id_col : str
+        Name of the column in `people` that has their household ID.
+
+    Returns
+    -------
+    choices : pandas.Series
+        Maps index of `people` to their activity pattern choice.
+
+    """
+    return pd.Series(
+        gen(tz.concat(hh_choices.values)), index=people.index)

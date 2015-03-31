@@ -35,10 +35,3 @@ def settings(configs_dir):
 def store(data_dir, settings):
     return pd.HDFStore(os.path.join(data_dir, "data", settings["store"]),
                        mode='r')
-
-
-# these are the alternatives for the workplace choice, among other things
-@sim.table()
-def zones():
-    # I grant this is a weird idiom but it helps to name the index
-    return pd.DataFrame({"TAZ": np.arange(1454)+1}).set_index("TAZ")

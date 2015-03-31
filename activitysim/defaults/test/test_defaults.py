@@ -10,6 +10,7 @@ import pandas.util.testing as pdt
 import numpy as np
 import urbansim.sim.simulation as sim
 from .. import __init__
+from ..tables import size_terms
 
 
 @pytest.fixture(scope="module")
@@ -22,6 +23,25 @@ def store(request):
     request.addfinalizer(fin)
 
     return store
+
+
+def test_size_term():
+    data = {
+        'a': [1, 2, 3],
+        'b': [2, 3, 4]
+    }
+    coeffs = {
+        'a': 1,
+        'b': 2
+    }
+    answer = {
+        0: 5,
+        1: 8,
+        2: 11
+    }
+    s = size_terms.size_term(pd.DataFrame(data), pd.Series(coeffs))
+    print s
+    pdt.assert_series_equal(s, pd.Series(answer))
 
 
 def test_run(store):

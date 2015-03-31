@@ -7,9 +7,6 @@ Auto ownership is a standard model which predicts how many cars a household
 with given characteristics owns
 """
 
-# this is the max number of cars allowable in the auto ownership model
-MAX_NUM_CARS = 5
-
 
 @sim.injectable()
 def auto_ownership_spec(configs_dir):

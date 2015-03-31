@@ -96,8 +96,11 @@ def individual_utilities(
     p_type_col : str
         Name of the column in `people` that contains the person type number.
     one_spec : pandas.DataFrame
+        CDAP spec applied to individuals.
     two_spec : pandas.DataFrame
+        CDAP spec applied to interactions between two people.
     three_spec : pandas.DataFrame
+        CDAP spec applied to interactions between three people.
 
     Returns
     -------
@@ -301,7 +304,7 @@ def make_household_choices(hh_util):
     return pd.concat(choices)
 
 
-def household_choices_to_people(hh_choices, people, hh_id_col):
+def household_choices_to_people(hh_choices, people):
     """
     Map household choices to people so that we know the activity pattern
     for individuals.
@@ -313,8 +316,6 @@ def household_choices_to_people(hh_choices, people, hh_id_col):
         is a tuple of individual utilities.
     people : pandas.DataFrame
         DataFrame of individual people data.
-    hh_id_col : str
-        Name of the column in `people` that has their household ID.
 
     Returns
     -------
@@ -324,3 +325,59 @@ def household_choices_to_people(hh_choices, people, hh_id_col):
     """
     return pd.Series(
         gen(tz.concat(hh_choices.values)), index=people.index)
+
+
+def run_cdap(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules, all_people):
+    """
+    Choose individual activity patterns for people.
+
+    Parameters
+    ----------
+    people : pandas.DataFrame
+        Table of people data. Must contain at least a household ID
+        column and a categorization of person type.
+    hh_id_col : str
+        Name of the column in `people` that has their household ID.
+    p_type_col : str
+        Name of the column in `people` that contains the person type number.
+    one_spec : pandas.DataFrame
+        CDAP spec applied to individuals.
+    two_spec : pandas.DataFrame
+        CDAP spec applied to interactions between two people.
+    three_spec : pandas.DataFrame
+        CDAP spec applied to interactions between three people.
+    final_rules : pandas.DataFrame
+        This table must have an index of expressions that can be used
+        to filter the `people` table. It must have two columns:
+        the first must have the name of the alternative to which the rule
+        applies, and the second must have the value of the utility for that
+        alternative. The names of the columns is not important, but
+        the order is.
+    all_people : pandas.DataFrame
+        Adjustments to household alternatives, with alternatives in the
+        index and the adjustment values in the first column.
+        Index should be household alternatives in the form of tuples
+        containing individual alternatives, e.g.
+        ('Mandatory', 'Mandatory', 'Mandatory'), where 'Mandatory' is
+        one of the alternatives available to individual household members.
+        Note that these may also be expressed as Python code to save space,
+        so the previous could also be written as ('Mandatory',) * 3.
+
+    Returns
+    -------
+    choices : pandas.Series
+        Maps index of `people` to their activity pattern choice,
+        where that choice is taken from the columns of specs
+        (so it's important that the specs all refer to alternatives
+        in the same way).
+
+    """
+    ind_utils = individual_utilities(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec)
+    hh_utils = initial_household_utilities(ind_utils, people, hh_id_col)
+    apply_final_rules(hh_utils, people, hh_id_col, final_rules)
+    apply_all_people(hh_utils, all_people)
+    hh_choices = make_household_choices(hh_utils)
+    return household_choices_to_people(hh_choices, people)

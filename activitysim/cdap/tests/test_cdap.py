@@ -81,11 +81,6 @@ def hh_choices(random_seed, hh_utils):
     return cdap.make_household_choices(hh_utils)
 
 
-@pytest.fixture
-def people_choices(hh_choices, people, hh_id_col):
-    return cdap.household_choices_to_people(hh_choices, people, hh_id_col)
-
-
 def test_make_interactions(people, hh_id_col, p_type_col):
     expected_two = pd.DataFrame(
         {'interaction': [
@@ -324,7 +319,8 @@ def test_make_household_choices(hh_choices):
     pdt.assert_series_equal(hh_choices, expected)
 
 
-def test_household_choices_to_people(people, people_choices):
+def test_household_choices_to_people(hh_choices, people):
+    people_choices = cdap.household_choices_to_people(hh_choices, people)
     expected = pd.Series([
         'Mandatory',
         'Home',
@@ -334,5 +330,24 @@ def test_household_choices_to_people(people, people_choices):
         'Mandatory', 'Home', 'Home',
         'Mandatory', 'Mandatory', 'NonMandatory', 'NonMandatory',
         'Home', 'Home', 'Mandatory', 'NonMandatory'],
+        index=people.index)
+    pdt.assert_series_equal(people_choices, expected)
+
+
+def test_run_cdap(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules, all_people, random_seed):
+    people_choices = cdap.run_cdap(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules, all_people)
+    expected = pd.Series([
+        'Mandatory',
+        'Home',
+        'Mandatory', 'Mandatory',
+        'NonMandatory', 'NonMandatory',
+        'Mandatory', 'NonMandatory', 'Home',
+        'Mandatory', 'Home', 'Home',
+        'Mandatory', 'Mandatory', 'NonMandatory', 'NonMandatory',
+        'Home', 'Home', 'Home', 'NonMandatory'],
         index=people.index)
     pdt.assert_series_equal(people_choices, expected)

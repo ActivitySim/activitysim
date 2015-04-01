@@ -2,13 +2,14 @@
 # Copyright (C) 2014-2015 Synthicity, LLC
 # See full license in LICENSE.txt.
 
-from skim import Skims, Skims3D
+from operator import itemgetter
 
 import numpy as np
 import pandas as pd
-
 from urbansim.urbanchoice import interaction
+from zbox import toolz as tz
 
+from .skim import Skims, Skims3D
 from .mnl import utils_to_probs, make_choices
 
 
@@ -264,3 +265,41 @@ def interaction_simulate(
     choices = model_design.index.take(positions + offsets)
 
     return pd.Series(choices, index=choosers.index), model_design
+
+
+def other_than(data, bools):
+    """
+    Construct a Series that has booleans indicating the presence of
+    something- or someone-else with a certain property within a group.
+
+    Parameters
+    ----------
+    data : pandas.Series
+        A column with the same index as `bools` that has some property
+        to be tallied for the purposes of detecting others. The `bools`
+        Series will be used to index `data` and then values will be counted.
+    bools : pandas.Series
+        A boolean Series indicating where the property of interest is present.
+        Should have the same index as `data`.
+
+    Returns
+    -------
+    others : pandas.Series
+        A boolean Series with the same index as `data` and `bools`
+        indicating whether there is something- or something-else within
+        a group with some property (as indicated by `bools`).
+
+    """
+    counts = data[bools].value_counts()
+    merge_col = data.to_frame(name='right')
+    pipeline = tz.compose(
+        tz.curry(pd.Series.fillna, value=False),
+        itemgetter('left'),
+        tz.curry(
+            pd.DataFrame.merge, right=merge_col, how='right', left_index=True,
+            right_on='right'),
+        tz.curry(pd.Series.to_frame, name='left'))
+    gt0 = pipeline(counts > 0)
+    gt1 = pipeline(counts > 1)
+
+    return gt1.where(bools, other=gt0)

@@ -20,6 +20,7 @@ def auto_ownership_spec(configs_dir):
 @sim.model()
 def auto_ownership_simulate(set_random_seed, households_merged,
                             auto_ownership_spec):
+
     choices, _ = asim.simple_simulate(
         households_merged.to_frame(), auto_ownership_spec)
 

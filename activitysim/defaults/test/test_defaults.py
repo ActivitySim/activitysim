@@ -11,6 +11,11 @@ import numpy as np
 import urbansim.sim.simulation as sim
 from .. import __init__
 from ..tables import size_terms
+import yaml
+
+
+# set the max households for all tests (this is to limit memory use on travis)
+HOUSEHOLDS_SAMPLE_SIZE = 50
 
 
 @pytest.fixture(scope="module")
@@ -23,6 +28,18 @@ def store(request):
     request.addfinalizer(fin)
 
     return store
+
+
+@sim.injectable(cache=False)
+def settings(configs_dir):
+    with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
+        obj = yaml.load(f)
+        obj['households_sample_size'] = HOUSEHOLDS_SAMPLE_SIZE
+        return obj
+
+
+def set_random_seed():
+    np.random.seed(0)
 
 
 def test_size_term():
@@ -40,7 +57,6 @@ def test_size_term():
         2: 11
     }
     s = size_terms.size_term(pd.DataFrame(data), pd.Series(coeffs))
-    print s
     pdt.assert_series_equal(s, pd.Series(answer))
 
 
@@ -52,11 +68,14 @@ def test_run(store):
     sim.add_injectable("store", store)
 
     sim.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
+    sim.add_injectable("set_random_seed", set_random_seed)
 
     # grab some of the tables
     sim.get_table("land_use").to_frame().info()
     sim.get_table("households").to_frame().info()
     sim.get_table("persons").to_frame().info()
+
+    assert len(sim.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order
     sim.run(["workplace_location_simulate"])
@@ -70,12 +89,6 @@ def test_run(store):
     sim.run(["non_mandatory_scheduling"])
     sim.run(["mode_choice_simulate"])
 
-    sim.clear_cache()
-
-
-def set_random_seed():
-    np.random.seed(0)
-
 
 def test_mini_run(store):
     sim.add_injectable("configs_dir",
@@ -86,6 +99,8 @@ def test_mini_run(store):
     sim.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
     sim.add_injectable("set_random_seed", set_random_seed)
 
+    assert len(sim.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+
     # run the models in the expected order
     sim.run(["workplace_location_simulate"])
     sim.run(["auto_ownership_simulate"])
@@ -93,18 +108,16 @@ def test_mini_run(store):
     # this is a regression test so that we know if these numbers change
     auto_choice = sim.get_table('households').get_column('auto_ownership')
     pdt.assert_series_equal(
-        auto_choice[[2306822, 652072, 2542402, 651907, 788657]],
+        auto_choice[[2306822, 652072, 651907]],
         pd.Series(
-            [4, 1, 2, 1, 1], index=[2306822, 652072, 2542402, 651907, 788657]))
+            [3, 1, 0], index=[2306822, 652072, 651907]))
 
     sim.run(['mandatory_tour_frequency'])
 
     mtf_choice = sim.get_table('persons').get_column(
         'mandatory_tour_frequency')
     pdt.assert_series_equal(
-        mtf_choice[[1015, 9998, 28064, 29035, 34241]],
+        mtf_choice[[6083113, 47427, 448099]],
         pd.Series(
-            ['school2', 'work2', 'school1', 'work1', 'work1'],
-            index=[1015, 9998, 28064, 29035, 34241]))
-
-    sim.clear_cache()
+            ['school1', 'work2', 'work_and_school'],
+            index=[6083113, 47427, 448099]))

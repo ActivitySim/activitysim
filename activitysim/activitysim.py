@@ -46,8 +46,7 @@ def read_model_spec(fname,
     """
     cfg = pd.read_csv(fname, comment='#')
 
-    # get rid of rows where expression is empty
-    cfg = cfg[~pd.Series(cfg.index).isnull()]
+    cfg = cfg.dropna(subset=[expression_name])
 
     # don't need description and set the expression to the index
     cfg = cfg.drop(description_name, axis=1).set_index(expression_name)
@@ -90,9 +89,6 @@ def eval_variables(exprs, df, locals_d={}):
         Will have the index of `df` and columns of `exprs`.
 
     """
-    if len(exprs) == 0:
-        return pd.DataFrame()
-
     def to_series(x):
         if np.isscalar(x):
             return pd.Series([x] * len(df), index=df.index)

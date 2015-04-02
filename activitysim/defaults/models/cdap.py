@@ -29,7 +29,6 @@ def cdap_2_person_spec(configs_dir):
 
 @sim.injectable()
 def cdap_3_person_spec(configs_dir):
-    return pd.DataFrame()
     f = os.path.join(configs_dir, 'configs', "cdap_3_person.csv")
     return asim.read_model_spec(f).fillna(0)
 
@@ -53,6 +52,8 @@ def cdap_simulate(set_random_seed, persons_merged,
                   cdap_1_person_spec, cdap_2_person_spec, cdap_3_person_spec,
                   cdap_final_rules, cdap_all_people):
 
+    print cdap_3_person_spec
+
     choices = cdap.run_cdap(persons_merged.to_frame(),
                             "household_id",
                             "ptype",
@@ -63,4 +64,4 @@ def cdap_simulate(set_random_seed, persons_merged,
                             cdap_all_people)
 
     print "Choices:\n", choices.value_counts()
-    sim.add_column("households", "auto_ownership", choices)
+    sim.add_column("households", "cdap", choices)

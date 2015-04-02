@@ -18,10 +18,12 @@ setup(
     ],
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
-        'numpy>=1.8.0',
-        'openmatrix>=0.2.2',
-        'pandas>=0.13.1',
-        'tables>=3.1.0',
-        'urbansim>=1.3'
+        'numpy >= 1.8.0',
+        'openmatrix >= 0.2.2',
+        'pandas >= 0.13.1',
+        'tables >= 3.1.0',
+        'toolz >= 0.7',
+        'urbansim >= 1.3',
+        'zbox >= 1.2'
     ]
 )

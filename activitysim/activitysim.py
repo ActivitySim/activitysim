@@ -267,31 +267,31 @@ def interaction_simulate(
     return pd.Series(choices, index=choosers.index), model_design
 
 
-def other_than(data, bools):
+def other_than(groups, bools):
     """
     Construct a Series that has booleans indicating the presence of
     something- or someone-else with a certain property within a group.
 
     Parameters
     ----------
-    data : pandas.Series
-        A column with the same index as `bools` that has some property
-        to be tallied for the purposes of detecting others. The `bools`
-        Series will be used to index `data` and then values will be counted.
+    groups : pandas.Series
+        A column with the same index as `bools` that defines the grouping
+        of `bools`. The `bools` Series will be used to index `groups` and
+        then the grouped values will be counted.
     bools : pandas.Series
         A boolean Series indicating where the property of interest is present.
-        Should have the same index as `data`.
+        Should have the same index as `groups`.
 
     Returns
     -------
     others : pandas.Series
-        A boolean Series with the same index as `data` and `bools`
+        A boolean Series with the same index as `groups` and `bools`
         indicating whether there is something- or something-else within
         a group with some property (as indicated by `bools`).
 
     """
-    counts = data[bools].value_counts()
-    merge_col = data.to_frame(name='right')
+    counts = groups[bools].value_counts()
+    merge_col = groups.to_frame(name='right')
     pipeline = tz.compose(
         tz.curry(pd.Series.fillna, value=False),
         itemgetter('left'),

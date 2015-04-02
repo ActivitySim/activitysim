@@ -16,8 +16,6 @@ othdiscr, eatout, and social trips in various combination.
 @sim.injectable()
 def non_mandatory_tour_frequency_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "non_mandatory_tour_frequency.csv")
-    # this is a spec in already stacked format
-    # it also has multiple segments in different columns in the spec
     return asim.read_model_spec(f).fillna(0)
 
 
@@ -53,13 +51,13 @@ def non_mandatory_tour_frequency(set_random_seed,
 
         print "Running segment '%s' of size %d" % (name, len(segment))
 
-        choices, _ = \
-            asim.interaction_simulate(
-                segment,
-                non_mandatory_tour_frequency_alts.to_frame(),
-                # notice that we pick the column for the
-                # segment for each segment we run
-                non_mandatory_tour_frequency_spec[[name]])
+        choices, _ = asim.interaction_simulate(
+            segment,
+            non_mandatory_tour_frequency_alts.to_frame(),
+            # notice that we pick the column for the
+            # segment for each segment we run
+            non_mandatory_tour_frequency_spec[[name]])
+
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)

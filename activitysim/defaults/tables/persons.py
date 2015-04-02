@@ -96,9 +96,6 @@ def female(persons):
 # count the number of mandatory tours for each person
 @sim.column("persons")
 def num_mand(persons):
-    # FIXME this is really because we ask for ALL columns in the persons data
-    # FIXME frame - urbansim actually only asks for the columns that are used by
-    # FIXME the model specs in play at that time
     if "mandatory_tour_frequency" not in persons.columns:
         return pd.Series(0, index=persons.index)
 
@@ -147,7 +144,7 @@ def student_is_employed(persons):
 @sim.column("persons")
 def nonstudent_to_school(persons):
     return (persons.ptype_cat.isin(['full', 'part', 'nonwork', 'retired']) &
-            persons.student_cat.isin(['high', 'college']))
+            persons.student_cat.isin(['grade_or_high', 'college']))
 
 
 @sim.column("persons")
@@ -163,7 +160,24 @@ def is_worker(persons):
 
 @sim.column("persons")
 def is_student(persons):
-    return persons.student_cat.isin(['high', 'college'])
+    return persons.student_cat.isin(['grade_or_high', 'college'])
+
+
+@sim.column("persons")
+def is_gradeschool(persons, settings):
+    return (persons.student_cat == "grade_or_high") & \
+           (persons.age <= settings['grade_school_max_age'])
+
+
+@sim.column("persons")
+def is_highschool(persons, settings):
+    return (persons.student_cat == "grade_or_high") & \
+           (persons.age > settings['grade_school_max_age'])
+
+
+@sim.column("persons")
+def is_university(persons):
+    return persons.student_cat == "university"
 
 
 @sim.column("persons")
@@ -179,8 +193,7 @@ def home_taz(households, persons):
 
 @sim.column("persons")
 def school_taz(persons):
-    # FIXME need to fix this after getting school lcm working
-    return persons.workplace_taz
+    return pd.Series(1, persons.index)
 
 
 # this use the distance skims to compute the raw distance to work from home

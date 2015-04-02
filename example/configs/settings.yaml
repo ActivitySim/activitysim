@@ -7,6 +7,8 @@ rural_threshold: 6
 
 households_sample_size: 1000
 
+grade_school_max_age: 14
+
 county_map:
     San Francisco: 1
     San Mateo: 2
@@ -25,8 +27,8 @@ employment_map:
     4: child
 
 student_map:
-    1: high
-    2: college
+    1: grade_or_high
+    2: university
     3: not
 
 person_type_map:

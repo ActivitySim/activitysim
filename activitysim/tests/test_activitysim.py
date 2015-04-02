@@ -51,18 +51,6 @@ def test_read_model_spec(spec_name, desc_name, expr_name):
         [[1.1, 11], [2.2, 22], [3.3, 33], [4.4, 44]])
 
 
-def test_identity_matrix():
-    names = ['a', 'b', 'c']
-    i = asim.identity_matrix(names)
-
-    assert list(i.columns) == names
-    assert list(i.index) == names
-
-    npt.assert_array_equal(
-        i.as_matrix(),
-        [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-
-
 def test_eval_variables(spec, data):
     result = asim.eval_variables(spec.index, data)
 

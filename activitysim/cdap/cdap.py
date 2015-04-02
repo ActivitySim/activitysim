@@ -377,7 +377,9 @@ def run_cdap(
     ind_utils = individual_utilities(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec)
     hh_utils = initial_household_utilities(ind_utils, people, hh_id_col)
-    apply_final_rules(hh_utils, people, hh_id_col, final_rules)
-    apply_all_people(hh_utils, all_people)
+    if final_rules is not None:
+        apply_final_rules(hh_utils, people, hh_id_col, final_rules)
+    if all_people is not None:
+        apply_all_people(hh_utils, all_people)
     hh_choices = make_household_choices(hh_utils)
     return household_choices_to_people(hh_choices, people)

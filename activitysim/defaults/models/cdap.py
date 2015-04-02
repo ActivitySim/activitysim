@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import urbansim.sim.simulation as sim
 from activitysim import activitysim as asim
 from activitysim.cdap import cdap
@@ -28,18 +29,21 @@ def cdap_2_person_spec(configs_dir):
 
 @sim.injectable()
 def cdap_3_person_spec(configs_dir):
+    return pd.DataFrame()
     f = os.path.join(configs_dir, 'configs', "cdap_3_person.csv")
     return asim.read_model_spec(f).fillna(0)
 
 
 @sim.injectable()
 def cdap_final_rules(configs_dir):
+    return None
     f = os.path.join(configs_dir, 'configs', "cdap_final_rules.csv")
     return asim.read_model_spec(f).fillna(0)
 
 
 @sim.injectable()
 def cdap_all_people(configs_dir):
+    return None
     f = os.path.join(configs_dir, 'configs', "cdap_all_people.csv")
     return asim.read_model_spec(f).fillna(0)
 

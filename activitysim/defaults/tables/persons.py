@@ -252,51 +252,51 @@ def presence_of(ptype, persons, at_home=False):
     return other_than(persons.household_id, bools)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_non_worker(persons):
     return presence_of("nonwork", persons)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_retiree(persons):
     return presence_of("retired", persons)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_preschool_kid(persons):
     return presence_of("preschool", persons)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_preschool_kid_at_home(persons):
     return presence_of("preschool", persons, at_home=True)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_driving_kid(persons):
     return presence_of("driving", persons)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_school_kid(persons):
     return presence_of("school", persons)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_school_kid_at_home(persons):
     return presence_of("school", persons, at_home=True)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_full_time(persons):
     return presence_of("full", persons)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_part_time(persons):
     return presence_of("part", persons)
 
 
-@sim.column('households')
+@sim.column('persons')
 def has_university(persons):
     return presence_of("university", persons)

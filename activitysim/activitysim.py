@@ -10,7 +10,7 @@ from urbansim.urbanchoice import interaction
 from zbox import toolz as tz
 
 from .skim import Skims, Skims3D
-from .mnl import utils_to_probs, make_choices
+from .mnl import utils_to_probs, make_choices, interaction_dataset
 
 
 def random_rows(df, n):
@@ -238,8 +238,7 @@ def interaction_simulate(
     alternatives[alternatives.index.name] = alternatives.index
 
     # merge choosers and alternatives
-    _, df, _ = interaction.mnl_interaction_dataset(
-        choosers, alternatives, sample_size)
+    df = interaction_dataset(choosers, alternatives, sample_size)
 
     if skims:
         add_skims(df, skims)

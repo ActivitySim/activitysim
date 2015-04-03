@@ -66,3 +66,54 @@ def make_choices(probs):
     rows, cols = np.where(probs_arr > 0)
     choices = (s.iat[0] for _, s in pd.Series(cols).groupby(rows))
     return pd.Series(choices, index=probs.index)
+
+
+def interaction_dataset(choosers, alternatives, sample_size=None):
+    """
+    Combine choosers and alternatives into one table for the purposes
+    of creating interaction variables and/or sampling alternatives.
+
+    Parameters
+    ----------
+    choosers : pandas.DataFrame
+    alternatives : pandas.DataFrame
+    sample_size : int, optional
+        If sampling from alternatives for each chooser, this is
+        how many to sample.
+
+    Returns
+    -------
+    interacted : pandas.DataFrame
+        Merged choosers and alternatives with data repeated either
+        len(alternatives) or `sample_size` times.
+
+    """
+    if not choosers.index.is_unique:
+        raise RuntimeError(
+            "ERROR: choosers index is not unique, "
+            "sample will not work correctly")
+    if not alternatives.index.is_unique:
+        raise RuntimeError(
+            "ERROR: alternatives index is not unique, "
+            "sample will not work correctly")
+
+    numchoosers = len(choosers)
+    numalts = len(alternatives)
+    sample_size = sample_size or numalts
+
+    alts_idx = np.arange(numalts)
+
+    if sample_size < numalts:
+        sample = np.random.choice(
+            alts_idx, sample_size * numchoosers, replace=True)
+    else:
+        sample = np.tile(alts_idx, numchoosers)
+
+    alts_sample = alternatives.take(sample)
+    alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
+
+    alts_sample = pd.merge(
+        alts_sample, choosers, left_on='chooser_idx', right_index=True,
+        suffixes=('', '_r'))
+
+    return alts_sample

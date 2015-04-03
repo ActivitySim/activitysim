@@ -38,14 +38,28 @@ class Skim(object):
         values : 1D array
 
         """
+        # only working with numpy in here
         orig = np.asanyarray(orig)
         dest = np.asanyarray(dest)
+        out_shape = orig.shape
+
+        # filter orig and dest to only the real-number pairs
+        notnan = ~(np.isnan(orig) | np.isnan(dest))
+        orig = orig[notnan].astype('int')
+        dest = dest[notnan].astype('int')
 
         if self.offset:
             orig = orig + self.offset
             dest = dest + self.offset
 
-        return self.data[orig, dest]
+        result = self.data[orig, dest]
+
+        # add the nans back to the result
+        out = np.empty(out_shape)
+        out[notnan] = result
+        out[~notnan] = np.nan
+
+        return out
 
 
 class Skims(object):

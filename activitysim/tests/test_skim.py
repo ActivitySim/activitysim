@@ -34,3 +34,14 @@ def test_offset(data):
     npt.assert_array_equal(
         sk.get(orig, dest),
         [52, 99, 16])
+
+
+def test_skim_nans(data):
+    sk = skim.Skim(data)
+
+    orig = [5, np.nan, 1, 2]
+    dest = [np.nan, 9, 6, 4]
+
+    npt.assert_array_equal(
+        sk.get(orig, dest),
+        [np.nan, np.nan, 16, 24])

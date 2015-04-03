@@ -6,7 +6,6 @@ from operator import itemgetter
 
 import numpy as np
 import pandas as pd
-from urbansim.urbanchoice import interaction
 from zbox import toolz as tz
 
 from .skim import Skims, Skims3D

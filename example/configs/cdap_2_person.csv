@@ -35,7 +35,3 @@ Driving-age child who is in school interaction with pre-driving-age child who is
 Pre-driving-age child who is in school interaction with pre-Pre-driving-age child who is in school,interaction == '77',0.9731,1.553,2.8
 Pre-driving-age child who is in school interaction with pre-driving-age child who is too young for school,"interaction in ['78',  '87']",0.5961,0.6184,1.434
 Pre-driving-age child who is too young for school interaction with pre-driving-age child who is too young for school,interaction == '88',1.651,0.8771,1.378
-# Mandatory pattern unavailable for retired person,retiredA,-999,,
-# Mandatory pattern unavailable for retired person,retiredB,-999,,
-# Mandatory pattern unavailable for nonworking adult person type,nonWorkingAdultA,-999,,
-# Mandatory pattern unavailable for nonworking adult person type,nonWorkingAdultB,-999,,

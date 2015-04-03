@@ -35,7 +35,6 @@ def cdap_3_person_spec(configs_dir):
 
 @sim.injectable()
 def cdap_final_rules(configs_dir):
-    return None
     f = os.path.join(configs_dir, 'configs', "cdap_final_rules.csv")
     return asim.read_model_spec(f).fillna(0)
 

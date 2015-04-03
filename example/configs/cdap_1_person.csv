@@ -53,5 +53,3 @@ Pre-driving-age child who is too young for school interaction with off-peak acce
 # Part-time worker interaction with no usual work location,(ptype == 2) * noUsualWorkLocation,-0.5935,,
 # Driving-age child who is in school interaction with no usual school location,(ptype == 6) * noUsualWorkLocation,-0.866,,
 # Pre-driving age child who is in school interaction with no usual school location,(ptype == 7) * noUsualWorkLocation,-0.866,,
-# Mandatory pattern unavailable for retired person,retiredA,-999.0000,,
-# Mandatory pattern unavailable for nonworking adult person type,nonWorkingAdultA,-999.0000,,

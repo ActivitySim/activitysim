@@ -8,9 +8,3 @@ Part-time worker or non-working adult / part-time worker or non-working adult / 
 Part-time worker or non-working adult / part-time worker or non-working adult / pre-driving-age child,"interaction in ['624', '642', '264', '462', '246', '426', '622', '644', '262', '464', '226', '446']",,-0.8571,0.4374
 Part-time worker or non-working adult / pre-driving-age child / pre-driving-age child,"interaction in ['662', '626', '266', '664', '646', '466']",,,0.4747
 Pre-driving-age child / pre-driving-age child / pre-driving-age child,interaction == '666',-0.3906,,
-# Mandatory pattern unavailable for retired person,retiredA,-999,,
-# Mandatory pattern unavailable for retired person,retiredB,-999,,
-# Mandatory pattern unavailable for retired person,retiredC,-999,,
-# Mandatory pattern unavailable for nonworking adult person type,nonWorkingAdultA,-999,,
-# Mandatory pattern unavailable for nonworking adult person type,nonWorkingAdultB,-999,,
-# Mandatory pattern unavailable for nonworking adult person type,nonWorkingAdultC,-999,,

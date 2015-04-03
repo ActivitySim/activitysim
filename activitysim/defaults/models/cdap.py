@@ -60,4 +60,4 @@ def cdap_simulate(set_random_seed, persons_merged,
                             cdap_all_people)
 
     print "Choices:\n", choices.value_counts()
-    sim.add_column("households", "cdap", choices)
+    sim.add_column("persons", "cdap_activity", choices)

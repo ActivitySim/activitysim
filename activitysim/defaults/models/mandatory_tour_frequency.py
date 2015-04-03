@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import urbansim.sim.simulation as sim
 from activitysim import activitysim as asim
+from .util.mandatory_tour_frequency import process_mandatory_tours
 
 """
 This model predicts the frequency of making mandatory trips (see the
@@ -43,60 +44,12 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
-# TODO this needs a simple input / output unit test
 @sim.table()
 def mandatory_tours(persons):
-
     persons = persons.to_frame(columns=["mandatory_tour_frequency",
                                         "is_worker"])
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
-
-    tours = []
-    # this is probably easier to do in non-vectorized fashion like this
-    for key, row in persons.iterrows():
-
-        mtour = row.mandatory_tour_frequency
-        is_worker = row.is_worker
-
-        # this logic came from the CTRAMP model - I copied it as best as I
-        # could from the previous code - basically we need to know which
-        # tours are the first tour and which are subsequent, and work /
-        # school depends on the status of the person (is_worker variable)
-
-        # 1 work trip
-        if mtour == "work1":
-            tours += [(key, "work", 1)]
-        # 2 work trips
-        elif mtour == "work2":
-            tours += [(key, "work", 1), (key, "work", 2)]
-        # 1 school trip
-        elif mtour == "school1":
-            tours += [(key, "school", 1)]
-        # 2 school trips
-        elif mtour == "school2":
-            tours += [(key, "school", 1), (key, "school", 2)]
-        # 1 work and 1 school trip
-        elif mtour == "work_and_school":
-            if is_worker:
-                # is worker, work trip goes first
-                tours += [(key, "work", 1), (key, "school", 2)]
-            else:
-                # is student, work trip goes second
-                tours += [(key, "school", 1), (key, "work", 2)]
-        else:
-            assert 0
-
-    """
-    Pretty basic at this point - trip table looks like this so far
-           person_id tour_type tour_num
-    0          4419    work     1
-    1          4419    school   2
-    4          4650    school   1
-    5         10001    school   1
-    6         10001    work     2
-    """
-
-    return pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num"])
+    return process_mandatory_tours(persons)
 
 
 # broadcast mandatory_tours on to persons using the person_id foreign key

@@ -37,13 +37,7 @@ def vectorize_tour_schedules(tours, alts, spec):
         nth_tours = tours.reset_index().\
             groupby('person_id').nth(i).set_index('index')
 
-        print "Running %d non-mandatory #%d tour choices" % \
-              (len(nth_tours), i+1)
-
-        # FIXME below two lines are placeholders - need a general way to do this
-
-        alts["mode_choice_logsum"] = 0
-        nth_tours["end_of_previous_tour"] = -1
+        print "Running %d #%d tour choices" % (len(nth_tours), i+1)
 
         nth_choices, _ = asim.interaction_simulate(nth_tours, alts, spec)
 

@@ -42,11 +42,8 @@ def mandatory_scheduling(set_random_seed,
 
     print "Running %d mandatory tour scheduling choices" % len(tours)
 
-    # FIXME we're about halfway down the specfile
-    spec = tdd_mandatory_spec.to_frame().head(27)
+    spec = tdd_mandatory_spec.to_frame()
     alts = tdd_alts.to_frame()
-
-    # FIXME the "windowing" variables are not currently implemented
 
     choices = vectorize_tour_schedules(tours, alts, spec)
 

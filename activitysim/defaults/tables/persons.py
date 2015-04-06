@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from activitysim.activitysim import other_than
 import urbansim.sim.simulation as sim
 import urbansim.utils.misc as usim_misc
 
@@ -237,3 +238,65 @@ def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
 def workplace_in_cbd(persons, land_use, settings):
     s = usim_misc.reindex(land_use.area_type, persons.workplace_taz)
     return s < settings['cbd_threshold']
+
+
+# this is an idiom to grab the person of the specified type and check to see if
+# there is 1 or more of that kind of person in each household
+def presence_of(ptype, persons, at_home=False):
+    if at_home:
+        # if at_home, they need to be of given type AND at home
+        bools = (persons.ptype_cat == ptype) & (persons.cdap_activity == "H")
+    else:
+        bools = persons.ptype_cat == ptype
+
+    return other_than(persons.household_id, bools)
+
+
+@sim.column('persons')
+def has_non_worker(persons):
+    return presence_of("nonwork", persons)
+
+
+@sim.column('persons')
+def has_retiree(persons):
+    return presence_of("retired", persons)
+
+
+@sim.column('persons')
+def has_preschool_kid(persons):
+    return presence_of("preschool", persons)
+
+
+@sim.column('persons')
+def has_preschool_kid_at_home(persons):
+    return presence_of("preschool", persons, at_home=True)
+
+
+@sim.column('persons')
+def has_driving_kid(persons):
+    return presence_of("driving", persons)
+
+
+@sim.column('persons')
+def has_school_kid(persons):
+    return presence_of("school", persons)
+
+
+@sim.column('persons')
+def has_school_kid_at_home(persons):
+    return presence_of("school", persons, at_home=True)
+
+
+@sim.column('persons')
+def has_full_time(persons):
+    return presence_of("full", persons)
+
+
+@sim.column('persons')
+def has_part_time(persons):
+    return presence_of("part", persons)
+
+
+@sim.column('persons')
+def has_university(persons):
+    return presence_of("university", persons)

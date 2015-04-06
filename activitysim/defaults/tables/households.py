@@ -122,9 +122,6 @@ def num_under16_not_at_school(persons, households):
 
 @sim.column("households")
 def auto_ownership(households):
-    # FIXME this is really because we ask for ALL columns in the persons data
-    # FIXME frame - urbansim actually only asks for the columns that are used by
-    # FIXME the model specs in play at that time
     return pd.Series(0, households.index)
 
 
@@ -159,86 +156,3 @@ def car_sufficiency(households, persons):
 def work_tour_auto_time_savings(households):
     # TODO fix this variable from auto ownership model
     return pd.Series(0, households.index)
-
-
-# this is an idiom to grab the person of the specified type and check to see if
-# there is 1 or more of that kind of person in each household
-def presence_of(ptype, persons, households, at_home=False):
-    if at_home:
-        # if at_home, they need to be of given type AND at home
-        s = persons.household_id[(persons.ptype_cat == ptype) &
-                                 (persons.cdap_activity == "H")]
-    else:
-        s = persons.household_id[persons.ptype_cat == ptype]
-
-    return (s.value_counts() > 0).reindex(households.index).fillna(False)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_non_worker(persons, households):
-    return presence_of("nonwork", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_retiree(persons, households):
-    return presence_of("retired", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_preschool_kid(persons, households):
-    return presence_of("preschool", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_preschool_kid_at_home(persons, households):
-    return presence_of("preschool", persons, households, at_home=True)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_driving_kid(persons, households):
-    return presence_of("driving", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_school_kid(persons, households):
-    return presence_of("school", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_school_kid_at_home(persons, households):
-    return presence_of("school", persons, households, at_home=True)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_full_time(persons, households):
-    return presence_of("full", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_part_time(persons, households):
-    return presence_of("part", persons, households)
-
-
-# FIXME this is in non-mandatory tour generation - and should really be from
-# FIXME the perspective of the current chooser - which it's not right now
-@sim.column('households')
-def has_university(persons, households):
-    return presence_of("university", persons, households)

@@ -50,13 +50,7 @@ def read_model_spec(fname,
     return cfg
 
 
-def identity_matrix(alt_names):
-    return pd.DataFrame(np.identity(len(alt_names)),
-                        columns=alt_names,
-                        index=alt_names)
-
-
-def eval_variables(exprs, df, locals_d={}):
+def eval_variables(exprs, df, locals_d=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -86,12 +80,16 @@ def eval_variables(exprs, df, locals_d={}):
         Will have the index of `df` and columns of `exprs`.
 
     """
+    if locals_d is None:
+        locals_d = {}
+    locals_d.update(locals())
+
     def to_series(x):
         if np.isscalar(x):
             return pd.Series([x] * len(df), index=df.index)
         return x
     return pd.DataFrame.from_items(
-        [(e, to_series(eval(e[1:], locals_d, locals())) if e.startswith('@')
+        [(e, to_series(eval(e[1:], globals(), locals_d)) if e.startswith('@')
             else df.eval(e)) for e in exprs])
 
 

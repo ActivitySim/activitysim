@@ -1,5 +1,5 @@
 Description,,Expression,Coefficient
-subsequet tour must start after previous tour ends,subsequentTour,start < end_of_previous_tour,999
+# subsequet tour must start after previous tour ends,subsequentTour,start < end_of_previous_tour,999
 Free-flow round trip auto time shift effects - duration,,roundtrip_auto_time_to_work * duration,0.00474
 Shopping tour - departure shift effects,tourPurposeIsShopping,"(tour_type == ""shopping"") * start",0.06015
 Shopping tour - duration shift effects,tourPurposeIsShopping,"(tour_type == ""shopping"") * duration",0.1208

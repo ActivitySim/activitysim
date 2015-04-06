@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import urbansim.sim.simulation as sim
 from activitysim import activitysim as asim
-from non_mandatory_scheduling import vectorize_tour_schedules
+from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
 """
 This model predicts the departure time and duration of each activity for
@@ -39,16 +39,12 @@ def mandatory_scheduling(set_random_seed,
                          tdd_mandatory_spec):
 
     tours = mandatory_tours_merged.to_frame()
+    alts = tdd_alts.to_frame()
+    spec = tdd_mandatory_spec.to_frame()
 
     print "Running %d mandatory tour scheduling choices" % len(tours)
 
-    # FIXME we're about halfway down the specfile
-    spec = tdd_mandatory_spec.to_frame().head(27)
-    alts = tdd_alts.to_frame()
-
-    # FIXME the "windowing" variables are not currently implemented
-
-    choices = vectorize_tour_schedules(tours, alts, spec)
+    choices = vectorize_tour_scheduling(tours, alts, spec)
 
     print "Choices:\n", choices.describe()
 

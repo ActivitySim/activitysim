@@ -88,9 +88,19 @@ def eval_variables(exprs, df, locals_d=None):
         if np.isscalar(x):
             return pd.Series([x] * len(df), index=df.index)
         return x
-    return pd.DataFrame.from_items(
-        [(e, to_series(eval(e[1:], globals(), locals_d)) if e.startswith('@')
-            else df.eval(e)) for e in exprs])
+
+    l = []
+    # need to be able to identify which variables causes an error, which keeps
+    # this from being expressed more parsimoniously
+    for e in exprs:
+        try:
+            l.append((e, to_series(eval(e[1:], globals(), locals_d))
+                     if e.startswith('@') else df.eval(e)))
+        except Exception as err:
+            print "Variable evaluation failed for: %s" % str(e)
+            raise err
+
+    return pd.DataFrame.from_items(l)
 
 
 def add_skims(df, skims):

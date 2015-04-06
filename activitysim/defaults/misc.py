@@ -25,7 +25,7 @@ def data_dir():
     return '.'
 
 
-@sim.injectable(cache=True)
+@sim.injectable()
 def settings(configs_dir):
     with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
         return yaml.load(f)

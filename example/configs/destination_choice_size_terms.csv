@@ -4,8 +4,8 @@ segment,TOTHH,RETEMPN,FPSEMPN,HEREMPN,OTHEMPN,AGREMPN,MWTEMPN,AGE0519,HSENROLL,C
 "work, high",0,0.11,0.207,0.284,0.154,0.006,0.239,0,0,0,0
 "work, veryhigh",0,0.093,0.27,0.241,0.146,0.004,0.246,0,0,0,0
 university,0,0,0,0,0,0,0,0,0,0.592,0.408
-"school, grade",0,0,0,0,0,0,0,1,0,0,0
-"school, high",0,0,0,0,0,0,0,0,1,0,0
+gradeschool,0,0,0,0,0,0,0,1,0,0,0
+highschool,0,0,0,0,0,0,0,0,1,0,0
 "escort, kids",0,0.225,0,0.144,0,0,0,0.465,0.166,0,0
 "escort, no kids",0,0.225,0,0.144,0,0,0,0.465,0.166,0,0
 shopping,0,1,0,0,0,0,0,0,0,0,0

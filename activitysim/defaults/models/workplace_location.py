@@ -15,8 +15,6 @@ def workplace_location_spec(configs_dir):
     return asim.read_model_spec(f).fillna(0)
 
 
-# FIXME there are three school models that go along with this one which have
-# FIXME not been implemented yet
 @sim.model()
 def workplace_location_simulate(set_random_seed,
                                 persons_merged,
@@ -25,6 +23,7 @@ def workplace_location_simulate(set_random_seed,
                                 destination_size_terms):
 
     choosers = persons_merged.to_frame()
+    choosers = choosers[choosers.employed_cat.isin(["full", "part"])]
     alternatives = destination_size_terms.to_frame()
 
     # set the keys for this lookup - in this case there is a TAZ in the choosers
@@ -38,6 +37,8 @@ def workplace_location_simulate(set_random_seed,
                                            workplace_location_spec,
                                            skims=skims,
                                            locals_d=locals_d)
+
+    choices = choices.reindex(persons_merged.index).fillna(-1).astype('int')
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)

@@ -2,14 +2,14 @@
 # Copyright (C) 2014-2015 Synthicity, LLC
 # See full license in LICENSE.txt.
 
-from skim import Skims, Skims3D
+from operator import itemgetter
 
 import numpy as np
 import pandas as pd
+from zbox import toolz as tz
 
-from urbansim.urbanchoice import interaction
-
-from .mnl import utils_to_probs, make_choices
+from .skim import Skims, Skims3D
+from .mnl import utils_to_probs, make_choices, interaction_dataset
 
 
 def random_rows(df, n):
@@ -240,8 +240,7 @@ def interaction_simulate(
     alternatives[alternatives.index.name] = alternatives.index
 
     # merge choosers and alternatives
-    _, df, _ = interaction.mnl_interaction_dataset(
-        choosers, alternatives, sample_size)
+    df = interaction_dataset(choosers, alternatives, sample_size)
 
     if skims:
         add_skims(df, skims)
@@ -267,3 +266,41 @@ def interaction_simulate(
     choices = model_design.index.take(positions + offsets)
 
     return pd.Series(choices, index=choosers.index), model_design
+
+
+def other_than(groups, bools):
+    """
+    Construct a Series that has booleans indicating the presence of
+    something- or someone-else with a certain property within a group.
+
+    Parameters
+    ----------
+    groups : pandas.Series
+        A column with the same index as `bools` that defines the grouping
+        of `bools`. The `bools` Series will be used to index `groups` and
+        then the grouped values will be counted.
+    bools : pandas.Series
+        A boolean Series indicating where the property of interest is present.
+        Should have the same index as `groups`.
+
+    Returns
+    -------
+    others : pandas.Series
+        A boolean Series with the same index as `groups` and `bools`
+        indicating whether there is something- or something-else within
+        a group with some property (as indicated by `bools`).
+
+    """
+    counts = groups[bools].value_counts()
+    merge_col = groups.to_frame(name='right')
+    pipeline = tz.compose(
+        tz.curry(pd.Series.fillna, value=False),
+        itemgetter('left'),
+        tz.curry(
+            pd.DataFrame.merge, right=merge_col, how='right', left_index=True,
+            right_on='right'),
+        tz.curry(pd.Series.to_frame, name='left'))
+    gt0 = pipeline(counts > 0)
+    gt1 = pipeline(counts > 1)
+
+    return gt1.where(bools, other=gt0)

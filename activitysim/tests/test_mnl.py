@@ -87,3 +87,46 @@ def test_make_choices_real_probs(random_seed, utilities):
     pdt.assert_series_equal(
         choices,
         pd.Series([1, 2], index=[0, 1]))
+
+
+@pytest.fixture(scope='module')
+def interaction_choosers():
+    return pd.DataFrame({
+        'attr': ['a', 'b', 'c', 'b']},
+        index=['w', 'x', 'y', 'z'])
+
+
+@pytest.fixture(scope='module')
+def interaction_alts():
+    return pd.DataFrame({
+        'prop': [10, 20, 30, 40]},
+        index=[1, 2, 3, 4])
+
+
+def test_interaction_dataset_no_sample(interaction_choosers, interaction_alts):
+    expected = pd.DataFrame({
+        'attr': ['a'] * 4 + ['b'] * 4 + ['c'] * 4 + ['b'] * 4,
+        'prop': [10, 20, 30, 40] * 4,
+        'chooser_idx': ['w'] * 4 + ['x'] * 4 + ['y'] * 4 + ['z'] * 4},
+        index=[1, 2, 3, 4] * 4)
+
+    interacted = mnl.interaction_dataset(
+        interaction_choosers, interaction_alts)
+
+    interacted, expected = interacted.align(expected, axis=1)
+    pdt.assert_frame_equal(interacted, expected)
+
+
+def test_interaction_dataset_sampled(
+        interaction_choosers, interaction_alts, random_seed):
+    expected = pd.DataFrame({
+        'attr': ['a'] * 2 + ['b'] * 2 + ['c'] * 2 + ['b'] * 2,
+        'prop': [10, 40, 20, 10, 40, 40, 40, 40],
+        'chooser_idx': ['w'] * 2 + ['x'] * 2 + ['y'] * 2 + ['z'] * 2},
+        index=[1, 4, 2, 1, 4, 4, 4, 4])
+
+    interacted = mnl.interaction_dataset(
+        interaction_choosers, interaction_alts, sample_size=2)
+
+    interacted, expected = interacted.align(expected, axis=1)
+    pdt.assert_frame_equal(interacted, expected)

@@ -60,6 +60,45 @@ def test_size_term():
     pdt.assert_series_equal(s, pd.Series(answer))
 
 
+def test_mini_run(store):
+    sim.add_injectable("configs_dir",
+                       os.path.join(os.path.dirname(__file__)))
+
+    sim.add_injectable("store", store)
+
+    sim.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
+    sim.add_injectable("set_random_seed", set_random_seed)
+
+    assert len(sim.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+
+    # run the models in the expected order
+    sim.run(["workplace_location_simulate"])
+    sim.run(["auto_ownership_simulate"])
+
+    # this is a regression test so that we know if these numbers change
+    auto_choice = sim.get_table('households').get_column('auto_ownership')
+
+    pdt.assert_series_equal(
+        auto_choice[[2306822, 652072, 651907]],
+        pd.Series(
+            [3, 1, 0], index=[2306822, 652072, 651907]))
+
+    sim.run(["cdap_simulate"])
+
+    sim.run(['mandatory_tour_frequency'])
+
+    mtf_choice = sim.get_table('persons').get_column(
+        'mandatory_tour_frequency')
+
+    pdt.assert_series_equal(
+        mtf_choice[[146642, 642922, 642921]],
+        pd.Series(
+            ['work_and_school', 'work2', 'school2'],
+            index=[146642, 642922, 642921]))
+
+    sim.clear_cache()
+
+
 def test_run(store):
     sim.add_injectable("configs_dir",
                        os.path.join(os.path.dirname(__file__), '..', '..',
@@ -89,43 +128,5 @@ def test_run(store):
     sim.run(["mandatory_scheduling"])
     sim.run(["non_mandatory_scheduling"])
     sim.run(["mode_choice_simulate"])
-
-    sim.clear_cache()
-
-
-def test_mini_run(store):
-    sim.add_injectable("configs_dir",
-                       os.path.join(os.path.dirname(__file__)))
-
-    sim.add_injectable("store", store)
-
-    sim.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
-    sim.add_injectable("set_random_seed", set_random_seed)
-
-    assert len(sim.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
-
-    # run the models in the expected order
-    sim.run(["workplace_location_simulate"])
-    sim.run(["auto_ownership_simulate"])
-
-    # this is a regression test so that we know if these numbers change
-    auto_choice = sim.get_table('households').get_column('auto_ownership')
-    pdt.assert_series_equal(
-        auto_choice[[2306822, 652072, 651907]],
-        pd.Series(
-            [2, 1, 1], index=[2306822, 652072, 651907]))
-
-    sim.run(["cdap_simulate"])
-
-    sim.run(['mandatory_tour_frequency'])
-
-    mtf_choice = sim.get_table('persons').get_column(
-        'mandatory_tour_frequency')
-    print mtf_choice
-    pdt.assert_series_equal(
-        mtf_choice[[642922, 6203845, 642921]],
-        pd.Series(
-            ['work1', 'work1', 'school2'],
-            index=[642922, 6203845, 642921]))
 
     sim.clear_cache()

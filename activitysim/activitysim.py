@@ -45,6 +45,9 @@ def read_model_spec(fname,
         expression values are set as the table index.
     """
     cfg = pd.read_csv(fname, comment='#')
+
+    cfg = cfg.dropna(subset=[expression_name])
+
     # don't need description and set the expression to the index
     cfg = cfg.drop(description_name, axis=1).set_index(expression_name)
     return cfg

@@ -72,6 +72,7 @@ class Skims(object):
     It is assumed that left_key and right_key identify columns in df.  The
     parameter df is usually set by the simulation itself as it's a result of
     interacting choosers and alternatives.
+
     When the user calls skims[key], key is an identifier for which skim
     to use, and the object automatically looks up impedances of that skim
     using the specified left_key column in df as the origin and
@@ -80,6 +81,7 @@ class Skims(object):
     for this lookup.  This is the only purpose of this object: to
     abstract away the O-D lookup and use skims by specifiying which skim
     to use in the expressions.
+
     Note that keys are any hashable object, not just strings.  So calling
     skim[('AM', 'SOV')] is valid and useful.
     """
@@ -228,6 +230,7 @@ class Skims3D(object):
     ('SOV', 'AM"), ('SOV', 'PM') etc.  The time of day is then taken to
     be different for every row in the tours table, and the 'SOV' portion
     of the key can be used in __getitem__.
+
     To be more explicit, the input is a dictionary of Skims objects, each of
     which contains a 2D matrix.  These are stacked into a 3D matrix with a
     mapping of keys to indexes which is applied using pandas .map to a third
@@ -238,7 +241,7 @@ class Skims3D(object):
     __getitem__ below (i.e. the one used in the specs).  By convention,
     every key in the Skims object that is passed in MUST be a tuple with 2
     items.  The second item in the tuple maps to the items in the dataframe
-    referred to be the skim_key column and the first item in the tuple is
+    referred to by the skim_key column and the first item in the tuple is
     then available to pass directly to __getitem__.  This is now made
     explicit by adding the set_3d and get_3d methods in the Skims object which
     take the two keys independently and convert to the tuple internally.

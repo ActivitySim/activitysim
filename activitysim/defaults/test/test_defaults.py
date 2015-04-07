@@ -89,6 +89,8 @@ def test_run(store):
     sim.run(["non_mandatory_scheduling"])
     sim.run(["mode_choice_simulate"])
 
+    sim.clear_cache()
+
 
 def test_mini_run(store):
     sim.add_injectable("configs_dir",
@@ -110,14 +112,17 @@ def test_mini_run(store):
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 651907]],
         pd.Series(
-            [3, 1, 0], index=[2306822, 652072, 651907]))
+            [2, 1, 1], index=[2306822, 652072, 651907]))
 
     sim.run(['mandatory_tour_frequency'])
 
     mtf_choice = sim.get_table('persons').get_column(
         'mandatory_tour_frequency')
+    print mtf_choice[[6083113, 47427, 448099]]
     pdt.assert_series_equal(
         mtf_choice[[6083113, 47427, 448099]],
         pd.Series(
-            ['school1', 'work2', 'work_and_school'],
+            ['work_and_school', 'work1', 'school1'],
             index=[6083113, 47427, 448099]))
+
+    sim.clear_cache()

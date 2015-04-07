@@ -35,11 +35,10 @@ def age_16_p(persons):
     return persons.to_frame(["age"]).eval("16 <= age")
 
 
-# FIXME - this is my "placeholder" for the CDAP model ;)
 @sim.column("persons")
-def cdap_activity(set_random_seed, persons):
-    return pd.Series(np.random.randint(3, size=len(persons)),
-                     index=persons.index).map({0: 'M', 1: 'N', 2: 'H'})
+def cdap_activity(persons):
+    # return a default until it gets filled in by the model
+    return pd.Series('M', persons.index)
 
 
 # FIXME - these are my "placeholder" for joint trip generation

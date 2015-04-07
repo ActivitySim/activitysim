@@ -109,6 +109,28 @@ def num_mand(persons):
     return s.fillna(0)
 
 
+@sim.column("persons")
+def work_and_school_and_worker(persons):
+    if "mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    s = (persons.mandatory_tour_frequency == "work_and_school").\
+        reindex(persons.index).fillna(False)
+
+    return s & persons.is_worker
+
+
+@sim.column("persons")
+def work_and_school_and_student(persons):
+    if "mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    s = (persons.mandatory_tour_frequency == "work_and_school").\
+        reindex(persons.index).fillna(False)
+
+    return s & persons.is_student
+
+
 # FIXME now totally sure what this is but it's used in non mandatory tour
 # FIXME generation and probably has to do with remaining unscheduled time
 @sim.column('persons')

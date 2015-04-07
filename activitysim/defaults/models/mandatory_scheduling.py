@@ -26,23 +26,55 @@ def duration(tdd_alts):
 
 
 @sim.table()
-def tdd_mandatory_spec(configs_dir):
+def tdd_work_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs',
-                     'tour_departure_and_duration_mandatory.csv')
+                     'tour_departure_and_duration_work.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
 @sim.model()
-def mandatory_scheduling(set_random_seed,
-                         mandatory_tours_merged,
-                         tdd_alts,
-                         tdd_mandatory_spec):
+def work_scheduling(set_random_seed,
+                    mandatory_tours_merged,
+                    tdd_alts,
+                    tdd_work_spec):
 
     tours = mandatory_tours_merged.to_frame()
     alts = tdd_alts.to_frame()
-    spec = tdd_mandatory_spec.to_frame()
+    spec = tdd_work_spec.to_frame()
 
-    print "Running %d mandatory tour scheduling choices" % len(tours)
+    tours = tours[tours.tour_type == "work"]
+
+    print "Running %d work tour scheduling choices" % len(tours)
+
+    choices = vectorize_tour_scheduling(tours, alts, spec)
+
+    print "Choices:\n", choices.describe()
+
+    sim.add_column("mandatory_tours",
+                   "tour_departure_and_duration",
+                   choices)
+
+
+@sim.table()
+def tdd_school_spec(configs_dir):
+    f = os.path.join(configs_dir, 'configs',
+                     'tour_departure_and_duration_school.csv')
+    return asim.read_model_spec(f).fillna(0)
+
+
+@sim.model()
+def school_scheduling(set_random_seed,
+                      mandatory_tours_merged,
+                      tdd_alts,
+                      tdd_school_spec):
+
+    tours = mandatory_tours_merged.to_frame()
+    alts = tdd_alts.to_frame()
+    spec = tdd_school_spec.to_frame()
+
+    tours = tours[tours.tour_type == "school"]
+
+    print "Running %d school tour scheduling choices" % len(tours)
 
     choices = vectorize_tour_scheduling(tours, alts, spec)
 

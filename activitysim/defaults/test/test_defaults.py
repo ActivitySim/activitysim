@@ -99,7 +99,7 @@ def test_mini_run(store):
     sim.clear_cache()
 
 
-def test_run(store):
+def test_full_run(store):
     sim.add_injectable("configs_dir",
                        os.path.join(os.path.dirname(__file__), '..', '..',
                                     '..', 'example'))
@@ -125,8 +125,9 @@ def test_run(store):
     sim.run(['non_mandatory_tour_frequency'])
     sim.get_table("non_mandatory_tours").tour_type.value_counts()
     sim.run(["destination_choice"])
-    sim.run(["mandatory_scheduling"])
+    sim.run(["work_scheduling"])
+    sim.run(["school_scheduling"])
     sim.run(["non_mandatory_scheduling"])
-    sim.run(["mode_choice_simulate"])
+    # sim.run(["mode_choice_simulate"])
 
     sim.clear_cache()

@@ -73,8 +73,10 @@ def mode_choice_simulate(tours_merged,
                          mode_choice_settings,
                          skims):
 
+    tours = tours_merged.to_frame()
+    tours = tours[tours.tour_type == "work"]
+
     mode_choice_spec = mode_choice_spec.head(33)
-    print mode_choice_spec
 
     # the skims will be available under the name "skims" for any @ expressions
     in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
@@ -91,7 +93,7 @@ def mode_choice_simulate(tours_merged,
     # FIXME work on all kinds of tour types
     # FIXME note that in particular the spec above only has work tours in it
 
-    choices, _ = asim.simple_simulate(tours_merged.to_frame(),
+    choices, _ = asim.simple_simulate(tours,
                                       get_segment_and_unstack(mode_choice_spec,
                                                               'work'),
                                       skims=[in_skims, out_skims],

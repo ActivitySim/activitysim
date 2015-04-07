@@ -32,29 +32,6 @@ def tdd_work_spec(configs_dir):
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.model()
-def work_scheduling(set_random_seed,
-                    mandatory_tours_merged,
-                    tdd_alts,
-                    tdd_work_spec):
-
-    tours = mandatory_tours_merged.to_frame()
-    alts = tdd_alts.to_frame()
-    spec = tdd_work_spec.to_frame()
-
-    tours = tours[tours.tour_type == "work"]
-
-    print "Running %d work tour scheduling choices" % len(tours)
-
-    choices = vectorize_tour_scheduling(tours, alts, spec)
-
-    print "Choices:\n", choices.describe()
-
-    sim.add_column("mandatory_tours",
-                   "tour_departure_and_duration",
-                   choices)
-
-
 @sim.table()
 def tdd_school_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs',
@@ -62,21 +39,33 @@ def tdd_school_spec(configs_dir):
     return asim.read_model_spec(f).fillna(0)
 
 
+# I think it's easier to do this in one model so you can merge the two
+# resulting series together right away
 @sim.model()
-def school_scheduling(set_random_seed,
-                      mandatory_tours_merged,
-                      tdd_alts,
-                      tdd_school_spec):
+def mandatory_scheduling(set_random_seed,
+                         mandatory_tours_merged,
+                         tdd_alts,
+                         tdd_school_spec,
+                         tdd_work_spec):
 
     tours = mandatory_tours_merged.to_frame()
     alts = tdd_alts.to_frame()
-    spec = tdd_school_spec.to_frame()
 
-    tours = tours[tours.tour_type == "school"]
+    school_spec = tdd_school_spec.to_frame()
+    school_tours = tours[tours.tour_type == "school"]
 
-    print "Running %d school tour scheduling choices" % len(tours)
+    print "Running %d school tour scheduling choices" % len(school_tours)
 
-    choices = vectorize_tour_scheduling(tours, alts, spec)
+    school_choices = vectorize_tour_scheduling(school_tours, alts, school_spec)
+
+    work_spec = tdd_work_spec.to_frame()
+    work_tours = tours[tours.tour_type == "work"]
+
+    print "Running %d work tour scheduling choices" % len(work_tours)
+
+    work_choices = vectorize_tour_scheduling(work_tours, alts, work_spec)
+
+    choices = pd.concat([school_choices, work_choices])
 
     print "Choices:\n", choices.describe()
 

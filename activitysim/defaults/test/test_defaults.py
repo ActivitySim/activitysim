@@ -125,9 +125,8 @@ def test_full_run(store):
     sim.run(['non_mandatory_tour_frequency'])
     sim.get_table("non_mandatory_tours").tour_type.value_counts()
     sim.run(["destination_choice"])
-    sim.run(["work_scheduling"])
-    sim.run(["school_scheduling"])
+    sim.run(["mandatory_scheduling"])
     sim.run(["non_mandatory_scheduling"])
-    # sim.run(["mode_choice_simulate"])
+    sim.run(["mode_choice_simulate"])
 
     sim.clear_cache()

@@ -80,6 +80,7 @@ def test_run(store):
     # run the models in the expected order
     sim.run(["workplace_location_simulate"])
     sim.run(["auto_ownership_simulate"])
+    sim.run(["cdap_simulate"])
     sim.run(['mandatory_tour_frequency'])
     sim.get_table("mandatory_tours").tour_type.value_counts()
     sim.run(['non_mandatory_tour_frequency'])
@@ -114,15 +115,17 @@ def test_mini_run(store):
         pd.Series(
             [2, 1, 1], index=[2306822, 652072, 651907]))
 
+    sim.run(["cdap_simulate"])
+
     sim.run(['mandatory_tour_frequency'])
 
     mtf_choice = sim.get_table('persons').get_column(
         'mandatory_tour_frequency')
-    print mtf_choice[[6083113, 47427, 448099]]
+    print mtf_choice
     pdt.assert_series_equal(
-        mtf_choice[[6083113, 47427, 448099]],
+        mtf_choice[[642922, 6203845, 642921]],
         pd.Series(
-            ['work_and_school', 'work1', 'school1'],
-            index=[6083113, 47427, 448099]))
+            ['work1', 'work1', 'school2'],
+            index=[642922, 6203845, 642921]))
 
     sim.clear_cache()

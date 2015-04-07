@@ -42,7 +42,8 @@ def non_mandatory_tour_frequency(set_random_seed,
     choosers = persons_merged.to_frame()
 
     # filter based on results of CDAP
-    choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
+    choosers = choosers[choosers.cdap_activity.isin(['Mandatory',
+                                                     'NonMandatory'])]
     print "%d persons run for non-mandatory tour model" % len(choosers)
 
     choices_list = []

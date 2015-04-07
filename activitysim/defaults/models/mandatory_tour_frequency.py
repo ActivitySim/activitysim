@@ -23,7 +23,7 @@ def mandatory_tour_frequency(set_random_seed,
 
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
-    choosers = choosers[choosers.cdap_activity == 'M']
+    choosers = choosers[choosers.cdap_activity == 'Mandatory']
     print "%d persons run for mandatory tour model" % len(choosers)
 
     choices, _ = asim.simple_simulate(choosers, mandatory_tour_frequency_spec)

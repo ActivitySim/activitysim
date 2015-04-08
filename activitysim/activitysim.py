@@ -144,11 +144,16 @@ def _check_for_variability(model_design):
     it's likely that if 100k rows have no variability, the whole dataframe
     will have no variability.
     """
-    sample = random_rows(model_design, min(100000, len(model_design)))\
-        .describe().transpose()
-    sample = sample[sample["std"] == 0]
-    if len(sample):
-        print "WARNING: Some columns have no variability:\n", sample.index.values
+    l = min(100000, len(model_design))
+    sample = random_rows(model_design, l).describe().transpose()
+    error = sample[sample["std"] == 0]
+    if len(error):
+        print "WARNING: Some columns have no variability:\n", \
+            error.index.values
+    error = sample[sample["count"] < l]
+    if len(error):
+        print "WARNING: Some columns have missing values:\n", \
+            error.index.values
 
 
 def simple_simulate(choosers, spec, skims=None, locals_d=None):

@@ -28,8 +28,7 @@ def non_mandatory_scheduling(set_random_seed,
 
     print "Running %d non-mandatory tour scheduling choices" % len(tours)
 
-    # FIXME we're not even halfway down the specfile
-    spec = tdd_non_mandatory_spec.to_frame().head(4)[['Coefficient']]
+    spec = tdd_non_mandatory_spec.to_frame()
     alts = tdd_alts.to_frame()
 
     choices = vectorize_tour_scheduling(tours, alts, spec)

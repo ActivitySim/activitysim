@@ -36,6 +36,11 @@ def age_16_p(persons):
 
 
 @sim.column("persons")
+def adult(persons):
+    return persons.to_frame(["age"]).eval("18 <= age")
+
+
+@sim.column("persons")
 def cdap_activity(set_random_seed, persons):
     # return a default until it gets filled in by the model
     return pd.Series(np.random.randint(3, size=len(persons)),
@@ -91,6 +96,26 @@ def male(persons):
 @sim.column("persons")
 def female(persons):
     return persons.sex == 1
+
+
+@sim.column("persons")
+def num_escort_tours(persons, non_mandatory_tours):
+    if "non_mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    nmt = non_mandatory_tours.to_frame()
+    return nmt[nmt.tour_type == "escort"].groupby("person_id").size()\
+        .reindex(persons.index).fillna(0)
+
+
+@sim.column("persons")
+def num_non_escort_tours(persons, non_mandatory_tours):
+    if "non_mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    nmt = non_mandatory_tours.to_frame()
+    return nmt[nmt.tour_type != "escort"].groupby("person_id").size()\
+        .reindex(persons.index).fillna(0)
 
 
 # count the number of mandatory tours for each person

@@ -40,7 +40,8 @@ def destination_choice(set_random_seed,
 
         # FIXME - there are two options here escort with kids and without
         if name == "escort":
-            continue
+            # FIXME just run one of the other models for now
+            name = "shopping"
 
         # the segment is now available to switch between size terms
         locals_d['segment'] = name

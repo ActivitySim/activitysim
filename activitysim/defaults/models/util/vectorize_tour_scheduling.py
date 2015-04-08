@@ -103,6 +103,10 @@ def vectorize_tour_scheduling(tours, alts, spec):
 
         print "Running %d #%d tour choices" % (len(nth_tours), i+1)
 
+        # tour num can be set by the user, but if it isn't we set it here
+        if "tour_num" not in nth_tours:
+            nth_tours["tour_num"] = i+1
+
         nth_tours = nth_tours.join(get_previous_tour_by_tourid(
             nth_tours.person_id,
             previous_tour_by_personid,

@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import urbansim.sim.simulation as sim
+import urbansim.utils.misc as usim_misc
 from activitysim import activitysim as asim
 
 
@@ -70,6 +71,16 @@ def non_mandatory_tour_frequency(set_random_seed,
     sim.add_column("persons", "non_mandatory_tour_frequency", choices)
 
 
+@sim.column("non_mandatory_tours")
+def destination_in_cbd(non_mandatory_tours, land_use, settings):
+    # protection until filled in by destination choice model
+    if "destination" not in non_mandatory_tours.columns:
+        return pd.Series(False, index=non_mandatory_tours.index)
+
+    s = usim_misc.reindex(land_use.area_type, non_mandatory_tours.destination)
+    return s < settings['cbd_threshold']
+
+
 """
 We have now generated non-mandatory tours, but they are attributes of the
 person table - this function creates a "tours" table which
@@ -82,6 +93,9 @@ associated with)
 @sim.table()
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):
+
+    if "non_mandatory_tour_frequency" not in persons.columns:
+        return pd.DataFrame()
 
     # get the actual alternatives for each person - have to go back to the
     # non_mandatory_tour_frequency_alts dataframe to get this - the choice

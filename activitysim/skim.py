@@ -352,4 +352,7 @@ class Skims3D(object):
         skim_indexes = self.df[self.skim_key].\
             map(self.skim_keys_to_indexes[key]).astype('int')
 
-        return self.lookup(key, origins, destinations, skim_indexes)
+        return pd.Series(
+            self.lookup(key, origins, destinations, skim_indexes),
+            self.df.index
+        )

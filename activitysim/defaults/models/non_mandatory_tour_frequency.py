@@ -93,6 +93,8 @@ def non_mandatory_tours(persons,
 This is where I'm currently putting computed columns for non_mandatory_tours
 - there's an argument this should go in the tables directory in tours.py
 """
+
+
 @sim.column("non_mandatory_tours")
 def destination_in_cbd(non_mandatory_tours, land_use, settings):
     # protection until filled in by destination choice model
@@ -101,6 +103,3 @@ def destination_in_cbd(non_mandatory_tours, land_use, settings):
 
     s = usim_misc.reindex(land_use.area_type, non_mandatory_tours.destination)
     return s < settings['cbd_threshold']
-
-
-

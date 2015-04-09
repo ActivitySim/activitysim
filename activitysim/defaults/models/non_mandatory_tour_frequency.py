@@ -4,6 +4,7 @@ import numpy as np
 import urbansim.sim.simulation as sim
 import urbansim.utils.misc as usim_misc
 from activitysim import activitysim as asim
+from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
 
 
 """
@@ -27,10 +28,8 @@ def non_mandatory_tour_frequency_alts(configs_dir):
     return pd.read_csv(f)
 
 
-# this a computed variable of the alts used in the model
 @sim.column("non_mandatory_tour_frequency_alts")
 def tot_tours(non_mandatory_tour_frequency_alts):
-    # this assumes that the alt dataframe is only counts of trip types
     return non_mandatory_tour_frequency_alts.local.sum(axis=1)
 
 
@@ -65,20 +64,8 @@ def non_mandatory_tour_frequency(set_random_seed,
     choices = pd.concat(choices_list)
 
     print "Choices:\n", choices.value_counts()
-    # this is adding the INDEX of the alternative that is chosen - when
-    # we use the results of this choice we will need both these indexes AND
-    # the alternatives themselves
+
     sim.add_column("persons", "non_mandatory_tour_frequency", choices)
-
-
-@sim.column("non_mandatory_tours")
-def destination_in_cbd(non_mandatory_tours, land_use, settings):
-    # protection until filled in by destination choice model
-    if "destination" not in non_mandatory_tours.columns:
-        return pd.Series(False, index=non_mandatory_tours.index)
-
-    s = usim_misc.reindex(land_use.area_type, non_mandatory_tours.destination)
-    return s < settings['cbd_threshold']
 
 
 """
@@ -89,7 +76,6 @@ associated with)
 """
 
 
-# TODO this needs a simple input / output unit test
 @sim.table()
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):
@@ -97,35 +83,24 @@ def non_mandatory_tours(persons,
     if "non_mandatory_tour_frequency" not in persons.columns:
         return pd.DataFrame()
 
-    # get the actual alternatives for each person - have to go back to the
-    # non_mandatory_tour_frequency_alts dataframe to get this - the choice
-    # above just stored the index values for the chosen alts
-    tours = non_mandatory_tour_frequency_alts.local.\
-        loc[persons.non_mandatory_tour_frequency]
+    return process_non_mandatory_tours(
+        persons.non_mandatory_tour_frequency.dropna(),
+        non_mandatory_tour_frequency_alts.local
+    )
 
-    # assign person ids to the index
-    tours.index = persons.index[~persons.non_mandatory_tour_frequency.isnull()]
 
-    # reformat with the columns given below
-    tours = tours.stack().reset_index()
-    tours.columns = ["person_id", "tour_type", "num_tours"]
+"""
+This is where I'm currently putting computed columns for non_mandatory_tours
+- there's an argument this should go in the tables directory in tours.py
+"""
+@sim.column("non_mandatory_tours")
+def destination_in_cbd(non_mandatory_tours, land_use, settings):
+    # protection until filled in by destination choice model
+    if "destination" not in non_mandatory_tours.columns:
+        return pd.Series(False, index=non_mandatory_tours.index)
 
-    # now do a repeat and a take, so if you have two trips of given type you
-    # now have two rows, and zero trips yields zero rows
-    tours = tours.take(np.repeat(tours.index.values, tours.num_tours.values))
+    s = usim_misc.reindex(land_use.area_type, non_mandatory_tours.destination)
+    return s < settings['cbd_threshold']
 
-    # make index unique and drop num_tours since we don't need it anymore
-    tours = tours.reset_index(drop=True).drop("num_tours", axis=1)
 
-    """
-    Pretty basic at this point - trip table looks like this so far
-           person_id tour_type
-    0          4419    escort
-    1          4419    escort
-    2          4419  othmaint
-    3          4419    eatout
-    4          4419    social
-    5         10001    escort
-    6         10001    escort
-    """
-    return tours
+

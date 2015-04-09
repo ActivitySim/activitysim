@@ -26,6 +26,8 @@ def mandatory_tour_frequency(set_random_seed,
     choosers = choosers[choosers.cdap_activity == 'Mandatory']
     print "%d persons run for mandatory tour model" % len(choosers)
 
+    print choosers.workplace_taz.describe()
+
     choices, _ = asim.simple_simulate(choosers, mandatory_tour_frequency_spec)
 
     # convert indexes to alternative names

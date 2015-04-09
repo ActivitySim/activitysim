@@ -38,8 +38,9 @@ def school_location_simulate(set_random_seed,
 
         locals_d['segment'] = school_type
 
-        choices, _ = asim.interaction_simulate(choosers[choosers["is_" +
-                                                                 school_type]],
+        choosers_segment = choosers[choosers["is_" + school_type]]
+
+        choices, _ = asim.interaction_simulate(choosers_segment,
                                                alternatives,
                                                spec[[school_type]],
                                                skims=skims,
@@ -47,7 +48,7 @@ def school_location_simulate(set_random_seed,
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
-    choices = choices.reindex(persons_merged.index).fillna(-1).astype('int')
+    choices = choices.reindex(persons_merged.index)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "school_taz", choices)

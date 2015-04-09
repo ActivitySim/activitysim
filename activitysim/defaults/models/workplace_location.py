@@ -22,8 +22,11 @@ def workplace_location_simulate(set_random_seed,
                                 skims,
                                 destination_size_terms):
 
+    # for now I'm going to generate a workplace location for everyone -
+    # presumably it will not get used in downstream models for everyone -
+    # it should depend on CDAP and mandatory tour generation as to whethrer
+    # it gets used
     choosers = persons_merged.to_frame()
-    choosers = choosers[choosers.employed_cat.isin(["full", "part"])]
     alternatives = destination_size_terms.to_frame()
 
     # set the keys for this lookup - in this case there is a TAZ in the choosers
@@ -38,7 +41,7 @@ def workplace_location_simulate(set_random_seed,
                                            skims=skims,
                                            locals_d=locals_d)
 
-    choices = choices.reindex(persons_merged.index).fillna(-1).astype('int')
+    choices = choices.reindex(persons_merged.index)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)

@@ -45,18 +45,15 @@ def read_model_spec(fname,
         expression values are set as the table index.
     """
     cfg = pd.read_csv(fname, comment='#')
+
+    cfg = cfg.dropna(subset=[expression_name])
+
     # don't need description and set the expression to the index
     cfg = cfg.drop(description_name, axis=1).set_index(expression_name)
     return cfg
 
 
-def identity_matrix(alt_names):
-    return pd.DataFrame(np.identity(len(alt_names)),
-                        columns=alt_names,
-                        index=alt_names)
-
-
-def eval_variables(exprs, df, locals_d={}):
+def eval_variables(exprs, df, locals_d=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -86,13 +83,27 @@ def eval_variables(exprs, df, locals_d={}):
         Will have the index of `df` and columns of `exprs`.
 
     """
+    if locals_d is None:
+        locals_d = {}
+    locals_d.update(locals())
+
     def to_series(x):
         if np.isscalar(x):
             return pd.Series([x] * len(df), index=df.index)
         return x
-    return pd.DataFrame.from_items(
-        [(e, to_series(eval(e[1:], locals_d, locals())) if e.startswith('@')
-            else df.eval(e)) for e in exprs])
+
+    l = []
+    # need to be able to identify which variables causes an error, which keeps
+    # this from being expressed more parsimoniously
+    for e in exprs:
+        try:
+            l.append((e, to_series(eval(e[1:], globals(), locals_d))
+                     if e.startswith('@') else df.eval(e)))
+        except Exception as err:
+            print "Variable evaluation failed for: %s" % str(e)
+            raise err
+
+    return pd.DataFrame.from_items(l)
 
 
 def add_skims(df, skims):
@@ -133,11 +144,16 @@ def _check_for_variability(model_design):
     it's likely that if 100k rows have no variability, the whole dataframe
     will have no variability.
     """
-    sample = random_rows(model_design, min(100000, len(model_design)))\
-        .describe().transpose()
-    sample = sample[sample["std"] == 0]
-    if len(sample):
-        print "WARNING: Some columns have no variability:\n", sample.index.values
+    l = min(100000, len(model_design))
+    sample = random_rows(model_design, l).describe().transpose()
+    error = sample[sample["std"] == 0]
+    if len(error):
+        print "WARNING: Some columns have no variability:\n", \
+            error.index.values
+    error = sample[sample["count"] < l]
+    if len(error):
+        print "WARNING: Some columns have missing values:\n", \
+            error.index.values
 
 
 def simple_simulate(choosers, spec, skims=None, locals_d=None):

@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from activitysim.activitysim import other_than
 import urbansim.sim.simulation as sim
 import urbansim.utils.misc as usim_misc
 
@@ -34,9 +35,14 @@ def age_16_p(persons):
     return persons.to_frame(["age"]).eval("16 <= age")
 
 
-# FIXME - this is my "placeholder" for the CDAP model ;)
+@sim.column("persons")
+def adult(persons):
+    return persons.to_frame(["age"]).eval("18 <= age")
+
+
 @sim.column("persons")
 def cdap_activity(set_random_seed, persons):
+    # return a default until it gets filled in by the model
     return pd.Series(np.random.randint(3, size=len(persons)),
                      index=persons.index).map({0: 'M', 1: 'N', 2: 'H'})
 
@@ -92,12 +98,29 @@ def female(persons):
     return persons.sex == 1
 
 
+@sim.column("persons")
+def num_escort_tours(persons, non_mandatory_tours):
+    if "non_mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    nmt = non_mandatory_tours.to_frame()
+    return nmt[nmt.tour_type == "escort"].groupby("person_id").size()\
+        .reindex(persons.index).fillna(0)
+
+
+@sim.column("persons")
+def num_non_escort_tours(persons, non_mandatory_tours):
+    if "non_mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    nmt = non_mandatory_tours.to_frame()
+    return nmt[nmt.tour_type != "escort"].groupby("person_id").size()\
+        .reindex(persons.index).fillna(0)
+
+
 # count the number of mandatory tours for each person
 @sim.column("persons")
 def num_mand(persons):
-    # FIXME this is really because we ask for ALL columns in the persons data
-    # FIXME frame - urbansim actually only asks for the columns that are used by
-    # FIXME the model specs in play at that time
     if "mandatory_tour_frequency" not in persons.columns:
         return pd.Series(0, index=persons.index)
 
@@ -109,6 +132,28 @@ def num_mand(persons):
         "work_and_school": 2
     }, na_action='ignore')
     return s.fillna(0)
+
+
+@sim.column("persons")
+def work_and_school_and_worker(persons):
+    if "mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    s = (persons.mandatory_tour_frequency == "work_and_school").\
+        reindex(persons.index).fillna(False)
+
+    return s & persons.is_worker
+
+
+@sim.column("persons")
+def work_and_school_and_student(persons):
+    if "mandatory_tour_frequency" not in persons.columns:
+        return pd.Series(0, index=persons.index)
+
+    s = (persons.mandatory_tour_frequency == "work_and_school").\
+        reindex(persons.index).fillna(False)
+
+    return s & persons.is_student
 
 
 # FIXME now totally sure what this is but it's used in non mandatory tour
@@ -146,7 +191,7 @@ def student_is_employed(persons):
 @sim.column("persons")
 def nonstudent_to_school(persons):
     return (persons.ptype_cat.isin(['full', 'part', 'nonwork', 'retired']) &
-            persons.student_cat.isin(['high', 'college']))
+            persons.student_cat.isin(['grade_or_high', 'college']))
 
 
 @sim.column("persons")
@@ -162,14 +207,28 @@ def is_worker(persons):
 
 @sim.column("persons")
 def is_student(persons):
-    return persons.student_cat.isin(['high', 'college'])
+    return persons.student_cat.isin(['grade_or_high', 'college'])
+
+
+@sim.column("persons")
+def is_gradeschool(persons, settings):
+    return (persons.student_cat == "grade_or_high") & \
+           (persons.age <= settings['grade_school_max_age'])
+
+
+@sim.column("persons")
+def is_highschool(persons, settings):
+    return (persons.student_cat == "grade_or_high") & \
+           (persons.age > settings['grade_school_max_age'])
+
+
+@sim.column("persons")
+def is_university(persons):
+    return persons.student_cat == "university"
 
 
 @sim.column("persons")
 def workplace_taz(persons):
-    # FIXME this is really because we ask for ALL columns in the persons data
-    # FIXME frame - urbansim actually only asks for the columns that are used by
-    # FIXME the model specs in play at that time
     return pd.Series(1, persons.index)
 
 
@@ -181,8 +240,7 @@ def home_taz(households, persons):
 
 @sim.column("persons")
 def school_taz(persons):
-    # FIXME need to fix this after getting school lcm working
-    return persons.workplace_taz
+    return pd.Series(1, persons.index)
 
 
 # this use the distance skims to compute the raw distance to work from home
@@ -227,3 +285,65 @@ def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
 def workplace_in_cbd(persons, land_use, settings):
     s = usim_misc.reindex(land_use.area_type, persons.workplace_taz)
     return s < settings['cbd_threshold']
+
+
+# this is an idiom to grab the person of the specified type and check to see if
+# there is 1 or more of that kind of person in each household
+def presence_of(ptype, persons, at_home=False):
+    if at_home:
+        # if at_home, they need to be of given type AND at home
+        bools = (persons.ptype_cat == ptype) & (persons.cdap_activity == "H")
+    else:
+        bools = persons.ptype_cat == ptype
+
+    return other_than(persons.household_id, bools)
+
+
+@sim.column('persons')
+def has_non_worker(persons):
+    return presence_of("nonwork", persons)
+
+
+@sim.column('persons')
+def has_retiree(persons):
+    return presence_of("retired", persons)
+
+
+@sim.column('persons')
+def has_preschool_kid(persons):
+    return presence_of("preschool", persons)
+
+
+@sim.column('persons')
+def has_preschool_kid_at_home(persons):
+    return presence_of("preschool", persons, at_home=True)
+
+
+@sim.column('persons')
+def has_driving_kid(persons):
+    return presence_of("driving", persons)
+
+
+@sim.column('persons')
+def has_school_kid(persons):
+    return presence_of("school", persons)
+
+
+@sim.column('persons')
+def has_school_kid_at_home(persons):
+    return presence_of("school", persons, at_home=True)
+
+
+@sim.column('persons')
+def has_full_time(persons):
+    return presence_of("full", persons)
+
+
+@sim.column('persons')
+def has_part_time(persons):
+    return presence_of("part", persons)
+
+
+@sim.column('persons')
+def has_university(persons):
+    return presence_of("university", persons)

@@ -11,34 +11,22 @@ person that's making the tour)
 
 
 @sim.table()
-def destination_choice_size_terms(configs_dir):
-    f = os.path.join(configs_dir, 'configs',
-                     'destination_choice_size_terms.csv')
-    return pd.read_csv(f)
-
-
-@sim.table()
 def destination_choice_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs',
-                     'destination_choice_alternatives_sample.csv')
-    # FIXME not using all the variables yet
-    return asim.read_model_spec(f).fillna(0).head(5)
+    f = os.path.join(configs_dir, 'configs', 'destination_choice.csv')
+    return asim.read_model_spec(f).fillna(0)
 
 
 @sim.model()
 def destination_choice(set_random_seed,
                        non_mandatory_tours_merged,
-                       zones,
                        skims,
-                       destination_choice_spec):
+                       destination_choice_spec,
+                       destination_size_terms):
 
     # choosers are tours - in a sense tours are choosing their destination
     choosers = non_mandatory_tours_merged.to_frame()
-
-    # FIXME these models don't have size terms at the moment
-
-    # FIXME these models don't use stratified sampling - we're just making
-    # FIXME the choice with the sampling model
+    alternatives = destination_size_terms.to_frame()
+    spec = destination_choice_spec.to_frame()
 
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
@@ -52,15 +40,22 @@ def destination_choice(set_random_seed,
 
         # FIXME - there are two options here escort with kids and without
         if name == "escort":
-            continue
+            # FIXME just run one of the other models for now
+            name = "shopping"
+
+        # the segment is now available to switch between size terms
+        locals_d['segment'] = name
+
+        print spec.columns
+        print name
 
         print "Running segment '%s' of size %d" % (name, len(segment))
 
-        choices, _ = \
-            asim.interaction_simulate(
-                segment, zones.to_frame(),
-                destination_choice_spec.to_frame()[[name]],
-                skims=skims, locals_d=locals_d, sample_size=50)
+        choices, _ = asim.interaction_simulate(segment,
+                                               alternatives,
+                                               spec[[name]],
+                                               skims=skims,
+                                               locals_d=locals_d)
 
         choices_list.append(choices)
 

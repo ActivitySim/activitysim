@@ -5,7 +5,7 @@ urban_threshold: 4
 cbd_threshold: 2
 rural_threshold: 6
 
-households_sample_size: 1000
+households_sample_size: 100
 
 grade_school_max_age: 14
 

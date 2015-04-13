@@ -48,7 +48,14 @@ def school_location_simulate(set_random_seed,
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
-    choices = choices.reindex(persons_merged.index)
+
+    # this fillna is necessary to avoid a downstream crash and might be a bit
+    # wrong logically.  The issue here is that there is a small but non-zero
+    # chance to choose a school trip even if not of the school type (because
+    # of -999 rather than outright removal of alternative availability). -
+    # this fills in the location for those uncommon circumstances,
+    # so at least it runs
+    choices = choices.reindex(persons_merged.index).fillna(-1)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "school_taz", choices)

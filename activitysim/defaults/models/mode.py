@@ -14,7 +14,9 @@ will be used for the tour
 
 @sim.injectable()
 def mode_choice_settings(configs_dir):
-    with open(os.path.join(configs_dir, "configs", "mode_choice.yaml")) as f:
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "tour_mode_choice.yaml")) as f:
         return yaml.load(f)
 
 
@@ -54,12 +56,22 @@ def mode_choice_coefficients(mode_choice_settings):
     return evaluate_expression_list(expressions, locals_d=constants)
 
 
+def pre_process_expressions(expressions, variable_templates):
+    return [eval(e[1:], variable_templates) if e.startswith('$') else e for
+            e in expressions]
+
+
 @sim.injectable()
-def mode_choice_spec(configs_dir, mode_choice_coefficients):
-    f = os.path.join(configs_dir, 'configs', "mode_choice_work.csv")
-    df = asim.read_model_spec(f)
-    df['work'] = evaluate_expression_list(df['work'],
-                                          mode_choice_coefficients.to_dict())
+def mode_choice_spec(configs_dir, mode_choice_coefficients,
+                     mode_choice_settings):
+    f = os.path.join(configs_dir, 'configs', "tour_mode_choice.csv")
+    df = asim.read_model_spec(f).head(53)
+    df['EatOut'] = evaluate_expression_list(df['EatOut'],
+                                            mode_choice_coefficients.to_dict())
+
+    df.index = pre_process_expressions(df.index,
+                                       mode_choice_settings['VARIABLE_TEMPLATES'])
+
     return df.set_index('Alternative', append=True)
 
 
@@ -75,8 +87,7 @@ def mode_choice_simulate(tours_merged,
 
     tours = tours_merged.to_frame()
     tours = tours[tours.tour_type == "work"]
-
-    mode_choice_spec = mode_choice_spec.head(33)
+    print mode_choice_spec.EatOut
 
     # the skims will be available under the name "skims" for any @ expressions
     in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
@@ -95,7 +106,7 @@ def mode_choice_simulate(tours_merged,
 
     choices, _ = asim.simple_simulate(tours,
                                       get_segment_and_unstack(mode_choice_spec,
-                                                              'work'),
+                                                              'EatOut'),
                                       skims=[in_skims, out_skims],
                                       locals_d=locals_d)
 

@@ -26,6 +26,18 @@ NESTS:
             - DRIVE_HVY
             - DRIVE_COM
 
+
+VARIABLE_TEMPLATES:
+    TERMINAL_TIME_EXPR: "2 * terminal_time"
+    OPERATING_COST_EXPR: "@costPerMile * (out_skims['{sk}'] + in_skims['{sk}'])"
+    IN_N_OUT_EXPR: "@out_skims['{sk}'] + in_skims['{sk}']"
+    UNAVAILABILITY_PARTY_2: "is_joint & (number_of_participants > 2)"
+    DAILY_PARKING_SHARE_2: "@df.daily_parking_cost / costShareSr2"
+    DAILY_PARKING_SHARE_3: "@df.daily_parking_cost / costShareSr3"
+    IN_N_OUT_SHARE_2: "@(out_skims['{sk}'] + in_skims['{sk}']) / costShareSr2"
+    IN_N_OUT_SHARE_3: "@(out_skims['{sk}'] + in_skims['{sk}']) / costShareSr3"
+
+
 COEFFICIENTS:
     - ivt: -0.01750
     - ivt_lrt: 0.90 * ivt

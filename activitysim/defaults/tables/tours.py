@@ -53,6 +53,18 @@ def hov2_available(tours):
 
 
 @sim.column("tours")
+def hov2toll_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def hov3_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
 def sovtoll_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
@@ -73,6 +85,8 @@ def number_of_participants(tours):
 @sim.column("tours")
 def work_tour_is_drive(tours):
     # FIXME
+    # FIXME note that there's something about whether this is a subtour?
+    # FIXME though I'm not sure how it can be a subtour in the tour mode choice
     return pd.Series(0, index=tours.index)
 
 

@@ -79,17 +79,8 @@ def get_segment_and_unstack(spec, segment):
     return spec[segment].unstack().fillna(0)
 
 
-@sim.model()
-def mode_choice_simulate(tours_merged,
-                         mode_choice_spec,
-                         mode_choice_settings,
-                         skims):
+def _mode_choice_simulate(tours, skims, spec, additional_constants):
 
-    tours = tours_merged.to_frame()
-    tours = tours[tours.tour_type == "work"]
-    print mode_choice_spec.EatOut
-
-    # the skims will be available under the name "skims" for any @ expressions
     in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
                              "in_period", -1)
     out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),
@@ -98,17 +89,29 @@ def mode_choice_simulate(tours_merged,
         "in_skims": in_skims,
         "out_skims": out_skims
     }
-    locals_d.update(mode_choice_settings['CONSTANTS'])
-
-    # FIXME lots of other segments here - for now running the mode choice for
-    # FIXME work on all kinds of tour types
-    # FIXME note that in particular the spec above only has work tours in it
+    locals_d.update(additional_constants)
 
     choices, _ = asim.simple_simulate(tours,
-                                      get_segment_and_unstack(mode_choice_spec,
-                                                              'EatOut'),
+                                      spec,
                                       skims=[in_skims, out_skims],
                                       locals_d=locals_d)
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("tours", "mode", choices)
+
+
+@sim.model()
+def mode_choice_simulate(tours_merged,
+                         mode_choice_spec,
+                         mode_choice_settings,
+                         skims):
+
+    tours = tours_merged.to_frame()
+
+    print mode_choice_spec.EatOut
+
+    _mode_choice_simulate(tours[tours.tour_type == "work"],
+                          skims,
+                          get_segment_and_unstack(mode_choice_spec, 'EatOut'),
+                          mode_choice_settings['CONSTANTS'])
+

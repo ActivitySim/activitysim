@@ -114,4 +114,3 @@ def mode_choice_simulate(tours_merged,
                           skims,
                           get_segment_and_unstack(mode_choice_spec, 'EatOut'),
                           mode_choice_settings['CONSTANTS'])
-

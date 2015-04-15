@@ -1,6 +1,6 @@
 import pandas as pd
 
-f = pd.read_excel(open("ModeChoice.xls"), sheetname=None)
+f = pd.read_excel(open("../ModeChoice.xls"), sheetname=None)
 
 dfs = {}
 alts = None
@@ -25,6 +25,9 @@ for key, df in f.iteritems():
     df.columns = ['Description', 'Expression'] + list(df.columns[2:])
     df.set_index(['Description', 'Expression'], inplace=True)
     df = df.stack()
+
+    # ok, this is a bit bizarre, but it appears to me the coefficients
+
     ind = df.index
 
     cur_alts = list(df.reset_index()["level_2"].values)

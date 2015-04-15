@@ -231,128 +231,128 @@ Drive to Commuter rail - Ratio of drive access distance to OD distance,c_dacc_ra
 Drive to Commuter rail  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
 Drive to Commuter rail  - Topology,c_topology_trn*destTopology,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
 Drive to Commuter rail - Person is less than 10 years old,c_age010_trn,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Zero auto,1.868091482,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Auto deficient,2.870183935,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Auto sufficient,1.707218614,WALK,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Zero auto,0.020583211,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Auto deficient,0.634521411,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Auto sufficient,-1.368070919,BIKE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Zero auto,0,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Zero auto,0,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto deficient,1.855852789,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto deficient,1.855852789,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto sufficient,0.523602468,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto sufficient,0.523602468,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Zero auto,-1.403690228,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Zero auto,-1.403690228,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto deficient,1.50072437,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto deficient,1.50072437,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto sufficient,0.506178835,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto sufficient,0.506178835,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1.381465034,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1.381465034,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1.381465034,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1.381465034,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1.381465034,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.974444892,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.974444892,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.974444892,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.974444892,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,0.974444892,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.345375907,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.345375907,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.345375907,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.345375907,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,-0.345375907,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,0,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1.56271942,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1.56271942,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1.56271942,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1.56271942,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1.56271942,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-0.615855782,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-0.615855782,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-0.615855782,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-0.615855782,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,-0.615855782,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Joint Tours,-0.21274701,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Joint Tours,-1.960770582,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Joint Tours,-3.235215607,WALK,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Joint Tours,-2.867159872,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Joint Tours,-6.076415164,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Joint Tours,-6.376065819,BIKE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,0,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,0.563067095,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,0.563067095,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-1.884169225,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-1.884169225,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-2.234826088,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,-2.234826088,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.622924164,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.622924164,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.622924164,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.622924164,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,0.622924164,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.163448126,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.163448126,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.163448126,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.163448126,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-5.163448126,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.26453357,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.26453357,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.26453357,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.26453357,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,-18.26453357,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,0,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.963221337,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.963221337,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.963221337,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.963221337,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-5.963221337,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.045285637,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.045285637,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.045285637,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.045285637,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,-8.045285637,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Local bus,-0.090703267,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Local bus,-0.090703267,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Light rail - Alternative-specific constant (walk access),0.76895473,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Light rail - Alternative-specific constant (drive access),0.76895473,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Ferry - Alternative-specific constant (walk access),0.94012381,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Ferry - Alternative-specific constant (drive access),0.94012381,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Express bus - Alternative-specific constant,0.969231623,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Express bus - Alternative-specific constant,0.969231623,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Heavy rail - Alternative-specific constant ,0.770612112,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Heavy rail - Alternative-specific constant ,0.770612112,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Commuter rail - Alternative-specific constant ,0.727018505,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Commuter rail - Alternative-specific constant ,0.727018505,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,0.525,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,0.525,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,0.525,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,0.525,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,0.525,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,0.525,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,0.525,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,0.525,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,0.525,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,0.525,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,"min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))",DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Walk - Alternative-specific constant - Zero auto,1,WALK,1,1,1,1,1,1,1,1,1,1
+Walk - Alternative-specific constant - Auto deficient,1,WALK,1,1,1,1,1,1,1,1,1,1
+Walk - Alternative-specific constant - Auto sufficient,1,WALK,1,1,1,1,1,1,1,1,1,1
+Bike - Alternative-specific constant - Zero auto,1,BIKE,1,1,1,1,1,1,1,1,1,1
+Bike - Alternative-specific constant - Auto deficient,1,BIKE,1,1,1,1,1,1,1,1,1,1
+Bike - Alternative-specific constant - Auto sufficient,1,BIKE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Zero auto,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Zero auto,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Auto deficient,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Auto deficient,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Auto sufficient,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Auto sufficient,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Zero auto,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Zero auto,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Auto deficient,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Auto deficient,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Auto sufficient,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Auto sufficient,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Walk - Alternative-specific constant - Joint Tours,1,WALK,1,1,1,1,1,1,1,1,1,1
+Walk - Alternative-specific constant - Joint Tours,1,WALK,1,1,1,1,1,1,1,1,1,1
+Walk - Alternative-specific constant - Joint Tours,1,WALK,1,1,1,1,1,1,1,1,1,1
+Bike - Alternative-specific constant - Joint Tours,1,BIKE,1,1,1,1,1,1,1,1,1,1
+Bike - Alternative-specific constant - Joint Tours,1,BIKE,1,1,1,1,1,1,1,1,1,1
+Bike - Alternative-specific constant - Joint Tours,1,BIKE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Local bus,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Local bus,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Light rail - Alternative-specific constant (walk access),1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Light rail - Alternative-specific constant (drive access),1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Ferry - Alternative-specific constant (walk access),1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Ferry - Alternative-specific constant (drive access),1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Express bus - Alternative-specific constant,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Express bus - Alternative-specific constant,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Heavy rail - Alternative-specific constant ,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Heavy rail - Alternative-specific constant ,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Commuter rail - Alternative-specific constant ,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Commuter rail - Alternative-specific constant ,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - CBD dummy,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - CBD dummy,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - CBD dummy,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - CBD dummy,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
+Walk to Transit - CBD dummy,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - CBD dummy,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - CBD dummy,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - CBD dummy,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - CBD dummy,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit  - CBD dummy,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
+Drive to Transit - distance penalty,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
+Drive to Transit - distance penalty,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
+Drive to Transit - distance penalty,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
+Drive to Transit - distance penalty,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
+Drive to Transit - distance penalty,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
 Walk not available for long distances,1,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Bike not available for long distances,1,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

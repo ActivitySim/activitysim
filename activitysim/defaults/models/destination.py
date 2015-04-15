@@ -1,7 +1,9 @@
-import urbansim.sim.simulation as sim
-from activitysim import activitysim as asim
 import os
+
+import orca
 import pandas as pd
+
+from activitysim import activitysim as asim
 
 """
 Given the tour generation from the above, each tour needs to have a
@@ -10,13 +12,13 @@ person that's making the tour)
 """
 
 
-@sim.table()
+@orca.table()
 def destination_choice_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', 'destination_choice.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.model()
+@orca.step()
 def destination_choice(set_random_seed,
                        non_mandatory_tours_merged,
                        skims,
@@ -64,4 +66,4 @@ def destination_choice(set_random_seed,
     print "Choices:\n", choices.describe()
     # every trip now has a destination which is the index from the
     # alternatives table - in this case it's the destination taz
-    sim.add_column("non_mandatory_tours", "destination", choices)
+    orca.add_column("non_mandatory_tours", "destination", choices)

@@ -1,8 +1,10 @@
 import os
-import pandas as pd
+
 import numpy as np
-import urbansim.sim.simulation as sim
+import orca
+import pandas as pd
 import urbansim.utils.misc as usim_misc
+
 from activitysim import activitysim as asim
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
 
@@ -15,25 +17,25 @@ othdiscr, eatout, and social trips in various combination.
 """
 
 
-@sim.injectable()
+@orca.injectable()
 def non_mandatory_tour_frequency_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "non_mandatory_tour_frequency.csv")
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.table()
+@orca.table()
 def non_mandatory_tour_frequency_alts(configs_dir):
     f = os.path.join(configs_dir, "configs",
                      "non_mandatory_tour_frequency_alternatives.csv")
     return pd.read_csv(f)
 
 
-@sim.column("non_mandatory_tour_frequency_alts")
+@orca.column("non_mandatory_tour_frequency_alts")
 def tot_tours(non_mandatory_tour_frequency_alts):
     return non_mandatory_tour_frequency_alts.local.sum(axis=1)
 
 
-@sim.model()
+@orca.step()
 def non_mandatory_tour_frequency(set_random_seed,
                                  persons_merged,
                                  non_mandatory_tour_frequency_alts,
@@ -65,7 +67,7 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     print "Choices:\n", choices.value_counts()
 
-    sim.add_column("persons", "non_mandatory_tour_frequency", choices)
+    orca.add_column("persons", "non_mandatory_tour_frequency", choices)
 
 
 """
@@ -76,7 +78,7 @@ associated with)
 """
 
 
-@sim.table()
+@orca.table()
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):
 
@@ -95,7 +97,7 @@ This is where I'm currently putting computed columns for non_mandatory_tours
 """
 
 
-@sim.column("non_mandatory_tours")
+@orca.column("non_mandatory_tours")
 def destination_in_cbd(non_mandatory_tours, land_use, settings):
     # protection until filled in by destination choice model
     if "destination" not in non_mandatory_tours.columns:

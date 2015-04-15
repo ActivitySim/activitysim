@@ -1,6 +1,8 @@
 import os
+
+import orca
 import pandas as pd
-import urbansim.sim.simulation as sim
+
 from activitysim import activitysim as asim
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
@@ -10,7 +12,7 @@ mandatory tours
 """
 
 
-@sim.table()
+@orca.table()
 def tdd_alts(configs_dir):
     # right now this file just contains the start and end hour
     f = os.path.join(configs_dir, "configs",
@@ -20,19 +22,19 @@ def tdd_alts(configs_dir):
 
 # used to have duration in the actual alternative csv file,
 # but this is probably better as a computed column like this
-@sim.column("tdd_alts")
+@orca.column("tdd_alts")
 def duration(tdd_alts):
     return tdd_alts.end - tdd_alts.start
 
 
-@sim.table()
+@orca.table()
 def tdd_work_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs',
                      'tour_departure_and_duration_work.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.table()
+@orca.table()
 def tdd_school_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs',
                      'tour_departure_and_duration_school.csv')
@@ -41,7 +43,7 @@ def tdd_school_spec(configs_dir):
 
 # I think it's easier to do this in one model so you can merge the two
 # resulting series together right away
-@sim.model()
+@orca.step()
 def mandatory_scheduling(set_random_seed,
                          mandatory_tours_merged,
                          tdd_alts,
@@ -69,6 +71,5 @@ def mandatory_scheduling(set_random_seed,
 
     print "Choices:\n", choices.describe()
 
-    sim.add_column("mandatory_tours",
-                   "tour_departure_and_duration",
-                   choices)
+    orca.add_column(
+        "mandatory_tours", "tour_departure_and_duration", choices)

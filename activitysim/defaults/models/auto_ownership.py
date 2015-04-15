@@ -1,5 +1,7 @@
 import os
-import urbansim.sim.simulation as sim
+
+import orca
+
 from activitysim import activitysim as asim
 
 """
@@ -8,13 +10,13 @@ with given characteristics owns
 """
 
 
-@sim.injectable()
+@orca.injectable()
 def auto_ownership_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "auto_ownership.csv")
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.model()
+@orca.step()
 def auto_ownership_simulate(set_random_seed, households_merged,
                             auto_ownership_spec):
 
@@ -22,4 +24,4 @@ def auto_ownership_simulate(set_random_seed, households_merged,
         households_merged.to_frame(), auto_ownership_spec)
 
     print "Choices:\n", choices.value_counts()
-    sim.add_column("households", "auto_ownership", choices)
+    orca.add_column("households", "auto_ownership", choices)

@@ -3,7 +3,7 @@
 # See full license in LICENSE.txt.
 
 """
-Utilities used in testing of UrbanSim.
+Utilities used in testing of ActivitySim.
 
 """
 import numpy.testing as npt

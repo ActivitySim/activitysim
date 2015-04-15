@@ -1,9 +1,9 @@
 import numpy as np
 import orca
 import pandas as pd
-import urbansim.utils.misc as usim_misc
 
 from activitysim.activitysim import other_than
+from activitysim.util import reindex
 
 
 @orca.table(cache=True)
@@ -233,8 +233,7 @@ def workplace_taz(persons):
 
 @orca.column("persons")
 def home_taz(households, persons):
-    return usim_misc.reindex(households.home_taz,
-                             persons.household_id)
+    return reindex(households.home_taz, persons.household_id)
 
 
 @orca.column("persons")
@@ -282,7 +281,7 @@ def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
 
 @orca.column('persons')
 def workplace_in_cbd(persons, land_use, settings):
-    s = usim_misc.reindex(land_use.area_type, persons.workplace_taz)
+    s = reindex(land_use.area_type, persons.workplace_taz)
     return s < settings['cbd_threshold']
 
 

@@ -24,7 +24,6 @@ setup(
         'pandas >= 0.13.1',
         'tables >= 3.1.0',
         'toolz >= 0.7',
-        'urbansim >= 1.3',
         'zbox >= 1.2'
     ]
 )

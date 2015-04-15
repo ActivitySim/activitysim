@@ -3,9 +3,9 @@ import os
 import numpy as np
 import orca
 import pandas as pd
-import urbansim.utils.misc as usim_misc
 
 from activitysim import activitysim as asim
+from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
 
 
@@ -103,5 +103,5 @@ def destination_in_cbd(non_mandatory_tours, land_use, settings):
     if "destination" not in non_mandatory_tours.columns:
         return pd.Series(False, index=non_mandatory_tours.index)
 
-    s = usim_misc.reindex(land_use.area_type, non_mandatory_tours.destination)
+    s = reindex(land_use.area_type, non_mandatory_tours.destination)
     return s < settings['cbd_threshold']

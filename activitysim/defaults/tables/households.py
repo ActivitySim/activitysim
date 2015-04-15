@@ -1,9 +1,9 @@
 import numpy as np
 import orca
 import pandas as pd
-import urbansim.utils.misc as usim_misc
 
 from activitysim import activitysim as asim
+from activitysim.util import reindex
 
 
 @orca.table(cache=True)
@@ -137,13 +137,13 @@ def no_cars(households):
 
 @orca.column('households')
 def home_is_urban(households, land_use, settings):
-    s = usim_misc.reindex(land_use.area_type, households.home_taz)
+    s = reindex(land_use.area_type, households.home_taz)
     return s < settings['urban_threshold']
 
 
 @orca.column('households')
 def home_is_rural(households, land_use, settings):
-    s = usim_misc.reindex(land_use.area_type, households.home_taz)
+    s = reindex(land_use.area_type, households.home_taz)
     return s > settings['rural_threshold']
 
 

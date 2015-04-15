@@ -22,7 +22,6 @@ install:
   pytables pytest pyyaml scipy statsmodels toolz
 - source activate test-environment
 - pip install bottle orca prettytable simplejson zbox
-- pip install https://github.com/synthicity/urbansim/archive/master.zip
 - pip install openmatrix
 - pip install pytest-cov coveralls pep8
 - pip install .

@@ -50,7 +50,7 @@ def skims():
                 "SOV_BTOLL", "SOVTOLL_BTOLL", "HOV2_BTOLL", "HOV2TOLL_BTOLL",
                 "SOVTOLL_VTOLL", "HOV2TOLL_VTOLL",
 
-                "WLK_LOC_WLK_TOTIVT","WLK_LOC_WLK_IWAIT", "WLK_LOC_WLK_XWAIT",
+                "WLK_LOC_WLK_TOTIVT", "WLK_LOC_WLK_IWAIT", "WLK_LOC_WLK_XWAIT",
                 "WLK_LOC_WLK_BOARDS", "WLK_LOC_WLK_WAUX", "WLK_LOC_WLK_FAR",
 
                              "HOV3TOLL_VTOLL",

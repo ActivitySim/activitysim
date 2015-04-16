@@ -4,101 +4,101 @@ Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALON
 Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for joint tours,is_joint,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - In-vehicle time,$IN_N_OUT_EXPR.format(sk='SOV_TIME'),DRIVEALONEFREE,ivt,1,1,1,1,1,1,1,1,1
-Drive alone - Terminal time,$TERMINAL_TIME_EXPR,DRIVEALONEFREE,walktimeshort,1,1,1,1,1,1,1,1,1
-Drive alone - Operating cost ,$OPERATING_COST_EXPR.format(sk='SOV_DIST'),DRIVEALONEFREE,cost,1,1,1,1,1,1,1,1,1
-Drive alone - Parking cost ,daily_parking_cost,DRIVEALONEFREE,cost,1,1,1,1,1,1,1,1,1
-Drive alone - Bridge toll ,$IN_N_OUT_EXPR.format(sk='SOV_BTOLL'),DRIVEALONEFREE,cost,1,1,1,1,1,1,1,1,1
-Drive alone - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEFREE,age1619_da,1,1,1,1,1,1,1,1,1
+Drive alone - In-vehicle time,$IN_N_OUT_EXPR.format(sk='SOV_TIME'),DRIVEALONEFREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
+Drive alone - Terminal time,$TERMINAL_TIME_EXPR,DRIVEALONEFREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Drive alone - Operating cost ,$OPERATING_COST_EXPR.format(sk='SOV_DIST'),DRIVEALONEFREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone - Parking cost ,daily_parking_cost,DRIVEALONEFREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone - Bridge toll ,$IN_N_OUT_EXPR.format(sk='SOV_BTOLL'),DRIVEALONEFREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEFREE,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da
 Drive alone toll - Unavailable,sovtoll_available == False,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for persons less than 16,age < 16,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for joint tours,is_joint,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone toll - In-vehicle time,$IN_N_OUT_EXPR.format(sk='SOVTOLL_TIME'),DRIVEALONEPAY,ivt,1,1,1,1,1,1,1,1,1
-Drive alone toll - Terminal time,$TERMINAL_TIME_EXPR,DRIVEALONEPAY,walktimeshort,1,1,1,1,1,1,1,1,1
-Drive alone toll - Operating cost ,$OPERATING_COST_EXPR.format(sk='SOVTOLL_DIST'),DRIVEALONEPAY,cost,1,1,1,1,1,1,1,1,1
-Drive alone toll - Parking cost ,daily_parking_cost,DRIVEALONEPAY,cost,1,1,1,1,1,1,1,1,1
-Drive alone toll - Bridge toll ,$IN_N_OUT_EXPR.format(sk='SOVTOLL_BTOLL'),DRIVEALONEPAY,cost,1,1,1,1,1,1,1,1,1
-Drive alone toll - Value toll ,$IN_N_OUT_EXPR.format(sk='SOVTOLL_VTOLL'),DRIVEALONEPAY,cost,1,1,1,1,1,1,1,1,1
-Drive alone toll - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEPAY,age1619_da,1,1,1,1,1,1,1,1,1
+Drive alone toll - In-vehicle time,$IN_N_OUT_EXPR.format(sk='SOVTOLL_TIME'),DRIVEALONEPAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
+Drive alone toll - Terminal time,$TERMINAL_TIME_EXPR,DRIVEALONEPAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Drive alone toll - Operating cost ,$OPERATING_COST_EXPR.format(sk='SOVTOLL_DIST'),DRIVEALONEPAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone toll - Parking cost ,daily_parking_cost,DRIVEALONEPAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone toll - Bridge toll ,$IN_N_OUT_EXPR.format(sk='SOVTOLL_BTOLL'),DRIVEALONEPAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone toll - Value toll ,$IN_N_OUT_EXPR.format(sk='SOVTOLL_VTOLL'),DRIVEALONEPAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone toll - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEPAY,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da
 Shared ride 2 - Unavailable,hov2_available == False,SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Shared ride 2 - Unavailable based on party size,$UNAVAILABILITY_PARTY_2,SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 2 - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV2_TIME'),SHARED2FREE,ivt,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Terminal time,$TERMINAL_TIME_EXPR,SHARED2FREE,walktimeshort,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV2_DIST'),SHARED2FREE,cost,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Parking cost ,$DAILY_PARKING_SHARE_2   ,SHARED2FREE,cost,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Bridge toll ,$IN_N_OUT_SHARE_2.format(sk='HOV2_BTOLL'),SHARED2FREE,cost,1,1,1,1,1,1,1,1,1
-Shared ride 2 - One person household,hhsize == 1,SHARED2FREE,hhsize1_sr,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Two person household,hhsize == 2,SHARED2FREE,hhsize2_sr,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Person is 16 years old or older,age_16_p,SHARED2FREE,age16p_sr,1,1,1,1,1,1,1,1,1
+Shared ride 2 - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV2_TIME'),SHARED2FREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
+Shared ride 2 - Terminal time,$TERMINAL_TIME_EXPR,SHARED2FREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Shared ride 2 - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV2_DIST'),SHARED2FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 2 - Parking cost ,$DAILY_PARKING_SHARE_2   ,SHARED2FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 2 - Bridge toll ,$IN_N_OUT_SHARE_2.format(sk='HOV2_BTOLL'),SHARED2FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 2 - One person household,hhsize == 1,SHARED2FREE,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
+Shared ride 2 - Two person household,hhsize == 2,SHARED2FREE,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
+Shared ride 2 - Person is 16 years old or older,age_16_p,SHARED2FREE,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
 Shared ride 2 toll - Unavailable,hov2toll_available == False,SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Shared ride 2 toll - Unavailable based on party size,$UNAVAILABILITY_PARTY_2,SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 2 toll - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV2TOLL_TIME'),SHARED2PAY,ivt,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - Terminal time,$TERMINAL_TIME_EXPR,SHARED2PAY,walktimeshort,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV2TOLL_DIST'),SHARED2PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - Parking cost ,$DAILY_PARKING_SHARE_2,SHARED2PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - Bridge toll ,$IN_N_OUT_SHARE_2.format(sk='HOV2TOLL_BTOLL'),SHARED2PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - Value toll ,$IN_N_OUT_SHARE_2.format(sk='HOV2TOLL_VTOLL'),SHARED2PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - One person household,hhsize == 1,SHARED2PAY,hhsize1_sr,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - Two person household,hhsize == 2,SHARED2PAY,hhsize2_sr,1,1,1,1,1,1,1,1,1
-Shared ride 2 toll - Person is 16 years old or older,age_16_p,SHARED2PAY,age16p_sr,1,1,1,1,1,1,1,1,1
+Shared ride 2 toll - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV2TOLL_TIME'),SHARED2PAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
+Shared ride 2 toll - Terminal time,$TERMINAL_TIME_EXPR,SHARED2PAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Shared ride 2 toll - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV2TOLL_DIST'),SHARED2PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 2 toll - Parking cost ,$DAILY_PARKING_SHARE_2,SHARED2PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 2 toll - Bridge toll ,$IN_N_OUT_SHARE_2.format(sk='HOV2TOLL_BTOLL'),SHARED2PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 2 toll - Value toll ,$IN_N_OUT_SHARE_2.format(sk='HOV2TOLL_VTOLL'),SHARED2PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 2 toll - One person household,hhsize == 1,SHARED2PAY,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
+Shared ride 2 toll - Two person household,hhsize == 2,SHARED2PAY,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
+Shared ride 2 toll - Person is 16 years old or older,age_16_p,SHARED2PAY,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
 Shared ride 3+ - Unavailable,hov3_available == False,SHARED3FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 3+ - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV3_TIME'),SHARED3FREE,ivt,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Terminal time,$TERMINAL_TIME_EXPR,SHARED3FREE,walktimeshort,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV3_DIST'),SHARED3FREE,cost,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Parking cost ,$DAILY_PARKING_SHARE_3,SHARED3FREE,cost,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Bridge toll ,$IN_N_OUT_SHARE_3.format(sk='HOV3_BTOLL'),SHARED3FREE,cost,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - One person household,hhsize == 1,SHARED3FREE,hhsize1_sr,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Two person household,hhsize == 2,SHARED3FREE,hhsize2_sr,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Person is 16 years old or older,age_16_p,SHARED3FREE,age16p_sr,1,1,1,1,1,1,1,1,1
+Shared ride 3+ - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV3_TIME'),SHARED3FREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
+Shared ride 3+ - Terminal time,$TERMINAL_TIME_EXPR,SHARED3FREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Shared ride 3+ - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV3_DIST'),SHARED3FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 3+ - Parking cost ,$DAILY_PARKING_SHARE_3,SHARED3FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 3+ - Bridge toll ,$IN_N_OUT_SHARE_3.format(sk='HOV3_BTOLL'),SHARED3FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 3+ - One person household,hhsize == 1,SHARED3FREE,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
+Shared ride 3+ - Two person household,hhsize == 2,SHARED3FREE,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
+Shared ride 3+ - Person is 16 years old or older,age_16_p,SHARED3FREE,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
 Shared ride 3+ toll - Unavailable,hov3_available == False,SHARED3PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 3+ toll - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV3TOLL_TIME'),SHARED3PAY,ivt,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Terminal time,$TERMINAL_TIME_EXPR,SHARED3PAY,walktimeshort,1,1,1,1,1,1,1,1,1
-Shared ride 3+ toll - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV3TOLL_DIST'),SHARED3PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 3+ toll - Parking cost ,$DAILY_PARKING_SHARE_3,SHARED3PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 3+ toll - Bridge toll ,$IN_N_OUT_SHARE_3.format(sk='HOV3TOLL_BTOLL'),SHARED3PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 3+ toll - Value toll ,$IN_N_OUT_SHARE_3.format(sk='HOV3TOLL_VTOLL'),SHARED3PAY,cost,1,1,1,1,1,1,1,1,1
-Shared ride 3+ toll - One person household,hhsize == 1,SHARED3PAY,hhsize1_sr,1,1,1,1,1,1,1,1,1
-Shared ride 3+ toll - Two person household,hhsize == 2,SHARED3PAY,hhsize2_sr,1,1,1,1,1,1,1,1,1
-Shared ride 3+ toll - Person is 16 years old or older,age_16_p,SHARED3PAY,age16p_sr,1,1,1,1,1,1,1,1,1
-# Walk - Time up to 2 miles,"min((DISTWALK+DISTWALK)*60/walkSpeed, walkThresh*2*60/walkSpeed)",WALK,walktimeshort,1,1,1,1,1,1,1,1,1
-# Walk - Time beyond 2 of a miles,"max((DISTWALK+DISTWALK)*60/walkSpeed - walkThresh*2*60/walkSpeed, 0)",WALK,walktimelong,1,1,1,1,1,1,1,1,1
-# Walk - Destination zone densityIndex,densityIndex,WALK,density_index,1,1,1,1,1,1,1,1,1
-# Walk - Topology,destTopology,WALK,topology_walk,1,1,1,1,1,1,1,1,1
-# Bike - Unavailable if didn't bike to work,1,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-# Bike - Time up to 2 miles,"min((DISTBIKE+DISTBIKE)*60/bikeSpeed, bikeThresh*2*60/bikeSpeed)",BIKE,biketimeshort,1,1,1,1,1,1,1,1,1
-# Bike - Time beyond 2 of a miles,"max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,biketimelong,1,1,1,1,1,1,1,1,1
-# Bike - Destination zone densityIndex,densityIndex,BIKE,density_index,1,1,1,1,1,1,1,1,1
-# Bike - Topology,destTopology,BIKE,topology_bike,1,1,1,1,1,1,1,1,1
-Walk to Local - Unavailable,walk_local_available == False,WALK_LOC,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Walk to Local - In-vehicle time,c_ivt*(WLK_LOC_WLK_TOTIVT[outPeriod]/100+WLK_LOC_WLK_TOTIVT[inPeriod]/100),WALK_LOC,ivt,1,1,1,1,1,1,1,1,1
-Walk to Local - Short iwait time,"(min(WLK_LOC_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LOC_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LOC,short_i_wait,1,1,1,1,1,1,1,1,1
-Walk to Local - Long iwait time,"(max(WLK_LOC_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LOC_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LOC,link_i_wait,1,1,1,1,1,1,1,1,1
-Walk to Local - transfer wait time,(WLK_LOC_WLK_XWAIT[outPeriod]/100+WLK_LOC_WLK_XWAIT[inPeriod]/100),WALK_LOC,xwait,1,1,1,1,1,1,1,1,1
-Walk to Local - number of transfers,"(max(WLK_LOC_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LOC_WLK_BOARDS[inPeriod]-1,0))",WALK_LOC,xfers_wlk,1,1,1,1,1,1,1,1,1
-Walk to Local - Walk access time,(originWalkTime+originWalkTime),WALK_LOC,wacc,1,1,1,1,1,1,1,1,1
-Walk to Local - Walk egress time,(destinationWalkTime+destinationWalkTime),WALK_LOC,wgr,1,1,1,1,1,1,1,1,1
-Walk to Local - Walk other time,(WLK_LOC_WLK_WAUX[outPeriod]/100+WLK_LOC_WLK_WAUX[inPeriod]/100),WALK_LOC,waux,1,1,1,1,1,1,1,1,1
-Walk to Local - Fare ,(WLK_LOC_WLK_FAR[outPeriod]+WLK_LOC_WLK_FAR[inPeriod]),WALK_LOC,cost,1,1,1,1,1,1,1,1,1
-Walk to Local - Destination zone densityIndex,densityIndex,WALK_LOC,density_index,1,1,1,1,1,1,1,1,1
-Walk to Local - Topology,destTopology,WALK_LOC,topology_trn,1,1,1,1,1,1,1,1,1
-Walk to Local - Person is less than 10 years old,1,WALK_LOC,age010_trn,1,1,1,1,1,1,1,1,1
+Shared ride 3+ toll - In-vehicle time,$IN_N_OUT_EXPR.format(sk='HOV3TOLL_TIME'),SHARED3PAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
+Shared ride 3+ - Terminal time,$TERMINAL_TIME_EXPR,SHARED3PAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Shared ride 3+ toll - Operating cost ,$OPERATING_COST_EXPR.format(sk='HOV3TOLL_DIST'),SHARED3PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 3+ toll - Parking cost ,$DAILY_PARKING_SHARE_3,SHARED3PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 3+ toll - Bridge toll ,$IN_N_OUT_SHARE_3.format(sk='HOV3TOLL_BTOLL'),SHARED3PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 3+ toll - Value toll ,$IN_N_OUT_SHARE_3.format(sk='HOV3TOLL_VTOLL'),SHARED3PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Shared ride 3+ toll - One person household,hhsize == 1,SHARED3PAY,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
+Shared ride 3+ toll - Two person household,hhsize == 2,SHARED3PAY,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
+Shared ride 3+ toll - Person is 16 years old or older,age_16_p,SHARED3PAY,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
+Walk - Time up to 2 miles,"min((DISTWALK+DISTWALK)*60/walkSpeed, walkThresh*2*60/walkSpeed)",WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Walk - Time beyond 2 of a miles,"max((DISTWALK+DISTWALK)*60/walkSpeed - walkThresh*2*60/walkSpeed, 0)",WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
+Walk - Destination zone densityIndex,densityIndex,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
+Walk - Topology,destTopology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
+Bike - Unavailable if didn't bike to work,1,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Bike - Time up to 2 miles,"min((DISTBIKE+DISTBIKE)*60/bikeSpeed, bikeThresh*2*60/bikeSpeed)",BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
+Bike - Time beyond 2 of a miles,"max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
+Bike - Destination zone densityIndex,densityIndex,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
+Bike - Topology,destTopology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
+Walk to Local - Unavailable,walkLocalAvailable==0,WALK_LOC,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Walk to Local - In-vehicle time,c_ivt*(WLK_LOC_WLK_TOTIVT[outPeriod]/100+WLK_LOC_WLK_TOTIVT[inPeriod]/100),WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Short iwait time,"c_shortiwait*(min(WLK_LOC_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LOC_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Long iwait time,"c_longiwait*(max(WLK_LOC_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LOC_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - transfer wait time,c_xwait*(WLK_LOC_WLK_XWAIT[outPeriod]/100+WLK_LOC_WLK_XWAIT[inPeriod]/100),WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - number of transfers,"c_xfers_wlk*(max(WLK_LOC_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LOC_WLK_BOARDS[inPeriod]-1,0))",WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Walk other time,c_waux*(WLK_LOC_WLK_WAUX[outPeriod]/100+WLK_LOC_WLK_WAUX[inPeriod]/100),WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Fare ,c_cost*(WLK_LOC_WLK_FAR[outPeriod]+WLK_LOC_WLK_FAR[inPeriod]),WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Topology,c_topology_trn*destTopology,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+Walk to Local - Person is less than 10 years old,c_age010_trn,WALK_LOC,1,1,1,1,1,1,1,1,1,1
 Walk to Light rail/Ferry - Unavailable,walkLrfAvailable==0,WALK_LRF,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Walk to Light rail/Ferry - In-vehicle time,c_ivt*(WLK_LRF_WLK_TOTIVT[outPeriod]/100+WLK_LRF_WLK_TOTIVT[inPeriod]/100),WALK_LRF,ivt,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - In-vehicle time on Light Rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(WLK_LRF_WLK_KEYIVT[outPeriod]/100+WLK_LRF_WLK_KEYIVT[inPeriod]/100),WALK_LRF,ivt_lrt-ivt,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - In-vehicle time on Ferry (incremental w/ keyivt),(c_ivt_ferry-c_ivt_lrt)*(WLK_LRF_WLK_FERRYIVT[outPeriod]/100+WLK_LRF_WLK_FERRYIVT[inPeriod]/100),WALK_LRF,ivt_ferr-ivt_lrt,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Short iwait time,"c_shortiwait*(min(WLK_LRF_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LRF_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LRF,short_i_wait,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Long iwait time,"c_longiwait*(max(WLK_LRF_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LRF_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LRF,long_i_wait,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - transfer wait time,c_xwait*(WLK_LRF_WLK_XWAIT[outPeriod]/100+WLK_LRF_WLK_XWAIT[inPeriod]/100),WALK_LRF,xwait,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - number of transfers,"c_xfers_wlk*(max(WLK_LRF_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LRF_WLK_BOARDS[inPeriod]-1,0))",WALK_LRF,xfers_wlk,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LRF,wacc,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LRF,wegr,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Walk other time,c_waux*(WLK_LRF_WLK_WAUX[outPeriod]/100+WLK_LRF_WLK_WAUX[inPeriod]/100),WALK_LRF,waux,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Fare ,c_cost*(WLK_LRF_WLK_FAR[outPeriod]+WLK_LRF_WLK_FAR[inPeriod]),WALK_LRF,cost,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LRF,density_index,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Topology,c_topology_trn*destTopology,WALK_LRF,topology_trn,1,1,1,1,1,1,1,1,1
-Walk to Light rail/Ferry - Person is less than 10 years old,c_age010_trn,WALK_LRF,age010_trn,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - In-vehicle time,c_ivt*(WLK_LRF_WLK_TOTIVT[outPeriod]/100+WLK_LRF_WLK_TOTIVT[inPeriod]/100),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - In-vehicle time on Light Rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(WLK_LRF_WLK_KEYIVT[outPeriod]/100+WLK_LRF_WLK_KEYIVT[inPeriod]/100),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - In-vehicle time on Ferry (incremental w/ keyivt),(c_ivt_ferry-c_ivt_lrt)*(WLK_LRF_WLK_FERRYIVT[outPeriod]/100+WLK_LRF_WLK_FERRYIVT[inPeriod]/100),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Short iwait time,"c_shortiwait*(min(WLK_LRF_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LRF_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Long iwait time,"c_longiwait*(max(WLK_LRF_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LRF_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - transfer wait time,c_xwait*(WLK_LRF_WLK_XWAIT[outPeriod]/100+WLK_LRF_WLK_XWAIT[inPeriod]/100),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - number of transfers,"c_xfers_wlk*(max(WLK_LRF_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LRF_WLK_BOARDS[inPeriod]-1,0))",WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Walk other time,c_waux*(WLK_LRF_WLK_WAUX[outPeriod]/100+WLK_LRF_WLK_WAUX[inPeriod]/100),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Fare ,c_cost*(WLK_LRF_WLK_FAR[outPeriod]+WLK_LRF_WLK_FAR[inPeriod]),WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Topology,c_topology_trn*destTopology,WALK_LRF,1,1,1,1,1,1,1,1,1,1
+Walk to Light rail/Ferry - Person is less than 10 years old,c_age010_trn,WALK_LRF,1,1,1,1,1,1,1,1,1,1
 Walk to Express bus - Unavailable,walkExpressAvailable==0,WALK_EXP,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Walk to Express bus - In-vehicle time,c_ivt*(WLK_EXP_WLK_TOTIVT[outPeriod]/100+WLK_EXP_WLK_TOTIVT[inPeriod]/100),WALK_EXP,1,1,1,1,1,1,1,1,1,1
 Walk to Express bus - In-vehicle time on Express bus (incremental w/ ivt),(c_ivt_exp-c_ivt)*(WLK_EXP_WLK_KEYIVT[outPeriod]/100+WLK_EXP_WLK_KEYIVT[inPeriod]/100),WALK_EXP,1,1,1,1,1,1,1,1,1,1
@@ -231,128 +231,52 @@ Drive to Commuter rail - Ratio of drive access distance to OD distance,c_dacc_ra
 Drive to Commuter rail  - Destination zone densityIndex,c_densityIndex*densityIndex,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
 Drive to Commuter rail  - Topology,c_topology_trn*destTopology,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
 Drive to Commuter rail - Person is less than 10 years old,c_age010_trn,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Zero auto,1,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Auto deficient,1,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Auto sufficient,1,WALK,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Zero auto,1,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Auto deficient,1,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Auto sufficient,1,BIKE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Zero auto,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Zero auto,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto deficient,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto deficient,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto sufficient,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Auto sufficient,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Zero auto,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Zero auto,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto deficient,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto deficient,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto sufficient,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Auto sufficient,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Zero auto,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto deficient,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Auto sufficient,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Zero auto,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto deficient,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Auto sufficient,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Joint Tours,1,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Joint Tours,1,WALK,1,1,1,1,1,1,1,1,1,1
-Walk - Alternative-specific constant - Joint Tours,1,WALK,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Joint Tours,1,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Joint Tours,1,BIKE,1,1,1,1,1,1,1,1,1,1
-Bike - Alternative-specific constant - Joint Tours,1,BIKE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 2 - Alternative-specific constant - Joint Tours,1,SHARED2PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3FREE,1,1,1,1,1,1,1,1,1,1
-Shared ride 3+ - Alternative-specific constant - Joint Tours,1,SHARED3PAY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - Alternative-specific constant - Joint Tours,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - Alternative-specific constant - Joint Tours,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Local bus,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Local bus,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Light rail - Alternative-specific constant (walk access),1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Light rail - Alternative-specific constant (drive access),1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Ferry - Alternative-specific constant (walk access),1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Ferry - Alternative-specific constant (drive access),1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Express bus - Alternative-specific constant,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Express bus - Alternative-specific constant,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Heavy rail - Alternative-specific constant ,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Heavy rail - Alternative-specific constant ,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Commuter rail - Alternative-specific constant ,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Commuter rail - Alternative-specific constant ,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,1,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,1,WALK_LRF,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,1,WALK_EXP,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,1,WALK_HVY,1,1,1,1,1,1,1,1,1,1
-Walk to Transit - CBD dummy,1,WALK_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit  - CBD dummy,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,1,DRIVE_LOC,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,1,DRIVE_LRF,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,1,DRIVE_EXP,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,1,DRIVE_HVY,1,1,1,1,1,1,1,1,1,1
-Drive to Transit - distance penalty,1,DRIVE_COM,1,1,1,1,1,1,1,1,1,1
-Walk not available for long distances,1,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Bike not available for long distances,1,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Walk - Alternative-specific constant - Zero auto,1,WALK,5.125117111,2.801206737,3.266594735,1.28729901,18.41455742,2.376877423,1.868091482,6.408966934,5.767215561,6.669212684
+Walk - Alternative-specific constant - Auto deficient,1,WALK,3.274605133,-0.902046556,2.249407533,1.369040422,3.257362412,2.270173198,2.870183935,4.505909886,2.401041643,0.925460911
+Walk - Alternative-specific constant - Auto sufficient,1,WALK,1.551690381,-0.811606606,1.263347649,0.799963401,0.647685583,0.731266314,1.707218614,1.060766418,0.053265336,0.677215999
+Bike - Alternative-specific constant - Zero auto,1,BIKE,0.868070976,-0.716211996,-0.376423218,1.539433341,12.09873445,0.834155474,0.020583211,4.29451543,3.194008732,-0.907258478
+Bike - Alternative-specific constant - Auto deficient,1,BIKE,-1.569110587,-4.527927892,-0.092468342,-1.518464864,-0.528067855,-0.875844687,0.634521411,-0.66923499,0.253189685,-0.807408302
+Bike - Alternative-specific constant - Auto sufficient,1,BIKE,-1.200347041,-5.063108669,-1.071459675,-2.808302294,-2.113468744,-2.566210272,-1.368070919,-1.939783244,-1.580023134,15.72017028
+Shared ride 2 - Alternative-specific constant - Zero auto,1,"SHARED2FREE,SHARED2PAY",0,0,0,0,0,0,0,0,0,0
+Shared ride 2 - Alternative-specific constant - Auto deficient,1,"SHARED2FREE,SHARED2PAY",0.588234462,0,0.660151286,0.262152713,0.124743645,0.244097554,1.855852789,-1.692234683,-0.338031245,-2.110242203
+Shared ride 2 - Alternative-specific constant - Auto sufficient,1,"SHARED2FREE,SHARED2PAY",0.862805535,0,0.496846169,0.25817882,-1.606265705,0.197707068,0.523602468,-1.859427005,-1.085745845,-1.445061795
+Shared ride 3+ - Alternative-specific constant - Zero auto,1,"SHARED3FREE,SHARED3PAY",0.321999775,-1.81292667,0.272169027,-0.803185378,-6.024082818,-0.279789475,-1.403690228,-6.05600139,-0.583126911,0.582662586
+Shared ride 3+ - Alternative-specific constant - Auto deficient,1,"SHARED3FREE,SHARED3PAY",0.046052359,-0.408187662,1.047096588,-1.349392509,0.714957094,-0.073370165,1.50072437,-1.727742177,-0.852704253,-2.514658092
+Shared ride 3+ - Alternative-specific constant - Auto sufficient,1,"SHARED3FREE,SHARED3PAY",0.846859553,-0.057412532,0.588502059,-0.075498672,-1.020193438,-0.077571296,0.506178835,-1.904709832,-1.469970203,-1.652174009
+Walk to Transit - Alternative-specific constant - Zero auto,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",2.593636732,-2.217208252,2.243778563,2.564345654,21.38374939,2.106747676,1.381465034,8.786037716,5.035416445,2.704187734
+Walk to Transit - Alternative-specific constant - Auto deficient,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",-0.038963238,-4.960703718,0.953088412,-3.059725678,4.120707976,-0.847656898,0.974444892,3.136255604,0.653028572,-2.998829183
+Walk to Transit - Alternative-specific constant - Auto sufficient,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",-1.112690543,-4.934847012,-0.80636791,-1.547117283,0.745908748,-2.203679837,-0.345375907,0.473116311,-0.89165065,-3.401027004
+Drive to Transit  - Alternative-specific constant - Zero auto,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0,0,0,0,0,0,0,0,0,0
+Drive to Transit  - Alternative-specific constant - Auto deficient,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0.599806096,-1.153706724,0.319930804,-0.299432268,5.325265625,-0.418491771,1.56271942,1.850117609,0.100815665,-998.8195926
+Drive to Transit  - Alternative-specific constant - Auto sufficient,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",-0.969515832,-4.60142462,-0.378591674,-2.624947672,1.401350042,-2.171893862,-0.615855782,1.358775285,-1.004545986,-999.2146659
+Walk - Alternative-specific constant - Joint Tours,1,WALK,-0.21274701,-0.21274701,-0.21274701,-0.21274701,-0.21274701,-0.21274701,-0.21274701,-0.21274701,-0.21274701,-0.21274701
+Walk - Alternative-specific constant - Joint Tours,1,WALK,-1.960770582,-1.960770582,-1.960770582,-1.960770582,-1.960770582,-1.960770582,-1.960770582,-1.960770582,-1.960770582,-1.960770582
+Walk - Alternative-specific constant - Joint Tours,1,WALK,-3.235215607,-3.235215607,-3.235215607,-3.235215607,-3.235215607,-3.235215607,-3.235215607,-3.235215607,-3.235215607,-3.235215607
+Bike - Alternative-specific constant - Joint Tours,1,BIKE,-2.867159872,-2.867159872,-2.867159872,-2.867159872,-2.867159872,-2.867159872,-2.867159872,-2.867159872,-2.867159872,-2.867159872
+Bike - Alternative-specific constant - Joint Tours,1,BIKE,-6.076415164,-6.076415164,-6.076415164,-6.076415164,-6.076415164,-6.076415164,-6.076415164,-6.076415164,-6.076415164,-6.076415164
+Bike - Alternative-specific constant - Joint Tours,1,BIKE,-6.376065819,-6.376065819,-6.376065819,-6.376065819,-6.376065819,-6.376065819,-6.376065819,-6.376065819,-6.376065819,-6.376065819
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,"SHARED2FREE,SHARED2PAY",0,0,0,0,0,0,0,0,0,0
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,"SHARED2FREE,SHARED2PAY",0,0,0,0,0,0,0,0,0,0
+Shared ride 2 - Alternative-specific constant - Joint Tours,1,"SHARED2FREE,SHARED2PAY",0,0,0,0,0,0,0,0,0,0
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,"SHARED3FREE,SHARED3PAY",0.563067095,0.563067095,0.563067095,0.563067095,0.563067095,0.563067095,0.563067095,0.563067095,0.563067095,0.563067095
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,"SHARED3FREE,SHARED3PAY",-1.884169225,-1.884169225,-1.884169225,-1.884169225,-1.884169225,-1.884169225,-1.884169225,-1.884169225,-1.884169225,-1.884169225
+Shared ride 3+ - Alternative-specific constant - Joint Tours,1,"SHARED3FREE,SHARED3PAY",-2.234826088,-2.234826088,-2.234826088,-2.234826088,-2.234826088,-2.234826088,-2.234826088,-2.234826088,-2.234826088,-2.234826088
+Walk to Transit - Alternative-specific constant - Joint Tours,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",0.622924164,0.622924164,0.622924164,0.622924164,0.622924164,0.622924164,0.622924164,0.622924164,0.622924164,0.622924164
+Walk to Transit - Alternative-specific constant - Joint Tours,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",-5.163448126,-5.163448126,-5.163448126,-5.163448126,-5.163448126,-5.163448126,-5.163448126,-5.163448126,-5.163448126,-5.163448126
+Walk to Transit - Alternative-specific constant - Joint Tours,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",-18.26453357,-18.26453357,-18.26453357,-18.26453357,-18.26453357,-18.26453357,-18.26453357,-18.26453357,-18.26453357,-18.26453357
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0,0,0,0,0,0,0,0,0,0
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",-5.963221337,-5.963221337,-5.963221337,-5.963221337,-5.963221337,-5.963221337,-5.963221337,-5.963221337,-5.963221337,-5.963221337
+Drive to Transit  - Alternative-specific constant - Joint Tours,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",-8.045285637,-8.045285637,-8.045285637,-8.045285637,-8.045285637,-8.045285637,-8.045285637,-8.045285637,-8.045285637,-8.045285637
+Local bus,1,"WALK_LOC,DRIVE_LOC",-0.090703267,-0.090703267,-0.090703267,-0.090703267,-0.065086209,-0.090703267,-0.090703267,-0.065086209,0.066895065,-0.090703267
+Light rail - Alternative-specific constant (walk access),1,WALK_LRF,0.76895473,0.76895473,0.76895473,0.76895473,1.681400281,0.76895473,0.76895473,1.681400281,0.825556718,0.76895473
+Light rail - Alternative-specific constant (drive access),1,DRIVE_LRF,0.76895473,0.76895473,0.76895473,0.76895473,1.681400281,0.76895473,0.76895473,1.681400281,0.825556718,0.76895473
+Ferry - Alternative-specific constant (walk access),1,WALK_LRF,0.94012381,0.94012381,0.94012381,0.94012381,2.020231679,0.94012381,0.94012381,2.020231679,0.933226069,0.94012381
+Ferry - Alternative-specific constant (drive access),1,DRIVE_LRF,0.94012381,0.94012381,0.94012381,0.94012381,2.020231679,0.94012381,0.94012381,2.020231679,0.933226069,0.94012381
+Express bus - Alternative-specific constant,1,"WALK_EXP,DRIVE_EXP",0.969231623,0.969231623,0.969231623,0.969231623,0.324969383,0.969231623,0.969231623,0.324969383,-0.516547373,0.969231623
+Heavy rail - Alternative-specific constant ,1,"WALK_HVY,DRIVE_HVY",0.770612112,0.770612112,0.770612112,0.770612112,0.962003782,0.770612112,0.770612112,0.962003782,0.647729737,0.770612112
+Commuter rail - Alternative-specific constant ,1,"WALK_COM,DRIVE_COM",0.727018505,0.727018505,0.727018505,0.727018505,1.033620595,0.727018505,0.727018505,1.033620595,0.725503039,0.727018505
+Walk to Transit - CBD dummy,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,0.804,0.564
+Drive to Transit  - CBD dummy,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,1.1,0.564
+Drive to Transit - distance penalty,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))","min(0,c_drvtrn_distpen_0*(1-DIST/c_drvtrn_distpen_max))"
+Walk not available for long distances,walk_available == False,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Bike not available for long distances,bike_available == False,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

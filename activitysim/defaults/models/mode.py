@@ -20,6 +20,22 @@ def mode_choice_settings(configs_dir):
         return yaml.load(f)
 
 
+@sim.injectable()
+def mode_choice_spec_df(configs_dir):
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "tour_mode_choice.csv")) as f:
+        return asim.read_model_spec(f).head(53)
+
+
+@sim.injectable()
+def mode_choice_coeffs(configs_dir):
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "tour_mode_choice_coeffs.csv")) as f:
+        return pd.read_csv(f, index_col='Expression')
+
+
 # FIXME move into activitysim as a utility function
 def evaluate_expression_list(expressions, locals_d):
     """
@@ -47,36 +63,52 @@ def evaluate_expression_list(expressions, locals_d):
     return pd.Series(d)
 
 
-@sim.injectable()
-def mode_choice_coefficients(mode_choice_settings):
-    # coefficients comes as a list of dicts and needs to be tuples
-    coeffs = [x.items()[0] for x in mode_choice_settings['COEFFICIENTS']]
-    expressions = pd.Series(zip(*coeffs)[1], index=zip(*coeffs)[0])
-    constants = mode_choice_settings['CONSTANTS']
-    return evaluate_expression_list(expressions, locals_d=constants)
-
-
 def pre_process_expressions(expressions, variable_templates):
     return [eval(e[1:], variable_templates) if e.startswith('$') else e for
             e in expressions]
 
 
-@sim.injectable()
-def mode_choice_spec(configs_dir, mode_choice_coefficients,
-                     mode_choice_settings):
-    f = os.path.join(configs_dir, 'configs', "tour_mode_choice.csv")
-    df = asim.read_model_spec(f).head(53)
-    df['EatOut'] = evaluate_expression_list(df['EatOut'],
-                                            mode_choice_coefficients.to_dict())
-
-    df.index = pre_process_expressions(df.index,
-                                       mode_choice_settings['VARIABLE_TEMPLATES'])
-
-    return df.set_index('Alternative', append=True)
-
-
 def get_segment_and_unstack(spec, segment):
     return spec[segment].unstack().fillna(0)
+
+
+@sim.injectable()
+def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
+                     mode_choice_settings):
+
+    # ok we have read in the spec - we need to do several things to reformat it
+    # to the same style spec that all the other models have
+
+    constants = mode_choice_settings['CONSTANTS']
+    templates = mode_choice_settings['VARIABLE_TEMPLATES']
+    df = mode_choice_spec_df
+
+    # the expressions themselves can be prepended with a "$" in order to use
+    # model templates that are shared by several different expressions
+    df.index = pre_process_expressions(df.index, templates)
+
+    df = df.set_index('Alternative', append=True)
+
+    # for each segment - e.g. eatout vs social vs work vs ...
+    for col in df.columns:
+
+        # first the coeffs come as expressions that refer to previous cells
+        # as well as constants that come from the settings file
+        mode_choice_coeffs[col] = evaluate_expression_list(
+            mode_choice_coeffs[col],
+            locals_d=constants)
+
+        # then use the coeffs we just evaluated within the spec (they occur
+        # multiple times in the spec which is why they get stored uniquely
+        # in a different file
+        df[col] = evaluate_expression_list(
+            df[col],
+            mode_choice_coeffs[col].to_dict())
+
+    # FIXME alternatives are a comma separated list then need to be copied
+    # FIXME and put into their own rows at this point
+
+    return df
 
 
 def _mode_choice_simulate(tours, skims, spec, additional_constants):
@@ -108,6 +140,7 @@ def mode_choice_simulate(tours_merged,
 
     tours = tours_merged.to_frame()
 
+    mode_choice_spec = mode_choice_spec
     print mode_choice_spec.EatOut
 
     _mode_choice_simulate(tours[tours.tour_type == "work"],

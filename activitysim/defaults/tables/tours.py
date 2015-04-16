@@ -1,5 +1,6 @@
 import pandas as pd
 import urbansim.sim.simulation as sim
+import urbansim.utils.misc as usim_misc
 
 
 @sim.table()
@@ -71,6 +72,12 @@ def sovtoll_available(tours):
 
 
 @sim.column("tours")
+def walk_local_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
 def is_joint(tours):
     # FIXME
     return pd.Series(False, index=tours.index)
@@ -97,9 +104,33 @@ def terminal_time(tours):
 
 
 @sim.column("tours")
+def origin_walk_time(tours):
+    # FIXME
+    return pd.Series(0, index=tours.index)
+
+
+@sim.column("tours")
+def destination_walk_time(tours):
+    # FIXME
+    return pd.Series(0, index=tours.index)
+
+
+@sim.column("tours")
 def daily_parking_cost(tours):
     # FIXME - this is a computation based on the tour destination
     return pd.Series(0, index=tours.index)
+
+
+@sim.column("tours")
+def dest_density_index(tours, land_use):
+    return usim_misc.reindex(land_use.density_index,
+                             tours.destination)
+
+
+@sim.column("tours")
+def dest_topology(tours, land_use):
+    return usim_misc.reindex(land_use.TOPOLOGY,
+                             tours.destination)
 
 
 @sim.column("tours")

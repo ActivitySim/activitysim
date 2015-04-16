@@ -1,4 +1,4 @@
-Description,Expression,Alternative,EatOut,Escort,OthDiscr,OthMaint,School,Shopping,Social,University,Work,WorkBased
+Description,Expression,Alternative,eatout,escort,othdiscr,othmaint,school,shopping,social,university,work,workbased
 Drive alone - Unavailable,sov_available == False,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
@@ -62,28 +62,28 @@ Shared ride 3+ toll - Value toll ,$IN_N_OUT_SHARE_3.format(sk='HOV3TOLL_VTOLL'),
 Shared ride 3+ toll - One person household,hhsize == 1,SHARED3PAY,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
 Shared ride 3+ toll - Two person household,hhsize == 2,SHARED3PAY,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
 Shared ride 3+ toll - Person is 16 years old or older,age_16_p,SHARED3PAY,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
-Walk - Time up to 2 miles,"min((DISTWALK+DISTWALK)*60/walkSpeed, walkThresh*2*60/walkSpeed)",WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
-Walk - Time beyond 2 of a miles,"max((DISTWALK+DISTWALK)*60/walkSpeed - walkThresh*2*60/walkSpeed, 0)",WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
-Walk - Destination zone densityIndex,densityIndex,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
-Walk - Topology,destTopology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
-Bike - Unavailable if didn't bike to work,1,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Bike - Time up to 2 miles,"min((DISTBIKE+DISTBIKE)*60/bikeSpeed, bikeThresh*2*60/bikeSpeed)",BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
-Bike - Time beyond 2 of a miles,"max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
-Bike - Destination zone densityIndex,densityIndex,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
-Bike - Topology,destTopology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
-Walk to Local - Unavailable,walkLocalAvailable==0,WALK_LOC,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Walk to Local - In-vehicle time,c_ivt*(WLK_LOC_WLK_TOTIVT[outPeriod]/100+WLK_LOC_WLK_TOTIVT[inPeriod]/100),WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Short iwait time,"c_shortiwait*(min(WLK_LOC_WLK_IWAIT[outPeriod]/100,waitThresh)+min(WLK_LOC_WLK_IWAIT[inPeriod]/100,waitThresh))",WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Long iwait time,"c_longiwait*(max(WLK_LOC_WLK_IWAIT[outPeriod]/100-waitThresh,0)+max(WLK_LOC_WLK_IWAIT[inPeriod]/100-waitThresh,0))",WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - transfer wait time,c_xwait*(WLK_LOC_WLK_XWAIT[outPeriod]/100+WLK_LOC_WLK_XWAIT[inPeriod]/100),WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - number of transfers,"c_xfers_wlk*(max(WLK_LOC_WLK_BOARDS[outPeriod]-1,0)+max(WLK_LOC_WLK_BOARDS[inPeriod]-1,0))",WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Walk access time,c_wacc*(originWalkTime+originWalkTime),WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Walk egress time,c_wegr*(destinationWalkTime+destinationWalkTime),WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Walk other time,c_waux*(WLK_LOC_WLK_WAUX[outPeriod]/100+WLK_LOC_WLK_WAUX[inPeriod]/100),WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Fare ,c_cost*(WLK_LOC_WLK_FAR[outPeriod]+WLK_LOC_WLK_FAR[inPeriod]),WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Destination zone densityIndex,c_densityIndex*densityIndex,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Topology,c_topology_trn*destTopology,WALK_LOC,1,1,1,1,1,1,1,1,1,1
-Walk to Local - Person is less than 10 years old,c_age010_trn,WALK_LOC,1,1,1,1,1,1,1,1,1,1
+# Walk - Time up to 2 miles,"min((DISTWALK+DISTWALK)*60/walkSpeed, walkThresh*2*60/walkSpeed)",WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+# Walk - Time beyond 2 of a miles,"max((DISTWALK+DISTWALK)*60/walkSpeed - walkThresh*2*60/walkSpeed, 0)",WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
+# Walk - Destination zone densityIndex,densityIndex,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
+# Walk - Topology,destTopology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
+# Bike - Unavailable if didn't bike to work,,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+# Bike - Time up to 2 miles,"min((DISTBIKE+DISTBIKE)*60/bikeSpeed, bikeThresh*2*60/bikeSpeed)",BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
+# Bike - Time beyond 2 of a miles,"max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
+# Bike - Destination zone densityIndex,densityIndex,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
+# Bike - Topology,destTopology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
+Walk to Local - Unavailable,walk_local_available == False,WALK_LOC,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Walk to Local - In-vehicle time,$IN_N_OUT_EXPR_DIV100.format(sk='WLK_LOC_WLK_TOTIVT'),WALK_LOC,ivt,1,1,1,1,1,1,1,1,1
+Walk to Local - Short iwait time,"$SHORT_WAIT_EXPR.format(sk='WLK_LOC_WLK_IWAIT', th='waitThresh')",WALK_LOC,short_i_wait,1,1,1,1,1,1,1,1,1
+Walk to Local - Long iwait time,"$LONG_WAIT_EXPR.format(sk='WLK_LOC_WLK_IWAIT', th='waitThresh')",WALK_LOC,long_i_wait,1,1,1,1,1,1,1,1,1
+Walk to Local - transfer wait time,$IN_N_OUT_EXPR_DIV100.format(sk='WLK_LOC_WLK_XWAIT'),WALK_LOC,xwait,1,1,1,1,1,1,1,1,1
+Walk to Local - number of transfers,$TRANSFERS_EXPR.format(sk='WLK_LOC_WLK_BOARDS'),WALK_LOC,xfers_wlk,1,1,1,1,1,1,1,1,1
+Walk to Local - Walk access time,2 * origin_walk_time,WALK_LOC,wacc,1,1,1,1,1,1,1,1,1
+Walk to Local - Walk egress time,2 * destination_walk_time,WALK_LOC,wegr,1,1,1,1,1,1,1,1,1
+Walk to Local - Walk other time,$IN_N_OUT_EXPR_DIV100.format(sk='WLK_LOC_WLK_WAUX'),WALK_LOC,waux,1,1,1,1,1,1,1,1,1
+Walk to Local - Fare ,$IN_N_OUT_EXPR.format(sk='WLK_LOC_WLK_FAR'),WALK_LOC,cost,1,1,1,1,1,1,1,1,1
+Walk to Local - Destination zone densityIndex,dest_density_index,WALK_LOC,density_index,1,1,1,1,1,1,1,1,1
+Walk to Local - Topology,dest_topology,WALK_LOC,topology_trn,1,1,1,1,1,1,1,1,1
+Walk to Local - Person is less than 10 years old,age < 10,WALK_LOC,age010_trn,1,1,1,1,1,1,1,1,1
 Walk to Light rail/Ferry - Unavailable,walkLrfAvailable==0,WALK_LRF,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Walk to Light rail/Ferry - In-vehicle time,c_ivt*(WLK_LRF_WLK_TOTIVT[outPeriod]/100+WLK_LRF_WLK_TOTIVT[inPeriod]/100),WALK_LRF,1,1,1,1,1,1,1,1,1,1
 Walk to Light rail/Ferry - In-vehicle time on Light Rail (incremental w/ ivt),(c_ivt_lrt-c_ivt)*(WLK_LRF_WLK_KEYIVT[outPeriod]/100+WLK_LRF_WLK_KEYIVT[inPeriod]/100),WALK_LRF,1,1,1,1,1,1,1,1,1,1

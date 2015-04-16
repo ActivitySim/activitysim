@@ -1,4 +1,4 @@
-Expression,EatOut,Escort,OthDiscr,OthMaint,School,Shopping,Social,University,Work,WorkBased
+Expression,eatout,escort,othdiscr,othmaint,school,shopping,social,university,work,workbased
 ivt,-0.0175,-0.0175,-0.0175,-0.0175,-0.0224,-0.0175,-0.0175,-0.0224,-0.0134,-0.0188
 ivt_lrt,0.90 * ivt,0.90 * ivt,0.90 * ivt,0.90 * ivt,0.90 * ivt,0.90 * ivt,0.90 * ivt,0.90 * ivt,0.90 * ivt,-0.01692
 ivt_ferry,0.80 * ivt,0.80 * ivt,0.80 * ivt,0.80 * ivt,0.80 * ivt,0.80 * ivt,0.80 * ivt,0.80 * ivt,0.80 * ivt,-0.01504

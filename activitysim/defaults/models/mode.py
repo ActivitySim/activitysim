@@ -25,7 +25,7 @@ def mode_choice_spec_df(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
                            "tour_mode_choice.csv")) as f:
-        return asim.read_model_spec(f).head(53)
+        return asim.read_model_spec(f).head(76)
 
 
 @sim.injectable()
@@ -128,8 +128,10 @@ def _mode_choice_simulate(tours, skims, spec, additional_constants):
                                       skims=[in_skims, out_skims],
                                       locals_d=locals_d)
 
-    print "Choices:\n", choices.value_counts()
-    sim.add_column("tours", "mode", choices)
+    alts = spec.columns
+    choices = choices.map(dict(zip(range(len(alts)), alts)))
+
+    return choices
 
 
 @sim.model()
@@ -141,9 +143,13 @@ def mode_choice_simulate(tours_merged,
     tours = tours_merged.to_frame()
 
     mode_choice_spec = mode_choice_spec
-    print mode_choice_spec.EatOut
+    print mode_choice_spec.eatout
 
-    _mode_choice_simulate(tours[tours.tour_type == "work"],
-                          skims,
-                          get_segment_and_unstack(mode_choice_spec, 'EatOut'),
-                          mode_choice_settings['CONSTANTS'])
+    choices = _mode_choice_simulate(
+        tours[tours.tour_type == "eatout"],
+        skims,
+        get_segment_and_unstack(mode_choice_spec, 'eatout'),
+        mode_choice_settings['CONSTANTS'])
+
+    print "Choices:\n", choices.value_counts()
+    sim.add_column("tours", "mode", choices)

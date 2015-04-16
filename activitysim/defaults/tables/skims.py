@@ -49,9 +49,14 @@ def skims():
                 "SOV_DIST", "SOVTOLL_DIST", "HOV2_DIST", "HOV2TOLL_DIST",
                 "SOV_BTOLL", "SOVTOLL_BTOLL", "HOV2_BTOLL", "HOV2TOLL_BTOLL",
                 "SOVTOLL_VTOLL", "HOV2TOLL_VTOLL",
-                "HOV3_TIME",
-                "HOV3_DIST",
-                "HOV3_BTOLL"]:
+
+                "WLK_LOC_WLK_TOTIVT","WLK_LOC_WLK_IWAIT", "WLK_LOC_WLK_XWAIT",
+                "WLK_LOC_WLK_BOARDS", "WLK_LOC_WLK_WAUX", "WLK_LOC_WLK_FAR",
+
+                             "HOV3TOLL_VTOLL",
+                "HOV3_TIME", "HOV3TOLL_TIME",
+                "HOV3_DIST", "HOV3TOLL_DIST",
+                "HOV3_BTOLL", "HOV3TOLL_BTOLL"]:
         for period in ["AM", "MD", "PM"]:
             skims[(typ, period)] = sim.get_injectable("distance_skim")
     skims['DISTANCE'] = sim.get_injectable("distance_skim")

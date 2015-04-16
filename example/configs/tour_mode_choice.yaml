@@ -31,11 +31,18 @@ VARIABLE_TEMPLATES:
     TERMINAL_TIME_EXPR: "2 * terminal_time"
     OPERATING_COST_EXPR: "@costPerMile * (out_skims['{sk}'] + in_skims['{sk}'])"
     IN_N_OUT_EXPR: "@out_skims['{sk}'] + in_skims['{sk}']"
+    IN_N_OUT_EXPR_DIV100: "@out_skims['{sk}']/100 + in_skims['{sk}']/100"
     UNAVAILABILITY_PARTY_2: "is_joint & (number_of_participants > 2)"
     DAILY_PARKING_SHARE_2: "@df.daily_parking_cost / costShareSr2"
     DAILY_PARKING_SHARE_3: "@df.daily_parking_cost / costShareSr3"
     IN_N_OUT_SHARE_2: "@(out_skims['{sk}'] + in_skims['{sk}']) / costShareSr2"
     IN_N_OUT_SHARE_3: "@(out_skims['{sk}'] + in_skims['{sk}']) / costShareSr3"
+    SHORT_WAIT_EXPR: "@(out_skims['{sk}']/100).clip(upper={th})+
+                       (in_skims['{sk}']/100).clip(upper={th})"
+    LONG_WAIT_EXPR: "@(out_skims['{sk}']/100-{th}).clip(0)+
+                      (in_skims['{sk}']/100-{th}).clip(0)"
+    TRANSFERS_EXPR: "@(out_skims['{sk}']-1).clip(0)+
+                      (in_skims['{sk}']-1).clip(0)"
 
 
 CONSTANTS:

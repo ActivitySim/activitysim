@@ -72,7 +72,61 @@ def sovtoll_available(tours):
 
 
 @sim.column("tours")
+def drive_local_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def drive_lrf_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def drive_express_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def drive_heavyrail_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def drive_commuter_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
 def walk_local_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def walk_lrf_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def walk_commuter_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def walk_express_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@sim.column("tours")
+def walk_heavyrail_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 

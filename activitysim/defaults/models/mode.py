@@ -25,7 +25,7 @@ def mode_choice_spec_df(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
                            "tour_mode_choice.csv")) as f:
-        return asim.read_model_spec(f).head(76)
+        return asim.read_model_spec(f).head(223)
 
 
 @sim.injectable()
@@ -113,19 +113,23 @@ def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
 
 def _mode_choice_simulate(tours, skims, spec, additional_constants):
 
+    # FIXME - this is only really going for the workplace trip
     in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
                              "in_period", -1)
     out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),
                               "out_period", -1)
+    skims.set_keys("TAZ", "workplace_taz")
+
     locals_d = {
         "in_skims": in_skims,
-        "out_skims": out_skims
+        "out_skims": out_skims,
+        "skims": skims
     }
     locals_d.update(additional_constants)
 
     choices, _ = asim.simple_simulate(tours,
                                       spec,
-                                      skims=[in_skims, out_skims],
+                                      skims=[in_skims, out_skims, skims],
                                       locals_d=locals_d)
 
     alts = spec.columns

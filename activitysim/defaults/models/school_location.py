@@ -1,6 +1,8 @@
 import os
+
+import orca
 import pandas as pd
-import urbansim.sim.simulation as sim
+
 from activitysim import activitysim as asim
 
 
@@ -10,13 +12,13 @@ go to school.
 """
 
 
-@sim.table()
+@orca.table()
 def school_location_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "school_location.csv")
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.model()
+@orca.step()
 def school_location_simulate(set_random_seed,
                              persons_merged,
                              school_location_spec,
@@ -58,4 +60,4 @@ def school_location_simulate(set_random_seed,
     choices = choices.reindex(persons_merged.index).fillna(-1)
 
     print "Describe of choices:\n", choices.describe()
-    sim.add_column("persons", "school_taz", choices)
+    orca.add_column("persons", "school_taz", choices)

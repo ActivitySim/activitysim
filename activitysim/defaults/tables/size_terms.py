@@ -1,6 +1,7 @@
 import os
+
+import orca
 import pandas as pd
-import urbansim.sim.simulation as sim
 
 
 def size_term(land_use, destination_choice_coeffs):
@@ -37,14 +38,14 @@ def size_term(land_use, destination_choice_coeffs):
     return land_use[coeffs.index].dot(coeffs)
 
 
-@sim.table()
+@orca.table()
 def size_terms(configs_dir):
     f = os.path.join(configs_dir, 'configs',
                      'destination_choice_size_terms.csv')
     return pd.read_csv(f, index_col='segment')
 
 
-@sim.table()
+@orca.table()
 def destination_size_terms(land_use, size_terms):
     land_use = land_use.to_frame()
     size_terms = size_terms.to_frame()

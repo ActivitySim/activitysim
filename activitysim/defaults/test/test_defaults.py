@@ -2,16 +2,17 @@
 # Copyright (C) 2014-2015 Synthicity, LLC
 # See full license in LICENSE.txt.
 
-
-import pytest
 import os
+
+import numpy as np
+import orca
 import pandas as pd
 import pandas.util.testing as pdt
-import numpy as np
-import urbansim.sim.simulation as sim
+import pytest
+import yaml
+
 from .. import __init__
 from ..tables import size_terms
-import yaml
 
 
 # set the max households for all tests (this is to limit memory use on travis)
@@ -30,7 +31,7 @@ def store(request):
     return store
 
 
-@sim.injectable(cache=False)
+@orca.injectable(cache=False)
 def settings(configs_dir):
     with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
         obj = yaml.load(f)
@@ -61,33 +62,33 @@ def test_size_term():
 
 
 def test_mini_run(store):
-    sim.add_injectable("configs_dir",
-                       os.path.join(os.path.dirname(__file__)))
+    orca.add_injectable("configs_dir",
+                        os.path.join(os.path.dirname(__file__)))
 
-    sim.add_injectable("store", store)
+    orca.add_injectable("store", store)
 
-    sim.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
-    sim.add_injectable("set_random_seed", set_random_seed)
+    orca.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
+    orca.add_injectable("set_random_seed", set_random_seed)
 
-    assert len(sim.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+    assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order
-    sim.run(["workplace_location_simulate"])
-    sim.run(["auto_ownership_simulate"])
+    orca.run(["workplace_location_simulate"])
+    orca.run(["auto_ownership_simulate"])
 
     # this is a regression test so that we know if these numbers change
-    auto_choice = sim.get_table('households').get_column('auto_ownership')
+    auto_choice = orca.get_table('households').get_column('auto_ownership')
 
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 651907]],
         pd.Series(
             [3, 1, 0], index=[2306822, 652072, 651907]))
 
-    sim.run(["cdap_simulate"])
+    orca.run(["cdap_simulate"])
 
-    sim.run(['mandatory_tour_frequency'])
+    orca.run(['mandatory_tour_frequency'])
 
-    mtf_choice = sim.get_table('persons').get_column(
+    mtf_choice = orca.get_table('persons').get_column(
         'mandatory_tour_frequency')
 
     pdt.assert_series_equal(
@@ -96,37 +97,37 @@ def test_mini_run(store):
             ['work_and_school', 'work2', 'school2'],
             index=[146642, 642922, 642921]))
 
-    sim.clear_cache()
+    orca.clear_cache()
 
 
 def test_full_run(store):
-    sim.add_injectable("configs_dir",
-                       os.path.join(os.path.dirname(__file__), '..', '..',
-                                    '..', 'example'))
+    orca.add_injectable("configs_dir",
+                        os.path.join(os.path.dirname(__file__), '..', '..',
+                                     '..', 'example'))
 
-    sim.add_injectable("store", store)
+    orca.add_injectable("store", store)
 
-    sim.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
-    sim.add_injectable("set_random_seed", set_random_seed)
+    orca.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
+    orca.add_injectable("set_random_seed", set_random_seed)
 
     # grab some of the tables
-    sim.get_table("land_use").to_frame().info()
-    sim.get_table("households").to_frame().info()
-    sim.get_table("persons").to_frame().info()
+    orca.get_table("land_use").to_frame().info()
+    orca.get_table("households").to_frame().info()
+    orca.get_table("persons").to_frame().info()
 
-    assert len(sim.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+    assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order
-    sim.run(["workplace_location_simulate"])
-    sim.run(["auto_ownership_simulate"])
-    sim.run(["cdap_simulate"])
-    sim.run(['mandatory_tour_frequency'])
-    sim.get_table("mandatory_tours").tour_type.value_counts()
-    sim.run(['non_mandatory_tour_frequency'])
-    sim.get_table("non_mandatory_tours").tour_type.value_counts()
-    sim.run(["destination_choice"])
-    sim.run(["mandatory_scheduling"])
-    sim.run(["non_mandatory_scheduling"])
-    sim.run(["mode_choice_simulate"])
+    orca.run(["workplace_location_simulate"])
+    orca.run(["auto_ownership_simulate"])
+    orca.run(["cdap_simulate"])
+    orca.run(['mandatory_tour_frequency'])
+    orca.get_table("mandatory_tours").tour_type.value_counts()
+    orca.run(['non_mandatory_tour_frequency'])
+    orca.get_table("non_mandatory_tours").tour_type.value_counts()
+    orca.run(["destination_choice"])
+    orca.run(["mandatory_scheduling"])
+    orca.run(["non_mandatory_scheduling"])
+    orca.run(["mode_choice_simulate"])
 
-    sim.clear_cache()
+    orca.clear_cache()

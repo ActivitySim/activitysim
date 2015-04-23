@@ -1,7 +1,9 @@
 import os
 import copy
 import yaml
+import string
 import pandas as pd
+import numpy as np
 import urbansim.sim.simulation as sim
 from activitysim import activitysim as asim
 from activitysim import skim as askim
@@ -25,7 +27,7 @@ def mode_choice_spec_df(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
                            "tour_mode_choice.csv")) as f:
-        return asim.read_model_spec(f).head(223)
+        return asim.read_model_spec(f)
 
 
 @sim.injectable()
@@ -69,7 +71,40 @@ def pre_process_expressions(expressions, variable_templates):
 
 
 def get_segment_and_unstack(spec, segment):
-    return spec[segment].unstack().fillna(0)
+    return spec[segment].unstack().\
+        reset_index(level="Rowid", drop=True).fillna(0)
+
+
+def expand_alternatives(df):
+    # alternatives are kept as a comma separated list.  At this stage we need
+    # need to split them up so that there is only one alternative per row, and
+    # where an expression is shared among alternatives, that row is copied
+    # with each alternative alternative value (pun intended) substituted for
+    # the alternative value for each row
+
+    # first split up the alts using string.split
+    alts = [string.split(s, ",") for s in df.reset_index()['Alternative']]
+
+    # this is the number of alternatives in each row
+    len_alts = [len(x) for x in alts]
+
+    # this repeats the locs for the number of alternatives in each row
+    ilocs = np.repeat(np.arange(len(df)), len_alts)
+
+    # grab the rows the right number of times (after setting a rowid)
+    df['Rowid'] = np.arange(len(df))
+    df = df.iloc[ilocs]
+
+    # now concat all the lists
+    new_alts = sum(alts, [])
+
+    df.reset_index("Alternative", inplace=True)
+    df["Alternative"] = new_alts
+    # rowid needs to bet set here - we're going to unstack this and we need
+    # a unique identifier to keep track of the rows during the unstack
+    df = df.set_index(['Rowid', 'Alternative'], append=True)
+
+    return df
 
 
 @sim.injectable()
@@ -105,8 +140,7 @@ def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
             df[col],
             mode_choice_coeffs[col].to_dict())
 
-    # FIXME alternatives are a comma separated list then need to be copied
-    # FIXME and put into their own rows at this point
+    df = expand_alternatives(df)
 
     return df
 

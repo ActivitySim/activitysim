@@ -162,17 +162,24 @@ def initial_household_utilities(utilities, people, hh_id_col):
     hh_util = {}
 
     alts = utilities.columns
+    combo_cache = {}
 
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         utils = utilities.loc[df.index]
-        hh = []
+        hh_size = len(df)
 
-        for combo in itertools.product(alts, repeat=len(df)):
-            hh.append(
-                (combo, utils.lookup(df.index, combo).sum()))
+        if hh_size in combo_cache:
+            combos, flat_combos = combo_cache[hh_size]
+        else:
+            combos = list(itertools.product(alts, repeat=hh_size))
+            flat_combos = list(tz.concat(combos))
+            combo_cache[hh_size] = (combos, flat_combos)
 
-        idx, u = zip(*hh)
-        hh_util[hh_id] = pd.Series(u, index=idx)
+        u = utils.lookup(
+            np.tile(df.index.values, len(combos)), flat_combos)
+        u = u.reshape((len(combos), hh_size)).sum(axis=1)
+
+        hh_util[hh_id] = pd.Series(u, index=combos)
 
     return hh_util
 

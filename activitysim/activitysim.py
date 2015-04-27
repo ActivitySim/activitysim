@@ -144,7 +144,7 @@ def _check_for_variability(model_design):
     it's likely that if 100k rows have no variability, the whole dataframe
     will have no variability.
     """
-    l = min(100000, len(model_design))
+    l = min(1000, len(model_design))
     sample = random_rows(model_design, l).describe().transpose()
     error = sample[sample["std"] == 0]
     if len(error):

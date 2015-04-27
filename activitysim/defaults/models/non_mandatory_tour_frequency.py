@@ -57,7 +57,8 @@ def non_mandatory_tour_frequency(set_random_seed,
             non_mandatory_tour_frequency_alts.to_frame(),
             # notice that we pick the column for the
             # segment for each segment we run
-            non_mandatory_tour_frequency_spec[[name]])
+            non_mandatory_tour_frequency_spec[[name]],
+            sample_size=50)
 
         choices_list.append(choices)
 

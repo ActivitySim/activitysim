@@ -52,7 +52,8 @@ def destination_choice(set_random_seed,
                                                alternatives,
                                                spec[[name]],
                                                skims=skims,
-                                               locals_d=locals_d)
+                                               locals_d=locals_d,
+                                               sample_size=50)
 
         choices_list.append(choices)
 

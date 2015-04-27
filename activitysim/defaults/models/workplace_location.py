@@ -39,9 +39,13 @@ def workplace_location_simulate(set_random_seed,
                                            alternatives,
                                            workplace_location_spec,
                                            skims=skims,
-                                           locals_d=locals_d)
+                                           locals_d=locals_d,
+                                           sample_size=50)
 
     choices = choices.reindex(persons_merged.index)
 
     print "Describe of choices:\n", choices.describe()
     sim.add_column("persons", "workplace_taz", choices)
+
+    from .util.misc import add_dependent_columns
+    add_dependent_columns("persons", "persons_workplace")

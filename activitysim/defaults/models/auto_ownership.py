@@ -23,3 +23,7 @@ def auto_ownership_simulate(set_random_seed, households_merged,
 
     print "Choices:\n", choices.value_counts()
     sim.add_column("households", "auto_ownership", choices)
+
+    from .util.misc import add_dependent_columns
+    add_dependent_columns("households", "households_autoown")
+

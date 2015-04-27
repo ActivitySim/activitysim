@@ -67,6 +67,10 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     sim.add_column("persons", "non_mandatory_tour_frequency", choices)
 
+    from .util.misc import add_dependent_columns
+    add_dependent_columns("persons", "persons_nmtf")
+
+
 
 """
 We have now generated non-mandatory tours, but they are attributes of the
@@ -76,7 +80,7 @@ associated with)
 """
 
 
-@sim.table()
+@sim.table(cache=True)
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):
 

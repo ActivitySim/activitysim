@@ -214,21 +214,20 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         mask = rule_mask.loc[df.index]
         utils = hh_util[hh_id]
+        hh_size = len(df)
 
         for exp, row in final_rules.iterrows():
             m = mask[exp].as_matrix()
+            alt = np.array([row.iloc[0]] * hh_size)
 
             # this crazy business combines three things to figure out
             # which household alternatives need to be modified by this rule.
             # the three things are:
             # - the mask of people for whom the rule expression is true (m)
             # - the individual alternative to which the rule applies
-            #   (row.iloc[0])
+            #   (alt)
             # - the alternative combinations for the household (combo)
-            app = [
-                ((np.array([row.iloc[0]] * len(utils.index[0])) == combo) & m
-                 ).any()
-                for combo in utils.index]
+            app = [((alt == combo) & m).any() for combo in utils.index]
 
             utils[app] = row.iloc[1]
 

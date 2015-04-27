@@ -4,7 +4,7 @@ import pandas as pd
 import urbansim.sim.simulation as sim
 from activitysim import activitysim as asim
 from activitysim import skim as askim
-from .util.mode import mode_choice_spec
+from .util.mode import _mode_choice_spec
 
 """
 Mode choice is run for all tours to determine the transportation mode that
@@ -39,8 +39,8 @@ def mode_choice_coeffs(configs_dir):
 @sim.injectable()
 def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
                      mode_choice_settings):
-    return mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
-                            mode_choice_settings)
+    return _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
+                             mode_choice_settings)
 
 
 def _mode_choice_simulate(tours, skims, spec, additional_constants):
@@ -100,7 +100,6 @@ def mode_choice_simulate(tours_merged,
 
     tours = tours_merged.to_frame()
 
-    mode_choice_spec = mode_choice_spec
     print mode_choice_spec.eatout
 
     # FIXME this only runs eatout

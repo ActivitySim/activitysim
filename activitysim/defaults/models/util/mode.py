@@ -108,8 +108,8 @@ def expand_alternatives(df):
     return df
 
 
-def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
-                     mode_choice_settings):
+def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
+                      mode_choice_settings):
     """
     Ok we have read in the spec - we need to do several things to reformat it
     to the same style spec that all the other models have.

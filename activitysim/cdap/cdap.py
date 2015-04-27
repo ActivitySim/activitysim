@@ -165,7 +165,6 @@ def initial_household_utilities(utilities, people, hh_id_col):
     combo_cache = {}
 
     for hh_id, df in people.groupby(hh_id_col, sort=False):
-        utils = utilities.loc[df.index]
         hh_size = len(df)
 
         if hh_size in combo_cache:
@@ -175,7 +174,7 @@ def initial_household_utilities(utilities, people, hh_id_col):
             flat_combos = list(tz.concat(combos))
             combo_cache[hh_size] = (combos, flat_combos)
 
-        u = utils.lookup(
+        u = utilities.lookup(
             np.tile(df.index.values, len(combos)), flat_combos)
         u = u.reshape((len(combos), hh_size)).sum(axis=1)
 

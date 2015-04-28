@@ -213,13 +213,27 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
     """
     rule_mask = eval_variables(final_rules.index, people)
 
+    if not rule_mask.as_matrix().any():
+        # if the rules don't apply to anyone then return now
+        return
+
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         mask = rule_mask.loc[df.index]
+        if not mask.as_matrix().any():
+            # if the mask doesn't apply to anyone in this household
+            # carry on to the next household
+            continue
+
         utils = hh_util[hh_id]
         hh_size = len(df)
 
         for exp, row in final_rules.iterrows():
             m = mask[exp].as_matrix()
+            if not m.any():
+                # if this sub-mask doesn't apply to anyone here then
+                # carry on to the next rule
+                continue
+
             alt = np.array([row.iloc[0]] * hh_size)
 
             # this crazy business combines three things to figure out

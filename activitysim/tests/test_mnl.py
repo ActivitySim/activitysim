@@ -121,9 +121,9 @@ def test_interaction_dataset_sampled(
         interaction_choosers, interaction_alts, random_seed):
     expected = pd.DataFrame({
         'attr': ['a'] * 2 + ['b'] * 2 + ['c'] * 2 + ['b'] * 2,
-        'prop': [10, 40, 20, 10, 40, 40, 40, 40],
+        'prop': [30, 40, 10, 30, 40, 10, 20, 10],
         'chooser_idx': ['w'] * 2 + ['x'] * 2 + ['y'] * 2 + ['z'] * 2},
-        index=[1, 4, 2, 1, 4, 4, 4, 4])
+        index=[3, 4, 1, 3, 4, 1, 2, 1])
 
     interacted = mnl.interaction_dataset(
         interaction_choosers, interaction_alts, sample_size=2)

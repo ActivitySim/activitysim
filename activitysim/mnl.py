@@ -104,8 +104,9 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     alts_idx = np.arange(numalts)
 
     if sample_size < numalts:
-        sample = np.random.choice(
-            alts_idx, sample_size * numchoosers, replace=True)
+        sample = np.concatenate(tuple(
+            np.random.choice(alts_idx, sample_size, replace=False)
+            for _ in range(numchoosers)))
     else:
         sample = np.tile(alts_idx, numchoosers)
 

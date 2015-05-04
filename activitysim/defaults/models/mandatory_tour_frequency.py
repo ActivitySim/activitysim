@@ -1,6 +1,8 @@
 import os
+
+import orca
 import pandas as pd
-import urbansim.sim.simulation as sim
+
 from activitysim import activitysim as asim
 from .util.mandatory_tour_frequency import process_mandatory_tours
 
@@ -10,13 +12,13 @@ alternatives above) - these trips include work and school in some combination.
 """
 
 
-@sim.injectable()
+@orca.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "mandatory_tour_frequency.csv")
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.model()
+@orca.step()
 def mandatory_tour_frequency(set_random_seed,
                              persons_merged,
                              mandatory_tour_frequency_spec):
@@ -36,7 +38,7 @@ def mandatory_tour_frequency(set_random_seed,
         index=choices.index).reindex(persons_merged.local.index)
 
     print "Choices:\n", choices.value_counts()
-    sim.add_column("persons", "mandatory_tour_frequency", choices)
+    orca.add_column("persons", "mandatory_tour_frequency", choices)
 
 
 """
@@ -46,7 +48,7 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
-@sim.table(cache=True)
+@orca.table(cache=True)
 def mandatory_tours(persons):
     persons = persons.to_frame(columns=["mandatory_tour_frequency",
                                         "is_worker"])
@@ -55,7 +57,7 @@ def mandatory_tours(persons):
 
 
 # broadcast mandatory_tours on to persons using the person_id foreign key
-sim.broadcast('persons', 'mandatory_tours',
-              cast_index=True, onto_on='person_id')
-sim.broadcast('persons_merged', 'mandatory_tours',
-              cast_index=True, onto_on='person_id')
+orca.broadcast('persons', 'mandatory_tours',
+               cast_index=True, onto_on='person_id')
+orca.broadcast('persons_merged', 'mandatory_tours',
+               cast_index=True, onto_on='person_id')

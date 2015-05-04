@@ -1,5 +1,6 @@
 import os
-import urbansim.sim.simulation as sim
+import orca
+
 from activitysim import activitysim as asim
 
 
@@ -9,13 +10,13 @@ work.
 """
 
 
-@sim.injectable()
+@orca.injectable()
 def workplace_location_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "workplace_location.csv")
     return asim.read_model_spec(f).fillna(0)
 
 
-@sim.model()
+@orca.step()
 def workplace_location_simulate(set_random_seed,
                                 persons_merged,
                                 workplace_location_spec,
@@ -45,7 +46,7 @@ def workplace_location_simulate(set_random_seed,
     choices = choices.reindex(persons_merged.index)
 
     print "Describe of choices:\n", choices.describe()
-    sim.add_column("persons", "workplace_taz", choices)
+    orca.add_column("persons", "workplace_taz", choices)
 
     from .util.misc import add_dependent_columns
     add_dependent_columns("persons", "persons_workplace")

@@ -1,7 +1,10 @@
 import os
 import yaml
+
+import orca
 import pandas as pd
-import urbansim.sim.simulation as sim
+import yaml
+
 from activitysim import activitysim as asim
 from activitysim import skim as askim
 from .util.mode import _mode_choice_spec
@@ -12,7 +15,7 @@ will be used for the tour
 """
 
 
-@sim.injectable()
+@orca.injectable()
 def mode_choice_settings(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
@@ -20,7 +23,7 @@ def mode_choice_settings(configs_dir):
         return yaml.load(f)
 
 
-@sim.injectable()
+@orca.injectable()
 def mode_choice_spec_df(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
@@ -28,7 +31,7 @@ def mode_choice_spec_df(configs_dir):
         return asim.read_model_spec(f)
 
 
-@sim.injectable()
+@orca.injectable()
 def mode_choice_coeffs(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
@@ -36,7 +39,7 @@ def mode_choice_coeffs(configs_dir):
         return pd.read_csv(f, index_col='Expression')
 
 
-@sim.injectable()
+@orca.injectable()
 def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
                      mode_choice_settings):
     return _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
@@ -92,7 +95,7 @@ def get_segment_and_unstack(spec, segment):
         reset_index(level="Rowid", drop=True).fillna(0)
 
 
-@sim.model()
+@orca.step()
 def mode_choice_simulate(tours_merged,
                          mode_choice_spec,
                          mode_choice_settings,
@@ -110,4 +113,4 @@ def mode_choice_simulate(tours_merged,
         mode_choice_settings['CONSTANTS'])
 
     print "Choices:\n", choices.value_counts()
-    sim.add_column("tours", "mode", choices)
+    orca.add_column("tours", "mode", choices)

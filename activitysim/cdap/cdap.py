@@ -243,7 +243,10 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
             # - the individual alternative to which the rule applies
             #   (alt)
             # - the alternative combinations for the household (combo)
-            app = [((alt == combo) & m).any() for combo in utils.index]
+            app = np.any(
+                np.bitwise_and(
+                    (np.array(utils.index.values.tolist()) == alt), m),
+                axis=1)
 
             utils[app] = row.iloc[1]
 

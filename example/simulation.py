@@ -4,6 +4,10 @@ import pandas as pd
 import numpy as np
 import os
 
+#orca.add_injectable("store", pd.HDFStore(
+#        os.path.join("..", "activitysim", "defaults", "test", "test.h5"), "r"))
+#orca.add_injectable("nonmotskm_matrix", np.ones((1454, 1454)))
+
 orca.run(["school_location_simulate"])
 orca.run(["workplace_location_simulate"])
 print orca.get_table("persons").distance_to_work.describe()

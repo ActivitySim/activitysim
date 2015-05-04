@@ -162,17 +162,25 @@ def initial_household_utilities(utilities, people, hh_id_col):
     hh_util = {}
 
     alts = utilities.columns
+    alts_map = {a: i for i, a in enumerate(alts)}
+    combo_cache = {}
 
     for hh_id, df in people.groupby(hh_id_col, sort=False):
-        utils = utilities.loc[df.index]
-        hh = []
+        hh_size = len(df)
+        utils = utilities.loc[df.index].as_matrix()
 
-        for combo in itertools.product(alts, repeat=len(df)):
-            hh.append(
-                (combo, utils.lookup(df.index, combo).sum()))
+        if hh_size in combo_cache:
+            combos, flat_combos = combo_cache[hh_size]
+        else:
+            combos = list(itertools.product(alts, repeat=hh_size))
+            flat_combos = [alts_map[a] for a in tz.concat(combos)]
+            combo_cache[hh_size] = (combos, flat_combos)
 
-        idx, u = zip(*hh)
-        hh_util[hh_id] = pd.Series(u, index=idx)
+        ncombos = len(combos)
+        u = (utils[np.tile(np.arange(hh_size), ncombos), flat_combos]
+             .reshape((ncombos, hh_size)).sum(axis=1))
+
+        hh_util[hh_id] = pd.Series(u, index=combos)
 
     return hh_util
 
@@ -205,24 +213,37 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
     """
     rule_mask = eval_variables(final_rules.index, people)
 
+    if not rule_mask.as_matrix().any():
+        # if the rules don't apply to anyone then return now
+        return
+
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         mask = rule_mask.loc[df.index]
+        if not mask.as_matrix().any():
+            # if the mask doesn't apply to anyone in this household
+            # carry on to the next household
+            continue
+
         utils = hh_util[hh_id]
+        hh_size = len(df)
 
         for exp, row in final_rules.iterrows():
             m = mask[exp].as_matrix()
+            if not m.any():
+                # if this sub-mask doesn't apply to anyone here then
+                # carry on to the next rule
+                continue
+
+            alt = np.array([row.iloc[0]] * hh_size)
 
             # this crazy business combines three things to figure out
             # which household alternatives need to be modified by this rule.
             # the three things are:
             # - the mask of people for whom the rule expression is true (m)
             # - the individual alternative to which the rule applies
-            #   (row.iloc[0])
+            #   (alt)
             # - the alternative combinations for the household (combo)
-            app = [
-                ((np.array([row.iloc[0]] * len(utils.index[0])) == combo) & m
-                 ).any()
-                for combo in utils.index]
+            app = [((alt == combo) & m).any() for combo in utils.index]
 
             utils[app] = row.iloc[1]
 

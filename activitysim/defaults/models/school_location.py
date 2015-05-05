@@ -4,6 +4,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from .util.misc import add_dependent_columns
 
 
 """
@@ -64,5 +65,4 @@ def school_location_simulate(set_random_seed,
 
     orca.add_column("persons", "school_taz", choices)
 
-    from .util.misc import add_dependent_columns
     add_dependent_columns("persons", "persons_school")

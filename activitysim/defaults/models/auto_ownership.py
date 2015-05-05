@@ -2,6 +2,7 @@ import os
 import orca
 
 from activitysim import activitysim as asim
+from .util.misc import add_dependent_columns
 
 """
 Auto ownership is a standard model which predicts how many cars a household
@@ -23,8 +24,7 @@ def auto_ownership_simulate(set_random_seed, households_merged,
         households_merged.to_frame(), auto_ownership_spec)
 
     print "Choices:\n", choices.value_counts()
-    
+
     orca.add_column("households", "auto_ownership", choices)
 
-    from .util.misc import add_dependent_columns
     add_dependent_columns("households", "households_autoown")

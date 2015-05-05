@@ -2,6 +2,7 @@ import os
 import orca
 
 from activitysim import activitysim as asim
+from .util.misc import add_dependent_columns
 
 
 """
@@ -48,5 +49,4 @@ def workplace_location_simulate(set_random_seed,
     print "Describe of choices:\n", choices.describe()
     orca.add_column("persons", "workplace_taz", choices)
 
-    from .util.misc import add_dependent_columns
     add_dependent_columns("persons", "persons_workplace")

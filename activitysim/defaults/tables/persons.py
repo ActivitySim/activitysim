@@ -76,7 +76,6 @@ def cdap_activity(set_random_seed, persons):
                                                2: 'Home'})
 
 
-
 # FIXME - these are my "placeholder" for joint trip generation
 # number of joint shopping tours
 @orca.column("persons")

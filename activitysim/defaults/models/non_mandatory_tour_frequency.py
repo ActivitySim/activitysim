@@ -5,6 +5,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
 
@@ -70,9 +71,7 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     orca.add_column("persons", "non_mandatory_tour_frequency", choices)
 
-    from .util.misc import add_dependent_columns
     add_dependent_columns("persons", "persons_nmtf")
-
 
 
 """
@@ -86,9 +85,6 @@ associated with)
 @orca.table(cache=True)
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):
-
-    if "non_mandatory_tour_frequency" not in persons.columns:
-        return pd.DataFrame()
 
     return process_non_mandatory_tours(
         persons.non_mandatory_tour_frequency.dropna(),

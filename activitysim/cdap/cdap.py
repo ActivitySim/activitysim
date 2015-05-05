@@ -188,15 +188,15 @@ def initial_household_utilities(utilities, people, hh_id_col):
         utils = utilities.loc[df.index].as_matrix()
 
         if hh_size in combo_cache:
-            combos, flat_combos = combo_cache[hh_size]
+            ncombos, combos, flat_combos, tiled = combo_cache[hh_size]
         else:
             combos = list(itertools.product(alts, repeat=hh_size))
             flat_combos = [alts_map[a] for a in tz.concat(combos)]
-            combo_cache[hh_size] = (combos, flat_combos)
+            ncombos = len(combos)
+            tiled = np.tile(np.arange(hh_size), ncombos)
+            combo_cache[hh_size] = (ncombos, combos, flat_combos, tiled)
 
-        ncombos = len(combos)
-        u = (utils[np.tile(np.arange(hh_size), ncombos), flat_combos]
-             .reshape((ncombos, hh_size)).sum(axis=1))
+        u = utils[tiled, flat_combos].reshape((ncombos, hh_size)).sum(axis=1)
 
         hh_util[hh_id] = pd.Series(u, index=combos)
 

@@ -346,8 +346,6 @@ class Skims3D(object):
         skim: Skim
              The skim object
         """
-        # TODO this is just to reduce the use of resources!!!!
-        key = "SOV_TIME"
 
         origins = self.df[self.left_key].astype('int')
         destinations = self.df[self.right_key].astype('int')

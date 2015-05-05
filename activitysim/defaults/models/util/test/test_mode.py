@@ -5,7 +5,7 @@
 import pandas as pd
 import pandas.util.testing as pdt
 from ..mode import pre_process_expressions, evaluate_expression_list, \
-    expand_alternatives, mode_choice_spec
+    expand_alternatives, _mode_choice_spec
 
 
 def test_ppe():
@@ -79,7 +79,7 @@ def test_mode_choice_spec():
         }
     }
 
-    df = mode_choice_spec(spec, coeffs, settings)
+    df = _mode_choice_spec(spec, coeffs, settings)
 
     pdt.assert_series_equal(
         df.reset_index().Alternative,

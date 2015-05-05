@@ -73,18 +73,19 @@ def test_mini_run(store):
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order
-    orca.run(["workplace_location_orcaulate"])
-    orca.run(["auto_ownership_orcaulate"])
+    orca.run(["workplace_location_simulate"])
+    orca.run(["auto_ownership_simulate"])
 
     # this is a regression test so that we know if these numbers change
     auto_choice = orca.get_table('households').get_column('auto_ownership')
+    print auto_choice[[2306822, 652072, 651907]]
 
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 651907]],
         pd.Series(
-            [3, 1, 0], index=[2306822, 652072, 651907]))
+            [2, 1, 1], index=[2306822, 652072, 651907]))
 
-    orca.run(["cdap_orcaulate"])
+    orca.run(["cdap_simulate"])
 
     orca.run(['mandatory_tour_frequency'])
 
@@ -94,7 +95,7 @@ def test_mini_run(store):
     pdt.assert_series_equal(
         mtf_choice[[146642, 642922, 642921]],
         pd.Series(
-            ['work_and_school', 'work2', 'school2'],
+            ['school2', 'work1', 'school2'],
             index=[146642, 642922, 642921]))
 
     orca.clear_cache()
@@ -118,9 +119,10 @@ def test_full_run(store):
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order
-    orca.run(["workplace_location_orcaulate"])
-    orca.run(["auto_ownership_orcaulate"])
-    orca.run(["cdap_orcaulate"])
+    orca.run(["school_location_simulate"])
+    orca.run(["workplace_location_simulate"])
+    orca.run(["auto_ownership_simulate"])
+    orca.run(["cdap_simulate"])
     orca.run(['mandatory_tour_frequency'])
     orca.get_table("mandatory_tours").tour_type.value_counts()
     orca.run(['non_mandatory_tour_frequency'])
@@ -128,6 +130,6 @@ def test_full_run(store):
     orca.run(["destination_choice"])
     orca.run(["mandatory_scheduling"])
     orca.run(["non_mandatory_scheduling"])
-    orca.run(["mode_choice_orcaulate"])
+    orca.run(["mode_choice_simulate"])
 
     orca.clear_cache()

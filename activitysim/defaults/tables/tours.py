@@ -2,6 +2,7 @@ import orca
 import pandas as pd
 from activitysim.util.reindex import reindex
 
+
 @orca.table()
 def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
     tours = pd.concat([non_mandatory_tours.to_frame(),

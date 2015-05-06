@@ -107,7 +107,7 @@ def test_full_run(store):
                         os.path.join(os.path.dirname(__file__), '..', '..',
                                      '..', 'example'))
     f = os.path.join(os.path.dirname(__file__), '..', '..',
-                                     '..', 'example', 'data', 'nonmotskm.omx')
+                     '..', 'example', 'data', 'nonmotskm.omx')
     orca.add_injectable("omx_file", omx.openFile(f))
 
     orca.add_injectable("store", store)

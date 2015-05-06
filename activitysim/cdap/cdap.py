@@ -235,6 +235,8 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
         # if the rules don't apply to anyone then return now
         return
 
+    alt_match_cache = {}
+
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         mask = rule_mask.loc[df.index]
         if not mask.as_matrix().any():
@@ -252,19 +254,25 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
                 # carry on to the next rule
                 continue
 
-            alt = np.array([row.iloc[0]] * hh_size)
-
             # this crazy business combines three things to figure out
             # which household alternatives need to be modified by this rule.
             # the three things are:
             # - the mask of people for whom the rule expression is true (m)
             # - the individual alternative to which the rule applies
             #   (alt)
-            # - the alternative combinations for the household (combo)
-            app = np.any(
-                np.bitwise_and(
-                    (np.array(utils.index.values.tolist()) == alt), m),
-                axis=1)
+            # - the alternative combinations for the household
+            #   (utils.index)
+            alt = row.iloc[0]
+            key = (alt, hh_size)
+            if key in alt_match_cache:
+                alt_match = alt_match_cache[key]
+            else:
+                alt_match = (
+                    np.array(utils.index.values.tolist()) ==
+                    np.array([alt] * hh_size))
+                alt_match_cache[key] = alt_match
+
+            app = np.any(np.bitwise_and(alt_match, m), axis=1)
 
             utils[app] = row.iloc[1]
 

@@ -79,7 +79,7 @@ class Skims(object):
     the right_key column in df as the destination.  In this way, the user
     does not do the O-D lookup by hand and only specifies which skim to use
     for this lookup.  This is the only purpose of this object: to
-    abstract away the O-D lookup and use skims by specifiying which skim
+    abstract away the O-D lookup and use skims by specifying which skim
     to use in the expressions.
 
     Note that keys are any hashable object, not just strings.  So calling
@@ -268,6 +268,7 @@ class Skims3D(object):
         self.offset = offset
         self.skim_key = skim_key
         self.df = skims.df
+        self.omx = None
         self.skims_data = {}
         self.skim_keys_to_indexes = {}
 
@@ -347,12 +348,50 @@ class Skims3D(object):
              The skim object
         """
 
+        if self.omx:
+            # read off the disk on the fly
+            self._build_single_3d_matrix_from_disk(key)
+
         origins = self.df[self.left_key].astype('int')
         destinations = self.df[self.right_key].astype('int')
         skim_indexes = self.df[self.skim_key].\
             map(self.skim_keys_to_indexes[key]).astype('int')
 
-        return pd.Series(
+        ret = pd.Series(
             self.lookup(key, origins, destinations, skim_indexes),
             self.df.index
         )
+
+        if self.omx:
+            # and now destroy
+            self._tear_down_single_3d_matrix(key)
+
+        return ret
+
+    def get_from_omx(self, key, v):
+        # treat this as a callback - override depending on how you store
+        # skims in the omx file - for now we just read the same one over and
+        # over for testing purposes and to reduce memory use
+        print "Getting from omx", key, v
+        # the only skim we have right now is distance
+        return self.omx['DIST']
+
+    def _build_single_3d_matrix_from_disk(self, key):
+        print "Building 3d matrix from disk for key = ", key
+        uniq = self.df[self.skim_key].unique()
+        if hasattr(self, 'mat'):
+            # being sneaky to make it go faster
+            self.skims_data[key] = self.mat
+        else:
+            self.skims_data[key] = np.dstack(
+                [self.get_from_omx(key, v) for v in uniq])
+            self.mat = self.skims_data[key]
+        self.skim_keys_to_indexes[key] = {i: v for i, v in
+                                          zip(uniq, range(len(uniq)))}
+
+    def _tear_down_single_3d_matrix(self, key):
+        del self.skims_data[key]
+        del self.skim_keys_to_indexes[key]
+
+    def set_omx(self, omx):
+        self.omx = omx

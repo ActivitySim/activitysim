@@ -10,6 +10,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 import yaml
+import openmatrix as omx
 
 from .. import __init__
 from ..tables import size_terms
@@ -105,6 +106,9 @@ def test_full_run(store):
     orca.add_injectable("configs_dir",
                         os.path.join(os.path.dirname(__file__), '..', '..',
                                      '..', 'example'))
+    f = os.path.join(os.path.dirname(__file__), '..', '..',
+                                     '..', 'example', 'data', 'nonmotskm.omx')
+    orca.add_injectable("omx_file", omx.openFile(f))
 
     orca.add_injectable("store", store)
 

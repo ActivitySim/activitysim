@@ -46,7 +46,7 @@ def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
                              mode_choice_settings)
 
 
-def _mode_choice_simulate(tours, skims, spec, additional_constants):
+def _mode_choice_simulate(tours, skims, spec, additional_constants, omx=None):
     """
     This is a utility to run a mode choice model for each segment (usually
     segments are trip purposes).  Pass in the tours that need a mode,
@@ -60,6 +60,10 @@ def _mode_choice_simulate(tours, skims, spec, additional_constants):
     out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),
                               "out_period", -1)
     skims.set_keys("TAZ", "workplace_taz")
+
+    if omx:
+        in_skims.set_omx(omx)
+        out_skims.set_omx(omx)
 
     locals_d = {
         "in_skims": in_skims,
@@ -99,7 +103,7 @@ def get_segment_and_unstack(spec, segment):
 def mode_choice_simulate(tours_merged,
                          mode_choice_spec,
                          mode_choice_settings,
-                         skims):
+                         skims, omx_file):
 
     tours = tours_merged.to_frame()
 
@@ -110,7 +114,8 @@ def mode_choice_simulate(tours_merged,
         tours[tours.tour_type == "eatout"],
         skims,
         get_segment_and_unstack(mode_choice_spec, 'eatout'),
-        mode_choice_settings['CONSTANTS'])
+        mode_choice_settings['CONSTANTS'],
+        omx=omx_file)
 
     print "Choices:\n", choices.value_counts()
     orca.add_column("tours", "mode", choices)

@@ -180,7 +180,6 @@ def initial_household_utilities(utilities, people, hh_id_col):
     hh_util = {}
 
     alts = utilities.columns
-    alts_map = {a: i for i, a in enumerate(alts)}
     combo_cache = {}
 
     for hh_id, df in people.groupby(hh_id_col, sort=False):
@@ -191,7 +190,8 @@ def initial_household_utilities(utilities, people, hh_id_col):
             ncombos, combos, flat_combos, tiled = combo_cache[hh_size]
         else:
             combos = list(itertools.product(alts, repeat=hh_size))
-            flat_combos = [alts_map[a] for a in tz.concat(combos)]
+            flat_combos = list(
+                tz.concat(itertools.product(range(len(alts)), repeat=hh_size)))
             ncombos = len(combos)
             tiled = np.tile(np.arange(hh_size), ncombos)
             combo_cache[hh_size] = (ncombos, combos, flat_combos, tiled)

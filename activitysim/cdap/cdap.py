@@ -267,9 +267,7 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
             if key in alt_match_cache:
                 alt_match = alt_match_cache[key]
             else:
-                alt_match = (
-                    np.array(utils.index.values.tolist()) ==
-                    np.array([alt] * hh_size))
+                alt_match = np.array(utils.index.values.tolist()) == alt
                 alt_match_cache[key] = alt_match
 
             app = np.any(np.bitwise_and(alt_match, m), axis=1)

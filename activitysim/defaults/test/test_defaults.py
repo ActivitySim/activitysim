@@ -3,6 +3,7 @@
 # See full license in LICENSE.txt.
 
 import os
+import tempfile
 
 import numpy as np
 import orca
@@ -106,9 +107,13 @@ def test_full_run(store):
     orca.add_injectable("configs_dir",
                         os.path.join(os.path.dirname(__file__), '..', '..',
                                      '..', 'example'))
-    f = os.path.join(os.path.dirname(__file__), '..', '..',
-                     '..', 'example', 'data', 'nonmotskm.omx')
-    orca.add_injectable("omx_file", omx.openFile(f))
+   
+    tmp_name = tempfile.NamedTemporaryFile(suffix='.omx').name
+    tmp = omx.openFile(tmp_name, 'w')
+    tmp['DIST'] = np.ones((1454, 1454))
+
+    print tmp 
+    orca.add_injectable("omx_file", tmp)
 
     orca.add_injectable("store", store)
 
@@ -137,3 +142,5 @@ def test_full_run(store):
     orca.run(["mode_choice_simulate"])
 
     orca.clear_cache()
+    tmp.close()
+    os.remove(tmp_name)

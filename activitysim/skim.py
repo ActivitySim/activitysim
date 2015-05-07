@@ -368,6 +368,27 @@ class Skims3D(object):
 
         return ret
 
+    """
+    So these three function allow the use of reading skims directly from the OMX
+    file - ON DISK - rather than storing all your skims in memory.  This
+    comes about well, first, because I run out of memory on my machine and on
+    Travis when reading all the skims into memory, and second, that with the
+    exception of the distance matrix, we really only use each skim 1-2 times
+    each and pretty much all in the mode choice model.  And even though each
+    skim for 1454 zone system is only about 16MB, we have about 300 skim files
+    which can get large pretty fast (although I think it should be manageable
+    even still.  So the job here is to build the 3D skims file, stacking the
+    skims for different time periods into a single 3D matrix (origin,
+    destination, and time period).  Unfortunately this doesn't run as fast as I
+    thought it might - I actually think the stacking is pretty slow especially
+    so this code currently uses a shortcut to just read in DIST over and over
+    again (which is the only skim I have access to right now anyway).  In the
+    Travis tests I actually build a random skim to use for this matrix anyway,
+    so that I don't have to check into git a 16MB file.  Anyway, this should be
+    considered a work-in-progress and a "low memory" mode.  It is not right now
+    working very well (I mean it works, just very slowly).
+    """
+
     def get_from_omx(self, key, v):
         # treat this as a callback - override depending on how you store
         # skims in the omx file - for now we just read the same one over and

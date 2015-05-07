@@ -107,12 +107,11 @@ def test_full_run(store):
     orca.add_injectable("configs_dir",
                         os.path.join(os.path.dirname(__file__), '..', '..',
                                      '..', 'example'))
-   
+
     tmp_name = tempfile.NamedTemporaryFile(suffix='.omx').name
     tmp = omx.openFile(tmp_name, 'w')
     tmp['DIST'] = np.ones((1454, 1454))
 
-    print tmp 
     orca.add_injectable("omx_file", tmp)
 
     orca.add_injectable("store", store)

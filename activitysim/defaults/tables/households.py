@@ -16,6 +16,13 @@ def households(set_random_seed, store, settings):
     return store["households"]
 
 
+# this is a placeholder table for columns that get computed after the
+# auto ownership model
+@orca.table()
+def households_autoown(households):
+    return pd.DataFrame(index=households.index)
+
+
 # this is a common merge so might as well define it once here and use it
 @orca.table()
 def households_merged(households, land_use, accessibility):
@@ -120,7 +127,7 @@ def num_under16_not_at_school(persons, households):
         reindex(households.index).fillna(0)
 
 
-@orca.column("households")
+@orca.column('households')
 def auto_ownership(households):
     return pd.Series(0, households.index)
 
@@ -130,7 +137,7 @@ def hhsize(households):
     return households.PERSONS
 
 
-@orca.column('households')
+@orca.column('households_autoown')
 def no_cars(households):
     return (households.auto_ownership == 0)
 
@@ -147,7 +154,7 @@ def home_is_rural(households, land_use, settings):
     return s > settings['rural_threshold']
 
 
-@orca.column('households')
+@orca.column('households_autoown')
 def car_sufficiency(households, persons):
     return households.auto_ownership - persons.household_id.value_counts()
 

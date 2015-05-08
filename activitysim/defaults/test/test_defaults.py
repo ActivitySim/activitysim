@@ -3,6 +3,7 @@
 # See full license in LICENSE.txt.
 
 import os
+import tempfile
 
 import numpy as np
 import orca
@@ -10,6 +11,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 import yaml
+import openmatrix as omx
 
 from .. import __init__
 from ..tables import size_terms
@@ -78,11 +80,12 @@ def test_mini_run(store):
 
     # this is a regression test so that we know if these numbers change
     auto_choice = orca.get_table('households').get_column('auto_ownership')
+    print auto_choice[[2306822, 652072, 651907]]
 
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 651907]],
         pd.Series(
-            [3, 1, 0], index=[2306822, 652072, 651907]))
+            [2, 1, 1], index=[2306822, 652072, 651907]))
 
     orca.run(["cdap_simulate"])
 
@@ -94,7 +97,7 @@ def test_mini_run(store):
     pdt.assert_series_equal(
         mtf_choice[[146642, 642922, 642921]],
         pd.Series(
-            ['work_and_school', 'work2', 'school2'],
+            ['school2', 'work1', 'school2'],
             index=[146642, 642922, 642921]))
 
     orca.clear_cache()
@@ -104,6 +107,12 @@ def test_full_run(store):
     orca.add_injectable("configs_dir",
                         os.path.join(os.path.dirname(__file__), '..', '..',
                                      '..', 'example'))
+
+    tmp_name = tempfile.NamedTemporaryFile(suffix='.omx').name
+    tmp = omx.openFile(tmp_name, 'w')
+    tmp['DIST'] = np.ones((1454, 1454))
+
+    orca.add_injectable("omx_file", tmp)
 
     orca.add_injectable("store", store)
 
@@ -118,6 +127,7 @@ def test_full_run(store):
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order
+    orca.run(["school_location_simulate"])
     orca.run(["workplace_location_simulate"])
     orca.run(["auto_ownership_simulate"])
     orca.run(["cdap_simulate"])
@@ -131,3 +141,5 @@ def test_full_run(store):
     orca.run(["mode_choice_simulate"])
 
     orca.clear_cache()
+    tmp.close()
+    os.remove(tmp_name)

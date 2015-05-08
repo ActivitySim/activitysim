@@ -1,5 +1,6 @@
 import orca
 import pandas as pd
+from activitysim.util.reindex import reindex
 
 
 @orca.table()
@@ -53,7 +54,79 @@ def hov2_available(tours):
 
 
 @orca.column("tours")
+def hov2toll_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def hov3_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
 def sovtoll_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def drive_local_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def drive_lrf_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def drive_express_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def drive_heavyrail_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def drive_commuter_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def walk_local_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def walk_lrf_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def walk_commuter_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def walk_express_available(tours):
+    # FIXME
+    return pd.Series(1, index=tours.index)
+
+
+@orca.column("tours")
+def walk_heavyrail_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
@@ -73,6 +146,8 @@ def number_of_participants(tours):
 @orca.column("tours")
 def work_tour_is_drive(tours):
     # FIXME
+    # FIXME note that there's something about whether this is a subtour?
+    # FIXME though I'm not sure how it can be a subtour in the tour mode choice
     return pd.Series(0, index=tours.index)
 
 
@@ -83,9 +158,33 @@ def terminal_time(tours):
 
 
 @orca.column("tours")
+def origin_walk_time(tours):
+    # FIXME
+    return pd.Series(0, index=tours.index)
+
+
+@orca.column("tours")
+def destination_walk_time(tours):
+    # FIXME
+    return pd.Series(0, index=tours.index)
+
+
+@orca.column("tours")
 def daily_parking_cost(tours):
     # FIXME - this is a computation based on the tour destination
     return pd.Series(0, index=tours.index)
+
+
+@orca.column("tours")
+def dest_density_index(tours, land_use):
+    return reindex(land_use.density_index,
+                   tours.destination)
+
+
+@orca.column("tours")
+def dest_topology(tours, land_use):
+    return reindex(land_use.TOPOLOGY,
+                   tours.destination)
 
 
 @orca.column("tours")

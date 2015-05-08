@@ -48,16 +48,14 @@ def destination_choice(set_random_seed,
         # the segment is now available to switch between size terms
         locals_d['segment'] = name
 
-        print spec.columns
-        print name
-
         print "Running segment '%s' of size %d" % (name, len(segment))
 
         choices, _ = asim.interaction_simulate(segment,
                                                alternatives,
                                                spec[[name]],
                                                skims=skims,
-                                               locals_d=locals_d)
+                                               locals_d=locals_d,
+                                               sample_size=50)
 
         choices_list.append(choices)
 

@@ -1,8 +1,8 @@
 import os
-
 import orca
 
 from activitysim import activitysim as asim
+from .util.misc import add_dependent_columns
 
 
 """
@@ -41,9 +41,12 @@ def workplace_location_simulate(set_random_seed,
                                            alternatives,
                                            workplace_location_spec,
                                            skims=skims,
-                                           locals_d=locals_d)
+                                           locals_d=locals_d,
+                                           sample_size=50)
 
     choices = choices.reindex(persons_merged.index)
 
     print "Describe of choices:\n", choices.describe()
     orca.add_column("persons", "workplace_taz", choices)
+
+    add_dependent_columns("persons", "persons_workplace")

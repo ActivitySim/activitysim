@@ -6,8 +6,9 @@ from activitysim.activitysim import other_than
 from activitysim.util import reindex
 
 
+# this caches things so you don't have to read in the file from disk again
 @orca.table(cache=True)
-def persons(store, settings, households):
+def persons_internal(store, settings, households):
     df = store["persons"]
 
     if "households_sample_size" in settings:
@@ -15,6 +16,33 @@ def persons(store, settings, households):
         df = df[df.household_id.isin(households.index)]
 
     return df
+
+
+# this caches all the columns that are computed on the persons table
+@orca.table(cache=True)
+def persons(persons_internal):
+    return persons_internal.to_frame()
+
+
+# this is the placeholder for all the columns to update after the
+# school location choice model
+@orca.table()
+def persons_school(persons):
+    return pd.DataFrame(index=persons.index)
+
+
+# this is the placeholder for all the columns to update after the
+# workplace location choice model
+@orca.table()
+def persons_workplace(persons):
+    return pd.DataFrame(index=persons.index)
+
+
+# this is the placeholder for all the columns to update after the
+# non-mandatory tour frequency model
+@orca.table()
+def persons_nmtf(persons):
+    return pd.DataFrame(index=persons.index)
 
 
 # another common merge for persons
@@ -39,11 +67,13 @@ def adult(persons):
     return persons.to_frame(["age"]).eval("18 <= age")
 
 
-@orca.column("persons")
+@orca.column("persons", cache=True)
 def cdap_activity(set_random_seed, persons):
     # return a default until it gets filled in by the model
     return pd.Series(np.random.randint(3, size=len(persons)),
-                     index=persons.index).map({0: 'M', 1: 'N', 2: 'H'})
+                     index=persons.index).map({0: 'Mandatory',
+                                               1: 'NonMandatory',
+                                               2: 'Home'})
 
 
 # FIXME - these are my "placeholder" for joint trip generation
@@ -97,21 +127,15 @@ def female(persons):
     return persons.sex == 1
 
 
-@orca.column("persons")
+@orca.column("persons_nmtf")
 def num_escort_tours(persons, non_mandatory_tours):
-    if "non_mandatory_tour_frequency" not in persons.columns:
-        return pd.Series(0, index=persons.index)
-
     nmt = non_mandatory_tours.to_frame()
     return nmt[nmt.tour_type == "escort"].groupby("person_id").size()\
         .reindex(persons.index).fillna(0)
 
 
-@orca.column("persons")
+@orca.column("persons_nmtf")
 def num_non_escort_tours(persons, non_mandatory_tours):
-    if "non_mandatory_tour_frequency" not in persons.columns:
-        return pd.Series(0, index=persons.index)
-
     nmt = non_mandatory_tours.to_frame()
     return nmt[nmt.tour_type != "escort"].groupby("person_id").size()\
         .reindex(persons.index).fillna(0)
@@ -236,7 +260,8 @@ def home_taz(households, persons):
     return reindex(households.home_taz, persons.household_id)
 
 
-@orca.column("persons")
+# this use the distance skims to compute the raw distance to work from home
+@orca.column("persons_workplace")
 def school_taz(persons):
     return pd.Series(1, persons.index)
 
@@ -250,7 +275,7 @@ def distance_to_work(persons, distance_skim):
 
 
 # same deal but to school
-@orca.column("persons")
+@orca.column("persons_school")
 def distance_to_school(persons, distance_skim):
     return pd.Series(distance_skim.get(persons.home_taz,
                                        persons.school_taz),
@@ -259,7 +284,7 @@ def distance_to_school(persons, distance_skim):
 
 # similar but this adds the am peak travel time to the pm peak travel time in
 # the opposite direction (by car)
-@orca.column("persons")
+@orca.column("persons_workplace")
 def roundtrip_auto_time_to_work(persons, sovam_skim, sovpm_skim):
     return pd.Series(sovam_skim.get(persons.home_taz,
                                     persons.workplace_taz) +
@@ -270,7 +295,7 @@ def roundtrip_auto_time_to_work(persons, sovam_skim, sovpm_skim):
 
 # this adds the am peak travel time to the md peak travel time in
 # the opposite direction (by car), assuming students leave school earlier
-@orca.column("persons")
+@orca.column("persons_school")
 def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
     return pd.Series(sovam_skim.get(persons.home_taz,
                                     persons.school_taz) +
@@ -279,7 +304,7 @@ def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
                      index=persons.index)
 
 
-@orca.column('persons')
+@orca.column('persons_workplace')
 def workplace_in_cbd(persons, land_use, settings):
     s = reindex(land_use.area_type, persons.workplace_taz)
     return s < settings['cbd_threshold']

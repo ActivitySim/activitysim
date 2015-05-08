@@ -11,16 +11,16 @@ Read in the omx files and create the skim objects
 
 
 @orca.injectable()
-def nonmotskm_omx(data_dir):
+def omx_file(data_dir):
     return omx.openFile(os.path.join(data_dir, 'data', "nonmotskm.omx"))
 
 
 @orca.injectable()
-def nonmotskm_matrix(nonmotskm_omx):
-    return nonmotskm_omx['DIST']
+def nonmotskm_matrix(omx_file):
+    return omx_file['DIST']
 
 
-@orca.injectable()
+@orca.injectable(cache=True)
 def distance_skim(nonmotskm_matrix):
     return skim.Skim(nonmotskm_matrix, offset=-1)
 
@@ -46,12 +46,5 @@ def sovpm_skim(nonmotskm_matrix):
 @orca.injectable(cache=True)
 def skims():
     skims = skim.Skims()
-    # FIXME - this is reusing the same skim as all the different kinds of skims
-    for typ in ["SOV_TIME", "SOVTOLL_TIME", "HOV2_TIME",
-                "SOV_DIST", "SOVTOLL_DIST", "HOV2_DIST",
-                "SOV_BTOLL", "SOVTOLL_BTOLL", "HOV2_BTOLL",
-                "SOVTOLL_VTOLL"]:
-        for period in ["AM", "MD", "PM"]:
-            skims[(typ, period)] = orca.get_injectable("distance_skim")
     skims['DISTANCE'] = orca.get_injectable("distance_skim")
     return skims

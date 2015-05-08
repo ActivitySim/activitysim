@@ -4,6 +4,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from .util.misc import add_dependent_columns
 
 
 """
@@ -46,7 +47,8 @@ def school_location_simulate(set_random_seed,
                                                alternatives,
                                                spec[[school_type]],
                                                skims=skims,
-                                               locals_d=locals_d)
+                                               locals_d=locals_d,
+                                               sample_size=50)
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
@@ -60,4 +62,7 @@ def school_location_simulate(set_random_seed,
     choices = choices.reindex(persons_merged.index).fillna(-1)
 
     print "Describe of choices:\n", choices.describe()
+
     orca.add_column("persons", "school_taz", choices)
+
+    add_dependent_columns("persons", "persons_school")

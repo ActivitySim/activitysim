@@ -48,7 +48,7 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
-@orca.table()
+@orca.table(cache=True)
 def mandatory_tours(persons):
     persons = persons.to_frame(columns=["mandatory_tour_frequency",
                                         "is_worker"])

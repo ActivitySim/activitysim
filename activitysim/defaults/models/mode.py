@@ -1,5 +1,5 @@
-import copy
 import os
+import yaml
 
 import orca
 import pandas as pd
@@ -7,6 +7,7 @@ import yaml
 
 from activitysim import activitysim as asim
 from activitysim import skim as askim
+from .util.mode import _mode_choice_spec
 
 """
 Mode choice is run for all tours to determine the transportation mode that
@@ -16,90 +17,105 @@ will be used for the tour
 
 @orca.injectable()
 def mode_choice_settings(configs_dir):
-    with open(os.path.join(configs_dir, "configs", "mode_choice.yaml")) as f:
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "tour_mode_choice.yaml")) as f:
         return yaml.load(f)
 
 
-# FIXME move into activitysim as a utility function
-def evaluate_expression_list(expressions, locals_d):
-    """
-    Evaluate a list of expressions - each one can depend on the one before it
-
-    Parameters
-    ----------
-    expressions : Series
-        indexes are names and values are expressions
-    locals_d : dict
-        will be passed directly to eval
-
-    Returns
-    -------
-    expressions : Series
-        index is the same as above, but values are now confirmed to be floats
-    """
-    d = {}
-    # this could be a simple expression except that the dictionary
-    # is accumulating expressions - i.e. they're not all independent
-    # and must be evaluated in order
-    for k, v in expressions.iteritems():
-        # make sure it can be converted to a float
-        d[k] = float(eval(str(v), copy.copy(d), locals_d))
-    return pd.Series(d)
+@orca.injectable()
+def mode_choice_spec_df(configs_dir):
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "tour_mode_choice.csv")) as f:
+        return asim.read_model_spec(f)
 
 
 @orca.injectable()
-def mode_choice_coefficients(mode_choice_settings):
-    # coefficients comes as a list of dicts and needs to be tuples
-    coeffs = [x.items()[0] for x in mode_choice_settings['COEFFICIENTS']]
-    expressions = pd.Series(zip(*coeffs)[1], index=zip(*coeffs)[0])
-    constants = mode_choice_settings['CONSTANTS']
-    return evaluate_expression_list(expressions, locals_d=constants)
+def mode_choice_coeffs(configs_dir):
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "tour_mode_choice_coeffs.csv")) as f:
+        return pd.read_csv(f, index_col='Expression')
 
 
 @orca.injectable()
-def mode_choice_spec(configs_dir, mode_choice_coefficients):
-    f = os.path.join(configs_dir, 'configs', "mode_choice_work.csv")
-    df = asim.read_model_spec(f)
-    df['work'] = evaluate_expression_list(df['work'],
-                                          mode_choice_coefficients.to_dict())
-    return df.set_index('Alternative', append=True)
+def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
+                     mode_choice_settings):
+    return _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
+                             mode_choice_settings)
+
+
+def _mode_choice_simulate(tours, skims, spec, additional_constants, omx=None):
+    """
+    This is a utility to run a mode choice model for each segment (usually
+    segments are trip purposes).  Pass in the tours that need a mode,
+    the Skim object, the spec to evaluate with, and any additional expressions
+    you want to use in the evaluation of variables.
+    """
+
+    # FIXME - this is only really going for the workplace trip
+    in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
+                             "in_period", -1)
+    out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),
+                              "out_period", -1)
+    skims.set_keys("TAZ", "workplace_taz")
+
+    if omx:
+        in_skims.set_omx(omx)
+        out_skims.set_omx(omx)
+
+    locals_d = {
+        "in_skims": in_skims,
+        "out_skims": out_skims,
+        "skims": skims
+    }
+    locals_d.update(additional_constants)
+
+    choices, _ = asim.simple_simulate(tours,
+                                      spec,
+                                      skims=[in_skims, out_skims, skims],
+                                      locals_d=locals_d)
+
+    alts = spec.columns
+    choices = choices.map(dict(zip(range(len(alts)), alts)))
+
+    return choices
 
 
 def get_segment_and_unstack(spec, segment):
-    return spec[segment].unstack().fillna(0)
+    """
+    This does what it says.  Take the spec, get the column from the spec for
+    the given segment, and unstack.  It is assumed that the last column of
+    the multiindex is alternatives so when you do this unstacking,
+    each alternative is in a column (which is the format this as used for the
+    simple_simulate call.  The weird nuance here is the "Rowid" column -
+    since many expressions are repeated (e.g. many are just "1") a Rowid
+    column is necessary to identify which alternatives are actually part of
+    which original row - otherwise the unstack is incorrect (i.e. the index
+    is not unique)
+    """
+    return spec[segment].unstack().\
+        reset_index(level="Rowid", drop=True).fillna(0)
 
 
 @orca.step()
 def mode_choice_simulate(tours_merged,
                          mode_choice_spec,
                          mode_choice_settings,
-                         skims):
+                         skims, omx_file):
 
     tours = tours_merged.to_frame()
-    tours = tours[tours.tour_type == "work"]
 
-    mode_choice_spec = mode_choice_spec.head(33)
+    print mode_choice_spec.eatout
 
-    # the skims will be available under the name "skims" for any @ expressions
-    in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
-                             "in_period", -1)
-    out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),
-                              "out_period", -1)
-    locals_d = {
-        "in_skims": in_skims,
-        "out_skims": out_skims
-    }
-    locals_d.update(mode_choice_settings['CONSTANTS'])
-
-    # FIXME lots of other segments here - for now running the mode choice for
-    # FIXME work on all kinds of tour types
-    # FIXME note that in particular the spec above only has work tours in it
-
-    choices, _ = asim.simple_simulate(tours,
-                                      get_segment_and_unstack(mode_choice_spec,
-                                                              'work'),
-                                      skims=[in_skims, out_skims],
-                                      locals_d=locals_d)
+    # FIXME this only runs eatout
+    choices = _mode_choice_simulate(
+        tours[tours.tour_type == "eatout"],
+        skims,
+        get_segment_and_unstack(mode_choice_spec, 'eatout'),
+        mode_choice_settings['CONSTANTS'],
+        omx=omx_file)
 
     print "Choices:\n", choices.value_counts()
     orca.add_column("tours", "mode", choices)

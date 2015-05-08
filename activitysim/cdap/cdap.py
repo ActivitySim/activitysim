@@ -48,24 +48,42 @@ def make_interactions(people, hh_id_col, p_type_col):
     three_fmt = '{}{}{}'.format
     two = []
     three = []
+    two_perm_cache = {}
+    three_combo_cache = {}
 
-    for hh, df in people.groupby(hh_id_col, sort=False):
+    for hh_id, df in people.groupby(hh_id_col, sort=False):
+        hh_size = len(df)
+
         # skip households with only one person
-        if len(df) == 1:
+        if hh_size == 1:
             continue
 
-        ptypes = df[p_type_col]
+        ptypes = df[p_type_col].values
+        hh_idx = df.index.values
 
-        for pA, pB in itertools.permutations(df.index, 2):
-            two.append((pA, two_fmt(*ptypes[[pA, pB]])))
+        if hh_size in two_perm_cache:
+            two_perms = two_perm_cache[hh_size]
+        else:
+            two_perms = list(itertools.permutations(np.arange(hh_size), 2))
+            two_perm_cache[hh_size] = two_perms
+
+        two.extend(
+            (hh_idx[pA], two_fmt(*ptypes[[pA, pB]])) for pA, pB in two_perms)
 
         # now skip households with two people
-        if len(df) == 2:
+        if hh_size == 2:
             continue
 
-        for idx in itertools.combinations(df.index, 3):
-            combo = three_fmt(*ptypes[list(idx)])
-            three.extend((p, combo) for p in idx)
+        if hh_size in three_combo_cache:
+            three_combos = three_combo_cache[hh_size]
+        else:
+            three_combos = list(itertools.combinations(np.arange(hh_size), 3))
+            three_combo_cache[hh_size] = three_combos
+
+        three.extend(
+            (hh_idx[p], three_fmt(*ptypes.take(idx)))
+            for idx in three_combos
+            for p in idx)
 
     if two:
         two_idx, two_val = zip(*two)
@@ -162,17 +180,25 @@ def initial_household_utilities(utilities, people, hh_id_col):
     hh_util = {}
 
     alts = utilities.columns
+    combo_cache = {}
 
     for hh_id, df in people.groupby(hh_id_col, sort=False):
-        utils = utilities.loc[df.index]
-        hh = []
+        hh_size = len(df)
+        utils = utilities.loc[df.index].as_matrix()
 
-        for combo in itertools.product(alts, repeat=len(df)):
-            hh.append(
-                (combo, utils.lookup(df.index, combo).sum()))
+        if hh_size in combo_cache:
+            ncombos, combos, flat_combos, tiled = combo_cache[hh_size]
+        else:
+            combos = list(itertools.product(alts, repeat=hh_size))
+            flat_combos = list(
+                tz.concat(itertools.product(range(len(alts)), repeat=hh_size)))
+            ncombos = len(combos)
+            tiled = np.tile(np.arange(hh_size), ncombos)
+            combo_cache[hh_size] = (ncombos, combos, flat_combos, tiled)
 
-        idx, u = zip(*hh)
-        hh_util[hh_id] = pd.Series(u, index=idx)
+        u = utils[tiled, flat_combos].reshape((ncombos, hh_size)).sum(axis=1)
+
+        hh_util[hh_id] = pd.Series(u, index=combos)
 
     return hh_util
 
@@ -205,24 +231,46 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
     """
     rule_mask = eval_variables(final_rules.index, people)
 
+    if not rule_mask.as_matrix().any():
+        # if the rules don't apply to anyone then return now
+        return
+
+    alt_match_cache = {}
+
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         mask = rule_mask.loc[df.index]
+        if not mask.as_matrix().any():
+            # if the mask doesn't apply to anyone in this household
+            # carry on to the next household
+            continue
+
         utils = hh_util[hh_id]
+        hh_size = len(df)
 
         for exp, row in final_rules.iterrows():
             m = mask[exp].as_matrix()
+            if not m.any():
+                # if this sub-mask doesn't apply to anyone here then
+                # carry on to the next rule
+                continue
 
             # this crazy business combines three things to figure out
             # which household alternatives need to be modified by this rule.
             # the three things are:
             # - the mask of people for whom the rule expression is true (m)
             # - the individual alternative to which the rule applies
-            #   (row.iloc[0])
-            # - the alternative combinations for the household (combo)
-            app = [
-                ((np.array([row.iloc[0]] * len(utils.index[0])) == combo) & m
-                 ).any()
-                for combo in utils.index]
+            #   (alt)
+            # - the alternative combinations for the household
+            #   (utils.index)
+            alt = row.iloc[0]
+            key = (alt, hh_size)
+            if key in alt_match_cache:
+                alt_match = alt_match_cache[key]
+            else:
+                alt_match = np.array(utils.index.values.tolist()) == alt
+                alt_match_cache[key] = alt_match
+
+            app = np.any(np.bitwise_and(alt_match, m), axis=1)
 
             utils[app] = row.iloc[1]
 

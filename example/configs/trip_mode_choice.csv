@@ -1,15 +1,15 @@
-Description,Expression,Alternatives,EatOut,OthDiscr,OthMaint,Shopping,Social,Escort,School,University,Work,WorkBased
-Drive alone - Unavailable,sovAvailable==0,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - Unavailable for zero auto households,1,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - Unavailable for persons less than 16,1,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - Unavailable for joint tours,1,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - Unavailable if didn't drive to work,tourModeIsSOV==0,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - In-vehicle time,c_ivt*SOV_TIME[tripPeriod],DRIVEALONEFREE,1,1,1,1,1,1,1,1,1,1
-Drive alone - Terminal time,c_walkTimeShort*(totalTerminalTime),DRIVEALONEFREE,1,1,1,1,1,1,1,1,1,1
-Drive alone - Operating cost ,c_cost*(costPerMile*SOV_DIST[tripPeriod]),DRIVEALONEFREE,1,1,1,1,1,1,1,1,1,1
-Drive alone - Parking cost ,c_cost*totalParkingCost,DRIVEALONEFREE,1,1,1,1,1,1,1,1,1,1
-Drive alone - Bridge toll ,c_cost*SOV_BTOLL[tripPeriod],DRIVEALONEFREE,1,1,1,1,1,1,1,1,1,1
-Drive alone - Person is between 16 and 19 years old,c_age1619_da,DRIVEALONEFREE,1,1,1,1,1,1,1,1,1,1
+Description,Expression,Alternative,eatout,othdiscr,othmaint,shopping,social,escort,school,university,work,workbased
+Drive alone - Unavailable,sov_available == False,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone - Unavailable for joint tours,is_joint,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone - In-vehicle time,$IN_N_OUT_EXPR.format(sk='SOV_TIME'),DRIVEALONEFREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
+Drive alone - Terminal time,$TERMINAL_TIME_EXPR,DRIVEALONEFREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Drive alone - Operating cost ,$OPERATING_COST_EXPR.format(sk='SOV_DIST'),DRIVEALONEFREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone - Parking cost ,daily_parking_cost,DRIVEALONEFREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone - Bridge toll ,$IN_N_OUT_EXPR.format(sk='SOV_BTOLL'),DRIVEALONEFREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
+Drive alone - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEFREE,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da
 Drive alone toll - Unavailable,sovtollAvailable==0,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for zero auto households,1,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for persons less than 16,1,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

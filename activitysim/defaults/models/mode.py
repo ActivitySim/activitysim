@@ -61,7 +61,7 @@ def trip_mode_choice_spec_df(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
                            "trip_mode_choice.csv")) as f:
-        return asim.read_model_spec(f).head(11)
+        return asim.read_model_spec(f).head(133)
 
 
 @orca.injectable()
@@ -167,9 +167,9 @@ def trip_mode_choice_simulate(tours_merged,
 
     # FIXME this only runs eatout
     choices = _mode_choice_simulate(
-        trips[trips.tour_type == "work"],
+        trips[trips.tour_type == "eatout"],
         skims,
-        get_segment_and_unstack(trip_mode_choice_spec, 'work'),
+        get_segment_and_unstack(trip_mode_choice_spec, 'eatout'),
         trip_mode_choice_settings['CONSTANTS'],
         omx=omx_file)
 

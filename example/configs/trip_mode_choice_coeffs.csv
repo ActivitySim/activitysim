@@ -20,7 +20,7 @@ biketimeshort,-0.1116,-0.1116,-0.1116,-0.1116,-0.1116,-0.1116,-0.1084,-0.1084,-0
 biketimelong,-0.558,-0.558,-0.558,-0.558,-0.558,-0.558,-0.542,-0.542,-0.44,-0.558
 vot,valueOfTime,valueOfTime,valueOfTime,valueOfTime,valueOfTime,valueOfTime,valueOfTime,valueOfTime,valueOfTime,valueOfTime
 cost,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot,(0.6*ivt)/vot
-dacratio,0,0,0,0,0,0,0,0,0,0
+dacc_ratio,0,0,0,0,0,0,0,0,0,0
 topology_walk,-0.4185,-0.4185,-0.4185,-0.4185,-0.4185,-0.4185,-0.4065,-0.4065,-0.33,-0.4185
 topology_bike,-0.558,-0.558,-0.558,-0.558,-0.558,-0.558,-0.542,-0.542,-0.44,-0.558
 topology_trn,-0.06138,-0.06138,-0.06138,-0.06138,-0.06138,-0.06138,-0.05962,-0.05962,-0.0484,-0.06138

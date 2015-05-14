@@ -46,18 +46,30 @@ VARIABLE_TEMPLATES:
     IN_N_OUT_2SKIM_EXPR: "@out_skims['{sk1}'] + in_skims['{sk2}']"
     IN_N_OUT_2SKIM_EXPR_DIV100: "@out_skims['{sk1}']/100 +
                                   in_skims['{sk2}']/100"
+    OUT_SKIM_EXPR_DIV100: "@out_skims['{sk}']/100"
+    IN_SKIM_EXPR_DIV100: "@in_skims['{sk}']/100"
     SHORT_WAIT_2SKIM_EXPR: "@(out_skims['{sk1}']/100).clip(upper={th})+
                              (in_skims['{sk2}']/100).clip(upper={th})"
+    OUT_SHORT_WAIT_EXPR: "@(out_skims['{sk}']/100).clip(upper={th})"
+    IN_SHORT_WAIT_EXPR: "@(in_skims['{sk}']/100).clip(upper={th})"
     LONG_WAIT_2SKIM_EXPR: "@(out_skims['{sk1}']/100-{th}).clip(0)+
                             (in_skims['{sk2}']/100-{th}).clip(0)"
+    OUT_LONG_WAIT_EXPR: "@(out_skims['{sk}']/100-{th}).clip(0)"
+    IN_LONG_WAIT_EXPR: "@(in_skims['{sk}']/100-{th}).clip(0)"
     TRANSFERS_2SKIM_EXPR: "@(out_skims['{sk1}']-1).clip(0)+
                             (in_skims['{sk2}']-1).clip(0)"
+    OUT_TRANSFERS_EXPR: "@(out_skims['{sk}']-1).clip(0)"
+    IN_TRANSFERS_EXPR: "@(in_skims['{sk}']-1).clip(0)"
     AUTO_COST_EXPR: "@(out_skims['{sk1}']+in_skims['{sk2}'])+
                       ((out_skims['{sk1}']/100+in_skims['{sk2}']/100)
                        *costPerMile)"
     AUTO_ACCESS_RATIO_EXPR: "@(out_skims['{sk1}']/100+
                                in_skims['{sk2}']/100)/
                                (skims['DISTANCE']*2)"
+    OUT_AUTO_ACCESS_RATIO_EXPR: "@out_skims['{sk}']/100/
+                                   skims['DISTANCE']"
+    IN_AUTO_ACCESS_RATIO_EXPR: "@in_skims['{sk}']/100/
+                                   skims['DISTANCE']"
 
 
 CONSTANTS:

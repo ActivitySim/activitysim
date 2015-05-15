@@ -138,7 +138,7 @@ def test_full_run(store):
     orca.run(["destination_choice"])
     orca.run(["mandatory_scheduling"])
     orca.run(["non_mandatory_scheduling"])
-    orca.run(["mode_choice_simulate"])
+    orca.run(["tour_mode_choice_simulate"])
 
     orca.clear_cache()
     tmp.close()

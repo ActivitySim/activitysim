@@ -55,4 +55,4 @@ def test_vts():
     pdt.assert_series_equal(
         choices,
         pd.Series([20, 20, 30, 30, 20],
-                  index=[0, 2, 3, 1, 4]))
+                  index=pd.Index([0, 2, 3, 1, 4], name='index')))

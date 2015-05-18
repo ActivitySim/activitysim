@@ -81,11 +81,13 @@ def test_mini_run(store):
     # this is a regression test so that we know if these numbers change
     auto_choice = orca.get_table('households').get_column('auto_ownership')
     print auto_choice[[2306822, 652072, 651907]]
+    print pd.Series(
+        [2, 1, 1], index=[2306822, 652072, 651907], name="HHID")
 
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 651907]],
         pd.Series(
-            [2, 1, 1], index=[2306822, 652072, 651907]))
+            [2, 1, 1], index=pd.Index([2306822, 652072, 651907], name="HHID")))
 
     orca.run(["cdap_simulate"])
 
@@ -98,7 +100,7 @@ def test_mini_run(store):
         mtf_choice[[146642, 642922, 642921]],
         pd.Series(
             ['school2', 'work1', 'school2'],
-            index=[146642, 642922, 642921]))
+            index=pd.Index([146642, 642922, 642921], name="PERID")))
 
     orca.clear_cache()
 

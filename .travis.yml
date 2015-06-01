@@ -33,3 +33,6 @@ after_success:
 notifications:
   slack:
     secure: eD/LGUBVwbaFBsBALGmPVerRwF6/PRV3PoBpUYUmL7bKyBJZYwcFCb5t8thZvMF8lcHoF0e5xO7L8DoPuws2+mJCiSDH7QD3oGsLE9DoVMFKsIqvzv0oc6qrWf8LjPqcn3XBnXHOvmogRDaaeTCr8KuYEFtwqmwu3YW0/oWYPWk=
+env:
+  global:
+    - secure: "YCq6pTjxV15fNl0C2xov7bx22/X1YzYq4B347pUn+sywcptTG8Eh4KEKDwV8EPHGm1nExNAigMLTGbnjFqoxg/u7T3hDsewTkZz6Ma93hj3kwx1gDTd/6G8ICT7xHyMrFrHNVYE4ehnJm67M0UmY0K8qk6C7y/bh4xO3Nbg0Q8I="

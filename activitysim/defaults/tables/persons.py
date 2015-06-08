@@ -124,7 +124,7 @@ def male(persons):
 
 @orca.column("persons")
 def female(persons):
-    return persons.sex == 1
+    return persons.sex == 2
 
 
 @orca.column("persons_nmtf")

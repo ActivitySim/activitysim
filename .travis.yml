@@ -30,6 +30,7 @@ script:
 - py.test --cov activitysim --cov-report term-missing
 after_success:
 - coveralls
+- bin/build_docs.sh
 notifications:
   slack:
     secure: eD/LGUBVwbaFBsBALGmPVerRwF6/PRV3PoBpUYUmL7bKyBJZYwcFCb5t8thZvMF8lcHoF0e5xO7L8DoPuws2+mJCiSDH7QD3oGsLE9DoVMFKsIqvzv0oc6qrWf8LjPqcn3XBnXHOvmogRDaaeTCr8KuYEFtwqmwu3YW0/oWYPWk=

@@ -17,6 +17,11 @@ UrbanSim_ is based on, and will initially have dependencies on UrbanSim, but
 these may eventually be eliminated by refactoring UrbanSim and creating a
 common core that both UrbanSim and ActivitySim depend on.
 
+See the "Getting Started" page for installation instructions.
+Additional documenation is available on the ActivitySim
+`GitHub wiki <https://github.com/synthicity/activitysim/wiki>`__
+(mostly planning documents).
+
 Contents
 --------
 

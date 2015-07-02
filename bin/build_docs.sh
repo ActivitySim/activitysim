@@ -53,6 +53,7 @@ if [ "$TRAVIS_REPO_SLUG" == "synthicity/activitysim" ] && \
         cd gh-pages
         rm -rf *
         cp -R ../activitysim/docs/_build/html/* ./
+        touch .nojekyll
         git add -A .
 
         git commit -am "Update dev doc after building $TRAVIS_BUILD_NUMBER"

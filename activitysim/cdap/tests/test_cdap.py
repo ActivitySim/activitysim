@@ -139,8 +139,10 @@ def test_make_interactions_no_interactions(people, hh_id_col, p_type_col):
 
     two, three = cdap.make_interactions(people, hh_id_col, p_type_col)
 
-    pdt.assert_frame_equal(two, pd.DataFrame(columns=['interaction']))
-    pdt.assert_frame_equal(three, pd.DataFrame(columns=['interaction']))
+    pdt.assert_frame_equal(
+        two, pd.DataFrame(columns=['interaction']), check_dtype=False)
+    pdt.assert_frame_equal(
+        three, pd.DataFrame(columns=['interaction']), check_dtype=False)
 
 
 def test_make_interactions_only_twos(people, hh_id_col, p_type_col):
@@ -159,7 +161,8 @@ def test_make_interactions_only_twos(people, hh_id_col, p_type_col):
     two, three = cdap.make_interactions(people, hh_id_col, p_type_col)
 
     pdt.assert_frame_equal(two, expected_two)
-    pdt.assert_frame_equal(three, pd.DataFrame(columns=['interaction']))
+    pdt.assert_frame_equal(
+        three, pd.DataFrame(columns=['interaction']), check_dtype=False)
 
 
 def test_individual_utilities(people, one_spec, individual_utils):

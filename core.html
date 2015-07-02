@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Core Utilities &mdash; ActivitySim 0.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ActivitySim 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Skim Abstractions" href="skim.html"/>
+        <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="index.html" class="fa fa-home"> ActivitySim</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Core Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-activitysim.activitysim">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="skim.html#module-activitysim.skim">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html#module-activitysim.cdap.cdap">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mnl.html#module-activitysim.mnl">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.reindex">Reindex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.testing">Testing</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ActivitySim</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Core Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/core.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="core-utilities">
+<h1>Core Utilities<a class="headerlink" href="#core-utilities" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-activitysim.activitysim">
+<span id="api"></span><h2>API<a class="headerlink" href="#module-activitysim.activitysim" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="activitysim.activitysim.add_skims">
+<tt class="descclassname">activitysim.activitysim.</tt><tt class="descname">add_skims</tt><big>(</big><em>df</em>, <em>skims</em><big>)</big><a class="headerlink" href="#activitysim.activitysim.add_skims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the dataframe to the Skims object so that it can be dereferenced
+using the parameters of the skims object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Table to which to add skim data as new columns.
+<cite>df</cite> is modified in-place.</p>
+</div></blockquote>
+<p><strong>skims</strong> : Skims object</p>
+<blockquote class="last">
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.eval_variables">
+<tt class="descclassname">activitysim.activitysim.</tt><tt class="descname">eval_variables</tt><big>(</big><em>exprs</em>, <em>df</em>, <em>locals_d=None</em><big>)</big><a class="headerlink" href="#activitysim.activitysim.eval_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a set of variable expressions from a spec in the context
+of a given data table.</p>
+<p>There are two kinds of supported expressions: &#8220;simple&#8221; expressions are
+evaluated in the context of the DataFrame using DataFrame.eval.
+This is the default type of expression.</p>
+<p>Python expressions are evaluated in the context of this function using
+Python&#8217;s eval function. Because we use Python&#8217;s eval this type of
+expression supports more complex operations than a simple expression.
+Python expressions are denoted by beginning with the &#64; character.
+Users should take care that these expressions must result in
+a Pandas Series.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>exprs</strong> : sequence of str</p>
+<p><strong>df</strong> : pandas.DataFrame</p>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>df</cite> and columns of <cite>exprs</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.interaction_simulate">
+<tt class="descclassname">activitysim.activitysim.</tt><tt class="descname">interaction_simulate</tt><big>(</big><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>sample_size=None</em><big>)</big><a class="headerlink" href="#activitysim.activitysim.interaction_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a simulation in the situation in which alternatives must
+be merged with choosers because there are interaction terms or
+because alternatives are being sampled.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of choosers</p>
+</div></blockquote>
+<p><strong>alternatives</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of alternatives - will be merged with choosers, currently
+without sampling</p>
+</div></blockquote>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A Pandas DataFrame that gives the specification of the variables to
+compute and the coefficients for each variable.
+Variable specifications must be in the table index and the
+table should have only one column of coefficients.</p>
+</div></blockquote>
+<p><strong>skims</strong> : Skims object</p>
+<blockquote>
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>sample_size</strong> : int, optional</p>
+<blockquote>
+<div><p>Sample alternatives with sample of given size.  By default is None,
+which does not sample alternatives.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ret</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>A series where index should match the index of the choosers DataFrame
+and values will match the index of the alternatives DataFrame -
+choices are simulated in the standard Monte Carlo fashion</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.other_than">
+<tt class="descclassname">activitysim.activitysim.</tt><tt class="descname">other_than</tt><big>(</big><em>groups</em>, <em>bools</em><big>)</big><a class="headerlink" href="#activitysim.activitysim.other_than" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a Series that has booleans indicating the presence of
+something- or someone-else with a certain property within a group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>groups</strong> : pandas.Series</p>
+<blockquote>
+<div><p>A column with the same index as <cite>bools</cite> that defines the grouping
+of <cite>bools</cite>. The <cite>bools</cite> Series will be used to index <cite>groups</cite> and
+then the grouped values will be counted.</p>
+</div></blockquote>
+<p><strong>bools</strong> : pandas.Series</p>
+<blockquote>
+<div><p>A boolean Series indicating where the property of interest is present.
+Should have the same index as <cite>groups</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>others</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>A boolean Series with the same index as <cite>groups</cite> and <cite>bools</cite>
+indicating whether there is something- or something-else within
+a group with some property (as indicated by <cite>bools</cite>).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.read_model_spec">
+<tt class="descclassname">activitysim.activitysim.</tt><tt class="descname">read_model_spec</tt><big>(</big><em>fname</em>, <em>description_name='Description'</em>, <em>expression_name='Expression'</em><big>)</big><a class="headerlink" href="#activitysim.activitysim.read_model_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
+<p>The CSV is expected to have columns for component descriptions
+and expressions, plus one or more alternatives.</p>
+<p>The CSV is required to have a header with column names. For example:</p>
+<blockquote>
+<div>Description,Expression,alt0,alt1,alt2</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fname</strong> : str</p>
+<blockquote>
+<div><p>Name of a CSV spec file.</p>
+</div></blockquote>
+<p><strong>description_name</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
+</div></blockquote>
+<p><strong>expression_name</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the column in <cite>fname</cite> that contains the component expression.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>The description column is dropped from the returned data and the
+expression values are set as the table index.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.simple_simulate">
+<tt class="descclassname">activitysim.activitysim.</tt><tt class="descname">simple_simulate</tt><big>(</big><em>choosers</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em><big>)</big><a class="headerlink" href="#activitysim.activitysim.simple_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a simulation for when the model spec does not involve alternative
+specific data, e.g. there are no interactions with alternative
+properties and no need to sample from alternatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A table of variable specifications and coefficient values.
+Variable expressions should be in the table index and the table
+should have a column for each alternative.</p>
+</div></blockquote>
+<p><strong>skims</strong> : Skims object</p>
+<blockquote>
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
+of <cite>spec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skim.html" class="btn btn-neutral float-right" title="Skim Abstractions">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gettingstarted.html" class="btn btn-neutral" title="Getting Started"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Autodesk.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

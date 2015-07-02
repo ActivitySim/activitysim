@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting Started &mdash; ActivitySim 0.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ActivitySim 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Core Utilities" href="core.html"/>
+        <link rel="prev" title="ActivitySim" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="index.html" class="fa fa-home"> ActivitySim</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#module-activitysim.activitysim">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="skim.html#module-activitysim.skim">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cdap.html#module-activitysim.cdap.cdap">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mnl.html#module-activitysim.mnl">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.reindex">Reindex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.testing">Testing</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ActivitySim</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Getting Started</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/gettingstarted.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the instructions below we will direct you to run various commands.
+On Mac and Linux these should go in your standard terminal.
+On Windows you may use the standard command prompt, the Anaconda
+command prompt, or even Git Bash (if you have that installed).</p>
+</div>
+<div class="section" id="anaconda">
+<h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
+<p>ActivitySim is a Python library that uses a number of packages from the
+scientific Python ecosystem.
+The easiest way to get your own scientific Python installation is to
+install <a class="reference external" href="http://docs.continuum.io/anaconda/index.html">Anaconda</a>, which contains many of the libraries upon which
+ActivitySim depends.</p>
+<p>Once you have a Python installation, install the dependencies listed below and
+then install ActivitySim.</p>
+</div>
+<div class="section" id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<p>ActivitySim depends on the following libraries, some of which are pre-installed
+with Anaconda:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.8.0 *</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/OpenMatrix/0.2.3">openmatrix</a> &gt;= 0.2.2 ***</li>
+<li><a class="reference external" href="https://synthicity.github.io/orca/">orca</a> &gt;= 1.1 ***</li>
+<li><a class="reference external" href="http://pandas.pydata.org">pandas</a> &gt;= 0.13.1 *</li>
+<li><a class="reference external" href="http://pyyaml.org/wiki/PyYAML">pyyaml</a> &gt;= 3.0 *</li>
+<li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.1.0 *</li>
+<li><a class="reference external" href="http://toolz.readthedocs.org/en/latest/">toolz</a> or
+<a class="reference external" href="https://github.com/pytoolz/cytoolz">cytoolz</a> &gt;= 0.7 **</li>
+<li><a class="reference external" href="https://github.com/jiffyclub/zbox">zbox</a> &gt;= 1.2 ***</li>
+</ul>
+<div class="line-block">
+<div class="line">* Pre-installed with Anaconda</div>
+<div class="line">** Available via <a class="reference external" href="http://conda.pydata.org/">conda</a> or <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.</div>
+<div class="line">*** Available via <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.</div>
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="activitysim">
+<h3>ActivitySim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="conda">
+<h4>conda<a class="headerlink" href="#conda" title="Permalink to this headline">¶</a></h4>
+<p>Conda is the easiest way to install ActivitySim because it can install
+binary sources for all of ActivitySim&#8217;s dependencies on any platform.
+Conda is installed with Anaconda, so if you&#8217;re using Anaconda you can run
+the following command to install ActivitySim and all its dependencies:</p>
+<div class="highlight-python"><div class="highlight"><pre>conda install --channel synthicity --channel jiffyclub activitysim
+</pre></div>
+</div>
+<p>The extra channels are necessary so that conda can find some packages that
+are not on the standard conda channels.</p>
+</div>
+<div class="section" id="pip">
+<h4>pip<a class="headerlink" href="#pip" title="Permalink to this headline">¶</a></h4>
+<p>If you&#8217;re not using Anaconda/Conda, ActivitySim can also be installed
+<a class="reference external" href="https://pypi.python.org/pypi/activitysim">from PyPI</a> using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.
+Pip will attempt to install any dependencies that are not already installed.</p>
+<div class="highlight-python"><div class="highlight"><pre>pip install activitysim
+</pre></div>
+</div>
+</div>
+<div class="section" id="development">
+<h4>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h4>
+<p>Development versions of ActivitySim can be installed by downloading the source
+from the <a class="reference external" href="https://github.com/synthicity/activitysim">GitHub repo</a>.
+Once downloaded <tt class="docutils literal"><span class="pre">cd</span></tt> into the <tt class="docutils literal"><span class="pre">activitysim</span></tt> directory and run the
+command <tt class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></tt>.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="core.html" class="btn btn-neutral float-right" title="Core Utilities">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="ActivitySim"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Autodesk.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

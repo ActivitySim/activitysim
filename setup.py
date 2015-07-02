@@ -22,6 +22,7 @@ setup(
         'openmatrix >= 0.2.2',
         'orca >= 1.1',
         'pandas >= 0.13.1',
+        'pyyaml >= 3.0',
         'tables >= 3.1.0',
         'toolz >= 0.7',
         'zbox >= 1.2'

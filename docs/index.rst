@@ -24,8 +24,11 @@ Contents
    :maxdepth: 2
 
    gettingstarted
-
-
+   core
+   skim
+   cdap
+   mnl
+   util
 
 Indices and tables
 ==================

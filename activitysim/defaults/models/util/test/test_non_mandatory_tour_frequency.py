@@ -29,10 +29,10 @@ def test_nmtf():
     pdt.assert_series_equal(
         nmt.person_id,
         pd.Series(
-            [0, 2, 3, 3], index=[0, 1, 2, 3]))
+            [0, 2, 3, 3], index=[0, 1, 2, 3], name='person_id'))
 
     pdt.assert_series_equal(
         nmt.tour_type,
         pd.Series(
             ["shopping", "escort", "random", "random"],
-            index=[0, 1, 2, 3]))
+            index=[0, 1, 2, 3], name='tour_type'))

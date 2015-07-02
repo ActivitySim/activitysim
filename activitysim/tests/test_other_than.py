@@ -17,7 +17,7 @@ def people():
 def test_other_than(people):
     expected = pd.Series(
         [False, False, True, True, True, False, True, True, True, True],
-        index=people.index)
+        index=people.index, name='left')
 
     bools = people['ptype'] == 2
     others = other_than(people['household'], bools)

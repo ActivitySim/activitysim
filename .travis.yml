@@ -3,23 +3,17 @@ sudo: false
 python:
 - '2.7'
 install:
-- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-    wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
-  else
-    wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh -O miniconda.sh;
-  fi
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh
+  -O miniconda.sh; else wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh
+  -O miniconda.sh; fi
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
-# Useful for debugging any issues with conda
 - conda info -a
-- >
-  conda create -q -c synthicity -n test-environment
-  python=$TRAVIS_PYTHON_VERSION
-  cytoolz ipython-notebook jinja2 matplotlib numpy pandas pandana patsy pip
-  pytables pytest pyyaml scipy statsmodels toolz
+- |
+  conda create -q -c synthicity -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz ipython-notebook jinja2 matplotlib numpy pandas pandana patsy pip pytables pytest pyyaml scipy statsmodels toolz
 - source activate test-environment
 - pip install bottle orca prettytable simplejson zbox
 - pip install openmatrix
@@ -33,7 +27,7 @@ after_success:
 - bin/build_docs.sh
 notifications:
   slack:
-    secure: "cYY0DMLMtaNYwVBuunvt21cYGcJoVuSI+2Ogs8k0V9ZQUDQQUQ8xwjU7U7rRhMrGB28z9im8UnpU8uvAJfYQ3h07nsC7gN3cZUcyYec0QDWG6oJoA7j+pQStc8PYE5xfhUYTGg/8KxFsEgIsorKzF2Pxeu50S5ouKbzacgdZw5E="
+    secure: h9XFac3nObMD6UaUZUVdFatwcPKKoscHWdzJqu0vcOAKfbjsX314FEAiqKwlwRre8tTrlFQZYSvhTu8e3FpaxTsuQW6nuUC8z9NGc8+A0f1u+HQ7tQlYiO2Qs2KTA/CKXZ8R3Y+qtBA4mied4eD+KHdo7b8+aGp9GOdtPkAf96c=
 env:
   global:
-    - secure: "YCq6pTjxV15fNl0C2xov7bx22/X1YzYq4B347pUn+sywcptTG8Eh4KEKDwV8EPHGm1nExNAigMLTGbnjFqoxg/u7T3hDsewTkZz6Ma93hj3kwx1gDTd/6G8ICT7xHyMrFrHNVYE4ehnJm67M0UmY0K8qk6C7y/bh4xO3Nbg0Q8I="
+  - secure: YCq6pTjxV15fNl0C2xov7bx22/X1YzYq4B347pUn+sywcptTG8Eh4KEKDwV8EPHGm1nExNAigMLTGbnjFqoxg/u7T3hDsewTkZz6Ma93hj3kwx1gDTd/6G8ICT7xHyMrFrHNVYE4ehnJm67M0UmY0K8qk6C7y/bh4xO3Nbg0Q8I=

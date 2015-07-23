@@ -33,7 +33,7 @@ after_success:
 - bin/build_docs.sh
 notifications:
   slack:
-    secure: "ZN7xLNR6RMhdwWKth0ctafx6iBvfolrV85OrtDvM5cG2PlbmYI4jDyHjxxHPgw0GzjSGmcgIH6mrknQM8GSjnR/FXiimJxnQ+ZAmVupvSlkIl+BRjjLvMabnuxR4Ow3f0sBkegENW7vlFseO+0ddSE8zbhdFsj8j4seSbm3Ba7k="
+    secure: "cYY0DMLMtaNYwVBuunvt21cYGcJoVuSI+2Ogs8k0V9ZQUDQQUQ8xwjU7U7rRhMrGB28z9im8UnpU8uvAJfYQ3h07nsC7gN3cZUcyYec0QDWG6oJoA7j+pQStc8PYE5xfhUYTGg/8KxFsEgIsorKzF2Pxeu50S5ouKbzacgdZw5E="
 env:
   global:
     - secure: "YCq6pTjxV15fNl0C2xov7bx22/X1YzYq4B347pUn+sywcptTG8Eh4KEKDwV8EPHGm1nExNAigMLTGbnjFqoxg/u7T3hDsewTkZz6Ma93hj3kwx1gDTd/6G8ICT7xHyMrFrHNVYE4ehnJm67M0UmY0K8qk6C7y/bh4xO3Nbg0Q8I="

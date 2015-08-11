@@ -7,10 +7,10 @@ setup(
     name='activitysim',
     version='0.1dev',
     description='Travel modeling',
-    author='Synthicity',
-    author_email='pwaddell@synthicity.com',
+    author='Autodesk',
+    author_email='udst@autodesk.com',
     license='AGPL',
-    url='https://github.com/synthicity/activitysim',
+    url='https://github.com/udst/activitysim',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 2.7',

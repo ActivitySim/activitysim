@@ -75,7 +75,7 @@ test:
     # - nose
 
 about:
-  home: https://github.com/synthicity/activitysim
+  home: https://github.com/udst/activitysim
   license: GNU Affero General Public License v3
   summary: 'Travel modeling'
 

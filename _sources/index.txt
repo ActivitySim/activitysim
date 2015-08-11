@@ -19,7 +19,7 @@ common core that both UrbanSim and ActivitySim depend on.
 
 See the "Getting Started" page for installation instructions.
 Additional documenation is available on the ActivitySim
-`GitHub wiki <https://github.com/synthicity/activitysim/wiki>`__
+`GitHub wiki <https://github.com/udst/activitysim/wiki>`__
 (mostly planning documents).
 
 Contents
@@ -42,4 +42,4 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. _UrbanSim: http://synthicity.github.io/urbansim/
+.. _UrbanSim: https://udst.github.io/urbansim/

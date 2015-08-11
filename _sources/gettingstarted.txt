@@ -74,7 +74,7 @@ Development
 ^^^^^^^^^^^
 
 Development versions of ActivitySim can be installed by downloading the source
-from the `GitHub repo <https://github.com/synthicity/activitysim>`__.
+from the `GitHub repo <https://github.com/udst/activitysim>`__.
 Once downloaded ``cd`` into the ``activitysim`` directory and run the
 command ``python setup.py install``.
 

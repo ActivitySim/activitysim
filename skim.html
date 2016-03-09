@@ -5,6 +5,7 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Skim Abstractions &mdash; ActivitySim 0.1 documentation</title>
@@ -14,7 +15,6 @@
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
 
   
   
@@ -35,7 +35,7 @@
         <link rel="prev" title="Core Utilities" href="core.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -45,11 +45,27 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-          <a href="index.html" class="fa fa-home"> ActivitySim</a>
-        
-        
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ActivitySim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -57,44 +73,30 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-      </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
           
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#installation">Installation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core.html#module-activitysim.activitysim">API</a></li>
-</ul>
-</li>
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Skim Abstractions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-activitysim.skim">API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cdap.html#module-activitysim.cdap.cdap">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="mnl.html#module-activitysim.mnl">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.reindex">Reindex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.testing">Testing</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a></li>
 </ul>
 
+            
           
-        
+        </div>
       </div>
-      &nbsp;
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -109,20 +111,29 @@
       
       <div class="wy-nav-content">
         <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
     <li>Skim Abstractions</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="_sources/skim.txt" rel="nofollow"> View page source</a>
+          
+            <a href="_sources/skim.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main" class="document">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="skim-abstractions">
 <h1>Skim Abstractions<a class="headerlink" href="#skim-abstractions" title="Permalink to this headline">¶</a></h1>
@@ -130,7 +141,7 @@
 <span id="api"></span><h2>API<a class="headerlink" href="#module-activitysim.skim" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="activitysim.skim.Skim">
-<em class="property">class </em><tt class="descclassname">activitysim.skim.</tt><tt class="descname">Skim</tt><big>(</big><em>data</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skim" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skim</code><span class="sig-paren">(</span><em>data</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skim" title="Permalink to this definition">¶</a></dt>
 <dd><p>Container for skim arrays.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -150,7 +161,7 @@ would turn them into 0-based array indices.</p>
 </table>
 <dl class="method">
 <dt id="activitysim.skim.Skim.get">
-<tt class="descname">get</tt><big>(</big><em>orig</em>, <em>dest</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skim.get" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get</code><span class="sig-paren">(</span><em>orig</em>, <em>dest</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skim.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get impedence values for a set of origin, destination pairs.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -171,7 +182,7 @@ would turn them into 0-based array indices.</p>
 
 <dl class="class">
 <dt id="activitysim.skim.Skims">
-<em class="property">class </em><tt class="descclassname">activitysim.skim.</tt><tt class="descname">Skims</tt><a class="headerlink" href="#activitysim.skim.Skims" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims</code><a class="headerlink" href="#activitysim.skim.Skims" title="Permalink to this definition">¶</a></dt>
 <dd><p>A skims object is a wrapper around multiple skim objects,
 where each object is identified by a key.  It operates like a
 dictionary - i.e. use brackets to add and get skim objects - but also
@@ -192,7 +203,7 @@ to use in the expressions.</p>
 skim[(&#8216;AM&#8217;, &#8216;SOV&#8217;)] is valid and useful.</p>
 <dl class="method">
 <dt id="activitysim.skim.Skims.get_3d">
-<tt class="descname">get_3d</tt><big>(</big><em>key</em>, <em>key_3d</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims.get_3d" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_3d</code><span class="sig-paren">(</span><em>key</em>, <em>key_3d</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.get_3d" title="Permalink to this definition">¶</a></dt>
 <dd><p>If you want</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -220,7 +231,7 @@ skim[(&#8216;AM&#8217;, &#8216;SOV&#8217;)] is valid and useful.</p>
 
 <dl class="method">
 <dt id="activitysim.skim.Skims.lookup">
-<tt class="descname">lookup</tt><big>(</big><em>skim</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims.lookup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>skim</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.lookup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generally not called by the user - use __getitem__ instead</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -246,7 +257,7 @@ with the same index as df</p>
 
 <dl class="method">
 <dt id="activitysim.skim.Skims.set_3d">
-<tt class="descname">set_3d</tt><big>(</big><em>key</em>, <em>key_3d</em>, <em>value</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims.set_3d" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_3d</code><span class="sig-paren">(</span><em>key</em>, <em>key_3d</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_3d" title="Permalink to this definition">¶</a></dt>
 <dd><p>If you want to use the Skims3D object below, you will need to do that
 explicitly by setting first the key which will be used by __getattr__
 and second the key that relates to the 3rd dimension of the dataframe.</p>
@@ -274,7 +285,7 @@ and second the key that relates to the 3rd dimension of the dataframe.</p>
 
 <dl class="method">
 <dt id="activitysim.skim.Skims.set_df">
-<tt class="descname">set_df</tt><big>(</big><em>df</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims.set_df" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the dataframe</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -295,7 +306,7 @@ and second the key that relates to the 3rd dimension of the dataframe.</p>
 
 <dl class="method">
 <dt id="activitysim.skim.Skims.set_keys">
-<tt class="descname">set_keys</tt><big>(</big><em>left_key</em>, <em>right_key</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims.set_keys" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_keys</code><span class="sig-paren">(</span><em>left_key</em>, <em>right_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the left and right keys.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -322,7 +333,7 @@ and second the key that relates to the 3rd dimension of the dataframe.</p>
 
 <dl class="class">
 <dt id="activitysim.skim.Skims3D">
-<em class="property">class </em><tt class="descclassname">activitysim.skim.</tt><tt class="descname">Skims3D</tt><big>(</big><em>skims</em>, <em>skim_key</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims3D" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims3D</code><span class="sig-paren">(</span><em>skims</em>, <em>skim_key</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D" title="Permalink to this definition">¶</a></dt>
 <dd><p>A 3DSkims object wraps a skim objects to add an additional wrinkle of
 lookup functionality.  Upon init the separate skims objects are
 processed into a 3D matrix so that lookup of the different skims can
@@ -377,7 +388,7 @@ offsets will be ignored</p>
 </table>
 <dl class="method">
 <dt id="activitysim.skim.Skims3D.lookup">
-<tt class="descname">lookup</tt><big>(</big><em>key</em>, <em>origins</em>, <em>destinations</em>, <em>skim_indexes</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims3D.lookup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>key</em>, <em>origins</em>, <em>destinations</em>, <em>skim_indexes</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D.lookup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generally not called by the user - use __getitem__ instead</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -412,7 +423,7 @@ with the same index as df</p>
 
 <dl class="method">
 <dt id="activitysim.skim.Skims3D.set_df">
-<tt class="descname">set_df</tt><big>(</big><em>df</em><big>)</big><a class="headerlink" href="#activitysim.skim.Skims3D.set_df" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D.set_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the dataframe</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -437,15 +448,16 @@ with the same index as df</p>
 </div>
 
 
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="cdap.html" class="btn btn-neutral float-right" title="CDAP">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cdap.html" class="btn btn-neutral float-right" title="CDAP" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="core.html" class="btn btn-neutral" title="Core Utilities"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="core.html" class="btn btn-neutral" title="Core Utilities" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -454,13 +466,14 @@ with the same index as df</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Autodesk.
+        &copy; Copyright 2016, UrbanSim Inc..
+
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-  
 </footer>
+
         </div>
       </div>
 
@@ -484,7 +497,7 @@ with the same index as df</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

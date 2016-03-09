@@ -5,6 +5,7 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Getting Started &mdash; ActivitySim 0.1 documentation</title>
@@ -14,7 +15,6 @@
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
 
   
   
@@ -35,7 +35,7 @@
         <link rel="prev" title="ActivitySim" href="index.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -45,11 +45,27 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-          <a href="index.html" class="fa fa-home"> ActivitySim</a>
-        
-        
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ActivitySim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -57,44 +73,40 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-      </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
           
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-              <ul class="current">
+            
+            
+                <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#activitysim">ActivitySim</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#conda">conda</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pip">pip</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#development">Development</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core.html#module-activitysim.activitysim">API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="skim.html#module-activitysim.skim">API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cdap.html#module-activitysim.cdap.cdap">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="mnl.html#module-activitysim.mnl">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.reindex">Reindex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.testing">Testing</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a></li>
 </ul>
 
+            
           
-        
+        </div>
       </div>
-      &nbsp;
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -109,20 +121,29 @@
       
       <div class="wy-nav-content">
         <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
     <li>Getting Started</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="_sources/gettingstarted.txt" rel="nofollow"> View page source</a>
+          
+            <a href="_sources/gettingstarted.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main" class="document">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
@@ -175,7 +196,7 @@ with Anaconda:</p>
 binary sources for all of ActivitySim&#8217;s dependencies on any platform.
 Conda is installed with Anaconda, so if you&#8217;re using Anaconda you can run
 the following command to install ActivitySim and all its dependencies:</p>
-<div class="highlight-python"><div class="highlight"><pre>conda install --channel synthicity --channel jiffyclub activitysim
+<div class="highlight-python"><div class="highlight"><pre><span></span>conda install --channel synthicity --channel jiffyclub activitysim
 </pre></div>
 </div>
 <p>The extra channels are necessary so that conda can find some packages that
@@ -186,7 +207,7 @@ are not on the standard conda channels.</p>
 <p>If you&#8217;re not using Anaconda/Conda, ActivitySim can also be installed
 <a class="reference external" href="https://pypi.python.org/pypi/activitysim">from PyPI</a> using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.
 Pip will attempt to install any dependencies that are not already installed.</p>
-<div class="highlight-python"><div class="highlight"><pre>pip install activitysim
+<div class="highlight-python"><div class="highlight"><pre><span></span>pip install activitysim
 </pre></div>
 </div>
 </div>
@@ -194,23 +215,24 @@ Pip will attempt to install any dependencies that are not already installed.</p>
 <h4>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h4>
 <p>Development versions of ActivitySim can be installed by downloading the source
 from the <a class="reference external" href="https://github.com/udst/activitysim">GitHub repo</a>.
-Once downloaded <tt class="docutils literal"><span class="pre">cd</span></tt> into the <tt class="docutils literal"><span class="pre">activitysim</span></tt> directory and run the
-command <tt class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></tt>.</p>
+Once downloaded <code class="docutils literal"><span class="pre">cd</span></code> into the <code class="docutils literal"><span class="pre">activitysim</span></code> directory and run the
+command <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code>.</p>
 </div>
 </div>
 </div>
 </div>
 
 
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="core.html" class="btn btn-neutral float-right" title="Core Utilities">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="core.html" class="btn btn-neutral float-right" title="Core Utilities" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="ActivitySim"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="ActivitySim" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -219,13 +241,14 @@ command <tt class="docutils literal"><span class="pre">python</span> <span class
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Autodesk.
+        &copy; Copyright 2016, UrbanSim Inc..
+
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-  
 </footer>
+
         </div>
       </div>
 
@@ -249,7 +272,7 @@ command <tt class="docutils literal"><span class="pre">python</span> <span class
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

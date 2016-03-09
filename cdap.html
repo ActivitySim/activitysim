@@ -5,6 +5,7 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>CDAP &mdash; ActivitySim 0.1 documentation</title>
@@ -14,7 +15,6 @@
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
 
   
   
@@ -35,7 +35,7 @@
         <link rel="prev" title="Skim Abstractions" href="skim.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -45,11 +45,27 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-nav-search">
-        
-          <a href="index.html" class="fa fa-home"> ActivitySim</a>
-        
-        
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ActivitySim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -57,44 +73,30 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-      </div>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        
           
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#installation">Installation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core.html#module-activitysim.activitysim">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="skim.html#module-activitysim.skim">API</a></li>
-</ul>
-</li>
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">CDAP</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-activitysim.cdap.cdap">API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="mnl.html#module-activitysim.mnl">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.reindex">Reindex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.testing">Testing</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a></li>
 </ul>
 
+            
           
-        
+        </div>
       </div>
-      &nbsp;
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -109,30 +111,39 @@
       
       <div class="wy-nav-content">
         <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
     <li>CDAP</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="_sources/cdap.txt" rel="nofollow"> View page source</a>
+          
+            <a href="_sources/cdap.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main" class="document">
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="cdap">
 <h1>CDAP<a class="headerlink" href="#cdap" title="Permalink to this headline">¶</a></h1>
 <p>The main interface to CDAP is the
-<a class="reference internal" href="#activitysim.cdap.cdap.run_cdap" title="activitysim.cdap.cdap.run_cdap"><tt class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></tt></a> function.</p>
+<a class="reference internal" href="#activitysim.cdap.cdap.run_cdap" title="activitysim.cdap.cdap.run_cdap"><code class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></code></a> function.</p>
 <div class="section" id="module-activitysim.cdap.cdap">
 <span id="api"></span><h2>API<a class="headerlink" href="#module-activitysim.cdap.cdap" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="activitysim.cdap.cdap.apply_all_people">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">apply_all_people</tt><big>(</big><em>hh_util</em>, <em>all_people</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.apply_all_people" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">apply_all_people</code><span class="sig-paren">(</span><em>hh_util</em>, <em>all_people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.apply_all_people" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply utility adjustments to household alternatives.</p>
 <p>This modifies the <cite>hh_util</cite> data inplace.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -163,7 +174,7 @@ so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.apply_final_rules">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">apply_final_rules</tt><big>(</big><em>hh_util</em>, <em>people</em>, <em>hh_id_col</em>, <em>final_rules</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.apply_final_rules" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">apply_final_rules</code><span class="sig-paren">(</span><em>hh_util</em>, <em>people</em>, <em>hh_id_col</em>, <em>final_rules</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.apply_final_rules" title="Permalink to this definition">¶</a></dt>
 <dd><p>Final rules can be used to set the utility values for certain
 household alternatives. Often they are set to zero to reflect
 the unavailability of certain alternatives to certain types of people.</p>
@@ -202,7 +213,7 @@ the order is.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.household_choices_to_people">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">household_choices_to_people</tt><big>(</big><em>hh_choices</em>, <em>people</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.household_choices_to_people" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">household_choices_to_people</code><span class="sig-paren">(</span><em>hh_choices</em>, <em>people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.household_choices_to_people" title="Permalink to this definition">¶</a></dt>
 <dd><p>Map household choices to people so that we know the activity pattern
 for individuals.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -232,7 +243,7 @@ is a tuple of individual utilities.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.individual_utilities">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">individual_utilities</tt><big>(</big><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate CDAP utilities for all individuals.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -276,7 +287,7 @@ is a tuple of individual utilities.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.initial_household_utilities">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">initial_household_utilities</tt><big>(</big><em>utilities</em>, <em>people</em>, <em>hh_id_col</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.initial_household_utilities" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">initial_household_utilities</code><span class="sig-paren">(</span><em>utilities</em>, <em>people</em>, <em>hh_id_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.initial_household_utilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create initial household utilities by grouping and summing utilities
 from individual household members.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -310,7 +321,7 @@ mapping alternative choices to their utility.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.make_household_choices">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">make_household_choices</tt><big>(</big><em>hh_util</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.make_household_choices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_household_choices</code><span class="sig-paren">(</span><em>hh_util</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_household_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decide on the activity pattern for each household.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -336,7 +347,7 @@ is a tuple of individual utilities.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.make_interactions">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">make_interactions</tt><big>(</big><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.make_interactions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_interactions</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_interactions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make two Pandas DataFrames associating people IDs with two
 and three person interactions they have within their households.</p>
 <p>Interactions are strings of numbers representing the makeup
@@ -385,7 +396,7 @@ The table will have one column called <cite>interaction</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.run_cdap">
-<tt class="descclassname">activitysim.cdap.cdap.</tt><tt class="descname">run_cdap</tt><big>(</big><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>final_rules</em>, <em>all_people</em><big>)</big><a class="headerlink" href="#activitysim.cdap.cdap.run_cdap" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">run_cdap</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>final_rules</em>, <em>all_people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.run_cdap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Choose individual activity patterns for people.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -455,15 +466,16 @@ in the same way).</p>
 </div>
 
 
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mnl.html" class="btn btn-neutral float-right" title="MNL Utilities">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mnl.html" class="btn btn-neutral float-right" title="MNL Utilities" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="skim.html" class="btn btn-neutral" title="Skim Abstractions"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="skim.html" class="btn btn-neutral" title="Skim Abstractions" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -472,13 +484,14 @@ in the same way).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Autodesk.
+        &copy; Copyright 2016, UrbanSim Inc..
+
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-  
 </footer>
+
         </div>
       </div>
 
@@ -502,7 +515,7 @@ in the same way).</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

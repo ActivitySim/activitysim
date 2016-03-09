@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # ActivitySim documentation build configuration file, created by
-# sphinx-quickstart on Tue May 26 14:13:47 2015.
+# sphinx-quickstart on Tue May 26 14:13:47 2016.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ActivitySim'
-copyright = u'2015, Autodesk'
+copyright = u'2016, UrbanSim Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -205,7 +205,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'ActivitySim.tex', u'ActivitySim Documentation',
-   u'Autodesk', 'manual'),
+   u'UrbanSim Inc.', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -235,7 +235,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'activitysim', u'ActivitySim Documentation',
-     [u'Autodesk'], 1)
+     [u'UrbanSim Inc.'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -249,7 +249,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'ActivitySim', u'ActivitySim Documentation',
-   u'Autodesk', 'ActivitySim', 'One line description of project.',
+   u'UrbanSim Inc.', 'ActivitySim', 'One line description of project.',
    'Miscellaneous'),
 ]
 

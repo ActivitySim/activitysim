@@ -7,8 +7,8 @@ setup(
     name='activitysim',
     version='0.1dev',
     description='Travel modeling',
-    author='Autodesk',
-    author_email='udst@autodesk.com',
+    author='UrbanSim Inc.',
+    author_email='udst@UrbanSim Inc..com',
     license='AGPL',
     url='https://github.com/udst/activitysim',
     classifiers=[

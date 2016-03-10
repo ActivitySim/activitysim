@@ -1,5 +1,6 @@
 ActivitySim
-Copyright (C) 2016 UrbanSim Inc.
+Contributions prior to March 2016 Copyright (C) by UrbanSim Inc.
+Contributions subsequent to March 2016 Copyright (C) by the contributing authors
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

@@ -6,15 +6,15 @@ from setuptools import setup, find_packages
 setup(
     name='activitysim',
     version='0.1dev',
-    description='Travel modeling',
-    author='UrbanSim Inc.',
-    author_email='udst@UrbanSim Inc..com',
-    license='AGPL',
+    description='Activity-Based Travel Modeling',
+    author='UrbanSim Inc. and other contributors',
+    author_email='activitysim@urbansim.com',
+    license='BSD-3',
     url='https://github.com/udst/activitysim',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 2.7',
-        'License :: OSI Approved :: GNU Affero General Public License v3'
+        'License :: OSI Approved :: BSD 3-Clause License'
     ],
     packages=find_packages(exclude=['*.tests']),
     install_requires=[

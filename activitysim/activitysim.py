@@ -140,12 +140,16 @@ def _check_for_variability(model_design):
     expression - under the assumption that you probably wouldn't be using a
     variable (in live simulations) if it had no variability.  This is a
     warning to the user that they might have constructed the variable
-    incorrectly.  It samples 100k rows in order to not hurt performance -
-    it's likely that if 100k rows have no variability, the whole dataframe
+    incorrectly.  It samples 1000 rows in order to not hurt performance -
+    it's likely that if 1000 rows have no variability, the whole dataframe
     will have no variability.
     """
     l = min(1000, len(model_design))
-    sample = random_rows(model_design, l).describe().transpose()
+    sample = random_rows(model_design, l)
+    # convert to float so describe works uniformly on bools
+    sample = sample.astype('float')
+    sample = sample.describe().transpose()
+
     error = sample[sample["std"] == 0]
     if len(error):
         print "WARNING: Some columns have no variability:\n", \

@@ -1,6 +1,7 @@
 example/data/*
 .idea
 .ipynb_checkpoints
+sandbox/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -44,8 +44,8 @@ if [ "$TRAVIS_REPO_SLUG" == "UDST/activitysim" ] && \
 
         cd ../../
         echo "Setting git attributes"
-        git config --global user.email "jiffyclub@gmail.com"
-        git config --global user.name "Matt Davis"
+        git config --global user.email "toliwaga@gmail.com"
+        git config --global user.name "Jeff Doyle"
 
         echo "Cloning repository"
         git clone --quiet --single-branch --branch=gh-pages https://${GH_TOKEN}@github.com/udst/activitysim.git  gh-pages > /dev/null 2>&1

@@ -76,7 +76,8 @@ Development
 Development versions of ActivitySim can be installed by downloading the source
 from the `GitHub repo <https://github.com/udst/activitysim>`__.
 Once downloaded ``cd`` into the ``activitysim`` directory and run the
-command ``python setup.py install``.
+command ``python setup.py install`` (or ``python setup.py develop`` if you wish
+to make changes to the package source and see the results without reinstalling.)
 
 .. _Anaconda: http://docs.continuum.io/anaconda/index.html
 .. _conda: http://conda.pydata.org/

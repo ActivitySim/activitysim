@@ -1,5 +1,5 @@
 # ActivitySim
-# Copyright (C) 2014-2015 Synthicity, LLC
+# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 import os
@@ -63,7 +63,7 @@ def test_size_term():
     pdt.assert_series_equal(s, pd.Series(answer))
 
 
-def test_mini_run(store):
+def test_mini_run(store, random_seed):
     orca.add_injectable("configs_dir",
                         os.path.join(os.path.dirname(__file__)))
 
@@ -88,7 +88,6 @@ def test_mini_run(store):
         auto_choice[[2306822, 652072, 651907]],
         pd.Series(
             [2, 1, 1], index=pd.Index([2306822, 652072, 651907], name="HHID")))
-
     orca.run(["cdap_simulate"])
 
     orca.run(['mandatory_tour_frequency'])
@@ -99,9 +98,8 @@ def test_mini_run(store):
     pdt.assert_series_equal(
         mtf_choice[[146642, 642922, 642921]],
         pd.Series(
-            ['school2', 'work1', 'school2'],
-            index=pd.Index([146642, 642922, 642921], name="PERID")))
-
+            ['school1', 'work1', 'school2'],
+            index=pd.Index([146642, 642922, 642921], name='PERID')))
     orca.clear_cache()
 
 

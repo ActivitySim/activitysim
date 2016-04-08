@@ -1,5 +1,5 @@
 # ActivitySim
-# Copyright (C) 2014-2015 Synthicity, LLC
+# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 import numpy as np
@@ -110,5 +110,6 @@ def test_3dskims(data):
         pd.Series(
             [12, 93, 47],
             index=[0, 1, 2]
-        )
+        ), 
+        check_dtype=False
     )

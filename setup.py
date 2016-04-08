@@ -6,15 +6,15 @@ from setuptools import setup, find_packages
 setup(
     name='activitysim',
     version='0.1dev',
-    description='Travel modeling',
-    author='Synthicity',
-    author_email='pwaddell@synthicity.com',
-    license='AGPL',
-    url='https://github.com/synthicity/activitysim',
+    description='Activity-Based Travel Modeling',
+    author='UrbanSim Inc. and other contributors',
+    author_email='activitysim@urbansim.com',
+    license='BSD-3',
+    url='https://github.com/udst/activitysim',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 2.7',
-        'License :: OSI Approved :: GNU Affero General Public License v3'
+        'License :: OSI Approved :: BSD 3-Clause License'
     ],
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
@@ -22,6 +22,7 @@ setup(
         'openmatrix >= 0.2.2',
         'orca >= 1.1',
         'pandas >= 0.13.1',
+        'pyyaml >= 3.0',
         'tables >= 3.1.0',
         'toolz >= 0.7',
         'zbox >= 1.2'

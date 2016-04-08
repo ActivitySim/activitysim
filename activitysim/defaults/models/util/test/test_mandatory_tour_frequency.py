@@ -1,5 +1,5 @@
 # ActivitySim
-# Copyright (C) 2014-2015 Synthicity, LLC
+# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 
@@ -21,15 +21,15 @@ def test_mtf():
     pdt.assert_series_equal(
         mandatory_tours.person_id,
         pd.Series(
-            [10, 20, 20, 30, 30], index=[0, 1, 2, 3, 4]))
+            [10, 20, 20, 30, 30], index=[0, 1, 2, 3, 4], name='person_id'))
 
     pdt.assert_series_equal(
         mandatory_tours.tour_type,
         pd.Series(
             ['work', 'work', 'school', 'school', 'school'],
-            index=[0, 1, 2, 3, 4]))
+            index=[0, 1, 2, 3, 4], name='tour_type'))
 
     pdt.assert_series_equal(
         mandatory_tours.tour_num,
         pd.Series(
-            [1, 1, 2, 1, 2], index=[0, 1, 2, 3, 4]))
+            [1, 1, 2, 1, 2], index=[0, 1, 2, 3, 4], name='tour_num'))

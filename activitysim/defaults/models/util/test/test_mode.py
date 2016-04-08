@@ -1,5 +1,5 @@
 # ActivitySim
-# Copyright (C) 2014-2015 Synthicity, LLC
+# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 import pandas as pd
@@ -45,17 +45,17 @@ def test_ea():
     pdt.assert_series_equal(
         df.reset_index().Alternative,
         pd.Series(
-            ["One", "One", "Two"], index=[0, 1, 2]))
+            ["One", "One", "Two"], index=[0, 1, 2], name='Alternative'))
 
     pdt.assert_series_equal(
         df.reset_index().Rowid,
         pd.Series(
-            [0, 1, 1], index=[0, 1, 2]))
+            [0, 1, 1], index=[0, 1, 2], name='Rowid'))
 
     pdt.assert_series_equal(
         df.reset_index()["Other column"],
         pd.Series(
-            [1, 2, 2], index=[0, 1, 2]))
+            [1, 2, 2], index=[0, 1, 2], name='Other column'))
 
 
 def test_mode_choice_spec():
@@ -84,19 +84,20 @@ def test_mode_choice_spec():
     pdt.assert_series_equal(
         df.reset_index().Alternative,
         pd.Series(
-            ["One", "One", "Two"], index=[0, 1, 2]))
+            ["One", "One", "Two"], index=[0, 1, 2], name='Alternative'))
 
     pdt.assert_series_equal(
         df.reset_index().Rowid,
         pd.Series(
-            [0, 1, 1], index=[0, 1, 2]))
+            [0, 1, 1], index=[0, 1, 2], name='Rowid'))
 
     pdt.assert_series_equal(
         df.reset_index()["Work"],
         pd.Series(
-            [.7, .98, .98], index=[0, 1, 2]))
+            [.7, .98, .98], index=[0, 1, 2], name='Work'))
 
     pdt.assert_series_equal(
         df.reset_index()["Expression"],
         pd.Series(
-            ["1", "@foo * bar", "@foo * bar"], index=[0, 1, 2]))
+            ["1", "@foo * bar", "@foo * bar"],
+            index=[0, 1, 2], name='Expression'))

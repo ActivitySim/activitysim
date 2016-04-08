@@ -1,6 +1,7 @@
 example/data/*
 .idea
 .ipynb_checkpoints
+sandbox/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -55,3 +56,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Python profiles
+*.cprof
+*.lprof

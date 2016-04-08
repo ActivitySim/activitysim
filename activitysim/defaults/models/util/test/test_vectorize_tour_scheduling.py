@@ -1,5 +1,5 @@
 # ActivitySim
-# Copyright (C) 2014-2015 Synthicity, LLC
+# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 
@@ -32,11 +32,11 @@ def test_vts():
 
     pdt.assert_series_equal(
         prev_tour_attrs.start_previous,
-        pd.Series([2, 1], index=['d', 'e']))
+        pd.Series([2, 1], index=['d', 'e'], name='start_previous'))
 
     pdt.assert_series_equal(
         prev_tour_attrs.end_previous,
-        pd.Series([5, 4], index=['d', 'e']))
+        pd.Series([5, 4], index=['d', 'e'], name='end_previous'))
 
     tours = pd.DataFrame({
         "person_id": [1, 1, 2, 3, 3],

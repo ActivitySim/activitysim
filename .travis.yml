@@ -3,23 +3,17 @@ sudo: false
 python:
 - '2.7'
 install:
-- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-    wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
-  else
-    wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh -O miniconda.sh;
-  fi
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh
+  -O miniconda.sh; else wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh
+  -O miniconda.sh; fi
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
-# Useful for debugging any issues with conda
 - conda info -a
-- >
-  conda create -q -c synthicity -n test-environment
-  python=$TRAVIS_PYTHON_VERSION
-  cytoolz ipython-notebook jinja2 matplotlib numpy pandas pandana patsy pip
-  pytables pytest pyyaml scipy statsmodels toolz
+- |
+  conda create -q -c synthicity -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz ipython-notebook jinja2 matplotlib numpy pandas pandana patsy pip pytables pytest pyyaml scipy statsmodels toolz
 - source activate test-environment
 - pip install bottle orca prettytable simplejson zbox
 - pip install openmatrix
@@ -30,6 +24,10 @@ script:
 - py.test --cov activitysim --cov-report term-missing
 after_success:
 - coveralls
+- bin/build_docs.sh
 notifications:
   slack:
-    secure: eD/LGUBVwbaFBsBALGmPVerRwF6/PRV3PoBpUYUmL7bKyBJZYwcFCb5t8thZvMF8lcHoF0e5xO7L8DoPuws2+mJCiSDH7QD3oGsLE9DoVMFKsIqvzv0oc6qrWf8LjPqcn3XBnXHOvmogRDaaeTCr8KuYEFtwqmwu3YW0/oWYPWk=
+    secure: Dpp+zBrnPGBHXrYWjwHy/bnHvhINfepSIiViwKfBZizBvTDvzSJfu6gCH+/lQ3squF3D4qTWwxB+LQ9V6KTYhuma8vQVisyneI6ARjUI/qgX6aJjuvmDDGPk6DVeDow7+aCLZ8VEHRhSjwy+dv0Ij0rxI6I94xPVwXUkk7ZjcK0=
+env:
+  global:
+  - secure: Lx7qJsqlshrmPWAZbYXOs0Pe0pvX1VyPuh22LPo8/7E7TqsMilps5U+0qp17Yg46CwzKgfnx+mrr0Emz2g7a2rj3VPeqsdSM2erOX/wuhKSOlqFNbzgD9CbuyaBdDdbLsuqrmOq8IZHWAOnHJoqn2L53rYl05mrN/PhZKN8M6O8=

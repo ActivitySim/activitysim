@@ -1,0 +1,5 @@
+stack_mode_choice is for reformatting the very complicated mode choice excel files into a straightforward csv file
+
+stack_mode_choice2 has a couple of custom edits for trip_mode_choice rather than tour_mode choice.  
+
+Unfortunately, there were some manual steps with both of these - for tour mode choice you have to run it twice since there are two slightly different variable sets that seem to occur.  Hopefully we never will have to do this again so I'm not documenting this throughly.  Not sure I could if I wanted to.

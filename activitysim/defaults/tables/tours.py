@@ -138,6 +138,12 @@ def is_joint(tours):
 
 
 @orca.column("tours")
+def is_not_joint(tours):
+    # FIXME
+    return pd.Series(True, index=tours.index)
+
+
+@orca.column("tours")
 def number_of_participants(tours):
     # FIXME
     return pd.Series(1, index=tours.index)

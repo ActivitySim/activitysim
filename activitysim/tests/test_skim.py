@@ -110,6 +110,6 @@ def test_3dskims(data):
         pd.Series(
             [12, 93, 47],
             index=[0, 1, 2]
-        ), 
+        ),
         check_dtype=False
     )

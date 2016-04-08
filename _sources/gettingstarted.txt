@@ -31,7 +31,7 @@ with Anaconda:
 * `numpy <http://numpy.org>`__ >= 1.8.0 \*
 * `openmatrix <https://pypi.python.org/pypi/OpenMatrix/0.2.3>`__ >= 0.2.2 \*\*\*
 * `orca <https://synthicity.github.io/orca/>`__ >= 1.1 \*\*\*
-* `pandas <http://pandas.pydata.org>`__ >= 0.13.1 \*
+* `pandas <http://pandas.pydata.org>`__ >= 0.18.0 \*
 * `pyyaml <http://pyyaml.org/wiki/PyYAML>`__ >= 3.0 \*
 * `tables <http://www.pytables.org/moin>`__ >= 3.1.0 \*
 * `toolz <http://toolz.readthedocs.org/en/latest/>`__ or

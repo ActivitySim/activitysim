@@ -81,12 +81,13 @@ def test_mini_run(store, random_seed):
     # this is a regression test so that we know if these numbers change
     auto_choice = orca.get_table('households').get_column('auto_ownership')
     print auto_choice[[2306822, 652072, 651907]]
+    print pd.Series(
+        [2, 1, 1], index=[2306822, 652072, 651907], name="HHID")
 
     pdt.assert_series_equal(
         auto_choice[[2306822, 652072, 651907]],
         pd.Series(
-            [2, 1, 1], index=pd.Index([2306822, 652072, 651907], name='HHID')))
-
+            [2, 1, 1], index=pd.Index([2306822, 652072, 651907], name="HHID")))
     orca.run(["cdap_simulate"])
 
     orca.run(['mandatory_tour_frequency'])
@@ -99,7 +100,6 @@ def test_mini_run(store, random_seed):
         pd.Series(
             ['school1', 'work1', 'school2'],
             index=pd.Index([146642, 642922, 642921], name='PERID')))
-
     orca.clear_cache()
 
 
@@ -138,7 +138,7 @@ def test_full_run(store):
     orca.run(["destination_choice"])
     orca.run(["mandatory_scheduling"])
     orca.run(["non_mandatory_scheduling"])
-    orca.run(["mode_choice_simulate"])
+    orca.run(["tour_mode_choice_simulate"])
 
     orca.clear_cache()
     tmp.close()

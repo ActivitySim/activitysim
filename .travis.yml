@@ -30,4 +30,5 @@ notifications:
     secure: Dpp+zBrnPGBHXrYWjwHy/bnHvhINfepSIiViwKfBZizBvTDvzSJfu6gCH+/lQ3squF3D4qTWwxB+LQ9V6KTYhuma8vQVisyneI6ARjUI/qgX6aJjuvmDDGPk6DVeDow7+aCLZ8VEHRhSjwy+dv0Ij0rxI6I94xPVwXUkk7ZjcK0=
 env:
   global:
+  # GH_TOKEN
   - secure: Lx7qJsqlshrmPWAZbYXOs0Pe0pvX1VyPuh22LPo8/7E7TqsMilps5U+0qp17Yg46CwzKgfnx+mrr0Emz2g7a2rj3VPeqsdSM2erOX/wuhKSOlqFNbzgD9CbuyaBdDdbLsuqrmOq8IZHWAOnHJoqn2L53rYl05mrN/PhZKN8M6O8=

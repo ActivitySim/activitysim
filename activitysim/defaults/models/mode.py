@@ -46,7 +46,13 @@ def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
                              mode_choice_settings)
 
 
-def _mode_choice_simulate(tours, skims, spec, additional_constants, omx=None):
+def _mode_choice_simulate(tours,
+                          skims,
+                          orig_key,
+                          dest_key,
+                          spec,
+                          additional_constants,
+                          omx=None):
     """
     This is a utility to run a mode choice model for each segment (usually
     segments are trip purposes).  Pass in the tours that need a mode,
@@ -54,12 +60,15 @@ def _mode_choice_simulate(tours, skims, spec, additional_constants, omx=None):
     you want to use in the evaluation of variables.
     """
 
-    # FIXME - this is only really going for the workplace trip
-    in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),
+    # FIXME - jwd - get list of unique second-tuple-item keys (aka skim_key2)
+    print "Skims3D.__init__ %s skim_key values = [%s] " % ('in_period', tours['in_period'].unique())
+    print "Skims3D.__init__ %s skim_key values = [%s] " % ('out_period', tours['out_period'].unique())
+
+    in_skims = askim.Skims3D(skims.set_keys(orig_key, dest_key),
                              "in_period", -1)
-    out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),
+    out_skims = askim.Skims3D(skims.set_keys(dest_key, orig_key),
                               "out_period", -1)
-    skims.set_keys("TAZ", "workplace_taz")
+    skims.set_keys(orig_key, dest_key)
 
     if omx:
         in_skims.set_omx(omx)
@@ -107,15 +116,45 @@ def mode_choice_simulate(tours_merged,
 
     tours = tours_merged.to_frame()
 
-    print mode_choice_spec.eatout
+    choices_list = []
+
+    print "Tour types:\n", tours.tour_type.value_counts()
 
     # FIXME this only runs eatout
-    choices = _mode_choice_simulate(
-        tours[tours.tour_type == "eatout"],
-        skims,
-        get_segment_and_unstack(mode_choice_spec, 'eatout'),
-        mode_choice_settings['CONSTANTS'],
-        omx=omx_file)
+    od_key_map = {
+        'default': dict(orig_key='TAZ', dest_key='destination'),
+        'work': dict(orig_key='TAZ', dest_key='workplace_taz'),
+        'school': dict(orig_key='TAZ', dest_key='school_taz'),
+    }
 
-    print "Choices:\n", choices.value_counts()
+    for tour_type, segment in tours.groupby('tour_type'):
+
+        od_keys = od_key_map.get(tour_type) or od_key_map['default']
+
+        print "running tour_type '%s'" % tour_type
+        print "   orig_key='%s' dest_key='%s'" % (od_keys['orig_key'], od_keys['dest_key'])
+
+        # if tour_type not in ['work']:
+        #     print "skipping tour_type %s" % tour_type
+        #     continue
+
+        tour_type_tours = tours[tours.tour_type == tour_type]
+
+        print "dest_taz counts:\n", tour_type_tours[od_keys['dest_key']].value_counts()
+
+        choices = _mode_choice_simulate(
+            tours[tours.tour_type == tour_type],
+            skims,
+            orig_key=od_keys['orig_key'],
+            dest_key=od_keys['dest_key'],
+            spec=get_segment_and_unstack(mode_choice_spec, tour_type),
+            additional_constants=mode_choice_settings['CONSTANTS'],
+            omx=omx_file)
+
+        print "Choices:\n", choices.value_counts()
+        choices_list.append(choices)
+
+    choices = pd.concat(choices_list)
+
+    print "Choices for all tour types:\n", choices.value_counts()
     orca.add_column("tours", "mode", choices)

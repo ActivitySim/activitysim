@@ -82,11 +82,10 @@
             
                 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
 </ul>
 
             
@@ -109,7 +108,7 @@
         <div class="rst-content">
           
 
-
+ 
 
 
 
@@ -138,41 +137,97 @@ from a consortium of Metropolitan Planning Organizations (MPOs) and other
 transportation planning agencies that wanted to build a shared, open, platform
 that could be easily adapted to their individual needs, but would share a
 robust, efficient, and well-maintained common core.</p>
-<p>ActivitySim is being built on the same methodology and software stack that
-<a class="reference external" href="https://udst.github.io/urbansim/">UrbanSim</a> is based on, and will initially have dependencies on UrbanSim, but
-these may eventually be eliminated by refactoring UrbanSim and creating a
-common core that both UrbanSim and ActivitySim depend on.</p>
-<p>See the &#8220;Getting Started&#8221; page for installation instructions.
-Additional documenation is available on the ActivitySim
-<a class="reference external" href="https://github.com/udst/activitysim/wiki">GitHub wiki</a>
-(mostly planning documents).</p>
+<p>Additional information about the ActivitySim development effort is on the
+<a class="reference external" href="https://github.com/udst/activitysim/wiki">GitHub project wiki</a>.</p>
+<div class="section" id="software-design">
+<h2>Software Design<a class="headerlink" href="#software-design" title="Permalink to this headline">¶</a></h2>
+<p>The core software components of ActivitySim are described below.  ActivitySim is
+implemented in Python, and makes heavy use of the vectorized backend C/C++ libraries in
+<a class="reference external" href="http://pandas.pydata.org">pandas</a>  and <a class="reference external" href="http://numpy.org">numpy</a>.  The core design
+principle of the system is vectorization of for loops, and this principle
+is woven into the system wherever reasonable.  As a result, the Python portions of the software
+can be thought of as more of an orchestrator, data processor, etc. that integrates a series of
+C/C++ vectorized data table and matrix operations.  The model system formulates
+each simulation as a series of vectorized table operations and the Python layer
+is responsible for setting up and providing expressions to operate on these large data tables.</p>
+<div class="section" id="data-handling">
+<h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">¶</a></h3>
+<p>ActivitySim operates on two data formats, <a class="reference external" href="https://www.hdfgroup.org/HDF5/">HDF5</a>
+and <a class="reference external" href="https://github.com/osPlanning/omx">Open Matrix (OMX)</a>.
+The HDF5 binary data container is used for managing flat files, including land use
+inputs, synthetic population files, and accessibility files.
+OMX, which is based on HDF5 as well, is used for managing network skims.</p>
+<p>Three key data structures in ActivitySim are:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html">pandas.DataFrame</a> - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table</li>
+<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html">pandas.Series</a> - a vector of data, a column in a DataFrame table or a 1D array</li>
+<li><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.html">numpy.array</a> - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example</li>
+</ul>
+</div>
+<div class="section" id="model-orchestrator">
+<h3>Model Orchestrator<a class="headerlink" href="#model-orchestrator" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://github.com/udst/orca">ORCA</a> is an orchestration/pipeline tool that defines
+dynamic data sources and connects them to processing functions.  ORCA is used for running
+the overall model system and for defining dynamic data tables (based on pandas DataFrames),
+columns ((based on pandas Series), and injectables (functions).  Model steps are executed
+as steps registered with ORCA.</p>
+</div>
+<div class="section" id="expressions">
+<h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
+<p>ActivitySim exposes most of its model expressions in CSV files that contain Python
+expressions, mainly pandas/numpy expression that operate on the input data tables and skims.
+This helps to avoid having to modify Python code when making changes to the model calculations.
+An example of model expressions is found in the example auto ownership model specification file -
+<a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv">auto_ownership.csv</a>.
+Refer to the <a class="reference internal" href="gettingstarted.html#expressions-in-detail"><span class="std std-ref">Expressions</span></a> section for more detail.</p>
+</div>
+</div>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#expressions">Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#how-the-system-works">How the System Works</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#accessibilities">Accessibilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#households">Households</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#land-use">Land use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#persons">Persons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#size-terms">Size terms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#skims">Skims</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#tours">Tours</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#trips">Trips</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core.html#module-activitysim.activitysim">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#activitysim">Activitysim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#skim">Skim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#mnl">MNL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#utilities">Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="skim.html#module-activitysim.skim">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#auto-ownership">Auto Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#coordinated-daily-activity-pattern-cdap">Coordinated Daily Activity Pattern (CDAP)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#destination-choice">Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-scheduling">Mandatory Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-tour-frequency">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#mode-tour-and-trip">Mode (Tour and Trip)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-scheduling">Non-Mandatory Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#school-location">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#workplace-location">Workplace Location</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cdap.html#module-activitysim.cdap.cdap">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="mnl.html#module-activitysim.mnl">API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.reindex">Reindex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="util.html#module-activitysim.util.testing">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#contributions">Contributions</a></li>
 </ul>
 </li>
 </ul>
@@ -182,9 +237,9 @@ Additional documenation is available on the ActivitySim
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
 </ul>
 </div>
 
@@ -205,7 +260,7 @@ Additional documenation is available on the ActivitySim
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, UrbanSim Inc..
+        &copy; Copyright contributing authors.
 
     </p>
   </div>

@@ -1,0 +1,1627 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Data Schema &mdash; ActivitySim 0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ActivitySim 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Core Utilities" href="core.html"/>
+        <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ActivitySim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Schema</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#accessibilities">Accessibilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.defaults.tables.accessibility">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#households">Households</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#land-use">Land use</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#persons">Persons</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#size-terms">Size terms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#skims">Skims</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#injectables">Injectables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#omx-file">omx_file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tours">Tours</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#trips">Trips</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ActivitySim</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Data Schema</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/dataschema.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><span class="target" id="index-1"></span><div class="section" id="data-schema">
+<span id="index-2"></span><h1>Data Schema<a class="headerlink" href="#data-schema" title="Permalink to this headline">¶</a></h1>
+<p>The purpose of this page is to document the ActivitySim data schema.
+While the data schema can be different among implementations, the default
+data tables (pandas DataFrames) and skims (numpy arrays) defined in the
+<code class="docutils literal"><span class="pre">activitysim.defaults.tables</span></code> package and used by the example,
+are described below.  The table definitions are a work-in-progress, and
+only a partial set of fields is described, including
+table indexes, virtual (i.e. calculated on-the-fly) columns, initial input fields,
+and model result fields.  The model that creates each field and if the field is
+virtual is also noted.</p>
+<div class="section" id="accessibilities">
+<span id="index-3"></span><h2>Accessibilities<a class="headerlink" href="#accessibilities" title="Permalink to this headline">¶</a></h2>
+<p>The accessibilities table contains zone-based accessibility measures.</p>
+<p>Index - TAZ (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="9%" />
+<col width="41%" />
+<col width="9%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Type</th>
+<th class="head">Creator</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>AUTOPEAKRETAIL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>AUTOPEAKTOTAL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>AUTOOFFPEAKRETAIL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>AUTOOFFPEAKTOTAL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>TRANSITPEAKRETAIL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TRANSITPEAKTOTAL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>TRANSITOFFPEAKRETAIL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TRANSITOFFPEAKTOTAL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>NONMOTORIZEDRETAIL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>NONMOTORIZEDTOTAL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>mode_choice_logsums</td>
+<td>int64</td>
+<td>accessibility.py</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="module-activitysim.defaults.tables.accessibility">
+<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.defaults.tables.accessibility" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="households">
+<span id="index-4"></span><h2>Households<a class="headerlink" href="#households" title="Permalink to this headline">¶</a></h2>
+<p>The households table contains household attributes for each
+household being simulated.</p>
+<p>Index - household_id (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="9%" />
+<col width="41%" />
+<col width="9%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Type</th>
+<th class="head">Creation</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>TAZ</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>SERIALNO</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>PUMA5</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>income</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>PERSONS</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>HHT</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>UNITTYPE</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>NOC</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>BLDGSZ</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TENURE</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>VEHICL</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hinccat1</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hinccat2</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hhagecat</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hsizecat</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hfamily</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hunittype</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hNOCcat</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hwrkrcat</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>h0004</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>h0511</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>h1215</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>h1617</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>h1824</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>h2534</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>h3549</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>h5064</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>h6579</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>h80up</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>workers</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hwork_f</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hwork_p</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>huniv</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hnwork</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hretire</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hpresch</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hschpred</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hschdriv</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>htypdwel</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hownrent</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hadnwst</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hadwpst</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>hadkids</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>bucketBin</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>originalPUMA</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>hmultiunit</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>num_college_age</td>
+<td>float64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>non_workers</td>
+<td>int64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>income_segment</td>
+<td>category</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>family</td>
+<td>bool</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_young_adults</td>
+<td>float64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>household_type</td>
+<td>object</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>drivers</td>
+<td>float64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>home_is_rural</td>
+<td>bool</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>hhsize</td>
+<td>int64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>num_under16_not_at_school</td>
+<td>int64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_children</td>
+<td>float64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>non_family</td>
+<td>bool</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_adolescents</td>
+<td>float64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>income_in_thousands</td>
+<td>float64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_young_children</td>
+<td>float64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>home_is_urban</td>
+<td>bool</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>home_taz</td>
+<td>int64</td>
+<td>households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>auto_ownership</td>
+<td>int64</td>
+<td>auto_ownership.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>no_cars</td>
+<td>bool</td>
+<td>auto_ownership.py -&gt; households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>car_sufficiency</td>
+<td>int64</td>
+<td>auto_ownership.py -&gt; households.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>work_tour_auto_time_savings</td>
+<td>int64</td>
+<td>auto_ownership.py -&gt; households.py</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="id1">
+<h3>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.tables.households"></span></div>
+</div>
+<div class="section" id="land-use">
+<span id="index-5"></span><h2>Land use<a class="headerlink" href="#land-use" title="Permalink to this headline">¶</a></h2>
+<p>The land use table contains zonal land use (such as population and employment) attributes for zone.</p>
+<p>Index - ZONE (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="9%" />
+<col width="41%" />
+<col width="9%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Type</th>
+<th class="head">Creator</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>DISTRICT</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>SD</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>COUNTY</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TOTHH</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>HHPOP</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TOTPOP</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>EMPRES</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>SFDU</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>MFDU</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>HHINCQ1</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>HHINCQ2</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>HHINCQ3</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>HHINCQ4</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TOTACRE</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>RESACRE</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>CIACRE</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>SHPOP62P</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TOTEMP</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>AGE0004</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>AGE0519</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>AGE2044</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>AGE4564</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>AGE65P</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>RETEMPN</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>FPSEMPN</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>HEREMPN</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>OTHEMPN</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>AGREMPN</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>MWTEMPN</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>PRKCST</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>OPRKCST</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>area_type</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>HSENROLL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>COLLFTE</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>COLLPTE</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TOPOLOGY</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>TERMINAL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>county_name</td>
+<td>object</td>
+<td>land_use.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>density_index</td>
+<td>float64</td>
+<td>land_use.py</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="id2">
+<h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.tables.landuse"></span></div>
+</div>
+<div class="section" id="persons">
+<span id="index-6"></span><h2>Persons<a class="headerlink" href="#persons" title="Permalink to this headline">¶</a></h2>
+<p>The persons table contains person attributes for each person being simulated.</p>
+<p>Index - PERID (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="9%" />
+<col width="41%" />
+<col width="9%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Type</th>
+<th class="head">Creator</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>household_id</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>age</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>RELATE</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>ESR</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>GRADE</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>PNUM</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>PAUG</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>DDP</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>sex</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>WEEKS</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>HOURS</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>MSP</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>POVERTY</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>EARNS</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>pagecat</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>pemploy</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>pstudent</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>ptype</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>padkid</td>
+<td>int64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>has_preschool_kid</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>student_cat</td>
+<td>object</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>num_eat_j</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>has_driving_kid</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>home_taz</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>work_and_school_and_worker</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>work_and_school_and_student</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>female</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>has_preschool_kid_at_home</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>has_full_time</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>is_university</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>max_window</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>employed_cat</td>
+<td>object</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>student_is_employed</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>is_gradeschool</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>is_highschool</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>has_retiree</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_main_j</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>num_joint_tours</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>has_non_worker</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>ptype_cat</td>
+<td>object</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>is_student</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>under16_not_at_school</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>has_school_kid</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>is_worker</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>age_16_p</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>has_university</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>adult</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>num_visi_j</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>age_16_to_19</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>nonstudent_to_school</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_shop_j</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>num_mand</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_disc_j</td>
+<td>int64</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>has_part_time</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>has_school_kid_at_home</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>male</td>
+<td>bool</td>
+<td>persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>school_taz</td>
+<td>int64</td>
+<td>school_location.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>distance_to_school</td>
+<td>float64</td>
+<td>school_location.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>roundtrip_auto_time_to_school</td>
+<td>float64</td>
+<td>school_location.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>workplace_taz</td>
+<td>int64</td>
+<td>workplace_location.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>distance_to_work</td>
+<td>float64</td>
+<td>simulation.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>roundtrip_auto_time_to_work</td>
+<td>float64</td>
+<td>workplace_location.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>workplace_in_cbd</td>
+<td>int64</td>
+<td>workplace_location.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>cdap_activity</td>
+<td>object</td>
+<td>cdap.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>mandatory_tour_frequency</td>
+<td>object</td>
+<td>mandatory_tour_frequency.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>non_mandatory_tour_frequency</td>
+<td>object</td>
+<td>non_mandatory_tour_frequency.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>num_escort_tours</td>
+<td>int64</td>
+<td>non_mandatory_tour_frequency.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>num_non_escort_tours</td>
+<td>int64</td>
+<td>non_mandatory_tour_frequency.py -&gt; persons.py</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<p>where:</p>
+<ul>
+<li><p class="first">pemploy - Employment status</p>
+<blockquote>
+<div><ul class="simple">
+<li>1 - employed FT</li>
+<li>2 - employed PT</li>
+<li>3 - not employed</li>
+<li>4 - under age 16</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">pstudent - Student status</p>
+<blockquote>
+<div><ul class="simple">
+<li>1 - student in grade or high school</li>
+<li>2 - student in college or higher</li>
+<li>3 - not a student</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">ptype - Person type</p>
+<blockquote>
+<div><ul class="simple">
+<li>1 - FT worker age 16+</li>
+<li>2 - PT worker nonstudent age 16+</li>
+<li>3 - university student (if is a university student but has school age student category, reset student category)</li>
+<li>4 - nonworker nonstudent age 16-64</li>
+<li>5 - nonworker nonstudent age 65+</li>
+<li>6 - age 16-19 student, not FT wrkr or univ stud</li>
+<li>7 - age 6-15 schpred</li>
+<li>8 - under age 6 presch</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">gender - 2 is female 1 is male</p>
+</li>
+</ul>
+<div class="section" id="id3">
+<h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.tables.persons"></span></div>
+</div>
+<div class="section" id="size-terms">
+<span id="index-7"></span><h2>Size terms<a class="headerlink" href="#size-terms" title="Permalink to this headline">¶</a></h2>
+<p>The size terms table is created by reading the <code class="docutils literal"><span class="pre">destination_choice_size_terms.csv</span></code> input file.</p>
+<p>Index - segment (see <code class="docutils literal"><span class="pre">activitysim.defaults.tables.size_terms.py</span></code>)</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="9%" />
+<col width="41%" />
+<col width="9%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Type</th>
+<th class="head">Creator</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>segment</td>
+<td>string</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>TOTHH</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>RETEMPN</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>FPSEMPN</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>HEREMPN</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>OTHEMPN</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>AGREMPN</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>MWTEMPN</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>AGE0519</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>HSENROLL</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>COLLFTE</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>COLLPTE</td>
+<td>float64</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="id4">
+<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.tables.size_terms"></span><dl class="function">
+<dt id="activitysim.defaults.tables.size_terms.size_term">
+<code class="descclassname">activitysim.defaults.tables.size_terms.</code><code class="descname">size_term</code><span class="sig-paren">(</span><em>land_use</em>, <em>destination_choice_coeffs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.tables.size_terms.size_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method takes the land use data and multiplies various columns of the
+land use data by coefficients from the spec table in order
+to yield a size term (a linear combination of land use variables).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>land_use</strong> : DataFrame</p>
+<blockquote>
+<div><p>A dataframe of land use attributes - the column names should match
+the index of destination_choice_coeffs</p>
+</div></blockquote>
+<p><strong>destination_choice_coeffs</strong> : Series</p>
+<blockquote>
+<div><p>A series of coefficients for the land use attributes - the index
+describes the link to the land use table, and the values are floating
+points numbers used to do the linear combination</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>values</strong> : Series</p>
+<blockquote class="last">
+<div><p>The index will be the same as land use, and the values will the
+linear combination of the land use table columns specified by the
+coefficients series.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="index-8"></span><span class="target" id="index-9"></span></div>
+</div>
+<div class="section" id="skims">
+<span id="index-10"></span><h2>Skims<a class="headerlink" href="#skims" title="Permalink to this headline">¶</a></h2>
+<p>The skims class defines orca injectables to access the skim matrices.  The skims class reads the
+skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.</p>
+<div class="section" id="injectables">
+<h3>Injectables<a class="headerlink" href="#injectables" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="13%" />
+<col width="39%" />
+<col width="9%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Table</th>
+<th class="head">Type</th>
+<th class="head">Creator</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>nonmotskm_matrix</td>
+<td>float64 matrix</td>
+<td>omx_file[&#8216;DIST&#8217;]</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>distance_skim</td>
+<td>float64 matrix</td>
+<td>skims.py -&gt; nonmotskm_matrix</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>sovam_skim</td>
+<td>float64 matrix</td>
+<td>skims.py -&gt; nonmotskm_matrix</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>sovmd_skim</td>
+<td>float64 matrix</td>
+<td>skims.py -&gt; nonmotskm_matrix</td>
+<td>T</td>
+</tr>
+<tr class="row-even"><td>sovpm_skim</td>
+<td>float64 matrix</td>
+<td>skims.py -&gt; nonmotskm_matrix</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>skims</td>
+<td>float64 matrix</td>
+<td>skims.py -&gt; skims[&#8216;DISTANCE&#8217;] - &gt; distance_skim</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="omx-file">
+<h3>omx_file<a class="headerlink" href="#omx-file" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="13%" />
+<col width="39%" />
+<col width="9%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Type</th>
+<th class="head">Creation</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>DIST</td>
+<td>float64 matrix</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>DISTBIKE</td>
+<td>float64 matrix</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>DISTWALK</td>
+<td>float64 matrix</td>
+<td>Initial</td>
+<td>F</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id5">
+<h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.tables.skims"></span></div>
+</div>
+<div class="section" id="tours">
+<span id="index-11"></span><h2>Tours<a class="headerlink" href="#tours" title="Permalink to this headline">¶</a></h2>
+<p>The tours table contains tours attributes for each tour being simulated.  The tours
+table is created during the simulation as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tours</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">non_mandatory_tours</span><span class="p">,</span> <span class="n">mandatory_tours</span> <span class="o">-&gt;</span>
+ <span class="n">util</span> <span class="o">-&gt;</span> <span class="n">mandatory_tour_frequency</span><span class="o">.</span><span class="n">py</span><span class="p">,</span> <span class="n">util</span> <span class="o">-&gt;</span> <span class="n">non_mandatory_tour_frequency</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Index - tour_id (see <code class="docutils literal"><span class="pre">activitysim.defaults.models.util.non_mandatory_tour_frequency.py</span></code>)</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="10%" />
+<col width="50%" />
+<col width="7%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Type</th>
+<th class="head">Creator</th>
+<th class="head">Virtual</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>person_id</td>
+<td>int64</td>
+<td>util -&gt; mandatory_tour_frequency.py, util -&gt; non_mandatory_tour_frequency.py</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>tour_type</td>
+<td>object</td>
+<td>util -&gt; mandatory_tour_frequency.py, util -&gt; non_mandatory_tour_frequency.py</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>tour_num</td>
+<td>int64</td>
+<td>util -&gt; mandatory_tour_frequency.py, util -&gt; non_mandatory_tour_frequency.py</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>tour_departure_and_duration</td>
+<td>(start,end)</td>
+<td>mandatory_scheduling.py, non_mandatory_scheduling.py</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>start</td>
+<td>int64</td>
+<td>tours.py -&gt; tours</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>end</td>
+<td>int64</td>
+<td>tours.py -&gt; tours</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>duration</td>
+<td>int64</td>
+<td>tours.py -&gt; tours</td>
+<td>F</td>
+</tr>
+<tr class="row-odd"><td>destination</td>
+<td>int64</td>
+<td>destination_choice.py</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>TAZ</td>
+<td>int64</td>
+<td>joined from households.TAZ (no work-based tours yet so all origins are home)</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>mode</td>
+<td>int64</td>
+<td>mode.py</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>in_period</td>
+<td>int65</td>
+<td>tours.py</td>
+<td>T</td>
+</tr>
+<tr class="row-odd"><td>out_period</td>
+<td>int66</td>
+<td>tours.py</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="id6">
+<h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.tables.tours"></span></div>
+</div>
+<div class="section" id="trips">
+<span id="index-12"></span><h2>Trips<a class="headerlink" href="#trips" title="Permalink to this headline">¶</a></h2>
+<p>The trips table is in development.</p>
+<div class="section" id="id7">
+<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>To be completed later</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="core.html" class="btn btn-neutral float-right" title="Core Utilities" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gettingstarted.html" class="btn btn-neutral" title="Getting Started" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright contributing authors.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

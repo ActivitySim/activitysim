@@ -31,8 +31,8 @@
 
   
     <link rel="top" title="ActivitySim 0.1 documentation" href="index.html"/>
-        <link rel="next" title="Skim Abstractions" href="skim.html"/>
-        <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
+        <link rel="next" title="Models" href="models.html"/>
+        <link rel="prev" title="Data Schema" href="dataschema.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -83,14 +83,35 @@
             
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Core Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-activitysim.activitysim">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#activitysim">Activitysim</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.activitysim">API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#skim">Skim</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mnl">MNL</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#reindex">Reindex</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
 </ul>
 
             
@@ -113,7 +134,7 @@
         <div class="rst-content">
           
 
-
+ 
 
 
 
@@ -137,8 +158,14 @@
             
   <div class="section" id="core-utilities">
 <h1>Core Utilities<a class="headerlink" href="#core-utilities" title="Permalink to this headline">¶</a></h1>
+<p>ActivitySim&#8217;s core components include the model specification reader,
+the expression evaluator, the skim matrix manager, the simulate methods for solving
+models (i.e. calculating utilities, probabilties, and making choices), and the choice
+models such as <a class="reference internal" href="#mnl-in-detail"><span class="std std-ref">MNL</span></a>.</p>
+<div class="section" id="activitysim">
+<h2>Activitysim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="module-activitysim.activitysim">
-<span id="api"></span><h2>API<a class="headerlink" href="#module-activitysim.activitysim" title="Permalink to this headline">¶</a></h2>
+<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.activitysim" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="activitysim.activitysim.add_skims">
 <code class="descclassname">activitysim.activitysim.</code><code class="descname">add_skims</code><span class="sig-paren">(</span><em>df</em>, <em>skims</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.add_skims" title="Permalink to this definition">¶</a></dt>
@@ -385,6 +412,481 @@ of <cite>spec</cite>.</p>
 
 </div>
 </div>
+<div class="section" id="skim">
+<span id="skims-in-detail"></span><h2>Skim<a class="headerlink" href="#skim" title="Permalink to this headline">¶</a></h2>
+<p>Skim Abstractions</p>
+<div class="section" id="id1">
+<h3>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.skim"></span><dl class="class">
+<dt id="activitysim.skim.Skim">
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skim</code><span class="sig-paren">(</span><em>data</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container for skim arrays.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : 2D array</p>
+<p><strong>offset</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>An optional offset that will be added to origin/destination
+values to turn them into array indices.
+For example, if zone IDs are 1-based, an offset of -1
+would turn them into 0-based array indices.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="activitysim.skim.Skim.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>orig</em>, <em>dest</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skim.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get impedence values for a set of origin, destination pairs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>orig</strong> : 1D array</p>
+<p><strong>dest</strong> : 1D array</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>values</strong> : 1D array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="activitysim.skim.Skims">
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims</code><a class="headerlink" href="#activitysim.skim.Skims" title="Permalink to this definition">¶</a></dt>
+<dd><p>A skims object is a wrapper around multiple skim objects,
+where each object is identified by a key.  It operates like a
+dictionary - i.e. use brackets to add and get skim objects - but also
+has information on how to lookup against the skim objects.
+Specifically, this object has a dataframe, a left_key and right_key.
+It is assumed that left_key and right_key identify columns in df.  The
+parameter df is usually set by the simulation itself as it&#8217;s a result of
+interacting choosers and alternatives.</p>
+<p>When the user calls skims[key], key is an identifier for which skim
+to use, and the object automatically looks up impedances of that skim
+using the specified left_key column in df as the origin and
+the right_key column in df as the destination.  In this way, the user
+does not do the O-D lookup by hand and only specifies which skim to use
+for this lookup.  This is the only purpose of this object: to
+abstract away the O-D lookup and use skims by specifying which skim
+to use in the expressions.</p>
+<p>Note that keys are any hashable object, not just strings.  So calling
+skim[(&#8216;AM&#8217;, &#8216;SOV&#8217;)] is valid and useful.</p>
+<dl class="method">
+<dt id="activitysim.skim.Skims.get_3d">
+<code class="descname">get_3d</code><span class="sig-paren">(</span><em>key</em>, <em>key_3d</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.get_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>If you want</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : String or any hashable</p>
+<blockquote>
+<div><p>Will be accessible using __getitem__ in Skims3d</p>
+</div></blockquote>
+<p><strong>key_3d</strong> : String or any hashable</p>
+<blockquote>
+<div><p>Relates to the 3rd dimension lookup column set by Skims3D</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>skims</strong> : Skim</p>
+<blockquote class="last">
+<div><p>the skim object for these keys</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.skim.Skims.lookup">
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>skim</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generally not called by the user - use __getitem__ instead</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>skim: Skim</strong></p>
+<blockquote>
+<div><p>The skim object to perform the lookup using df[left_key] as the
+origin and df[right_key] as the destination</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">impedances: pd.Series</p>
+<blockquote class="last">
+<div><p>A Series of impedances which are elements of the Skim object and
+with the same index as df</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.skim.Skims.set_3d">
+<code class="descname">set_3d</code><span class="sig-paren">(</span><em>key</em>, <em>key_3d</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>If you want to use the Skims3D object below, you will need to do that
+explicitly by setting first the key which will be used by __getattr__
+and second the key that relates to the 3rd dimension of the dataframe.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : String or any hashable</p>
+<blockquote>
+<div><p>Will be accessible using __getitem__ in Skims3d</p>
+</div></blockquote>
+<p><strong>key_3d</strong> : String or any hashable</p>
+<blockquote>
+<div><p>Relates to the 3rd dimension lookup column set by Skims3D</p>
+</div></blockquote>
+<p><strong>value</strong> : Skim</p>
+<blockquote class="last">
+<div><p>the skim object for these keys</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.skim.Skims.set_df">
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : DataFrame</p>
+<blockquote>
+<div><p>The dataframe which contains the origin and destination ids</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.skim.Skims.set_keys">
+<code class="descname">set_keys</code><span class="sig-paren">(</span><em>left_key</em>, <em>right_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the left and right keys.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>left_key</strong> : String</p>
+<blockquote>
+<div><p>The left key (origin) column in the dataframe</p>
+</div></blockquote>
+<p><strong>right_key</strong> : String</p>
+<blockquote>
+<div><p>The right key (destination) column in the dataframe</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="activitysim.skim.Skims3D">
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims3D</code><span class="sig-paren">(</span><em>skims</em>, <em>skim_key</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>A 3DSkims object wraps a skim objects to add an additional wrinkle of
+lookup functionality.  Upon init the separate skims objects are
+processed into a 3D matrix so that lookup of the different skims can
+be performed quickly for each row in the dataframe.  In this very
+particular formulation, the keys are assumed to be tuples with two
+elements - the second element of which will be taken from the
+different rows in the dataframe.  The first element can then be
+dereferenced like an array.  This is useful, for instance, to have a
+certain skim vary by time of day - the skims are set with keys of
+(&#8216;SOV&#8217;, &#8216;AM&#8221;), (&#8216;SOV&#8217;, &#8216;PM&#8217;) etc.  The time of day is then taken to
+be different for every row in the tours table, and the &#8216;SOV&#8217; portion
+of the key can be used in __getitem__.</p>
+<p>To be more explicit, the input is a dictionary of Skims objects, each of
+which contains a 2D matrix.  These are stacked into a 3D matrix with a
+mapping of keys to indexes which is applied using pandas .map to a third
+column in the object dataframe.  The three columns - left_key and
+right_key from the Skims object and skim_key from this one, are then used to
+dereference the 3D matrix.  The tricky part comes in defining the key which
+matches the 3rd dimension of the matrix, and the key which is passed into
+__getitem__ below (i.e. the one used in the specs).  By convention,
+every key in the Skims object that is passed in MUST be a tuple with 2
+items.  The second item in the tuple maps to the items in the dataframe
+referred to by the skim_key column and the first item in the tuple is
+then available to pass directly to __getitem__.  This is now made
+explicit by adding the set_3d and get_3d methods in the Skims object which
+take the two keys independently and convert to the tuple internally.
+The sum conclusion of this is that in the specs, you can say something
+like out_skim[&#8216;SOV&#8217;] and it will automatically dereference the 3D matrix
+using origin, destination, and time of day.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>skims: Skims</strong></p>
+<blockquote>
+<div><p>This is the Skims object to wrap</p>
+</div></blockquote>
+<p><strong>skim_key</strong> : str</p>
+<blockquote>
+<div><p>This identifies the column in the dataframe which is used to
+select among Skim object using the SECOND item in each tuple (see
+above for a more complete description)</p>
+</div></blockquote>
+<p><strong>offset</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>A single offset must be used for all Skim objects - previous
+offsets will be ignored</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="activitysim.skim.Skims3D.lookup">
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>key</em>, <em>origins</em>, <em>destinations</em>, <em>skim_indexes</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D.lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generally not called by the user - use __getitem__ instead</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : String</p>
+<p><strong>origins</strong> : Series</p>
+<blockquote>
+<div><p>Identifies the origins of trips as indexes</p>
+</div></blockquote>
+<p><strong>destinations</strong> : Series</p>
+<blockquote>
+<div><p>Identifies the destinations of trips as indexes</p>
+</div></blockquote>
+<p><strong>skim_index</strong> : Series</p>
+<blockquote>
+<div><p>Identifies the indexes of the skims so that different skims can
+be used for different rows</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">impedances: pd.Series</p>
+<blockquote class="last">
+<div><p>A Series of impedances which are elements of the Skim object and
+with the same index as df</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.skim.Skims3D.set_df">
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D.set_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : DataFrame</p>
+<blockquote>
+<div><p>The dataframe which contains the origin and destination ids</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="mnl">
+<span id="mnl-in-detail"></span><h2>MNL<a class="headerlink" href="#mnl" title="Permalink to this headline">¶</a></h2>
+<p>Multinomial logit choice model. See <a class="reference external" href="http://tfresource.org/Category:Choice_models">choice models</a>
+for more information.</p>
+<div class="section" id="id2">
+<h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.mnl"></span><dl class="function">
+<dt id="activitysim.mnl.interaction_dataset">
+<code class="descclassname">activitysim.mnl.</code><code class="descname">interaction_dataset</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.interaction_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine choosers and alternatives into one table for the purposes
+of creating interaction variables and/or sampling alternatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<p><strong>alternatives</strong> : pandas.DataFrame</p>
+<p><strong>sample_size</strong> : int, optional</p>
+<blockquote>
+<div><p>If sampling from alternatives for each chooser, this is
+how many to sample.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>interacted</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Merged choosers and alternatives with data repeated either
+len(alternatives) or <cite>sample_size</cite> times.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.mnl.make_choices">
+<code class="descclassname">activitysim.mnl.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.make_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make choices for each chooser from among a set of alternatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Rows for choosers and columns for the alternatives from which they
+are choosing. Values are expected to be valid probabilities across
+each row, e.g. they should sum to 1.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Maps chooser IDs (from <cite>probs</cite> index) to a choice, where the choice
+is an index into the columns of <cite>probs</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.mnl.utils_to_probs">
+<code class="descclassname">activitysim.mnl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a table of utilities to exponentiated probabilities.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>utils</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Rows should be choosers and columns should be alternatives.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the same index and columns as <cite>utils</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="reindex">
+<h3>Reindex<a class="headerlink" href="#reindex" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.util.reindex"></span><dl class="function">
+<dt id="activitysim.util.reindex.reindex">
+<code class="descclassname">activitysim.util.reindex.</code><code class="descname">reindex</code><span class="sig-paren">(</span><em>series1</em>, <em>series2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.util.reindex.reindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>This reindexes the first series by the second series.  This is an extremely
+common operation that does not appear to  be in Pandas at this time.
+If anyone knows of an easier way to do this in Pandas, please inform the
+UrbanSim developers.</p>
+<p>The canonical example would be a parcel series which has an index which is
+parcel_ids and a value which you want to fetch, let&#8217;s say it&#8217;s land_area.
+Another dataset, let&#8217;s say of buildings has a series which indicate the
+parcel_ids that the buildings are located on, but which does not have
+land_area.  If you pass parcels.land_area as the first series and
+buildings.parcel_id as the second series, this function returns a series
+which is indexed by buildings and has land_area as values and can be
+added to the buildings dataset.</p>
+<p>In short, this is a join on to a different table using a foreign key
+stored in the current table, but with only one attribute rather than
+for a full dataset.</p>
+<p>This is very similar to the pandas &#8220;loc&#8221; function or &#8220;reindex&#8221; function,
+but neither of those functions return the series indexed on the current
+table.  In both of those cases, the series would be indexed on the foreign
+table and would require a second step to change the index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series1, series2</strong> : pandas.Series</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>reindexed</strong> : pandas.Series</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="testing">
+<h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.util.testing"></span><p>Utilities used in testing of ActivitySim.</p>
+<dl class="function">
+<dt id="activitysim.util.testing.assert_frames_equal">
+<code class="descclassname">activitysim.util.testing.</code><code class="descname">assert_frames_equal</code><span class="sig-paren">(</span><em>actual</em>, <em>expected</em>, <em>use_close=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.util.testing.assert_frames_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare DataFrame items by index and column and
+raise AssertionError if any item is not equal.</p>
+<p>Ordering is unimportant, items are compared only by label.
+NaN and infinite values are supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>actual</strong> : pandas.DataFrame</p>
+<p><strong>expected</strong> : pandas.DataFrame</p>
+<p><strong>use_close</strong> : bool, optional</p>
+<blockquote class="last">
+<div><p>If True, use numpy.testing.assert_allclose instead of
+numpy.testing.assert_equal.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+</div>
 
 
            </div>
@@ -393,10 +895,10 @@ of <cite>spec</cite>.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="skim.html" class="btn btn-neutral float-right" title="Skim Abstractions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gettingstarted.html" class="btn btn-neutral" title="Getting Started" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="dataschema.html" class="btn btn-neutral" title="Data Schema" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -405,7 +907,7 @@ of <cite>spec</cite>.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, UrbanSim Inc..
+        &copy; Copyright contributing authors.
 
     </p>
   </div>

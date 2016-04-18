@@ -31,7 +31,7 @@
 
   
     <link rel="top" title="ActivitySim 0.1 documentation" href="index.html"/>
-        <link rel="next" title="Core Utilities" href="core.html"/>
+        <link rel="next" title="Data Schema" href="dataschema.html"/>
         <link rel="prev" title="ActivitySim" href="index.html"/> 
 
   
@@ -82,25 +82,45 @@
             
             
                 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Getting Started</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#activitysim">ActivitySim</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#conda">conda</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pip">pip</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#development">Development</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#expressions">Expressions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conventions">Conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-expressions-file">Example Expressions File</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#folder-file-setup">Folder/File Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inputs">Inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model-specification-files">Model Specification Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#running-the-model">Running the Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-the-system-works">How the System Works</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-basic-flow-of-execution">The Basic Flow of Execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-new-tables">Creating New Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#skims3d">Skims3D</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="skim.html">Skim Abstractions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cdap.html">CDAP</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mnl.html">MNL Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="util.html">Internal Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
 </ul>
 
             
@@ -123,7 +143,7 @@
         <div class="rst-content">
           
 
-
+ 
 
 
 
@@ -147,20 +167,22 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>This page describes how to install ActivitySim and setup and run the provided example.</p>
 <div class="section" id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">In the instructions below we will direct you to run various commands.
 On Mac and Linux these should go in your standard terminal.
 On Windows you may use the standard command prompt, the Anaconda
-command prompt, or even Git Bash (if you have that installed).</p>
+command prompt, or Git Bash (if you have that installed).</p>
 </div>
 <div class="section" id="anaconda">
 <h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim is a Python library that uses a number of packages from the
-scientific Python ecosystem.
-The easiest way to get your own scientific Python installation is to
+scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
+and pandas and <a class="reference external" href="http://numpy.org">numpy</a>.</p>
+<p>The easiest way to get your own scientific Python installation is to
 install <a class="reference external" href="http://docs.continuum.io/anaconda/index.html">Anaconda</a>, which contains many of the libraries upon which
 ActivitySim depends.</p>
 <p>Once you have a Python installation, install the dependencies listed below and
@@ -168,57 +190,486 @@ then install ActivitySim.</p>
 </div>
 <div class="section" id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim depends on the following libraries, some of which are pre-installed
+<p>ActivitySim depends on the following libraries, some of which* are pre-installed
 with Anaconda:</p>
 <ul class="simple">
 <li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.8.0 *</li>
-<li><a class="reference external" href="https://pypi.python.org/pypi/OpenMatrix/0.2.3">openmatrix</a> &gt;= 0.2.2 ***</li>
-<li><a class="reference external" href="https://synthicity.github.io/orca/">orca</a> &gt;= 1.1 ***</li>
 <li><a class="reference external" href="http://pandas.pydata.org">pandas</a> &gt;= 0.18.0 *</li>
 <li><a class="reference external" href="http://pyyaml.org/wiki/PyYAML">pyyaml</a> &gt;= 3.0 *</li>
 <li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.1.0 *</li>
 <li><a class="reference external" href="http://toolz.readthedocs.org/en/latest/">toolz</a> or
-<a class="reference external" href="https://github.com/pytoolz/cytoolz">cytoolz</a> &gt;= 0.7 **</li>
-<li><a class="reference external" href="https://github.com/jiffyclub/zbox">zbox</a> &gt;= 1.2 ***</li>
+<a class="reference external" href="https://github.com/pytoolz/cytoolz">cytoolz</a> &gt;= 0.7 *</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/zbox">zbox</a> &gt;= 1.2</li>
+<li><a class="reference external" href="https://udst.github.io/orca">orca</a> &gt;= 1.1</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/OpenMatrix/0.2.3">openmatrix</a> &gt;= 0.2.2</li>
 </ul>
-<div class="line-block">
-<div class="line">* Pre-installed with Anaconda</div>
-<div class="line">** Available via <a class="reference external" href="http://conda.pydata.org/">conda</a> or <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.</div>
-<div class="line">*** Available via <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.</div>
-<div class="line"><br /></div>
-</div>
 </div>
 <div class="section" id="activitysim">
 <h3>ActivitySim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="conda">
-<h4>conda<a class="headerlink" href="#conda" title="Permalink to this headline">¶</a></h4>
-<p>Conda is the easiest way to install ActivitySim because it can install
-binary sources for all of ActivitySim&#8217;s dependencies on any platform.
-Conda is installed with Anaconda, so if you&#8217;re using Anaconda you can run
-the following command to install ActivitySim and all its dependencies:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>conda install --channel synthicity --channel jiffyclub activitysim
-</pre></div>
-</div>
-<p>The extra channels are necessary so that conda can find some packages that
-are not on the standard conda channels.</p>
-</div>
 <div class="section" id="pip">
 <h4>pip<a class="headerlink" href="#pip" title="Permalink to this headline">¶</a></h4>
-<p>If you&#8217;re not using Anaconda/Conda, ActivitySim can also be installed
-<a class="reference external" href="https://pypi.python.org/pypi/activitysim">from PyPI</a> using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.
-Pip will attempt to install any dependencies that are not already installed.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>pip install activitysim
+<p>ActivitySim can be installed from <a class="reference external" href="https://pypi.python.org/pypi/activitysim">PyPI</a>
+using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
+</pre></div>
+</div>
+<p>Pip will attempt to install any dependencies that are not already installed.  If you
+want to install the dependencies as well, the pip commands are:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
+
+<span class="c1">#required packages for testing</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pep8</span>
+
+<span class="c1">#required packages for building documentation</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span>
+</pre></div>
+</div>
+<p>To update to a new release of ActivitySim use the -U option with pip install:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">activitysim</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="development">
 <h4>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h4>
-<p>Development versions of ActivitySim can be installed by downloading the source
-from the <a class="reference external" href="https://github.com/udst/activitysim">GitHub repo</a>.
-Once downloaded <code class="docutils literal"><span class="pre">cd</span></code> into the <code class="docutils literal"><span class="pre">activitysim</span></code> directory and run the
-command <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code>. Or run <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code> if you
-wish to make changes to the package source and see the results without reinstalling.)</p>
+<p>Development versions of ActivitySim can be installed as follows:</p>
+<ul class="simple">
+<li>Download the source from the <a class="reference external" href="https://github.com/udst/activitysim">GitHub repo</a></li>
+<li><code class="docutils literal"><span class="pre">cd</span></code> into the <code class="docutils literal"><span class="pre">activitysim</span></code> directory</li>
+<li>Run the command <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></li>
+</ul>
+<p>The <code class="docutils literal"><span class="pre">develop</span></code> command is required in order to make changes to the
+source and see the results without reinstalling.</p>
 </div>
+</div>
+</div>
+<div class="section" id="expressions">
+<span id="expressions-in-detail"></span><h2>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h2>
+<p>Much of the power of ActivitySim comes from being able to specify Python, pandas, and
+numpy expressions for calculations. Refer to the pandas help for a general
+introduction to expressions.  ActivitySim provides two ways to evaluate expressions:</p>
+<ul class="simple">
+<li>Simple table expressions are evaluated using <code class="docutils literal"><span class="pre">DataFrame.eval()</span></code>.  <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html">pandas&#8217; eval</a> operates on the current table and is multi-threaded.</li>
+<li>Python expressions, denoted by beginning with the <code class="docutils literal"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python&#8217;s eval()</a>.</li>
+</ul>
+<div class="section" id="conventions">
+<h3>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h3>
+<p>Here are a few conventions for writing expressions in ActivitySim.</p>
+<ul class="simple">
+<li>each expression is applied to all rows in the table being operated on</li>
+<li>expressions must be vectorized expressions and can use most numpy and pandas expressions</li>
+<li>global constants are specified in the settings file</li>
+<li>comments are specified with <code class="docutils literal"><span class="pre">#</span></code></li>
+<li>you can refer to the current table as <code class="docutils literal"><span class="pre">df</span></code></li>
+<li>when editing the CSV files in Excel, use single quote &#8216; or space at the start of a cell to get Excel to accept the expression</li>
+</ul>
+</div>
+<div class="section" id="example-expressions-file">
+<h3>Example Expressions File<a class="headerlink" href="#example-expressions-file" title="Permalink to this headline">¶</a></h3>
+<p>An expressions file has the following basic form:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="36%" />
+<col width="13%" />
+<col width="12%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Description</th>
+<th class="head">Expression</th>
+<th class="head">cars0</th>
+<th class="head">cars1</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>2 Adults (age 16+)</td>
+<td>drivers==2</td>
+<td>0</td>
+<td>3.0773</td>
+</tr>
+<tr class="row-odd"><td>Persons age 35-34</td>
+<td>num_young_adults</td>
+<td>0</td>
+<td>-0.4849</td>
+</tr>
+<tr class="row-even"><td>Number of workers, capped at 3</td>
+<td>&#64;df.workers.clip(upper=3)</td>
+<td>0</td>
+<td>0.2936</td>
+</tr>
+<tr class="row-odd"><td>Distance, from 0 to 1 miles</td>
+<td>&#64;skims[&#8216;DISTANCE&#8217;].clip(1)</td>
+<td>-3.2451</td>
+<td>-0.9523</td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li>Rows are vectorized expressions that will be calculated for every record in the current table</li>
+<li>A Description column to describe the expression</li>
+<li>An Expression column with a valid vectorized Python/pandas/numpy expression.  In the example above, <code class="docutils literal"><span class="pre">drivers</span></code> is a column in the current table.  Use <code class="docutils literal"><span class="pre">&#64;</span></code> to refer to data outside the current table</li>
+<li>A column for each alternative and its relevant coefficient</li>
+</ul>
+<p>There are some variations on this setup, but the functionality is similar.  For example,
+in the destination choice model, the size terms expressions file has market segments as rows and employment type
+coefficients as columns.  Broadly speaking, there are currently three types of model expression configurations:</p>
+<ul class="simple">
+<li>simple choice model - selects from a fixed set of choices defined in the specification file, such as the example above</li>
+<li>destination choice model - which combines the destination choice expressions and destination choice alternatives files</li>
+<li>complex choice model - a CSV expressions file with description, a CSV coefficient file, and a YAML settings file, such as the example below</li>
+</ul>
+<p>The tour mode choice model expressions file is structured a little differently, as shown below.  Each row is an expression for one
+alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as
+<code class="docutils literal"><span class="pre">$IN_N_OUT_EXPR.format(sk='SOV_TIME')</span></code> are specified in the YAML settings file for the model.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="34%" />
+<col width="18%" />
+<col width="9%" />
+<col width="8%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Description</th>
+<th class="head">Expression</th>
+<th class="head">Alternative</th>
+<th class="head">school</th>
+<th class="head">shopping</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>DA - Unavailable</td>
+<td>sov_available == False</td>
+<td>DRIVEALONEFREE</td>
+<td>0</td>
+<td>3.0773</td>
+</tr>
+<tr class="row-odd"><td>DA - In-vehicle time</td>
+<td>$IN_N_OUT_EXPR.format(sk=&#8217;SOV_TIME&#8217;)</td>
+<td>DRIVEALONEFREE</td>
+<td>0</td>
+<td>-0.4849</td>
+</tr>
+<tr class="row-even"><td>DAP - Unavailable for age less than 16</td>
+<td>age &lt; 16</td>
+<td>DRIVEALONEPAY</td>
+<td>0</td>
+<td>0.2936</td>
+</tr>
+<tr class="row-odd"><td>DAP - Unavailable for joint tours</td>
+<td>is_joint</td>
+<td>DRIVEALONEPAY</td>
+<td>-3.2451</td>
+<td>-0.9523</td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="index-1"></span></div>
+</div>
+<div class="section" id="example">
+<span id="index-2"></span><h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>This section describes how to setup and run the example, as well as how the example works.</p>
+<div class="section" id="folder-file-setup">
+<h3>Folder/File Setup<a class="headerlink" href="#folder-file-setup" title="Permalink to this headline">¶</a></h3>
+<p>The example has the following root folder/file setup:</p>
+<blockquote>
+<div><ul class="simple">
+<li>configs - settings, expressions files, etc.</li>
+<li>data - input data such as land use, synthetic population files, and skims</li>
+<li>simulation.py - main script to run the model</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="inputs">
+<h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
+<p>In order to run the example, you first need two input data files in the <code class="docutils literal"><span class="pre">data</span></code> folder:</p>
+<ul>
+<li><p class="first">mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames:</p>
+<blockquote>
+<div><ul class="simple">
+<li>skims/accessibility - Zone-based accessibility measures</li>
+<li>land_use/taz_data - Zone-based land use data (population and employment for example)</li>
+<li>persons - Synthetic population person records</li>
+<li>households - Synthetic population household records</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">nonmotskm.omx - an OMX matrix file containing the following MTC TM1 skim matrices:</p>
+<blockquote>
+<div><ul class="simple">
+<li>DIST - network distance</li>
+<li>DISTBIKE - bike network distance</li>
+<li>DISTWALK - walk network distance</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>Both of these files can be downloaded from MTC&#8217;s <a class="reference external" href="https://mtcdrive.app.box.com/activitysim/1/7484860689">box account</a> and both files can
+be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.
+The pandas DataFrames are stored in an efficient pandas format within the HDF5 file so they are a
+bit cumbersome to inspect.</p>
+<p>The <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
+This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5
+file.</p>
+<p>The full set of MTC TM1 skims is not required for the current example.  An example that requires
+the full set of skims is in development and so the full set of OMX skims are <a class="reference external" href="https://mtcdrive.app.box.com/activitysim/1/6951892398">here</a>.  The scripts to
+convert these into one OMX file for use in ActivitySim are in the <code class="docutils literal"><span class="pre">scripts</span></code> folder and use the
+<a class="reference external" href="https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter">Cube to OMX converter</a>.</p>
+</div>
+<div class="section" id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">configs</span></code> folder contains settings, expressions files, and other files required for specifying
+model utilities and form.  The first place to start in the <code class="docutils literal"><span class="pre">configs</span></code> folder is <code class="docutils literal"><span class="pre">settings.yaml</span></code>, which
+is the main settings file for the model run.  This file includes:</p>
+<ul>
+<li><p class="first">store - HDF5 input file and also output file</p>
+</li>
+<li><p class="first">global variables that can be used in expressions tables and Python code such as:</p>
+<blockquote>
+<div><ul class="simple">
+<li>urban_threshold - urban threshold area type max value</li>
+<li>county_map - mapping of county codes to county names</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">households_sample_size: 1000 - household sample size</p>
+</li>
+<li><p class="first">time_periods - time period upper bound values and labels</p>
+</li>
+</ul>
+<div class="section" id="model-specification-files">
+<h4>Model Specification Files<a class="headerlink" href="#model-specification-files" title="Permalink to this headline">¶</a></h4>
+<p>Also stored in the configuration folder are the model specification files that store the
+Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
+alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
+of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each
+columns indicates the number of non-mandatory tours by purpose.</p>
+<p>The current set of files are:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">auto_ownership.csv</span></code> - auto ownership model</li>
+<li><code class="docutils literal"><span class="pre">cdap_*.csv</span></code> - CDAP model</li>
+<li><code class="docutils literal"><span class="pre">destination_choice.csv,</span> <span class="pre">destination_choice_size_terms.csv</span></code> - destination choice model</li>
+<li><code class="docutils literal"><span class="pre">mandatory_tour_frequency.csv</span></code> - mandatory tour frequency model</li>
+<li><code class="docutils literal"><span class="pre">non_mandatory_tour_frequency.csv,</span> <span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> - non mandatory tour frequency model</li>
+<li><code class="docutils literal"><span class="pre">school_location.csv</span></code> - school location model</li>
+<li><code class="docutils literal"><span class="pre">tour_departure_and_duration_alternatives.csv,</span> <span class="pre">tour_departure_and_duration_nonmandatory.csv,</span> <span class="pre">tour_departure_and_duration_school.csv,</span> <span class="pre">tour_departure_and_duration_work.csv</span></code> - tour departure and duration model</li>
+<li><code class="docutils literal"><span class="pre">tour_mode_choice.csv,</span> <span class="pre">tour_mode_choice.yaml,</span> <span class="pre">tour_mode_choice_coeffs.csv</span></code> - tour mode choice model</li>
+<li><code class="docutils literal"><span class="pre">trip_mode_choice.csv,</span> <span class="pre">trip_mode_choice.yaml,</span> <span class="pre">trip_mode_choice_coeffs.csv</span></code> - trip mode choice model</li>
+<li><code class="docutils literal"><span class="pre">workplace_location.csv</span></code> - work location model</li>
+</ul>
+</div>
+</div>
+<div class="section" id="running-the-model">
+<h3>Running the Model<a class="headerlink" href="#running-the-model" title="Permalink to this headline">¶</a></h3>
+<p>To run the example, do the following:</p>
+<ul class="simple">
+<li>Open a command line window in the <code class="docutils literal"><span class="pre">example</span></code> folder</li>
+<li>Ensure running <code class="docutils literal"><span class="pre">python</span></code> will call the Anaconda Python install on your machine</li>
+<li>Run <code class="docutils literal"><span class="pre">python</span> <span class="pre">simulation.py</span></code></li>
+<li>ActivitySim will print some logging information.  The example should complete within a couple minutes since</li>
+</ul>
+<p>it is running a small sample of households.</p>
+</div>
+<div class="section" id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h3>
+<p>There are currently no outputs produced by the example other than logging.</p>
+</div>
+</div>
+<div class="section" id="how-the-system-works">
+<h2>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h2>
+<p>This section describes ActivitySim&#8217;s flow of execution.</p>
+<div class="section" id="the-basic-flow-of-execution">
+<h3>The Basic Flow of Execution<a class="headerlink" href="#the-basic-flow-of-execution" title="Permalink to this headline">¶</a></h3>
+<p>The example model run starts by running <code class="docutils literal"><span class="pre">simulation.py</span></code>, which calls:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">orca</span>
+<span class="kn">from</span> <span class="nn">activitysim</span> <span class="k">import</span> <span class="n">defaults</span>
+</pre></div>
+</div>
+<p>which starts orca, which will now take over running the system and defines the orca/pandas tables and their data sources
+but does not load the data.  The second statement loads <code class="docutils literal"><span class="pre">defaults.__init__</span></code>, which calls:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">misc</span>
+<span class="kn">import</span> <span class="nn">tables</span>
+<span class="kn">import</span> <span class="nn">models</span>
+</pre></div>
+</div>
+<p>which then loads the misc, tables, and models class definitions.  Loading <code class="docutils literal"><span class="pre">misc</span></code> defines orca injectables (functions)
+for the <code class="docutils literal"><span class="pre">settings</span></code> object based on the setting.yaml file and the <code class="docutils literal"><span class="pre">store</span></code> based on the HDF5 input file.  The
+Python decorator <code class="docutils literal"><span class="pre">&#64;orca.injectable</span></code> overrides the function definition <code class="docutils literal"><span class="pre">store</span></code> to execute this function
+whenever <code class="docutils literal"><span class="pre">store</span></code> is called by orca.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@orca</span><span class="o">.</span><span class="n">injectable</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">store</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;store&quot;</span><span class="p">]),</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, the following import statement define the dynamic orca tables households, persons, skims, etc., but does not load them.
+It also defines the dynamic orca table columns (calculated fields) and injectables (functions) defined in the classes.  The
+Python decorator <code class="docutils literal"><span class="pre">&#64;orca.table</span></code> and <code class="docutils literal"><span class="pre">&#64;orca.column(&quot;households&quot;)</span></code> override the function definitions so the function name
+becomes the table name in the first case, whereas the function name becomes the column in the second case.  The argument to
+<code class="docutils literal"><span class="pre">households</span></code> in <code class="docutils literal"><span class="pre">&#64;orca.column(&quot;households&quot;)</span></code> is table (either real or virtual) that the column is added to.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">households</span>
+<span class="kn">import</span> <span class="nn">persons</span>
+<span class="kn">import</span> <span class="nn">skims</span>
+<span class="c1">#etc...</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;households&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">income_in_thousands</span><span class="p">(</span><span class="n">households</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">households</span><span class="o">.</span><span class="n">income</span> <span class="o">/</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+<p>The first model run is school location, which is called via the following command.  The <code class="docutils literal"><span class="pre">&#64;orca.step()</span></code> decorator registers
+the function as runnable by orca.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_simulate&quot;</span><span class="p">])</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">persons_merged</span><span class="p">,</span>
+  <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">skims</span><span class="p">,</span> <span class="n">destination_size_terms</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition above.  Since they are not yet loaded,
+orca goes looking for them.  This is called lazy loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#persons_merged is in the step function signature</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">persons_merged</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">accessibility</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">orca</span><span class="o">.</span><span class="n">merge_tables</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tables</span><span class="o">=</span><span class="p">[</span>
+      <span class="n">persons</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">accessibility</span><span class="p">])</span>
+
+<span class="c1">#it required persons, households, land_use, accessibility</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">persons</span><span class="p">(</span><span class="n">persons_internal</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">persons_internal</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+
+<span class="c1">#persons requires persons_internal</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">persons_internal</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">households</span><span class="p">):</span>
+  <span class="n">df</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s2">&quot;persons&quot;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="s2">&quot;households_sample_size&quot;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
+      <span class="c1"># keep all persons in the sampled households</span>
+      <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">household_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">households</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+  <span class="k">return</span> <span class="n">df</span>
+
+<span class="c1">#persons_internal requires store, settings, households</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+  <span class="k">if</span> <span class="s2">&quot;households_sample_size&quot;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">asim</span><span class="o">.</span><span class="n">random_rows</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="s2">&quot;households&quot;</span><span class="p">],</span>
+                              <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;households_sample_size&quot;</span><span class="p">])</span>
+  <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="s2">&quot;households&quot;</span><span class="p">]</span>
+
+<span class="c1">#households calls asim.random_rows to read a sample of households records</span>
+<span class="c1">#from the households table in the HDF5 data store</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> then sets the persons merged table as choosers, reads the destination_size_terms
+alternatives file, and reads the expressions specification file.</p>
+<p>Next the method sets up the skims required for this model.
+The following code set the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal"><span class="pre">TAZ</span></code> column in the choosers,
+which was in the <code class="docutils literal"><span class="pre">households</span></code> table that was joined with <code class="docutils literal"><span class="pre">persons</span></code> to make <code class="docutils literal"><span class="pre">persons_merged</span></code> and a <code class="docutils literal"><span class="pre">TAZ</span></code> in the alternatives
+generation code which get merged during interaction as renamed <code class="docutils literal"><span class="pre">TAZ_r</span></code>.  The skims are lazy loaded under the name
+&#8220;skims&#8221; and are available in the expressions using <code class="docutils literal"><span class="pre">&#64;skims</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;TAZ&quot;</span><span class="p">,</span> <span class="s2">&quot;TAZ_r&quot;</span><span class="p">)</span>
+<span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;skims&quot;</span><span class="p">:</span> <span class="n">skims</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The next step is to call <code class="docutils literal"><span class="pre">asim.interaction_simulate</span></code> function which run a simulation in which alternatives
+must be merged with choosers because there are interaction terms or because alternatives are being sampled.  The choosers table, the
+alternatives table, the model specification expressions file, the skims, and the sample size are all passed in.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asim</span><span class="o">.</span><span class="n">interaction_simulate</span><span class="p">(</span><span class="n">choosers_segment</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">spec</span><span class="p">[[</span><span class="n">school_type</span><span class="p">]],</span>
+  <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span> <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
+The <code class="docutils literal"><span class="pre">eval_variables</span></code> loops through each expression and solves it at once for all records in the chooser table using
+either pandas&#8217; multi-threaded eval() or Python&#8217;s eval().</p>
+<p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
+in one vectorized step.  The <code class="docutils literal"><span class="pre">orig</span></code> and <code class="docutils literal"><span class="pre">dest</span></code> objects in <code class="docutils literal"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <code class="docutils literal"><span class="pre">activitysim.skim.py</span></code> are vectors
+and selecting numpy array items with vector indexes returns a vector.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># evaluate variables from the spec</span>
+<span class="n">model_design</span> <span class="o">=</span> <span class="n">eval_variables</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">locals_d</span><span class="p">)</span>
+
+<span class="c1"># multiply by coefficients and reshape into choosers by alts</span>
+<span class="n">utilities</span> <span class="o">=</span> <span class="n">model_design</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+
+<span class="c1"># convert to probabilities and make choices</span>
+<span class="n">probs</span> <span class="o">=</span> <span class="n">utils_to_probs</span><span class="p">(</span><span class="n">utilities</span><span class="p">)</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">make_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+
+<span class="c1"># positions come back between zero and num alternatives in the sample - need to get back to the indexes</span>
+<span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span> <span class="o">*</span> <span class="n">sample_size</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">model_design</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">positions</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">)</span>
+
+<span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">model_design</span>
+</pre></div>
+</div>
+<p>Finally, the model adds the choices as a column to the applicable table - <code class="docutils literal"><span class="pre">persons</span></code> - and adds
+additional dependent columns.  The dependent columns are those orca columns with the virtual table
+name <code class="docutils literal"><span class="pre">persons_school</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;school_taz&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
+<span class="n">add_dependent_columns</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
+
+<span class="c1"># columns to update after the school location choice model</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">persons_school</span><span class="p">(</span><span class="n">persons</span><span class="p">):</span>
+ <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">distance_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">distance_skim</span><span class="p">):</span>
+ <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">distance_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
+                                    <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">),</span>
+                  <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">roundtrip_auto_time_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">sovam_skim</span><span class="p">,</span> <span class="n">sovmd_skim</span><span class="p">):</span>
+ <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sovam_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
+                                 <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">)</span> <span class="o">+</span>
+                  <span class="n">sovmd_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">,</span>
+                                 <span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">),</span>
+                  <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code> as a
+function of the <code class="docutils literal"><span class="pre">sovam_skim</span></code> orca injectable.</p>
+<p>The rest of the models operate in a similar fashion with two notable additions:</p>
+<ul class="simple">
+<li>creating new tables</li>
+<li>using 3D skims instead of skims (which is 2D)</li>
+</ul>
+</div>
+<div class="section" id="creating-new-tables">
+<h3>Creating New Tables<a class="headerlink" href="#creating-new-tables" title="Permalink to this headline">¶</a></h3>
+<p>The mandatory tour frequency model sets the <code class="docutils literal"><span class="pre">persons.mandatory_tour_frequency</span></code> column.  Once the number of tours
+is known, then the next step is to create tours records for subsequent models.  This is done with the following code,
+which requires the <code class="docutils literal"><span class="pre">persons</span></code> table and returns a new pandas DataFrame which is registered as an
+orca table named <code class="docutils literal"><span class="pre">mandatory_tours</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">mandatory_tours</span><span class="p">(</span><span class="n">persons</span><span class="p">):</span>
+  <span class="n">persons</span> <span class="o">=</span> <span class="n">persons</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mandatory_tour_frequency&quot;</span><span class="p">,</span><span class="s2">&quot;is_worker&quot;</span><span class="p">])</span>
+  <span class="n">persons</span> <span class="o">=</span> <span class="n">persons</span><span class="p">[</span><span class="o">~</span><span class="n">persons</span><span class="o">.</span><span class="n">mandatory_tour_frequency</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span>
+  <span class="k">return</span> <span class="n">process_mandatory_tours</span><span class="p">(</span><span class="n">persons</span><span class="p">)</span>
+
+<span class="c1">#processes the mandatory_tour_frequency column that comes out of the model</span>
+<span class="c1">#and turns into a DataFrame that represents the mandatory tours that were generated</span>
+<span class="k">def</span> <span class="nf">process_mandatory_tours</span><span class="p">(</span><span class="n">persons</span><span class="p">):</span>
+  <span class="c1">#...</span>
+  <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tours</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;person_id&quot;</span><span class="p">,</span> <span class="s2">&quot;tour_type&quot;</span><span class="p">,</span> <span class="s2">&quot;tour_num&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="skims3d">
+<h3>Skims3D<a class="headerlink" href="#skims3d" title="Permalink to this headline">¶</a></h3>
+<p>The mode choice model uses the Skims3D class in addition to the skims (2D) class.  The Skims3D class represents
+a collection of skims with a third dimension, which in this case in time period.  Indexing Skims3D is done as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">in_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;TAZ&quot;</span><span class="p">,</span> <span class="s2">&quot;workplace_taz&quot;</span><span class="p">),</span><span class="s2">&quot;in_period&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">out_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;workplace_taz&quot;</span><span class="p">,</span> <span class="s2">&quot;TAZ&quot;</span><span class="p">),</span><span class="s2">&quot;out_period&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then when model expressions such as <code class="docutils literal"><span class="pre">&#64;in_skims['WLK_LOC_WLK_TOTIVT']</span></code> are solved,
+the <code class="docutils literal"><span class="pre">WLK_LOC_WLK_TOTIVT</span></code> skim matrix values for all chooser table origins, destinations, and
+in_periods can be looked-up in one request.</p>
+<p>Skims3D currently get the requested OMX data from disk every time a vectorized request is made.</p>
+<p>See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information on skim handling.</p>
 </div>
 </div>
 </div>
@@ -230,7 +681,7 @@ wish to make changes to the package source and see the results without reinstall
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="core.html" class="btn btn-neutral float-right" title="Core Utilities" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="dataschema.html" class="btn btn-neutral float-right" title="Data Schema" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="ActivitySim" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -242,7 +693,7 @@ wish to make changes to the package source and see the results without reinstall
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, UrbanSim Inc..
+        &copy; Copyright contributing authors.
 
     </p>
   </div>

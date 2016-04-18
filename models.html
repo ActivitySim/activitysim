@@ -1,0 +1,797 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Models &mdash; ActivitySim 0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ActivitySim 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Development" href="development.html"/>
+        <link rel="prev" title="Core Utilities" href="core.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ActivitySim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#auto-ownership">Auto Ownership</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.defaults.models.auto_ownership">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#coordinated-daily-activity-pattern-cdap">Coordinated Daily Activity Pattern (CDAP)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-activitysim.cdap.cdap">cdap</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-activitysim.defaults.models.cdap">models.cdap</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#destination-choice">Destination Choice</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mandatory-scheduling">Mandatory Scheduling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mandatory-tour-frequency">Mandatory Tour Frequency</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mode-tour-and-trip">Mode (Tour and Trip)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tour">Tour</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#trip">Trip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#non-mandatory-scheduling">Non-Mandatory Scheduling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#school-location">School Location</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#workplace-location">Workplace Location</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ActivitySim</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Models</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/models.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="models">
+<h1>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h1>
+<p>The currently implemented example ActivitySim models are described below.</p>
+<div class="section" id="auto-ownership">
+<h2>Auto Ownership<a class="headerlink" href="#auto-ownership" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to auto ownership model is the
+<code class="xref py py-func docutils literal"><span class="pre">auto_ownership_simulate()</span></code>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;auto_ownership_simulate&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">households</span></code> | Result Field: <code class="docutils literal"><span class="pre">auto_ownership</span></code> | Skims Keys: NA</p>
+<div class="section" id="module-activitysim.defaults.models.auto_ownership">
+<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.defaults.models.auto_ownership" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="activitysim.defaults.models.auto_ownership.auto_ownership_simulate">
+<code class="descclassname">activitysim.defaults.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>households_merged</em>, <em>auto_ownership_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Auto ownership is a standard model which predicts how many cars a household
+with given characteristics owns</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="coordinated-daily-activity-pattern-cdap">
+<h2>Coordinated Daily Activity Pattern (CDAP)<a class="headerlink" href="#coordinated-daily-activity-pattern-cdap" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to CDAP model is the <a class="reference internal" href="#activitysim.cdap.cdap.run_cdap" title="activitysim.cdap.cdap.run_cdap"><code class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></code></a>
+function.  This function is called by the orca step <code class="docutils literal"><span class="pre">cdap_simulate</span></code> which is
+registered as an orca step and is called in the example via
+<code class="docutils literal"><span class="pre">orca.run([&quot;cdap_simulate&quot;])</span></code>.  There are two cdap class definitions in
+ActivitySim.  The first is at <a class="reference internal" href="#module-activitysim.cdap.cdap" title="activitysim.cdap.cdap"><code class="xref py py-func docutils literal"><span class="pre">cdap()</span></code></a> and contains the
+core cdap module.  The second is at <a class="reference internal" href="#module-activitysim.defaults.models.cdap" title="activitysim.defaults.models.cdap"><code class="xref py py-func docutils literal"><span class="pre">cdap()</span></code></a> and
+contains the orca wrapper for running it as part of the model pipeline.</p>
+<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">cdap_activity</span></code> | Skims Keys: NA</p>
+<div class="section" id="id1">
+<h3>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="module-activitysim.cdap.cdap">
+<span id="cdap"></span><h4>cdap<a class="headerlink" href="#module-activitysim.cdap.cdap" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="activitysim.cdap.cdap.apply_all_people">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">apply_all_people</code><span class="sig-paren">(</span><em>hh_util</em>, <em>all_people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.apply_all_people" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply utility adjustments to household alternatives.</p>
+<p>This modifies the <cite>hh_util</cite> data inplace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
+<blockquote>
+<div><p>Keys will be household IDs and values will be Series
+mapping alternative choices to their utility.</p>
+</div></blockquote>
+<p><strong>all_people</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Adjustments to household alternatives, with alternatives in the
+index and the adjustment values in the first column.
+Index should be household alternatives in the form of tuples
+containing individual alternatives, e.g.
+(&#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;), where &#8216;Mandatory&#8217; is
+one of the alternatives available to individual household members.
+Note that these may also be expressed as Python code to save space,
+so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.apply_final_rules">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">apply_final_rules</code><span class="sig-paren">(</span><em>hh_util</em>, <em>people</em>, <em>hh_id_col</em>, <em>final_rules</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.apply_final_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Final rules can be used to set the utility values for certain
+household alternatives. Often they are set to zero to reflect
+the unavailability of certain alternatives to certain types of people.</p>
+<p>This modifies the <cite>hh_util</cite> data inplace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
+<blockquote>
+<div><p>Keys will be household IDs and values will be Series
+mapping alternative choices to their utility.</p>
+</div></blockquote>
+<p><strong>people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of individual people data.</p>
+</div></blockquote>
+<p><strong>hh_id_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
+</div></blockquote>
+<p><strong>final_rules</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>This table must have an index of expressions that can be used
+to filter the <cite>people</cite> table. It must have two columns:
+the first must have the name of the alternative to which the rule
+applies, and the second must have the value of the utility for that
+alternative. The names of the columns is not important, but
+the order is.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.household_choices_to_people">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">household_choices_to_people</code><span class="sig-paren">(</span><em>hh_choices</em>, <em>people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.household_choices_to_people" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map household choices to people so that we know the activity pattern
+for individuals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_choices</strong> : pandas.Series</p>
+<blockquote>
+<div><p>Maps household ID to chosen alternative, where the alternative
+is a tuple of individual utilities.</p>
+</div></blockquote>
+<p><strong>people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of individual people data.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Maps index of <cite>people</cite> to their activity pattern choice.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.individual_utilities">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate CDAP utilities for all individuals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of individual people data.</p>
+</div></blockquote>
+<p><strong>hh_id_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
+</div></blockquote>
+<p><strong>p_type_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that contains the person type number.</p>
+</div></blockquote>
+<p><strong>one_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to individuals.</p>
+</div></blockquote>
+<p><strong>two_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to interactions between two people.</p>
+</div></blockquote>
+<p><strong>three_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to interactions between three people.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have index of <cite>people</cite> and columns for each of the alternatives.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.initial_household_utilities">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">initial_household_utilities</code><span class="sig-paren">(</span><em>utilities</em>, <em>people</em>, <em>hh_id_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.initial_household_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create initial household utilities by grouping and summing utilities
+from individual household members.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Should have the index of <cite>people</cite> and columns for each alternative.</p>
+</div></blockquote>
+<p><strong>people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of individual people data.</p>
+</div></blockquote>
+<p><strong>hh_id_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
+<blockquote class="last">
+<div><p>Keys will be household IDs and values will be Series
+mapping alternative choices to their utility.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.make_household_choices">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_household_choices</code><span class="sig-paren">(</span><em>hh_util</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_household_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decide on the activity pattern for each household.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
+<blockquote>
+<div><p>Keys will be household IDs and values will be Series
+mapping alternative choices to their utility.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Maps household ID to chosen alternative, where the alternative
+is a tuple of individual utilities.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.make_interactions">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_interactions</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_interactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make two Pandas DataFrames associating people IDs with two
+and three person interactions they have within their households.</p>
+<p>Interactions are strings of numbers representing the makeup
+of the interaction, e.g. &#8216;12&#8217; or &#8216;341&#8217;.</p>
+<p>Note that for two-person interactions the interaction string is ordered
+with the person from the index in the first position of the string
+and some other person in the second position. In contrast,
+the interaction strings for three-person interactions are not ordered.
+The person from the index may be in any position of the string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Table of people data. Must contain at least a household ID
+column and a categorization of person type.</p>
+</div></blockquote>
+<p><strong>hh_id_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
+</div></blockquote>
+<p><strong>p_type_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that contains the person type number.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>two_interaction</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Interactions between two people. Index will be person IDs taken
+from the index of <cite>people</cite>.
+The table will have one column called <cite>interaction</cite>.</p>
+</div></blockquote>
+<p><strong>three_interaction</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Interactions between three people. Index will be person IDs taken
+from the index of <cite>people</cite>.
+The table will have one column called <cite>interaction</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.run_cdap">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">run_cdap</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>final_rules</em>, <em>all_people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.run_cdap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose individual activity patterns for people.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Table of people data. Must contain at least a household ID
+column and a categorization of person type.</p>
+</div></blockquote>
+<p><strong>hh_id_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
+</div></blockquote>
+<p><strong>p_type_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that contains the person type number.</p>
+</div></blockquote>
+<p><strong>one_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to individuals.</p>
+</div></blockquote>
+<p><strong>two_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to interactions between two people.</p>
+</div></blockquote>
+<p><strong>three_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to interactions between three people.</p>
+</div></blockquote>
+<p><strong>final_rules</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>This table must have an index of expressions that can be used
+to filter the <cite>people</cite> table. It must have two columns:
+the first must have the name of the alternative to which the rule
+applies, and the second must have the value of the utility for that
+alternative. The names of the columns is not important, but
+the order is.</p>
+</div></blockquote>
+<p><strong>all_people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Adjustments to household alternatives, with alternatives in the
+index and the adjustment values in the first column.
+Index should be household alternatives in the form of tuples
+containing individual alternatives, e.g.
+(&#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;), where &#8216;Mandatory&#8217; is
+one of the alternatives available to individual household members.
+Note that these may also be expressed as Python code to save space,
+so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Maps index of <cite>people</cite> to their activity pattern choice,
+where that choice is taken from the columns of specs
+(so it&#8217;s important that the specs all refer to alternatives
+in the same way).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activitysim.defaults.models.cdap">
+<span id="models-cdap"></span><h4>models.cdap<a class="headerlink" href="#module-activitysim.defaults.models.cdap" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="activitysim.defaults.models.cdap.cdap_simulate">
+<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>cdap_1_person_spec</em>, <em>cdap_2_person_spec</em>, <em>cdap_3_person_spec</em>, <em>cdap_final_rules</em>, <em>cdap_all_people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
+high-level activity pattern for each person, in a coordinated way with other
+members of a person&#8217;s household.</p>
+<p>Because Python requires vectorization of computation, there are some specialized
+routines in the cdap directory of activitysim for this purpose.  This module
+simply applies those utilities using the simulation framework.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="destination-choice">
+<h2>Destination Choice<a class="headerlink" href="#destination-choice" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the destination choice model is the
+<code class="xref py py-func docutils literal"><span class="pre">destination_choice()</span></code>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;destination_choice&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
+<div class="section" id="id2">
+<h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.destination"></span><dl class="function">
+<dt id="activitysim.defaults.models.destination.destination_choice">
+<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skims</em>, <em>destination_choice_spec</em>, <em>destination_size_terms</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the tour generation from the above, each tour needs to have a
+destination, so in this case tours are the choosers (with the associated
+person that&#8217;s making the tour)</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="mandatory-scheduling">
+<h2>Mandatory Scheduling<a class="headerlink" href="#mandatory-scheduling" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the mandatory tour purpose scheduling model is the
+<a class="reference internal" href="#activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling" title="activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling"><code class="xref py py-func docutils literal"><span class="pre">mandatory_scheduling()</span></code></a>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_scheduling&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
+<div class="section" id="id3">
+<h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.mandatory_scheduling"></span><dl class="function">
+<dt id="activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling">
+<code class="descclassname">activitysim.defaults.models.mandatory_scheduling.</code><code class="descname">mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_school_spec</em>, <em>tdd_work_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
+<dd><p>This model predicts the departure time and duration of each activity for
+mandatory tours</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="mandatory-tour-frequency">
+<h2>Mandatory Tour Frequency<a class="headerlink" href="#mandatory-tour-frequency" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the mandatory tour purpose frequency model is the
+<a class="reference internal" href="#activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency" title="activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency"><code class="xref py py-func docutils literal"><span class="pre">mandatory_tour_frequency()</span></code></a>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_tour_frequency&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">mandatory_tour_frequency</span></code> | Skims Keys: NA</p>
+<div class="section" id="id4">
+<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.mandatory_tour_frequency"></span><dl class="function">
+<dt id="activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency">
+<code class="descclassname">activitysim.defaults.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>This model predicts the frequency of making mandatory trips (see the
+alternatives above) - these trips include work and school in some combination.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="mode-tour-and-trip">
+<h2>Mode (Tour and Trip)<a class="headerlink" href="#mode-tour-and-trip" title="Permalink to this headline">¶</a></h2>
+<p>This model is partially implemented.  The tour and trip mode model currently
+operates for tour purpose eatout only and uses the household home zone and
+workplace zone for all skim indexing.  The trip mode model repeats the same
+operation as the tour mode model, but uses the trip mode expression specification.</p>
+<div class="section" id="tour">
+<h3>Tour<a class="headerlink" href="#tour" title="Permalink to this headline">¶</a></h3>
+<p>The main interface to the tour mode model is the
+<code class="xref py py-func docutils literal"><span class="pre">_mode_choice_simulate()</span></code>
+function.  This function is called in the orca step <code class="docutils literal"><span class="pre">tour_mode_choice_simulate</span></code> and in
+the example via <code class="docutils literal"><span class="pre">orca.run([&quot;tour_mode_choice_simulate&quot;])</span></code>.</p>
+<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz</span></code> |
+Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,TAZ,out_period</span></code></p>
+</div>
+<div class="section" id="trip">
+<h3>Trip<a class="headerlink" href="#trip" title="Permalink to this headline">¶</a></h3>
+<p>The main interface to the trip mode model is the
+<code class="xref py py-func docutils literal"><span class="pre">_mode_choice_simulate()</span></code>
+function.  This function is called in the orca step <code class="docutils literal"><span class="pre">trip_mode_choice_simulate</span></code> and in
+the example via <code class="docutils literal"><span class="pre">orca.run([&quot;trip_mode_choice_simulate&quot;])</span></code>.</p>
+<p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz</span></code>
+Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,TAZ,out_period</span></code></p>
+</div>
+<div class="section" id="id5">
+<h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.mode"></span><dl class="function">
+<dt id="activitysim.defaults.models.mode.get_segment_and_unstack">
+<code class="descclassname">activitysim.defaults.models.mode.</code><code class="descname">get_segment_and_unstack</code><span class="sig-paren">(</span><em>spec</em>, <em>segment</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mode.get_segment_and_unstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>This does what it says.  Take the spec, get the column from the spec for
+the given segment, and unstack.  It is assumed that the last column of
+the multiindex is alternatives so when you do this unstacking,
+each alternative is in a column (which is the format this as used for the
+simple_simulate call.  The weird nuance here is the &#8220;Rowid&#8221; column -
+since many expressions are repeated (e.g. many are just &#8220;1&#8221;) a Rowid
+column is necessary to identify which alternatives are actually part of
+which original row - otherwise the unstack is incorrect (i.e. the index
+is not unique)</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="non-mandatory-scheduling">
+<h2>Non-Mandatory Scheduling<a class="headerlink" href="#non-mandatory-scheduling" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the non-mandatory scheduling model is the
+<a class="reference internal" href="#activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling" title="activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling"><code class="xref py py-func docutils literal"><span class="pre">non_mandatory_scheduling()</span></code></a>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_scheduling&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
+<div class="section" id="id6">
+<h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.non_mandatory_scheduling"></span><dl class="function">
+<dt id="activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling">
+<code class="descclassname">activitysim.defaults.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_non_mandatory_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
+<dd><p>This model predicts the departure time and duration of each activity for
+non-mandatory tours</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="non-mandatory-tour-frequency">
+<h2>Non-Mandatory Tour Frequency<a class="headerlink" href="#non-mandatory-tour-frequency" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the non-mandatory tour frequency model is the
+<a class="reference internal" href="#activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency"><code class="xref py py-func docutils literal"><span class="pre">non_mandatory_tour_frequency()</span></code></a>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_tour_frequency&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">persons_nmtf</span></code> | Skims Keys: NA</p>
+<div class="section" id="id7">
+<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.non_mandatory_tour_frequency"></span><dl class="function">
+<dt id="activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">
+<code class="descclassname">activitysim.defaults.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>non_mandatory_tour_frequency_alts</em>, <em>non_mandatory_tour_frequency_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>This model predicts the frequency of making non-mandatory trips
+(alternatives for this model come from a seaparate csv file which is
+configured by the user) - these trips include escort, shopping, othmaint,
+othdiscr, eatout, and social trips in various combination.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="school-location">
+<h2>School Location<a class="headerlink" href="#school-location" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the school location model is the
+<a class="reference internal" href="#activitysim.defaults.models.school_location.school_location_simulate" title="activitysim.defaults.models.school_location.school_location_simulate"><code class="xref py py-func docutils literal"><span class="pre">school_location_simulate()</span></code></a>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;school_location_simulate&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
+<div class="section" id="id8">
+<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.school_location"></span><dl class="function">
+<dt id="activitysim.defaults.models.school_location.school_location_simulate">
+<code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The school location model predicts the zones in which various people will
+go to school.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="workplace-location">
+<h2>Workplace Location<a class="headerlink" href="#workplace-location" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the workplace location model is the
+<a class="reference internal" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="activitysim.defaults.models.workplace_location.workplace_location_simulate"><code class="xref py py-func docutils literal"><span class="pre">workplace_location_simulate()</span></code></a>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;workplace_location_simulate&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
+<div class="section" id="id9">
+<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.workplace_location"></span><dl class="function">
+<dt id="activitysim.defaults.models.workplace_location.workplace_location_simulate">
+<code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The workplace location model predicts the zones in which various people will
+work.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="development.html" class="btn btn-neutral float-right" title="Development" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="core.html" class="btn btn-neutral" title="Core Utilities" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright contributing authors.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

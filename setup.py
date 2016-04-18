@@ -1,5 +1,5 @@
 from ez_setup import use_setuptools
-use_setuptools()
+use_setuptools()  # nopep8
 
 from setuptools import setup, find_packages
 

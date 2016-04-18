@@ -43,7 +43,7 @@ def non_mandatory_tour_frequency(set_random_seed,
     configured by the user) - these trips include escort, shopping, othmaint,
     othdiscr, eatout, and social trips in various combination.
     """
-    
+
     choosers = persons_merged.to_frame()
 
     # filter based on results of CDAP

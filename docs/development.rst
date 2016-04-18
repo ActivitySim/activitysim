@@ -1,7 +1,7 @@
 Development
 ===========
 
-The purpose of this page is to document how to test and document ActivitySim.  
+The purpose of this page is to document how to test, document, and contribute to ActivitySim.  
 
 Testing
 -------
@@ -64,3 +64,8 @@ The script does the following:
 * copies the ``master`` branch ``../activitysim/docs/_build/html/*`` pages to the ``gh-pages`` branch
 
 GitHub automagically publishes the gh-pages branch at https://udst.github.io/activitysim
+
+Contributions
+-------------
+
+ActivitySim's contribution guidelines are `here <https://github.com/UDST/activitysim/blob/master/CONTRIBUTING.md>`__.

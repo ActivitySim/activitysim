@@ -9,6 +9,7 @@ import pandas as pd
 from activitysim import activitysim as asim
 from .util.mandatory_tour_frequency import process_mandatory_tours
 
+
 @orca.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "mandatory_tour_frequency.csv")

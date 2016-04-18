@@ -9,6 +9,7 @@ import pandas as pd
 from activitysim import activitysim as asim
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
+
 @orca.table()
 def tdd_alts(configs_dir):
     # right now this file just contains the start and end hour

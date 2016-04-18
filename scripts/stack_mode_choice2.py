@@ -11,7 +11,8 @@ ind = None
 for key, df in f.iteritems():
     if "debug" in key or "model" in key or "data" in key:
         continue
-    if key in ["School", "University", "Work", "WorkBased", "Escort"]: continue
+    if key in ["School", "University", "Work", "WorkBased", "Escort"]:
+        continue
     print key
 
     """
@@ -74,8 +75,8 @@ for key, df in f.iteritems():
     # going to stack the columns we need to move the coeffs back to the cells
     df = df.reset_index()
 
-    #tmp = df.Expression
-    #df["Expression"].iloc[232:] = df.iloc[232:][key]
+    # tmp = df.Expression
+    # df["Expression"].iloc[232:] = df.iloc[232:][key]
     df[key].iloc[319:] = df["Expression"].iloc[319:]
 
     specs[key] = df[key].values

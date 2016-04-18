@@ -9,6 +9,7 @@ import pandas as pd
 from activitysim import activitysim as asim
 from activitysim.cdap import cdap
 
+
 @orca.injectable()
 def cdap_1_person_spec(configs_dir):
     f = os.path.join(configs_dir, 'configs', "cdap_1_person.csv")

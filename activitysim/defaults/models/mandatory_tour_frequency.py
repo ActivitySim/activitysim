@@ -1,5 +1,4 @@
 # ActivitySim
-# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 import os
@@ -9,12 +8,6 @@ import pandas as pd
 
 from activitysim import activitysim as asim
 from .util.mandatory_tour_frequency import process_mandatory_tours
-
-"""
-This model predicts the frequency of making mandatory trips (see the
-alternatives above) - these trips include work and school in some combination.
-"""
-
 
 @orca.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
@@ -26,6 +19,10 @@ def mandatory_tour_frequency_spec(configs_dir):
 def mandatory_tour_frequency(set_random_seed,
                              persons_merged,
                              mandatory_tour_frequency_spec):
+    """
+    This model predicts the frequency of making mandatory trips (see the
+    alternatives above) - these trips include work and school in some combination.
+    """
 
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP

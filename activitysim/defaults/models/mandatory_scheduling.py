@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 
 import orca
@@ -5,12 +8,6 @@ import pandas as pd
 
 from activitysim import activitysim as asim
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
-
-"""
-This model predicts the departure time and duration of each activity for
-mandatory tours
-"""
-
 
 @orca.table()
 def tdd_alts(configs_dir):
@@ -49,6 +46,10 @@ def mandatory_scheduling(set_random_seed,
                          tdd_alts,
                          tdd_school_spec,
                          tdd_work_spec):
+    """
+    This model predicts the departure time and duration of each activity for
+    mandatory tours
+    """
 
     tours = mandatory_tours_merged.to_frame()
     alts = tdd_alts.to_frame()

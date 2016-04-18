@@ -1,5 +1,7 @@
-import orca
+# ActivitySim
+# See full license in LICENSE.txt.
 
+import orca
 
 def add_dependent_columns(base_dfname, new_dfname):
     tbl = orca.get_table(new_dfname)

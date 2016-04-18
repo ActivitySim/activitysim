@@ -1,13 +1,13 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 import orca
 
 from activitysim import activitysim as asim
 from .util.misc import add_dependent_columns
 
-"""
-Auto ownership is a standard model which predicts how many cars a household
-with given characteristics owns
-"""
+
 
 
 @orca.injectable()
@@ -19,7 +19,11 @@ def auto_ownership_spec(configs_dir):
 @orca.step()
 def auto_ownership_simulate(set_random_seed, households_merged,
                             auto_ownership_spec):
-
+    """
+    Auto ownership is a standard model which predicts how many cars a household
+    with given characteristics owns
+    """
+    
     choices, _ = asim.simple_simulate(
         households_merged.to_frame(), auto_ownership_spec)
 

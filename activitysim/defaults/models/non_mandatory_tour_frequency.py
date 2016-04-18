@@ -1,5 +1,4 @@
 # ActivitySim
-# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 import os
@@ -12,14 +11,6 @@ from activitysim import activitysim as asim
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
-
-
-"""
-This model predicts the frequency of making non-mandatory trips
-(alternatives for this model come from a seaparate csv file which is
-configured by the user) - these trips include escort, shopping, othmaint,
-othdiscr, eatout, and social trips in various combination.
-"""
 
 
 @orca.injectable()
@@ -46,6 +37,13 @@ def non_mandatory_tour_frequency(set_random_seed,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec):
 
+    """
+    This model predicts the frequency of making non-mandatory trips
+    (alternatives for this model come from a seaparate csv file which is
+    configured by the user) - these trips include escort, shopping, othmaint,
+    othdiscr, eatout, and social trips in various combination.
+    """
+    
     choosers = persons_merged.to_frame()
 
     # filter based on results of CDAP

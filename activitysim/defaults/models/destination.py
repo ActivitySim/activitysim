@@ -1,15 +1,12 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 
 import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-
-"""
-Given the tour generation from the above, each tour needs to have a
-destination, so in this case tours are the choosers (with the associated
-person that's making the tour)
-"""
 
 
 @orca.table()
@@ -24,6 +21,12 @@ def destination_choice(set_random_seed,
                        skims,
                        destination_choice_spec,
                        destination_size_terms):
+
+    """
+    Given the tour generation from the above, each tour needs to have a
+    destination, so in this case tours are the choosers (with the associated
+    person that's making the tour)
+    """
 
     # choosers are tours - in a sense tours are choosing their destination
     choosers = non_mandatory_tours_merged.to_frame()

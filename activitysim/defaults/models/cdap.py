@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 
 import orca
@@ -5,16 +8,6 @@ import pandas as pd
 
 from activitysim import activitysim as asim
 from activitysim.cdap import cdap
-
-"""
-CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
-high-level activity pattern for each person, in a coordinated way with other
-members of a person's household.
-
-Because Python requires vectorization of computation, there are some specialized
-routines in the cdap directory of activitysim for this purpose.  This module
-simply applies those utilities using the simulation framework.
-"""
 
 
 @orca.injectable()
@@ -51,6 +44,15 @@ def cdap_all_people(configs_dir):
 def cdap_simulate(set_random_seed, persons_merged,
                   cdap_1_person_spec, cdap_2_person_spec, cdap_3_person_spec,
                   cdap_final_rules, cdap_all_people):
+    """
+    CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
+    high-level activity pattern for each person, in a coordinated way with other
+    members of a person's household.
+
+    Because Python requires vectorization of computation, there are some specialized
+    routines in the cdap directory of activitysim for this purpose.  This module
+    simply applies those utilities using the simulation framework.
+    """
 
     choices = cdap.run_cdap(persons_merged.to_frame(),
                             "household_id",

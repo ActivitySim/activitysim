@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import orca
 import pandas as pd
 from activitysim.util.reindex import reindex

@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 from activitysim import activitysim as asim
 import pandas as pd
 

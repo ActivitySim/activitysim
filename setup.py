@@ -1,5 +1,5 @@
 from ez_setup import use_setuptools
-use_setuptools()
+use_setuptools()  # nopep8
 
 from setuptools import setup, find_packages
 
@@ -7,8 +7,8 @@ setup(
     name='activitysim',
     version='0.1dev',
     description='Activity-Based Travel Modeling',
-    author='UrbanSim Inc. and other contributors',
-    author_email='activitysim@urbansim.com',
+    author='contributing authors',
+    author_email='',
     license='BSD-3',
     url='https://github.com/udst/activitysim',
     classifiers=[

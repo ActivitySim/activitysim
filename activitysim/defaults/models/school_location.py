@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 
 import orca
@@ -5,12 +8,6 @@ import pandas as pd
 
 from activitysim import activitysim as asim
 from .util.misc import add_dependent_columns
-
-
-"""
-The school location model predicts the zones in which various people will
-go to school.
-"""
 
 
 @orca.table()
@@ -25,6 +22,11 @@ def school_location_simulate(set_random_seed,
                              school_location_spec,
                              skims,
                              destination_size_terms):
+
+    """
+    The school location model predicts the zones in which various people will
+    go to school.
+    """
 
     choosers = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()

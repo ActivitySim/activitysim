@@ -1,14 +1,11 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 import orca
 
 from activitysim import activitysim as asim
 from .util.misc import add_dependent_columns
-
-
-"""
-The workplace location model predicts the zones in which various people will
-work.
-"""
 
 
 @orca.injectable()
@@ -23,6 +20,11 @@ def workplace_location_simulate(set_random_seed,
                                 workplace_location_spec,
                                 skims,
                                 destination_size_terms):
+
+    """
+    The workplace location model predicts the zones in which various people will
+    work.
+    """
 
     # for now I'm going to generate a workplace location for everyone -
     # presumably it will not get used in downstream models for everyone -

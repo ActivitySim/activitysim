@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest

@@ -1,5 +1,4 @@
 # ActivitySim
-# # Copyright (C) 2016 UrbanSim Inc.
 # See full license in LICENSE.txt.
 
 import numpy as np
@@ -277,12 +276,13 @@ class Skims3D(object):
         # first items of the tuples and the 2nd level is the second items of
         # the tuples
         for key, value in skims.skims.iteritems():
-            print "Skims3D init key: ", key # FIXME - jwd
             if not isinstance(key, tuple) or not len(key) == 2:
-                print "WARNING, skipping key: ", key
+                # FIXME - log
+                print "WARNING, Skims3D __init__ skipping key: ", key
                 continue
             skim_key1, skim_key2 = key
-            print "Skims3D init key: skim_key1='%s' skim_key2='%s'" % (skim_key1, skim_key2) # FIXME - jwd
+            # FIXME - log
+            # print "Skims3D init key: skim_key1='%s' skim_key2='%s'" % (skim_key1, skim_key2)
             self.skims_data.setdefault(skim_key1, {})[skim_key2] = value.data
 
         # second pass to turn the each highest level value into a 3D array
@@ -293,7 +293,7 @@ class Skims3D(object):
                 dict(zip(value.keys(), range(len(value))))
             self.skim_preloaded[skim_key1] = True
 
-        # FIXME - jwd
+        # FIXME - log
         print "Skims3D.__init__ received skims with keys: ", skims.skims.keys()
         print "Skims3D.__init__ skim_keys_to_indexes: ", self.skim_keys_to_indexes
 
@@ -356,7 +356,8 @@ class Skims3D(object):
              The skim object
         """
 
-        print "Skims3D key = '%s' preloaded: %s" % (key, (key in self.skim_preloaded))
+        # FIXME - log
+        # print "Skims3D key = '%s' preloaded: %s" % (key, (key in self.skim_preloaded))
 
         if self.omx and key not in self.skim_preloaded:
             # read off the disk on the fly
@@ -406,11 +407,11 @@ class Skims3D(object):
         # the only skim we have right now is distance
         return self.omx['DIST']
 
-
     def _build_single_3d_matrix_from_disk(self, key):
+        # get list of unique second-tuple-item keys (aka skim_key2)
         uniq = self.df[self.skim_key].unique()
-        # FIXME - jwd - get list of unique second-tuple-item keys (aka skim_key2)
-        #print "_build_single_3d_matrix_from_disk key = '%s' key2 = [%s] " % (key, uniq)
+        # FIXME - log
+        # print "_build_single_3d_matrix_from_disk key = '%s' key2 = [%s] " % (key, uniq)
         if hasattr(self, 'mat'):
             # being sneaky to make it go faster
             print "Fake read for key = ", key
@@ -418,15 +419,15 @@ class Skims3D(object):
         else:
             self.skims_data[key] = np.dstack(
                 [self.get_from_omx(key, v) for v in uniq])
-            # FIXME - the following line short-circuits omx file access
-            #self.mat = self.skims_data[key]
+            # FIXME - hack
+            # # the following line short-circuits omx file access
+            self.mat = self.skims_data[key]
         self.skim_keys_to_indexes[key] = {i: v for i, v in
                                           zip(uniq, range(len(uniq)))}
 
-
     def _tear_down_single_3d_matrix(self, key):
-        # FIXME - jwd - get list of unique second-tuple-item keys (aka skim_key2)
-        #print "_tear_down_single_3d_matrix for key = '%s'" % (key, )
+        # FIXME - log
+        # print "_tear_down_single_3d_matrix for key = '%s'" % (key, )
         del self.skims_data[key]
         del self.skim_keys_to_indexes[key]
 

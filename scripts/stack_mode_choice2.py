@@ -1,7 +1,7 @@
 import pandas as pd
 import string
 
-f = pd.read_excel(open("../ModeChoice.xls"), sheetname=None)
+f = pd.read_excel(open("../TripModeChoice.xls"), sheetname=None)
 
 coeffs = {}
 coeff_ind = None
@@ -10,6 +10,8 @@ ind = None
 
 for key, df in f.iteritems():
     if "debug" in key or "model" in key or "data" in key:
+        continue
+    if key in ["School", "University", "Work", "WorkBased", "Escort"]:
         continue
     print key
 
@@ -20,7 +22,7 @@ for key, df in f.iteritems():
     # the headers are actually split up among a couple of rows (ouch)
     df.columns = list(df.iloc[1].values)[:6] + list(df.iloc[2].values)[6:]
 
-    filt = '26 < = No <= 57' if key != "WorkBased" else '1 < = No <= 36'
+    filt = '1 < = No <= 49'
     coeffs[key] = df.query(filt).set_index('Token')['Formula for variable']
     if coeff_ind is None:
         coeff_ind = coeffs[key].index
@@ -30,12 +32,10 @@ for key, df in f.iteritems():
     # this is not the best - there are a couple of cases where the specs
     # differ across segments and we want them to be the same FOR NOW - they
     # can differ once we get them all lined up
-    if key == "Escort":
-        df = df.query("No != 401 and No >= 123")
-    elif key == "WorkBased":
-        df = df.query("No != 407 and No >= 126")
+    if key == "Work":
+        df = df.query("No >= 141")
     else:
-        df = df.query("No >= 123")
+        df = df.query("No >= 144")
 
     df = df.drop(['No', 'Token', 'Filter', 'Index'], axis=1)
     df.columns = ['Description', 'Expression'] + list(df.columns[2:])
@@ -52,6 +52,7 @@ for key, df in f.iteritems():
         # assert only 1 unique value
         if len(vals) == 0:
             vals = [0]
+
         assert len(set(vals)) == 1
         val = vals[0]
 
@@ -76,13 +77,13 @@ for key, df in f.iteritems():
 
     # tmp = df.Expression
     # df["Expression"].iloc[232:] = df.iloc[232:][key]
-    df[key].iloc[232:] = df["Expression"].iloc[232:]
+    df[key].iloc[319:] = df["Expression"].iloc[319:]
 
     specs[key] = df[key].values
 
 df = pd.DataFrame(specs)
 df.index = ind
 
-df.to_csv('tour_mode_choice.csv')
+df.to_csv('trip_mode_choice.csv')
 
-pd.DataFrame(coeffs).loc[coeff_ind].to_csv('tour_mode_choice_coeffs.csv')
+pd.DataFrame(coeffs).loc[coeff_ind].to_csv('trip_mode_choice_coeffs.csv')

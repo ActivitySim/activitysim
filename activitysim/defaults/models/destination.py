@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 
 import orca
@@ -5,12 +8,6 @@ import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
-
-"""
-Given the tour generation from the above, each tour needs to have a
-destination, so in this case tours are the choosers (with the associated
-person that's making the tour)
-"""
 
 
 @orca.table()
@@ -25,6 +22,12 @@ def destination_choice(set_random_seed,
                        skims,
                        destination_choice_spec,
                        destination_size_terms):
+
+    """
+    Given the tour generation from the above, each tour needs to have a
+    destination, so in this case tours are the choosers (with the associated
+    person that's making the tour)
+    """
 
     # choosers are tours - in a sense tours are choosing their destination
     choosers = non_mandatory_tours_merged.to_frame()
@@ -67,8 +70,15 @@ def destination_choice(set_random_seed,
     # alternatives table - in this case it's the destination taz
     orca.add_column("non_mandatory_tours", "destination", choices)
 
+
 @orca.step()
 def patch_mandatory_tour_destination(mandatory_tours_merged):
+
+    """
+    Patch destination column of mandatory tours with school or workplace taz
+    to conform to non-mandatory tours naming so that computed columns in the tours
+    table can use destination for any tour type.
+    """
 
     mandatory_tours_merged['destination'] = \
         np.where(mandatory_tours_merged['tour_type'] == 'school',
@@ -76,5 +86,3 @@ def patch_mandatory_tour_destination(mandatory_tours_merged):
                  mandatory_tours_merged['workplace_taz'])
 
     orca.add_column("mandatory_tours", "destination", mandatory_tours_merged.destination)
-
-

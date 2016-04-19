@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import orca
 import pandas as pd
 from activitysim.util.reindex import reindex
@@ -135,6 +138,12 @@ def walk_heavyrail_available(tours):
 def is_joint(tours):
     # FIXME
     return pd.Series(False, index=tours.index)
+
+
+@orca.column("tours")
+def is_not_joint(tours):
+    # FIXME
+    return pd.Series(True, index=tours.index)
 
 
 @orca.column("tours")

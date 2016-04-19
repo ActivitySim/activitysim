@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import numpy as np
 import orca
 import pandas as pd

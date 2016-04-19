@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import pandas as pd
 
 from ..reindex import reindex

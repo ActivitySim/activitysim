@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 import yaml
 
@@ -16,7 +19,7 @@ will be used for the tour
 
 
 @orca.injectable()
-def mode_choice_settings(configs_dir):
+def tour_mode_choice_settings(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
                            "tour_mode_choice.yaml")) as f:
@@ -24,7 +27,7 @@ def mode_choice_settings(configs_dir):
 
 
 @orca.injectable()
-def mode_choice_spec_df(configs_dir):
+def tour_mode_choice_spec_df(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
                            "tour_mode_choice.csv")) as f:
@@ -32,7 +35,7 @@ def mode_choice_spec_df(configs_dir):
 
 
 @orca.injectable()
-def mode_choice_coeffs(configs_dir):
+def tour_mode_choice_coeffs(configs_dir):
     with open(os.path.join(configs_dir,
                            "configs",
                            "tour_mode_choice_coeffs.csv")) as f:
@@ -40,10 +43,45 @@ def mode_choice_coeffs(configs_dir):
 
 
 @orca.injectable()
-def mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
-                     mode_choice_settings):
-    return _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
-                             mode_choice_settings)
+def tour_mode_choice_spec(tour_mode_choice_spec_df,
+                          tour_mode_choice_coeffs,
+                          tour_mode_choice_settings):
+    return _mode_choice_spec(tour_mode_choice_spec_df,
+                             tour_mode_choice_coeffs,
+                             tour_mode_choice_settings)
+
+
+@orca.injectable()
+def trip_mode_choice_settings(configs_dir):
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "trip_mode_choice.yaml")) as f:
+        return yaml.load(f)
+
+
+@orca.injectable()
+def trip_mode_choice_spec_df(configs_dir):
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "trip_mode_choice.csv")) as f:
+        return asim.read_model_spec(f)
+
+
+@orca.injectable()
+def trip_mode_choice_coeffs(configs_dir):
+    with open(os.path.join(configs_dir,
+                           "configs",
+                           "trip_mode_choice_coeffs.csv")) as f:
+        return pd.read_csv(f, index_col='Expression')
+
+
+@orca.injectable()
+def trip_mode_choice_spec(trip_mode_choice_spec_df,
+                          trip_mode_choice_coeffs,
+                          trip_mode_choice_settings):
+    return _mode_choice_spec(trip_mode_choice_spec_df,
+                             trip_mode_choice_coeffs,
+                             trip_mode_choice_settings)
 
 
 def _mode_choice_simulate(tours,
@@ -60,9 +98,9 @@ def _mode_choice_simulate(tours,
     you want to use in the evaluation of variables.
     """
 
-    # FIXME - jwd - get list of unique second-tuple-item keys (aka skim_key2)
-    print "Skims3D.__init__ %s skim_key values = [%s] " % ('in_period', tours['in_period'].unique())
-    print "Skims3D.__init__ %s skim_key values = [%s] " % ('out_period', tours['out_period'].unique())
+    # FIXME - log
+    print "Skims3D %s skim_key2 values = [%s] " % ('in_period', tours['in_period'].unique())
+    print "Skims3D %s skim_key2 values = [%s] " % ('out_period', tours['out_period'].unique())
 
     in_skims = askim.Skims3D(skims.set_keys(orig_key, dest_key),
                              "in_period", -1)
@@ -109,10 +147,10 @@ def get_segment_and_unstack(spec, segment):
 
 
 @orca.step()
-def mode_choice_simulate(tours_merged,
-                         mode_choice_spec,
-                         mode_choice_settings,
-                         skims, omx_file):
+def tour_mode_choice_simulate(tours_merged,
+                              tour_mode_choice_spec,
+                              tour_mode_choice_settings,
+                              skims, omx_file):
 
     tours = tours_merged.to_frame()
 
@@ -120,7 +158,7 @@ def mode_choice_simulate(tours_merged,
 
     print "Tour types:\n", tours.tour_type.value_counts()
 
-    # FIXME this only runs eatout
+    # FIXME - jwd - not needed if patch_mandatory_tour_destination step is run?
     od_key_map = {
         'default': dict(orig_key='TAZ', dest_key='destination'),
         'work': dict(orig_key='TAZ', dest_key='workplace_taz'),
@@ -134,9 +172,10 @@ def mode_choice_simulate(tours_merged,
         print "running tour_type '%s'" % tour_type
         print "   orig_key='%s' dest_key='%s'" % (od_keys['orig_key'], od_keys['dest_key'])
 
-        # if tour_type not in ['work']:
-        #     print "skipping tour_type %s" % tour_type
-        #     continue
+        # FIXME - hack
+        if tour_type not in ['eatout']:
+            print "skipping tour_type %s" % tour_type
+            continue
 
         tour_type_tours = tours[tours.tour_type == tour_type]
 
@@ -147,8 +186,8 @@ def mode_choice_simulate(tours_merged,
             skims,
             orig_key=od_keys['orig_key'],
             dest_key=od_keys['dest_key'],
-            spec=get_segment_and_unstack(mode_choice_spec, tour_type),
-            additional_constants=mode_choice_settings['CONSTANTS'],
+            spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
+            additional_constants=tour_mode_choice_settings['CONSTANTS'],
             omx=omx_file)
 
         print "Choices:\n", choices.value_counts()
@@ -157,4 +196,28 @@ def mode_choice_simulate(tours_merged,
     choices = pd.concat(choices_list)
 
     print "Choices for all tour types:\n", choices.value_counts()
+
     orca.add_column("tours", "mode", choices)
+
+
+@orca.step()
+def trip_mode_choice_simulate(tours_merged,
+                              trip_mode_choice_spec,
+                              trip_mode_choice_settings,
+                              skims, omx_file):
+
+    # FIXME running the trips model on tours
+    trips = tours_merged.to_frame()
+
+    print trip_mode_choice_spec.eatout
+
+    # FIXME this only runs eatout
+    choices = _mode_choice_simulate(
+        trips[trips.tour_type == "eatout"],
+        skims,
+        get_segment_and_unstack(trip_mode_choice_spec, 'eatout'),
+        trip_mode_choice_settings['CONSTANTS'],
+        omx=omx_file)
+
+    print "Choices:\n", choices.value_counts()
+    orca.add_column("trips", "mode", choices)

@@ -16,7 +16,9 @@ def read_manifest(manifest_file_name):
         'File': 'source_file_name',
         'Matrix': 'source_key',
     }
-    converters = { col: str for col in column_map.keys() }
+    converters = {
+        col: str for col in column_map.keys()
+    }
 
     manifest = pd.read_csv(manifest_file_name, header=0, comment='#', converters=converters)
 

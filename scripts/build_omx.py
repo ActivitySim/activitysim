@@ -32,7 +32,8 @@ def omx_getMatrix(omx_file_name, omx_key):
         if omx_key not in omx_file.listMatrices():
             print "Source matrix with key '%s' not found in file '%s" % (omx_key, omx_file,)
             print omx_file.listMatrices()
-            raise RuntimeError("Source matrix with key '%s' not found in file '%s" % (omx_key, omx_file,))
+            raise RuntimeError("Source matrix with key '%s' not found in file '%s"
+                               % (omx_key, omx_file,))
 
         data = omx_file[omx_key]
 
@@ -63,9 +64,11 @@ with omx.openFile(dest_file_name, 'a') as dest_omx:
         with omx.openFile(source_file_name, 'r') as source_omx:
 
             if row.source_key not in source_omx.listMatrices():
-                print "Source matrix with key '%s' not found in file '%s" % (row.source_key, source_file_name,)
+                print "Source matrix with key '%s' not found in file '%s" \
+                      % (row.source_key, source_file_name,)
                 print source_omx.listMatrices()
-                raise RuntimeError("Source matrix with key '%s' not found in file '%s" % (row.source_key, omx_file,))
+                raise RuntimeError("Source matrix with key '%s' not found in file '%s"
+                                   % (row.source_key, dest_omx,))
 
             data = source_omx[row.source_key]
 

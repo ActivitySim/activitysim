@@ -17,19 +17,30 @@ from ..tables import size_terms
 
 
 # set the max households for all tests (this is to limit memory use on travis)
-HOUSEHOLDS_SAMPLE_SIZE = 50
+HOUSEHOLDS_SAMPLE_SIZE = 100
 
 
 @pytest.fixture(scope="module")
 def store(request):
     store = pd.HDFStore(
-        os.path.join(os.path.dirname(__file__), 'test.h5'), "r")
+        os.path.join(os.path.dirname(__file__), 'mtc_asim.h5'), "r")
 
     def fin():
         store.close()
     request.addfinalizer(fin)
 
     return store
+
+
+@pytest.fixture(scope="module")
+def omx_file(request):
+    omx_file = omx.openFile(os.path.join(os.path.dirname(__file__), "nonmotskm.omx"))
+
+    def fin():
+        omx_file.close()
+    request.addfinalizer(fin)
+
+    return omx_file
 
 
 @orca.injectable(cache=False)
@@ -62,16 +73,11 @@ def test_size_term():
     pdt.assert_series_equal(s, pd.Series(answer))
 
 
-def test_mini_run(store, random_seed):
+def test_mini_run(store, omx_file, random_seed):
     orca.add_injectable("configs_dir",
                         os.path.join(os.path.dirname(__file__)))
 
-    tmp_name = tempfile.NamedTemporaryFile(suffix='.omx').name
-    tmp = omx.openFile(tmp_name, 'w')
-    tmp['DIST'] = np.ones((1454, 1454))
-    tmp['DISTBIKE'] = np.ones((1454, 1454))
-    tmp['DISTWALK'] = np.ones((1454, 1454))
-    orca.add_injectable("omx_file", tmp)
+    orca.add_injectable("omx_file", omx_file)
 
     orca.add_injectable("store", store)
 
@@ -85,40 +91,33 @@ def test_mini_run(store, random_seed):
 
     # this is a regression test so that we know if these numbers change
     auto_choice = orca.get_table('households').get_column('auto_ownership')
-    print auto_choice[[2306822, 652072, 651907]]
-    print pd.Series(
-        [2, 1, 1], index=[2306822, 652072, 651907], name="HHID")
 
+    hh_ids = [1161386, 2666136, 461593]
+    choices = [1, 2, 1]
+    print "auto_choice\n", auto_choice.head(10)
     pdt.assert_series_equal(
-        auto_choice[[2306822, 652072, 651907]],
-        pd.Series(
-            [2, 1, 1], index=pd.Index([2306822, 652072, 651907], name="HHID")))
-    orca.run(["cdap_simulate"])
+        auto_choice[hh_ids],
+        pd.Series(choices, index=pd.Index(hh_ids, name="HHID")))
 
+    orca.run(["cdap_simulate"])
     orca.run(['mandatory_tour_frequency'])
 
-    mtf_choice = orca.get_table('persons').get_column(
-        'mandatory_tour_frequency')
-
+    mtf_choice = orca.get_table('persons').get_column('mandatory_tour_frequency')
+    per_ids = [24693, 93217, 297614]
+    choices = ['work1', 'school2', 'work2']
+    print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(
-        mtf_choice[[146642, 642922, 642921]],
-        pd.Series(
-            ['school1', 'work1', 'school2'],
-            index=pd.Index([146642, 642922, 642921], name='PERID')))
+        mtf_choice[per_ids],
+        pd.Series(choices, index=pd.Index(per_ids, name='PERID')))
     orca.clear_cache()
 
 
-def test_full_run(store):
+def test_full_run(store, omx_file):
     orca.add_injectable("configs_dir",
                         os.path.join(os.path.dirname(__file__), '..', '..',
                                      '..', 'example'))
 
-    tmp_name = tempfile.NamedTemporaryFile(suffix='.omx').name
-    tmp = omx.openFile(tmp_name, 'w')
-    tmp['DIST'] = np.ones((1454, 1454))
-    tmp['DISTBIKE'] = np.ones((1454, 1454))
-    tmp['DISTWALK'] = np.ones((1454, 1454))
-    orca.add_injectable("omx_file", tmp)
+    orca.add_injectable("omx_file", omx_file)
 
     orca.add_injectable("store", store)
 
@@ -143,8 +142,8 @@ def test_full_run(store):
     orca.run(["destination_choice"])
     orca.run(["mandatory_scheduling"])
     orca.run(["non_mandatory_scheduling"])
+    orca.run(["patch_mandatory_tour_destination"])
     orca.run(["tour_mode_choice_simulate"])
+    orca.run(["trip_mode_choice_simulate"])
 
     orca.clear_cache()
-    tmp.close()
-    os.remove(tmp_name)

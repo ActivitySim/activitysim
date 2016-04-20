@@ -251,6 +251,12 @@ def interaction_simulate(
 
     sample_size = sample_size or len(alternatives)
 
+    # FIXME - is this correct?
+    if sample_size > len(alternatives):
+        # FIXME - log
+        print "clipping sample size %s to len(alternatives) %s" % (sample_size, len(alternatives))
+        sample_size = min(sample_size, len(alternatives))
+
     # now the index is also in the dataframe, which means it will be
     # available as the "destination" for the skims dereference below
     alternatives[alternatives.index.name] = alternatives.index

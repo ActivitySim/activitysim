@@ -71,6 +71,18 @@ Shared ride 3+ toll - Person is 16 years old or older,age_16_p,SHARED3PAY,age16p
 # Bike - Time beyond 2 of a miles,"max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
 # Bike - Destination zone densityIndex,densityIndex,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
 # Bike - Topology,destTopology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
+# FIXME - jwd - my stab at the correct code for the above
+Walk - Time up to 2 miles,"@skims['DISTWALK'].clip(upper=walkThresh)*2*60/walkSpeed",WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Walk - Time beyond 2 of a miles,"@(skims['DISTWALK'] - walkThresh).clip(lower=0)*2*60/walkSpeed",WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
+Walk - Destination zone densityIndex,density_index,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
+Walk - Topology,dest_topology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
+# FIXME - jwd - not sure what to do with this...
+#Bike - Unavailable if didn't bike to work,,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Bike - Time up to 2 miles,"@skims['DISTBIKE'].clip(upper=bikeThresh)*2*60/bikeSpeed",BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
+Bike - Time beyond 2 of a miles,"@(skims['DISTBIKE']-bikeThresh).clip(lower=0)*2*60/bikeSpeed",BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
+Bike - Destination zone densityIndex,density_index,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
+Bike - Topology,dest_topology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
+#
 Walk to Local - Unavailable,walk_local_available == False,WALK_LOC,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Walk to Local - In-vehicle time,$IN_N_OUT_EXPR_DIV100.format(sk='WLK_LOC_WLK_TOTIVT'),WALK_LOC,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Walk to Local - Short iwait time,"$SHORT_WAIT_EXPR.format(sk='WLK_LOC_WLK_IWAIT', th='waitThresh')",WALK_LOC,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait

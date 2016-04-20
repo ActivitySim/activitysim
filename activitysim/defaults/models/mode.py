@@ -90,7 +90,8 @@ def _mode_choice_simulate(tours,
                           dest_key,
                           spec,
                           additional_constants,
-                          omx=None):
+                          omx=None,
+                          time_periods=None):
     """
     This is a utility to run a mode choice model for each segment (usually
     segments are trip purposes).  Pass in the tours that need a mode,
@@ -99,13 +100,17 @@ def _mode_choice_simulate(tours,
     """
 
     # FIXME - log
-    print "Skims3D %s skim_key2 values = [%s] " % ('in_period', tours['in_period'].unique())
-    print "Skims3D %s skim_key2 values = [%s] " % ('out_period', tours['out_period'].unique())
+    print "Skims3D %s skim_key2 values = %s" % ('in_period', tours['in_period'].unique())
+    print "Skims3D %s skim_key2 values = %s" % ('out_period', tours['out_period'].unique())
 
-    in_skims = askim.Skims3D(skims.set_keys(orig_key, dest_key),
-                             "in_period", -1)
-    out_skims = askim.Skims3D(skims.set_keys(dest_key, orig_key),
-                              "out_period", -1)
+    # FIXME - check that periods are in time_periods?
+
+    in_skims = askim.Skims3D(skims=skims.set_keys(orig_key, dest_key),
+                             skim_key="in_period", skim_key_values=time_periods,
+                             offset=-1)
+    out_skims = askim.Skims3D(skims=skims.set_keys(dest_key, orig_key),
+                              skim_key="out_period", skim_key_values=time_periods,
+                              offset=-1)
     skims.set_keys(orig_key, dest_key)
 
     if omx:
@@ -150,7 +155,7 @@ def get_segment_and_unstack(spec, segment):
 def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
-                              skims, omx_file):
+                              skims, omx_file, time_periods):
 
     tours = tours_merged.to_frame()
 
@@ -158,37 +163,36 @@ def tour_mode_choice_simulate(tours_merged,
 
     print "Tour types:\n", tours.tour_type.value_counts()
 
-    # FIXME - jwd - not needed if patch_mandatory_tour_destination step is run?
-    od_key_map = {
-        'default': dict(orig_key='TAZ', dest_key='destination'),
-        'work': dict(orig_key='TAZ', dest_key='workplace_taz'),
-        'school': dict(orig_key='TAZ', dest_key='school_taz'),
-    }
-
     for tour_type, segment in tours.groupby('tour_type'):
 
-        od_keys = od_key_map.get(tour_type) or od_key_map['default']
-
+        # FIXME - log
         print "running tour_type '%s'" % tour_type
-        print "   orig_key='%s' dest_key='%s'" % (od_keys['orig_key'], od_keys['dest_key'])
 
-        # FIXME - hack
-        if tour_type not in ['eatout']:
-            print "skipping tour_type %s" % tour_type
-            continue
+        # FIXME - hack to run subset of tour types
+        # TOUR_TYPE_SUBSET = []
+        # # TOUR_TYPE_SUBSET = ['eatout']
+        # if TOUR_TYPE_SUBSET and tour_type not in TOUR_TYPE_SUBSET:
+        #     print "skipping tour_type %s" % tour_type
+        #     continue
 
         tour_type_tours = tours[tours.tour_type == tour_type]
+        orig_key = 'TAZ'
+        dest_key = 'destination'
 
-        print "dest_taz counts:\n", tour_type_tours[od_keys['dest_key']].value_counts()
+        # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
+
+        # FIXME - log
+        # print "dest_taz counts:\n", tour_type_tours[dest_key].value_counts()
 
         choices = _mode_choice_simulate(
-            tours[tours.tour_type == tour_type],
+            tour_type_tours,
             skims,
-            orig_key=od_keys['orig_key'],
-            dest_key=od_keys['dest_key'],
+            orig_key=orig_key,
+            dest_key=dest_key,
             spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
             additional_constants=tour_mode_choice_settings['CONSTANTS'],
-            omx=omx_file)
+            omx=omx_file,
+            time_periods=time_periods)
 
         print "Choices:\n", choices.value_counts()
         choices_list.append(choices)
@@ -204,20 +208,55 @@ def tour_mode_choice_simulate(tours_merged,
 def trip_mode_choice_simulate(tours_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
-                              skims, omx_file):
+                              skims, omx_file, time_periods):
 
     # FIXME running the trips model on tours
     trips = tours_merged.to_frame()
 
-    print trip_mode_choice_spec.eatout
+    choices_list = []
 
-    # FIXME this only runs eatout
-    choices = _mode_choice_simulate(
-        trips[trips.tour_type == "eatout"],
-        skims,
-        get_segment_and_unstack(trip_mode_choice_spec, 'eatout'),
-        trip_mode_choice_settings['CONSTANTS'],
-        omx=omx_file)
+    # FIXME - log
+    print "Trip types:\n", trips.tour_type.value_counts()
 
-    print "Choices:\n", choices.value_counts()
+    for tour_type, segment in trips.groupby('tour_type'):
+
+        # FIXME - log
+        print "running tour_type '%s'" % tour_type
+
+        # FIXME - hack to run subset of tour types
+        # TOUR_TYPE_SUBSET = []
+        # # TOUR_TYPE_SUBSET = ['eatout']
+        # if TOUR_TYPE_SUBSET and tour_type not in TOUR_TYPE_SUBSET:
+        #     print "skipping tour_type %s" % tour_type
+        #     continue
+
+        tour_type_tours = trips[trips.tour_type == tour_type]
+        orig_key = 'TAZ'
+        dest_key = 'destination'
+
+        # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
+
+        # FIXME - log
+        # print "dest_taz counts:\n", tour_type_tours[dest_key].value_counts()
+
+        choices = _mode_choice_simulate(
+            tour_type_tours,
+            skims,
+            orig_key=orig_key,
+            dest_key=dest_key,
+            spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),
+            additional_constants=trip_mode_choice_settings['CONSTANTS'],
+            omx=omx_file,
+            time_periods=time_periods)
+
+        # FIXME - log
+        print "Choices:\n", choices.value_counts()
+
+        choices_list.append(choices)
+
+    choices = pd.concat(choices_list)
+
+    # FIXME - log
+    print "Choices for all trip types:\n", choices.value_counts()
+
     orca.add_column("trips", "mode", choices)

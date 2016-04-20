@@ -217,7 +217,7 @@ class Skims(object):
 
 class Skims3D(object):
     """
-    A 3DSkims object wraps a skim objects to add an additional wrinkle of
+    A Skims3D object wraps a skim objects to add an additional wrinkle of
     lookup functionality.  Upon init the separate skims objects are
     processed into a 3D matrix so that lookup of the different skims can
     be performed quickly for each row in the dataframe.  In this very
@@ -261,7 +261,7 @@ class Skims3D(object):
         offsets will be ignored
     """
 
-    def __init__(self, skims, skim_key, offset=None):
+    def __init__(self, skims, skim_key, skim_key_values=None, offset=None):
         self.left_key = skims.left_key
         self.right_key = skims.right_key
         self.offset = offset
@@ -270,7 +270,11 @@ class Skims3D(object):
         self.omx = None
         self.skims_data = {}
         self.skim_keys_to_indexes = {}
-        self.skim_preloaded = {}
+
+        self.loaded = {}
+        self.cache_loaded_skims = skim_key_values is not None
+        self.skim_key_values = skim_key_values
+        self.cached_skims = skims.skims
 
         # pass to make dictionary of dictionaries where highest level is unique
         # first items of the tuples and the 2nd level is the second items of
@@ -278,7 +282,7 @@ class Skims3D(object):
         for key, value in skims.skims.iteritems():
             if not isinstance(key, tuple) or not len(key) == 2:
                 # FIXME - log
-                print "WARNING, Skims3D __init__ skipping key: ", key
+                # print "WARNING, Skims3D __init__ skipping key: ", key
                 continue
             skim_key1, skim_key2 = key
             # FIXME - log
@@ -291,11 +295,12 @@ class Skims3D(object):
             self.skims_data[skim_key1] = np.dstack(value.values())
             self.skim_keys_to_indexes[skim_key1] = \
                 dict(zip(value.keys(), range(len(value))))
-            self.skim_preloaded[skim_key1] = True
+            self.loaded[skim_key1] = True
 
         # FIXME - log
-        print "Skims3D.__init__ received skims with keys: ", skims.skims.keys()
-        print "Skims3D.__init__ skim_keys_to_indexes: ", self.skim_keys_to_indexes
+        # print "Skims3D.__init__ received skims with keys: ", skims.skims.keys()
+        # print "Skims3D.__init__ skim_keys_to_indexes: ", self.skim_keys_to_indexes
+        print "Skims3D.__init__ received preloaded %s keys: " % len(skims.skims.keys())
 
     def set_df(self, df):
         """
@@ -356,10 +361,7 @@ class Skims3D(object):
              The skim object
         """
 
-        # FIXME - log
-        # print "Skims3D key = '%s' preloaded: %s" % (key, (key in self.skim_preloaded))
-
-        if self.omx and key not in self.skim_preloaded:
+        if self.lazy_load():
             # read off the disk on the fly
             self._build_single_3d_matrix_from_disk(key)
 
@@ -373,7 +375,7 @@ class Skims3D(object):
             self.df.index
         )
 
-        if self.omx and key not in self.skim_preloaded:
+        if self.lazy_load():
             # and now destroy
             self._tear_down_single_3d_matrix(key)
 
@@ -400,6 +402,9 @@ class Skims3D(object):
     working very well (I mean it works, just very slowly).
     """
 
+    def lazy_load(self):
+        return self.omx is not None
+
     def get_from_omx(self, key, v):
         # treat this as a callback - override depending on how you store
         # skims in the omx file - for now we just read the same one over and
@@ -407,25 +412,40 @@ class Skims3D(object):
         # the only skim we have right now is distance
         return self.omx['DIST']
 
+    def _get_from_omx(self, key, v):
+        data = self.get_from_omx(key, v)
+        if self.cache_loaded_skims:
+            self.cached_skims[(key, v)] = Skim(data, offset=-1)
+        return data
+
     def _build_single_3d_matrix_from_disk(self, key):
-        # get list of unique second-tuple-item keys (aka skim_key2)
-        uniq = self.df[self.skim_key].unique()
-        # FIXME - log
-        # print "_build_single_3d_matrix_from_disk key = '%s' key2 = [%s] " % (key, uniq)
-        if hasattr(self, 'mat'):
-            # being sneaky to make it go faster
-            print "Fake read for key = ", key
-            self.skims_data[key] = self.mat
+
+        if key in self.loaded:
+            # FIXME - log
+            # print "_build_single_3d_matrix_from_disk key preloaded: ", key
+            return
+
+        if self.cache_loaded_skims:
+            # the individual skims will be cached by _get_from_omx
+            self.loaded[key] = True
+            uniq = self.skim_key_values
         else:
-            self.skims_data[key] = np.dstack(
-                [self.get_from_omx(key, v) for v in uniq])
-            # FIXME - hack
-            # # the following line short-circuits omx file access
-            self.mat = self.skims_data[key]
+            # get list of unique second-tuple-item keys (aka skim_key2)
+            uniq = self.df[self.skim_key].unique()
+
+        # FIXME - log
+        print "_build_single_3d_matrix_from_disk key = '%s' key2 = %s " % (key, uniq)
+
+        self.skims_data[key] = np.dstack(
+            [self._get_from_omx(key, v) for v in uniq])
+
         self.skim_keys_to_indexes[key] = {i: v for i, v in
                                           zip(uniq, range(len(uniq)))}
 
     def _tear_down_single_3d_matrix(self, key):
+        if self.cache_loaded_skims:
+            return
+
         # FIXME - log
         # print "_tear_down_single_3d_matrix for key = '%s'" % (key, )
         del self.skims_data[key]

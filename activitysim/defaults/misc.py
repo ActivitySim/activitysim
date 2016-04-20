@@ -39,3 +39,8 @@ def settings(configs_dir):
 def store(data_dir, settings):
     return pd.HDFStore(os.path.join(data_dir, "data", settings["store"]),
                        mode='r')
+
+
+@orca.injectable(cache=True)
+def time_periods(settings):
+    return settings['time_periods']['labels']

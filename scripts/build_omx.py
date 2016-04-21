@@ -16,7 +16,9 @@ def read_manifest(manifest_file_name):
         'File': 'source_file_name',
         'Matrix': 'source_key',
     }
-    converters = { col: str for col in column_map.keys() }
+    converters = {
+        col: str for col in column_map.keys()
+    }
 
     manifest = pd.read_csv(manifest_file_name, header=0, comment='#', converters=converters)
 
@@ -40,12 +42,12 @@ def omx_getMatrix(omx_file_name, omx_key):
     return data
 
 
-manifest_dir = '/Users/jeff.doyle/work/activitysim-data/mtc_tm1'
-source_data_dir = '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/source_skims'
-dest_data_dir = '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data'
+manifest_dir = '.'
+source_data_dir = '.'
+dest_data_dir = '.'
 
 manifest_file_name = os.path.join(manifest_dir, "skim_manifest.csv")
-dest_file_name = os.path.join(dest_data_dir, "nonmotskm.omx")
+dest_file_name = os.path.join(dest_data_dir, "skims.omx")
 
 with omx.openFile(dest_file_name, 'a') as dest_omx:
 

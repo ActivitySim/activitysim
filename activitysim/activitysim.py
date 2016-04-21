@@ -12,20 +12,17 @@ from .mnl import utils_to_probs, make_choices, interaction_dataset
 
 import os
 import psutil
-import resource
 import gc
 
 
 def usage(when):
     gc.collect()
-    peak_bytes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    peak_gb = (peak_bytes / (1024 * 1024 * 1024.0))
     process = psutil.Process(os.getpid())
     bytes = process.memory_info().rss
     mb = (bytes / (1024 * 1024.0))
     gb = (bytes / (1024 * 1024 * 1024.0))
-    return "USAGE: %s peak: %s GB, current: %s MB (%s GB)" % \
-           (when, round(peak_gb, 2), int(mb), round(gb, 2))
+    return "USAGE: %s current: %s MB (%s GB)" % \
+           (when, int(mb), round(gb, 2))
 
 
 def random_rows(df, n):

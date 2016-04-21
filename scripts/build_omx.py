@@ -45,7 +45,7 @@ source_data_dir = '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/source_skims'
 dest_data_dir = '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data'
 
 manifest_file_name = os.path.join(manifest_dir, "skim_manifest.csv")
-dest_file_name = os.path.join(dest_data_dir, "skims.omx")
+dest_file_name = os.path.join(dest_data_dir, "nonmotskm.omx")
 
 with omx.openFile(dest_file_name, 'a') as dest_omx:
 

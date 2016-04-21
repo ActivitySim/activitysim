@@ -261,20 +261,21 @@ class Skims3D(object):
         offsets will be ignored
     """
 
-    def __init__(self, skims, skim_key, skim_key_values=None, offset=None):
+    def __init__(self, skims, skim_key, offset=None):
         self.left_key = skims.left_key
         self.right_key = skims.right_key
         self.offset = offset
         self.skim_key = skim_key
         self.df = skims.df
-        self.omx = None
         self.skims_data = {}
         self.skim_keys_to_indexes = {}
 
-        self.loaded = {}
-        self.cache_loaded_skims = skim_key_values is not None
-        self.skim_key_values = skim_key_values
-        self.cached_skims = skims.skims
+        # lazy load support - enabled via call to set_omx
+        self.lazy_load = False
+        self.cache_lazy_loaded_skims = False
+        self.preloaded_skims = {}
+        self.omx = None
+        self.skims = skims.skims
 
         # pass to make dictionary of dictionaries where highest level is unique
         # first items of the tuples and the 2nd level is the second items of
@@ -287,15 +288,21 @@ class Skims3D(object):
             skim_key1, skim_key2 = key
             # FIXME - log
             # print "Skims3D init key: skim_key1='%s' skim_key2='%s'" % (skim_key1, skim_key2)
+            # FIXME - is this just an object assignment or an actual copy? (assignment?)
             self.skims_data.setdefault(skim_key1, {})[skim_key2] = value.data
 
         # second pass to turn the each highest level value into a 3D array
         # with a dictionary to make second level keys to indexes
         for skim_key1, value in self.skims_data.iteritems():
+            # FIXME - is this just an object assignment or an actual copy?
+            """
+            I think a copy? - maybe this is what is slow about stacking?
+            and wasteful of memory if we are making multiple copies
+            in multiple Skim3D objects for in and out skims in mode choice
+            """
             self.skims_data[skim_key1] = np.dstack(value.values())
-            self.skim_keys_to_indexes[skim_key1] = \
-                dict(zip(value.keys(), range(len(value))))
-            self.loaded[skim_key1] = True
+            self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
+            self.preloaded_skims[skim_key1] = True
 
         # FIXME - log
         # print "Skims3D.__init__ received skims with keys: ", skims.skims.keys()
@@ -361,7 +368,7 @@ class Skims3D(object):
              The skim object
         """
 
-        if self.lazy_load():
+        if self.lazy_load:
             # read off the disk on the fly
             self._build_single_3d_matrix_from_disk(key)
 
@@ -375,7 +382,7 @@ class Skims3D(object):
             self.df.index
         )
 
-        if self.lazy_load():
+        if self.lazy_load:
             # and now destroy
             self._tear_down_single_3d_matrix(key)
 
@@ -402,33 +409,34 @@ class Skims3D(object):
     working very well (I mean it works, just very slowly).
     """
 
-    def lazy_load(self):
-        return self.omx is not None
-
     def get_from_omx(self, key, v):
-        # treat this as a callback - override depending on how you store
-        # skims in the omx file - for now we just read the same one over and
-        # over for testing purposes and to reduce memory use
-        # the only skim we have right now is distance
-        return self.omx['DIST']
+        # treat this as a callback - override depending on how you store skims in the omx file
+        #
+        # from activitysim import skim as askim
+        # from types import MethodType
+        # askim.Skims3D.get_from_omx = MethodType(get_from_omx, None, askim.Skims3D)
+
+        omx_key = key + '__' + v
+        # print "my_get_from_omx - key: '%s' v: '%s', omx_key: '%s'" % (key, v, omx_key)
+        return self.omx[omx_key]
 
     def _get_from_omx(self, key, v):
         data = self.get_from_omx(key, v)
-        if self.cache_loaded_skims:
-            self.cached_skims[(key, v)] = Skim(data, offset=-1)
+        if self.cache_lazy_loaded_skims:
+            self.skims[(key, v)] = Skim(data, offset=-1)
         return data
 
     def _build_single_3d_matrix_from_disk(self, key):
 
-        if key in self.loaded:
+        if key in self.preloaded_skims:
             # FIXME - log
             # print "_build_single_3d_matrix_from_disk key preloaded: ", key
             return
 
-        if self.cache_loaded_skims:
+        if self.cache_lazy_loaded_skims:
             # the individual skims will be cached by _get_from_omx
-            self.loaded[key] = True
-            uniq = self.skim_key_values
+            self.preloaded_skims[key] = True
+            uniq = self.skim_key_values_to_cache
         else:
             # get list of unique second-tuple-item keys (aka skim_key2)
             uniq = self.df[self.skim_key].unique()
@@ -443,7 +451,7 @@ class Skims3D(object):
                                           zip(uniq, range(len(uniq)))}
 
     def _tear_down_single_3d_matrix(self, key):
-        if self.cache_loaded_skims:
+        if self.cache_lazy_loaded_skims:
             return
 
         # FIXME - log
@@ -451,5 +459,14 @@ class Skims3D(object):
         del self.skims_data[key]
         del self.skim_keys_to_indexes[key]
 
-    def set_omx(self, omx):
+    def set_omx(self, omx, skim_key_values_to_cache=None):
+        self.lazy_load = omx is not None
         self.omx = omx
+        # full list of skim_key_values to cache since we are updating GLOBAL skims
+        # and we can't determine universe of possible skim_key values in context of
+        # call to _build_single_3d_matrix_from_disk
+        self.skim_key_values_to_cache = skim_key_values_to_cache
+        self.cache_lazy_loaded_skims = skim_key_values_to_cache is not None
+
+        # FIXME - this is just for benchmarking and can be removed in time
+        # self.cache_lazy_loaded_skims = False

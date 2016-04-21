@@ -92,9 +92,9 @@ def test_mini_run(store, omx_file, random_seed):
     # this is a regression test so that we know if these numbers change
     auto_choice = orca.get_table('households').get_column('auto_ownership')
 
-    hh_ids = [1161386, 2666136, 461593]
-    choices = [1, 2, 1]
-    print "auto_choice\n", auto_choice.head(10)
+    hh_ids = [2124015, 961042, 1583271]
+    choices = [1, 2, 2]
+    print "auto_choice\n", auto_choice.head(3)
     pdt.assert_series_equal(
         auto_choice[hh_ids],
         pd.Series(choices, index=pd.Index(hh_ids, name="HHID")))
@@ -103,8 +103,8 @@ def test_mini_run(store, omx_file, random_seed):
     orca.run(['mandatory_tour_frequency'])
 
     mtf_choice = orca.get_table('persons').get_column('mandatory_tour_frequency')
-    per_ids = [24693, 93217, 297614]
-    choices = ['work1', 'school2', 'work2']
+    per_ids = [172616, 172781, 172782]
+    choices = ['work1', 'school1', 'work_and_school']
     print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(
         mtf_choice[per_ids],

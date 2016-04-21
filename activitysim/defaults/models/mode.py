@@ -106,16 +106,16 @@ def _mode_choice_simulate(tours,
     # FIXME - check that periods are in time_periods?
 
     in_skims = askim.Skims3D(skims=skims.set_keys(orig_key, dest_key),
-                             skim_key="in_period", skim_key_values=time_periods,
+                             skim_key="in_period",
                              offset=-1)
     out_skims = askim.Skims3D(skims=skims.set_keys(dest_key, orig_key),
-                              skim_key="out_period", skim_key_values=time_periods,
+                              skim_key="out_period",
                               offset=-1)
     skims.set_keys(orig_key, dest_key)
 
     if omx:
-        in_skims.set_omx(omx)
-        out_skims.set_omx(omx)
+        in_skims.set_omx(omx, skim_key_values_to_cache=time_periods)
+        out_skims.set_omx(omx, skim_key_values_to_cache=time_periods)
 
     locals_d = {
         "in_skims": in_skims,

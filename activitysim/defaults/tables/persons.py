@@ -254,23 +254,12 @@ def is_university(persons):
 
 
 @orca.column("persons")
-def workplace_taz(persons):
-    return pd.Series(1, persons.index)
-
-
-@orca.column("persons")
 def home_taz(households, persons):
     return reindex(households.home_taz, persons.household_id)
 
 
 # this use the distance skims to compute the raw distance to work from home
 @orca.column("persons_workplace")
-def school_taz(persons):
-    return pd.Series(1, persons.index)
-
-
-# this use the distance skims to compute the raw distance to work from home
-@orca.column("persons")
 def distance_to_work(persons, distance_skim):
     return pd.Series(distance_skim.get(persons.home_taz,
                                        persons.workplace_taz),

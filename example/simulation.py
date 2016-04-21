@@ -17,5 +17,9 @@ orca.run(['non_mandatory_tour_frequency'])
 orca.get_table("non_mandatory_tours").tour_type.value_counts()
 orca.run(["destination_choice"])
 orca.run(["non_mandatory_scheduling"])
+
+# FIXME - jwd - choose more felicitous name or do this elsewhere?
+orca.run(["patch_mandatory_tour_destination"])
+
 orca.run(['tour_mode_choice_simulate'])
 orca.run(['trip_mode_choice_simulate'])

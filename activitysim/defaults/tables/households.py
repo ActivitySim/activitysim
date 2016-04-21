@@ -8,6 +8,12 @@ import pandas as pd
 from activitysim import activitysim as asim
 from activitysim.util import reindex
 
+# not actually used, but helpful for dumping/documenting the contents of store
+# @orca.table(cache=True)
+# def households_internal(store, settings):
+#     df = store["households"]
+#     return df
+
 
 @orca.table(cache=True)
 def households(set_random_seed, store, settings):

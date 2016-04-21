@@ -5,6 +5,7 @@ import os
 
 import orca
 import pandas as pd
+import numpy as np
 
 from activitysim import activitysim as asim
 
@@ -68,3 +69,20 @@ def destination_choice(set_random_seed,
     # every trip now has a destination which is the index from the
     # alternatives table - in this case it's the destination taz
     orca.add_column("non_mandatory_tours", "destination", choices)
+
+
+@orca.step()
+def patch_mandatory_tour_destination(mandatory_tours_merged):
+
+    """
+    Patch destination column of mandatory tours with school or workplace taz
+    to conform to non-mandatory tours naming so that computed columns in the tours
+    table can use destination for any tour type.
+    """
+
+    mandatory_tours_merged['destination'] = \
+        np.where(mandatory_tours_merged['tour_type'] == 'school',
+                 mandatory_tours_merged['school_taz'],
+                 mandatory_tours_merged['workplace_taz'])
+
+    orca.add_column("mandatory_tours", "destination", mandatory_tours_merged.destination)

@@ -25,6 +25,7 @@ setup(
         'pyyaml >= 3.0',
         'tables >= 3.1.0',
         'toolz >= 0.7',
-        'zbox >= 1.2'
+        'zbox >= 1.2',
+        'psutil >= 4.1'
     ]
 )

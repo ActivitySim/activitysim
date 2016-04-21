@@ -10,6 +10,20 @@ from zbox import toolz as tz
 from .skim import Skims, Skims3D
 from .mnl import utils_to_probs, make_choices, interaction_dataset
 
+import os
+import psutil
+import gc
+
+
+def usage(when):
+    gc.collect()
+    process = psutil.Process(os.getpid())
+    bytes = process.memory_info().rss
+    mb = (bytes / (1024 * 1024.0))
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return "USAGE: %s current: %s MB (%s GB)" % \
+           (when, int(mb), round(gb, 2))
+
 
 def random_rows(df, n):
     return df.take(np.random.choice(len(df), size=n, replace=False))
@@ -250,6 +264,12 @@ def interaction_simulate(
         raise RuntimeError('spec must have only one column')
 
     sample_size = sample_size or len(alternatives)
+
+    # FIXME - is this correct?
+    if sample_size > len(alternatives):
+        # FIXME - log
+        print "clipping sample size %s to len(alternatives) %s" % (sample_size, len(alternatives))
+        sample_size = min(sample_size, len(alternatives))
 
     # now the index is also in the dataframe, which means it will be
     # available as the "destination" for the skims dereference below

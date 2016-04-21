@@ -442,7 +442,7 @@ class Skims3D(object):
             uniq = self.df[self.skim_key].unique()
 
         # FIXME - log
-        print "_build_single_3d_matrix_from_disk key = '%s' key2 = %s " % (key, uniq)
+        # print "_build_single_3d_matrix_from_disk key = '%s' key2 = %s " % (key, uniq)
 
         self.skims_data[key] = np.dstack(
             [self._get_from_omx(key, v) for v in uniq])

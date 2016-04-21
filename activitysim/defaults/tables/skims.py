@@ -16,6 +16,7 @@ Read in the omx files and create the skim objects
 # cache this so we don't open it again and again - skim code is not closing it....
 @orca.injectable(cache=True)
 def omx_file(data_dir):
+    print "opening omx file"
     return omx.openFile(os.path.join(data_dir, 'data', "nonmotskm.omx"))
 
 

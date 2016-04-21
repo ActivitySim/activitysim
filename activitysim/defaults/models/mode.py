@@ -100,8 +100,8 @@ def _mode_choice_simulate(tours,
     """
 
     # FIXME - log
-    print "Skims3D %s skim_key2 values = %s" % ('in_period', tours['in_period'].unique())
-    print "Skims3D %s skim_key2 values = %s" % ('out_period', tours['out_period'].unique())
+    # print "Skims3D %s skim_key2 values = %s" % ('in_period', tours['in_period'].unique())
+    # print "Skims3D %s skim_key2 values = %s" % ('out_period', tours['out_period'].unique())
 
     # FIXME - check that periods are in time_periods?
 
@@ -193,6 +193,9 @@ def tour_mode_choice_simulate(tours_merged,
             additional_constants=tour_mode_choice_settings['CONSTANTS'],
             omx=omx_file,
             time_periods=time_periods)
+
+        # FIXME - log
+        print asim.usage('tour_mode_choice_simulate post-tour_type')
 
         print "Choices:\n", choices.value_counts()
         choices_list.append(choices)

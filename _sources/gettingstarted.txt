@@ -41,6 +41,7 @@ with Anaconda:
 * `tables <http://www.pytables.org/moin>`__ >= 3.1.0 \*
 * `toolz <http://toolz.readthedocs.org/en/latest/>`__ or
   `cytoolz <https://github.com/pytoolz/cytoolz>`__ >= 0.7 \*
+* `psutil <https://pypi.python.org/pypi/psutil>`__ >= 4.1
 * `zbox <https://pypi.python.org/pypi/zbox>`__ >= 1.2
 * `orca <https://udst.github.io/orca>`__ >= 1.1
 * `openmatrix <https://pypi.python.org/pypi/OpenMatrix/0.2.3>`__ >= 0.2.2
@@ -64,7 +65,7 @@ want to install the dependencies as well, the pip commands are:
 
 ::    
     
-    pip install orca openmatrix zbox
+    pip install psutil orca openmatrix zbox
     
     #required packages for testing
     pip install pytest pytest-cov coveralls pep8
@@ -186,21 +187,17 @@ Inputs
 
 In order to run the example, you first need two input data files in the ``data`` folder:
 
-* mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames:
+* mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
 
     * skims/accessibility - Zone-based accessibility measures
     * land_use/taz_data - Zone-based land use data (population and employment for example)
     * persons - Synthetic population person records
     * households - Synthetic population household records
     
-* nonmotskm.omx - an OMX matrix file containing the following MTC TM1 skim matrices:
+* nonmotskm.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.
 
-    * DIST - network distance
-    * DISTBIKE - bike network distance 
-    * DISTWALK - walk network distance
-
-Both of these files can be downloaded from MTC's `box account 
-<https://mtcdrive.app.box.com/activitysim/1/7484860689>`__ and both files can 
+Both of these files can be downloaded from the `SF 25 zone example` example data folder on 
+MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  Both files can 
 be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.
 The pandas DataFrames are stored in an efficient pandas format within the HDF5 file so they are a 
 bit cumbersome to inspect. 
@@ -209,11 +206,12 @@ The ``scripts\data_mover.ipynb`` was used to create the mtc_asim.h5 file from th
 This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 
 file.
 
-The full set of MTC TM1 skims is not required for the current example.  An example that requires 
-the full set of skims is in development and so the full set of OMX skims are `here
-<https://mtcdrive.app.box.com/activitysim/1/6951892398>`__.  The scripts to 
-convert these into one OMX file for use in ActivitySim are in the ``scripts`` folder and use the 
-`Cube to OMX converter <https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter>`__.
+The full set of MTC TM1 OMX skims are also on the box account. The ``scripts\build_omx.py`` script 
+will build one OMX file containing all the skims. The original MTC TM1 skims were converted from 
+Cube to OMX using the `Cube to OMX converter <https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter>`__.
+
+Finally, the example inputs were created by the ``scripts\create_sf_example.py`` script,
+which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.
 
 Configuration
 ~~~~~~~~~~~~~
@@ -261,8 +259,7 @@ To run the example, do the following:
 * Open a command line window in the ``example`` folder
 * Ensure running ``python`` will call the Anaconda Python install on your machine
 * Run ``python simulation.py``
-* ActivitySim will print some logging information.  The example should complete within a couple minutes since 
-it is running a small sample of households.
+* ActivitySim will print some logging information.  The example should complete within a couple minutes since it is running a small sample of households.
 
 Outputs
 ~~~~~~~
@@ -276,7 +273,7 @@ How the System Works
 This section describes ActivitySim's flow of execution.
 
 The Basic Flow of Execution
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The example model run starts by running ``simulation.py``, which calls:
 

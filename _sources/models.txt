@@ -101,10 +101,8 @@ API
 Mode (Tour and Trip)
 --------------------
 
-This model is partially implemented.  The tour and trip mode model currently 
-operates for tour purpose eatout only and uses the household home zone and 
-workplace zone for all skim indexing.  The trip mode model repeats the same 
-operation as the tour mode model, but uses the trip mode expression specification.
+The trip mode model currently operates on the tour table.  The trip model model repeats the same 
+operation as the tour mode model, but uses the trip mode expression specification instead.
 
 Tour
 ~~~~~
@@ -114,8 +112,8 @@ The main interface to the tour mode model is the
 function.  This function is called in the orca step ``tour_mode_choice_simulate`` and in
 the example via ``orca.run(["tour_mode_choice_simulate"])``.
 
-Core Table: ``tours`` | Result Field: ``mode`` | Skims Keys: ``TAZ,workplace_taz`` | 
-Skims3D in_skims Keys: ``TAZ,workplace_taz,in_period`` | Skims3D out_skims Keys: ``workplace_taz,TAZ,out_period``
+Core Table: ``tours`` | Result Field: ``mode`` | Skims Keys: ``TAZ,destination`` | 
+Skims3D in_skims Keys: ``TAZ,destination,in_period`` | Skims3D out_skims Keys: ``destination,TAZ,out_period``
 
 Trip
 ~~~~
@@ -125,8 +123,8 @@ The main interface to the trip mode model is the
 function.  This function is called in the orca step ``trip_mode_choice_simulate`` and in 
 the example via ``orca.run(["trip_mode_choice_simulate"])``.
 
-Core Table: ``trips`` | Result Field: ``mode`` | Skims Keys: ``TAZ,workplace_taz``
-Skims3D in_skims Keys: ``TAZ,workplace_taz,in_period`` | Skims3D out_skims Keys: ``workplace_taz,TAZ,out_period``
+Core Table: ``trips`` | Result Field: ``mode`` | Skims Keys: ``TAZ,destination``
+Skims3D in_skims Keys: ``TAZ,destination,in_period`` | Skims3D out_skims Keys: ``destination,TAZ,out_period``
 
 
 API

@@ -199,6 +199,7 @@ with Anaconda:</p>
 <li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.1.0 *</li>
 <li><a class="reference external" href="http://toolz.readthedocs.org/en/latest/">toolz</a> or
 <a class="reference external" href="https://github.com/pytoolz/cytoolz">cytoolz</a> &gt;= 0.7 *</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/psutil">psutil</a> &gt;= 4.1</li>
 <li><a class="reference external" href="https://pypi.python.org/pypi/zbox">zbox</a> &gt;= 1.2</li>
 <li><a class="reference external" href="https://udst.github.io/orca">orca</a> &gt;= 1.1</li>
 <li><a class="reference external" href="https://pypi.python.org/pypi/OpenMatrix/0.2.3">openmatrix</a> &gt;= 0.2.2</li>
@@ -215,7 +216,7 @@ using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a
 </div>
 <p>Pip will attempt to install any dependencies that are not already installed.  If you
 want to install the dependencies as well, the pip commands are:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">psutil</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
 
 <span class="c1">#required packages for testing</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pep8</span>
@@ -383,7 +384,7 @@ alternative and columns are for tour purposes.  The alternatives, as well as tem
 <h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
 <p>In order to run the example, you first need two input data files in the <code class="docutils literal"><span class="pre">data</span></code> folder:</p>
 <ul>
-<li><p class="first">mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames:</p>
+<li><p class="first">mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:</p>
 <blockquote>
 <div><ul class="simple">
 <li>skims/accessibility - Zone-based accessibility measures</li>
@@ -393,27 +394,22 @@ alternative and columns are for tour purposes.  The alternatives, as well as tem
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">nonmotskm.omx - an OMX matrix file containing the following MTC TM1 skim matrices:</p>
-<blockquote>
-<div><ul class="simple">
-<li>DIST - network distance</li>
-<li>DISTBIKE - bike network distance</li>
-<li>DISTWALK - walk network distance</li>
-</ul>
-</div></blockquote>
+<li><p class="first">nonmotskm.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.</p>
 </li>
 </ul>
-<p>Both of these files can be downloaded from MTC&#8217;s <a class="reference external" href="https://mtcdrive.app.box.com/activitysim/1/7484860689">box account</a> and both files can
+<p>Both of these files can be downloaded from the <cite>SF 25 zone example</cite> example data folder on
+MTC&#8217;s <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  Both files can
 be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.
 The pandas DataFrames are stored in an efficient pandas format within the HDF5 file so they are a
 bit cumbersome to inspect.</p>
 <p>The <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
 This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5
 file.</p>
-<p>The full set of MTC TM1 skims is not required for the current example.  An example that requires
-the full set of skims is in development and so the full set of OMX skims are <a class="reference external" href="https://mtcdrive.app.box.com/activitysim/1/6951892398">here</a>.  The scripts to
-convert these into one OMX file for use in ActivitySim are in the <code class="docutils literal"><span class="pre">scripts</span></code> folder and use the
-<a class="reference external" href="https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter">Cube to OMX converter</a>.</p>
+<p>The full set of MTC TM1 OMX skims are also on the box account. The <code class="docutils literal"><span class="pre">scripts\build_omx.py</span></code> script
+will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
+Cube to OMX using the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter">Cube to OMX converter</a>.</p>
+<p>Finally, the example inputs were created by the <code class="docutils literal"><span class="pre">scripts\create_sf_example.py</span></code> script,
+which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.</p>
 </div>
 <div class="section" id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
@@ -465,9 +461,8 @@ columns indicates the number of non-mandatory tours by purpose.</p>
 <li>Open a command line window in the <code class="docutils literal"><span class="pre">example</span></code> folder</li>
 <li>Ensure running <code class="docutils literal"><span class="pre">python</span></code> will call the Anaconda Python install on your machine</li>
 <li>Run <code class="docutils literal"><span class="pre">python</span> <span class="pre">simulation.py</span></code></li>
-<li>ActivitySim will print some logging information.  The example should complete within a couple minutes since</li>
+<li>ActivitySim will print some logging information.  The example should complete within a couple minutes since it is running a small sample of households.</li>
 </ul>
-<p>it is running a small sample of households.</p>
 </div>
 <div class="section" id="outputs">
 <h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h3>

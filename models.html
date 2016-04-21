@@ -569,6 +569,14 @@ destination, so in this case tours are the choosers (with the associated
 person that&#8217;s making the tour)</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="activitysim.defaults.models.destination.patch_mandatory_tour_destination">
+<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">patch_mandatory_tour_destination</code><span class="sig-paren">(</span><em>mandatory_tours_merged</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.patch_mandatory_tour_destination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Patch destination column of mandatory tours with school or workplace taz
+to conform to non-mandatory tours naming so that computed columns in the tours
+table can use destination for any tour type.</p>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="mandatory-scheduling">
@@ -609,18 +617,16 @@ alternatives above) - these trips include work and school in some combination.</
 </div>
 <div class="section" id="mode-tour-and-trip">
 <h2>Mode (Tour and Trip)<a class="headerlink" href="#mode-tour-and-trip" title="Permalink to this headline">¶</a></h2>
-<p>This model is partially implemented.  The tour and trip mode model currently
-operates for tour purpose eatout only and uses the household home zone and
-workplace zone for all skim indexing.  The trip mode model repeats the same
-operation as the tour mode model, but uses the trip mode expression specification.</p>
+<p>The trip mode model currently operates on the tour table.  The trip model model repeats the same
+operation as the tour mode model, but uses the trip mode expression specification instead.</p>
 <div class="section" id="tour">
 <h3>Tour<a class="headerlink" href="#tour" title="Permalink to this headline">¶</a></h3>
 <p>The main interface to the tour mode model is the
 <code class="xref py py-func docutils literal"><span class="pre">_mode_choice_simulate()</span></code>
 function.  This function is called in the orca step <code class="docutils literal"><span class="pre">tour_mode_choice_simulate</span></code> and in
 the example via <code class="docutils literal"><span class="pre">orca.run([&quot;tour_mode_choice_simulate&quot;])</span></code>.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz</span></code> |
-Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,TAZ,out_period</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code> |
+Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
 </div>
 <div class="section" id="trip">
 <h3>Trip<a class="headerlink" href="#trip" title="Permalink to this headline">¶</a></h3>
@@ -628,8 +634,8 @@ Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,work
 <code class="xref py py-func docutils literal"><span class="pre">_mode_choice_simulate()</span></code>
 function.  This function is called in the orca step <code class="docutils literal"><span class="pre">trip_mode_choice_simulate</span></code> and in
 the example via <code class="docutils literal"><span class="pre">orca.run([&quot;trip_mode_choice_simulate&quot;])</span></code>.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz</span></code>
-Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,workplace_taz,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,TAZ,out_period</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code>
+Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
 </div>
 <div class="section" id="id5">
 <h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>

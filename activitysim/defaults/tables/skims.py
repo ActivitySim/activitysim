@@ -27,19 +27,16 @@ def distance_skim(skims):
 
 @orca.injectable()
 def sovam_skim(skims):
-    # FIXME use the right skim
     return skims[('SOV_TIME', 'AM')]
 
 
 @orca.injectable()
 def sovmd_skim(skims):
-    # FIXME use the right skim
     return skims[('SOV_TIME', 'MD')]
 
 
 @orca.injectable()
 def sovpm_skim(skims):
-    # FIXME use the right skim
     return skims[('SOV_TIME', 'PM')]
 
 

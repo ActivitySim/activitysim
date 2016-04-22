@@ -91,7 +91,7 @@ def _mode_choice_simulate(tours,
                           spec,
                           additional_constants,
                           omx=None,
-                          time_periods=None):
+                          cache_skim_key_values=None):
     """
     This is a utility to run a mode choice model for each segment (usually
     segments are trip purposes).  Pass in the tours that need a mode,
@@ -114,8 +114,8 @@ def _mode_choice_simulate(tours,
     skims.set_keys(orig_key, dest_key)
 
     if omx:
-        in_skims.set_omx(omx, skim_key_values_to_cache=time_periods)
-        out_skims.set_omx(omx, skim_key_values_to_cache=time_periods)
+        in_skims.set_omx(omx, cache_skim_key_values=cache_skim_key_values)
+        out_skims.set_omx(omx, cache_skim_key_values=cache_skim_key_values)
 
     locals_d = {
         "in_skims": in_skims,
@@ -155,7 +155,7 @@ def get_segment_and_unstack(spec, segment):
 def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
-                              skims, omx_file, time_periods):
+                              skims, omx_file, cache_skim_key_values):
 
     tours = tours_merged.to_frame()
 
@@ -192,13 +192,14 @@ def tour_mode_choice_simulate(tours_merged,
             spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
             additional_constants=tour_mode_choice_settings['CONSTANTS'],
             omx=omx_file,
-            time_periods=time_periods)
+            cache_skim_key_values=cache_skim_key_values)
 
         # FIXME - log
-        print asim.usage('tour_mode_choice_simulate post-tour_type')
-
-        print "Choices:\n", choices.value_counts()
+        # print "Choices:\n", choices.value_counts()
         choices_list.append(choices)
+
+        # FIXME - this forces garbage collection
+        print asim.usage('tour_type %s' % tour_type)
 
     choices = pd.concat(choices_list)
 
@@ -206,12 +207,15 @@ def tour_mode_choice_simulate(tours_merged,
 
     orca.add_column("tours", "mode", choices)
 
+    # FIXME - this forces garbage collection
+    print asim.usage('tour_mode_choice_simulate')
+
 
 @orca.step()
 def trip_mode_choice_simulate(tours_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
-                              skims, omx_file, time_periods):
+                              skims, omx_file, cache_skim_key_values):
 
     # FIXME running the trips model on tours
     trips = tours_merged.to_frame()
@@ -250,12 +254,15 @@ def trip_mode_choice_simulate(tours_merged,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),
             additional_constants=trip_mode_choice_settings['CONSTANTS'],
             omx=omx_file,
-            time_periods=time_periods)
+            cache_skim_key_values=cache_skim_key_values)
 
         # FIXME - log
-        print "Choices:\n", choices.value_counts()
+        # print "Choices:\n", choices.value_counts()
 
         choices_list.append(choices)
+
+        # FIXME - this forces garbage collection
+        print asim.usage('tour_type %s' % tour_type)
 
     choices = pd.concat(choices_list)
 
@@ -263,3 +270,6 @@ def trip_mode_choice_simulate(tours_merged,
     print "Choices for all trip types:\n", choices.value_counts()
 
     orca.add_column("trips", "mode", choices)
+
+    # FIXME - this forces garbage collection
+    print asim.usage('trip_mode_choice_simulate')

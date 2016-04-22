@@ -1,11 +1,17 @@
 store: mtc_asim.h5
 
+
+# these are the defaults
+# preload_3d_skims: False
+# cache_lazy_loaded_skims: False
+
+households_sample_size: 1000
+
 # area_types less than this are considered urban
 urban_threshold: 4
 cbd_threshold: 2
 rural_threshold: 6
 
-households_sample_size: 1000
 grade_school_max_age: 14
 
 county_map:

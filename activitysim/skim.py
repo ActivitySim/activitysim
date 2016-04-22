@@ -459,14 +459,14 @@ class Skims3D(object):
         del self.skims_data[key]
         del self.skim_keys_to_indexes[key]
 
-    def set_omx(self, omx, skim_key_values_to_cache=None):
+    def set_omx(self, omx, cache_skim_key_values=None):
         self.lazy_load = omx is not None
         self.omx = omx
         # full list of skim_key_values to cache since we are updating GLOBAL skims
         # and we can't determine universe of possible skim_key values in context of
         # call to _build_single_3d_matrix_from_disk
-        self.skim_key_values_to_cache = skim_key_values_to_cache
-        self.cache_lazy_loaded_skims = skim_key_values_to_cache is not None
+        self.skim_key_values_to_cache = cache_skim_key_values
+        self.cache_lazy_loaded_skims = bool(cache_skim_key_values)
 
         # FIXME - this is just for benchmarking and can be removed in time
         # self.cache_lazy_loaded_skims = False

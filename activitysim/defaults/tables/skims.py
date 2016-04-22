@@ -20,7 +20,7 @@ def omx_file(data_dir):
     return omx.openFile(os.path.join(data_dir, 'data', "nonmotskm.omx"))
 
 
-@orca.injectable(cache=True)
+@orca.injectable()
 def distance_skim(skims):
     return skims['DISTANCE']
 

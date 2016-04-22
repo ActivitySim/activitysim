@@ -43,12 +43,15 @@ def omx_file(request):
     return omx_file
 
 
-@orca.injectable(cache=False)
-def settings(configs_dir):
+def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None):
+
     with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
-        obj = yaml.load(f)
-        obj['households_sample_size'] = HOUSEHOLDS_SAMPLE_SIZE
-        return obj
+        settings = yaml.load(f)
+        settings['households_sample_size'] = households_sample_size
+        if preload_3d_skims is not None:
+            settings['preload_3d_skims'] = preload_3d_skims
+
+    orca.add_injectable("settings", settings)
 
 
 def set_random_seed():
@@ -74,8 +77,11 @@ def test_size_term():
 
 
 def test_mini_run(store, omx_file, random_seed):
-    orca.add_injectable("configs_dir",
-                        os.path.join(os.path.dirname(__file__)))
+
+    configs_dir = os.path.join(os.path.dirname(__file__))
+    orca.add_injectable("configs_dir", configs_dir)
+
+    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
     orca.add_injectable("omx_file", omx_file)
 
@@ -112,15 +118,17 @@ def test_mini_run(store, omx_file, random_seed):
     orca.clear_cache()
 
 
-def test_full_run(store, omx_file):
-    orca.add_injectable("configs_dir",
-                        os.path.join(os.path.dirname(__file__), '..', '..',
-                                     '..', 'example'))
+def full_run(store, omx_file, preload_3d_skims):
+
+    configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example')
+    orca.add_injectable("configs_dir", configs_dir)
+
+    inject_settings(configs_dir,
+                    households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+                    preload_3d_skims=preload_3d_skims)
 
     orca.add_injectable("omx_file", omx_file)
-
     orca.add_injectable("store", store)
-
     orca.add_injectable("set_random_seed", set_random_seed)
 
     # grab some of the tables
@@ -147,3 +155,13 @@ def test_full_run(store, omx_file):
     orca.run(["trip_mode_choice_simulate"])
 
     orca.clear_cache()
+
+
+def test_full_run(store, omx_file):
+
+    full_run(store, omx_file, preload_3d_skims=False)
+
+
+def test_full_run_with_preload_skims(store, omx_file):
+
+    full_run(store, omx_file, preload_3d_skims=True)

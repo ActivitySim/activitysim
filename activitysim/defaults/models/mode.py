@@ -113,7 +113,7 @@ def _mode_choice_simulate(tours,
                               offset=-1)
     skims.set_keys(orig_key, dest_key)
 
-    if omx:
+    if omx is not None:
         in_skims.set_omx(omx, cache_skim_key_values=cache_skim_key_values)
         out_skims.set_omx(omx, cache_skim_key_values=cache_skim_key_values)
 

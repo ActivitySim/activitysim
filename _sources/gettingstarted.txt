@@ -494,7 +494,8 @@ Then when model expressions such as ``@in_skims['WLK_LOC_WLK_TOTIVT']`` are solv
 the ``WLK_LOC_WLK_TOTIVT`` skim matrix values for all chooser table origins, destinations, and 
 in_periods can be looked-up in one request.
 
-Skims3D currently get the requested OMX data from disk every time a vectorized request is made.
+Dpending on the settings, Skims3D can either get the requested OMX data from disk every time 
+a vectorized request is made or pre-load (cache) all the skims at the beginning of a model run.
 
 See :ref:`skims_in_detail` for more information on skim handling.
 

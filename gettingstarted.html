@@ -663,7 +663,8 @@ a collection of skims with a third dimension, which in this case in time period.
 <p>Then when model expressions such as <code class="docutils literal"><span class="pre">&#64;in_skims['WLK_LOC_WLK_TOTIVT']</span></code> are solved,
 the <code class="docutils literal"><span class="pre">WLK_LOC_WLK_TOTIVT</span></code> skim matrix values for all chooser table origins, destinations, and
 in_periods can be looked-up in one request.</p>
-<p>Skims3D currently get the requested OMX data from disk every time a vectorized request is made.</p>
+<p>Dpending on the settings, Skims3D can either get the requested OMX data from disk every time
+a vectorized request is made or pre-load (cache) all the skims at the beginning of a model run.</p>
 <p>See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information on skim handling.</p>
 </div>
 </div>

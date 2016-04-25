@@ -44,8 +44,9 @@ def employment_density(land_use):
 
 @orca.column("land_use")
 def density_index(land_use):
+    # FIXME - avoid div by 0
     return (land_use.household_density * land_use.employment_density) / \
-        (land_use.household_density + land_use.employment_density)
+        (land_use.household_density + land_use.employment_density).clip(lower=1)
 
 
 @orca.column("land_use")

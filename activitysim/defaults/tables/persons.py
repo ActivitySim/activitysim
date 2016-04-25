@@ -276,6 +276,7 @@ def distance_to_school(persons, distance_skim):
 
 # similar but this adds the am peak travel time to the pm peak travel time in
 # the opposite direction (by car)
+# FIXME - MTC TM1 was MD and MD since term is free flow roundtrip_auto_time_to_work
 @orca.column("persons_workplace")
 def roundtrip_auto_time_to_work(persons, sovam_skim, sovpm_skim):
     return pd.Series(sovam_skim.get(persons.home_taz,
@@ -287,6 +288,7 @@ def roundtrip_auto_time_to_work(persons, sovam_skim, sovpm_skim):
 
 # this adds the am peak travel time to the md peak travel time in
 # the opposite direction (by car), assuming students leave school earlier
+# FIXME - MTC TM1 was MD and MD since term is free flow roundtrip_auto_time_to_school
 @orca.column("persons_school")
 def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
     return pd.Series(sovam_skim.get(persons.home_taz,

@@ -22,22 +22,26 @@ def omx_file(data_dir):
 
 @orca.injectable()
 def distance_skim(skims):
-    return skims['DISTANCE']
+    # want the Skim
+    return skims.get_skim('DISTANCE')
 
 
 @orca.injectable()
 def sovam_skim(skims):
-    return skims[('SOV_TIME', 'AM')]
+    # want the Skim
+    return skims.get_skim(('SOV_TIME', 'AM'))
 
 
 @orca.injectable()
 def sovmd_skim(skims):
-    return skims[('SOV_TIME', 'MD')]
+    # want the Skim
+    return skims.get_skim(('SOV_TIME', 'MD'))
 
 
 @orca.injectable()
 def sovpm_skim(skims):
-    return skims[('SOV_TIME', 'PM')]
+    # want the Skim
+    return skims.get_skim(('SOV_TIME', 'PM'))
 
 
 @orca.injectable(cache=True)

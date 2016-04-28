@@ -200,7 +200,26 @@ class Skims(object):
 
     def __getitem__(self, key):
         """
-        Get an available skim object
+        Get the (df implicit) lookup for an available skim object
+
+        Parameters
+        ----------
+        key : hashable
+             The key (identifier) for this skim object
+
+        Returns
+        -------
+        impedances: pd.Series
+            A Series of impedances which are elements of the Skim object and
+            with the same index as df
+        """
+        # FIXME - misleading and confusing that this getter is NOT symmetrical to __setitem__
+        # get_skim below is the symmetrical getter corresponding to __setitem__
+        return self.lookup(self.skims[key])
+
+    def get_skim(self, key):
+        """
+        Get an available skim object (not the lookup)
 
         Parameters
         ----------
@@ -212,7 +231,8 @@ class Skims(object):
         skim: Skim
              The skim object
         """
-        return self.lookup(self.skims[key])
+        # FIXME - misleading that this (and NOT __getitem__) is symmetrical to __setitem__ setter
+        return self.skims[key]
 
 
 class Skims3D(object):

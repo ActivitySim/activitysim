@@ -67,6 +67,8 @@ def skims(omx_file, preload_3d_skims, cache_skim_key_values):
                 skims[skim_key_tuple] = skim.Skim(omx_file[skim_name], offset=-1)
 
     else:
+        print "preload_3d_skims: False"
+
         # need to load these for the injectables above
         skims[('SOV_TIME', 'AM')] = skim.Skim(omx_file['SOV_TIME__AM'], offset=-1)
         skims[('SOV_TIME', 'PM')] = skim.Skim(omx_file['SOV_TIME__PM'], offset=-1)

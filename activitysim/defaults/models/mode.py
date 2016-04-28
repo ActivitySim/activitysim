@@ -90,8 +90,7 @@ def _mode_choice_simulate(tours,
                           dest_key,
                           spec,
                           additional_constants,
-                          omx=None,
-                          cache_skim_key_values=None):
+                          omx=None):
     """
     This is a utility to run a mode choice model for each segment (usually
     segments are trip purposes).  Pass in the tours that need a mode,
@@ -114,8 +113,8 @@ def _mode_choice_simulate(tours,
     skims.set_keys(orig_key, dest_key)
 
     if omx is not None:
-        in_skims.set_omx(omx, cache_skim_key_values=cache_skim_key_values)
-        out_skims.set_omx(omx, cache_skim_key_values=cache_skim_key_values)
+        in_skims.set_omx(omx)
+        out_skims.set_omx(omx)
 
     locals_d = {
         "in_skims": in_skims,
@@ -155,7 +154,7 @@ def get_segment_and_unstack(spec, segment):
 def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
-                              skims, omx_file, cache_skim_key_values):
+                              skims, omx_file):
 
     tours = tours_merged.to_frame()
 
@@ -191,8 +190,7 @@ def tour_mode_choice_simulate(tours_merged,
             dest_key=dest_key,
             spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
             additional_constants=tour_mode_choice_settings['CONSTANTS'],
-            omx=omx_file,
-            cache_skim_key_values=cache_skim_key_values)
+            omx=omx_file)
 
         # FIXME - log
         # print "Choices:\n", choices.value_counts()
@@ -215,7 +213,7 @@ def tour_mode_choice_simulate(tours_merged,
 def trip_mode_choice_simulate(tours_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
-                              skims, omx_file, cache_skim_key_values):
+                              skims, omx_file):
 
     # FIXME running the trips model on tours
     trips = tours_merged.to_frame()
@@ -253,8 +251,7 @@ def trip_mode_choice_simulate(tours_merged,
             dest_key=dest_key,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),
             additional_constants=trip_mode_choice_settings['CONSTANTS'],
-            omx=omx_file,
-            cache_skim_key_values=cache_skim_key_values)
+            omx=omx_file)
 
         # FIXME - log
         # print "Choices:\n", choices.value_counts()

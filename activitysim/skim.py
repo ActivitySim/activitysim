@@ -292,7 +292,6 @@ class Skims3D(object):
 
         # lazy load support - enabled via call to set_omx
         self.lazy_load = False
-        self.cache_lazy_loaded_skims = False
         self.preloaded_skims = {}
         self.omx = None
         self.skims = skims.skims
@@ -421,11 +420,7 @@ class Skims3D(object):
     skims for different time periods into a single 3D matrix (origin,
     destination, and time period).  Unfortunately this doesn't run as fast as I
     thought it might - I actually think the stacking is pretty slow especially
-    so this code currently uses a shortcut to just read in DIST over and over
-    again (which is the only skim I have access to right now anyway).  In the
-    Travis tests I actually build a random skim to use for this matrix anyway,
-    so that I don't have to check into git a 16MB file.  Anyway, this should be
-    considered a work-in-progress and a "low memory" mode.  It is not right now
+    Anyway, this should be considered a "low memory" mode.  It is not right now
     working very well (I mean it works, just very slowly).
     """
 
@@ -440,53 +435,29 @@ class Skims3D(object):
         # print "my_get_from_omx - key: '%s' v: '%s', omx_key: '%s'" % (key, v, omx_key)
         return self.omx[omx_key]
 
-    def _get_from_omx(self, key, v):
-        data = self.get_from_omx(key, v)
-        if self.cache_lazy_loaded_skims:
-            self.skims[(key, v)] = Skim(data, offset=-1)
-        return data
-
     def _build_single_3d_matrix_from_disk(self, key):
 
-        if key in self.preloaded_skims:
-            # FIXME - log
-            # print "_build_single_3d_matrix_from_disk key preloaded: ", key
-            return
+        if key not in self.preloaded_skims:
 
-        if self.cache_lazy_loaded_skims:
-            # the individual skims will be cached by _get_from_omx
-            self.preloaded_skims[key] = True
-            uniq = self.skim_key_values_to_cache
-        else:
             # get list of unique second-tuple-item keys (aka skim_key2)
             uniq = self.df[self.skim_key].unique()
 
-        # FIXME - log
-        # print "_build_single_3d_matrix_from_disk key = '%s' key2 = %s " % (key, uniq)
+            # print "_build_single_3d_matrix_from_disk key = '%s' key2 = %s " % (key, uniq)
 
-        self.skims_data[key] = np.dstack(
-            [self._get_from_omx(key, v) for v in uniq])
+            self.skims_data[key] = np.dstack(
+                [self.get_from_omx(key, v) for v in uniq])
 
-        self.skim_keys_to_indexes[key] = {i: v for i, v in
-                                          zip(uniq, range(len(uniq)))}
+            self.skim_keys_to_indexes[key] = {i: v for i, v in
+                                              zip(uniq, range(len(uniq)))}
 
     def _tear_down_single_3d_matrix(self, key):
-        if self.cache_lazy_loaded_skims:
-            return
 
-        # FIXME - log
-        # print "_tear_down_single_3d_matrix for key = '%s'" % (key, )
-        del self.skims_data[key]
-        del self.skim_keys_to_indexes[key]
+        if key not in self.preloaded_skims:
+            # FIXME - log
+            # print "_tear_down_single_3d_matrix for key = '%s'" % (key, )
+            del self.skims_data[key]
+            del self.skim_keys_to_indexes[key]
 
-    def set_omx(self, omx, cache_skim_key_values=None):
+    def set_omx(self, omx):
         self.lazy_load = omx is not None
         self.omx = omx
-        # full list of skim_key_values to cache since we are updating GLOBAL skims
-        # and we can't determine universe of possible skim_key values in context of
-        # call to _build_single_3d_matrix_from_disk
-        self.skim_key_values_to_cache = cache_skim_key_values
-        self.cache_lazy_loaded_skims = bool(cache_skim_key_values)
-
-        # FIXME - this is just for benchmarking and can be removed in time
-        # self.cache_lazy_loaded_skims = False

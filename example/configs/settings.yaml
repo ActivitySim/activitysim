@@ -3,7 +3,6 @@ store: mtc_asim.h5
 
 # these are the defaults
 # preload_3d_skims: False
-# cache_lazy_loaded_skims: False
 
 households_sample_size: 1000
 

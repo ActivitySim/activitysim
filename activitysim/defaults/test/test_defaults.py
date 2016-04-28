@@ -131,6 +131,8 @@ def full_run(store, omx_file, preload_3d_skims):
     orca.add_injectable("store", store)
     orca.add_injectable("set_random_seed", set_random_seed)
 
+    orca.clear_cache()
+
     # grab some of the tables
     orca.get_table("land_use").to_frame().info()
     orca.get_table("households").to_frame().info()

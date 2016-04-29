@@ -15,14 +15,13 @@ import psutil
 import gc
 
 
-def usage(when):
+def memory_info():
     gc.collect()
     process = psutil.Process(os.getpid())
     bytes = process.memory_info().rss
     mb = (bytes / (1024 * 1024.0))
     gb = (bytes / (1024 * 1024 * 1024.0))
-    return "USAGE: %s current: %s MB (%s GB)" % \
-           (when, int(mb), round(gb, 2))
+    return "memory_info: %s MB (%s GB)" % (int(mb), round(gb, 2))
 
 
 def random_rows(df, n):

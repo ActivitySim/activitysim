@@ -202,7 +202,7 @@ def tour_mode_choice_simulate(tours_merged,
         choices_list.append(choices)
 
         # FIXME - this forces garbage collection
-        print asim.usage('tour_type %s' % tour_type)
+        print 'memory_info tour_type %s' % tour_type, asim.memory_info(), "\n"
 
     choices = pd.concat(choices_list)
 
@@ -211,7 +211,7 @@ def tour_mode_choice_simulate(tours_merged,
     orca.add_column("tours", "mode", choices)
 
     # FIXME - this forces garbage collection
-    print asim.usage('tour_mode_choice_simulate')
+    asim.memory_info()
 
 
 @orca.step()
@@ -267,7 +267,7 @@ def trip_mode_choice_simulate(tours_merged,
         choices_list.append(choices)
 
         # FIXME - this forces garbage collection
-        print asim.usage('tour_type %s' % tour_type)
+        print 'memory_info tour_type %s' % tour_type, asim.memory_info(), "\n"
 
     choices = pd.concat(choices_list)
 
@@ -277,4 +277,4 @@ def trip_mode_choice_simulate(tours_merged,
     orca.add_column("trips", "mode", choices)
 
     # FIXME - this forces garbage collection
-    print asim.usage('trip_mode_choice_simulate')
+    asim.memory_info()

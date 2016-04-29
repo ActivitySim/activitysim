@@ -264,7 +264,7 @@ class SkimStack(object):
             self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
 
         # FIXME - log
-        print "SkimStack.__init__ loaded and stacked %s skims for %s keys from skims" \
+        print "SkimStack.__init__ loaded and stacked %s skims for %s keys" \
               % (len(skims.skims.keys()), len(self.skim_keys_to_indexes.keys()))
 
     def key_count(self):

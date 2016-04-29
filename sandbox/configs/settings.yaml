@@ -5,7 +5,7 @@ store: mtc_asim.h5
 # preload_3d_skims: False
 
 preload_3d_skims: True
-households_sample_size: 30000
+households_sample_size: 1000
 
 
 # area_types less than this are considered urban

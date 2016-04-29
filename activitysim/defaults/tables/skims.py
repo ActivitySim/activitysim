@@ -47,15 +47,14 @@ def sovpm_skim(skims):
 @orca.injectable(cache=True)
 def skims(omx_file, preload_3d_skims, cache_skim_key_values):
 
+    print "loading skims (preload_3d_skims: %s)" % preload_3d_skims
+
     skims = skim.Skims()
     skims['DISTANCE'] = skim.Skim(omx_file['DIST'], offset=-1)
     skims['DISTBIKE'] = skim.Skim(omx_file['DISTBIKE'], offset=-1)
     skims['DISTWALK'] = skim.Skim(omx_file['DISTWALK'], offset=-1)
 
     if preload_3d_skims:
-
-        print "preload_3d_skims"
-
         # FIXME - assumes that the only types of key2 are time_periods
         # there may be more time periods in the skim than are used by the model
         skims_in_omx = omx_file.listMatrices()
@@ -63,10 +62,7 @@ def skims(omx_file, preload_3d_skims, cache_skim_key_values):
             key, sep, key2 = skim_name.partition('__')
             if key2 and key2 in cache_skim_key_values:
                 skims.set_3d(key, key2, skim.Skim(omx_file[skim_name], offset=-1))
-
     else:
-        print "preload_3d_skims: False"
-
         # need to load these for the injectables above
         skims.set_3d('SOV_TIME', 'AM', skim.Skim(omx_file['SOV_TIME__AM'], offset=-1))
         skims.set_3d('SOV_TIME', 'PM', skim.Skim(omx_file['SOV_TIME__PM'], offset=-1))
@@ -78,5 +74,5 @@ def skims(omx_file, preload_3d_skims, cache_skim_key_values):
 @orca.injectable(cache=True)
 def stacked_skims(skims):
 
-    print "stacked_skims"
+    print "loading stacked_skims"
     return skim.SkimStack(skims)

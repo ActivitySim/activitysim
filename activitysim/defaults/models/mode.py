@@ -86,6 +86,7 @@ def trip_mode_choice_spec(trip_mode_choice_spec_df,
 
 def _mode_choice_simulate(tours,
                           skims,
+                          stack,
                           orig_key,
                           dest_key,
                           spec,
@@ -104,17 +105,20 @@ def _mode_choice_simulate(tours,
 
     # FIXME - check that periods are in time_periods?
 
-    in_skims = askim.Skims3D(skims=skims.set_keys(orig_key, dest_key),
+    in_skims = askim.Skims3D(stack=stack,
+                             left_key=orig_key, right_key=dest_key,
                              skim_key="in_period",
                              offset=-1)
-    out_skims = askim.Skims3D(skims=skims.set_keys(dest_key, orig_key),
+    out_skims = askim.Skims3D(stack=stack,
+                              left_key=dest_key, right_key=orig_key,
                               skim_key="out_period",
                               offset=-1)
-    skims.set_keys(orig_key, dest_key)
 
     if omx is not None:
         in_skims.set_omx(omx)
         out_skims.set_omx(omx)
+
+    skims.set_keys(orig_key, dest_key)
 
     locals_d = {
         "in_skims": in_skims,
@@ -154,7 +158,8 @@ def get_segment_and_unstack(spec, segment):
 def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
-                              skims, omx_file):
+                              skims, stacked_skims,
+                              omx_file):
 
     tours = tours_merged.to_frame()
 
@@ -185,7 +190,7 @@ def tour_mode_choice_simulate(tours_merged,
 
         choices = _mode_choice_simulate(
             tour_type_tours,
-            skims,
+            skims, stacked_skims,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
@@ -213,10 +218,13 @@ def tour_mode_choice_simulate(tours_merged,
 def trip_mode_choice_simulate(tours_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
-                              skims, omx_file):
+                              skims,
+                              stacked_skims,
+                              omx_file):
 
     # FIXME running the trips model on tours
     trips = tours_merged.to_frame()
+    stack = askim.SkimStack(skims)
 
     choices_list = []
 
@@ -246,7 +254,7 @@ def trip_mode_choice_simulate(tours_merged,
 
         choices = _mode_choice_simulate(
             tour_type_tours,
-            skims,
+            skims, stacked_skims,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),

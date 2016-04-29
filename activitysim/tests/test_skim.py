@@ -94,7 +94,9 @@ def test_3dskims(data):
     skims.set_3d("SOV", "AM", sk)
     skims.set_3d("SOV", "PM", sk2)
 
-    skims3d = skim.Skims3D(skims, "period")
+    stack = skim.SkimStack(skims)
+
+    skims3d = skim.Skims3D(stack=stack, left_key="taz_l", right_key="taz_r", skim_key="period")
 
     df = pd.DataFrame({
         "taz_l": [1, 9, 4],

@@ -89,6 +89,8 @@ def test_mini_run(store, omx_file, random_seed):
 
     orca.add_injectable("set_random_seed", set_random_seed)
 
+    orca.clear_cache()
+
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order

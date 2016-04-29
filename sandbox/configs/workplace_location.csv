@@ -1,0 +1,17 @@
+Description,Expression,Alt
+"Distance, piecewise linear from 0 to 1 miles",@skims['DISTANCE'].clip(1),-0.8428
+"Distance, piecewise linear from 1 to 2 miles","@(skims['DISTANCE']-1).clip(0,1)",-0.3104
+"Distance, piecewise linear from 2 to 5 miles","@(skims['DISTANCE']-2).clip(0,3)",-0.3783
+"Distance, piecewise linear from 5 to 15 miles","@(skims['DISTANCE']-5).clip(0,10)",-0.1285
+"Distance, piecewise linear for 15+ miles",@(skims['DISTANCE']-15.0).clip(0),-0.0917
+"Distance 0 to 5 mi, high and very high income",@(df.income_segment>=3)*skims['DISTANCE'].clip(upper=5),0.15
+"Distance 5+ mi, high and very high income",@(df.income_segment>=3)*(skims['DISTANCE']-5).clip(0),0.02
+"Size variable full-time worker, low income","@(df.income_segment==1)*df['work, low'].apply(np.log1p)",1
+"Size variable full-time worker, medium income","@(df.income_segment==2)*df['work, med'].apply(np.log1p)",1
+"Size variable full-time worker, high income","@(df.income_segment==3)*df['work, high'].apply(np.log1p)",1
+"Size variable full-time worker, very high income","@(df.income_segment==4)*df['work, veryhigh'].apply(np.log1p)",1
+"No attractions full-time worker, low income","@(df.income_segment==1)&(df['work, low']==0)",-999
+"No attractions full-time worker, medium income","@(df.income_segment==2)&(df['work, med']==0)",-999
+"No attractions full-time worker, high income","@(df.income_segment==3)&(df['work, high']==0)",-999
+"No attractions full-time worker, very high income","@(df.income_segment==4)&(df['work, veryhigh']==0)",-999
+Mode choice logsum,mode_choice_logsums,0.3

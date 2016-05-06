@@ -234,66 +234,6 @@ for an evaluation of an expression that begins with &#64;</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.activitysim.interaction_simulate">
-<code class="descclassname">activitysim.activitysim.</code><code class="descname">interaction_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.interaction_simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a simulation in the situation in which alternatives must
-be merged with choosers because there are interaction terms or
-because alternatives are being sampled.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of choosers</p>
-</div></blockquote>
-<p><strong>alternatives</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of alternatives - will be merged with choosers, currently
-without sampling</p>
-</div></blockquote>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A Pandas DataFrame that gives the specification of the variables to
-compute and the coefficients for each variable.
-Variable specifications must be in the table index and the
-table should have only one column of coefficients.</p>
-</div></blockquote>
-<p><strong>skims</strong> : Skims object</p>
-<blockquote>
-<div><p>The skims object is used to contain multiple matrices of
-origin-destination impedances.  Make sure to also add it to the
-locals_d below in order to access it in expressions.  The <em>only</em> job
-of this method in regards to skims is to call set_df with the
-dataframe that comes back from interacting choosers with
-alternatives.  See the skims module for more documentation on how
-the skims object is intended to be used.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
-for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>sample_size</strong> : int, optional</p>
-<blockquote>
-<div><p>Sample alternatives with sample of given size.  By default is None,
-which does not sample alternatives.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ret</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>A series where index should match the index of the choosers DataFrame
-and values will match the index of the alternatives DataFrame -
-choices are simulated in the standard Monte Carlo fashion</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.activitysim.other_than">
 <code class="descclassname">activitysim.activitysim.</code><code class="descname">other_than</code><span class="sig-paren">(</span><em>groups</em>, <em>bools</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.other_than" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a Series that has booleans indicating the presence of

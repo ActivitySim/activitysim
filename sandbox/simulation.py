@@ -32,7 +32,8 @@ CONFIGS_DIRS = {
 def inject_settings(config='sandbox',
                     data='test',
                     households_sample_size=1000,
-                    preload_3d_skims=True):
+                    preload_3d_skims=True,
+                    chunk_size = 0):
 
     assert config in  CONFIGS_DIRS.keys(), 'Unknown config dir %s' % config
     config_dir = CONFIGS_DIRS.get(config)
@@ -46,6 +47,7 @@ def inject_settings(config='sandbox',
         settings = yaml.load(f)
         settings['households_sample_size'] = households_sample_size
         settings['preload_3d_skims'] = preload_3d_skims
+        settings['chunk_size'] = chunk_size
     orca.add_injectable("settings", settings)
 
 
@@ -66,6 +68,7 @@ def print_settings():
     print "configs_dir:", orca.get_injectable('configs_dir')
     print "households_sample_size =", orca.get_injectable('settings')['households_sample_size']
     print "preload_3d_skims = ", orca.get_injectable('preload_3d_skims')
+    print "chunk_size = ", orca.get_injectable('chunk_size')
 
 
 def set_random_seed():
@@ -91,7 +94,8 @@ orca.add_injectable("set_random_seed", set_random_seed)
 inject_settings(config='example',
                 data='example',
                 households_sample_size=1000,
-                preload_3d_skims=True)
+                preload_3d_skims=True,
+                chunk_size = 500)
 
 print "gc enabled:", gc.isenabled()
 print "gc get_threshold:", gc.get_threshold()

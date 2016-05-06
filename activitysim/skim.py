@@ -235,6 +235,48 @@ class Skims(object):
         return self.skims[key]
 
 
+class SkimStack(object):
+
+    def __init__(self, skims):
+
+        self.skims_data = {}
+        self.skim_keys_to_indexes = {}
+
+        # pass to make dictionary of dictionaries where highest level is unique
+        # first items of the tuples and the 2nd level is the second items of
+        # the tuples
+        for key, value in skims.skims.iteritems():
+            if not isinstance(key, tuple) or not len(key) == 2:
+                # FIXME - log
+                # print "WARNING, Skims3D __init__ skipping key: ", key
+                continue
+            skim_key1, skim_key2 = key
+            # FIXME - log
+            # print "SkimStack init key: skim_key1='%s' skim_key2='%s'" % (skim_key1, skim_key2)
+            # FIXME - this is just an object assignment not an actual copy?
+            self.skims_data.setdefault(skim_key1, {})[skim_key2] = value.data
+
+        # second pass to turn the each highest level value into a 3D array
+        # with a dictionary to make second level keys to indexes
+        for skim_key1, value in self.skims_data.iteritems():
+            # FIXME - this actually creates new stacked data
+            self.skims_data[skim_key1] = np.dstack(value.values())
+            self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
+
+        # FIXME - log
+        print "SkimStack.__init__ loaded and stacked %s skims for %s keys" \
+              % (len(skims.skims.keys()), len(self.skim_keys_to_indexes.keys()))
+
+    def key_count(self):
+        return len(self.skim_keys_to_indexes.keys())
+
+    def contains(self, key):
+        return key in self.skims_data
+
+    def get(self, key):
+        return self.skims_data[key], self.skim_keys_to_indexes[key]
+
+
 class Skims3D(object):
     """
     A Skims3D object wraps a skim objects to add an additional wrinkle of
@@ -281,53 +323,21 @@ class Skims3D(object):
         offsets will be ignored
     """
 
-    def __init__(self, skims, skim_key, offset=None):
-        self.left_key = skims.left_key
-        self.right_key = skims.right_key
+    def __init__(self, left_key, right_key, skim_key, offset=None, stack=None):
+        self.left_key = left_key
+        self.right_key = right_key
         self.offset = offset
         self.skim_key = skim_key
-        self.df = skims.df
-        self.skims_data = {}
-        self.skim_keys_to_indexes = {}
+        self.df = None
+        self.stack = None
 
         # lazy load support - enabled via call to set_omx
         self.lazy_load = False
-        self.cache_lazy_loaded_skims = False
-        self.preloaded_skims = {}
         self.omx = None
-        self.skims = skims.skims
 
-        # pass to make dictionary of dictionaries where highest level is unique
-        # first items of the tuples and the 2nd level is the second items of
-        # the tuples
-        for key, value in skims.skims.iteritems():
-            if not isinstance(key, tuple) or not len(key) == 2:
-                # FIXME - log
-                # print "WARNING, Skims3D __init__ skipping key: ", key
-                continue
-            skim_key1, skim_key2 = key
-            # FIXME - log
-            # print "Skims3D init key: skim_key1='%s' skim_key2='%s'" % (skim_key1, skim_key2)
-            # FIXME - is this just an object assignment or an actual copy? (assignment?)
-            self.skims_data.setdefault(skim_key1, {})[skim_key2] = value.data
-
-        # second pass to turn the each highest level value into a 3D array
-        # with a dictionary to make second level keys to indexes
-        for skim_key1, value in self.skims_data.iteritems():
-            # FIXME - is this just an object assignment or an actual copy?
-            """
-            I think a copy? - maybe this is what is slow about stacking?
-            and wasteful of memory if we are making multiple copies
-            in multiple Skim3D objects for in and out skims in mode choice
-            """
-            self.skims_data[skim_key1] = np.dstack(value.values())
-            self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
-            self.preloaded_skims[skim_key1] = True
-
-        # FIXME - log
-        # print "Skims3D.__init__ received skims with keys: ", skims.skims.keys()
-        # print "Skims3D.__init__ skim_keys_to_indexes: ", self.skim_keys_to_indexes
-        print "Skims3D.__init__ received preloaded %s keys: " % len(skims.skims.keys())
+        if stack is not None:
+            print "Skims3D.__init__ loading %s skims from stack." % stack.key_count()
+            self.stack = stack
 
     def set_df(self, df):
         """
@@ -344,35 +354,6 @@ class Skims3D(object):
         """
         self.df = df
 
-    def lookup(self, key, origins, destinations, skim_indexes):
-        """
-        Generally not called by the user - use __getitem__ instead
-
-        Parameters
-        ----------
-        key : String
-        origins : Series
-            Identifies the origins of trips as indexes
-        destinations : Series
-            Identifies the destinations of trips as indexes
-        skim_index : Series
-            Identifies the indexes of the skims so that different skims can
-            be used for different rows
-
-        Returns
-        -------
-        impedances: pd.Series
-            A Series of impedances which are elements of the Skim object and
-            with the same index as df
-        """
-        assert self.df is not None, "Call set_df first"
-
-        if self.offset:
-            origins = origins + self.offset
-            destinations = destinations + self.offset
-
-        return self.skims_data[key][origins, destinations, skim_indexes]
-
     def __getitem__(self, key):
         """
         Get an available skim object
@@ -388,23 +369,27 @@ class Skims3D(object):
              The skim object
         """
 
-        if self.lazy_load:
-            # read off the disk on the fly
-            self._build_single_3d_matrix_from_disk(key)
-
+        assert self.df is not None, "Call set_df first"
         origins = self.df[self.left_key].astype('int')
         destinations = self.df[self.right_key].astype('int')
-        skim_indexes = self.df[self.skim_key].\
-            map(self.skim_keys_to_indexes[key]).astype('int')
+        if self.offset:
+            origins = origins + self.offset
+            destinations = destinations + self.offset
 
-        ret = pd.Series(
-            self.lookup(key, origins, destinations, skim_indexes),
-            self.df.index
-        )
+        if self.stack.contains(key):
+            stacked_skim_data, skim_keys_to_indexes = self.stack.get(key)
+        elif self.lazy_load:
+            stacked_skim_data, skim_keys_to_indexes = self._load_stacked_skim_from_disk(key)
+        assert stacked_skim_data is not None, "Skims3D key %s missing" % key
 
-        if self.lazy_load:
-            # and now destroy
-            self._tear_down_single_3d_matrix(key)
+        skim_indexes = self.df[self.skim_key].map(skim_keys_to_indexes).astype('int')
+
+        ret = pd.Series(stacked_skim_data[origins, destinations, skim_indexes], self.df.index)
+
+        if not self.stack.contains(key):
+            # FIXME - is there any point to doing this?
+            del stacked_skim_data
+            del skim_keys_to_indexes
 
         return ret
 
@@ -421,11 +406,7 @@ class Skims3D(object):
     skims for different time periods into a single 3D matrix (origin,
     destination, and time period).  Unfortunately this doesn't run as fast as I
     thought it might - I actually think the stacking is pretty slow especially
-    so this code currently uses a shortcut to just read in DIST over and over
-    again (which is the only skim I have access to right now anyway).  In the
-    Travis tests I actually build a random skim to use for this matrix anyway,
-    so that I don't have to check into git a 16MB file.  Anyway, this should be
-    considered a work-in-progress and a "low memory" mode.  It is not right now
+    Anyway, this should be considered a "low memory" mode.  It is not right now
     working very well (I mean it works, just very slowly).
     """
 
@@ -440,53 +421,19 @@ class Skims3D(object):
         # print "my_get_from_omx - key: '%s' v: '%s', omx_key: '%s'" % (key, v, omx_key)
         return self.omx[omx_key]
 
-    def _get_from_omx(self, key, v):
-        data = self.get_from_omx(key, v)
-        if self.cache_lazy_loaded_skims:
-            self.skims[(key, v)] = Skim(data, offset=-1)
-        return data
+    def _load_stacked_skim_from_disk(self, key):
 
-    def _build_single_3d_matrix_from_disk(self, key):
+        # get list of unique second-tuple-item keys (aka skim_key2)
+        uniq = self.df[self.skim_key].unique()
 
-        if key in self.preloaded_skims:
-            # FIXME - log
-            # print "_build_single_3d_matrix_from_disk key preloaded: ", key
-            return
+        # print "_load_stacked_skim_from_disk key = '%s' key2 = %s " % (key, uniq)
 
-        if self.cache_lazy_loaded_skims:
-            # the individual skims will be cached by _get_from_omx
-            self.preloaded_skims[key] = True
-            uniq = self.skim_key_values_to_cache
-        else:
-            # get list of unique second-tuple-item keys (aka skim_key2)
-            uniq = self.df[self.skim_key].unique()
+        skims_data = np.dstack([self.get_from_omx(key, v) for v in uniq])
+        skim_keys_to_indexes = {i: v for i, v in zip(uniq, range(len(uniq)))}
 
-        # FIXME - log
-        # print "_build_single_3d_matrix_from_disk key = '%s' key2 = %s " % (key, uniq)
+        return skims_data, skim_keys_to_indexes
 
-        self.skims_data[key] = np.dstack(
-            [self._get_from_omx(key, v) for v in uniq])
+    def set_omx(self, omx):
 
-        self.skim_keys_to_indexes[key] = {i: v for i, v in
-                                          zip(uniq, range(len(uniq)))}
-
-    def _tear_down_single_3d_matrix(self, key):
-        if self.cache_lazy_loaded_skims:
-            return
-
-        # FIXME - log
-        # print "_tear_down_single_3d_matrix for key = '%s'" % (key, )
-        del self.skims_data[key]
-        del self.skim_keys_to_indexes[key]
-
-    def set_omx(self, omx, cache_skim_key_values=None):
         self.lazy_load = omx is not None
         self.omx = omx
-        # full list of skim_key_values to cache since we are updating GLOBAL skims
-        # and we can't determine universe of possible skim_key values in context of
-        # call to _build_single_3d_matrix_from_disk
-        self.skim_key_values_to_cache = cache_skim_key_values
-        self.cache_lazy_loaded_skims = bool(cache_skim_key_values)
-
-        # FIXME - this is just for benchmarking and can be removed in time
-        # self.cache_lazy_loaded_skims = False

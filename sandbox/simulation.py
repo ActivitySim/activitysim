@@ -76,6 +76,11 @@ def run_model(model_name):
     orca.run([model_name])
     print_memory_info('after %s' % model_name)
 
+pd.options.display.max_columns = 500
+pd.options.display.max_rows = 20
+
+print "max_rows", pd.options.display.max_rows
+print "max_columns", pd.options.display.max_columns
 
 #gc.set_debug(gc.DEBUG_STATS)
 
@@ -84,8 +89,8 @@ orca.add_injectable("set_random_seed", set_random_seed)
 # config = 'sandbox' or 'example'
 # data = 'test', 'example', or 'full'
 inject_settings(config='example',
-                data='example',
-                households_sample_size=1000,
+                data='full',
+                households_sample_size=20000,
                 preload_3d_skims=True)
 
 print "gc enabled:", gc.isenabled()

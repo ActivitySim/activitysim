@@ -43,13 +43,15 @@ def omx_file(request):
     return omx_file
 
 
-def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None):
+def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None):
 
     with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
         settings = yaml.load(f)
         settings['households_sample_size'] = households_sample_size
         if preload_3d_skims is not None:
             settings['preload_3d_skims'] = preload_3d_skims
+        if chunk_size is not None:
+            settings['chunk_size'] = chunk_size
 
     orca.add_injectable("settings", settings)
 
@@ -120,14 +122,15 @@ def test_mini_run(store, omx_file, random_seed):
     orca.clear_cache()
 
 
-def full_run(store, omx_file, preload_3d_skims):
+def full_run(store, omx_file, preload_3d_skims, chunk_size=0):
 
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example')
     orca.add_injectable("configs_dir", configs_dir)
 
     inject_settings(configs_dir,
                     households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                    preload_3d_skims=preload_3d_skims)
+                    preload_3d_skims=preload_3d_skims,
+                    chunk_size=chunk_size)
 
     orca.add_injectable("omx_file", omx_file)
     orca.add_injectable("store", store)
@@ -141,6 +144,7 @@ def full_run(store, omx_file, preload_3d_skims):
     orca.get_table("persons").to_frame().info()
 
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+    assert orca.get_injectable("chunk_size") == chunk_size
 
     # run the models in the expected order
     orca.run(["school_location_simulate"])
@@ -158,14 +162,32 @@ def full_run(store, omx_file, preload_3d_skims):
     orca.run(["tour_mode_choice_simulate"])
     orca.run(["trip_mode_choice_simulate"])
 
+    tours_merged = orca.get_table("tours_merged").to_frame()
+
+    tour_count = len(tours_merged.index)
+
     orca.clear_cache()
+
+    return tour_count
 
 
 def test_full_run(store, omx_file):
 
-    full_run(store, omx_file, preload_3d_skims=False)
+    tour_count = full_run(store, omx_file, preload_3d_skims=False)
+
+    assert(tour_count == 183)
 
 
 def test_full_run_with_preload_skims(store, omx_file):
 
-    full_run(store, omx_file, preload_3d_skims=True)
+    tour_count = full_run(store, omx_file, preload_3d_skims=True)
+
+    assert(tour_count == 183)
+
+
+def test_full_run_with_chunks(store, omx_file):
+
+    tour_count = full_run(store, omx_file, preload_3d_skims=True, chunk_size=10)
+
+    # FIXME - different sampling causes slightly different results?
+    assert(tour_count == 181)

@@ -217,7 +217,51 @@ def simple_simulate(choosers, spec, skims=None, locals_d=None):
     return choices, model_design
 
 
+def chunked_choosers(choosers, chunk_size):
+    # generator to iterate over chooses in chunk_size chunks
+    chunk_size = int(chunk_size)
+    last_chooser = len(choosers.index) - 1
+    i = 0
+    while i < last_chooser:
+        yield i, choosers[i: i+chunk_size]
+        i += chunk_size
+
+
 def interaction_simulate(
+        choosers, alternatives, spec,
+        skims=None, locals_d=None, sample_size=None, chunk_size=0):
+
+    # like interaction_simulate but iterates over choosers in chunk_size chunks
+    # FIXME - chunk size should take number of chooser and alternative columns into account
+    # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
+
+    chunk_size = int(chunk_size)
+
+    if (chunk_size == 0) or (chunk_size >= len(choosers.index)):
+        choices, _ = _interaction_simulate(choosers, alternatives, spec,
+                                           skims, locals_d, sample_size)
+        return choices
+
+    choices_list = []
+    # segment by person type and pick the right spec for each person type
+    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+
+        print "Running chunk =%s of size %d" % (i, len(chooser_chunk))
+
+        choices, _ = _interaction_simulate(chooser_chunk, alternatives, spec,
+                                           skims, locals_d, sample_size)
+
+        choices_list.append(choices)
+
+    # FIXME: this will require 2X RAM
+    # if necessary, could append to hdf5 store on disk:
+    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
+    choices = pd.concat(choices_list)
+
+    return choices
+
+
+def _interaction_simulate(
         choosers, alternatives, spec,
         skims=None, locals_d=None, sample_size=None):
     """

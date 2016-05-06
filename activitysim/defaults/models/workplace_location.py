@@ -19,7 +19,8 @@ def workplace_location_simulate(set_random_seed,
                                 persons_merged,
                                 workplace_location_spec,
                                 skims,
-                                destination_size_terms):
+                                destination_size_terms,
+                                chunk_size):
 
     """
     The workplace location model predicts the zones in which various people will
@@ -39,12 +40,16 @@ def workplace_location_simulate(set_random_seed,
     # the skims will be available under the name "skims" for any @ expressions
     locals_d = {"skims": skims}
 
-    choices, _ = asim.interaction_simulate(choosers,
-                                           alternatives,
-                                           workplace_location_spec,
-                                           skims=skims,
-                                           locals_d=locals_d,
-                                           sample_size=50)
+    # FIXME - HACK - only include columns actually used in spec (which we pathologically know)
+    choosers = choosers[["income_segment", "TAZ", "mode_choice_logsums"]]
+
+    choices = asim.interaction_simulate(choosers,
+                                        alternatives,
+                                        workplace_location_spec,
+                                        skims=skims,
+                                        locals_d=locals_d,
+                                        sample_size=50,
+                                        chunk_size=chunk_size)
 
     choices = choices.reindex(persons_merged.index)
 

@@ -21,7 +21,8 @@ def school_location_simulate(set_random_seed,
                              persons_merged,
                              school_location_spec,
                              skims,
-                             destination_size_terms):
+                             destination_size_terms,
+                             chunk_size):
 
     """
     The school location model predicts the zones in which various people will
@@ -45,12 +46,13 @@ def school_location_simulate(set_random_seed,
 
         choosers_segment = choosers[choosers["is_" + school_type]]
 
-        choices, _ = asim.interaction_simulate(choosers_segment,
-                                               alternatives,
-                                               spec[[school_type]],
-                                               skims=skims,
-                                               locals_d=locals_d,
-                                               sample_size=50)
+        choices = asim.interaction_simulate(choosers_segment,
+                                            alternatives,
+                                            spec[[school_type]],
+                                            skims=skims,
+                                            locals_d=locals_d,
+                                            sample_size=50,
+                                            chunk_size=chunk_size)
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)

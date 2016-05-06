@@ -35,7 +35,8 @@ def tot_tours(non_mandatory_tour_frequency_alts):
 def non_mandatory_tour_frequency(set_random_seed,
                                  persons_merged,
                                  non_mandatory_tour_frequency_alts,
-                                 non_mandatory_tour_frequency_spec):
+                                 non_mandatory_tour_frequency_spec,
+                                 chunk_size):
 
     """
     This model predicts the frequency of making non-mandatory trips
@@ -57,13 +58,14 @@ def non_mandatory_tour_frequency(set_random_seed,
 
         print "Running segment '%s' of size %d" % (name, len(segment))
 
-        choices, _ = asim.interaction_simulate(
+        choices = asim.interaction_simulate(
             segment,
             non_mandatory_tour_frequency_alts.to_frame(),
             # notice that we pick the column for the
             # segment for each segment we run
             non_mandatory_tour_frequency_spec[[name]],
-            sample_size=50)
+            sample_size=50,
+            chunk_size=chunk_size)
 
         choices_list.append(choices)
 

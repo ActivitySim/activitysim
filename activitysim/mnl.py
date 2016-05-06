@@ -112,8 +112,20 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     alts_sample = alternatives.take(sample)
     alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
 
+    # FIXME - log
+    # print "\n###################### interaction_dataset\n"
+    # print "\nalts_sample.shape=", alts_sample.info(), "\n"
+    # print "\nchoosers.shape=", choosers.info(), "\n"
+    # print "\n##### alts_sample\n", alts_sample.head(10)
+    # print "\n##### choosers\n", choosers.head(10)
+
     alts_sample = pd.merge(
         alts_sample, choosers, left_on='chooser_idx', right_index=True,
         suffixes=('', '_r'))
+
+    # FIXME - log
+    # print "\npost-merge alts_sample.shape=", alts_sample.info(), "\n"
+    # print "\n##### alts_sample\n", alts_sample.head(10)
+    # print "\n######################\n"
 
     return alts_sample

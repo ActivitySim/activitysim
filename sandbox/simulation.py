@@ -89,8 +89,8 @@ orca.add_injectable("set_random_seed", set_random_seed)
 # config = 'sandbox' or 'example'
 # data = 'test', 'example', or 'full'
 inject_settings(config='example',
-                data='full',
-                households_sample_size=20000,
+                data='example',
+                households_sample_size=1000,
                 preload_3d_skims=True)
 
 print "gc enabled:", gc.isenabled()

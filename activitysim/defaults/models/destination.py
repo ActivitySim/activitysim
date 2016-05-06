@@ -21,7 +21,8 @@ def destination_choice(set_random_seed,
                        non_mandatory_tours_merged,
                        skims,
                        destination_choice_spec,
-                       destination_size_terms):
+                       destination_size_terms,
+                       chunk_size):
 
     """
     Given the tour generation from the above, each tour needs to have a
@@ -54,12 +55,13 @@ def destination_choice(set_random_seed,
 
         print "Running segment '%s' of size %d" % (name, len(segment))
 
-        choices, _ = asim.interaction_simulate(segment,
-                                               alternatives,
-                                               spec[[name]],
-                                               skims=skims,
-                                               locals_d=locals_d,
-                                               sample_size=50)
+        choices = asim.interaction_simulate(segment,
+                                            alternatives,
+                                            spec[[name]],
+                                            skims=skims,
+                                            locals_d=locals_d,
+                                            sample_size=50,
+                                            chunk_size=chunk_size)
 
         choices_list.append(choices)
 

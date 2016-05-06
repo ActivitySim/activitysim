@@ -52,3 +52,8 @@ def cache_skim_key_values(settings, preload_3d_skims):
         return settings['time_periods']['labels']
     else:
         return None
+
+
+@orca.injectable(cache=True)
+def chunk_size(settings):
+    return settings.get('chunk_size', 0)

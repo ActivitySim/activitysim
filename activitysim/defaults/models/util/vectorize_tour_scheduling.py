@@ -115,7 +115,7 @@ def vectorize_tour_scheduling(tours, alts, spec):
             previous_tour_by_personid,
             alts))
 
-        nth_choices, _ = asim.interaction_simulate(
+        nth_choices = asim.interaction_simulate(
             nth_tours,
             alts.copy(),
             spec,

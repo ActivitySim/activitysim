@@ -635,7 +635,7 @@ and second the key that relates to the 3rd dimension of the dataframe.</p>
 
 <dl class="class">
 <dt id="activitysim.skim.Skims3D">
-<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims3D</code><span class="sig-paren">(</span><em>skims</em>, <em>skim_key</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims3D</code><span class="sig-paren">(</span><em>left_key</em>, <em>right_key</em>, <em>skim_key</em>, <em>offset=None</em>, <em>stack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Skims3D object wraps a skim objects to add an additional wrinkle of
 lookup functionality.  Upon init the separate skims objects are
 processed into a 3D matrix so that lookup of the different skims can
@@ -688,41 +688,6 @@ offsets will be ignored</p>
 </tr>
 </tbody>
 </table>
-<dl class="method">
-<dt id="activitysim.skim.Skims3D.lookup">
-<code class="descname">lookup</code><span class="sig-paren">(</span><em>key</em>, <em>origins</em>, <em>destinations</em>, <em>skim_indexes</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D.lookup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generally not called by the user - use __getitem__ instead</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : String</p>
-<p><strong>origins</strong> : Series</p>
-<blockquote>
-<div><p>Identifies the origins of trips as indexes</p>
-</div></blockquote>
-<p><strong>destinations</strong> : Series</p>
-<blockquote>
-<div><p>Identifies the destinations of trips as indexes</p>
-</div></blockquote>
-<p><strong>skim_index</strong> : Series</p>
-<blockquote>
-<div><p>Identifies the indexes of the skims so that different skims can
-be used for different rows</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">impedances: pd.Series</p>
-<blockquote class="last">
-<div><p>A Series of impedances which are elements of the Skim object and
-with the same index as df</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="method">
 <dt id="activitysim.skim.Skims3D.set_df">
 <code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D.set_df" title="Permalink to this definition">¶</a></dt>

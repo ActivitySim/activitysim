@@ -12,6 +12,7 @@ import pandas as pd
 from activitysim import defaults
 from activitysim import activitysim as asim
 
+print "np.geterr()", np.geterr()
 
 # you will want to configure this with the locations of the canonical datasets
 DATA_REPO = os.path.join(os.path.dirname(__file__), '..', '..', 'activitysim-data')
@@ -33,7 +34,8 @@ def inject_settings(config='sandbox',
                     data='test',
                     households_sample_size=1000,
                     preload_3d_skims=True,
-                    chunk_size = 0):
+                    chunk_size = 0,
+                    hh_chunk_size = 0):
 
     assert config in  CONFIGS_DIRS.keys(), 'Unknown config dir %s' % config
     config_dir = CONFIGS_DIRS.get(config)
@@ -48,6 +50,7 @@ def inject_settings(config='sandbox',
         settings['households_sample_size'] = households_sample_size
         settings['preload_3d_skims'] = preload_3d_skims
         settings['chunk_size'] = chunk_size
+        settings['hh_chunk_size'] = hh_chunk_size
     orca.add_injectable("settings", settings)
 
 
@@ -69,6 +72,7 @@ def print_settings():
     print "households_sample_size =", orca.get_injectable('settings')['households_sample_size']
     print "preload_3d_skims = ", orca.get_injectable('preload_3d_skims')
     print "chunk_size = ", orca.get_injectable('chunk_size')
+    print "hh_chunk_size = ", orca.get_injectable('hh_chunk_size')
 
 
 def set_random_seed():
@@ -91,11 +95,19 @@ orca.add_injectable("set_random_seed", set_random_seed)
 
 # config = 'sandbox' or 'example'
 # data = 'test', 'example', or 'full'
+# inject_settings(config='example',
+#                 data='full',
+#                 households_sample_size=20000,
+#                 preload_3d_skims=True,
+#                 chunk_size = 10000,
+#                 hh_chunk_size = 10000)
+
 inject_settings(config='example',
                 data='example',
                 households_sample_size=1000,
                 preload_3d_skims=True,
-                chunk_size = 500)
+                chunk_size = 1000,
+                hh_chunk_size = 1000)
 
 print "gc enabled:", gc.isenabled()
 print "gc get_threshold:", gc.get_threshold()

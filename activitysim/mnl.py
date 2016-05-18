@@ -26,19 +26,40 @@ def utils_to_probs(utils):
     prob_max = np.inf
 
     utils_arr = np.exp(utils.as_matrix().astype('float'))
+
+    np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
+
+    # FIXME - do this after the clip so utils_arr rows don't sum to zero
+    # FIXME - when all utilities are large negative numbers
     arr_sum = utils_arr.sum(axis=1)
 
     if np.isinf(arr_sum).any():
         raise RuntimeError('utilities have infinite values')
 
-    np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
     np.divide(
         utils_arr, arr_sum.reshape(len(utils_arr), 1),
         out=utils_arr)
     utils_arr[np.isnan(utils_arr)] = prob_min
+
     np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
 
-    return pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
+    probs = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
+
+    # FIXME - make_choices says probs should sum to 1 across each row
+    # FIXME - probs can have infs
+    # FIXME - is the comment wrong, or the code?
+    BAD_PROB_THRESHOLD = 0.001
+    bad_probs = \
+        probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
+        > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
+
+    if bad_probs.any():
+        print "WARNING - %s probabilities do not sum to 1" % bad_probs.sum()
+        # print "utils\n", utils[bad_probs]
+        # print "probs\n", probs[bad_probs]
+        raise RuntimeError('probabilities do not sum to 1')
+
+    return probs
 
 
 def make_choices(probs):
@@ -60,6 +81,20 @@ def make_choices(probs):
 
     """
     nchoosers = len(probs)
+
+    # FIXME - probs should sum to 1 across each row
+    # FIXME - but utils_to_probs creates "exponentiated probabilities" which can have infs
+    # FIXME - is the comment wrong, or the code?
+    BAD_PROB_THRESHOLD = 0.001
+    bad_probs = \
+        probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
+        > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
+
+    if bad_probs.any():
+        print "WARNING - %s probabilities do not sum to 1" % bad_probs.sum()
+        print probs[bad_probs]
+        print probs[bad_probs].sum(axis=1)
+
     probs_arr = (
         probs.as_matrix().cumsum(axis=1) - np.random.random((nchoosers, 1)))
     rows, cols = np.where(probs_arr > 0)

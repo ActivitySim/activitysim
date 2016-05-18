@@ -46,7 +46,8 @@ def mandatory_scheduling(set_random_seed,
                          mandatory_tours_merged,
                          tdd_alts,
                          tdd_school_spec,
-                         tdd_work_spec):
+                         tdd_work_spec,
+                         chunk_size):
     """
     This model predicts the departure time and duration of each activity for
     mandatory tours
@@ -60,14 +61,14 @@ def mandatory_scheduling(set_random_seed,
 
     print "Running %d school tour scheduling choices" % len(school_tours)
 
-    school_choices = vectorize_tour_scheduling(school_tours, alts, school_spec)
+    school_choices = vectorize_tour_scheduling(school_tours, alts, school_spec, chunk_size)
 
     work_spec = tdd_work_spec.to_frame()
     work_tours = tours[tours.tour_type == "work"]
 
     print "Running %d work tour scheduling choices" % len(work_tours)
 
-    work_choices = vectorize_tour_scheduling(work_tours, alts, work_spec)
+    work_choices = vectorize_tour_scheduling(work_tours, alts, work_spec, chunk_size)
 
     choices = pd.concat([school_choices, work_choices])
 

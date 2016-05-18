@@ -220,9 +220,9 @@ def simple_simulate(choosers, spec, skims=None, locals_d=None):
 def chunked_choosers(choosers, chunk_size):
     # generator to iterate over chooses in chunk_size chunks
     chunk_size = int(chunk_size)
-    last_chooser = len(choosers.index) - 1
+    num_choosers = len(choosers.index)
     i = 0
-    while i < last_chooser:
+    while i < num_choosers:
         yield i, choosers[i: i+chunk_size]
         i += chunk_size
 
@@ -257,6 +257,8 @@ def interaction_simulate(
     # if necessary, could append to hdf5 store on disk:
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
     choices = pd.concat(choices_list)
+
+    assert len(choices.index == len(choosers.index))
 
     return choices
 

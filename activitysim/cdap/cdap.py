@@ -300,9 +300,15 @@ def apply_all_people(hh_util, all_people):
         so the previous could also be written as ('Mandatory',) * 3.
 
     """
+
+    # FIXME - don't modify all_people in place
+    all_people = all_people.copy(deep=True)
+
     # evaluate all the expressions in the all_people index
     all_people.index = [eval(x) for x in all_people.index]
-    all_people = all_people.icol(0)
+
+    # FIXME - pathological knowledge of column position?
+    all_people = all_people.iloc[:, 0]
 
     matching_idx = {}
 
@@ -378,7 +384,7 @@ def household_choices_to_people(hh_choices, people):
         gen(tz.concat(hh_choices.values)), index=people.index)
 
 
-def run_cdap(
+def _run_cdap(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
         final_rules, all_people):
     """
@@ -432,3 +438,44 @@ def run_cdap(
     apply_all_people(hh_utils, all_people)
     hh_choices = make_household_choices(hh_utils)
     return household_choices_to_people(hh_choices, people)
+
+
+def hh_chunked_choosers(choosers):
+    # generator to iterate over chooses in chunk_size chunks
+    last_chooser = choosers['chunk_id'].max()
+    i = 0
+    while i <= last_chooser:
+        yield i, choosers[choosers['chunk_id'] == i]
+        i += 1
+
+
+def run_cdap(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules, all_people, chunk_size=0):
+
+    # like run_cdap but iterates over people in hh_chunk_size chunks
+    # we need to use hh_chunks because all household persons need to be in the same chunk
+    chunk_size = int(chunk_size)
+
+    if (chunk_size == 0) or (chunk_size >= len(people.index)):
+        choices = _run_cdap(people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+                            final_rules, all_people)
+        return choices
+
+    choices_list = []
+    # segment by person type and pick the right spec for each person type
+    for i, people_chunk in hh_chunked_choosers(people):
+
+        print "Running hh_chunk =%s of size %d" % (i, len(people_chunk))
+
+        choices = _run_cdap(people_chunk, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+                            final_rules, all_people)
+
+        choices_list.append(choices)
+
+    # FIXME: this will require 2X RAM
+    # if necessary, could append to hdf5 store on disk:
+    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
+    choices = pd.concat(choices_list)
+
+    return choices

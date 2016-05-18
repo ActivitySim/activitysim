@@ -190,4 +190,4 @@ def test_full_run_with_chunks(store, omx_file):
     tour_count = full_run(store, omx_file, preload_3d_skims=True, chunk_size=10)
 
     # FIXME - different sampling causes slightly different results?
-    assert(tour_count == 181)
+    assert(tour_count == 187)

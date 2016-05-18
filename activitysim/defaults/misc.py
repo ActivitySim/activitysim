@@ -57,3 +57,11 @@ def cache_skim_key_values(settings, preload_3d_skims):
 @orca.injectable(cache=True)
 def chunk_size(settings):
     return settings.get('chunk_size', 0)
+
+
+@orca.injectable(cache=True)
+def hh_chunk_size(settings):
+    if 'hh_chunk_size' in settings:
+        return settings.get('hh_chunk_size', 0)
+    else:
+        return settings.get('chunk_size', 0)

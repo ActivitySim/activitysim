@@ -25,6 +25,18 @@ def households(set_random_seed, store, settings):
     return store["households"]
 
 
+# this assigns a chunk_id to each household based on the chunk_size setting
+@orca.column("households", cache=True)
+def chunk_id(households, hh_chunk_size):
+
+    chunk_ids = pd.Series(range(len(households)), households.index)
+
+    if hh_chunk_size > 0:
+        chunk_ids = np.floor(chunk_ids.div(hh_chunk_size)).astype(int)
+
+    return chunk_ids
+
+
 # this is a placeholder table for columns that get computed after the
 # auto ownership model
 @orca.table()

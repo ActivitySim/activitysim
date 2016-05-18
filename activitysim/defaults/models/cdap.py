@@ -43,7 +43,7 @@ def cdap_all_people(configs_dir):
 @orca.step()
 def cdap_simulate(set_random_seed, persons_merged,
                   cdap_1_person_spec, cdap_2_person_spec, cdap_3_person_spec,
-                  cdap_final_rules, cdap_all_people):
+                  cdap_final_rules, cdap_all_people, hh_chunk_size):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
     high-level activity pattern for each person, in a coordinated way with other
@@ -61,7 +61,10 @@ def cdap_simulate(set_random_seed, persons_merged,
                             cdap_2_person_spec,
                             cdap_3_person_spec,
                             cdap_final_rules,
-                            cdap_all_people)
+                            cdap_all_people,
+                            hh_chunk_size)
+
+    choices = choices.reindex(persons_merged.index)
 
     print "Choices:\n", choices.value_counts()
     orca.add_column("persons", "cdap_activity", choices)

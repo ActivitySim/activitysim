@@ -11,10 +11,10 @@ from activitysim.util import reindex
 
 # this caches things so you don't have to read in the file from disk again
 @orca.table(cache=True)
-def persons_internal(store, settings, households):
+def persons_internal(store, households_sample_size, households):
     df = store["persons"]
 
-    if "households_sample_size" in settings:
+    if households_sample_size > 0:
         # keep all persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 

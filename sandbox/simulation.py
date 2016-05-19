@@ -95,19 +95,19 @@ orca.add_injectable("set_random_seed", set_random_seed)
 
 # config = 'sandbox' or 'example'
 # data = 'test', 'example', or 'full'
-# inject_settings(config='example',
-#                 data='full',
-#                 households_sample_size=20000,
-#                 preload_3d_skims=True,
-#                 chunk_size = 10000,
-#                 hh_chunk_size = 10000)
-
 inject_settings(config='example',
-                data='example',
-                households_sample_size=1000,
+                data='full',
+                households_sample_size=0,
                 preload_3d_skims=True,
-                chunk_size = 1000,
-                hh_chunk_size = 1000)
+                chunk_size = 50000,
+                hh_chunk_size = 50000)
+
+# inject_settings(config='example',
+#                 data='example',
+#                 households_sample_size=0,
+#                 preload_3d_skims=True,
+#                 chunk_size = 20000,
+#                 hh_chunk_size = 10000)
 
 print "gc enabled:", gc.isenabled()
 print "gc get_threshold:", gc.get_threshold()
@@ -145,4 +145,4 @@ print_settings()
 # this may not work on all systems...
 peak_bytes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 peak_gb = (peak_bytes / (1024 * 1024 * 1024.0))
-print "max memory footprint = %s GB" % (round(peak_gb, 2),)
+print "max memory footprint = %s (%s GB)" % (peak_bytes, round(peak_gb, 2),)

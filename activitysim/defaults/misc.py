@@ -55,6 +55,11 @@ def cache_skim_key_values(settings, preload_3d_skims):
 
 
 @orca.injectable(cache=True)
+def households_sample_size(settings):
+    return settings.get('households_sample_size', 0)
+
+
+@orca.injectable(cache=True)
 def chunk_size(settings):
     return settings.get('chunk_size', 0)
 

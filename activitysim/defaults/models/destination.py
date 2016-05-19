@@ -41,6 +41,8 @@ def destination_choice(set_random_seed,
     # the skims will be available under the name "skims" for any @ expressions
     locals_d = {"skims": skims}
 
+    print "destination_choice choosers:", len(choosers.index)
+
     choices_list = []
     # segment by trip type and pick the right spec for each person type
     for name, segment in choosers.groupby('tour_type'):
@@ -66,6 +68,9 @@ def destination_choice(set_random_seed,
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
+
+    # FIXME - can there be null destinations?
+    assert choices.isnull().sum() == 0
 
     print "Choices:\n", choices.describe()
     # every trip now has a destination which is the index from the

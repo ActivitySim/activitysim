@@ -45,7 +45,7 @@ def get_previous_tour_by_tourid(current_tour_person_ids,
     return previous_tour_by_tourid
 
 
-def vectorize_tour_scheduling(tours, alts, spec):
+def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0):
     """
     The purpose of this method is fairly straightforward - it takes tours
     and schedules them into time slots.  Alternatives should be specified so
@@ -119,7 +119,8 @@ def vectorize_tour_scheduling(tours, alts, spec):
             nth_tours,
             alts.copy(),
             spec,
-            sample_size=min(len(alts), 50)
+            sample_size=min(len(alts), 50),
+            chunk_size=chunk_size
         )
 
         choices.append(nth_choices)

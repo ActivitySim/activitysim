@@ -51,6 +51,7 @@ def workplace_location_simulate(set_random_seed,
                                         sample_size=50,
                                         chunk_size=chunk_size)
 
+    # FIXME - no need to reindex?
     choices = choices.reindex(persons_merged.index)
 
     print "Describe of choices:\n", choices.describe()

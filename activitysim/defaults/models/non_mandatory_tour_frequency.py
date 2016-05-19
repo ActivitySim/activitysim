@@ -40,7 +40,7 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     """
     This model predicts the frequency of making non-mandatory trips
-    (alternatives for this model come from a seaparate csv file which is
+    (alternatives for this model come from a separate csv file which is
     configured by the user) - these trips include escort, shopping, othmaint,
     othdiscr, eatout, and social trips in various combination.
     """
@@ -73,6 +73,7 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     print "Choices:\n", choices.value_counts()
 
+    # FIXME - no need to reindex?
     orca.add_column("persons", "non_mandatory_tour_frequency", choices)
 
     add_dependent_columns("persons", "persons_nmtf")

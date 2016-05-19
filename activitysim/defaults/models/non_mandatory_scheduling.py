@@ -21,7 +21,8 @@ def tdd_non_mandatory_spec(configs_dir):
 def non_mandatory_scheduling(set_random_seed,
                              non_mandatory_tours_merged,
                              tdd_alts,
-                             tdd_non_mandatory_spec):
+                             tdd_non_mandatory_spec,
+                             chunk_size):
     """
     This model predicts the departure time and duration of each activity for
     non-mandatory tours
@@ -34,7 +35,7 @@ def non_mandatory_scheduling(set_random_seed,
     spec = tdd_non_mandatory_spec.to_frame()
     alts = tdd_alts.to_frame()
 
-    choices = vectorize_tour_scheduling(tours, alts, spec)
+    choices = vectorize_tour_scheduling(tours, alts, spec, chunk_size)
 
     print "Choices:\n", choices.describe()
 

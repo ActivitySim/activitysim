@@ -2,9 +2,13 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import orca
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 def size_term(land_use, destination_choice_coeffs):
@@ -36,7 +40,9 @@ def size_term(land_use, destination_choice_coeffs):
     missing = coeffs[~coeffs.index.isin(land_use.columns)]
 
     if len(missing) > 0:
-        print "WARNING: missing columns in land use\n", missing.index
+        logger.warn("%s  missing columns in land use" % len(missing.index))
+        for v in missing.index.values:
+            logger.warn("missing: %s" % v)
 
     return land_use[coeffs.index].dot(coeffs)
 

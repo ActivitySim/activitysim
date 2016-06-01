@@ -3,6 +3,10 @@
 
 import numpy as np
 import pandas as pd
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class Skim(object):
@@ -247,12 +251,10 @@ class SkimStack(object):
         # the tuples
         for key, value in skims.skims.iteritems():
             if not isinstance(key, tuple) or not len(key) == 2:
-                # FIXME - log
-                # print "WARNING, Skims3D __init__ skipping key: ", key
+                logger.debug("Skims3D __init__ skipping key: %s" % key)
                 continue
             skim_key1, skim_key2 = key
-            # FIXME - log
-            # print "SkimStack init key: skim_key1='%s' skim_key2='%s'" % (skim_key1, skim_key2)
+            # logger.debug("SkimStack init key: key1='%s' key2='%s'" % (skim_key1, skim_key2))
             # FIXME - this is just an object assignment not an actual copy?
             self.skims_data.setdefault(skim_key1, {})[skim_key2] = value.data
 
@@ -263,9 +265,8 @@ class SkimStack(object):
             self.skims_data[skim_key1] = np.dstack(value.values())
             self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
 
-        # FIXME - log
-        print "SkimStack.__init__ loaded and stacked %s skims for %s keys" \
-              % (len(skims.skims.keys()), len(self.skim_keys_to_indexes.keys()))
+        logger.info("SkimStack.__init__ loaded and stacked %s skims for %s keys"
+                    % (len(skims.skims.keys()), len(self.skim_keys_to_indexes.keys())))
 
     def key_count(self):
         return len(self.skim_keys_to_indexes.keys())
@@ -336,7 +337,7 @@ class Skims3D(object):
         self.omx = None
 
         if stack is not None:
-            print "Skims3D.__init__ loading %s skims from stack." % stack.key_count()
+            logger.info("Skims3D.__init__ loading %s skims from stack." % stack.key_count())
             self.stack = stack
 
     def set_df(self, df):

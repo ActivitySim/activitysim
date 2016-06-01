@@ -2,15 +2,20 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import numpy as np
 import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from activitysim import trace
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
+
+
+logger = logging.getLogger(__name__)
 
 
 @orca.injectable()
@@ -50,13 +55,14 @@ def non_mandatory_tour_frequency(set_random_seed,
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['Mandatory',
                                                      'NonMandatory'])]
-    print "%d persons run for non-mandatory tour model" % len(choosers)
+
+    logger.info("%d persons run for non-mandatory tour model" % len(choosers))
 
     choices_list = []
     # segment by person type and pick the right spec for each person type
     for name, segment in choosers.groupby('ptype_cat'):
 
-        print "Running segment '%s' of size %d" % (name, len(segment))
+        logger.info("Running segment '%s' of size %d" % (name, len(segment)))
 
         choices = asim.interaction_simulate(
             segment,
@@ -71,7 +77,7 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     choices = pd.concat(choices_list)
 
-    print "Choices:\n", choices.value_counts()
+    trace.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
 
     # FIXME - no need to reindex?
     orca.add_column("persons", "non_mandatory_tour_frequency", choices)

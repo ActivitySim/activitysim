@@ -2,12 +2,18 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import orca
 import pandas as pd
+import numpy as np
 
 from activitysim import activitysim as asim
+from activitysim import trace
 from .util.misc import add_dependent_columns
+
+
+logger = logging.getLogger(__name__)
 
 
 @orca.table()
@@ -42,6 +48,8 @@ def school_location_simulate(set_random_seed,
     choices_list = []
     for school_type in ['university', 'highschool', 'gradeschool']:
 
+        logger.info("Running school_type %s" % school_type)
+
         locals_d['segment'] = school_type
 
         choosers_segment = choosers[choosers["is_" + school_type]]
@@ -63,9 +71,15 @@ def school_location_simulate(set_random_seed,
     # of -999 rather than outright removal of alternative availability). -
     # this fills in the location for those uncommon circumstances,
     # so at least it runs
+    if np.isnan(choices).any():
+        logger.warn("Converting %s nan school_taz choices to -1" %
+                    (np.isnan(choices).sum(), len(choices.index)))
     choices = choices.reindex(persons_merged.index).fillna(-1)
 
-    print "Describe of choices:\n", choices.describe()
+    logger.info("%s school_taz choices min: %s max: %s" %
+                (len(choices.index), choices.min(), choices.max()))
+
+    trace.print_summary('school_taz', choices, describe=True)
 
     orca.add_column("persons", "school_taz", choices)
 

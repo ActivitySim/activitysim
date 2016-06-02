@@ -9,7 +9,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim import trace
+from activitysim.defaults import trace
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours

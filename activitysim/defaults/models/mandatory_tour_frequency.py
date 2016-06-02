@@ -8,7 +8,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim import trace
+from activitysim.defaults import trace
 from .util.mandatory_tour_frequency import process_mandatory_tours
 
 

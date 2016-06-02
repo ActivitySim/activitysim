@@ -5,7 +5,7 @@ import os
 import orca
 
 from activitysim import activitysim as asim
-from activitysim import trace
+from activitysim.defaults import trace
 from .util.misc import add_dependent_columns
 
 

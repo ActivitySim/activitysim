@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
-from activitysim import trace
+from activitysim.defaults import trace
 from .util.misc import add_dependent_columns
 
 

@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
-from activitysim import trace
+from activitysim.defaults import trace
 
 logger = logging.getLogger(__name__)
 

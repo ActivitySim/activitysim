@@ -9,7 +9,7 @@ import pandas as pd
 import yaml
 
 from activitysim import activitysim as asim
-from activitysim import trace
+from activitysim.defaults import trace
 
 from activitysim import skim as askim
 from .util.mode import _mode_choice_spec

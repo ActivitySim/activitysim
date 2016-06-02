@@ -8,7 +8,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim import trace
+from activitysim.defaults import trace
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
 

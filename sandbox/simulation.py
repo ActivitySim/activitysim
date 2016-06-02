@@ -14,8 +14,7 @@ import pandas as pd
 
 from activitysim import defaults
 from activitysim import activitysim as asim
-
-from activitysim import trace as trace
+from activitysim.defaults import trace as trace
 
 
 # you will want to configure this with the locations of the canonical datasets
@@ -58,18 +57,6 @@ def inject_settings(config='sandbox',
     orca.add_injectable("settings", settings)
 
 
-def print_table_schema(table_names):
-    for table_name in table_names:
-        df = orca.get_table(table_name).to_frame()
-        print "\n", table_name
-        for col in df.columns:
-           print "  %s: %s" % (col, df[col].dtype)
-
-
-def log_memory_info(logger, message):
-    logger.debug("%s %s" % (message, asim.memory_info()))
-
-
 def print_settings():
 
     print "data_dir: %s" % orca.get_injectable('data_dir')
@@ -84,6 +71,18 @@ def print_settings():
     print "numpy floating-point error handling settings: %s" % np.geterr()
     print "pandas display options max_rows=%s max_columns=%s" % \
           (pd.options.display.max_rows, pd.options.display.max_columns)
+
+
+def print_table_schema(table_names):
+    for table_name in table_names:
+        df = orca.get_table(table_name).to_frame()
+        print "\n", table_name
+        for col in df.columns:
+           print "  %s: %s" % (col, df[col].dtype)
+
+
+def log_memory_info(logger, message):
+    logger.debug("%s %s" % (message, asim.memory_info()))
 
 
 def set_random_seed():

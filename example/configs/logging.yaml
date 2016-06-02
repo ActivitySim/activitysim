@@ -63,4 +63,3 @@ logging:
       class: !!python/name:logging.Formatter
       format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
-

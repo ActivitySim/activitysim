@@ -1,7 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import trace
+import tracing
 import misc
 import tables
 import models

@@ -8,7 +8,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
 
@@ -42,8 +42,8 @@ def non_mandatory_scheduling(set_random_seed,
 
     choices = vectorize_tour_scheduling(tours, alts, spec, chunk_size)
 
-    trace.print_summary('non_mandatory_scheduling tour_departure_and_duration',
-                        choices, describe=True)
+    tracing.print_summary('non_mandatory_scheduling tour_departure_and_duration',
+                          choices, describe=True)
 
     orca.add_column(
         "non_mandatory_tours", "tour_departure_and_duration", choices)

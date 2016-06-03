@@ -9,7 +9,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
@@ -77,7 +77,7 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     choices = pd.concat(choices_list)
 
-    trace.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
+    tracing.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
 
     # FIXME - no need to reindex?
     orca.add_column("persons", "non_mandatory_tour_frequency", choices)

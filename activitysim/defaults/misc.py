@@ -29,6 +29,11 @@ def data_dir():
 
 
 @orca.injectable()
+def output_dir():
+    return '.'
+
+
+@orca.injectable()
 def settings(configs_dir):
     with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
         return yaml.load(f)

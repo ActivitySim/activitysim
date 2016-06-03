@@ -8,7 +8,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 from .util.mandatory_tour_frequency import process_mandatory_tours
 
 
@@ -45,7 +45,7 @@ def mandatory_tour_frequency(set_random_seed,
         mandatory_tour_frequency_spec.columns[choices.values],
         index=choices.index).reindex(persons_merged.local.index)
 
-    trace.print_summary('mandatory_tour_frequency', choices, value_counts=True)
+    tracing.print_summary('mandatory_tour_frequency', choices, value_counts=True)
 
     orca.add_column("persons", "mandatory_tour_frequency", choices)
 

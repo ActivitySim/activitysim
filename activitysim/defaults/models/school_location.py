@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 from .util.misc import add_dependent_columns
 
 
@@ -79,7 +79,7 @@ def school_location_simulate(set_random_seed,
     logger.info("%s school_taz choices min: %s max: %s" %
                 (len(choices.index), choices.min(), choices.max()))
 
-    trace.print_summary('school_taz', choices, describe=True)
+    tracing.print_summary('school_taz', choices, describe=True)
 
     orca.add_column("persons", "school_taz", choices)
 

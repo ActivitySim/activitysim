@@ -6,7 +6,7 @@ import logging
 
 import orca
 
-from .. import trace as trace
+from .. import tracing as tracing
 
 
 def close_handlers():
@@ -23,7 +23,7 @@ def test_bad_custom_config_file(capsys):
     orca.add_injectable("configs_dir", configs_dir)
 
     custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'xlogging.yaml')
-    trace.config_logger(custom_config_file=custom_config_file)
+    tracing.config_logger(custom_config_file=custom_config_file)
 
     logger = logging.getLogger('activitysim')
 
@@ -59,7 +59,7 @@ def test_config_logger(capsys):
     configs_dir = os.path.join(os.path.dirname(__file__))
     orca.add_injectable("configs_dir", configs_dir)
 
-    trace.config_logger()
+    tracing.config_logger()
 
     logger = logging.getLogger('activitysim')
 
@@ -101,7 +101,7 @@ def test_no_config(capsys):
     # remove existing hanlers or basicConfig is a NOP
     logging.getLogger().handlers = []
 
-    trace.config_logger(basic=True)
+    tracing.config_logger(basic=True)
 
     logger = logging.getLogger()
     file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]

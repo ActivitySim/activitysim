@@ -7,7 +7,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 from activitysim.cdap import cdap
 
 
@@ -67,6 +67,6 @@ def cdap_simulate(set_random_seed, persons_merged,
 
     choices = choices.reindex(persons_merged.index)
 
-    trace.print_summary('cdap_activity', choices, value_counts=True)
+    tracing.print_summary('cdap_activity', choices, value_counts=True)
 
     orca.add_column("persons", "cdap_activity", choices)

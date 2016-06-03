@@ -10,9 +10,18 @@ import orca
 TRACE_LOGGER = __name__
 ASIM_LOGGER = 'activitysim'
 
-tracer = logging.getLogger(TRACE_LOGGER)
+
+logger_trace = logging.getLogger(TRACE_LOGGER)
 
 LOGGING_CONF_FILE_NAME = 'logging.yaml'
+
+
+# for use in logging.yaml tag to inject log file path
+# filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path ['asim.log']
+def log_file_path(name):
+    output_dir = orca.get_injectable('output_dir')
+    f = os.path.join(output_dir, name)
+    return f
 
 
 def config_logger(custom_config_file=None, basic=False):
@@ -54,11 +63,11 @@ def config_logger(custom_config_file=None, basic=False):
 
 
 def trace_logger():
-    return tracer
+    return logger_trace
 
 
 def trace(msg):
-    tracer.info("TRACE: %s" % msg)
+    logger_trace.info("TRACE: %s" % msg)
 
 
 def print_summary(label, df, describe=False, value_counts=False):

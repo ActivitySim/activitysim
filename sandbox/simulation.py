@@ -14,7 +14,7 @@ import pandas as pd
 
 from activitysim import defaults
 from activitysim import activitysim as asim
-from activitysim.defaults import trace as trace
+from activitysim.defaults import tracing
 
 
 # you will want to configure this with the locations of the canonical datasets
@@ -94,9 +94,10 @@ def run_model(model_name):
     log_memory_info(logger, 'after %s' % model_name)
 
 
-trace.config_logger()
-logger = logging.getLogger(__name__)
+orca.add_injectable("output_dir", 'output')
+tracing.config_logger('logging.yaml')
 
+logger = logging.getLogger(__name__)
 
 # pandas display options
 pd.options.display.max_columns = 500
@@ -122,8 +123,8 @@ inject_settings(config='example',
                 chunk_size = 0,
                 hh_chunk_size = 0)
 
-
 print_settings()
+
 
 log_memory_info(logger, 'startup')
 skims = orca.get_injectable('skims')

@@ -7,7 +7,7 @@ import logging
 import orca
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 from .util.misc import add_dependent_columns
 
 
@@ -63,7 +63,7 @@ def workplace_location_simulate(set_random_seed,
     logger.info("%s workplace_taz choices min: %s max: %s" %
                 (len(choices.index), choices.min(), choices.max()))
 
-    trace.print_summary('workplace_taz', choices, describe=True)
+    tracing.print_summary('workplace_taz', choices, describe=True)
 
     orca.add_column("persons", "workplace_taz", choices)
 

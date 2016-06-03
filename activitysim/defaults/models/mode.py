@@ -9,7 +9,7 @@ import pandas as pd
 import yaml
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 
 from activitysim import skim as askim
 from .util.mode import _mode_choice_spec
@@ -202,8 +202,8 @@ def tour_mode_choice_simulate(tours_merged,
             additional_constants=tour_mode_choice_settings['CONSTANTS'],
             omx=omx_file)
 
-        trace.print_summary('tour_mode_choice_simulate %s' % tour_type,
-                            choices, value_counts=True)
+        tracing.print_summary('tour_mode_choice_simulate %s' % tour_type,
+                              choices, value_counts=True)
 
         choices_list.append(choices)
 
@@ -213,7 +213,7 @@ def tour_mode_choice_simulate(tours_merged,
 
     choices = pd.concat(choices_list)
 
-    trace.print_summary('tour_mode_choice_simulate all tour type', choices, value_counts=True)
+    tracing.print_summary('tour_mode_choice_simulate all tour type', choices, value_counts=True)
 
     orca.add_column("tours", "mode", choices)
 
@@ -260,8 +260,8 @@ def trip_mode_choice_simulate(tours_merged,
             additional_constants=trip_mode_choice_settings['CONSTANTS'],
             omx=omx_file)
 
-        trace.print_summary('trip_mode_choice_simulate %s' % tour_type,
-                            choices, value_counts=True)
+        tracing.print_summary('trip_mode_choice_simulate %s' % tour_type,
+                              choices, value_counts=True)
 
         choices_list.append(choices)
 
@@ -271,7 +271,7 @@ def trip_mode_choice_simulate(tours_merged,
 
     choices = pd.concat(choices_list)
 
-    trace.print_summary('trip_mode_choice_simulate all tour type', choices, value_counts=True)
+    tracing.print_summary('trip_mode_choice_simulate all tour type', choices, value_counts=True)
 
     orca.add_column("trips", "mode", choices)
 

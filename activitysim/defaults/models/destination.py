@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
-from activitysim.defaults import trace
+from activitysim.defaults import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ def destination_choice(set_random_seed,
         logger.error("destination_choice had %s null destinations" % choices.isnull().sum())
         assert choices.isnull().sum() == 0
 
-    trace.print_summary('destination', choices, describe=True)
+    tracing.print_summary('destination', choices, describe=True)
 
     # every trip now has a destination which is the index from the
     # alternatives table - in this case it's the destination taz

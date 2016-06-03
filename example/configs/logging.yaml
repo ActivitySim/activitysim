@@ -33,14 +33,14 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: logfile.log
+      filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path ['asim.log']
       mode: w
       formatter: simpleFormatter
       level: !!python/name:logging.NOTSET
 
     tracefile:
       class: logging.FileHandler
-      filename: hhtrace.log
+      filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path ['hhtrace.log']
       mode: w
       formatter: simpleFormatter
       level: !!python/name:logging.NOTSET
@@ -63,3 +63,4 @@ logging:
       class: !!python/name:logging.Formatter
       format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
+

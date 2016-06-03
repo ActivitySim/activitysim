@@ -3,8 +3,13 @@
 
 from __future__ import division
 
+import logging
+
 import numpy as np
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 def utils_to_probs(utils):
@@ -34,6 +39,7 @@ def utils_to_probs(utils):
     arr_sum = utils_arr.sum(axis=1)
 
     if np.isinf(arr_sum).any():
+        logger.critical("%s utilities have infinite values" % np.isinf(arr_sum).sum())
         raise RuntimeError('utilities have infinite values')
 
     np.divide(
@@ -54,7 +60,7 @@ def utils_to_probs(utils):
         > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
     if bad_probs.any():
-        print "WARNING - %s probabilities do not sum to 1" % bad_probs.sum()
+        logger.critical("%s probabilities do not sum to 1" % bad_probs.sum())
         # print "utils\n", utils[bad_probs]
         # print "probs\n", probs[bad_probs]
         raise RuntimeError('probabilities do not sum to 1')
@@ -91,7 +97,7 @@ def make_choices(probs):
         > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
     if bad_probs.any():
-        print "WARNING - %s probabilities do not sum to 1" % bad_probs.sum()
+        logger.error("%s probabilities do not sum to 1" % bad_probs.sum())
         print probs[bad_probs]
         print probs[bad_probs].sum(axis=1)
 

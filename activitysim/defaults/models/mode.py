@@ -2,15 +2,20 @@
 # See full license in LICENSE.txt.
 
 import os
-import yaml
+import logging
 
 import orca
 import pandas as pd
 import yaml
 
 from activitysim import activitysim as asim
+from activitysim.defaults import tracing
+
 from activitysim import skim as askim
 from .util.mode import _mode_choice_spec
+
+logger = logging.getLogger(__name__)
+
 
 """
 Mode choice is run for all tours to determine the transportation mode that
@@ -170,7 +175,7 @@ def tour_mode_choice_simulate(tours_merged,
     for tour_type, segment in tours.groupby('tour_type'):
 
         # FIXME - log
-        print "running tour_type '%s'" % tour_type
+        logger.info("running tour_type '%s'" % tour_type)
 
         # FIXME - hack to run subset of tour types
         # TOUR_TYPE_SUBSET = []
@@ -197,16 +202,18 @@ def tour_mode_choice_simulate(tours_merged,
             additional_constants=tour_mode_choice_settings['CONSTANTS'],
             omx=omx_file)
 
-        # FIXME - log
-        # print "Choices:\n", choices.value_counts()
+        tracing.print_summary('tour_mode_choice_simulate %s' % tour_type,
+                              choices, value_counts=True)
+
         choices_list.append(choices)
 
-        # FIXME - this forces garbage collection
-        print 'memory_info tour_type %s' % tour_type, asim.memory_info(), "\n"
+        # FIXME - force garbage collection
+        mem = asim.memory_info()
+        logger.info('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
 
-    print "Choices for all tour types:\n", choices.value_counts()
+    tracing.print_summary('tour_mode_choice_simulate all tour type', choices, value_counts=True)
 
     orca.add_column("tours", "mode", choices)
 
@@ -233,15 +240,7 @@ def trip_mode_choice_simulate(tours_merged,
 
     for tour_type, segment in trips.groupby('tour_type'):
 
-        # FIXME - log
-        print "running tour_type '%s'" % tour_type
-
-        # FIXME - hack to run subset of tour types
-        # TOUR_TYPE_SUBSET = []
-        # # TOUR_TYPE_SUBSET = ['eatout']
-        # if TOUR_TYPE_SUBSET and tour_type not in TOUR_TYPE_SUBSET:
-        #     print "skipping tour_type %s" % tour_type
-        #     continue
+        logger.info("running tour_type '%s'" % tour_type)
 
         tour_type_tours = trips[trips.tour_type == tour_type]
         orig_key = 'TAZ'
@@ -261,18 +260,18 @@ def trip_mode_choice_simulate(tours_merged,
             additional_constants=trip_mode_choice_settings['CONSTANTS'],
             omx=omx_file)
 
-        # FIXME - log
-        # print "Choices:\n", choices.value_counts()
+        tracing.print_summary('trip_mode_choice_simulate %s' % tour_type,
+                              choices, value_counts=True)
 
         choices_list.append(choices)
 
-        # FIXME - this forces garbage collection
-        print 'memory_info tour_type %s' % tour_type, asim.memory_info(), "\n"
+        # FIXME - force garbage collection
+        mem = asim.memory_info()
+        logger.info('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
 
-    # FIXME - log
-    print "Choices for all trip types:\n", choices.value_counts()
+    tracing.print_summary('trip_mode_choice_simulate all tour type', choices, value_counts=True)
 
     orca.add_column("trips", "mode", choices)
 

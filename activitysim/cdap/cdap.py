@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
 import itertools
 
 import numpy as np
@@ -9,6 +10,9 @@ from zbox import toolz as tz, gen
 
 from ..activitysim import eval_variables
 from .. import mnl
+
+
+logger = logging.getLogger(__name__)
 
 
 def make_interactions(people, hh_id_col, p_type_col):
@@ -466,7 +470,7 @@ def run_cdap(
     # segment by person type and pick the right spec for each person type
     for i, people_chunk in hh_chunked_choosers(people):
 
-        print "Running hh_chunk =%s of size %d" % (i, len(people_chunk))
+        logger.info("run_cdap running hh_chunk =%s of size %d" % (i, len(people_chunk)))
 
         choices = _run_cdap(people_chunk, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
                             final_rules, all_people)

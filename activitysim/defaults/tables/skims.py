@@ -2,11 +2,15 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import openmatrix as omx
 import orca
 
 from activitysim import skim
+from activitysim.defaults import tracing
+
+logger = logging.getLogger(__name__)
 
 """
 Read in the omx files and create the skim objects
@@ -16,7 +20,7 @@ Read in the omx files and create the skim objects
 # cache this so we don't open it again and again - skim code is not closing it....
 @orca.injectable(cache=True)
 def omx_file(data_dir):
-    print "opening omx file"
+    logger.debug("opening omx file")
     return omx.openFile(os.path.join(data_dir, 'data', "nonmotskm.omx"))
 
 
@@ -47,7 +51,7 @@ def sovpm_skim(skims):
 @orca.injectable(cache=True)
 def skims(omx_file, preload_3d_skims, cache_skim_key_values):
 
-    print "loading skims (preload_3d_skims: %s)" % preload_3d_skims
+    logger.info("loading skims (preload_3d_skims: %s)" % preload_3d_skims)
 
     skims = skim.Skims()
     skims['DISTANCE'] = skim.Skim(omx_file['DIST'], offset=-1)
@@ -74,5 +78,5 @@ def skims(omx_file, preload_3d_skims, cache_skim_key_values):
 @orca.injectable(cache=True)
 def stacked_skims(skims):
 
-    print "loading stacked_skims"
+    logger.info("loading stacked_skims")
     return skim.SkimStack(skims)

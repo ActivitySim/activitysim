@@ -9,7 +9,6 @@ import orca
 import pandas as pd
 import yaml
 
-
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
@@ -26,6 +25,11 @@ def configs_dir():
 
 @orca.injectable()
 def data_dir():
+    return '.'
+
+
+@orca.injectable()
+def output_dir():
     return '.'
 
 
@@ -52,6 +56,11 @@ def cache_skim_key_values(settings, preload_3d_skims):
         return settings['time_periods']['labels']
     else:
         return None
+
+
+@orca.injectable(cache=True)
+def households_sample_size(settings):
+    return settings.get('households_sample_size', 0)
 
 
 @orca.injectable(cache=True)

@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
 from operator import itemgetter
 
 import numpy as np
@@ -13,6 +14,9 @@ from .mnl import utils_to_probs, make_choices, interaction_dataset
 import os
 import psutil
 import gc
+
+
+logger = logging.getLogger(__name__)
 
 
 def memory_info():
@@ -112,7 +116,7 @@ def eval_variables(exprs, df, locals_d=None):
             l.append((e, to_series(eval(e[1:], globals(), locals_d))
                      if e.startswith('@') else df.eval(e)))
         except Exception as err:
-            print "Variable evaluation failed for: %s" % str(e)
+            logger.exception("Variable evaluation failed for: %s" % str(e))
             raise err
 
     return pd.DataFrame.from_items(l)
@@ -164,12 +168,14 @@ def _check_for_variability(model_design):
 
     error = sample[sample["std"] == 0]
     if len(error):
-        print "WARNING: Some columns have no variability:\n", \
-            error.index.values
+        logger.warn("%s columns have no variability" % len(error))
+        for v in error.index.values:
+            logger.info("no variability in: %s" % v)
     error = sample[sample["count"] < l]
     if len(error):
-        print "WARNING: Some columns have missing values:\n", \
-            error.index.values
+        logger.warn("%s columns have missing values" % len(error))
+        for v in error.index.values:
+            logger.info("missing values in: %s" % v)
 
 
 def simple_simulate(choosers, spec, skims=None, locals_d=None):
@@ -221,6 +227,7 @@ def chunked_choosers(choosers, chunk_size):
     # generator to iterate over chooses in chunk_size chunks
     chunk_size = int(chunk_size)
     num_choosers = len(choosers.index)
+
     i = 0
     while i < num_choosers:
         yield i, choosers[i: i+chunk_size]
@@ -242,11 +249,14 @@ def interaction_simulate(
                                            skims, locals_d, sample_size)
         return choices
 
+    logger.info("interaction_simulate chunk_size %s num_choosers %s" %
+                (chunk_size, len(choosers.index)))
+
     choices_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
 
-        print "Running chunk =%s of size %d" % (i, len(chooser_chunk))
+        logger.info("Running chunk =%s of size %d" % (i, len(chooser_chunk)))
 
         choices, _ = _interaction_simulate(chooser_chunk, alternatives, spec,
                                            skims, locals_d, sample_size)
@@ -312,8 +322,8 @@ def _interaction_simulate(
 
     # FIXME - is this correct?
     if sample_size > len(alternatives):
-        # FIXME - log
-        print "clipping sample size %s to len(alternatives) %s" % (sample_size, len(alternatives))
+        logger.warn("clipping sample size %s to len(alternatives) %s" %
+                    (sample_size, len(alternatives)))
         sample_size = min(sample_size, len(alternatives))
 
     # now the index is also in the dataframe, which means it will be

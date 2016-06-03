@@ -5,6 +5,7 @@ import os
 import orca
 
 from activitysim import activitysim as asim
+from activitysim.defaults import tracing
 from .util.misc import add_dependent_columns
 
 
@@ -25,7 +26,7 @@ def auto_ownership_simulate(set_random_seed, households_merged,
     choices, _ = asim.simple_simulate(
         households_merged.to_frame(), auto_ownership_spec)
 
-    print "Choices:\n", choices.value_counts()
+    tracing.print_summary('auto_ownership', choices, value_counts=True)
 
     orca.add_column("households", "auto_ownership", choices)
 

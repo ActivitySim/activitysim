@@ -2,12 +2,17 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from activitysim.defaults import tracing
 from .util.mandatory_tour_frequency import process_mandatory_tours
+
+
+logger = logging.getLogger(__name__)
 
 
 @orca.injectable()
@@ -28,9 +33,10 @@ def mandatory_tour_frequency(set_random_seed,
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'Mandatory']
-    print "%d persons run for mandatory tour model" % len(choosers)
+    logger.info("%d persons run for mandatory tour model" % len(choosers))
 
-    print choosers.workplace_taz.describe()
+    # trace.print_summary('mandatory_tour_frequency choosers',
+    #                     choosers.workplace_taz, describe=True)
 
     choices, _ = asim.simple_simulate(choosers, mandatory_tour_frequency_spec)
 
@@ -39,7 +45,8 @@ def mandatory_tour_frequency(set_random_seed,
         mandatory_tour_frequency_spec.columns[choices.values],
         index=choices.index).reindex(persons_merged.local.index)
 
-    print "Choices:\n", choices.value_counts()
+    tracing.print_summary('mandatory_tour_frequency', choices, value_counts=True)
+
     orca.add_column("persons", "mandatory_tour_frequency", choices)
 
 

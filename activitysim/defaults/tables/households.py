@@ -16,11 +16,10 @@ from activitysim.util import reindex
 
 
 @orca.table(cache=True)
-def households(set_random_seed, store, settings):
+def households(set_random_seed, store, households_sample_size):
 
-    if "households_sample_size" in settings:
-        return asim.random_rows(store["households"],
-                                settings["households_sample_size"])
+    if households_sample_size > 0:
+        return asim.random_rows(store["households"], households_sample_size)
 
     return store["households"]
 

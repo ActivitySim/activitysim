@@ -1,3 +1,6 @@
+import logging
+import logging.config
+
 import gc
 import os
 import os.path
@@ -11,8 +14,8 @@ import pandas as pd
 
 from activitysim import defaults
 from activitysim import activitysim as asim
+from activitysim.defaults import tracing
 
-print "np.geterr()", np.geterr()
 
 # you will want to configure this with the locations of the canonical datasets
 DATA_REPO = os.path.join(os.path.dirname(__file__), '..', '..', 'activitysim-data')
@@ -54,6 +57,22 @@ def inject_settings(config='sandbox',
     orca.add_injectable("settings", settings)
 
 
+def print_settings():
+
+    print "data_dir: %s" % orca.get_injectable('data_dir')
+    print "configs_dir: %s" % orca.get_injectable('configs_dir')
+    print "households_sample_size = %s" % orca.get_injectable('settings')['households_sample_size']
+    print "preload_3d_skims = %s" % orca.get_injectable('preload_3d_skims')
+    print "chunk_size = %s" % orca.get_injectable('chunk_size')
+    print "hh_chunk_size = %s" % orca.get_injectable('hh_chunk_size')
+
+    print "garbage collection enabled: %s" % gc.isenabled()
+    print "garbage collection threshold: %s" % str(gc.get_threshold())
+    print "numpy floating-point error handling settings: %s" % np.geterr()
+    print "pandas display options max_rows=%s max_columns=%s" % \
+          (pd.options.display.max_rows, pd.options.display.max_columns)
+
+
 def print_table_schema(table_names):
     for table_name in table_names:
         df = orca.get_table(table_name).to_frame()
@@ -62,17 +81,8 @@ def print_table_schema(table_names):
            print "  %s: %s" % (col, df[col].dtype)
 
 
-def print_memory_info(message):
-    print message, asim.memory_info(), '\n'
-
-
-def print_settings():
-    print "data_dir:", orca.get_injectable('data_dir')
-    print "configs_dir:", orca.get_injectable('configs_dir')
-    print "households_sample_size =", orca.get_injectable('settings')['households_sample_size']
-    print "preload_3d_skims = ", orca.get_injectable('preload_3d_skims')
-    print "chunk_size = ", orca.get_injectable('chunk_size')
-    print "hh_chunk_size = ", orca.get_injectable('hh_chunk_size')
+def log_memory_info(logger, message):
+    logger.debug("%s %s" % (message, asim.memory_info()))
 
 
 def set_random_seed():
@@ -81,13 +91,17 @@ def set_random_seed():
 
 def run_model(model_name):
     orca.run([model_name])
-    print_memory_info('after %s' % model_name)
+    log_memory_info(logger, 'after %s' % model_name)
 
+
+orca.add_injectable("output_dir", 'output')
+tracing.config_logger('logging.yaml')
+
+logger = logging.getLogger(__name__)
+
+# pandas display options
 pd.options.display.max_columns = 500
 pd.options.display.max_rows = 20
-
-print "max_rows", pd.options.display.max_rows
-print "max_columns", pd.options.display.max_columns
 
 #gc.set_debug(gc.DEBUG_STATS)
 
@@ -97,27 +111,26 @@ orca.add_injectable("set_random_seed", set_random_seed)
 # data = 'test', 'example', or 'full'
 # inject_settings(config='example',
 #                 data='full',
-#                 households_sample_size=20000,
+#                 households_sample_size=0,
 #                 preload_3d_skims=True,
-#                 chunk_size = 10000,
-#                 hh_chunk_size = 10000)
+#                 chunk_size = 50000,
+#                 hh_chunk_size = 50000)
 
 inject_settings(config='example',
-                data='example',
-                households_sample_size=1000,
+                data='test',
+                households_sample_size=100,
                 preload_3d_skims=True,
-                chunk_size = 1000,
-                hh_chunk_size = 1000)
+                chunk_size = 0,
+                hh_chunk_size = 0)
 
-print "gc enabled:", gc.isenabled()
-print "gc get_threshold:", gc.get_threshold()
 print_settings()
 
-print_memory_info('startup')
+
+log_memory_info(logger, 'startup')
 skims = orca.get_injectable('skims')
-print_memory_info('after skim load')
+log_memory_info(logger, 'after skim load')
 skims = orca.get_injectable('stacked_skims')
-print_memory_info('after stacked_skims load')
+log_memory_info(logger, 'after stacked_skims load')
 
 run_model('school_location_simulate')
 run_model('workplace_location_simulate')
@@ -140,9 +153,10 @@ orca.get_injectable('omx_file').close()
 #                "tours_merged", "persons_merged"]
 # print_table_schema(table_names)
 
-print_settings()
+#print_settings()
 
 # this may not work on all systems...
 peak_bytes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 peak_gb = (peak_bytes / (1024 * 1024 * 1024.0))
-print "max memory footprint = %s GB" % (round(peak_gb, 2),)
+logger.debug("max memory footprint = %s (%s GB)" % (peak_bytes, round(peak_gb, 2),))
+

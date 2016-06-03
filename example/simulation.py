@@ -5,6 +5,10 @@ import numpy as np
 import os
 
 
+orca.add_injectable("output_dir", 'output')
+defaults.tracing.config_logger()
+
+
 orca.run(["school_location_simulate"])
 orca.run(["workplace_location_simulate"])
 print orca.get_table("persons").distance_to_work.describe()

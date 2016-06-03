@@ -2,12 +2,16 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import orca
 import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
+from activitysim.defaults import tracing
+
+logger = logging.getLogger(__name__)
 
 
 @orca.table()
@@ -41,7 +45,7 @@ def destination_choice(set_random_seed,
     # the skims will be available under the name "skims" for any @ expressions
     locals_d = {"skims": skims}
 
-    print "destination_choice choosers:", len(choosers.index)
+    logger.info("%s destination_choice choosers" % len(choosers.index))
 
     choices_list = []
     # segment by trip type and pick the right spec for each person type
@@ -49,13 +53,13 @@ def destination_choice(set_random_seed,
 
         # FIXME - there are two options here escort with kids and without
         if name == "escort":
-            # FIXME just run one of the other models for now
+            logger.error("destination_choice escort not implemented - running shopping instead")
             name = "shopping"
 
         # the segment is now available to switch between size terms
         locals_d['segment'] = name
 
-        print "Running segment '%s' of size %d" % (name, len(segment))
+        logger.info("Running segment '%s' of size %d" % (name, len(segment)))
 
         choices = asim.interaction_simulate(segment,
                                             alternatives,
@@ -70,9 +74,12 @@ def destination_choice(set_random_seed,
     choices = pd.concat(choices_list)
 
     # FIXME - can there be null destinations?
-    assert choices.isnull().sum() == 0
+    if choices.isnull().any():
+        logger.error("destination_choice had %s null destinations" % choices.isnull().sum())
+        assert choices.isnull().sum() == 0
 
-    print "Choices:\n", choices.describe()
+    tracing.print_summary('destination', choices, describe=True)
+
     # every trip now has a destination which is the index from the
     # alternatives table - in this case it's the destination taz
     orca.add_column("non_mandatory_tours", "destination", choices)

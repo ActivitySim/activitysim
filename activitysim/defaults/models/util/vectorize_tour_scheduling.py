@@ -1,8 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
+
 from activitysim import activitysim as asim
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_previous_tour_by_tourid(current_tour_person_ids,
@@ -104,7 +109,7 @@ def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0):
         nth_tours = tours.reset_index().\
             groupby('person_id').nth(i).reset_index().set_index('index')
 
-        print "Running %d #%d tour choices" % (len(nth_tours), i+1)
+        logger.info("Running %d #%d tour choices" % (len(nth_tours), i+1))
 
         # tour num can be set by the user, but if it isn't we set it here
         if "tour_num" not in nth_tours:

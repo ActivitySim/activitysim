@@ -2,10 +2,16 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
+
 import orca
 
 from activitysim import activitysim as asim
+from activitysim.defaults import tracing
 from .util.misc import add_dependent_columns
+
+
+logger = logging.getLogger(__name__)
 
 
 @orca.injectable()
@@ -54,7 +60,11 @@ def workplace_location_simulate(set_random_seed,
     # FIXME - no need to reindex?
     choices = choices.reindex(persons_merged.index)
 
-    print "Describe of choices:\n", choices.describe()
+    logger.info("%s workplace_taz choices min: %s max: %s" %
+                (len(choices.index), choices.min(), choices.max()))
+
+    tracing.print_summary('workplace_taz', choices, describe=True)
+
     orca.add_column("persons", "workplace_taz", choices)
 
     add_dependent_columns("persons", "persons_workplace")

@@ -2,12 +2,17 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from activitysim.defaults import tracing
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
+
+
+logger = logging.getLogger(__name__)
 
 
 @orca.table()
@@ -59,20 +64,21 @@ def mandatory_scheduling(set_random_seed,
     school_spec = tdd_school_spec.to_frame()
     school_tours = tours[tours.tour_type == "school"]
 
-    print "Running %d school tour scheduling choices" % len(school_tours)
+    logger.info("Running %d school tour scheduling choices" % len(school_tours))
 
     school_choices = vectorize_tour_scheduling(school_tours, alts, school_spec, chunk_size)
 
     work_spec = tdd_work_spec.to_frame()
     work_tours = tours[tours.tour_type == "work"]
 
-    print "Running %d work tour scheduling choices" % len(work_tours)
+    logger.info("Running %d work tour scheduling choices" % len(work_tours))
 
     work_choices = vectorize_tour_scheduling(work_tours, alts, work_spec, chunk_size)
 
     choices = pd.concat([school_choices, work_choices])
 
-    print "Choices:\n", choices.describe()
+    tracing.print_summary('mandatory_scheduling tour_departure_and_duration',
+                          choices, describe=True)
 
     orca.add_column(
         "mandatory_tours", "tour_departure_and_duration", choices)

@@ -15,6 +15,7 @@ import openmatrix as omx
 from .. import __init__
 from ..tables import size_terms
 
+from ... import tracing
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
@@ -43,7 +44,8 @@ def omx_file(request):
     return omx_file
 
 
-def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None):
+def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None,
+                    trace_hh_id=None):
 
     with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
         settings = yaml.load(f)
@@ -52,6 +54,8 @@ def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, 
             settings['preload_3d_skims'] = preload_3d_skims
         if chunk_size is not None:
             settings['chunk_size'] = chunk_size
+        if trace_hh_id is not None:
+            settings['trace_hh_id'] = trace_hh_id
 
     orca.add_injectable("settings", settings)
 
@@ -122,15 +126,17 @@ def test_mini_run(store, omx_file, random_seed):
     orca.clear_cache()
 
 
-def full_run(store, omx_file, preload_3d_skims, chunk_size=0):
+def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
+             households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, trace_hh_id=None):
 
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example')
     orca.add_injectable("configs_dir", configs_dir)
 
     inject_settings(configs_dir,
-                    households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+                    households_sample_size=households_sample_size,
                     preload_3d_skims=preload_3d_skims,
-                    chunk_size=chunk_size)
+                    chunk_size=chunk_size,
+                    trace_hh_id=trace_hh_id)
 
     orca.add_injectable("omx_file", omx_file)
     orca.add_injectable("store", store)
@@ -191,3 +197,33 @@ def test_full_run_with_chunks(store, omx_file):
 
     # different sampling causes slightly different results
     assert(tour_count == 194)
+
+
+def test_full_run_with_hh_trace(store, omx_file):
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    hh_fname = os.path.join(output_dir, 'households.csv')
+    goner_fname = os.path.join(output_dir, 'x.csv')
+
+    df = pd.DataFrame(np.random.randn(8, 2), columns=['A', 'B'])
+    df.to_csv(hh_fname)
+    df.to_csv(goner_fname)
+    assert os.path.isfile(goner_fname)
+
+    HH_ID = 961042
+    orca.add_injectable("output_dir", output_dir)
+    tracing.config_logger(custom_config_file=None, basic=False)
+
+    tour_count = full_run(store, omx_file, preload_3d_skims=True, trace_hh_id=HH_ID)
+
+    assert(tour_count == 184)
+
+    # should delete any csv files from output
+    assert not os.path.isfile(goner_fname)
+
+    # should have created household csv trace file
+    h = pd.read_csv(hh_fname)
+    assert h.columns[0] == 'HHID'
+    assert h.columns[1] == str(HH_ID)
+
+

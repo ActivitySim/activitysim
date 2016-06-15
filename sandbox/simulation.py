@@ -35,7 +35,7 @@ CONFIGS_DIRS = {
 
 def inject_settings(config='sandbox',
                     data='test',
-                    households_sample_size=1000,
+                    households_sample_size=0,
                     preload_3d_skims=True,
                     chunk_size = 0,
                     hh_chunk_size = 0):
@@ -50,7 +50,8 @@ def inject_settings(config='sandbox',
 
     with open(os.path.join(config_dir, "configs", "settings.yaml")) as f:
         settings = yaml.load(f)
-        settings['households_sample_size'] = households_sample_size
+        if households_sample_size is not None:
+            settings['households_sample_size'] = households_sample_size
         settings['preload_3d_skims'] = preload_3d_skims
         settings['chunk_size'] = chunk_size
         settings['hh_chunk_size'] = hh_chunk_size
@@ -118,7 +119,7 @@ orca.add_injectable("set_random_seed", set_random_seed)
 
 inject_settings(config='sandbox',
                 data='test',
-                households_sample_size=100,
+                households_sample_size=2,
                 preload_3d_skims=True,
                 chunk_size = 0,
                 hh_chunk_size = 0)

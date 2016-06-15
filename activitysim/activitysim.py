@@ -31,6 +31,7 @@ def memory_info():
 
 def random_rows(df, n):
 
+    # only sample if df has more than n rows
     if len(df.index) > n:
         return df.take(np.random.choice(len(df), size=n, replace=False))
     else:

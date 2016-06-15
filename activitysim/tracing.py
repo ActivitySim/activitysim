@@ -114,10 +114,13 @@ def register_households(df, trace_hh_id):
     tracer = get_tracer()
 
     if trace_hh_id is None:
-        tracer.warn("register_households called with null trace_hh_id")
+        tracer.error("register_households called with null trace_hh_id")
         return
 
-    tracer.info("register_households for household id %s" % trace_hh_id)
+    tracer.info("tracing household id %s in sample of %s households" % (trace_hh_id, len(df.index)))
+
+    if trace_hh_id not in df.index:
+        tracer.warn("trace_hh_id %s not in dataframe")
 
     # inject persons_index name of person dataframe index
     if df.index.name is None:
@@ -136,15 +139,13 @@ def register_persons(df, trace_hh_id):
         tracer.warn("register_persons called with null trace_hh_id")
         return
 
-    tracer.info("register_persons for household id %s" % trace_hh_id)
-
     # inject persons_index name of person dataframe index
     if df.index.name is None:
         df.index.names = ['person_id']
         get_tracer().warn("persons table index had no name. renamed index '%s'" % df.index.name)
     orca.add_injectable("persons_index_name", df.index.name)
 
-    tracer.info("register_persons injected persons_index_name '%s'" % df.index.name)
+    tracer.debug("register_persons injected persons_index_name '%s'" % df.index.name)
 
     # inject list of person_ids in household we are tracing
     # this allows us to slice by person_id without requiring presence of household_id column
@@ -155,6 +156,8 @@ def register_persons(df, trace_hh_id):
 
     orca.add_injectable("trace_person_ids", trace_person_ids)
     tracer.info("register_persons injected trace_person_ids %s" % trace_person_ids)
+
+    tracer.info("tracing person_ids %s in sample of %s persons" % (trace_person_ids, len(df.index)))
 
 
 def write_df_csv(df, file_name, index_label=None, columns=None):

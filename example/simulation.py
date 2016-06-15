@@ -1,12 +1,13 @@
 import orca
 from activitysim import defaults
+from activitysim import tracing
 import pandas as pd
 import numpy as np
 import os
 
 
 orca.add_injectable("output_dir", 'output')
-defaults.tracing.config_logger()
+tracing.config_logger()
 
 
 orca.run(["school_location_simulate"])

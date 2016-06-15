@@ -252,8 +252,6 @@ def trace_probs(df, label):
 
 def trace_choices(df, label):
 
-    print "trace_choices", type(df)
-
     trace_df(df, '%s.choices' % label, warn=False)
 
 

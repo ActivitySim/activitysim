@@ -225,5 +225,3 @@ def test_full_run_with_hh_trace(store, omx_file):
     h = pd.read_csv(hh_fname)
     assert h.columns[0] == 'HHID'
     assert h.columns[1] == str(HH_ID)
-
-

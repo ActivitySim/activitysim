@@ -8,9 +8,11 @@ import numpy as np
 import pandas as pd
 from zbox import toolz as tz, gen
 
+
 from ..activitysim import eval_variables
 from .. import mnl
 
+from .. import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +110,7 @@ def make_interactions(people, hh_id_col, p_type_col):
 
 
 def individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec):
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec, trace_label=None):
     """
     Calculate CDAP utilities for all individuals.
 
@@ -159,6 +161,16 @@ def individual_utilities(
     # add one-, two-, and three-person utilities
     utils = one_utils.add(
         two_utils, fill_value=0).add(three_utils, fill_value=0)
+
+    if trace_label:
+        tracing.trace_cdap_ind_utils(one_vars, '%s.ind_utils.one_vars' % trace_label)
+        tracing.trace_cdap_ind_utils(one_utils, '%s.ind_utils.one_utils' % trace_label)
+
+        tracing.trace_cdap_ind_utils(two_vars, '%s.ind_utils.two_vars' % trace_label)
+        tracing.trace_cdap_ind_utils(two_utils, '%s.ind_utils.two_utils' % trace_label)
+
+        tracing.trace_cdap_ind_utils(three_vars, '%s.ind_utils.three_vars' % trace_label)
+        tracing.trace_cdap_ind_utils(three_utils, '%s.ind_util.three_utils' % trace_label)
 
     return utils
 
@@ -390,7 +402,7 @@ def household_choices_to_people(hh_choices, people):
 
 def _run_cdap(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules, all_people):
+        final_rules, all_people, trace_label):
     """
     Choose individual activity patterns for people.
 
@@ -436,12 +448,40 @@ def _run_cdap(
 
     """
     ind_utils = individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec)
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec, trace_label)
+
+    if trace_label:
+        tracing.trace_cdap_ind_utils(ind_utils, '%s.ind_utils' % trace_label)
+
     hh_utils = initial_household_utilities(ind_utils, people, hh_id_col)
+
+    if trace_label:
+        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils' % trace_label)
+
     apply_final_rules(hh_utils, people, hh_id_col, final_rules)
+
+    if trace_label:
+        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils.apply_final_rules' % trace_label)
+
     apply_all_people(hh_utils, all_people)
+
+    if trace_label:
+        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils.apply_all_people' % trace_label)
+
     hh_choices = make_household_choices(hh_utils)
-    return household_choices_to_people(hh_choices, people)
+
+    if trace_label:
+        tracing.trace_df(hh_choices, '%s.hh_choices' % trace_label,
+                         slicer='HHID', columns='choice', warn=False)
+
+    person_choices = household_choices_to_people(hh_choices, people)
+
+    if trace_label:
+        print person_choices
+        tracing.trace_df(person_choices, '%s.person_choices' % trace_label,
+                         columns='choice', warn=False)
+
+    return person_choices
 
 
 def hh_chunked_choosers(choosers):
@@ -455,7 +495,8 @@ def hh_chunked_choosers(choosers):
 
 def run_cdap(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules, all_people, chunk_size=0):
+        final_rules, all_people,
+        chunk_size=0, trace_label=None):
 
     # like run_cdap but iterates over people in hh_chunk_size chunks
     # we need to use hh_chunks because all household persons need to be in the same chunk
@@ -463,7 +504,7 @@ def run_cdap(
 
     if (chunk_size == 0) or (chunk_size >= len(people.index)):
         choices = _run_cdap(people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-                            final_rules, all_people)
+                            final_rules, all_people, trace_label)
         return choices
 
     choices_list = []
@@ -473,7 +514,7 @@ def run_cdap(
         logger.info("run_cdap running hh_chunk =%s of size %d" % (i, len(people_chunk)))
 
         choices = _run_cdap(people_chunk, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-                            final_rules, all_people)
+                            final_rules, all_people, trace_label)
 
         choices_list.append(choices)
 

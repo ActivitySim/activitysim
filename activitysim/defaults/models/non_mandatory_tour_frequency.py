@@ -9,7 +9,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
@@ -41,7 +41,8 @@ def non_mandatory_tour_frequency(set_random_seed,
                                  persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec,
-                                 chunk_size):
+                                 chunk_size,
+                                 trace_hh_id):
 
     """
     This model predicts the frequency of making non-mandatory trips
@@ -53,8 +54,7 @@ def non_mandatory_tour_frequency(set_random_seed,
     choosers = persons_merged.to_frame()
 
     # filter based on results of CDAP
-    choosers = choosers[choosers.cdap_activity.isin(['Mandatory',
-                                                     'NonMandatory'])]
+    choosers = choosers[choosers.cdap_activity.isin(['Mandatory', 'NonMandatory'])]
 
     logger.info("%d persons run for non-mandatory tour model" % len(choosers))
 
@@ -71,7 +71,8 @@ def non_mandatory_tour_frequency(set_random_seed,
             # segment for each segment we run
             non_mandatory_tour_frequency_spec[[name]],
             sample_size=50,
-            chunk_size=chunk_size)
+            chunk_size=chunk_size,
+            trace_label=trace_hh_id and 'non_mandatory_tour_frequency')
 
         choices_list.append(choices)
 
@@ -84,6 +85,12 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     add_dependent_columns("persons", "persons_nmtf")
 
+    if trace_hh_id:
+        tracing.get_tracer().info("non_mandatory_tour_frequency tracing household %s" % trace_hh_id)
+        trace_columns = ['non_mandatory_tour_frequency']
+        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+                         label="non_mandatory_tour_frequency",
+                         columns=trace_columns)
 
 """
 We have now generated non-mandatory tours, but they are attributes of the
@@ -97,10 +104,11 @@ associated with)
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):
 
-    return process_non_mandatory_tours(
+    df = process_non_mandatory_tours(
         persons.non_mandatory_tour_frequency.dropna(),
         non_mandatory_tour_frequency_alts.local
     )
+    return df
 
 
 """

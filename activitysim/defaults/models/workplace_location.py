@@ -7,7 +7,7 @@ import logging
 import orca
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 from .util.misc import add_dependent_columns
 
 
@@ -26,7 +26,8 @@ def workplace_location_simulate(set_random_seed,
                                 workplace_location_spec,
                                 skims,
                                 destination_size_terms,
-                                chunk_size):
+                                chunk_size,
+                                trace_hh_id):
 
     """
     The workplace location model predicts the zones in which various people will
@@ -49,13 +50,15 @@ def workplace_location_simulate(set_random_seed,
     # FIXME - HACK - only include columns actually used in spec (which we pathologically know)
     choosers = choosers[["income_segment", "TAZ", "mode_choice_logsums"]]
 
-    choices = asim.interaction_simulate(choosers,
-                                        alternatives,
-                                        workplace_location_spec,
-                                        skims=skims,
-                                        locals_d=locals_d,
-                                        sample_size=50,
-                                        chunk_size=chunk_size)
+    choices = asim.interaction_simulate(
+        choosers,
+        alternatives,
+        spec=workplace_location_spec,
+        skims=skims,
+        locals_d=locals_d,
+        sample_size=50,
+        chunk_size=chunk_size,
+        trace_label=trace_hh_id and 'workplace_location')
 
     # FIXME - no need to reindex?
     choices = choices.reindex(persons_merged.index)
@@ -68,3 +71,10 @@ def workplace_location_simulate(set_random_seed,
     orca.add_column("persons", "workplace_taz", choices)
 
     add_dependent_columns("persons", "persons_workplace")
+
+    if trace_hh_id:
+        tracing.get_tracer().info("workplace_location_simulate tracing household %s" % trace_hh_id)
+        trace_columns = ['workplace_taz'] + orca.get_table('persons_workplace').columns
+        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+                         label="workplace_location",
+                         columns=trace_columns)

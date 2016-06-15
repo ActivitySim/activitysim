@@ -8,7 +8,7 @@ import openmatrix as omx
 import orca
 
 from activitysim import skim
-from activitysim.defaults import tracing
+from activitysim import tracing
 
 logger = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@ import pandas as pd
 
 from activitysim import defaults
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 
 
 # you will want to configure this with the locations of the canonical datasets
@@ -116,7 +116,7 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 chunk_size = 50000,
 #                 hh_chunk_size = 50000)
 
-inject_settings(config='example',
+inject_settings(config='sandbox',
                 data='test',
                 households_sample_size=100,
                 preload_3d_skims=True,
@@ -131,6 +131,14 @@ skims = orca.get_injectable('skims')
 log_memory_info(logger, 'after skim load')
 skims = orca.get_injectable('stacked_skims')
 log_memory_info(logger, 'after stacked_skims load')
+
+#t = orca.get_table('persons')
+# df = orca.get_table('persons_merged').to_frame()
+# df = df[ ( df.hhsize > 2 )]
+# df = df[['household_id', 'is_student', 'is_worker']]
+# print df.head(20)
+
+tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged")
 
 run_model('school_location_simulate')
 run_model('workplace_location_simulate')

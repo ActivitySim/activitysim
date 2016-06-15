@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,8 @@ def destination_choice(set_random_seed,
                        skims,
                        destination_choice_spec,
                        destination_size_terms,
-                       chunk_size):
+                       chunk_size,
+                       trace_hh_id):
 
     """
     Given the tour generation from the above, each tour needs to have a
@@ -52,22 +53,27 @@ def destination_choice(set_random_seed,
     for name, segment in choosers.groupby('tour_type'):
 
         # FIXME - there are two options here escort with kids and without
+        kludge_name = name
         if name == "escort":
             logger.error("destination_choice escort not implemented - running shopping instead")
-            name = "shopping"
+            kludge_name = "shopping"
 
         # the segment is now available to switch between size terms
-        locals_d['segment'] = name
+        locals_d['segment'] = kludge_name
 
         logger.info("Running segment '%s' of size %d" % (name, len(segment)))
 
+        # name index so tracing knows how to slice
+        segment.index.name = 'tour_id'
+
         choices = asim.interaction_simulate(segment,
                                             alternatives,
-                                            spec[[name]],
+                                            spec[[kludge_name]],
                                             skims=skims,
                                             locals_d=locals_d,
                                             sample_size=50,
-                                            chunk_size=chunk_size)
+                                            chunk_size=chunk_size,
+                                            trace_label='destination.%s' % name)
 
         choices_list.append(choices)
 
@@ -84,9 +90,17 @@ def destination_choice(set_random_seed,
     # alternatives table - in this case it's the destination taz
     orca.add_column("non_mandatory_tours", "destination", choices)
 
+    if trace_hh_id:
+        tracing.get_tracer().info("destination tracing household %s" % trace_hh_id)
+        tracing.trace_df(orca.get_table('non_mandatory_tours').to_frame(),
+                         label="destination",
+                         slicer='person_id',
+                         index_label='tour_id',
+                         columns=None)
+
 
 @orca.step()
-def patch_mandatory_tour_destination(mandatory_tours_merged):
+def patch_mandatory_tour_destination(mandatory_tours_merged, trace_hh_id):
 
     """
     Patch destination column of mandatory tours with school or workplace taz
@@ -100,3 +114,12 @@ def patch_mandatory_tour_destination(mandatory_tours_merged):
                  mandatory_tours_merged['workplace_taz'])
 
     orca.add_column("mandatory_tours", "destination", mandatory_tours_merged.destination)
+
+    if trace_hh_id:
+        tracer = tracing.get_tracer()
+        tracer.info("patch_mandatory_tour_destination tracing household %s" % trace_hh_id)
+        tracing.trace_df(orca.get_table('mandatory_tours').to_frame(),
+                         label="mandatory_tours.destination",
+                         slicer='person_id',
+                         index_label='tour_id',
+                         columns=None)

@@ -6,6 +6,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from activitysim import tracing
 from activitysim.util import reindex
 
 # not actually used, but helpful for dumping/documenting the contents of store
@@ -16,12 +17,21 @@ from activitysim.util import reindex
 
 
 @orca.table(cache=True)
-def households(set_random_seed, store, households_sample_size):
+def households(set_random_seed, store, households_sample_size, trace_hh_id):
+
+    df = store["households"]
+
+    if trace_hh_id and trace_hh_id in df.index:
+        df = df.loc[[trace_hh_id]]
 
     if households_sample_size > 0:
-        return asim.random_rows(store["households"], households_sample_size)
+        df = asim.random_rows(df, households_sample_size)
 
-    return store["households"]
+    if trace_hh_id:
+        tracing.register_households(df, trace_hh_id)
+        tracing.trace_df(df, "households")
+
+    return df
 
 
 # this assigns a chunk_id to each household based on the chunk_size setting

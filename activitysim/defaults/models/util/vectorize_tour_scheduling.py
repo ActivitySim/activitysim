@@ -4,8 +4,10 @@
 import logging
 
 from activitysim import activitysim as asim
+import numpy as np
 import pandas as pd
 
+from activitysim import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +52,7 @@ def get_previous_tour_by_tourid(current_tour_person_ids,
     return previous_tour_by_tourid
 
 
-def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0):
+def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0, trace_label=None):
     """
     The purpose of this method is fairly straightforward - it takes tours
     and schedules them into time slots.  Alternatives should be specified so
@@ -90,6 +92,11 @@ def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0):
 
     max_num_trips = tours.groupby('person_id').size().max()
 
+    if np.isnan(max_num_trips):
+        s = pd.Series()
+        s.index.name = 'PERID'
+        return s
+
     # because this is Python, we have to vectorize everything by doing the
     # "nth" trip for each person in a for loop (in other words, because each
     # trip is dependent on the time windows left by the previous decision) -
@@ -110,6 +117,11 @@ def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0):
             groupby('person_id').nth(i).reset_index().set_index('index')
 
         logger.info("Running %d #%d tour choices" % (len(nth_tours), i+1))
+
+        if trace_label:
+            tracer = tracing.get_tracer()
+            tracer.info("vectorize_tour_scheduling %s running %d #%d tour choices" %
+                        (trace_label, len(nth_tours), i+1))
 
         # tour num can be set by the user, but if it isn't we set it here
         if "tour_num" not in nth_tours:

@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 from .util.misc import add_dependent_columns
 
 
@@ -28,7 +28,8 @@ def school_location_simulate(set_random_seed,
                              school_location_spec,
                              skims,
                              destination_size_terms,
-                             chunk_size):
+                             chunk_size,
+                             trace_hh_id):
 
     """
     The school location model predicts the zones in which various people will
@@ -54,13 +55,16 @@ def school_location_simulate(set_random_seed,
 
         choosers_segment = choosers[choosers["is_" + school_type]]
 
-        choices = asim.interaction_simulate(choosers_segment,
-                                            alternatives,
-                                            spec[[school_type]],
-                                            skims=skims,
-                                            locals_d=locals_d,
-                                            sample_size=50,
-                                            chunk_size=chunk_size)
+        choices = asim.interaction_simulate(
+            choosers_segment,
+            alternatives,
+            spec=spec[[school_type]],
+            skims=skims,
+            locals_d=locals_d,
+            sample_size=50,
+            chunk_size=chunk_size,
+            trace_label='school_location.%s' % school_type)
+
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
@@ -72,6 +76,8 @@ def school_location_simulate(set_random_seed,
     # this fills in the location for those uncommon circumstances,
     # so at least it runs
     if np.isnan(choices).any():
+        if trace_hh_id:
+            tracing.trace_nan_values(choices, 'school_location.choices')
         logger.warn("Converting %s nan school_taz choices to -1" %
                     (np.isnan(choices).sum(), len(choices.index)))
     choices = choices.reindex(persons_merged.index).fillna(-1)
@@ -82,5 +88,11 @@ def school_location_simulate(set_random_seed,
     tracing.print_summary('school_taz', choices, describe=True)
 
     orca.add_column("persons", "school_taz", choices)
-
     add_dependent_columns("persons", "persons_school")
+
+    if trace_hh_id:
+        tracing.get_tracer().info("school_location_simulate tracing household %s" % trace_hh_id)
+        trace_columns = ['school_taz'] + orca.get_table('persons_school').columns
+        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+                         label="school_location",
+                         columns=trace_columns)

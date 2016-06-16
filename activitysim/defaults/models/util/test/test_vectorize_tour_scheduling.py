@@ -48,10 +48,12 @@ def test_vts():
 
     choices = vectorize_tour_scheduling(tours, alts, spec)
 
+    # FIXME - dead reckoning regression
     # there's no real logic here - this is just what came out of the monte carlo
     # note that the result comes out ordered by the nth trips and not ordered
     # by the trip index.  shrug?
+    expected = [20, 30, 20, 20, 20]
     pdt.assert_series_equal(
         choices,
-        pd.Series([20, 20, 30, 30, 20],
+        pd.Series(expected,
                   index=pd.Index([0, 2, 3, 1, 4], name='index')))

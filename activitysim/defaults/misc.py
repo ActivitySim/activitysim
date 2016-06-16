@@ -3,6 +3,7 @@
 
 import os
 import warnings
+import logging
 
 import numpy as np
 import orca
@@ -11,6 +12,8 @@ import yaml
 
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
+
+logger = logging.getLogger(__name__)
 
 
 @orca.injectable()
@@ -74,3 +77,26 @@ def hh_chunk_size(settings):
         return settings.get('hh_chunk_size', 0)
     else:
         return settings.get('chunk_size', 0)
+
+
+@orca.injectable(cache=True)
+def trace_hh_id(settings):
+    return settings.get('trace_hh_id', None)
+
+
+@orca.injectable()
+def trace_person_ids(persons):
+    # overridden when persons table is loaded
+    # if trace_hh_id is defined
+    logger.error("trace_person_ids called before being overridden")
+    return []
+
+
+@orca.injectable(cache=True)
+def hh_index_name(settings):
+    return None
+
+
+@orca.injectable(cache=True)
+def persons_index_name(settings):
+    return None

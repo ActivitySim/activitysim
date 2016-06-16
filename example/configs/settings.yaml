@@ -4,6 +4,7 @@ store: mtc_asim.h5
 # these are the defaults
 # preload_3d_skims: False
 
+trace_hh_id: 961042
 households_sample_size: 1000
 
 chunk_size: 10000

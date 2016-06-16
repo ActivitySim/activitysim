@@ -6,6 +6,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
+from activitysim import tracing
 from activitysim.util import reindex
 
 # not actually used, but helpful for dumping/documenting the contents of store
@@ -16,12 +17,38 @@ from activitysim.util import reindex
 
 
 @orca.table(cache=True)
-def households(set_random_seed, store, households_sample_size):
+def households(set_random_seed, store, households_sample_size, trace_hh_id):
 
-    if households_sample_size > 0:
-        return asim.random_rows(store["households"], households_sample_size)
+    df_full = store["households"]
 
-    return store["households"]
+    # if we are tracing hh exclusively
+    if trace_hh_id and households_sample_size == 1:
+
+        # df contains only trace_hh (or empty if not in full store)
+        df = tracing.slice_ids(df_full, trace_hh_id)
+
+    # if we need sample a subset of full store
+    elif households_sample_size > 0 and len(df_full.index) > households_sample_size:
+
+        # take the requested random sample
+        df = asim.random_rows(df_full, households_sample_size)
+
+        # if tracing and we missed trace_hh in sample, but it is in full store
+        if trace_hh_id and trace_hh_id not in df.index and trace_hh_id in df_full.index:
+                # replace first hh in sample with trace_hh
+                tracing.get_tracer().warn("replacing household %s with %s in household sample" %
+                                          (df.index[0], trace_hh_id))
+                df_hh = tracing.slice_ids(df_full, trace_hh_id)
+                df = pd.concat([df_hh, df[1:]])
+
+    else:
+        df = df_full
+
+    if trace_hh_id:
+        tracing.register_households(df, trace_hh_id)
+        tracing.trace_df(df, "households")
+
+    return df
 
 
 # this assigns a chunk_id to each household based on the chunk_size setting

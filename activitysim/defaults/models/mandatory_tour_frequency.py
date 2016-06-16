@@ -8,7 +8,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 from .util.mandatory_tour_frequency import process_mandatory_tours
 
 
@@ -24,7 +24,8 @@ def mandatory_tour_frequency_spec(configs_dir):
 @orca.step()
 def mandatory_tour_frequency(set_random_seed,
                              persons_merged,
-                             mandatory_tour_frequency_spec):
+                             mandatory_tour_frequency_spec,
+                             trace_hh_id):
     """
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.
@@ -38,7 +39,10 @@ def mandatory_tour_frequency(set_random_seed,
     # trace.print_summary('mandatory_tour_frequency choosers',
     #                     choosers.workplace_taz, describe=True)
 
-    choices, _ = asim.simple_simulate(choosers, mandatory_tour_frequency_spec)
+    choices, _ = asim.simple_simulate(
+        choosers,
+        spec=mandatory_tour_frequency_spec,
+        trace_label=trace_hh_id and 'mandatory_tour_frequency')
 
     # convert indexes to alternative names
     choices = pd.Series(
@@ -49,6 +53,12 @@ def mandatory_tour_frequency(set_random_seed,
 
     orca.add_column("persons", "mandatory_tour_frequency", choices)
 
+    if trace_hh_id:
+        tracing.get_tracer().info("mandatory_tour_frequency tracing household %s" % trace_hh_id)
+        trace_columns = ['mandatory_tour_frequency']
+        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+                         label="mandatory_tour_frequency",
+                         columns=trace_columns)
 
 """
 This reprocesses the choice of index of the mandatory tour frequency
@@ -62,7 +72,9 @@ def mandatory_tours(persons):
     persons = persons.to_frame(columns=["mandatory_tour_frequency",
                                         "is_worker"])
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
-    return process_mandatory_tours(persons)
+    df = process_mandatory_tours(persons)
+
+    return df
 
 
 # broadcast mandatory_tours on to persons using the person_id foreign key

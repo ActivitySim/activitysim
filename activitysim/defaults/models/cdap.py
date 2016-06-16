@@ -7,7 +7,7 @@ import orca
 import pandas as pd
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 from activitysim.cdap import cdap
 
 
@@ -44,7 +44,8 @@ def cdap_all_people(configs_dir):
 @orca.step()
 def cdap_simulate(set_random_seed, persons_merged,
                   cdap_1_person_spec, cdap_2_person_spec, cdap_3_person_spec,
-                  cdap_final_rules, cdap_all_people, hh_chunk_size):
+                  cdap_final_rules, cdap_all_people,
+                  hh_chunk_size, trace_hh_id):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
     high-level activity pattern for each person, in a coordinated way with other
@@ -63,10 +64,18 @@ def cdap_simulate(set_random_seed, persons_merged,
                             cdap_3_person_spec,
                             cdap_final_rules,
                             cdap_all_people,
-                            hh_chunk_size)
+                            hh_chunk_size,
+                            trace_label=trace_hh_id and 'cdap')
 
     choices = choices.reindex(persons_merged.index)
 
     tracing.print_summary('cdap_activity', choices, value_counts=True)
 
     orca.add_column("persons", "cdap_activity", choices)
+
+    if trace_hh_id:
+        tracing.get_tracer().info("cdap_simulate tracing household %s" % trace_hh_id)
+        trace_columns = ['cdap_activity']
+        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+                         label="cdap",
+                         columns=trace_columns)

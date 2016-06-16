@@ -9,7 +9,7 @@ import pandas as pd
 import yaml
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 
 from activitysim import skim as askim
 from .util.mode import _mode_choice_spec
@@ -164,25 +164,27 @@ def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
                               skims, stacked_skims,
-                              omx_file):
+                              omx_file,
+                              trace_hh_id):
+
+    if trace_hh_id:
+        tracer = tracing.get_tracer()
+        tracer.info("tour_mode_choice_simulate tracing household %s" % trace_hh_id)
 
     tours = tours_merged.to_frame()
 
     choices_list = []
 
-    print "Tour types:\n", tours.tour_type.value_counts()
+    tracing.print_summary('tour_mode_choice_simulate tour_type',
+                          tours.tour_type, value_counts=True)
 
     for tour_type, segment in tours.groupby('tour_type'):
 
-        # FIXME - log
         logger.info("running tour_type '%s'" % tour_type)
 
-        # FIXME - hack to run subset of tour types
-        # TOUR_TYPE_SUBSET = []
-        # # TOUR_TYPE_SUBSET = ['eatout']
-        # if TOUR_TYPE_SUBSET and tour_type not in TOUR_TYPE_SUBSET:
-        #     print "skipping tour_type %s" % tour_type
-        #     continue
+        if trace_hh_id:
+            tracer.info("tour_mode_choice_simulate running %s tour_type '%s'" %
+                        (len(segment.index), tour_type, ))
 
         tour_type_tours = tours[tours.tour_type == tour_type]
         orig_key = 'TAZ'
@@ -190,8 +192,8 @@ def tour_mode_choice_simulate(tours_merged,
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
-        # FIXME - log
-        # print "dest_taz counts:\n", tour_type_tours[dest_key].value_counts()
+        tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
+                              tour_type_tours[dest_key], value_counts=True)
 
         choices = _mode_choice_simulate(
             tour_type_tours,
@@ -213,9 +215,18 @@ def tour_mode_choice_simulate(tours_merged,
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('tour_mode_choice_simulate all tour type', choices, value_counts=True)
+    tracing.print_summary('tour_mode_choice_simulate all tour type',
+                          choices, value_counts=True)
 
     orca.add_column("tours", "mode", choices)
+
+    if trace_hh_id:
+        trace_columns = ['mode']
+        tracing.trace_df(orca.get_table('tours').to_frame(),
+                         label="mode",
+                         slicer='tour_id',
+                         index_label='tour_id',
+                         columns=trace_columns)
 
     # FIXME - this forces garbage collection
     asim.memory_info()
@@ -227,9 +238,16 @@ def trip_mode_choice_simulate(tours_merged,
                               trip_mode_choice_settings,
                               skims,
                               stacked_skims,
-                              omx_file):
+                              omx_file,
+                              trace_hh_id):
 
-    # FIXME running the trips model on tours
+    if trace_hh_id:
+        tracer = tracing.get_tracer()
+        tracer.info("tour_mode_choice_simulate tracing household %s" % trace_hh_id)
+
+    # FIXME - running the trips model on tours
+    logger.error('trips not implemented running the trips model on tours')
+
     trips = tours_merged.to_frame()
     stack = askim.SkimStack(skims)
 
@@ -242,11 +260,18 @@ def trip_mode_choice_simulate(tours_merged,
 
         logger.info("running tour_type '%s'" % tour_type)
 
+        if trace_hh_id:
+            tracer.info("trip_mode_choice_simulate running %s tour_type '%s'" %
+                        (len(segment.index), tour_type, ))
+
         tour_type_tours = trips[trips.tour_type == tour_type]
         orig_key = 'TAZ'
         dest_key = 'destination'
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
+
+        tracing.print_summary('trip_mode_choice_simulate %s dest_taz' % tour_type,
+                              tour_type_tours[dest_key], value_counts=True)
 
         # FIXME - log
         # print "dest_taz counts:\n", tour_type_tours[dest_key].value_counts()
@@ -271,9 +296,19 @@ def trip_mode_choice_simulate(tours_merged,
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('trip_mode_choice_simulate all tour type', choices, value_counts=True)
+    tracing.print_summary('trip_mode_choice_simulate all tour type',
+                          choices, value_counts=True)
 
+    # FIXME - is this a NOP if trips table doesn't exist
     orca.add_column("trips", "mode", choices)
+
+    # if trace_hh_id:
+    #     trace_columns = ['mode']
+    #     tracing.trace_df(orca.get_table('trips').to_frame(),
+    #                      label = "mode",
+    #                      slicer='tour_id',
+    #                      index_label='tour_id',
+    #                      columns = trace_columns)
 
     # FIXME - this forces garbage collection
     asim.memory_info()

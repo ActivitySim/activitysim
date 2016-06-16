@@ -10,7 +10,7 @@ from .. import tracing as tracing
 
 
 def close_handlers():
-    for logger_name in ['activitysim', 'activitysim.trace', 'orca']:
+    for logger_name in ['activitysim', 'orca']:
         logger = logging.getLogger(logger_name)
         logger.handlers = []
         logger.propagate = True
@@ -22,7 +22,9 @@ def test_bad_custom_config_file(capsys):
     configs_dir = os.path.join(os.path.dirname(__file__))
     orca.add_injectable("configs_dir", configs_dir)
 
-    custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'xlogging.yaml')
+    orca.add_injectable("output_dir", '.')
+
+    custom_config_file = os.path.join(os.path.dirname(__file__), 'data', 'xlogging.yaml')
     tracing.config_logger(custom_config_file=custom_config_file)
 
     logger = logging.getLogger('activitysim')
@@ -59,6 +61,8 @@ def test_config_logger(capsys):
     configs_dir = os.path.join(os.path.dirname(__file__))
     orca.add_injectable("configs_dir", configs_dir)
 
+    orca.add_injectable("output_dir", '.')
+
     tracing.config_logger()
 
     logger = logging.getLogger('activitysim')
@@ -93,10 +97,12 @@ def test_config_logger(capsys):
     assert 'log_warn2' not in content
 
 
-def test_no_config(capsys):
+def test_basic(capsys):
 
     configs_dir = os.path.join(os.path.dirname(__file__))
     orca.add_injectable("configs_dir", configs_dir)
+
+    orca.add_injectable("output_dir", '.')
 
     # remove existing hanlers or basicConfig is a NOP
     logging.getLogger().handlers = []

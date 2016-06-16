@@ -5,7 +5,7 @@ import os
 import orca
 
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 from .util.misc import add_dependent_columns
 
 
@@ -17,17 +17,27 @@ def auto_ownership_spec(configs_dir):
 
 @orca.step()
 def auto_ownership_simulate(set_random_seed, households_merged,
-                            auto_ownership_spec):
+                            auto_ownership_spec,
+                            trace_hh_id):
     """
     Auto ownership is a standard model which predicts how many cars a household
     with given characteristics owns
     """
 
     choices, _ = asim.simple_simulate(
-        households_merged.to_frame(), auto_ownership_spec)
+        choosers=households_merged.to_frame(),
+        spec=auto_ownership_spec,
+        trace_label=trace_hh_id and 'auto_ownership')
 
     tracing.print_summary('auto_ownership', choices, value_counts=True)
 
     orca.add_column("households", "auto_ownership", choices)
 
     add_dependent_columns("households", "households_autoown")
+
+    if trace_hh_id:
+        tracing.get_tracer().info("auto_ownership_simulate tracing household %s" % trace_hh_id)
+        trace_columns = ['auto_ownership'] + orca.get_table('households_autoown').columns
+        tracing.trace_df(orca.get_table('households').to_frame(),
+                         label="auto_ownership",
+                         columns=trace_columns)

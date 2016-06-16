@@ -1,12 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
+
 import numpy as np
 import orca
 import pandas as pd
 
+from activitysim import tracing
 from activitysim.activitysim import other_than
 from activitysim.util import reindex
+
+
+logger = logging.getLogger(__name__)
 
 
 # this caches things so you don't have to read in the file from disk again
@@ -23,8 +29,15 @@ def persons_internal(store, households_sample_size, households):
 
 # this caches all the columns that are computed on the persons table
 @orca.table(cache=True)
-def persons(persons_internal):
-    return persons_internal.to_frame()
+def persons(persons_internal, trace_hh_id):
+
+    df = persons_internal.to_frame()
+
+    if trace_hh_id:
+        tracing.register_persons(df, trace_hh_id)
+        tracing.trace_df(df, "persons")
+
+    return df
 
 
 # this is the placeholder for all the columns to update after the
@@ -266,9 +279,10 @@ def distance_to_work(persons, distance_skim):
                      index=persons.index)
 
 
-# same deal but to school
+# same deal as distance_to_work but to school
 @orca.column("persons_school")
 def distance_to_school(persons, distance_skim):
+    logger.debug("eval computed column persons_school.roundtrip_auto_time_to_school")
     return pd.Series(distance_skim.get(persons.home_taz,
                                        persons.school_taz),
                      index=persons.index)
@@ -289,6 +303,7 @@ def roundtrip_auto_time_to_work(persons, sovmd_skim):
 # MTC TM1 was MD and MD since term is free flow roundtrip_auto_time_to_school
 @orca.column("persons_school")
 def roundtrip_auto_time_to_school(persons, sovmd_skim):
+    logger.debug("eval computed column persons_school.roundtrip_auto_time_to_school")
     return pd.Series(sovmd_skim.get(persons.home_taz,
                                     persons.school_taz) +
                      sovmd_skim.get(persons.school_taz,

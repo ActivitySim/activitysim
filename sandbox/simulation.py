@@ -14,7 +14,7 @@ import pandas as pd
 
 from activitysim import defaults
 from activitysim import activitysim as asim
-from activitysim.defaults import tracing
+from activitysim import tracing
 
 
 # you will want to configure this with the locations of the canonical datasets
@@ -35,7 +35,7 @@ CONFIGS_DIRS = {
 
 def inject_settings(config='sandbox',
                     data='test',
-                    households_sample_size=1000,
+                    households_sample_size=0,
                     preload_3d_skims=True,
                     chunk_size = 0,
                     hh_chunk_size = 0):
@@ -50,7 +50,8 @@ def inject_settings(config='sandbox',
 
     with open(os.path.join(config_dir, "configs", "settings.yaml")) as f:
         settings = yaml.load(f)
-        settings['households_sample_size'] = households_sample_size
+        if households_sample_size is not None:
+            settings['households_sample_size'] = households_sample_size
         settings['preload_3d_skims'] = preload_3d_skims
         settings['chunk_size'] = chunk_size
         settings['hh_chunk_size'] = hh_chunk_size
@@ -116,9 +117,9 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 chunk_size = 50000,
 #                 hh_chunk_size = 50000)
 
-inject_settings(config='example',
+inject_settings(config='sandbox',
                 data='test',
-                households_sample_size=100,
+                households_sample_size=2,
                 preload_3d_skims=True,
                 chunk_size = 0,
                 hh_chunk_size = 0)
@@ -131,6 +132,14 @@ skims = orca.get_injectable('skims')
 log_memory_info(logger, 'after skim load')
 skims = orca.get_injectable('stacked_skims')
 log_memory_info(logger, 'after stacked_skims load')
+
+#t = orca.get_table('persons')
+# df = orca.get_table('persons_merged').to_frame()
+# df = df[ ( df.hhsize > 2 )]
+# df = df[['household_id', 'is_student', 'is_worker']]
+# print df.head(20)
+
+tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged")
 
 run_model('school_location_simulate')
 run_model('workplace_location_simulate')

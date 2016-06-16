@@ -10,6 +10,7 @@ from zbox import toolz as tz
 
 from .skim import Skims, Skims3D
 from .mnl import utils_to_probs, make_choices, interaction_dataset
+import tracing
 
 import os
 import psutil
@@ -29,7 +30,12 @@ def memory_info():
 
 
 def random_rows(df, n):
-    return df.take(np.random.choice(len(df), size=n, replace=False))
+
+    # only sample if df has more than n rows
+    if len(df.index) > n:
+        return df.take(np.random.choice(len(df), size=n, replace=False))
+    else:
+        return df
 
 
 def read_model_spec(fname,
@@ -162,6 +168,7 @@ def _check_for_variability(model_design):
     """
     l = min(1000, len(model_design))
     sample = random_rows(model_design, l)
+
     # convert to float so describe works uniformly on bools
     sample = sample.astype('float')
     sample = sample.describe().transpose()
@@ -178,7 +185,7 @@ def _check_for_variability(model_design):
             logger.info("missing values in: %s" % v)
 
 
-def simple_simulate(choosers, spec, skims=None, locals_d=None):
+def simple_simulate(choosers, spec, skims=None, locals_d=None, trace_label=None):
     """
     Run a simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -202,6 +209,9 @@ def simple_simulate(choosers, spec, skims=None, locals_d=None):
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    trace_label: str
+        This is the label to be used  for trace log file entries and dump file names
+        when household tracing enabled. No tracing occurs if label is empty or None.
 
     Returns
     -------
@@ -220,6 +230,13 @@ def simple_simulate(choosers, spec, skims=None, locals_d=None):
     probs = utils_to_probs(utilities)
     choices = make_choices(probs)
 
+    if trace_label:
+        tracing.trace_choosers(choosers, trace_label)
+        tracing.trace_utilities(utilities, trace_label)
+        tracing.trace_probs(probs, trace_label)
+        tracing.trace_choices(choices, trace_label)
+        tracing.trace_model_design(model_design, trace_label)
+
     return choices, model_design
 
 
@@ -236,7 +253,8 @@ def chunked_choosers(choosers, chunk_size):
 
 def interaction_simulate(
         choosers, alternatives, spec,
-        skims=None, locals_d=None, sample_size=None, chunk_size=0):
+        skims=None, locals_d=None, sample_size=None, chunk_size=0,
+        trace_label=None):
 
     # like interaction_simulate but iterates over choosers in chunk_size chunks
     # FIXME - chunk size should take number of chooser and alternative columns into account
@@ -246,7 +264,7 @@ def interaction_simulate(
 
     if (chunk_size == 0) or (chunk_size >= len(choosers.index)):
         choices, _ = _interaction_simulate(choosers, alternatives, spec,
-                                           skims, locals_d, sample_size)
+                                           skims, locals_d, sample_size, trace_label)
         return choices
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
@@ -259,7 +277,7 @@ def interaction_simulate(
         logger.info("Running chunk =%s of size %d" % (i, len(chooser_chunk)))
 
         choices, _ = _interaction_simulate(chooser_chunk, alternatives, spec,
-                                           skims, locals_d, sample_size)
+                                           skims, locals_d, sample_size, trace_label)
 
         choices_list.append(choices)
 
@@ -275,7 +293,8 @@ def interaction_simulate(
 
 def _interaction_simulate(
         choosers, alternatives, spec,
-        skims=None, locals_d=None, sample_size=None):
+        skims=None, locals_d=None, sample_size=None,
+        trace_label=None):
     """
     Run a simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -356,7 +375,15 @@ def _interaction_simulate(
     offsets = np.arange(len(positions)) * sample_size
     choices = model_design.index.take(positions + offsets)
 
-    return pd.Series(choices, index=choosers.index), model_design
+    choices = pd.Series(choices, index=choosers.index)
+
+    if trace_label:
+        tracing.trace_choosers(choosers, trace_label)
+        tracing.trace_utilities(utilities, trace_label)
+        tracing.trace_probs(probs, trace_label)
+        tracing.trace_choices(choices, trace_label)
+
+    return choices, model_design
 
 
 def other_than(groups, bools):

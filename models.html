@@ -193,7 +193,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;auto_owners
 <span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.defaults.models.auto_ownership" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="activitysim.defaults.models.auto_ownership.auto_ownership_simulate">
-<code class="descclassname">activitysim.defaults.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>households_merged</em>, <em>auto_ownership_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>households_merged</em>, <em>auto_ownership_spec</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Auto ownership is a standard model which predicts how many cars a household
 with given characteristics owns</p>
 </dd></dl>
@@ -316,7 +316,7 @@ is a tuple of individual utilities.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.individual_utilities">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate CDAP utilities for all individuals.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -472,7 +472,7 @@ The table will have one column called <cite>interaction</cite>.</p>
 <span id="models-cdap"></span><h4>models.cdap<a class="headerlink" href="#module-activitysim.defaults.models.cdap" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
 <dt id="activitysim.defaults.models.cdap.cdap_simulate">
-<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>cdap_1_person_spec</em>, <em>cdap_2_person_spec</em>, <em>cdap_3_person_spec</em>, <em>cdap_final_rules</em>, <em>cdap_all_people</em>, <em>hh_chunk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>cdap_1_person_spec</em>, <em>cdap_2_person_spec</em>, <em>cdap_3_person_spec</em>, <em>cdap_final_rules</em>, <em>cdap_all_people</em>, <em>hh_chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
 high-level activity pattern for each person, in a coordinated way with other
 members of a person&#8217;s household.</p>
@@ -495,7 +495,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;destination
 <h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.destination"></span><dl class="function">
 <dt id="activitysim.defaults.models.destination.destination_choice">
-<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skims</em>, <em>destination_choice_spec</em>, <em>destination_size_terms</em>, <em>chunk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skims</em>, <em>destination_choice_spec</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given the tour generation from the above, each tour needs to have a
 destination, so in this case tours are the choosers (with the associated
 person that&#8217;s making the tour)</p>
@@ -503,7 +503,7 @@ person that&#8217;s making the tour)</p>
 
 <dl class="function">
 <dt id="activitysim.defaults.models.destination.patch_mandatory_tour_destination">
-<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">patch_mandatory_tour_destination</code><span class="sig-paren">(</span><em>mandatory_tours_merged</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.patch_mandatory_tour_destination" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">patch_mandatory_tour_destination</code><span class="sig-paren">(</span><em>mandatory_tours_merged</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.patch_mandatory_tour_destination" title="Permalink to this definition">¶</a></dt>
 <dd><p>Patch destination column of mandatory tours with school or workplace taz
 to conform to non-mandatory tours naming so that computed columns in the tours
 table can use destination for any tour type.</p>
@@ -522,7 +522,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_s
 <h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling">
-<code class="descclassname">activitysim.defaults.models.mandatory_scheduling.</code><code class="descname">mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_school_spec</em>, <em>tdd_work_spec</em>, <em>chunk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.mandatory_scheduling.</code><code class="descname">mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_school_spec</em>, <em>tdd_work_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the departure time and duration of each activity for
 mandatory tours</p>
 </dd></dl>
@@ -540,7 +540,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_t
 <h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency">
-<code class="descclassname">activitysim.defaults.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the frequency of making mandatory trips (see the
 alternatives above) - these trips include work and school in some combination.</p>
 </dd></dl>
@@ -605,7 +605,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandato
 <h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling">
-<code class="descclassname">activitysim.defaults.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_non_mandatory_spec</em>, <em>chunk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_non_mandatory_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the departure time and duration of each activity for
 non-mandatory tours</p>
 </dd></dl>
@@ -623,7 +623,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandato
 <h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">
-<code class="descclassname">activitysim.defaults.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>non_mandatory_tour_frequency_alts</em>, <em>non_mandatory_tour_frequency_spec</em>, <em>chunk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>non_mandatory_tour_frequency_alts</em>, <em>non_mandatory_tour_frequency_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the frequency of making non-mandatory trips
 (alternatives for this model come from a separate csv file which is
 configured by the user) - these trips include escort, shopping, othmaint,
@@ -643,7 +643,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;school_loca
 <h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.school_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.school_location.school_location_simulate">
-<code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>The school location model predicts the zones in which various people will
 go to school.</p>
 </dd></dl>
@@ -661,7 +661,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;workplace_l
 <h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.workplace_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.workplace_location.workplace_location_simulate">
-<code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>The workplace location model predicts the zones in which various people will
 work.</p>
 </dd></dl>

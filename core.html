@@ -307,7 +307,7 @@ expression values are set as the table index.</p>
 
 <dl class="function">
 <dt id="activitysim.activitysim.simple_simulate">
-<code class="descclassname">activitysim.activitysim.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.simple_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.simple_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -336,6 +336,11 @@ the skims object is intended to be used.</p>
 <blockquote>
 <div><p>This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>trace_label: str</strong></p>
+<blockquote>
+<div><p>This is the label to be used  for trace log file entries and dump file names
+when household tracing enabled. No tracing occurs if label is empty or None.</p>
 </div></blockquote>
 </td>
 </tr>

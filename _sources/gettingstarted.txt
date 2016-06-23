@@ -104,7 +104,7 @@ Much of the power of ActivitySim comes from being able to specify Python, pandas
 numpy expressions for calculations. Refer to the pandas help for a general 
 introduction to expressions.  ActivitySim provides two ways to evaluate expressions:
 
-* Simple table expressions are evaluated using ``DataFrame.eval()``.  `pandas' eval <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html>`__ operates on the current table and is multi-threaded.
+* Simple table expressions are evaluated using ``DataFrame.eval()``.  `pandas' eval <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html>`__ operates on the current table.
 * Python expressions, denoted by beginning with the ``@``, are evaluated with `Python's eval() <https://docs.python.org/2/library/functions.html#eval>`__.
 
 Conventions

@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 import sys
 import logging
@@ -9,18 +12,29 @@ import numpy as np
 import pandas as pd
 import orca
 
+# Configurations
 TRACE_LOGGER = 'activitysim.trace'
 ASIM_LOGGER = 'activitysim'
-
 CSV_FILE_TYPE = 'csv'
-
 LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
+# Tracers
 tracers = {}
 
 
 def delete_csv_files(output_dir):
+    """
+    Delete CSV files
 
+    Parameters
+    ----------
+    output_dir: str
+        Directory of trace output CSVs
+
+    Returns
+    -------
+    Nothing
+    """
     for the_file in os.listdir(output_dir):
         if the_file.endswith(CSV_FILE_TYPE):
             file_path = os.path.join(output_dir, the_file)
@@ -31,20 +45,46 @@ def delete_csv_files(output_dir):
                 print(e)
 
 
-# for use in logging.yaml tag to inject log file path
-# filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path ['asim.log']
 def log_file_path(name):
+    """
+    For use in logging.yaml tag to inject log file path
+
+    filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path ['asim.log']
+
+    Parameters
+    ----------
+    name: str
+        output folder name
+
+    Returns
+    -------
+    f: str
+        output folder name
+    """
     output_dir = orca.get_injectable('output_dir')
     f = os.path.join(output_dir, name)
     return f
 
 
 def config_logger(custom_config_file=None, basic=False):
+    """
+    Configure logger
 
-    # if log_config_file is not supplied
-    # then look for conf file in configs_dir
-    # if not found use basicConfig
+    if log_config_file is not supplied then look for conf file in configs_dir
 
+    if not found use basicConfig
+
+    Parameters
+    ----------
+    custom_config_file: str
+        custom config filename
+    basic: boolean
+        basic setup
+
+    Returns
+    -------
+    Nothing
+    """
     log_config_file = None
 
     if custom_config_file and os.path.isfile(custom_config_file):
@@ -82,7 +122,19 @@ def config_logger(custom_config_file=None, basic=False):
 
 
 def get_tracer(name=TRACE_LOGGER):
+    """
+    Get tracer
 
+    Parameters
+    ----------
+    name: str
+        tracer name
+
+    Returns
+    -------
+    tracer: Tracer
+        tracer
+    """
     tracer = logging.getLogger(name)
 
     if (len(tracer.handlers) == 0):
@@ -101,7 +153,24 @@ def get_tracer(name=TRACE_LOGGER):
 
 
 def print_summary(label, df, describe=False, value_counts=False):
+    """
+    Print summary
 
+    Parameters
+    ----------
+    label: str
+        tracer name
+    df: pandas.DataFrame
+        traced dataframe
+    describe: boolean
+        print describe?
+    value_counts: boolean
+        print value counts?
+
+    Returns
+    -------
+    Nothing
+    """
     if value_counts:
         print "\n%s choices value counts:\n%s\n" % (label, df.value_counts())
 
@@ -110,7 +179,20 @@ def print_summary(label, df, describe=False, value_counts=False):
 
 
 def register_households(df, trace_hh_id):
+    """
+    Register with orca households for tracing
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    trace_hh_id: int
+        household ID to trace
+
+    Returns
+    -------
+    Nothing
+    """
     tracer = get_tracer()
 
     if trace_hh_id is None:
@@ -132,7 +214,20 @@ def register_households(df, trace_hh_id):
 
 
 def register_persons(df, trace_hh_id):
+    """
+    Register with orca persons for tracing
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    trace_hh_id: int
+        household ID to trace
+
+    Returns
+    -------
+    Nothing
+    """
     tracer = get_tracer()
 
     if trace_hh_id is None:
@@ -161,7 +256,24 @@ def register_persons(df, trace_hh_id):
 
 
 def write_df_csv(df, file_name, index_label=None, columns=None):
+    """
+    Print summary
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    file_name: str
+        output file name
+    index_label: str
+        index name
+    columns: list
+        columns to write
+
+    Returns
+    -------
+    Nothing
+    """
     tracer = get_tracer()
 
     file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
@@ -191,6 +303,23 @@ def write_df_csv(df, file_name, index_label=None, columns=None):
 
 
 def slice_ids(df, ids, column=None):
+    """
+    Select records based on ids
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    ids: int
+        slice ids
+    column: str
+        column to slice
+
+    Returns
+    -------
+    df: pandas.DataFrame
+        sliced dataframe
+    """
     if type(ids) == int:
         ids = [ids]
     try:
@@ -204,7 +333,28 @@ def slice_ids(df, ids, column=None):
 
 
 def trace_df(df, label, slicer=None, columns=None, index_label=None, warn=True):
+    """
+    Trace dataframe by writing to CSV
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    label: str
+        tracer name
+    slicer: Object
+        slicer for subsetting
+    columns: list
+        columns to write
+    index_label: str
+        index name
+    warn: boolean
+        write warnings
+
+    Returns
+    -------
+    Nothing
+    """
     tracer = get_tracer()
 
     # print "trace_df %s %s" % (label, type(df))
@@ -236,31 +386,110 @@ def trace_df(df, label, slicer=None, columns=None, index_label=None, warn=True):
 
 
 def trace_choosers(df, label):
+    """
+    Trace choosers
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     trace_df(df, '%s.choosers' % label, warn=False)
 
 
 def trace_utilities(df, label):
+    """
+    Trace utilities
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     trace_df(df, '%s.utilities' % label, warn=False)
 
 
 def trace_probs(df, label):
+    """
+    Trace probabilities
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     trace_df(df, '%s.probs' % label, warn=False)
 
 
 def trace_choices(df, label):
+    """
+    Trace choices
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     trace_df(df, '%s.choices' % label, warn=False)
 
 
 def trace_model_design(df, label):
+    """
+    Trace model design
 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     trace_df(df, '%s.model_design' % label, warn=False)
 
 
 def trace_cdap_hh_utils(hh_utils, label):
+    """
+    Trace CDAP household utilities
+
+    Parameters
+    ----------
+    hh_utils: pandas.DataFrame
+        hh_utils
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     # hh_util : dict of pandas.Series
     #     Keys will be household IDs and values will be Series
     #     mapping alternative choices to their utility.
@@ -271,10 +500,38 @@ def trace_cdap_hh_utils(hh_utils, label):
 
 
 def trace_cdap_ind_utils(ind_utils, label):
+    """
+    Trace CDAP ind utilities
+
+    Parameters
+    ----------
+    ind_utils: pandas.DataFrame
+        ind_utils
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     trace_df(ind_utils, label, slicer='PERID', warn=False)
 
 
 def trace_nan_values(df, label):
+    """
+    Trace NaN values
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        data frame
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
     df = slice_ids(df, orca.get_injectable('trace_person_ids'))
     if np.isnan(df).any():
         get_tracer().warn("%s NaN values in %s" % (np.isnan(df).sum(), label))

@@ -1,12 +1,15 @@
+#input data store and skims
 store: mtc_asim.h5
+skims_file: nonmotskm.omx
 
-
-# these are the defaults
-# preload_3d_skims: False
-
-trace_hh_id: 961042
+#number of households to simulate
 households_sample_size: 1000
 
+#trace household id; comment out for no trace
+trace_hh_id: 961042
+
+#internal settings 
+preload_3d_skims: True
 chunk_size: 10000
 
 # area_types less than this are considered urban

@@ -102,11 +102,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#folder-file-setup">Folder/File Setup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#inputs">Inputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#logging-files">Logging Files</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#model-specification-files">Model Specification Files</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#running-the-model">Running the Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#how-the-system-works">How the System Works</a><ul>
@@ -382,9 +384,9 @@ alternative and columns are for tour purposes.  The alternatives, as well as tem
 </div>
 <div class="section" id="inputs">
 <h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
-<p>In order to run the example, you first need two input data files in the <code class="docutils literal"><span class="pre">data</span></code> folder:</p>
+<p>In order to run the example, you first need two input files in the <code class="docutils literal"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal"><span class="pre">configs\settings.yaml</span></code> file:</p>
 <ul>
-<li><p class="first">mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:</p>
+<li><p class="first">store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:</p>
 <blockquote>
 <div><ul class="simple">
 <li>skims/accessibility - Zone-based accessibility measures</li>
@@ -394,7 +396,7 @@ alternative and columns are for tour purposes.  The alternatives, as well as tem
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">nonmotskm.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.</p>
+<li><p class="first">skims_file: nonmotskm.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.</p>
 </li>
 </ul>
 <p>Both of these files can be downloaded from the <cite>SF 25 zone example</cite> example data folder on
@@ -417,24 +419,41 @@ which creates the land use, synthetic population, and skim inputs for a subset o
 model utilities and form.  The first place to start in the <code class="docutils literal"><span class="pre">configs</span></code> folder is <code class="docutils literal"><span class="pre">settings.yaml</span></code>, which
 is the main settings file for the model run.  This file includes:</p>
 <ul>
-<li><p class="first">store - HDF5 input file and also output file</p>
+<li><p class="first"><code class="docutils literal"><span class="pre">store</span></code> - HDF5 input file and also output file</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">preload_3d_skims</span></code> - preload skims with index by origin, destination, time period for <a class="reference internal" href="#skims-3d"><span class="std std-ref">Skims3D</span></a> vectorized queries</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers</p>
 </li>
 <li><p class="first">global variables that can be used in expressions tables and Python code such as:</p>
 <blockquote>
 <div><ul class="simple">
-<li>urban_threshold - urban threshold area type max value</li>
-<li>county_map - mapping of county codes to county names</li>
+<li><code class="docutils literal"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</li>
+<li><code class="docutils literal"><span class="pre">county_map</span></code> - mapping of county codes to county names</li>
+<li><code class="docutils literal"><span class="pre">time_periods</span></code> - time period upper bound values and labels</li>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">households_sample_size: 1000 - household sample size</p>
-</li>
-<li><p class="first">time_periods - time period upper bound values and labels</p>
-</li>
 </ul>
+<div class="section" id="logging-files">
+<h4>Logging Files<a class="headerlink" href="#logging-files" title="Permalink to this headline">¶</a></h4>
+<p>Included in the configuration folder is the <code class="docutils literal"><span class="pre">logging.yaml</span></code>, which configures Python <code class="docutils literal"><span class="pre">logging</span></code>
+library and defines two key log files:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">asim.log</span></code> - overall system log file</li>
+<li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing is on</li>
+</ul>
+<p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
+</div>
 <div class="section" id="model-specification-files">
 <h4>Model Specification Files<a class="headerlink" href="#model-specification-files" title="Permalink to this headline">¶</a></h4>
-<p>Also stored in the configuration folder are the model specification files that store the
+<p>Included in the configuration folder are the model specification files that store the
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each
@@ -461,12 +480,25 @@ columns indicates the number of non-mandatory tours by purpose.</p>
 <li>Open a command line window in the <code class="docutils literal"><span class="pre">example</span></code> folder</li>
 <li>Ensure running <code class="docutils literal"><span class="pre">python</span></code> will call the Anaconda Python install on your machine</li>
 <li>Run <code class="docutils literal"><span class="pre">python</span> <span class="pre">simulation.py</span></code></li>
-<li>ActivitySim will print some logging information.  The example should complete within a couple minutes since it is running a small sample of households.</li>
+<li>ActivitySim will print some logging information and write some outputs to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.</li>
 </ul>
+<p>The example should complete within a couple minutes since it is running a small sample of households.</p>
 </div>
 <div class="section" id="outputs">
 <h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h3>
-<p>There are currently no outputs produced by the example other than logging.</p>
+<p>Currently ActivitySim writes the asim.log file to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.  There are
+no outputs produced by the example unless a household trace ID is specified.</p>
+</div>
+<div class="section" id="tracing">
+<span id="id3"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
+<p>If a household trace ID is specified, then ActivitySim will output a comprehensive set of
+trace files for all calculations for all household members:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
+<li><code class="docutils literal"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
+</ul>
+<p>With the set of output CSV files, the user can trace ActivitySim&#8217;s calculations in order to ensure they are correct and/or to
+help debug data and/or logic errors.</p>
 </div>
 </div>
 <div class="section" id="how-the-system-works">
@@ -519,7 +551,7 @@ the function as runnable by orca.</p>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">persons_merged</span><span class="p">,</span>
-  <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">skims</span><span class="p">,</span> <span class="n">destination_size_terms</span><span class="p">):</span>
+  <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">skims</span><span class="p">,</span> <span class="n">destination_size_terms</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition above.  Since they are not yet loaded,
@@ -547,14 +579,27 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
 
 <span class="c1">#persons_internal requires store, settings, households</span>
 <span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
-  <span class="k">if</span> <span class="s2">&quot;households_sample_size&quot;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
-      <span class="k">return</span> <span class="n">asim</span><span class="o">.</span><span class="n">random_rows</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="s2">&quot;households&quot;</span><span class="p">],</span>
-                              <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;households_sample_size&quot;</span><span class="p">])</span>
-  <span class="k">return</span> <span class="n">store</span><span class="p">[</span><span class="s2">&quot;households&quot;</span><span class="p">]</span>
+<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">households_sample_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+
+  <span class="n">df_full</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s2">&quot;households&quot;</span><span class="p">]</span>
+
+  <span class="c1"># if we are tracing hh exclusively</span>
+  <span class="k">if</span> <span class="n">trace_hh_id</span> <span class="ow">and</span> <span class="n">households_sample_size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="o">...</span>
+  <span class="c1"># if we need sample a subset of full store</span>
+  <span class="k">elif</span> <span class="n">households_sample_size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_full</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">households_sample_size</span><span class="p">:</span>
+    <span class="o">...</span>
+  <span class="k">else</span><span class="p">:</span>
+      <span class="n">df</span> <span class="o">=</span> <span class="n">df_full</span>
+
+  <span class="k">if</span> <span class="n">trace_hh_id</span><span class="p">:</span>
+      <span class="n">tracing</span><span class="o">.</span><span class="n">register_households</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">)</span>
+      <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;households&quot;</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">df</span>
 
 <span class="c1">#households calls asim.random_rows to read a sample of households records</span>
-<span class="c1">#from the households table in the HDF5 data store</span>
+<span class="c1">#households calls tracing.register_households to setup tracing</span>
 </pre></div>
 </div>
 <p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> then sets the persons merged table as choosers, reads the destination_size_terms
@@ -572,15 +617,16 @@ generation code which get merged during interaction as renamed <code class="docu
 must be merged with choosers because there are interaction terms or because alternatives are being sampled.  The choosers table, the
 alternatives table, the model specification expressions file, the skims, and the sample size are all passed in.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asim</span><span class="o">.</span><span class="n">interaction_simulate</span><span class="p">(</span><span class="n">choosers_segment</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">spec</span><span class="p">[[</span><span class="n">school_type</span><span class="p">]],</span>
-  <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span> <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+  <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span> <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
-The <code class="docutils literal"><span class="pre">eval_variables</span></code> loops through each expression and solves it at once for all records in the chooser table using
-either pandas&#8217; multi-threaded eval() or Python&#8217;s eval().</p>
+This is done in a for loop of chunks of choosers in order to avoid running out of RAM when building the often large data tables.
+The <code class="docutils literal"><span class="pre">eval_variables</span></code> loops through each expression and solves it at once for all records in the chunked chooser table using
+either pandas&#8217; eval() or Python&#8217;s eval().</p>
 <p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
 in one vectorized step.  The <code class="docutils literal"><span class="pre">orig</span></code> and <code class="docutils literal"><span class="pre">dest</span></code> objects in <code class="docutils literal"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <code class="docutils literal"><span class="pre">activitysim.skim.py</span></code> are vectors
-and selecting numpy array items with vector indexes returns a vector.</p>
+and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># evaluate variables from the spec</span>
 <span class="n">model_design</span> <span class="o">=</span> <span class="n">eval_variables</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">locals_d</span><span class="p">)</span>
 
@@ -591,11 +637,20 @@ and selecting numpy array items with vector indexes returns a vector.</p>
 <span class="n">probs</span> <span class="o">=</span> <span class="n">utils_to_probs</span><span class="p">(</span><span class="n">utilities</span><span class="p">)</span>
 <span class="n">positions</span> <span class="o">=</span> <span class="n">make_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
 
-<span class="c1"># positions come back between zero and num alternatives in the sample - need to get back to the indexes</span>
+<span class="c1"># positions come back between zero and num alternatives in the sample -</span>
+<span class="c1"># need to get back to the indexes</span>
 <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span> <span class="o">*</span> <span class="n">sample_size</span>
 <span class="n">choices</span> <span class="o">=</span> <span class="n">model_design</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">positions</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">)</span>
 
-<span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">model_design</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">trace_label</span><span class="p">:</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_choosers</span><span class="p">(</span><span class="n">choosers</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_utilities</span><span class="p">(</span><span class="n">utilities</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_probs</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_choices</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
+
+<span class="k">return</span> <span class="n">choices</span><span class="p">,</span> <span class="n">model_design</span>
 </pre></div>
 </div>
 <p>Finally, the model adds the choices as a column to the applicable table - <code class="docutils literal"><span class="pre">persons</span></code> - and adds
@@ -625,7 +680,7 @@ name <code class="docutils literal"><span class="pre">persons_school</span></cod
 </pre></div>
 </div>
 <p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code> as a
-function of the <code class="docutils literal"><span class="pre">sovam_skim</span></code> orca injectable.</p>
+function of the <code class="docutils literal"><span class="pre">sovam_skim</span></code> and <code class="docutils literal"><span class="pre">sovmd_skim</span></code> orca injectables.</p>
 <p>The rest of the models operate in a similar fashion with two notable additions:</p>
 <ul class="simple">
 <li>creating new tables</li>
@@ -653,18 +708,27 @@ orca table named <code class="docutils literal"><span class="pre">mandatory_tour
 </div>
 </div>
 <div class="section" id="skims3d">
-<h3>Skims3D<a class="headerlink" href="#skims3d" title="Permalink to this headline">¶</a></h3>
+<span id="skims-3d"></span><h3>Skims3D<a class="headerlink" href="#skims3d" title="Permalink to this headline">¶</a></h3>
 <p>The mode choice model uses the Skims3D class in addition to the skims (2D) class.  The Skims3D class represents
-a collection of skims with a third dimension, which in this case in time period.  Indexing Skims3D is done as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">in_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;TAZ&quot;</span><span class="p">,</span> <span class="s2">&quot;workplace_taz&quot;</span><span class="p">),</span><span class="s2">&quot;in_period&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">out_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;workplace_taz&quot;</span><span class="p">,</span> <span class="s2">&quot;TAZ&quot;</span><span class="p">),</span><span class="s2">&quot;out_period&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+a collection of skims with a third dimension, which in this case in time period.  Setting up the 3D index for
+Skims3D is done as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#setup two indexes - tour inbound skims and tour outbound skims</span>
+<span class="n">in_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">stack</span><span class="o">=</span><span class="n">stack</span><span class="p">,</span> <span class="n">left_key</span><span class="o">=</span><span class="n">orig_key</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="n">dest_key</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;in_period&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">out_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">stack</span><span class="o">=</span><span class="n">stack</span><span class="p">,</span> <span class="n">left_key</span><span class="o">=</span><span class="n">dest_key</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="n">orig_key</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;out_period&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1">#where:</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">SkimStack</span><span class="p">(</span><span class="n">skims</span><span class="p">)</span>       <span class="c1">#build 3D skim object from 2D skims table object</span>
+<span class="n">orig_key</span> <span class="o">=</span> <span class="s1">&#39;TAZ&#39;</span>                     <span class="c1">#TAZ column</span>
+<span class="n">dest_key</span> <span class="o">=</span> <span class="s1">&#39;destination&#39;</span>             <span class="c1">#destination column</span>
+<span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;in_period&quot;</span> <span class="ow">or</span> <span class="s2">&quot;out_period&quot;</span> <span class="c1">#in_period or out_period column</span>
 </pre></div>
 </div>
-<p>Then when model expressions such as <code class="docutils literal"><span class="pre">&#64;in_skims['WLK_LOC_WLK_TOTIVT']</span></code> are solved,
+<p>When model expressions such as <code class="docutils literal"><span class="pre">&#64;in_skims['WLK_LOC_WLK_TOTIVT']</span></code> are solved,
 the <code class="docutils literal"><span class="pre">WLK_LOC_WLK_TOTIVT</span></code> skim matrix values for all chooser table origins, destinations, and
-in_periods can be looked-up in one request.</p>
-<p>Dpending on the settings, Skims3D can either get the requested OMX data from disk every time
-a vectorized request is made or pre-load (cache) all the skims at the beginning of a model run.</p>
+in_periods can be retrieved in one request.</p>
+<p>Depending on the settings, Skims3D can either get the requested OMX data from disk every time
+a vectorized request is made or preload (cache) all the skims at the beginning of a model run.
+Preload is faster and is the default.</p>
 <p>See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information on skim handling.</p>
 </div>
 </div>

@@ -97,13 +97,17 @@
 <li class="toctree-l3"><a class="reference internal" href="#id2">API</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#tracing">Tracing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">API</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#reindex">Reindex</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id3">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">API</a></li>
 </ul>
 </li>
 </ul>
@@ -160,8 +164,8 @@
 <h1>Core Utilities<a class="headerlink" href="#core-utilities" title="Permalink to this headline">¶</a></h1>
 <p>ActivitySim&#8217;s core components include the model specification reader,
 the expression evaluator, the skim matrix manager, the simulate methods for solving
-models (i.e. calculating utilities, probabilties, and making choices), and the choice
-models such as <a class="reference internal" href="#mnl-in-detail"><span class="std std-ref">MNL</span></a>.</p>
+models (i.e. calculating utilities, probabilties, and making choices),  the choice
+models such as <a class="reference internal" href="#mnl-in-detail"><span class="std std-ref">MNL</span></a>, and the tracer.</p>
 <div class="section" id="activitysim">
 <h2>Activitysim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="module-activitysim.activitysim">
@@ -746,12 +750,505 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 </div>
 </div>
+<div class="section" id="tracing">
+<h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h2>
+<p>Household tracer</p>
+<div class="section" id="id3">
+<h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.tracing"></span><dl class="function">
+<dt id="activitysim.tracing.config_logger">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">config_logger</code><span class="sig-paren">(</span><em>custom_config_file=None</em>, <em>basic=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.config_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure logger</p>
+<p>if log_config_file is not supplied then look for conf file in configs_dir</p>
+<p>if not found use basicConfig</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>custom_config_file: str</strong></p>
+<blockquote>
+<div><p>custom config filename</p>
+</div></blockquote>
+<p><strong>basic: boolean</strong></p>
+<blockquote>
+<div><p>basic setup</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.delete_csv_files">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">delete_csv_files</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.delete_csv_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete CSV files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>output_dir: str</strong></p>
+<blockquote>
+<div><p>Directory of trace output CSVs</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.get_tracer">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">get_tracer</code><span class="sig-paren">(</span><em>name='activitysim.trace'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.get_tracer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get tracer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tracer: Tracer</p>
+<blockquote class="last">
+<div><p>tracer</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.log_file_path">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">log_file_path</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.log_file_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>For use in logging.yaml tag to inject log file path</p>
+<p>filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path [&#8216;asim.log&#8217;]</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name: str</strong></p>
+<blockquote>
+<div><p>output folder name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">f: str</p>
+<blockquote class="last">
+<div><p>output folder name</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.print_summary">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">print_summary</code><span class="sig-paren">(</span><em>label</em>, <em>df</em>, <em>describe=False</em>, <em>value_counts=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.print_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print summary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+<p><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>describe: boolean</strong></p>
+<blockquote>
+<div><p>print describe?</p>
+</div></blockquote>
+<p><strong>value_counts: boolean</strong></p>
+<blockquote>
+<div><p>print value counts?</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.register_households">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">register_households</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.register_households" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register with orca households for tracing</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>trace_hh_id: int</strong></p>
+<blockquote>
+<div><p>household ID to trace</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.register_persons">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">register_persons</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.register_persons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register with orca persons for tracing</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>trace_hh_id: int</strong></p>
+<blockquote>
+<div><p>household ID to trace</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.slice_ids">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_ids</code><span class="sig-paren">(</span><em>df</em>, <em>ids</em>, <em>column=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select records based on ids</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>ids: int</strong></p>
+<blockquote>
+<div><p>slice ids</p>
+</div></blockquote>
+<p><strong>column: str</strong></p>
+<blockquote>
+<div><p>column to slice</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">df: pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>sliced dataframe</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_cdap_hh_utils">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_cdap_hh_utils</code><span class="sig-paren">(</span><em>hh_utils</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_cdap_hh_utils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace CDAP household utilities</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_utils: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>hh_utils</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_cdap_ind_utils">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_cdap_ind_utils</code><span class="sig-paren">(</span><em>ind_utils</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_cdap_ind_utils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace CDAP ind utilities</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ind_utils: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>ind_utils</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_choices">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_choices</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace choices</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_choosers">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_choosers</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_choosers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace choosers</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_df">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>warn=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace dataframe by writing to CSV</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+<p><strong>slicer: Object</strong></p>
+<blockquote>
+<div><p>slicer for subsetting</p>
+</div></blockquote>
+<p><strong>columns: list</strong></p>
+<blockquote>
+<div><p>columns to write</p>
+</div></blockquote>
+<p><strong>index_label: str</strong></p>
+<blockquote>
+<div><p>index name</p>
+</div></blockquote>
+<p><strong>warn: boolean</strong></p>
+<blockquote>
+<div><p>write warnings</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_model_design">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_model_design</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_model_design" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace model design</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_nan_values">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_nan_values</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_nan_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace NaN values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>data frame</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_probs">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_probs</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_probs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace probabilities</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_utilities">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_utilities</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace utilities</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.write_df_csv">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">write_df_csv</code><span class="sig-paren">(</span><em>df</em>, <em>file_name</em>, <em>index_label=None</em>, <em>columns=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.write_df_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print summary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>file_name: str</strong></p>
+<blockquote>
+<div><p>output file name</p>
+</div></blockquote>
+<p><strong>index_label: str</strong></p>
+<blockquote>
+<div><p>index name</p>
+</div></blockquote>
+<p><strong>columns: list</strong></p>
+<blockquote>
+<div><p>columns to write</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="reindex">
 <h3>Reindex<a class="headerlink" href="#reindex" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id3">
-<h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id4">
+<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.util.reindex"></span><dl class="function">
 <dt id="activitysim.util.reindex.reindex">
 <code class="descclassname">activitysim.util.reindex.</code><code class="descname">reindex</code><span class="sig-paren">(</span><em>series1</em>, <em>series2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.util.reindex.reindex" title="Permalink to this definition">¶</a></dt>
@@ -790,8 +1287,8 @@ table and would require a second step to change the index.</p>
 </div>
 <div class="section" id="testing">
 <h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id4">
-<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id5">
+<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.util.testing"></span><p>Utilities used in testing of ActivitySim.</p>
 <dl class="function">
 <dt id="activitysim.util.testing.assert_frames_equal">

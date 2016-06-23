@@ -185,16 +185,16 @@ The example has the following root folder/file setup:
 Inputs
 ~~~~~~
 
-In order to run the example, you first need two input data files in the ``data`` folder:
+In order to run the example, you first need two input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file:
 
-* mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
+* store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
 
     * skims/accessibility - Zone-based accessibility measures
     * land_use/taz_data - Zone-based land use data (population and employment for example)
     * persons - Synthetic population person records
     * households - Synthetic population household records
     
-* nonmotskm.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.
+* skims_file: nonmotskm.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.
 
 Both of these files can be downloaded from the `SF 25 zone example` example data folder on 
 MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  Both files can 
@@ -220,19 +220,33 @@ The ``configs`` folder contains settings, expressions files, and other files req
 model utilities and form.  The first place to start in the ``configs`` folder is ``settings.yaml``, which 
 is the main settings file for the model run.  This file includes:
 
-* store - HDF5 input file and also output file
+* ``store`` - HDF5 input file and also output file
+* ``skims_file`` - skim matrices in one OMX file
+* ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
+* ``trace_hh_id`` - trace household id; comment out for no trace
+* ``preload_3d_skims`` - preload skims with index by origin, destination, time period for :ref:`Skims_3D` vectorized queries
+* ``chunk_size`` - batch size for processing choosers
 * global variables that can be used in expressions tables and Python code such as:
 
-    * urban_threshold - urban threshold area type max value
-    * county_map - mapping of county codes to county names
-    
-* households_sample_size: 1000 - household sample size 
-* time_periods - time period upper bound values and labels
+    * ``urban_threshold`` - urban threshold area type max value
+    * ``county_map`` - mapping of county codes to county names
+    * ``time_periods`` - time period upper bound values and labels
+
+Logging Files
+^^^^^^^^^^^^^
+
+Included in the configuration folder is the ``logging.yaml``, which configures Python ``logging`` 
+library and defines two key log files: 
+
+* ``asim.log`` - overall system log file
+* ``hhtrace.log`` - household trace log file if tracing is on
+
+Refer to the :ref:`tracing` section for more detail on tracing.
 
 Model Specification Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Also stored in the configuration folder are the model specification files that store the 
+Included in the configuration folder are the model specification files that store the 
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an 
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each 
@@ -259,13 +273,29 @@ To run the example, do the following:
 * Open a command line window in the ``example`` folder
 * Ensure running ``python`` will call the Anaconda Python install on your machine
 * Run ``python simulation.py``
-* ActivitySim will print some logging information.  The example should complete within a couple minutes since it is running a small sample of households.
+* ActivitySim will print some logging information and write some outputs to the ``outputs`` folder.  
+
+The example should complete within a couple minutes since it is running a small sample of households.
 
 Outputs
 ~~~~~~~
 
-There are currently no outputs produced by the example other than logging. 
+Currently ActivitySim writes the asim.log file to the ``outputs`` folder.  There are 
+no outputs produced by the example unless a household trace ID is specified.   
 
+.. _tracing :
+
+Tracing
+~~~~~~~
+
+If a household trace ID is specified, then ActivitySim will output a comprehensive set of 
+trace files for all calculations for all household members:
+
+* ``hhtrace.log`` - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.
+* ``various CSV files`` - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model
+
+With the set of output CSV files, the user can trace ActivitySim's calculations in order to ensure they are correct and/or to
+help debug data and/or logic errors.
 
 How the System Works
 --------------------
@@ -331,7 +361,7 @@ the function as runnable by orca.
 
   @orca.step()
   def school_location_simulate(set_random_seed, persons_merged,
-    school_location_spec, skims, destination_size_terms):
+    school_location_spec, skims, destination_size_terms, chunk_size, trace_hh_id):
 
 The ``school_location_simulate`` step requires the objects defined in the function definition above.  Since they are not yet loaded, 
 orca goes looking for them.  This is called lazy loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.
@@ -361,14 +391,27 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
   
   #persons_internal requires store, settings, households
   @orca.table(cache=True)
-  def households(set_random_seed, store, settings):
-    if "households_sample_size" in settings:
-        return asim.random_rows(store["households"],
-                                settings["households_sample_size"])
-    return store["households"]
+  def households(set_random_seed, store, households_sample_size, trace_hh_id):
+
+    df_full = store["households"]
+
+    # if we are tracing hh exclusively
+    if trace_hh_id and households_sample_size == 1:
+      ...
+    # if we need sample a subset of full store
+    elif households_sample_size > 0 and len(df_full.index) > households_sample_size:
+      ...
+    else:
+        df = df_full
+
+    if trace_hh_id:
+        tracing.register_households(df, trace_hh_id)
+        tracing.trace_df(df, "households")
+
+    return df
   
   #households calls asim.random_rows to read a sample of households records 
-  #from the households table in the HDF5 data store
+  #households calls tracing.register_households to setup tracing
 
 ``school_location_simulate`` then sets the persons merged table as choosers, reads the destination_size_terms 
 alternatives file, and reads the expressions specification file. 
@@ -391,16 +434,16 @@ alternatives table, the model specification expressions file, the skims, and the
 :: 
   
   asim.interaction_simulate(choosers_segment, alternatives, spec[[school_type]],
-    skims=skims, locals_d=locals_d, sample_size=50)
-
+    skims=skims, locals_d=locals_d, sample_size=50, chunk_size=0, trace_label=None)
 
 This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices. 
-The ``eval_variables`` loops through each expression and solves it at once for all records in the chooser table using 
-either pandas' multi-threaded eval() or Python's eval().
+This is done in a for loop of chunks of choosers in order to avoid running out of RAM when building the often large data tables.
+The ``eval_variables`` loops through each expression and solves it at once for all records in the chunked chooser table using 
+either pandas' eval() or Python's eval().
 
 If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array) 
 in one vectorized step.  The ``orig`` and ``dest`` objects in ``self.data[orig, dest]`` in ``activitysim.skim.py`` are vectors
-and selecting numpy array items with vector indexes returns a vector.
+and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured.
 
 :: 
 
@@ -414,11 +457,20 @@ and selecting numpy array items with vector indexes returns a vector.
     probs = utils_to_probs(utilities)
     positions = make_choices(probs)
 
-    # positions come back between zero and num alternatives in the sample - need to get back to the indexes
+    # positions come back between zero and num alternatives in the sample -
+    # need to get back to the indexes
     offsets = np.arange(len(positions)) * sample_size
     choices = model_design.index.take(positions + offsets)
-    
-    return pd.Series(choices, index=choosers.index), model_design
+
+    choices = pd.Series(choices, index=choosers.index)
+
+    if trace_label:
+        tracing.trace_choosers(choosers, trace_label)
+        tracing.trace_utilities(utilities, trace_label)
+        tracing.trace_probs(probs, trace_label)
+        tracing.trace_choices(choices, trace_label)
+
+    return choices, model_design
 
 Finally, the model adds the choices as a column to the applicable table - ``persons`` - and adds 
 additional dependent columns.  The dependent columns are those orca columns with the virtual table 
@@ -449,7 +501,7 @@ name ``persons_school``.
                      index=persons.index)
 
 Any orca columns that are required are calculated-on-the-fly, such as ``roundtrip_auto_time_to_school`` as a 
-function of the ``sovam_skim`` orca injectable.
+function of the ``sovam_skim`` and ``sovmd_skim`` orca injectables.
 
 The rest of the models operate in a similar fashion with two notable additions:
 
@@ -478,24 +530,34 @@ orca table named ``mandatory_tours``.
     #...
     return pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num"])
   
+.. _Skims_3D :
 
 Skims3D
 ~~~~~~~
 
 The mode choice model uses the Skims3D class in addition to the skims (2D) class.  The Skims3D class represents 
-a collection of skims with a third dimension, which in this case in time period.  Indexing Skims3D is done as follows:
+a collection of skims with a third dimension, which in this case in time period.  Setting up the 3D index for 
+Skims3D is done as follows:
 
 ::
 
-    in_skims = askim.Skims3D(skims.set_keys("TAZ", "workplace_taz"),"in_period", -1)
-    out_skims = askim.Skims3D(skims.set_keys("workplace_taz", "TAZ"),"out_period", -1)
+  #setup two indexes - tour inbound skims and tour outbound skims
+  in_skims = askim.Skims3D(stack=stack, left_key=orig_key, right_key=dest_key, skim_key="in_period", offset=-1)
+  out_skims = askim.Skims3D(stack=stack, left_key=dest_key, right_key=orig_key, skim_key="out_period", offset=-1)
+    
+  #where:
+  stack = askim.SkimStack(skims)       #build 3D skim object from 2D skims table object
+  orig_key = 'TAZ'                     #TAZ column
+  dest_key = 'destination'             #destination column
+  skim_key="in_period" or "out_period" #in_period or out_period column
 
-Then when model expressions such as ``@in_skims['WLK_LOC_WLK_TOTIVT']`` are solved,
+When model expressions such as ``@in_skims['WLK_LOC_WLK_TOTIVT']`` are solved,
 the ``WLK_LOC_WLK_TOTIVT`` skim matrix values for all chooser table origins, destinations, and 
-in_periods can be looked-up in one request.
+in_periods can be retrieved in one request.
 
-Dpending on the settings, Skims3D can either get the requested OMX data from disk every time 
-a vectorized request is made or pre-load (cache) all the skims at the beginning of a model run.
+Depending on the settings, Skims3D can either get the requested OMX data from disk every time 
+a vectorized request is made or preload (cache) all the skims at the beginning of a model run.  
+Preload is faster and is the default.
 
 See :ref:`skims_in_detail` for more information on skim handling.
 

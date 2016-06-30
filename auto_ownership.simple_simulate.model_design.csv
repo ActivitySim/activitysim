@@ -1,0 +1,31 @@
+expression,value
+HHID,961042
+drivers==2,False
+drivers==3,False
+drivers>3,False
+num_adolescents,0.0
+num_college_age,0.0
+num_young_adults,0.0
+num_young_children>0,False
+(num_children+num_adolescents)>0,True
+@df.workers.clip(upper=3),1
+"@df.income_in_thousands.clip(0, 30)",30.0
+"@(df.income_in_thousands-30).clip(0, 45)",2.6000000000000014
+"@(df.income_in_thousands-75).clip(0, 50)",0.0
+"@(df.workers==0)*df.density_index.clip(0, 10)",0.0
+@(df.workers==0)*(df.density_index-10).clip(0),0.0
+"@(df.workers>0)*df.density_index.clip(0, 10)",10.0
+@(df.workers>0)*(df.density_index-10).clip(0),15.101615928174592
+@1,1
+county_name == 'San Francisco',True
+county_name == 'Solano',False
+county_name == 'Napa',False
+county_name == 'Sonoma',False
+county_name == 'Marin',False
+(workers==0)*(0.66*AUTOPEAKRETAIL+0.34*AUTOOFFPEAKRETAIL),0.0
+(workers>0)*(0.66*AUTOPEAKRETAIL+0.34*AUTOOFFPEAKRETAIL),10.585242000000001
+(workers==0)*(0.66*TRANSITPEAKRETAIL+0.34*TRANSITOFFPEAKRETAIL),0.0
+(workers>0)*(0.66*TRANSITPEAKRETAIL+0.34*TRANSITOFFPEAKRETAIL),7.838400000000001
+(workers==0)*NONMOTORIZEDRETAIL,0.0
+(workers>0)*NONMOTORIZEDRETAIL,8.3761
+work_tour_auto_time_savings / (workers+1),0.0

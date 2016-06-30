@@ -167,11 +167,10 @@ def tour_mode_choice_simulate(tours_merged,
                               omx_file,
                               trace_hh_id):
 
-    if trace_hh_id:
-        tracer = tracing.get_tracer()
-        tracer.info("tour_mode_choice_simulate tracing household %s" % trace_hh_id)
-
     tours = tours_merged.to_frame()
+
+    tracing.info(__name__,
+                 "Running tour_mode_choice_simulate with %d tours" % len(tours.index))
 
     choices_list = []
 
@@ -182,11 +181,13 @@ def tour_mode_choice_simulate(tours_merged,
 
         logger.info("running tour_type '%s'" % tour_type)
 
-        if trace_hh_id:
-            tracer.info("tour_mode_choice_simulate running %s tour_type '%s'" %
-                        (len(segment.index), tour_type, ))
+        tracing.info(__name__,
+                     "tour_mode_choice_simulate running %s tour_type '%s'" %
+                     (len(segment.index), tour_type, ))
 
+        # FIXME - this was the old way
         tour_type_tours = tours[tours.tour_type == tour_type]
+        tour_type_tours = segment
         orig_key = 'TAZ'
         dest_key = 'destination'
 
@@ -225,7 +226,7 @@ def tour_mode_choice_simulate(tours_merged,
         tracing.trace_df(orca.get_table('tours').to_frame(),
                          label="mode",
                          slicer='tour_id',
-                         index_label='tour_id',
+                         index_label='tour',
                          columns=trace_columns)
 
     # FIXME - this forces garbage collection
@@ -241,15 +242,13 @@ def trip_mode_choice_simulate(tours_merged,
                               omx_file,
                               trace_hh_id):
 
-    if trace_hh_id:
-        tracer = tracing.get_tracer()
-        tracer.info("tour_mode_choice_simulate tracing household %s" % trace_hh_id)
-
     # FIXME - running the trips model on tours
-    logger.error('trips not implemented running the trips model on tours')
+    tracing.error(__name__, 'trips not implemented running the trips model on tours')
 
     trips = tours_merged.to_frame()
     stack = askim.SkimStack(skims)
+
+    tracing.info(__name__, "Running trip_mode_choice_simulate with %d trips" % len(trips))
 
     choices_list = []
 
@@ -258,11 +257,7 @@ def trip_mode_choice_simulate(tours_merged,
 
     for tour_type, segment in trips.groupby('tour_type'):
 
-        logger.info("running tour_type '%s'" % tour_type)
-
-        if trace_hh_id:
-            tracer.info("trip_mode_choice_simulate running %s tour_type '%s'" %
-                        (len(segment.index), tour_type, ))
+        tracing.info(__name__, "running %s tour_type '%s'" % (len(segment.index), tour_type, ))
 
         tour_type_tours = trips[trips.tour_type == tour_type]
         orig_key = 'TAZ'
@@ -302,13 +297,15 @@ def trip_mode_choice_simulate(tours_merged,
     # FIXME - is this a NOP if trips table doesn't exist
     orca.add_column("trips", "mode", choices)
 
-    # if trace_hh_id:
-    #     trace_columns = ['mode']
-    #     tracing.trace_df(orca.get_table('trips').to_frame(),
-    #                      label = "mode",
-    #                      slicer='tour_id',
-    #                      index_label='tour_id',
-    #                      columns = trace_columns)
+    if trace_hh_id:
+        tracing.error(__name__, "can't dump trips table because it doesn't exist")
+        # FIXME - commented out because trips table doesn't really exist
+        # trace_columns = ['mode']
+        # tracing.trace_df(orca.get_table('trips').to_frame(),
+        #                  label = "mode",
+        #                  slicer='tour_id',
+        #                  index_label='tour_id',
+        #                  columns = trace_columns)
 
     # FIXME - this forces garbage collection
     asim.memory_info()

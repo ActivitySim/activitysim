@@ -222,6 +222,13 @@ def test_full_run_with_hh_trace(store, omx_file):
     assert not os.path.isfile(goner_fname)
 
     # should have created household csv trace file
+    # first row should be HHID
     h = pd.read_csv(hh_fname)
-    assert h.columns[0] == 'HHID'
-    assert h.columns[1] == str(HH_ID)
+    assert h.iloc[0][0] == 'HHID'
+    assert h.iloc[0][1] == HH_ID
+
+    h = pd.read_csv(os.path.join(output_dir, 'workplace_location.interaction_simulate.choices.csv'))
+    assert h.columns[0] == 'PERID'
+    assert h.column[1] == 'workplace_location'
+    assert h.iloc[0][0] == 1888694
+    assert h.iloc[0][1] == 18

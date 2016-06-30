@@ -1,0 +1,38 @@
+label,value_1,value_2,value_3,value_4,value_5,value_6
+PERID,1888694,1888694,1888695,1888695,1888696,1888696
+interaction == '11',False,False,False,False,False,False
+"interaction in ['12',  '21']",False,False,False,False,False,False
+"interaction in ['13',  '31']",False,False,False,False,False,False
+"interaction in ['14',  '41']",False,False,False,False,False,False
+"interaction in ['15',  '51']",False,False,False,False,False,False
+"interaction in ['16',  '61']",False,False,False,False,False,False
+"interaction in ['17',  '71']",True,True,True,False,True,False
+"interaction in ['18',  '81']",False,False,False,False,False,False
+interaction == '22',False,False,False,False,False,False
+"interaction in ['23',  '32']",False,False,False,False,False,False
+"interaction in ['24',  '42']",False,False,False,False,False,False
+"interaction in ['25',  '52']",False,False,False,False,False,False
+"interaction in ['26',  '62']",False,False,False,False,False,False
+"interaction in ['27',  '72']",False,False,False,False,False,False
+"interaction in ['82',  '82']",False,False,False,False,False,False
+interaction == '33',False,False,False,False,False,False
+"interaction in ['34',  '43']",False,False,False,False,False,False
+"interaction in ['35',  '53']",False,False,False,False,False,False
+"interaction in ['36',  '63']",False,False,False,False,False,False
+"interaction in ['37',  '73']",False,False,False,False,False,False
+"interaction in ['38',  '83']",False,False,False,False,False,False
+interaction == '44',False,False,False,False,False,False
+"interaction in ['45',  '54']",False,False,False,False,False,False
+"interaction in ['46',  '64']",False,False,False,False,False,False
+"interaction in ['47',  '74']",False,False,False,False,False,False
+"interaction in ['48',  '84']",False,False,False,False,False,False
+interaction == '55',False,False,False,False,False,False
+"interaction in ['56',  '65']",False,False,False,False,False,False
+"interaction in ['57',  '75']",False,False,False,False,False,False
+"interaction in ['58',  '85']",False,False,False,False,False,False
+interaction == '66',False,False,False,False,False,False
+"interaction in ['67',  '76']",False,False,False,False,False,False
+"interaction in ['68',  '86']",False,False,False,False,False,False
+interaction == '77',False,False,False,True,False,True
+"interaction in ['78',  '87']",False,False,False,False,False,False
+interaction == '88',False,False,False,False,False,False

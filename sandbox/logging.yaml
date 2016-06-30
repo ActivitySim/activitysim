@@ -43,7 +43,8 @@ logging:
       filename: !!python/object/apply:activitysim.tracing.log_file_path ['hhtrace.log']
       mode: w
       formatter: traceFormatter
-      level: !!python/name:logging.NOTSET
+      #level: !!python/name:logging.NOTSET
+      level: !!python/name:logging.INFO
 
     console:
       class: logging.StreamHandler
@@ -67,5 +68,5 @@ logging:
 
     traceFormatter:
       class: !!python/name:logging.Formatter
-      format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+      format: '%(levelname)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'

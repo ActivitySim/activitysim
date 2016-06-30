@@ -1,0 +1,11 @@
+label,value_1,value_2,value_3
+PERID,1888694,1888695,1888696
+interaction == '111',False,False,False
+"interaction in ['112', '121', '211', '114', '141', '411']",False,False,False
+"interaction in ['124', '142', '214', '412', '241', '421', '122', '144', '212', '414', '221', '441']",False,False,False
+"interaction in ['162', '126', '216', '612', '261', '621']",False,False,False
+"interaction in ['166', '616', '661']",False,False,False
+"interaction in ['222', '224', '242', '422', '424', '442', '244', '444']",False,False,False
+"interaction in ['624', '642', '264', '462', '246', '426', '622', '644', '262', '464', '226', '446']",False,False,False
+"interaction in ['662', '626', '266', '664', '646', '466']",False,False,False
+interaction == '666',False,False,False

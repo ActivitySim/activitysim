@@ -1,0 +1,101 @@
+expression,value_1,value_2,value_3
+PERID,1888694,1888695,1888696
+ptype == 1,,False,False
+ptype == 2,,False,False
+ptype == 3,,False,False
+ptype == 4,,False,False
+ptype == 5,,False,False
+ptype == 6,,False,False
+ptype == 7,,True,True
+(ptype == 1) & female,,False,False
+(ptype == 2) & female,,False,False
+(ptype == 3) & female,,False,False
+(ptype == 4) & female,,False,False
+(ptype == 5) & female,,False,False
+(ptype == 6) & female,,False,False
+(ptype == 7) & female,,True,False
+(ptype == 1) & (age <= 35),,False,False
+(ptype == 2) & (age <= 35),,False,False
+(ptype == 3) & (age <= 35),,False,False
+(ptype == 4) & (age <= 35),,False,False
+(ptype == 1) & (distance_to_work < 3),,False,False
+(ptype == 2) & (distance_to_work < 3),,False,False
+(ptype == 3) & (distance_to_work < 3),,False,False
+(ptype == 4) & (distance_to_work < 3),,False,False
+(ptype == 5) & (distance_to_work < 3),,False,False
+(ptype == 3) & (distance_to_school < 3),,False,False
+(ptype == 6) & (distance_to_school < 3),,False,False
+(ptype == 7) & (distance_to_school < 3),,True,True
+(ptype == 1) & (distance_to_work < 3 | distance_to_school < 3),,False,False
+(ptype == 2) & (distance_to_work < 3 | distance_to_school < 3),,False,False
+(ptype == 3) & (distance_to_work < 3 | distance_to_school < 3),,False,False
+(ptype == 6) & (distance_to_work < 3 | distance_to_school < 3),,False,False
+(ptype == 1) * roundtrip_auto_time_to_work,,0.0,0.0
+(ptype == 2) * roundtrip_auto_time_to_work,,0.0,0.0
+(ptype == 3) * roundtrip_auto_time_to_work,,0.0,0.0
+(ptype == 4) * roundtrip_auto_time_to_work,,0.0,0.0
+(ptype == 5) * roundtrip_auto_time_to_work,,0.0,0.0
+(ptype == 3) * roundtrip_auto_time_to_school,,0.0,0.0
+(ptype == 6) * roundtrip_auto_time_to_school,,0.0,0.0
+(ptype == 7) * roundtrip_auto_time_to_school,,4.37,2.54
+(ptype == 3) & student_is_employed,,False,False
+(ptype == 6) & student_is_employed,,False,False
+(ptype == 1) & nonstudent_to_school,,False,False
+(ptype == 2) & nonstudent_to_school,,False,False
+(ptype == 4) & nonstudent_to_school,,False,False
+(ptype == 5) & nonstudent_to_school,,False,False
+(ptype == 1) & (auto_ownership == 0),,False,False
+(ptype == 2) & (auto_ownership == 0),,False,False
+(ptype == 3) & (auto_ownership == 0),,False,False
+(ptype == 4) & (auto_ownership == 0),,False,False
+(ptype == 5) & (auto_ownership == 0),,False,False
+(ptype == 6) & (auto_ownership == 0),,False,False
+(ptype == 7) & (auto_ownership == 0),,False,False
+(ptype == 3) & (auto_ownership < drivers),,False,False
+(ptype == 6) & (auto_ownership < drivers),,False,False
+(ptype == 7) & (auto_ownership < drivers),,False,False
+(ptype == 1) * (num_young_children),,0.0,0.0
+(ptype == 2) * (num_young_children),,0.0,0.0
+(ptype == 3) * (num_young_children),,0.0,0.0
+(ptype == 4) * (num_young_children),,0.0,0.0
+(ptype == 5) * (num_young_children),,0.0,0.0
+(ptype == 6) * (num_young_children),,0.0,0.0
+(ptype == 7) * (num_young_children),,0.0,0.0
+(ptype == 1) * non_workers,,0.0,0.0
+(ptype == 2) * non_workers,,0.0,0.0
+(ptype == 1) & (income_in_thousands > 50),,False,False
+(ptype == 2) & (income_in_thousands > 50),,False,False
+(ptype == 3) & (income_in_thousands > 50),,False,False
+(ptype == 4) & (income_in_thousands > 50),,False,False
+(ptype == 5) & (income_in_thousands > 50),,False,False
+(ptype == 6) & (income_in_thousands > 50),,False,False
+(ptype == 7) & (income_in_thousands > 50),,False,False
+(ptype == 1) & non_family,,False,False
+(ptype == 2) & non_family,,False,False
+(ptype == 3) & non_family,,False,False
+(ptype == 4) & non_family,,False,False
+(ptype == 5) & non_family,,False,False
+(ptype == 6) & non_family,,False,False
+(ptype == 7) & non_family,,False,False
+(ptype == 1) * num_under16_not_at_school,,0.0,0.0
+(ptype == 2) * num_under16_not_at_school,,0.0,0.0
+(ptype == 3) * num_under16_not_at_school,,0.0,0.0
+(ptype == 4) * num_under16_not_at_school,,0.0,0.0
+(ptype == 5) * num_under16_not_at_school,,0.0,0.0
+(ptype == 6) * num_under16_not_at_school,,0.0,0.0
+(ptype == 7) * num_under16_not_at_school,,3.0,3.0
+(ptype == 1) & home_is_urban,,False,False
+(ptype == 2) & home_is_urban,,False,False
+(ptype == 3) & home_is_urban,,False,False
+(ptype == 4) & home_is_urban,,False,False
+(ptype == 5) & home_is_urban,,False,False
+(ptype == 6) & home_is_urban,,False,False
+(ptype == 7) & home_is_urban,,True,True
+ptype == 1,,False,False
+ptype == 2,,False,False
+ptype == 4,,False,False
+ptype == 5,,False,False
+ptype == 6,,False,False
+ptype == 7,,True,True
+~(workplace_taz > -1),,False,False
+~(school_taz > -1),,False,False

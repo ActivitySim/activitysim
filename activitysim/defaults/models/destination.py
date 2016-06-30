@@ -46,7 +46,8 @@ def destination_choice(set_random_seed,
     # the skims will be available under the name "skims" for any @ expressions
     locals_d = {"skims": skims}
 
-    logger.info("%s destination_choice choosers" % len(choosers.index))
+    tracing.info(__name__,
+                 "Running destination_choice  with %d non_mandatory_tours" % len(choosers.index))
 
     choices_list = []
     # segment by trip type and pick the right spec for each person type
@@ -55,13 +56,14 @@ def destination_choice(set_random_seed,
         # FIXME - there are two options here escort with kids and without
         kludge_name = name
         if name == "escort":
-            logger.error("destination_choice escort not implemented - running shopping instead")
+            tracing.error(__name__,
+                          "destination_choice escort not implemented - running shopping instead")
             kludge_name = "shopping"
 
         # the segment is now available to switch between size terms
         locals_d['segment'] = kludge_name
 
-        logger.info("Running segment '%s' of size %d" % (name, len(segment)))
+        tracing.info(__name__, "Running segment '%s' of size %d" % (name, len(segment)))
 
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
@@ -91,11 +93,10 @@ def destination_choice(set_random_seed,
     orca.add_column("non_mandatory_tours", "destination", choices)
 
     if trace_hh_id:
-        tracing.get_tracer().info("destination tracing household %s" % trace_hh_id)
         tracing.trace_df(orca.get_table('non_mandatory_tours').to_frame(),
                          label="destination",
                          slicer='person_id',
-                         index_label='tour_id',
+                         index_label='tour',
                          columns=None)
 
 
@@ -108,6 +109,8 @@ def patch_mandatory_tour_destination(mandatory_tours_merged, trace_hh_id):
     table can use destination for any tour type.
     """
 
+    tracing.info(__name__, "Running patch_mandatory_tour_destination")
+
     mandatory_tours_merged['destination'] = \
         np.where(mandatory_tours_merged['tour_type'] == 'school',
                  mandatory_tours_merged['school_taz'],
@@ -116,10 +119,8 @@ def patch_mandatory_tour_destination(mandatory_tours_merged, trace_hh_id):
     orca.add_column("mandatory_tours", "destination", mandatory_tours_merged.destination)
 
     if trace_hh_id:
-        tracer = tracing.get_tracer()
-        tracer.info("patch_mandatory_tour_destination tracing household %s" % trace_hh_id)
         tracing.trace_df(orca.get_table('mandatory_tours').to_frame(),
                          label="mandatory_tours.destination",
                          slicer='person_id',
-                         index_label='tour_id',
+                         index_label='tour',
                          columns=None)

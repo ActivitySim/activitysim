@@ -132,9 +132,6 @@ def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example')
     orca.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
-
     inject_settings(configs_dir,
                     households_sample_size=households_sample_size,
                     preload_3d_skims=preload_3d_skims,
@@ -232,6 +229,6 @@ def test_full_run_with_hh_trace(store, omx_file):
 
     h = pd.read_csv(os.path.join(output_dir, 'workplace_location.interaction_simulate.choices.csv'))
     assert h.columns[0] == 'PERID'
-    assert h.columns[1] == 'workplace_location'
+    assert h.column[1] == 'workplace_location'
     assert h.iloc[0][0] == 1888694
     assert h.iloc[0][1] == 18

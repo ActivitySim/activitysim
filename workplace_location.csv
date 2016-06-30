@@ -1,0 +1,6 @@
+label,value_1,value_2,value_3
+PERID,1888694,1888695,1888696
+workplace_taz,18,2,7
+workplace_in_cbd,True,True,True
+distance_to_work,0.57,1.07,0.91
+roundtrip_auto_time_to_work,3.3,6.6,5.220000000000001

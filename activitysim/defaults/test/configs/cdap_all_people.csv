@@ -1,0 +1,10 @@
+Description,Expression,Mandatory,NonMandatory,Home
+Three Person All M,"('Mandatory',) * 3",-0.0671,-0.3653,-1.1810
+Three Person All N,"('NonMandatory',) * 3",-0.0671,-0.3653,-1.1810
+Three Person All H,"('Home',) * 3",-0.0671,-0.3653,-1.1810
+Four Person All M,"('Mandatory',) * 4",-0.6104,-1.3460,-3.7330
+Four Person All N,"('NonMandatory',) * 4",-0.6104,-1.3460,-3.7330
+Four Person All H,"('Home',) * 4",-0.6104,-1.3460,-3.7330
+Five Person All M,"('Mandatory',) * 5",-1.5280,-3.4530,-8.6210
+Five Person All N,"('NonMandatory',) * 5",-1.5280,-3.4530,-8.6210
+Five Person All H,"('Home',) * 5",-1.5280,-3.4530,-8.6210

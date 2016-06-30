@@ -1,0 +1,50 @@
+label,value_1,value_2,value_3
+PERID,1888694,1888695,1888696
+ptype == 1,True,False,False
+ptype == 2,False,False,False
+ptype == 3,False,False,False
+ptype == 4,False,False,False
+ptype == 5,False,False,False
+ptype == 6,False,False,False
+ptype == 7,False,True,True
+ptype == 8,False,False,False
+(ptype == 8) & (age >= 0) & (age <= 1),False,False,False
+(ptype == 8) & (age >= 4) & (age <= 5),False,False,False
+(ptype == 7) & (age >= 6) & (age <= 9),False,False,True
+(ptype == 7) & (age >= 13) & (age <= 15),False,True,False
+(ptype == 1) & (age < 40),True,False,False
+(ptype == 5) & (age > 80),False,False,False
+(ptype == 1) & (sex == 2),True,False,False
+(ptype == 4) & (sex == 2),False,False,False
+(ptype == 5) & (sex == 2),False,False,False
+(ptype == 4) & (auto_ownership > workers),False,False,False
+(ptype == 5) & (auto_ownership > workers),False,False,False
+(ptype == 8) & (auto_ownership > workers),False,False,False
+(ptype == 1) & (auto_ownership < workers),False,False,False
+(ptype == 4) & (auto_ownership < workers),False,False,False
+(ptype == 5) & (auto_ownership < workers),False,False,False
+(ptype == 6) & (auto_ownership < workers),False,False,False
+(ptype == 7) & (auto_ownership < workers),False,False,False
+(ptype == 8) & (auto_ownership < workers),False,False,False
+(ptype == 1) & (income_in_thousands < 20),False,False,False
+(ptype == 5) & (income_in_thousands < 20),False,False,False
+(ptype == 2) & (income_in_thousands < 20),False,False,False
+(ptype == 2) & (income_in_thousands >= 50) & (income_in_thousands <= 100),False,False,False
+(ptype == 2) & (income_in_thousands < 100),False,False,False
+(ptype == 4) & (income_in_thousands >= 50) & (income_in_thousands <= 100),False,False,False
+(ptype == 4) & (income_in_thousands < 100),False,False,False
+(ptype == 6) & (income_in_thousands < 20),False,False,False
+(ptype == 6) & (income_in_thousands >= 50) & (income_in_thousands <= 100),False,False,False
+(ptype == 6) & (income_in_thousands < 100),False,False,False
+(ptype == 8) & (income_in_thousands >= 50) & (income_in_thousands <= 100),False,False,False
+(ptype == 8) & (income_in_thousands < 100),False,False,False
+(ptype == 1) * AUTOPEAKTOTAL,13.0776,0.0,0.0
+(ptype == 2) * AUTOPEAKTOTAL,0.0,0.0,0.0
+(ptype == 4) * AUTOPEAKTOTAL,0.0,0.0,0.0
+(ptype == 5) * AUTOPEAKTOTAL,0.0,0.0,0.0
+(ptype == 4) * AUTOOFFPEAKRETAIL,0.0,0.0,0.0
+(ptype == 5) * AUTOOFFPEAKRETAIL,0.0,0.0,0.0
+(ptype == 3) * AUTOOFFPEAKRETAIL,0.0,0.0,0.0
+(ptype == 6) * AUTOOFFPEAKRETAIL,0.0,0.0,0.0
+(ptype == 7) * AUTOOFFPEAKRETAIL,0.0,10.5861,10.5861
+(ptype == 8) * AUTOOFFPEAKRETAIL,0.0,0.0,0.0

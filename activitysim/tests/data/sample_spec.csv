@@ -1,5 +1,0 @@
-description,expression,alt0,alt1
-first row,thing1 == 1,1.1,11
-second row,thing1 == 2,2.2,22
-third row,@df.thing2.clip(upper=5),3.3,33
-scalar row,@1,4.4,44

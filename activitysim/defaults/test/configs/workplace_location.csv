@@ -1,6 +1,0 @@
-Description,Expression,Alt
-"Distance, piecewise linear from 0 to 1 miles",@skims['DISTANCE'].clip(1),-0.8428
-"Distance, piecewise linear from 1 to 2 miles","@(skims['DISTANCE']-1).clip(0,1)",-0.3104
-"Distance, piecewise linear from 2 to 5 miles","@(skims['DISTANCE']-2).clip(0,3)",-0.3783
-"Distance, piecewise linear from 5 to 15 miles","@(skims['DISTANCE']-5).clip(0,10)",-0.1285
-"Distance, piecewise linear for 15+ miles",@(skims['DISTANCE']-15.0).clip(0),-0.0917

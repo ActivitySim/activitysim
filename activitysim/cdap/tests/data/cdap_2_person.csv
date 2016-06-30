@@ -1,8 +1,0 @@
-Description,Expression,Mandatory,NonMandatory,Home
-Two type 1,interaction == '11',1,0,0
-Two type 2,interaction == '22',0,1,0
-Two type 3,interaction == '33',0,0,1
-One and two,interaction == '12',1,0,0
-Two and one,interaction == '21',0,1,0
-One + three,"interaction in ['13', '31']",0,0,1
-Two + three,"interaction in ['23', '32']",0,1,0

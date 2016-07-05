@@ -379,7 +379,7 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     Parameters
     ----------
-    df: pandas.DataFrame
+    df: pandas.DataFrame or pandas.Series
         traced dataframe
     file_name: str
         output file name
@@ -387,7 +387,8 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
         index name
     columns: list
         columns to write
-
+    transpose: bool
+        whether to transpose dataframe (ignored for series)
     Returns
     -------
     Nothing
@@ -416,16 +417,16 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
 def slice_ids(df, ids, column=None, label=None):
     """
-    Select records based on ids
+    slice a dataframe to select only records with the specified ids
 
     Parameters
     ----------
     df: pandas.DataFrame
         traced dataframe
-    ids: int
+    ids: int or list of ints
         slice ids
     column: str
-        column to slice
+        column to slice (slice using index if None)
 
     Returns
     -------
@@ -433,7 +434,7 @@ def slice_ids(df, ids, column=None, label=None):
         sliced dataframe
     """
 
-    if type(ids) == int:
+    if not isinstance(ids, (list, tuple)):
         ids = [ids]
     try:
         if column is None:
@@ -445,19 +446,58 @@ def slice_ids(df, ids, column=None, label=None):
     return df
 
 
-def canonical_slicer_column_name(index_name):
+def canonical_slicer(index_name):
+    """
+    return a canonical column name and targets (hh id or person ids) to
+    annotate a dataframe with trace targets in a manner grokable by slice_canonically method
+
+    Parameters
+    ----------
+    index_name: str
+        name of column or index to use for slicing
+
+    Returns
+    -------
+        name of column to use
+        target hh_id or person_ids
+    """
     if index_name == 'PERID' or index_name == orca.get_injectable('persons_index_name'):
-        return 'person_id'
+        column_name = 'person_id'
     elif index_name == 'HHID' or index_name == orca.get_injectable('hh_index_name'):
-        return 'hh_id'
+        column_name = 'hh_id'
     elif index_name == 'tour_id':
-        return 'person_id'
+        column_name = 'person_id'
     else:
-        get_tracer().error("canonical_slicer_column_name undefined for index %s" % (index_name,))
-        return ''
+        get_tracer().error("canonical_slicer undefined for index %s" % (index_name,))
+        column_name = ''
+
+    if column_name == 'person_id':
+        targets = orca.get_injectable('trace_person_ids')
+    elif column_name == 'hh_id':
+        targets = [orca.get_injectable('trace_hh_id')]
+    else:
+        targets = []
+
+    return column_name, targets
 
 
 def slice_canonically(df, slicer, label):
+    """
+    Slice dataframe by traced household or person id dataframe and write to CSV
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        dataframe to slice
+    slicer: str
+        name of column or index to use for slicing
+    label: str
+        tracer name - only used to report bad slicer
+
+    Returns
+    -------
+    sliced subset of dataframe
+    """
 
     tracer = get_tracer()
 
@@ -615,14 +655,17 @@ def trace_model_design(df, label):
     trace_df(df, '%s.model_design' % label, column_labels=['expression', None], warn=False)
 
 
-def trace_interaction_model_design(model_design, choosers, sample_size, label):
+def trace_interaction_model_design(model_design, choosers, label):
     """
-    Trace model design
+    Trace model design for interaction_simulate
 
     Parameters
     ----------
-    df: pandas.DataFrame
-        traced dataframe
+    model_design: pandas.DataFrame
+        traced model_design dataframe
+    choosers: pandas.DataFrame
+        interaction_simulate choosers
+        (needed to filter the model_design dataframe by traced hh or person id)
     label: str
         tracer name
 
@@ -633,7 +676,14 @@ def trace_interaction_model_design(model_design, choosers, sample_size, label):
 
     label = '%s.model_design' % label
 
-    slicer_column_name = canonical_slicer_column_name(choosers.index.name)
+    # column name to use for chooser id (hh or person) added to model_design dataframe
+    slicer_column_name, targets = canonical_slicer(choosers.index.name)
+
+    # we can deduce the sample_size from the relative size of model_design and choosers
+    # (model design rows are repeated once for each alternative)
+    sample_size = len(model_design.index) / len(choosers.index)
+
+    # we need to repeat each value sample_size times
     slicer_column_values = np.repeat(choosers.index.values, sample_size)
     model_design[slicer_column_name] = slicer_column_values
     model_design_index_name = model_design.index.name
@@ -643,26 +693,35 @@ def trace_interaction_model_design(model_design, choosers, sample_size, label):
         model_design_index_name = 'index'
         model_design.index.rename(model_design_index_name, inplace=True)
 
-    # FIXME - should slice first (or perform these operations in place?)
+    # pre-slice for runtime efficiency
+    df = slice_canonically(model_design, slicer_column_name, label)
 
-    df = model_design
+    if len(df.index) == 0:
+        return
 
-    df = slice_canonically(df, slicer_column_name, label)
+    # write out the raw dataframe
+    file_path = log_file_path('%s.raw.csv' % label)
+    df.to_csv(file_path, mmode="a", index=True, header=True)
 
-    df.reset_index(inplace=True)
+    # if there are multiple targets, we want them in seperate tables for readability
+    for target in targets:
+        df_target = slice_ids(df, target, column=slicer_column_name)
 
-    # print "set_index %s %s" % (slicer_column_name, model_design_index_name)
-    df.set_index([slicer_column_name, model_design_index_name], inplace=True)
-    df = df.stack()
-    df = df.unstack(1)
-    df.reset_index(inplace=True)
-    df.rename(columns={'level_1': 'expression'}, inplace=True)
-    df.set_index([slicer_column_name, 'expression'], inplace=True)
+        if len(df_target.index) == 0:
+            continue
 
-    trace_df(df, label,
-             slicer="NONE",
-             transpose=False,
-             warn=False)
+        # we want the transposed columns in predictable order
+        df_target.sort_index(inplace=True)
+
+        # remove the slicer (person_id or hh_id) column?
+        del df_target[slicer_column_name]
+
+        target_label = '%s.%s.%s' % (label, slicer_column_name, target)
+        trace_df(df_target, target_label,
+                 slicer="NONE",
+                 transpose=True,
+                 column_labels=['expression', None],
+                 warn=False)
 
 
 def trace_cdap_hh_utils(hh_utils, label):

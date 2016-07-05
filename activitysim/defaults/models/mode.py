@@ -298,7 +298,7 @@ def trip_mode_choice_simulate(tours_merged,
     orca.add_column("trips", "mode", choices)
 
     if trace_hh_id:
-        tracing.error(__name__, "can't dump trips table because it doesn't exist")
+        tracing.warn(__name__, "can't dump trips table because it doesn't exist")
         # FIXME - commented out because trips table doesn't really exist
         # trace_columns = ['mode']
         # tracing.trace_df(orca.get_table('trips').to_frame(),

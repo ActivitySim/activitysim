@@ -390,8 +390,7 @@ def _interaction_simulate(
         tracing.trace_utilities(utilities, trace_label)
         tracing.trace_probs(probs, trace_label)
         tracing.trace_choices(choices, trace_label, columns=[None, trace_choice_name])
-        tracing.trace_interaction_model_design(model_design, choosers, sample_size,
-                                               label=trace_label)
+        tracing.trace_interaction_model_design(model_design, choosers, label=trace_label)
 
     return choices
 

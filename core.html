@@ -311,7 +311,7 @@ expression values are set as the table index.</p>
 
 <dl class="function">
 <dt id="activitysim.activitysim.simple_simulate">
-<code class="descclassname">activitysim.activitysim.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.simple_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.simple_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -345,6 +345,10 @@ for an evaluation of an expression that begins with &#64;</p>
 <blockquote>
 <div><p>This is the label to be used  for trace log file entries and dump file names
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
+</div></blockquote>
+<p><strong>trace_choice_name: str</strong></p>
+<blockquote>
+<div><p>This is the column label to be used in trace file csv dump of choices</p>
 </div></blockquote>
 </td>
 </tr>
@@ -756,6 +760,31 @@ is an index into the columns of <cite>probs</cite>.</p>
 <div class="section" id="id3">
 <h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.tracing"></span><dl class="function">
+<dt id="activitysim.tracing.canonical_slicer">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">canonical_slicer</code><span class="sig-paren">(</span><em>index_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.canonical_slicer" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a canonical column name and targets (hh id or person ids) to
+annotate a dataframe with trace targets in a manner grokable by slice_canonically method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>index_name: str</strong></p>
+<blockquote>
+<div><p>name of column or index to use for slicing</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">name of column to use</p>
+<blockquote class="last">
+<div><p>target hh_id or person_ids</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.tracing.config_logger">
 <code class="descclassname">activitysim.tracing.</code><code class="descname">config_logger</code><span class="sig-paren">(</span><em>custom_config_file=None</em>, <em>basic=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.config_logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configure logger</p>
@@ -783,6 +812,12 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.tracing.debug">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">debug</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>same as info but debug</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.tracing.delete_csv_files">
 <code class="descclassname">activitysim.tracing.</code><code class="descname">delete_csv_files</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.delete_csv_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Delete CSV files</p>
@@ -804,6 +839,12 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.tracing.error">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">error</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>same as info but warn</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.tracing.get_tracer">
 <code class="descclassname">activitysim.tracing.</code><code class="descname">get_tracer</code><span class="sig-paren">(</span><em>name='activitysim.trace'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.get_tracer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get tracer</p>
@@ -821,6 +862,31 @@ is an index into the columns of <cite>probs</cite>.</p>
 <blockquote class="last">
 <div><p>tracer</p>
 </div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.info">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">info</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>write message to logger and/or tracer if household tracing enabled</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>logger: logger</strong></p>
+<blockquote>
+<div><p>standard logger to write to (or not if None)</p>
+</div></blockquote>
+<p><strong>message:</strong></p>
+<blockquote>
+<div><p>logging message to write to logger and/or tracer</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
 </td>
 </tr>
 </tbody>
@@ -936,9 +1002,38 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.tracing.slice_canonically">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_canonically</code><span class="sig-paren">(</span><em>df</em>, <em>slicer</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_canonically" title="Permalink to this definition">¶</a></dt>
+<dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>dataframe to slice</p>
+</div></blockquote>
+<p><strong>slicer: str</strong></p>
+<blockquote>
+<div><p>name of column or index to use for slicing</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name - only used to report bad slicer</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">sliced subset of dataframe</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.tracing.slice_ids">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_ids</code><span class="sig-paren">(</span><em>df</em>, <em>ids</em>, <em>column=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_ids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Select records based on ids</p>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_ids</code><span class="sig-paren">(</span><em>df</em>, <em>ids</em>, <em>column=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>slice a dataframe to select only records with the specified ids</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -947,13 +1042,13 @@ is an index into the columns of <cite>probs</cite>.</p>
 <blockquote>
 <div><p>traced dataframe</p>
 </div></blockquote>
-<p><strong>ids: int</strong></p>
+<p><strong>ids: int or list of ints</strong></p>
 <blockquote>
 <div><p>slice ids</p>
 </div></blockquote>
 <p><strong>column: str</strong></p>
 <blockquote>
-<div><p>column to slice</p>
+<div><p>column to slice (slice using index if None)</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1019,7 +1114,7 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.tracing.trace_choices">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_choices</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_choices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_choices</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>columns=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trace choices</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1069,8 +1164,8 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.tracing.trace_df">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>warn=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace dataframe by writing to CSV</p>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>column_labels=None</em>, <em>transpose=True</em>, <em>warn=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1095,9 +1190,47 @@ is an index into the columns of <cite>probs</cite>.</p>
 <blockquote>
 <div><p>index name</p>
 </div></blockquote>
+<p><strong>column_labels: [str, str]</strong></p>
+<blockquote>
+<div><p>labels for columns in csv</p>
+</div></blockquote>
+<p><strong>transpose: boolean</strong></p>
+<blockquote>
+<div><p>whether to transpose file for legibility</p>
+</div></blockquote>
 <p><strong>warn: boolean</strong></p>
 <blockquote>
 <div><p>write warnings</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.trace_interaction_model_design">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_interaction_model_design</code><span class="sig-paren">(</span><em>model_design</em>, <em>choosers</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_interaction_model_design" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace model design for interaction_simulate</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>model_design: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced model_design dataframe</p>
+</div></blockquote>
+<p><strong>choosers: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>interaction_simulate choosers
+(needed to filter the model_design dataframe by traced hh or person id)</p>
+</div></blockquote>
+<p><strong>label: str</strong></p>
+<blockquote>
+<div><p>tracer name</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1209,14 +1342,20 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.tracing.write_df_csv">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">write_df_csv</code><span class="sig-paren">(</span><em>df</em>, <em>file_name</em>, <em>index_label=None</em>, <em>columns=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.write_df_csv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print summary</p>
+<dt id="activitysim.tracing.warn">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">warn</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.warn" title="Permalink to this definition">¶</a></dt>
+<dd><p>same as info but warn</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.tracing.write_csv">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">write_csv</code><span class="sig-paren">(</span><em>df</em>, <em>file_name</em>, <em>index_label=None</em>, <em>columns=None</em>, <em>column_labels=None</em>, <em>transpose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.write_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print write_csv</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame or pandas.Series</strong></p>
 <blockquote>
 <div><p>traced dataframe</p>
 </div></blockquote>
@@ -1232,9 +1371,13 @@ is an index into the columns of <cite>probs</cite>.</p>
 <blockquote>
 <div><p>columns to write</p>
 </div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<p><strong>transpose: bool</strong></p>
+<blockquote>
+<div><p>whether to transpose dataframe (ignored for series)</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>&#8212;&#8212;-</strong></p>
+<p class="last"><strong>Nothing</strong></p>
 </td>
 </tr>
 </tbody>

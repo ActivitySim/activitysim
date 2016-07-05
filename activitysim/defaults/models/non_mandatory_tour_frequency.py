@@ -56,7 +56,8 @@ def non_mandatory_tour_frequency(set_random_seed,
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['Mandatory', 'NonMandatory'])]
 
-    logger.info("%d persons run for non-mandatory tour model" % len(choosers))
+    tracing.info(__name__,
+                 "Running non_mandatory_tour_frequency with %d persons" % len(choosers))
 
     choices_list = []
     # segment by person type and pick the right spec for each person type
@@ -72,7 +73,8 @@ def non_mandatory_tour_frequency(set_random_seed,
             non_mandatory_tour_frequency_spec[[name]],
             sample_size=50,
             chunk_size=chunk_size,
-            trace_label=trace_hh_id and 'non_mandatory_tour_frequency')
+            trace_label=trace_hh_id and 'non_mandatory_tour_frequency.%s' % name,
+            trace_choice_name='non_mandatory_tour_frequency')
 
         choices_list.append(choices)
 
@@ -86,7 +88,6 @@ def non_mandatory_tour_frequency(set_random_seed,
     add_dependent_columns("persons", "persons_nmtf")
 
     if trace_hh_id:
-        tracing.get_tracer().info("non_mandatory_tour_frequency tracing household %s" % trace_hh_id)
         trace_columns = ['non_mandatory_tour_frequency']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="non_mandatory_tour_frequency",

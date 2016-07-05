@@ -40,6 +40,9 @@ def school_location_simulate(set_random_seed,
     alternatives = destination_size_terms.to_frame()
     spec = school_location_spec.to_frame()
 
+    tracing.info(__name__,
+                 "Running school_location_simulate with %d persons" % len(choosers))
+
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     skims.set_keys("TAZ", "TAZ_r")
@@ -49,7 +52,7 @@ def school_location_simulate(set_random_seed,
     choices_list = []
     for school_type in ['university', 'highschool', 'gradeschool']:
 
-        logger.info("Running school_type %s" % school_type)
+        tracing.info(__name__, "Running school_type %s" % school_type)
 
         locals_d['segment'] = school_type
 
@@ -63,7 +66,8 @@ def school_location_simulate(set_random_seed,
             locals_d=locals_d,
             sample_size=50,
             chunk_size=chunk_size,
-            trace_label='school_location.%s' % school_type)
+            trace_label='school_location.%s' % school_type,
+            trace_choice_name='school_location')
 
         choices_list.append(choices)
 
@@ -82,8 +86,8 @@ def school_location_simulate(set_random_seed,
                     (np.isnan(choices).sum(), len(choices.index)))
     choices = choices.reindex(persons_merged.index).fillna(-1)
 
-    logger.info("%s school_taz choices min: %s max: %s" %
-                (len(choices.index), choices.min(), choices.max()))
+    tracing.info(__name__, "%s school_taz choices min: %s max: %s" %
+                 (len(choices.index), choices.min(), choices.max()))
 
     tracing.print_summary('school_taz', choices, describe=True)
 
@@ -91,7 +95,6 @@ def school_location_simulate(set_random_seed,
     add_dependent_columns("persons", "persons_school")
 
     if trace_hh_id:
-        tracing.get_tracer().info("school_location_simulate tracing household %s" % trace_hh_id)
         trace_columns = ['school_taz'] + orca.get_table('persons_school').columns
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="school_location",

@@ -24,10 +24,14 @@ def auto_ownership_simulate(set_random_seed, households_merged,
     with given characteristics owns
     """
 
+    tracing.info(__name__,
+                 "Running auto_ownership_simulate with %d households" % len(households_merged))
+
     choices, _ = asim.simple_simulate(
         choosers=households_merged.to_frame(),
         spec=auto_ownership_spec,
-        trace_label=trace_hh_id and 'auto_ownership')
+        trace_label=trace_hh_id and 'auto_ownership',
+        trace_choice_name='auto_ownership')
 
     tracing.print_summary('auto_ownership', choices, value_counts=True)
 
@@ -36,7 +40,6 @@ def auto_ownership_simulate(set_random_seed, households_merged,
     add_dependent_columns("households", "households_autoown")
 
     if trace_hh_id:
-        tracing.get_tracer().info("auto_ownership_simulate tracing household %s" % trace_hh_id)
         trace_columns = ['auto_ownership'] + orca.get_table('households_autoown').columns
         tracing.trace_df(orca.get_table('households').to_frame(),
                          label="auto_ownership",

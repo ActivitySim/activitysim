@@ -59,33 +59,27 @@ def mandatory_scheduling(set_random_seed,
     mandatory tours
     """
 
-    if trace_hh_id:
-        tracing.get_tracer().info("mandatory_scheduling tracing household %s" % trace_hh_id)
-
     tours = mandatory_tours_merged.to_frame()
     alts = tdd_alts.to_frame()
 
     school_spec = tdd_school_spec.to_frame()
     school_tours = tours[tours.tour_type == "school"]
 
-    logger.info("Running %d school tour scheduling choices" % len(school_tours))
-    if trace_hh_id:
-        tracing.get_tracer().info("Running %d school tour scheduling choices" % len(school_tours))
+    tracing.info(__name__,
+                 "Running mandatory_scheduling school_tours with %d tours" % len(school_tours))
 
     school_choices = vectorize_tour_scheduling(
         school_tours, alts, school_spec, chunk_size,
-        trace_label=trace_hh_id and 'mandatory_scheduling.school')
+        trace_label='mandatory_scheduling.school')
 
     work_spec = tdd_work_spec.to_frame()
     work_tours = tours[tours.tour_type == "work"]
 
-    logger.info("Running %d work tour scheduling choices" % len(work_tours))
-    if trace_hh_id:
-        tracing.get_tracer().info("Running %d work tour scheduling choices" % len(work_tours))
+    tracing.info(__name__, "Running %d work tour scheduling choices" % len(work_tours))
 
     work_choices = vectorize_tour_scheduling(
         work_tours, alts, work_spec, chunk_size,
-        trace_label=trace_hh_id and 'mandatory_scheduling.work')
+        trace_label='mandatory_scheduling.work')
 
     choices = pd.concat([school_choices, work_choices])
 
@@ -99,5 +93,5 @@ def mandatory_scheduling(set_random_seed,
         tracing.trace_df(orca.get_table('mandatory_tours').to_frame(),
                          label="mandatory_tours",
                          slicer='person_id',
-                         index_label='tour_id',
+                         index_label='tour',
                          columns=None)

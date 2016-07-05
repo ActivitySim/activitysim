@@ -36,15 +36,14 @@ def non_mandatory_scheduling(set_random_seed,
 
     tours = non_mandatory_tours_merged.to_frame()
 
-    logger.info("Running %d non-mandatory tour scheduling choices" % len(tours))
-    if trace_hh_id:
-        tracing.get_tracer().info("mandatory_scheduling tracing household %s" % trace_hh_id)
+    tracing.info(__name__,
+                 "Running non_mandatory_scheduling with %d tours" % len(tours))
 
     spec = tdd_non_mandatory_spec.to_frame()
     alts = tdd_alts.to_frame()
 
     choices = vectorize_tour_scheduling(tours, alts, spec, chunk_size,
-                                        trace_label=trace_hh_id and 'non_mandatory_scheduling')
+                                        trace_label='non_mandatory_scheduling')
 
     tracing.print_summary('non_mandatory_scheduling tour_departure_and_duration',
                           choices, describe=True)

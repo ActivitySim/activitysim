@@ -41,6 +41,9 @@ def workplace_location_simulate(set_random_seed,
     choosers = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
 
+    tracing.info(__name__,
+                 "Running workplace_location_simulate with %d persons" % len(choosers))
+
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     skims.set_keys("TAZ", "TAZ_r")
@@ -58,7 +61,8 @@ def workplace_location_simulate(set_random_seed,
         locals_d=locals_d,
         sample_size=50,
         chunk_size=chunk_size,
-        trace_label=trace_hh_id and 'workplace_location')
+        trace_label=trace_hh_id and 'workplace_location',
+        trace_choice_name='workplace_location')
 
     # FIXME - no need to reindex?
     choices = choices.reindex(persons_merged.index)
@@ -73,7 +77,6 @@ def workplace_location_simulate(set_random_seed,
     add_dependent_columns("persons", "persons_workplace")
 
     if trace_hh_id:
-        tracing.get_tracer().info("workplace_location_simulate tracing household %s" % trace_hh_id)
         trace_columns = ['workplace_taz'] + orca.get_table('persons_workplace').columns
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="workplace_location",

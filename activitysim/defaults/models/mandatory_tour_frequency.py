@@ -34,7 +34,8 @@ def mandatory_tour_frequency(set_random_seed,
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'Mandatory']
-    logger.info("%d persons run for mandatory tour model" % len(choosers))
+    tracing.info(__name__,
+                 "Running mandatory_tour_frequency with %d persons" % len(choosers))
 
     # trace.print_summary('mandatory_tour_frequency choosers',
     #                     choosers.workplace_taz, describe=True)
@@ -42,7 +43,8 @@ def mandatory_tour_frequency(set_random_seed,
     choices, _ = asim.simple_simulate(
         choosers,
         spec=mandatory_tour_frequency_spec,
-        trace_label=trace_hh_id and 'mandatory_tour_frequency')
+        trace_label=trace_hh_id and 'mandatory_tour_frequency',
+        trace_choice_name='mandatory_tour_frequency')
 
     # convert indexes to alternative names
     choices = pd.Series(
@@ -54,7 +56,6 @@ def mandatory_tour_frequency(set_random_seed,
     orca.add_column("persons", "mandatory_tour_frequency", choices)
 
     if trace_hh_id:
-        tracing.get_tracer().info("mandatory_tour_frequency tracing household %s" % trace_hh_id)
         trace_columns = ['mandatory_tour_frequency']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="mandatory_tour_frequency",

@@ -56,7 +56,12 @@ def cdap_simulate(set_random_seed, persons_merged,
     simply applies those utilities using the simulation framework.
     """
 
-    choices = cdap.run_cdap(persons_merged.to_frame(),
+    choosers = persons_merged.to_frame()
+
+    tracing.info(__name__,
+                 "Running cdap_simulate with %d persons" % len(choosers.index))
+
+    choices = cdap.run_cdap(choosers,
                             "household_id",
                             "ptype",
                             cdap_1_person_spec,
@@ -74,7 +79,6 @@ def cdap_simulate(set_random_seed, persons_merged,
     orca.add_column("persons", "cdap_activity", choices)
 
     if trace_hh_id:
-        tracing.get_tracer().info("cdap_simulate tracing household %s" % trace_hh_id)
         trace_columns = ['cdap_activity']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="cdap",

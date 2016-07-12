@@ -389,11 +389,11 @@ def trace_array(name, a, array_name):
         warn(name=name, message="trace_array doesn't grok %s shape %s" % (array_name, shape, ))
 
 
-def write_array(a, file_name):
+def write_array(a, file_name, fmt=None):
 
     info(message="dumping %s array to %s" % (a.shape, file_name))
     file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
-    np.savetxt(file_path, a, delimiter=',')
+    np.savetxt(file_path, a, delimiter=',', fmt=fmt)
 
 
 def write_csv(df, file_name, index_label=None, columns=None, column_labels=None, transpose=True):

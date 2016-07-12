@@ -26,6 +26,8 @@ class ASkims(object):
             data = self.skims.get_skim(key).data
         except KeyError:
             omx_key = '__'.join(key)
+            tracing.info(__name__,
+                         message="ASkims loading %s from omx as %s" % (key, omx_key,))
             data = self.omx[omx_key]
 
         data = data[:self.length, :self.length]
@@ -195,6 +197,9 @@ def compute_accessibility(skims, omx_file, land_use, trace_od, trace_hh_id):
     #
     # trOpTime = trOpTime_od + trOpTime_do
     #
+    # FIXME - this assumes DO always available if OD is.
+    # FIXME - may not matter but probably should be:
+    # FIXME - if(trOpTime_od > 0 && trOpTime_do > 0)
     # if(trOpTime>0)
     #
     #    trOpRetail = retailEmp * exp(_kTran * trOpTime)
@@ -218,7 +223,8 @@ def compute_accessibility(skims, omx_file, land_use, trace_od, trace_hh_id):
     trOpTime_od = trOpTime_od / 100.0
 
     # off-peak, destination-to-origin, assume it's the same time as the origin-to-destination
-    inVehicleTime = skim_t[('WLK_TRN_WLK_IVT', 'MD')] \
+    inVehicleTime = skim_t[('WLK_TRN_WLK_IVT', 'MD')]
+    outOfVehicleTime = skim_t[('WLK_TRN_WLK_IWAIT', 'MD')] \
         + skim_t[('WLK_TRN_WLK_XWAIT', 'MD')] \
         + skim_t[('WLK_TRN_WLK_WACC', 'MD')] \
         + skim_t[('WLK_TRN_WLK_WAUX', 'MD')] \
@@ -232,7 +238,17 @@ def compute_accessibility(skims, omx_file, land_use, trace_od, trace_hh_id):
 
     #  compute the decay function for peak transit accessibility if a round trip path is available
     # (zero otherwise)
-    rt_available = (trOpTime_od > 0) & (trOpTime_do > 0)
+
+    # FIXME - doing this way because mtc_accessibility.job does...
+    one_way = np.logical_xor((trOpTime_od > 0) & (trOpTime_do > 0), (trOpTime > 0))
+    if np.sum(one_way) > 0:
+        tracing.warn(__name__, "OP transit %s one way" % (np.sum(one_way),))
+        od_pairs = np.transpose(np.nonzero(one_way)) + 1
+        tracing.write_array(od_pairs, "one_way_transit", fmt='%d')
+
+    rt_available = (trOpTime > 0)
+    # rt_available = (trOpTime_od > 0) & (trOpTime_do > 0)
+
     trOpDecay = np.empty(trOpTime.shape)
     trOpDecay[rt_available] = np.exp(trOpTime[rt_available] * dispersion_parameter_transit)
     trOpDecay[~rt_available] = 0
@@ -266,6 +282,17 @@ def compute_accessibility(skims, omx_file, land_use, trace_od, trace_hh_id):
 
     # FIXME - endjloop
 
+    # np.fill_diagonal(auPkRetail, 0.0)
+    # np.fill_diagonal(auPkTotal, 0.0)
+    # np.fill_diagonal(auOpRetail, 0.0)
+    # np.fill_diagonal(auOpTotal, 0.0)
+    # np.fill_diagonal(trPkRetail, 0.0)
+    # np.fill_diagonal(trPkTotal, 0.0)
+    # np.fill_diagonal(trOpRetail, 0.0)
+    # np.fill_diagonal(trOpTotal, 0.0)
+    # np.fill_diagonal(nmRetail, 0.0)
+    # np.fill_diagonal(nmTotal, 0.0)
+
     lnAuPkRetail = np.log(np.sum(auPkRetail, axis=1) + 1)
     lnAuPkTotal = np.log(np.sum(auPkTotal, axis=1) + 1)
     lnAuOpRetail = np.log(np.sum(auOpRetail, axis=1) + 1)
@@ -278,16 +305,16 @@ def compute_accessibility(skims, omx_file, land_use, trace_od, trace_hh_id):
     lnNmTotal = np.log(np.sum(nmTotal, axis=1) + 1)
 
     index = land_use_df.index
-    orca.add_column("accessibility", "lnAuPkRetail", pd.Series(lnAuPkRetail, index=index))
-    orca.add_column("accessibility", "lnAuPkTotal",  pd.Series(lnAuPkTotal, index=index))
-    orca.add_column("accessibility", "lnAuOpRetail", pd.Series(lnAuOpRetail, index=index))
-    orca.add_column("accessibility", "lnAuOpTotal",  pd.Series(lnAuOpTotal, index=index))
-    orca.add_column("accessibility", "lnTrPkRetail", pd.Series(lnTrPkRetail, index=index))
-    orca.add_column("accessibility", "lnTrPkTotal",  pd.Series(lnTrPkTotal, index=index))
-    orca.add_column("accessibility", "lnTrOpRetail", pd.Series(lnTrOpRetail, index=index))
-    orca.add_column("accessibility", "lnTrOpTotal",  pd.Series(lnTrOpTotal, index=index))
-    orca.add_column("accessibility", "lnNmRetail",   pd.Series(lnNmRetail, index=index))
-    orca.add_column("accessibility", "lnNmTotal",    pd.Series(lnNmTotal, index=index))
+    orca.add_column("accessibility", "xAUTOPEAKRETAIL", pd.Series(lnAuPkRetail, index=index))
+    orca.add_column("accessibility", "xAUTOPEAKTOTAL",  pd.Series(lnAuPkTotal, index=index))
+    orca.add_column("accessibility", "xAUTOOFFPEAKRETAIL", pd.Series(lnAuOpRetail, index=index))
+    orca.add_column("accessibility", "xAUTOOFFPEAKTOTAL",  pd.Series(lnAuOpTotal, index=index))
+    orca.add_column("accessibility", "xTRANSITPEAKRETAIL", pd.Series(lnTrPkRetail, index=index))
+    orca.add_column("accessibility", "xTRANSITPEAKTOTAL",  pd.Series(lnTrPkTotal, index=index))
+    orca.add_column("accessibility", "xTRANSITOFFPEAKRETAIL", pd.Series(lnTrOpRetail, index=index))
+    orca.add_column("accessibility", "xTRANSITOFFPEAKTOTAL",  pd.Series(lnTrOpTotal, index=index))
+    orca.add_column("accessibility", "xNONMOTORIZEDRETAIL",   pd.Series(lnNmRetail, index=index))
+    orca.add_column("accessibility", "xNONMOTORIZEDTOTAL",    pd.Series(lnNmTotal, index=index))
 
     if trace_od:
         tracing.info(__name__,
@@ -320,8 +347,10 @@ def compute_accessibility(skims, omx_file, land_use, trace_od, trace_hh_id):
         tracing.trace_array(__name__, auPkTime, "auPkTime")
         tracing.trace_array(__name__, auPkRetail, "auPkRetail")
         tracing.trace_array(__name__, auPkTotal, "auPkTotal")
-        tracing.trace_array(__name__, trPkTime_od, "trOpTime_od")
-        tracing.trace_array(__name__, trPkTime_do, "trOpTime_do")
+        tracing.trace_array(__name__, trPkTime_od, "trPkTime_od")
+        tracing.trace_array(__name__, trPkTime_do, "trPkTime_do")
+        tracing.trace_array(__name__, trOpTime_od, "trOpTime_od")
+        tracing.trace_array(__name__, trOpTime_do, "trOpTime_do")
         tracing.trace_array(__name__, trPkTime, "trOpTime")
         tracing.trace_array(__name__, trPkDecay, "trOpDecay")
         tracing.trace_array(__name__, trOpRetail, "trOpRetail")
@@ -330,11 +359,10 @@ def compute_accessibility(skims, omx_file, land_use, trace_od, trace_hh_id):
         tracing.trace_array(__name__, nmRetail, "nmRetail")
         tracing.trace_array(__name__, nmTotal, "nmTotal")
 
-        tracing.trace_df(orca.get_table('accessibility').to_frame(),
-                         "accessibility.trace",
+        tracing.trace_df(orca.get_table('accessibility').to_frame(), "accessibility",
                          column_labels=['label', 'orig_taz', 'dest_taz'])
 
-        tracing.trace_df(orca.get_table('accessibility').to_frame(), "accessibility",
-                         slicer='NONE', transpose=False)
+        # tracing.trace_df(orca.get_table('accessibility').to_frame(), "accessibility.full",
+        #                  slicer='NONE', transpose=False)
 
         tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged")

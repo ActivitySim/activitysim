@@ -37,6 +37,11 @@ def test_bad_custom_config_file(capsys):
     logger.info('log_info')
     logger.warn('log_warn1')
 
+    tracing.debug(__name__, 'test-debug-tracing')
+    tracing.info(__name__, 'test-info-tracing')
+    tracing.warn(__name__, 'test-warn-tracing')
+    tracing.error(__name__, 'test-error-tracing')
+
     out, err = capsys.readouterr()
 
     # don't consume output
@@ -45,6 +50,11 @@ def test_bad_custom_config_file(capsys):
     assert "could not find conf file" in out
     assert 'log_warn1' in out
     assert 'log_info' not in out
+
+    assert 'test-debug-tracing' not in out
+    assert 'test-info-tracing' not in out
+    assert 'test-warn-tracing' in out
+    assert 'test-error-tracing' in out
 
     close_handlers()
 

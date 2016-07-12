@@ -118,7 +118,7 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 hh_chunk_size = 50000)
 
 inject_settings(config='sandbox',
-                data='test',
+                data='full',
                 households_sample_size=50,
                 preload_3d_skims=True,
                 chunk_size = 0,

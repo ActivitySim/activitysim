@@ -45,7 +45,7 @@ def omx_file(request):
 
 
 def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None,
-                    trace_hh_id=None):
+                    trace_hh_id=None, trace_od=None):
 
     with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
         settings = yaml.load(f)
@@ -56,6 +56,8 @@ def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, 
             settings['chunk_size'] = chunk_size
         if trace_hh_id is not None:
             settings['trace_hh_id'] = trace_hh_id
+        if trace_od is not None:
+            settings['trace_od'] = trace_od
 
     orca.add_injectable("settings", settings)
 
@@ -131,7 +133,8 @@ def test_mini_run(store, omx_file, random_seed):
 
 
 def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
-             households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, trace_hh_id=None):
+             households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+             trace_hh_id=None, trace_od=None):
 
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example')
     orca.add_injectable("configs_dir", configs_dir)
@@ -143,7 +146,8 @@ def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
                     households_sample_size=households_sample_size,
                     preload_3d_skims=preload_3d_skims,
                     chunk_size=chunk_size,
-                    trace_hh_id=trace_hh_id)
+                    trace_hh_id=trace_hh_id,
+                    trace_od=trace_od)
 
     orca.add_injectable("omx_file", omx_file)
     orca.add_injectable("store", store)
@@ -211,6 +215,7 @@ def test_full_run_with_hh_trace(store, omx_file):
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
     hh_fname = os.path.join(output_dir, 'households.csv')
+    accessibility_fname = os.path.join(output_dir, 'accessibility.csv')
     goner_fname = os.path.join(output_dir, 'x.csv')
 
     df = pd.DataFrame(np.random.randn(8, 2), columns=['A', 'B'])
@@ -219,10 +224,11 @@ def test_full_run_with_hh_trace(store, omx_file):
     assert os.path.isfile(goner_fname)
 
     HH_ID = 961042
+    OD = [5, 11]
     orca.add_injectable("output_dir", output_dir)
     tracing.config_logger(custom_config_file=None, basic=False)
 
-    tour_count = full_run(store, omx_file, preload_3d_skims=True, trace_hh_id=HH_ID)
+    tour_count = full_run(store, omx_file, preload_3d_skims=True, trace_hh_id=HH_ID, trace_od=OD)
 
     assert(tour_count == 184)
 
@@ -240,3 +246,9 @@ def test_full_run_with_hh_trace(store, omx_file):
     assert h.columns[1] == 'workplace_location'
     assert h.iloc[0][0] == 1888694
     assert h.iloc[0][1] == 18
+
+    # should have created accessibility csv trace file
+    a = pd.read_csv(accessibility_fname)
+    assert a.iloc[0][0] == 'taz'
+    assert a.iloc[0][1] == OD[0]
+    assert a.iloc[0][2] == OD[1]

@@ -9,7 +9,8 @@ households_sample_size: 1000
 trace_hh_id: 961042
 
 # trace origin, destination in accessibility calculation
-trace_od: [5, 11]
+trace_od: [6, 362]
+
 
 # internal settings
 preload_3d_skims: True

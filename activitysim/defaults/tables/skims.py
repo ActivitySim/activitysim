@@ -64,7 +64,7 @@ def skims(omx_file, preload_3d_skims, cache_skim_key_values):
         # there may be more time periods in the skim than are used by the model
         skims_in_omx = omx_file.listMatrices()
         for skim_name in skims_in_omx:
-            logger.debug("skims injectable preloading skim %s" % skim_name)
+            # logger.debug("skims injectable preloading skim %s" % skim_name)
             key, sep, key2 = skim_name.partition('__')
             if key2 and key2 in cache_skim_key_values:
                 skims.set_3d(key, key2, skim.Skim(omx_file[skim_name], offset=-1))

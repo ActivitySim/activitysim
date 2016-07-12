@@ -1,12 +1,15 @@
 #input data store and skims
 store: mtc_asim.h5
-skims_file: nonmotskm.omx
+skims_file: skims.omx
 
 #number of households to simulate
 households_sample_size: 1000
 
 #trace household id; comment out for no trace
 trace_hh_id: 961042
+
+# trace origin, destination in accessibility calculation
+trace_od: [5, 11]
 
 #internal settings 
 preload_3d_skims: True

@@ -35,7 +35,7 @@ def store(request):
 
 @pytest.fixture(scope="module")
 def omx_file(request):
-    omx_file = omx.openFile(os.path.join(os.path.dirname(__file__), "nonmotskm.omx"))
+    omx_file = omx.openFile(os.path.join(os.path.dirname(__file__), "skims.omx"))
 
     def fin():
         omx_file.close()
@@ -103,6 +103,7 @@ def test_mini_run(store, omx_file, random_seed):
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     # run the models in the expected order
+    orca.run(["compute_accessibility"])
     orca.run(["workplace_location_simulate"])
     orca.run(["auto_ownership_simulate"])
 
@@ -159,6 +160,7 @@ def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
     assert orca.get_injectable("chunk_size") == chunk_size
 
     # run the models in the expected order
+    orca.run(["compute_accessibility"])
     orca.run(["school_location_simulate"])
     orca.run(["workplace_location_simulate"])
     orca.run(["auto_ownership_simulate"])

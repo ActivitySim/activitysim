@@ -81,7 +81,14 @@ def hh_chunk_size(settings):
 
 @orca.injectable(cache=True)
 def trace_hh_id(settings):
-    return settings.get('trace_hh_id', None)
+
+    id = settings.get('trace_hh_id', None)
+
+    if id and not isinstance(id, int):
+        logger.warn("setting trace_hh_id is wrong type, should be an int, but was %s" % type(id))
+        id = None
+
+    return id
 
 
 @orca.injectable()
@@ -100,3 +107,20 @@ def hh_index_name(settings):
 @orca.injectable(cache=True)
 def persons_index_name(settings):
     return None
+
+
+@orca.injectable(cache=True)
+def trace_od(settings):
+
+    od = settings.get('trace_od', None)
+
+    if od and not (isinstance(od, list) and len(od) == 2 and all(isinstance(x, int) for x in od)):
+        logger.warn("setting trace_od is wrong type, should be a list of length 2, but was %s" % od)
+        od = None
+
+    return od
+
+
+@orca.injectable(cache=True)
+def enable_trace_log(trace_hh_id, trace_od):
+    return (trace_hh_id or trace_od)

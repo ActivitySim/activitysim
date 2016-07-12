@@ -194,7 +194,7 @@ In order to run the example, you first need two input files in the ``data`` fold
     * persons - Synthetic population person records
     * households - Synthetic population household records
     
-* skims_file: nonmotskm.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.
+* skims_file: skims.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.
 
 Both of these files can be downloaded from the `SF 25 zone example` example data folder on 
 MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  Both files can 

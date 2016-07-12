@@ -69,7 +69,7 @@ def print_settings():
 
     print "garbage collection enabled: %s" % gc.isenabled()
     print "garbage collection threshold: %s" % str(gc.get_threshold())
-    print "numpy floating-point error handling settings: %s" % np.geterr()
+    print "numpy floating-point error-handling settings: %s" % np.geterr()
     print "pandas display options max_rows=%s max_columns=%s" % \
           (pd.options.display.max_rows, pd.options.display.max_columns)
 
@@ -118,7 +118,7 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 hh_chunk_size = 50000)
 
 inject_settings(config='sandbox',
-                data='example',
+                data='test',
                 households_sample_size=50,
                 preload_3d_skims=True,
                 chunk_size = 0,
@@ -139,20 +139,19 @@ log_memory_info(logger, 'after stacked_skims load')
 # df = df[['household_id', 'is_student', 'is_worker']]
 # print df.head(20)
 
-tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged")
-
-run_model('school_location_simulate')
-run_model('workplace_location_simulate')
-run_model('auto_ownership_simulate')
-run_model('cdap_simulate')
-run_model('mandatory_tour_frequency')
-run_model('mandatory_scheduling')
-run_model('non_mandatory_tour_frequency')
-run_model('destination_choice')
-run_model('non_mandatory_scheduling')
-run_model('patch_mandatory_tour_destination')
-run_model('tour_mode_choice_simulate')
-run_model('trip_mode_choice_simulate')
+run_model('compute_accessibility')
+# run_model('school_location_simulate')
+# run_model('workplace_location_simulate')
+# run_model('auto_ownership_simulate')
+# run_model('cdap_simulate')
+# run_model('mandatory_tour_frequency')
+# run_model('mandatory_scheduling')
+# run_model('non_mandatory_tour_frequency')
+# run_model('destination_choice')
+# run_model('non_mandatory_scheduling')
+# run_model('patch_mandatory_tour_destination')
+# run_model('tour_mode_choice_simulate')
+# run_model('trip_mode_choice_simulate')
 
 orca.get_injectable('store').close()
 orca.get_injectable('omx_file').close()

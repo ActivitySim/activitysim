@@ -114,7 +114,7 @@ def test_basic(capsys):
 
     orca.add_injectable("output_dir", '.')
 
-    # remove existing hanlers or basicConfig is a NOP
+    # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []
 
     tracing.config_logger(basic=True)

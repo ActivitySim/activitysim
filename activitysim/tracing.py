@@ -365,37 +365,6 @@ def write_series_csv(series, file_path, index_label=None, columns=None, column_l
     series.to_csv(file_path, mode='a', index=True, header=True)
 
 
-def trace_od_idx():
-
-    od = orca.get_injectable('trace_od')
-
-    o = od[0] - 1
-    d = od[1] - 1
-    return o, d
-
-
-def trace_array(name, a, array_name):
-
-    shape = a.shape
-
-    o, d = orca.get_injectable('trace_od')
-    o_idx, d_idx = trace_od_idx()
-
-    if len(shape) == 1:
-        info(name=name, message="%s[dest_taz=%s] = %s" % (array_name, d, a[d_idx]))
-    elif len(shape) == 2:
-        info(name=name, message="%s[%s, %s] = %s" % (array_name, o, d, a[o_idx, d_idx]))
-    else:
-        warn(name=name, message="trace_array doesn't grok %s shape %s" % (array_name, shape, ))
-
-
-def write_array(a, file_name, fmt=None):
-
-    info(message="dumping %s array to %s" % (a.shape, file_name))
-    file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
-    np.savetxt(file_path, a, delimiter=',', fmt=fmt)
-
-
 def write_csv(df, file_name, index_label=None, columns=None, column_labels=None, transpose=True):
     """
     Print write_csv

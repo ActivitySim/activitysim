@@ -9,7 +9,7 @@ import os
 orca.add_injectable("output_dir", 'output')
 tracing.config_logger()
 
-
+orca.run(["compute_accessibility"])
 orca.run(["school_location_simulate"])
 orca.run(["workplace_location_simulate"])
 print orca.get_table("persons").distance_to_work.describe()

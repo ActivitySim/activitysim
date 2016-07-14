@@ -1,0 +1,8 @@
+Description,Target,Expression
+# a comment line
+a temp variable,_temp,CONSTANT+df.thing1
+a scalar temp,_scalar,42
+# assignments
+assign to target,target1,df.thing1 == 1
+assign temp to target,target2,df.thing2 + _temp + _scalar - df.thing1
+this should fail,target3,undefined_variable + 3

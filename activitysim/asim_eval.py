@@ -89,7 +89,8 @@ def assign_variables(assignment_expressions, df, locals_d):
     Returns
     -------
     variables : pandas.DataFrame
-        Will have the index of `df` and columns of `exprs`.
+        Will have the index of `df` and columns named by target and containing
+        the result of evaluating expression
 
     """
 
@@ -137,8 +138,25 @@ def assign_variables(assignment_expressions, df, locals_d):
 
 
 def assign_variables_locals(locals=None):
-    # locals whose values will be accessible to the execution context
-    # when the expressions in spec are applied to choosers
+    """
+    assign locals whose values will be accessible to the execution context
+    when the expressions in spec are applied to choosers
+
+    adds numpy functions so they can be called from expressions
+    plus any additional values passed in locals dict
+
+    Parameters
+    ----------
+    locals : dict
+        dict of local variables to assign (probably from settings file)
+
+    Returns
+    -------
+    locals_d : dict
+        dict of locals suitable to pass to assign_variables method
+
+    """
+
     locals_d = {
         'log': np.log,
         'exp': np.exp

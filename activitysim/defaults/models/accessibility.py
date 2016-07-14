@@ -13,6 +13,21 @@ from activitysim import tracing
 
 
 class AccessibilitySkims(object):
+    """
+    Wrapper for skim arrays to facilitate use of skims by accessibility model
+
+    Parameters
+    ----------
+    skims : 2D array
+    omx: open omx file object
+        this is only used to load skims on demand that were not preloaded
+    length: int
+        number of zones in skim to return in skim matrix
+        in case the skims contain additional external zones that should be trimmed out so skim
+        array is correct shape to match (flattened) O-D tiled columns in the od dataframe
+    transpose: bool
+        whether to transpose the matrix before flattening. (i.e. act as a D-O instead of O-D skim)
+    """
 
     def __init__(self, skims, omx, length, transpose=False):
         self.skims = skims
@@ -21,7 +36,13 @@ class AccessibilitySkims(object):
         self.transpose = transpose
 
     def __getitem__(self, key):
+        """
+        accessor to return flattened skim array with specified key
+        flattened array will have length length*length and will match tiled OD df used by asim_eval
 
+        this allows the skim array to be accessed from expressions as
+        skim['DISTANCE'] or skim[('SOVTOLL_TIME', 'MD')]
+        """
         try:
             data = self.skims.get_skim(key).data
         except KeyError:
@@ -38,14 +59,8 @@ class AccessibilitySkims(object):
             return data.flatten()
 
     def get_from_omx(self, key, v):
-        # treat this as a callback - override depending on how you store skims in the omx file
-        #
-        # from activitysim import skim as askim
-        # from types import MethodType
-        # askim.Skims3D.get_from_omx = MethodType(get_from_omx, None, askim.Skims3D)
-
+        # get skim matrix from omx file if not found (because not preloaded) in skims
         omx_key = key + '__' + v
-        # print "my_get_from_omx - key: '%s' v: '%s', omx_key: '%s'" % (key, v, omx_key)
         return self.omx[omx_key]
 
 
@@ -57,6 +72,22 @@ def accessibility_spec(configs_dir):
 
 @orca.step()
 def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_use, trace_od):
+
+    """
+    Compute accessibility for each zone in land use file using expressions from accessibility_spec
+
+    The actual results depend on the expressions in accessibility_spec, but this is initially
+    intended to permit implementation of the mtc accessibility calculation as implemented by
+    Accessibility.job
+
+    Compute measures of accessibility used by the automobile ownership model.
+    The accessibility measure first multiplies an employment variable by a mode-specific decay
+    function.  The product reflects the difficulty of accessing the activities the farther
+    (in terms of round-trip travel time) the jobs are from the location in question. The products
+    to each destination zone are next summed over each origin zone, and the logarithm of the
+    product mutes large differences.  The decay function on the walk accessibility measure is
+    steeper than automobile or transit.  The minimum accessibility is zero.
+    """
 
     tracing.info(__name__,
                  "Running compute_accessibility")

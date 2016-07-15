@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import accessibility
 import auto_ownership
 import destination
 import mandatory_tour_frequency

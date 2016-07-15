@@ -170,7 +170,7 @@ def info(name=__name__, message=None, log=True):
     if log:
         logging.getLogger(name).info(message)
 
-    if orca.get_injectable('trace_hh_id'):
+    if orca.get_injectable('enable_trace_log'):
         get_tracer().info("%s - %s" % (name, message))
 
 
@@ -181,7 +181,7 @@ def debug(name=__name__, message=None, log=True):
     if log:
         logging.getLogger(name).debug(message)
 
-    if orca.get_injectable('trace_hh_id'):
+    if orca.get_injectable('enable_trace_log'):
         get_tracer().debug("%s - %s" % (name, message))
 
 
@@ -192,7 +192,7 @@ def warn(name=__name__, message=None, log=True):
     if log:
         logging.getLogger(name).warn(message)
 
-    if orca.get_injectable('trace_hh_id'):
+    if orca.get_injectable('enable_trace_log'):
         get_tracer().warn("%s - %s" % (name, message))
 
 
@@ -203,7 +203,7 @@ def error(name=__name__, message=None, log=True):
     if log:
         logging.getLogger(name).error(message)
 
-    if orca.get_injectable('trace_hh_id'):
+    if orca.get_injectable('enable_trace_log'):
         get_tracer().error("%s - %s" % (name, message))
 
 
@@ -336,23 +336,15 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
             column_labels = [None, None]
         if column_labels[0] is None:
             column_labels[0] = 'label'
+        if column_labels[1] is None:
+            column_labels[1] = 'value'
 
-        if len(df_t.columns) == 1:
-            if column_labels[1] is None:
-                column_labels[1] = 'value'
+        if len(df_t.columns) == len(column_labels) - 1:
             column_label_row = ','.join(column_labels)
         else:
-            if column_labels[1] is None:
-                column_labels[1] = 'value'
             column_label_row = \
                 column_labels[0] + ',' \
                 + ','.join([column_labels[1] + '_' + str(i+1) for i in range(len(df_t.columns))])
-            # if there are multiple value columns, index name indicates what the columns are slicing
-            # if column_labels[1] is None:
-            #     column_labels[1] = index_label or df_t.index.name
-            # column_label_row = \
-            #     column_labels[0] + ',' \
-            #     + ','.join([(column_labels[1] + '_' + str(c)) for c in df_t.columns])
 
         if mode == 'a':
             column_label_row = '# ' + column_label_row
@@ -514,10 +506,12 @@ def slice_canonically(df, slicer, label):
         df = slice_ids(df, orca.get_injectable('trace_hh_id'), column='hh_id')
     elif slicer == 'tour_id':
         df = slice_ids(df, orca.get_injectable('trace_person_ids'), column='person_id')
+    elif slicer == 'taz' or slicer == 'ZONE':
+        df = slice_ids(df, orca.get_injectable('trace_od'))
     elif slicer == 'NONE':
         pass
     else:
-        get_tracer().error("trace_df: bad slicer '%s' for %s " % (slicer, label))
+        get_tracer().error("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
         print df.head(3)
         df = df[0:0]
 

@@ -116,8 +116,8 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
     od_df = pd.merge(od_df, land_use_df, left_on='dest', right_index=True).sort_index()
 
     locals_d = asim_eval.assign_variables_locals(settings_locals)
-    locals_d['skim'] = AccessibilitySkims(skims, omx_file, zone_count)
-    locals_d['skim_t'] = AccessibilitySkims(skims, omx_file, zone_count, transpose=True)
+    locals_d['skim_od'] = AccessibilitySkims(skims, omx_file, zone_count)
+    locals_d['skim_do'] = AccessibilitySkims(skims, omx_file, zone_count, transpose=True)
 
     result = asim_eval.assign_variables(accessibility_spec, od_df, locals_d)
 

@@ -113,7 +113,7 @@ def test_mini_run(store, omx_file, random_seed):
     auto_choice = orca.get_table('households').get_column('auto_ownership')
 
     hh_ids = [2124015, 961042, 1583271]
-    choices = [2, 1, 2]
+    choices = [1, 1, 1]
     print "auto_choice\n", auto_choice.head(3)
     pdt.assert_series_equal(
         auto_choice[hh_ids],
@@ -193,14 +193,14 @@ def test_full_run(store, omx_file):
 
     tour_count = full_run(store, omx_file, preload_3d_skims=False)
 
-    assert(tour_count == 184)
+    assert(tour_count == 177)
 
 
 def test_full_run_with_preload_skims(store, omx_file):
 
     tour_count = full_run(store, omx_file, preload_3d_skims=True)
 
-    assert(tour_count == 184)
+    assert(tour_count == 177)
 
 
 def test_full_run_with_chunks(store, omx_file):
@@ -208,7 +208,7 @@ def test_full_run_with_chunks(store, omx_file):
     tour_count = full_run(store, omx_file, preload_3d_skims=True, chunk_size=10)
 
     # different sampling causes slightly different results
-    assert(tour_count == 194)
+    assert(tour_count == 189)
 
 
 def test_full_run_with_hh_trace(store, omx_file):
@@ -230,7 +230,7 @@ def test_full_run_with_hh_trace(store, omx_file):
 
     tour_count = full_run(store, omx_file, preload_3d_skims=True, trace_hh_id=HH_ID, trace_od=OD)
 
-    assert(tour_count == 184)
+    assert(tour_count == 177)
 
     # should delete any csv files from output
     assert not os.path.isfile(goner_fname)

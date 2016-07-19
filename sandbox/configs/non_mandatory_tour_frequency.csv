@@ -155,36 +155,36 @@ Dummy for Presence of Pre-Driving School Kid (other than modeled person) & Discr
 Dummy for Presence of Pre-School Kid (other than modeled person) & Discretionary tour ,has_preschool_kid * othdiscr,-0.5081,0,0,0,0,0,0,0
 Dummy for At home Pre-Driving School Kid & Discretionary tour ,has_school_kid_at_home * othdiscr,-0.4703,0,0,0,0,0,0,0
 Dummy for At homef Pre-School Kid & Discretionary tour ,has_preschool_kid_at_home * othdiscr,-0.4703,0,0,0,0,0,0,0
-Walk Access to Retail & Tour Frequency =1,NONMOTORIZEDRETAIL * (tot_tours == 1),0,0.0899,0,0.0713,0.0616,0,0,0
-Walk Access to Retail & Tour Frequency =2,NONMOTORIZEDRETAIL * (tot_tours == 2),0,0.1447,0,0.1256,0.0616,0,0,0
-Walk Access to Retail & Tour Frequency =3,NONMOTORIZEDRETAIL * (tot_tours == 3),0,0.3479,0,0.1508,0.0616,0,0,0
-Walk Access to Retail & Tour Frequency =4,NONMOTORIZEDRETAIL * (tot_tours == 4),0,0.3479,0,0.1508,0.0616,0,0,0
-Walk Access to Retail & Tour Frequency =5+,NONMOTORIZEDRETAIL * (tot_tours > 4),0,0.3479,0,0.1508,0.0616,0,0,0
-Transit Access to Retail & Tour Frequency =1,TRANSITOFFPEAKRETAIL * (tot_tours == 1),0.0226,0,0.0664,0,0,0,0,0
-Transit Access to Retail & Tour Frequency =2,TRANSITOFFPEAKRETAIL * (tot_tours == 2),0.0226,0,0.0664,0,0,0,0,0
-Transit Access to Retail & Tour Frequency =3,TRANSITOFFPEAKRETAIL * (tot_tours == 3),0.0226,0,0.0664,0,0,0,0,0
-Transit Access to Retail & Tour Frequency =4,TRANSITOFFPEAKRETAIL * (tot_tours == 4),0.0226,0,0.0664,0,0,0,0,0
-Transit Access to Retail & Tour Frequency =5+,TRANSITOFFPEAKRETAIL * (tot_tours > 4),0.0226,0,0.0664,0,0,0,0,0
-Auto Access to Retail & Tour Frequency =1,AUTOOFFPEAKRETAIL * (tot_tours == 1),0,0,0,0,0,0.1004,0.1004,0
-Auto Access to Retail & Tour Frequency =2,AUTOOFFPEAKRETAIL * (tot_tours == 2),0,0,0,0,0,0.1004,0.1004,0
-Auto Access to Retail & Tour Frequency =3,AUTOOFFPEAKRETAIL * (tot_tours == 3),0,0,0,0,0,0.1004,0.1004,0
-Auto Access to Retail & Tour Frequency =4,AUTOOFFPEAKRETAIL * (tot_tours == 4),0,0,0,0,0,0.1004,0.1004,0
-Auto Access to Retail & Tour Frequency =5+,AUTOOFFPEAKRETAIL * (tot_tours > 4),0,0,0,0,0,0.1004,0.1004,0
-Walk Access to Retail & Escorting ,NONMOTORIZEDRETAIL * escort,0.0451,0,0,0,0,0,0,0
-Transit Access to Retail  & Escorting ,TRANSITOFFPEAKRETAIL * escort,0,0,0,0,0,0,0,0
-Auto Access to Retail  & Escorting ,AUTOOFFPEAKRETAIL * escort,0,0,0,0,0,0,0,0
-Walk Access to Retail & Shopping ,NONMOTORIZEDRETAIL * shopping,0.033,0,0.0972,0.0598,0,0,0,0
-Transit Access to Retail  & Shopping ,TRANSITOFFPEAKRETAIL * shopping,0,0,0,0,0,0,0,0
-Auto Access to Retail  & Shopping ,AUTOOFFPEAKRETAIL * shopping,0.1067,0,0,0,0,0,0,0
-Walk Access to Retail & Maintenance ,NONMOTORIZEDRETAIL * othmaint,0,0,0,0,0,0,0,0
-Transit Access to Retail  & Maintenance ,TRANSITOFFPEAKRETAIL * othmaint,0,0,0.0314,0,0,0,0,0
-Auto Access to Retail  & Maintenance ,AUTOOFFPEAKRETAIL * othmaint,0.0749,0,0,0.0956,0,0,0,0
-Walk Access to Retail & Eating Out ,NONMOTORIZEDRETAIL * eatout,0.145,0,0,0,0,0,0,0
-Transit Access to Retail  & Eating Out ,TRANSITOFFPEAKRETAIL * eatout,0,0,0,0,0,0,0,0
-Auto Access to Retail  & Eating Out ,AUTOOFFPEAKRETAIL * eatout,0,0,0.1018,0,0,0,0,0
-Walk Access to Retail & Discretionary ,NONMOTORIZEDRETAIL * othdiscr,0.0567,0,0,0.0772,0,0,0,0
-Transit Access to Retail  & Discretionary ,TRANSITOFFPEAKRETAIL * othdiscr,0,0,0,0,0,0,0,0
-Auto Access to Retail  & Discretionary ,AUTOOFFPEAKRETAIL * othdiscr,0.0844,0,0.094,0,0,0,0,0
+Walk Access to Retail & Tour Frequency =1,nmRetail * (tot_tours == 1),0,0.0899,0,0.0713,0.0616,0,0,0
+Walk Access to Retail & Tour Frequency =2,nmRetail * (tot_tours == 2),0,0.1447,0,0.1256,0.0616,0,0,0
+Walk Access to Retail & Tour Frequency =3,nmRetail * (tot_tours == 3),0,0.3479,0,0.1508,0.0616,0,0,0
+Walk Access to Retail & Tour Frequency =4,nmRetail * (tot_tours == 4),0,0.3479,0,0.1508,0.0616,0,0,0
+Walk Access to Retail & Tour Frequency =5+,nmRetail * (tot_tours > 4),0,0.3479,0,0.1508,0.0616,0,0,0
+Transit Access to Retail & Tour Frequency =1,trOpRetail * (tot_tours == 1),0.0226,0,0.0664,0,0,0,0,0
+Transit Access to Retail & Tour Frequency =2,trOpRetail * (tot_tours == 2),0.0226,0,0.0664,0,0,0,0,0
+Transit Access to Retail & Tour Frequency =3,trOpRetail * (tot_tours == 3),0.0226,0,0.0664,0,0,0,0,0
+Transit Access to Retail & Tour Frequency =4,trOpRetail * (tot_tours == 4),0.0226,0,0.0664,0,0,0,0,0
+Transit Access to Retail & Tour Frequency =5+,trOpRetail * (tot_tours > 4),0.0226,0,0.0664,0,0,0,0,0
+Auto Access to Retail & Tour Frequency =1,auOpRetail * (tot_tours == 1),0,0,0,0,0,0.1004,0.1004,0
+Auto Access to Retail & Tour Frequency =2,auOpRetail * (tot_tours == 2),0,0,0,0,0,0.1004,0.1004,0
+Auto Access to Retail & Tour Frequency =3,auOpRetail * (tot_tours == 3),0,0,0,0,0,0.1004,0.1004,0
+Auto Access to Retail & Tour Frequency =4,auOpRetail * (tot_tours == 4),0,0,0,0,0,0.1004,0.1004,0
+Auto Access to Retail & Tour Frequency =5+,auOpRetail * (tot_tours > 4),0,0,0,0,0,0.1004,0.1004,0
+Walk Access to Retail & Escorting ,nmRetail * escort,0.0451,0,0,0,0,0,0,0
+Transit Access to Retail  & Escorting ,trOpRetail * escort,0,0,0,0,0,0,0,0
+Auto Access to Retail  & Escorting ,auOpRetail * escort,0,0,0,0,0,0,0,0
+Walk Access to Retail & Shopping ,nmRetail * shopping,0.033,0,0.0972,0.0598,0,0,0,0
+Transit Access to Retail  & Shopping ,trOpRetail * shopping,0,0,0,0,0,0,0,0
+Auto Access to Retail  & Shopping ,auOpRetail * shopping,0.1067,0,0,0,0,0,0,0
+Walk Access to Retail & Maintenance ,nmRetail * othmaint,0,0,0,0,0,0,0,0
+Transit Access to Retail  & Maintenance ,trOpRetail * othmaint,0,0,0.0314,0,0,0,0,0
+Auto Access to Retail  & Maintenance ,auOpRetail * othmaint,0.0749,0,0,0.0956,0,0,0,0
+Walk Access to Retail & Eating Out ,nmRetail * eatout,0.145,0,0,0,0,0,0,0
+Transit Access to Retail  & Eating Out ,trOpRetail * eatout,0,0,0,0,0,0,0,0
+Auto Access to Retail  & Eating Out ,auOpRetail * eatout,0,0,0.1018,0,0,0,0,0
+Walk Access to Retail & Discretionary ,nmRetail * othdiscr,0.0567,0,0,0.0772,0,0,0,0
+Transit Access to Retail  & Discretionary ,trOpRetail * othdiscr,0,0,0,0,0,0,0,0
+Auto Access to Retail  & Discretionary ,auOpRetail * othdiscr,0.0844,0,0.094,0,0,0,0,0
 Urban Areatype & Tour Frequency =1,home_is_urban & (tot_tours == 1),0,0,-1.1648,0,0,0,0,0
 Urban Areatype & Tour Frequency =2,home_is_urban & (tot_tours == 2),0,0,-2.3177,0,0,0,0,0
 Urban Areatype & Tour Frequency =3,home_is_urban & (tot_tours == 3),0,0,-2.5027,0,0,0,0,0

@@ -3,10 +3,26 @@ Models
 
 The currently implemented example ActivitySim models are described below.
 
+Accessibility
+--------------
+
+The main interface to the accessibility model is the 
+:py:func:`~activitysim.defaults.models.compute_accessibility` 
+function.  This function is registered as an orca step and is called in the example
+via ``orca.run(["compute_accessibility"])``
+
+Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O``
+
+API
+~~~
+
+.. automodule:: activitysim.defaults.models.accessibility
+   :members:
+   
 Auto Ownership
 --------------
 
-The main interface to auto ownership model is the 
+The main interface to the auto ownership model is the 
 :py:func:`~activitysim.defaults.models.auto_ownership_simulate` 
 function.  This function is registered as an orca step and is called in the example
 via ``orca.run(["auto_ownership_simulate"])``
@@ -22,7 +38,7 @@ API
 Coordinated Daily Activity Pattern (CDAP)
 -----------------------------------------
 
-The main interface to CDAP model is the :py:func:`~activitysim.cdap.cdap.run_cdap` 
+The main interface to the CDAP model is the :py:func:`~activitysim.cdap.cdap.run_cdap` 
 function.  This function is called by the orca step ``cdap_simulate`` which is 
 registered as an orca step and is called in the example via 
 ``orca.run(["cdap_simulate"])``.  There are two cdap class definitions in

@@ -101,13 +101,17 @@
 <li class="toctree-l3"><a class="reference internal" href="#id3">API</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#asim-eval">Asim_Eval</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">API</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#reindex">Reindex</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id5">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">API</a></li>
 </ul>
 </li>
 </ul>
@@ -1386,12 +1390,127 @@ annotate a dataframe with trace targets in a manner grokable by slice_canonicall
 
 </div>
 </div>
+<div class="section" id="asim-eval">
+<h2>Asim_Eval<a class="headerlink" href="#asim-eval" title="Permalink to this headline">¶</a></h2>
+<p>Alternative version of the expression evaluator in <code class="docutils literal"><span class="pre">activitysim</span></code> that supports temporary variable assignment.
+This is used by the <code class="xref py py-func docutils literal"><span class="pre">compute_accessibility()</span></code>  module.</p>
+<div class="section" id="id4">
+<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.asim_eval"></span><dl class="function">
+<dt id="activitysim.asim_eval.assign_variables">
+<code class="descclassname">activitysim.asim_eval.</code><code class="descname">assign_variables</code><span class="sig-paren">(</span><em>assignment_expressions</em>, <em>df</em>, <em>locals_d</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.asim_eval.assign_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a set of variable expressions from a spec in the context
+of a given data table.</p>
+<p>Expressions are evaluated using Python&#8217;s eval function.
+Python expressions have access to variables in locals_d (and df being
+accessible as variable df.) They also have access to previously assigned
+targets as the assigned target name.</p>
+<p>Users should take care that expressions should result in
+a Pandas Series (scalars will be automatically promoted to series.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>assignment_expressions</strong> : pandas.DataFrame of target assignment expressions</p>
+<blockquote>
+<div><p>target: target column names
+expression: pandas or python expression to evaluate</p>
+</div></blockquote>
+<p><strong>df</strong> : pandas.DataFrame</p>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of &#8220;python&#8221; expression.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>df</cite> and columns named by target and containing
+the result of evaluating expression</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.asim_eval.assign_variables_locals">
+<code class="descclassname">activitysim.asim_eval.</code><code class="descname">assign_variables_locals</code><span class="sig-paren">(</span><em>locals=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.asim_eval.assign_variables_locals" title="Permalink to this definition">¶</a></dt>
+<dd><p>assign locals whose values will be accessible to the execution context
+when the expressions in spec are applied to choosers</p>
+<p>adds numpy functions so they can be called from expressions
+plus any additional values passed in locals dict</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>locals</strong> : dict</p>
+<blockquote>
+<div><p>dict of local variables to assign (probably from settings file)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>locals_d</strong> : dict</p>
+<blockquote class="last">
+<div><p>dict of locals suitable to pass to assign_variables method</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.asim_eval.read_assignment_spec">
+<code class="descclassname">activitysim.asim_eval.</code><code class="descname">read_assignment_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name='Description'</em>, <em>target_name='Target'</em>, <em>expression_name='Expression'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.asim_eval.read_assignment_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
+<p>The CSV is expected to have columns for component descriptions
+targets, and expressions,</p>
+<p>The CSV is required to have a header with column names. For example:</p>
+<blockquote>
+<div>Description,Target,Expression</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fname</strong> : str</p>
+<blockquote>
+<div><p>Name of a CSV spec file.</p>
+</div></blockquote>
+<p><strong>description_name</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
+</div></blockquote>
+<p><strong>target_name</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the column in <cite>fname</cite> that contains the component target.</p>
+</div></blockquote>
+<p><strong>expression_name</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the column in <cite>fname</cite> that contains the component expression.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>dataframe with three columns: [&#8216;description&#8217; &#8216;target&#8217; &#8216;expression&#8217;]</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="reindex">
 <h3>Reindex<a class="headerlink" href="#reindex" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id4">
-<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id5">
+<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.util.reindex"></span><dl class="function">
 <dt id="activitysim.util.reindex.reindex">
 <code class="descclassname">activitysim.util.reindex.</code><code class="descname">reindex</code><span class="sig-paren">(</span><em>series1</em>, <em>series2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.util.reindex.reindex" title="Permalink to this definition">¶</a></dt>
@@ -1430,8 +1549,8 @@ table and would require a second step to change the index.</p>
 </div>
 <div class="section" id="testing">
 <h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id5">
-<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id6">
+<h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.util.testing"></span><p>Utilities used in testing of ActivitySim.</p>
 <dl class="function">
 <dt id="activitysim.util.testing.assert_frames_equal">

@@ -86,12 +86,16 @@
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#accessibility">Accessibility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.defaults.models.accessibility">API</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#auto-ownership">Auto Ownership</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.defaults.models.auto_ownership">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#coordinated-daily-activity-pattern-cdap">Coordinated Daily Activity Pattern (CDAP)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">API</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#module-activitysim.cdap.cdap">cdap</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-activitysim.defaults.models.cdap">models.cdap</a></li>
 </ul>
@@ -99,37 +103,37 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#destination-choice">Destination Choice</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#mandatory-scheduling">Mandatory Scheduling</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id3">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#mandatory-tour-frequency">Mandatory Tour Frequency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mandatory-scheduling">Mandatory Scheduling</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id4">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mandatory-tour-frequency">Mandatory Tour Frequency</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mode-tour-and-trip">Mode (Tour and Trip)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#tour">Tour</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#trip">Trip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#non-mandatory-scheduling">Non-Mandatory Scheduling</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id6">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#non-mandatory-scheduling">Non-Mandatory Scheduling</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id7">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#school-location">School Location</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id8">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#workplace-location">Workplace Location</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#school-location">School Location</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id9">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#workplace-location">Workplace Location</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10">API</a></li>
 </ul>
 </li>
 </ul>
@@ -182,16 +186,72 @@
   <div class="section" id="models">
 <h1>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h1>
 <p>The currently implemented example ActivitySim models are described below.</p>
+<div class="section" id="accessibility">
+<h2>Accessibility<a class="headerlink" href="#accessibility" title="Permalink to this headline">¶</a></h2>
+<p>The main interface to the accessibility model is the
+<code class="xref py py-func docutils literal"><span class="pre">compute_accessibility()</span></code>
+function.  This function is registered as an orca step and is called in the example
+via <code class="docutils literal"><span class="pre">orca.run([&quot;compute_accessibility&quot;])</span></code></p>
+<p>Core Table: <code class="docutils literal"><span class="pre">skims</span></code> | Result Table: <code class="docutils literal"><span class="pre">accessibility</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">O-D,</span> <span class="pre">D-O</span></code></p>
+<div class="section" id="module-activitysim.defaults.models.accessibility">
+<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.defaults.models.accessibility" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="activitysim.defaults.models.accessibility.AccessibilitySkims">
+<em class="property">class </em><code class="descclassname">activitysim.defaults.models.accessibility.</code><code class="descname">AccessibilitySkims</code><span class="sig-paren">(</span><em>skims</em>, <em>omx</em>, <em>length</em>, <em>transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.accessibility.AccessibilitySkims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for skim arrays to facilitate use of skims by accessibility model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>skims</strong> : 2D array</p>
+<p><strong>omx: open omx file object</strong></p>
+<blockquote>
+<div><p>this is only used to load skims on demand that were not preloaded</p>
+</div></blockquote>
+<p><strong>length: int</strong></p>
+<blockquote>
+<div><p>number of zones in skim to return in skim matrix
+in case the skims contain additional external zones that should be trimmed out so skim
+array is correct shape to match (flattened) O-D tiled columns in the od dataframe</p>
+</div></blockquote>
+<p><strong>transpose: bool</strong></p>
+<blockquote class="last">
+<div><p>whether to transpose the matrix before flattening. (i.e. act as a D-O instead of O-D skim)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.defaults.models.accessibility.compute_accessibility">
+<code class="descclassname">activitysim.defaults.models.accessibility.</code><code class="descname">compute_accessibility</code><span class="sig-paren">(</span><em>settings</em>, <em>accessibility_spec</em>, <em>skims</em>, <em>omx_file</em>, <em>land_use</em>, <em>trace_od</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.accessibility.compute_accessibility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute accessibility for each zone in land use file using expressions from accessibility_spec</p>
+<p>The actual results depend on the expressions in accessibility_spec, but this is initially
+intended to permit implementation of the mtc accessibility calculation as implemented by
+Accessibility.job</p>
+<p>Compute measures of accessibility used by the automobile ownership model.
+The accessibility measure first multiplies an employment variable by a mode-specific decay
+function.  The product reflects the difficulty of accessing the activities the farther
+(in terms of round-trip travel time) the jobs are from the location in question. The products
+to each destination zone are next summed over each origin zone, and the logarithm of the
+product mutes large differences.  The decay function on the walk accessibility measure is
+steeper than automobile or transit.  The minimum accessibility is zero.</p>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="auto-ownership">
 <h2>Auto Ownership<a class="headerlink" href="#auto-ownership" title="Permalink to this headline">¶</a></h2>
-<p>The main interface to auto ownership model is the
+<p>The main interface to the auto ownership model is the
 <code class="xref py py-func docutils literal"><span class="pre">auto_ownership_simulate()</span></code>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;auto_ownership_simulate&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">households</span></code> | Result Field: <code class="docutils literal"><span class="pre">auto_ownership</span></code> | Skims Keys: NA</p>
-<div class="section" id="module-activitysim.defaults.models.auto_ownership">
-<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.defaults.models.auto_ownership" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
+<div class="section" id="id1">
+<h3>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.defaults.models.auto_ownership"></span><dl class="function">
 <dt id="activitysim.defaults.models.auto_ownership.auto_ownership_simulate">
 <code class="descclassname">activitysim.defaults.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>households_merged</em>, <em>auto_ownership_spec</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Auto ownership is a standard model which predicts how many cars a household
@@ -202,7 +262,7 @@ with given characteristics owns</p>
 </div>
 <div class="section" id="coordinated-daily-activity-pattern-cdap">
 <h2>Coordinated Daily Activity Pattern (CDAP)<a class="headerlink" href="#coordinated-daily-activity-pattern-cdap" title="Permalink to this headline">¶</a></h2>
-<p>The main interface to CDAP model is the <code class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></code>
+<p>The main interface to the CDAP model is the <code class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></code>
 function.  This function is called by the orca step <code class="docutils literal"><span class="pre">cdap_simulate</span></code> which is
 registered as an orca step and is called in the example via
 <code class="docutils literal"><span class="pre">orca.run([&quot;cdap_simulate&quot;])</span></code>.  There are two cdap class definitions in
@@ -210,8 +270,8 @@ ActivitySim.  The first is at <a class="reference internal" href="#module-activi
 core cdap module.  The second is at <a class="reference internal" href="#module-activitysim.defaults.models.cdap" title="activitysim.defaults.models.cdap"><code class="xref py py-func docutils literal"><span class="pre">cdap()</span></code></a> and
 contains the orca wrapper for running it as part of the model pipeline.</p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">cdap_activity</span></code> | Skims Keys: NA</p>
-<div class="section" id="id1">
-<h3>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="module-activitysim.cdap.cdap">
 <span id="cdap"></span><h4>cdap<a class="headerlink" href="#module-activitysim.cdap.cdap" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
@@ -491,8 +551,8 @@ simply applies those utilities using the simulation framework.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;destination_choice&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id2">
-<h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.destination"></span><dl class="function">
 <dt id="activitysim.defaults.models.destination.destination_choice">
 <code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skims</em>, <em>destination_choice_spec</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
@@ -518,8 +578,8 @@ table can use destination for any tour type.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_scheduling&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
-<div class="section" id="id3">
-<h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling">
 <code class="descclassname">activitysim.defaults.models.mandatory_scheduling.</code><code class="descname">mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_school_spec</em>, <em>tdd_work_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
@@ -536,8 +596,8 @@ mandatory tours</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_tour_frequency&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">mandatory_tour_frequency</span></code> | Skims Keys: NA</p>
-<div class="section" id="id4">
-<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency">
 <code class="descclassname">activitysim.defaults.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
@@ -569,8 +629,8 @@ the example via <code class="docutils literal"><span class="pre">orca.run([&quot
 <p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code>
 Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
 </div>
-<div class="section" id="id5">
-<h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mode"></span><dl class="function">
 <dt id="activitysim.defaults.models.mode.get_segment_and_unstack">
 <code class="descclassname">activitysim.defaults.models.mode.</code><code class="descname">get_segment_and_unstack</code><span class="sig-paren">(</span><em>spec</em>, <em>segment</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mode.get_segment_and_unstack" title="Permalink to this definition">¶</a></dt>
@@ -601,8 +661,8 @@ will be used for the tour</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_scheduling&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
-<div class="section" id="id6">
-<h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling">
 <code class="descclassname">activitysim.defaults.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_non_mandatory_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
@@ -619,8 +679,8 @@ non-mandatory tours</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_tour_frequency&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">persons_nmtf</span></code> | Skims Keys: NA</p>
-<div class="section" id="id7">
-<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">
 <code class="descclassname">activitysim.defaults.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>non_mandatory_tour_frequency_alts</em>, <em>non_mandatory_tour_frequency_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
@@ -639,8 +699,8 @@ othdiscr, eatout, and social trips in various combination.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;school_location_simulate&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id8">
-<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.school_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.school_location.school_location_simulate">
 <code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
@@ -657,8 +717,8 @@ go to school.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;workplace_location_simulate&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id9">
-<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id10">
+<h3>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.workplace_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.workplace_location.workplace_location_simulate">
 <code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>

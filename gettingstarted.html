@@ -115,6 +115,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#the-basic-flow-of-execution">The Basic Flow of Execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#creating-new-tables">Creating New Tables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#skims3d">Skims3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessibilities">Accessibilities</a></li>
 </ul>
 </li>
 </ul>
@@ -263,6 +264,7 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 <li>global constants are specified in the settings file</li>
 <li>comments are specified with <code class="docutils literal"><span class="pre">#</span></code></li>
 <li>you can refer to the current table as <code class="docutils literal"><span class="pre">df</span></code></li>
+<li>often an object called <code class="docutils literal"><span class="pre">skims</span></code>, <code class="docutils literal"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information.</li>
 <li>when editing the CSV files in Excel, use single quote &#8216; or space at the start of a cell to get Excel to accept the expression</li>
 </ul>
 </div>
@@ -427,6 +429,8 @@ is the main settings file for the model run.  This file includes:</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p>
 </li>
+<li><p class="first"><code class="docutils literal"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p>
+</li>
 <li><p class="first"><code class="docutils literal"><span class="pre">preload_3d_skims</span></code> - preload skims with index by origin, destination, time period for <a class="reference internal" href="#skims-3d"><span class="std std-ref">Skims3D</span></a> vectorized queries</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers</p>
@@ -460,6 +464,7 @@ of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists e
 columns indicates the number of non-mandatory tours by purpose.</p>
 <p>The current set of files are:</p>
 <ul class="simple">
+<li><code class="docutils literal"><span class="pre">accessibility.csv</span></code> - accessibility model</li>
 <li><code class="docutils literal"><span class="pre">auto_ownership.csv</span></code> - auto ownership model</li>
 <li><code class="docutils literal"><span class="pre">cdap_*.csv</span></code> - CDAP model</li>
 <li><code class="docutils literal"><span class="pre">destination_choice.csv,</span> <span class="pre">destination_choice_size_terms.csv</span></code> - destination choice model</li>
@@ -486,16 +491,23 @@ columns indicates the number of non-mandatory tours by purpose.</p>
 </div>
 <div class="section" id="outputs">
 <h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h3>
-<p>Currently ActivitySim writes the asim.log file to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.  There are
-no outputs produced by the example unless a household trace ID is specified.</p>
+<p>ActivitySim writes log and trace files to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.  The asim.log file, which
+is the overall log file is always produced.  There are no other outputs produced by the
+example unless a household trace ID and/or OD pair is specified.</p>
 </div>
 <div class="section" id="tracing">
 <span id="id3"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
-<p>If a household trace ID is specified, then ActivitySim will output a comprehensive set of
-trace files for all calculations for all household members:</p>
+<p>There are two types of tracing in ActivtiySim: household and OD pair.  If a household trace ID
+is specified, then ActivitySim will output a comprehensive set of trace files for all
+calculations for all household members:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
 <li><code class="docutils literal"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
+</ul>
+<p>If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace
+file:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</li>
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim&#8217;s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
@@ -545,7 +557,7 @@ becomes the table name in the first case, whereas the function name becomes the 
   <span class="k">return</span> <span class="n">households</span><span class="o">.</span><span class="n">income</span> <span class="o">/</span> <span class="mi">1000</span>
 </pre></div>
 </div>
-<p>The first model run is school location, which is called via the following command.  The <code class="docutils literal"><span class="pre">&#64;orca.step()</span></code> decorator registers
+<p>The first microsimulation model run is school location, which is called via the following command.  The <code class="docutils literal"><span class="pre">&#64;orca.step()</span></code> decorator registers
 the function as runnable by orca.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_simulate&quot;</span><span class="p">])</span>
 
@@ -681,10 +693,11 @@ name <code class="docutils literal"><span class="pre">persons_school</span></cod
 </div>
 <p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code> as a
 function of the <code class="docutils literal"><span class="pre">sovam_skim</span></code> and <code class="docutils literal"><span class="pre">sovmd_skim</span></code> orca injectables.</p>
-<p>The rest of the models operate in a similar fashion with two notable additions:</p>
+<p>The rest of the microsimulation models operate in a similar fashion with two notable additions:</p>
 <ul class="simple">
 <li>creating new tables</li>
 <li>using 3D skims instead of skims (which is 2D)</li>
+<li>accessibilities</li>
 </ul>
 </div>
 <div class="section" id="creating-new-tables">
@@ -730,6 +743,32 @@ in_periods can be retrieved in one request.</p>
 a vectorized request is made or preload (cache) all the skims at the beginning of a model run.
 Preload is faster and is the default.</p>
 <p>See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information on skim handling.</p>
+</div>
+<div class="section" id="accessibilities">
+<h3>Accessibilities<a class="headerlink" href="#accessibilities" title="Permalink to this headline">¶</a></h3>
+<p>Unlike the microsimulation models, which operate on a table of choosers, the accessibilities model is
+an aggregate model that calculates accessibility measures by origin zone to all destination zones.  This
+model could be implemented with a matrix library such as <code class="docutils literal"><span class="pre">numpy</span></code> since it involves a series of matrix
+and vector operations.  However, all the other ActivitySim models - the
+microsimulation models - are implemented with <code class="docutils literal"><span class="pre">pandas.DataFrame</span></code> tables, and so this would be a
+different approach for just this model.  The benefits of keeping with the same table approach to
+data setup, expression management, and solving means ActivitySim has one expression syntax, is
+easier to understand and document, and is more efficiently implemented.</p>
+<p>As illustrated below, in order to convert the
+accessibility calculation into a table operation, a table of OD pairs is first built using <code class="docutils literal"><span class="pre">numpy</span></code>
+<code class="docutils literal"><span class="pre">repeat</span></code> and <code class="docutils literal"><span class="pre">tile</span></code> functions.  Once constructed, the additional data columns are added to the
+table in order to solve the accessibility calculations.  The <code class="docutils literal"><span class="pre">skim</span></code> data is also added in column form.
+After solving the expressions for each OD pair row, the accessibility module aggregates the results
+to origin zone and write them to the datastore.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create OD dataframe</span>
+  <span class="n">od_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+      <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+          <span class="s1">&#39;orig&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">land_use_df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">zone_count</span><span class="p">),</span>
+          <span class="s1">&#39;dest&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">land_use_df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">zone_count</span><span class="p">)</span>
+      <span class="p">}</span>
+  <span class="p">)</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>

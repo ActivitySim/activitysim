@@ -117,6 +117,7 @@ Here are a few conventions for writing expressions in ActivitySim.
 * global constants are specified in the settings file
 * comments are specified with ``#``
 * you can refer to the current table as ``df``
+* often an object called ``skims``, ``skims_od``, or similar is available and is used to lookup the relevant skim information.  See :ref:`skims_in_detail` for more information.
 * when editing the CSV files in Excel, use single quote ' or space at the start of a cell to get Excel to accept the expression
 
 Example Expressions File
@@ -224,6 +225,7 @@ is the main settings file for the model run.  This file includes:
 * ``skims_file`` - skim matrices in one OMX file
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
+* ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
 * ``preload_3d_skims`` - preload skims with index by origin, destination, time period for :ref:`Skims_3D` vectorized queries
 * ``chunk_size`` - batch size for processing choosers
 * global variables that can be used in expressions tables and Python code such as:
@@ -254,6 +256,7 @@ columns indicates the number of non-mandatory tours by purpose.
 
 The current set of files are:
 
+* ``accessibility.csv`` - accessibility model
 * ``auto_ownership.csv`` - auto ownership model
 * ``cdap_*.csv`` - CDAP model
 * ``destination_choice.csv, destination_choice_size_terms.csv`` - destination choice model
@@ -280,19 +283,26 @@ The example should complete within a couple minutes since it is running a small 
 Outputs
 ~~~~~~~
 
-Currently ActivitySim writes the asim.log file to the ``outputs`` folder.  There are 
-no outputs produced by the example unless a household trace ID is specified.   
+ActivitySim writes log and trace files to the ``outputs`` folder.  The asim.log file, which
+is the overall log file is always produced.  There are no other outputs produced by the 
+example unless a household trace ID and/or OD pair is specified.
 
 .. _tracing :
 
 Tracing
 ~~~~~~~
 
-If a household trace ID is specified, then ActivitySim will output a comprehensive set of 
-trace files for all calculations for all household members:
+There are two types of tracing in ActivtiySim: household and OD pair.  If a household trace ID 
+is specified, then ActivitySim will output a comprehensive set of trace files for all 
+calculations for all household members:
 
 * ``hhtrace.log`` - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.
 * ``various CSV files`` - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model
+
+If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace 
+file:
+
+* ``accessibility.result.csv`` - accessibility expression results for the OD pair
 
 With the set of output CSV files, the user can trace ActivitySim's calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.
@@ -352,7 +362,7 @@ becomes the table name in the first case, whereas the function name becomes the 
   def income_in_thousands(households):
     return households.income / 1000
   
-The first model run is school location, which is called via the following command.  The ``@orca.step()`` decorator registers
+The first microsimulation model run is school location, which is called via the following command.  The ``@orca.step()`` decorator registers
 the function as runnable by orca.
 
 ::
@@ -503,10 +513,11 @@ name ``persons_school``.
 Any orca columns that are required are calculated-on-the-fly, such as ``roundtrip_auto_time_to_school`` as a 
 function of the ``sovam_skim`` and ``sovmd_skim`` orca injectables.
 
-The rest of the models operate in a similar fashion with two notable additions:
+The rest of the microsimulation models operate in a similar fashion with two notable additions:
 
 * creating new tables
 * using 3D skims instead of skims (which is 2D)
+* accessibilities
 
 Creating New Tables
 ~~~~~~~~~~~~~~~~~~~
@@ -561,3 +572,31 @@ Preload is faster and is the default.
 
 See :ref:`skims_in_detail` for more information on skim handling.
 
+Accessibilities
+~~~~~~~~~~~~~~~~~~~
+
+Unlike the microsimulation models, which operate on a table of choosers, the accessibilities model is 
+an aggregate model that calculates accessibility measures by origin zone to all destination zones.  This 
+model could be implemented with a matrix library such as ``numpy`` since it involves a series of matrix 
+and vector operations.  However, all the other ActivitySim models - the 
+microsimulation models - are implemented with ``pandas.DataFrame`` tables, and so this would be a 
+different approach for just this model.  The benefits of keeping with the same table approach to 
+data setup, expression management, and solving means ActivitySim has one expression syntax, is
+easier to understand and document, and is more efficiently implemented.  
+
+As illustrated below, in order to convert the 
+accessibility calculation into a table operation, a table of OD pairs is first built using ``numpy``
+``repeat`` and ``tile`` functions.  Once constructed, the additional data columns are added to the 
+table in order to solve the accessibility calculations.  The ``skim`` data is also added in column form.
+After solving the expressions for each OD pair row, the accessibility module aggregates the results
+to origin zone and write them to the datastore.  
+
+::
+
+  # create OD dataframe
+    od_df = pd.DataFrame(
+        data={
+            'orig': np.repeat(np.asanyarray(land_use_df.index), zone_count),
+            'dest': np.tile(np.asanyarray(land_use_df.index), zone_count)
+        }
+    )

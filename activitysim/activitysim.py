@@ -185,6 +185,267 @@ def _check_for_variability(model_design):
             logger.info("missing values in: %s" % v)
 
 
+EMPTY_NEST = {'level': 0, 'product_of_coefficients': 1, 'ancestors': []}
+
+
+def each_nest(node, nest=EMPTY_NEST, post_order=False):
+
+    pre_order = not post_order
+    level = nest['level']
+
+    if isinstance(node, list):
+        # only needed if we allow root level to be a list, instead of a dict
+        for item in node:
+            for sub_node, sub_nest in each_nest(item, nest, post_order):
+                yield sub_node, sub_nest
+    elif isinstance(node, dict):
+        name = node['name']
+        coefficient = node['coefficient']
+        product_of_coefficients = nest['product_of_coefficients']*coefficient
+        alternatives = [a['name'] if isinstance(a, dict) else a for a in node['alternatives']]
+
+        nest = {
+            'name': name,
+            'coefficient': coefficient,
+            'product_of_coefficients': product_of_coefficients,
+            'alternatives': alternatives,
+            'level': level + 1,
+            'leaf': False,
+            'ancestors': nest['ancestors'] + [name]
+        }
+
+        if pre_order:
+            yield node, nest
+
+        # recursively iterate the list of alternatives
+        for alternative in node['alternatives']:
+            for sub_node, sub_nest in each_nest(alternative, nest, post_order):
+                yield sub_node, sub_nest
+
+        if post_order:
+            yield node, nest
+
+    elif isinstance(node, str):
+        nest = {
+            'name': node,
+            'product_of_coefficients': nest['product_of_coefficients'],
+            'level': level + 1,
+            'leaf': True,
+            'ancestors': nest['ancestors'] + [node]
+        }
+        yield node, nest
+
+
+def trace_nests(nests, trace_label):
+
+    for node, nest in each_nest(nests):
+
+        indent = "   " * nest['level']
+
+        if nest['leaf']:
+            tracing.info(trace_label,
+                         "%s leaf name: %s level %s" % (indent, nest['name'], nest['level']))
+            tracing.info(trace_label,
+                         "%s ... product_of_coefficients: %s"
+                         % (indent, nest['product_of_coefficients']))
+        else:
+            tracing.info(trace_label,
+                         "%s node name: %s level %s" % (indent, nest['name'], nest['level']))
+            tracing.info(trace_label,
+                         "%s ... coefficient: %s" % (indent, nest['coefficient']))
+            tracing.info(trace_label,
+                         "%s ... product_of_coefficients: %s"
+                         % (indent, nest['product_of_coefficients']))
+            tracing.info(trace_label,
+                         "%s ... alternatives: %s" % (indent, nest['alternatives']))
+
+        tracing.info(trace_label,
+                     "%s ... ancestors: %s" % (indent, nest['ancestors']))
+
+
+def compute_nested_exp_utilities(raw_utilities, nests, trace_label=None):
+
+    # leaf: exp( raw_utility )
+    # nest: exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)
+
+    trace_label = "%s.compute_nested_exp_utilities" % trace_label
+
+    nested_utilities = pd.DataFrame(index=raw_utilities.index)
+
+    for node, nest in each_nest(nests, post_order=True):
+
+        name = nest['name']
+
+        if nest['leaf']:
+            product_of_nest_coefficients = nest['product_of_coefficients']
+            nested_utilities[name] = \
+                raw_utilities[name].astype(float) / product_of_nest_coefficients
+
+            if trace_label:
+                tracing.info(trace_label,
+                             "nested_utilities[%s] = exp(utilities[%s] / %s)"
+                             % (name, name, product_of_nest_coefficients))
+        else:
+            nest_coefficient = nest['coefficient']
+            alternatives = nest['alternatives']
+            nested_utilities[name] = \
+                nest_coefficient * np.log(nested_utilities[alternatives].sum(axis=1))
+
+            if trace_label:
+                tracing.info(trace_label,
+                             "nested_utilities[%s] = %s * nested_utilities[%s]"
+                             % (name, nest_coefficient, alternatives))
+
+        nested_utilities[name] = np.exp(nested_utilities[name])
+
+    return nested_utilities
+
+
+def compute_nested_probabilities(nested_exp_utilities, nests):
+
+    # probability for nest alternatives is simply the alternatives's local (to nest) probability
+    # computed in the same way as the probability of non-nested alternatives in multinomial logit
+    # i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
+    # except in nested logit, its sib group is restricted to the nest
+
+    nested_probabilities = pd.DataFrame(index=nested_exp_utilities.index)
+
+    for node, nest in each_nest(nests, post_order=False):
+
+        if not nest['leaf']:
+            name = nest['name']
+            alternatives = nest['alternatives']
+
+            probs = utils_to_probs(nested_exp_utilities[alternatives], exponentiated=True)
+
+            nested_probabilities = pd.concat([nested_probabilities, probs], axis=1)
+
+    return nested_probabilities
+
+
+def compute_base_probabilities(nested_probabilities, nests):
+
+    base_probabilities = pd.DataFrame(index=nested_probabilities.index)
+
+    for node, nest in each_nest(nests, post_order=False):
+
+        if nest['leaf']:
+
+            name = nest['name']
+
+            # skip root: it has a prob of 1 but we didn't compute a nested probability column for it
+            ancestors = nest['ancestors'][1:]
+
+            base_probabilities[name] = nested_probabilities[ancestors].prod(axis=1)
+
+    return base_probabilities
+
+
+def nested_simulate(choosers, spec, nests, skims=None, locals_d=None,
+                    trace_label=None, trace_choice_name=None):
+    """
+    Run a simulation for when the model spec does not involve alternative
+    specific data, e.g. there are no interactions with alternative
+    properties and no need to sample from alternatives.
+
+    Parameters
+    ----------
+    choosers : pandas.DataFrame
+    spec : pandas.DataFrame
+        A table of variable specifications and coefficient values.
+        Variable expressions should be in the table index and the table
+        should have a column for each alternative.
+    nest:
+        dictionary specifying nesting structure and nesting coefficients
+    skims : Skims object
+        The skims object is used to contain multiple matrices of
+        origin-destination impedances.  Make sure to also add it to the
+        locals_d below in order to access it in expressions.  The *only* job
+        of this method in regards to skims is to call set_df with the
+        dataframe that comes back from interacting choosers with
+        alternatives.  See the skims module for more documentation on how
+        the skims object is intended to be used.
+    locals_d : Dict
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
+    trace_label: str
+        This is the label to be used  for trace log file entries and dump file names
+        when household tracing enabled. No tracing occurs if label is empty or None.
+    trace_choice_name: str
+        This is the column label to be used in trace file csv dump of choices
+
+    Returns
+    -------
+    choices : pandas.Series
+        Index will be that of `choosers`, values will match the columns
+        of `spec`.
+    """
+
+    tracing.warn(__name__, "nested_simulate")
+
+    if trace_label:
+        trace_nests(nests, "%s.trace_nests" % trace_label)
+
+    if skims:
+        add_skims(choosers, skims)
+
+    model_design = eval_variables(spec.index, choosers, locals_d)
+
+    _check_for_variability(model_design)
+
+    # raw utilities of all the leaves
+    raw_utilities = model_design.dot(spec)
+
+    # exponentiated utilities of leaves and nests
+    nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nests, trace_label)
+
+    # probabilities of alternatives relative to siblings sharing the same nest
+    nested_probabilities = compute_nested_probabilities(nested_exp_utilities, nests)
+
+    # global leaf probabilities based on relative nest coefficients
+    base_probabilities = compute_base_probabilities(nested_probabilities, nests)
+
+    choices = make_choices(base_probabilities)
+
+    if trace_label:
+
+        trace_label = "%s.nested_simulate" % trace_label
+        tracing.trace_choosers(choosers, trace_label)
+
+        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'], warn=True)
+        tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'], warn=True)
+        tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'], warn=True)
+        tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'], warn=True)
+        tracing.trace_choices(choices, trace_label, columns=[None, trace_choice_name])
+        tracing.trace_model_design(model_design, trace_label)
+
+        # to facilitiate debugging, compare to multinomial (non-nested) logit utilities
+        unnested_probabilities = utils_to_probs(raw_utilities)
+        unnested_choices = make_choices(unnested_probabilities)
+        tracing.trace_df(unnested_probabilities, '%s.unnested_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'], warn=True)
+        tracing.trace_choices(unnested_choices, '%s.unnested_choices' % trace_label,
+                              columns=[None, trace_choice_name])
+
+        # dump whole df - for software development debugging
+        # tracing.trace_df(raw_utilities, "%s.raw_utilities" % trace_label,
+        #                  slicer='NONE', transpose=False)
+        # tracing.trace_df(nested_exp_utilities, "%s.nested_exp_utilities" % trace_label,
+        #                  slicer='NONE', transpose=False)
+        # tracing.trace_df(nested_probabilities, "%s.nested_probabilities" % trace_label,
+        #                  slicer='NONE', transpose=False)
+        # tracing.trace_df(base_probabilities, "%s.base_probabilities" % trace_label,
+        #                  slicer='NONE', transpose=False)
+        # tracing.trace_df(unnested_probabilities, "%s.unnested_probabilities" % trace_label,
+        #                  slicer='NONE', transpose=False)
+
+    return choices
+
+
 def simple_simulate(choosers, spec, skims=None, locals_d=None,
                     trace_label=None, trace_choice_name=None):
     """
@@ -230,6 +491,7 @@ def simple_simulate(choosers, spec, skims=None, locals_d=None,
     _check_for_variability(model_design)
 
     utilities = model_design.dot(spec)
+
     probs = utils_to_probs(utilities)
     choices = make_choices(probs)
 
@@ -261,7 +523,7 @@ def interaction_simulate(
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None):
 
-    # like interaction_simulate but iterates over choosers in chunk_size chunks
+    # like _interaction_simulate but iterates over choosers in chunk_size chunks
     # FIXME - chunk size should take number of chooser and alternative columns into account
     # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
 

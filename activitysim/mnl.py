@@ -12,7 +12,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def utils_to_probs(utils):
+def utils_to_probs(utils, exponentiated=False):
     """
     Convert a table of utilities to exponentiated probabilities.
 
@@ -30,7 +30,9 @@ def utils_to_probs(utils):
     prob_min = 1e-300
     prob_max = np.inf
 
-    utils_arr = np.exp(utils.as_matrix().astype('float'))
+    utils_arr = utils.as_matrix().astype('float')
+    if not exponentiated:
+        utils_arr = np.exp(utils_arr)
 
     np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
 

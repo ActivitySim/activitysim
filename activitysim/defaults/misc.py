@@ -99,6 +99,15 @@ def trace_person_ids(persons):
     return []
 
 
+@orca.injectable()
+def trace_tour_ids(persons):
+    # overridden when tours table is loaded
+    # if trace_hh_id is defined
+    logger.error("trace_tour_ids called before being overridden")
+    raise RuntimeError('trace_tour_ids called before being overridden')
+    return []
+
+
 @orca.injectable(cache=True)
 def hh_index_name(settings):
     return None

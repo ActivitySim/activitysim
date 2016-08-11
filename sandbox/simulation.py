@@ -118,7 +118,7 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 hh_chunk_size = 50000)
 
 inject_settings(config='sandbox',
-                data='full',
+                data='test',
                 households_sample_size=50,
                 preload_3d_skims=True,
                 chunk_size = 0,
@@ -139,6 +139,24 @@ log_memory_info(logger, 'after stacked_skims load')
 # df = df[['household_id', 'is_student', 'is_worker']]
 # print df.head(20)
 
+
+EMPTY_NEST = {'level': 0, 'product_of_coefficients': 1}
+
+
+nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']
+
+# asim.trace_nests(nests, 'xxx')
+#
+# for node, nest in asim.each_nest(nests):
+#
+#     indent = "   " * nest['level']
+#
+#     if nest['leaf']:
+#         print "%sleaf name: %s parents %s" % (indent, nest['name'], nest['ancestors'])
+#     else:
+#         print "%snode name: %s parents %s" % (indent, nest['name'], nest['ancestors'])
+
+
 run_model('compute_accessibility')
 run_model('school_location_simulate')
 run_model('workplace_location_simulate')
@@ -151,7 +169,7 @@ run_model('destination_choice')
 run_model('non_mandatory_scheduling')
 run_model('patch_mandatory_tour_destination')
 run_model('tour_mode_choice_simulate')
-run_model('trip_mode_choice_simulate')
+#run_model('trip_mode_choice_simulate')
 
 orca.get_injectable('store').close()
 orca.get_injectable('omx_file').close()

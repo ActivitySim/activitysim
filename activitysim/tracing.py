@@ -272,6 +272,45 @@ def register_households(df, trace_hh_id):
     debug(message="register_households injected hh_index_name '%s'" % df.index.name)
 
 
+def register_tours(df, trace_hh_id):
+    """
+    Register with orca persons for tracing
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+    trace_hh_id: int
+        household ID to trace
+
+    Returns
+    -------
+    Nothing
+    """
+    tracer = get_tracer()
+
+    if trace_hh_id is None:
+        warn(message="register_tours called with null trace_hh_id")
+        return
+
+    # inject list of tour_ids in household we are tracing
+    # this allows us to slice by tour_id without requiring presence of person_id column
+
+    # get list of persons in traced household (should already have been registered)
+    person_ids = orca.get_injectable("trace_person_ids")
+
+    traced_tours_df = slice_ids(df, person_ids, column='person_id')
+
+    trace_tour_ids = traced_tours_df.index.tolist()
+    if len(trace_tour_ids) == 0:
+        warn(message="register_tours: person_ids %s not found." % person_ids)
+
+    orca.add_injectable("trace_tour_ids", trace_tour_ids)
+    debug(message="register_tours injected trace_tour_ids %s" % trace_tour_ids)
+
+    info(message="tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
+
+
 def register_persons(df, trace_hh_id):
     """
     Register with orca persons for tracing
@@ -407,7 +446,7 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
         tracer.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
 
 
-def slice_ids(df, ids, column=None, label=None):
+def slice_ids(df, ids, column=None):
     """
     slice a dataframe to select only records with the specified ids
 
@@ -430,7 +469,9 @@ def slice_ids(df, ids, column=None, label=None):
         ids = [ids]
     try:
         if column is None:
-            df = df.loc[ids]
+            # FIXME - this returns empty rows for ids that are not found
+            # df = df.loc[ids]
+            df = df[df.index.isin(ids)]
         else:
             df = df[df[column].isin(ids)]
     except KeyError:
@@ -438,27 +479,35 @@ def slice_ids(df, ids, column=None, label=None):
     return df
 
 
-def canonical_slicer(index_name):
+def canonical_slicer(df):
     """
     return a canonical column name and targets (hh id or person ids) to
     annotate a dataframe with trace targets in a manner grokable by slice_canonically method
 
     Parameters
     ----------
-    index_name: str
-        name of column or index to use for slicing
+    df: DataFrame
+        dataframe whose the values of whose index we will use for slicing
 
     Returns
     -------
         name of column to use
         target hh_id or person_ids
     """
+
+    index_name = df.index.name
+
     if index_name == 'PERID' or index_name == orca.get_injectable('persons_index_name'):
         column_name = 'person_id'
     elif index_name == 'HHID' or index_name == orca.get_injectable('hh_index_name'):
         column_name = 'hh_id'
     elif index_name == 'tour_id':
-        column_name = 'person_id'
+        if 'person_id' in df.columns:
+            # if there is a person_id column, then use it
+            column_name = 'person_id'
+        else:
+            # otherwise we can use tour_id, assuming register_tours has been called
+            column_name = 'tour_id'
     else:
         get_tracer().error("canonical_slicer undefined for index %s" % (index_name,))
         column_name = ''
@@ -467,13 +516,15 @@ def canonical_slicer(index_name):
         targets = orca.get_injectable('trace_person_ids')
     elif column_name == 'hh_id':
         targets = [orca.get_injectable('trace_hh_id')]
+    elif column_name == 'tour_id':
+        targets = [orca.get_injectable('trace_tour_ids')]
     else:
         targets = []
 
     return column_name, targets
 
 
-def slice_canonically(df, slicer, label):
+def slice_canonically(df, slicer, label, warn=False):
     """
     Slice dataframe by traced household or person id dataframe and write to CSV
 
@@ -496,26 +547,47 @@ def slice_canonically(df, slicer, label):
     if slicer is None:
         slicer = df.index.name
 
+    target = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
+    column = None  # column name to slice on or None to slice on index
+
     if slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
-        df = slice_ids(df, orca.get_injectable('trace_person_ids'))
+        target = orca.get_injectable('trace_person_ids')
     elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
-        df = slice_ids(df, orca.get_injectable('trace_hh_id'))
+        target = orca.get_injectable('trace_hh_id')
     elif slicer == 'person_id':
-        df = slice_ids(df, orca.get_injectable('trace_person_ids'), column='person_id')
+        target = orca.get_injectable('trace_person_ids')
+        column = slicer
     elif slicer == 'hh_id':
-        df = slice_ids(df, orca.get_injectable('trace_hh_id'), column='hh_id')
+        target = orca.get_injectable('trace_hh_id')
+        column = slicer
     elif slicer == 'tour_id':
-        df = slice_ids(df, orca.get_injectable('trace_person_ids'), column='person_id')
+        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
+            target = orca.get_injectable('trace_person_ids')
+            column = 'person_id'
+        else:
+            # trace_tour_ids
+            try:
+                target = orca.get_injectable('trace_tour_ids')
+            except:
+                tracer.error("trace_tour_ids error in %s index %s columns %s"
+                             % (label, df.index.name, df.columns.values))
+                raise
     elif slicer == 'taz' or slicer == 'ZONE':
-        df = slice_ids(df, orca.get_injectable('trace_od'))
+        target = orca.get_injectable('trace_od')
     elif slicer == 'NONE':
-        pass
+        target = None
     else:
         get_tracer().error("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
-        print df.head(3)
+        # print df.head(3)
+        target = None
         df = df[0:0]
 
-    # tracer.debug("slice_canonically slicing %s by %s got %s" % (label, slicer, len(df.index)))
+    if target is not None:
+        df = slice_ids(df, target, column)
+
+    if warn and len(df.index) == 0:
+        column_name = column or slicer
+        tracer.warn("slice_canonically: no rows in %s with %s == %s" % (label, column_name, target))
 
     return df
 
@@ -550,13 +622,11 @@ def trace_df(df, label, slicer=None, columns=None,
     """
     tracer = get_tracer()
 
-    df = slice_canonically(df, slicer, label)
+    df = slice_canonically(df, slicer, label, warn)
 
     if len(df.index) > 0:
         write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,
                   column_labels=column_labels, transpose=transpose)
-    elif warn:
-        tracer.warn("%s: no rows with id" % (label, ))
 
 
 def trace_choosers(df, label):
@@ -671,7 +741,7 @@ def trace_interaction_model_design(model_design, choosers, label):
     label = '%s.model_design' % label
 
     # column name to use for chooser id (hh or person) added to model_design dataframe
-    slicer_column_name, targets = canonical_slicer(choosers.index.name)
+    slicer_column_name, targets = canonical_slicer(choosers)
 
     # we can deduce the sample_size from the relative size of model_design and choosers
     # (model design rows are repeated once for each alternative)

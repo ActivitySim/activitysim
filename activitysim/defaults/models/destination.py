@@ -40,6 +40,10 @@ def destination_choice(set_random_seed,
     alternatives = destination_size_terms.to_frame()
     spec = destination_choice_spec.to_frame()
 
+    if trace_hh_id:
+        # register non_mandatory_tours so we can slice utilities
+        tracing.register_tours(choosers, trace_hh_id)
+
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     skims.set_keys("TAZ", "TAZ_r")

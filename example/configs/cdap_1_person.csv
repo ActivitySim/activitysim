@@ -37,16 +37,16 @@ Driving-age child who is in school interaction income between $50k and $100k,(pt
 Driving-age child who is in school interaction with income more than $100k,(ptype == 6) & (income_in_thousands < 100),,,-2.046
 Pre-driving-age child who is too young for school interaction with income between $50k and $100k,(ptype == 8) & (income_in_thousands >= 50) & (income_in_thousands <= 100),,,-0.5708
 Pre-driving-age child who is too young for school interaction with income more than $100k,(ptype == 8) & (income_in_thousands < 100),,,-0.6186
-Full-time worker intraction with peak accessibility to all employment,(ptype == 1) * AUTOPEAKTOTAL,0.1212,,
-Part-time worker interaction with peak accessibility to all employment,(ptype == 2) * AUTOPEAKTOTAL,0.2004,,
-Non-working adult interaction with peak accessibility to all employment,(ptype == 4) * AUTOPEAKTOTAL,0.2314,,
-Retired interaction with peak accessibility to all employment,(ptype == 5) * AUTOPEAKTOTAL,0.2792,,
-Non-working adult interaction with off-peak accessibility to retail,(ptype == 4) * AUTOOFFPEAKRETAIL,,0.07207,
-Retired interaction with off-peak accessibility to retail,(ptype == 5) * AUTOOFFPEAKRETAIL,,0.07207,
-University student interaction with off-peak accessibility to retail,(ptype == 3) * AUTOOFFPEAKRETAIL,,0.07207,
-Driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 6) * AUTOOFFPEAKRETAIL,,0.08233,
-Pre-driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 7) * AUTOOFFPEAKRETAIL,,0.08233,
-Pre-driving-age child who is too young for school interaction with off-peak accessibility to retail,(ptype == 8) * AUTOOFFPEAKRETAIL,,0.08233,
+Full-time worker intraction with peak accessibility to all employment,(ptype == 1) * auPkTotal,0.1212,,
+Part-time worker interaction with peak accessibility to all employment,(ptype == 2) * auPkTotal,0.2004,,
+Non-working adult interaction with peak accessibility to all employment,(ptype == 4) * auPkTotal,0.2314,,
+Retired interaction with peak accessibility to all employment,(ptype == 5) * auPkTotal,0.2792,,
+Non-working adult interaction with off-peak accessibility to retail,(ptype == 4) * auOpRetail,,0.07207,
+Retired interaction with off-peak accessibility to retail,(ptype == 5) * auOpRetail,,0.07207,
+University student interaction with off-peak accessibility to retail,(ptype == 3) * auOpRetail,,0.07207,
+Driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 6) * auOpRetail,,0.08233,
+Pre-driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 7) * auOpRetail,,0.08233,
+Pre-driving-age child who is too young for school interaction with off-peak accessibility to retail,(ptype == 8) * auOpRetail,,0.08233,
 # Full-time worker interaction with usual work location is home,(ptype == 1) * usualWorkLocationIsHome,-1.758,,0.1813
 # Part-time worker interaction with usual work location is home,(ptype == 2) * usualWorkLocationIsHome,-1.758,,0.1813
 # Full-time worker interaction with no usual work location,(ptype == 1) * noUsualWorkLocation,-0.5935,,

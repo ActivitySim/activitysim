@@ -54,6 +54,18 @@ API
 .. automodule:: activitysim.tracing
    :members:
 
+Asim_Eval
+------------
+
+Alternative version of the expression evaluator in ``activitysim`` that supports temporary variable assignment.  
+This is used by the :py:func:`~activitysim.defaults.models.compute_accessibility`  module.
+
+API
+~~~
+
+.. automodule:: activitysim.asim_eval
+   :members:
+
 
 Utilities
 ------------

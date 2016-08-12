@@ -46,7 +46,8 @@ def households(set_random_seed, store, households_sample_size, trace_hh_id):
 
     if trace_hh_id:
         tracing.register_households(df, trace_hh_id)
-        tracing.trace_df(df, "households")
+        tracing.trace_df(df, "households",
+                         warn=True)
 
     return df
 

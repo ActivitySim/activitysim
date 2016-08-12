@@ -96,7 +96,10 @@ def _mode_choice_simulate(tours,
                           dest_key,
                           spec,
                           additional_constants,
-                          omx=None):
+                          nests,
+                          omx=None,
+                          trace_label=None, trace_choice_name=None
+                          ):
     """
     This is a utility to run a mode choice model for each segment (usually
     segments are trip purposes).  Pass in the tours that need a mode,
@@ -132,10 +135,13 @@ def _mode_choice_simulate(tours,
     }
     locals_d.update(additional_constants)
 
-    choices, _ = asim.simple_simulate(tours,
-                                      spec,
-                                      skims=[in_skims, out_skims, skims],
-                                      locals_d=locals_d)
+    choices = asim.nested_simulate(tours,
+                                   spec,
+                                   nests,
+                                   skims=[in_skims, out_skims, skims],
+                                   locals_d=locals_d,
+                                   trace_label=trace_label,
+                                   trace_choice_name=trace_choice_name)
 
     alts = spec.columns
     choices = choices.map(dict(zip(range(len(alts)), alts)))
@@ -169,41 +175,51 @@ def tour_mode_choice_simulate(tours_merged,
 
     tours = tours_merged.to_frame()
 
+    if trace_hh_id:
+        tracing.register_tours(tours, trace_hh_id)
+
     tracing.info(__name__,
                  "Running tour_mode_choice_simulate with %d tours" % len(tours.index))
-
-    choices_list = []
 
     tracing.print_summary('tour_mode_choice_simulate tour_type',
                           tours.tour_type, value_counts=True)
 
+    choices_list = []
     for tour_type, segment in tours.groupby('tour_type'):
 
+        # if tour_type != 'work':
+        #     continue
+
         logger.info("running tour_type '%s'" % tour_type)
+
+        orig_key = 'TAZ'
+        dest_key = 'destination'
+
+        # name index so tracing knows how to slice
+        segment.index.name = 'tour_id'
 
         tracing.info(__name__,
                      "tour_mode_choice_simulate running %s tour_type '%s'" %
                      (len(segment.index), tour_type, ))
 
-        # FIXME - this was the old way
-        tour_type_tours = tours[tours.tour_type == tour_type]
-        tour_type_tours = segment
-        orig_key = 'TAZ'
-        dest_key = 'destination'
-
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
         tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
-                              tour_type_tours[dest_key], value_counts=True)
+                              segment[dest_key], value_counts=True)
+
+        trace_label = trace_hh_id and ('tour_mode_choice_%s' % tour_type)
 
         choices = _mode_choice_simulate(
-            tour_type_tours,
+            segment,
             skims, stacked_skims,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
             additional_constants=tour_mode_choice_settings['CONSTANTS'],
-            omx=omx_file)
+            nests=tour_mode_choice_settings['NESTS'],
+            omx=omx_file,
+            trace_label=trace_label,
+            trace_choice_name='tour_mode_choice')
 
         tracing.print_summary('tour_mode_choice_simulate %s' % tour_type,
                               choices, value_counts=True)
@@ -227,7 +243,8 @@ def tour_mode_choice_simulate(tours_merged,
                          label="mode",
                          slicer='tour_id',
                          index_label='tour',
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)
 
     # FIXME - this forces garbage collection
     asim.memory_info()
@@ -259,26 +276,33 @@ def trip_mode_choice_simulate(tours_merged,
 
         tracing.info(__name__, "running %s tour_type '%s'" % (len(segment.index), tour_type, ))
 
-        tour_type_tours = trips[trips.tour_type == tour_type]
         orig_key = 'TAZ'
         dest_key = 'destination'
+
+        # name index so tracing knows how to slice
+        segment.index.name = 'tour_id'
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
         tracing.print_summary('trip_mode_choice_simulate %s dest_taz' % tour_type,
-                              tour_type_tours[dest_key], value_counts=True)
+                              segment[dest_key], value_counts=True)
 
         # FIXME - log
         # print "dest_taz counts:\n", tour_type_tours[dest_key].value_counts()
 
+        trace_label = trace_hh_id and ('trip_mode_choice_%s' % tour_type)
+
         choices = _mode_choice_simulate(
-            tour_type_tours,
+            segment,
             skims, stacked_skims,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),
             additional_constants=trip_mode_choice_settings['CONSTANTS'],
-            omx=omx_file)
+            nests=trip_mode_choice_settings['NESTS'],
+            omx=omx_file,
+            trace_label=trace_label,
+            trace_choice_name='trip_mode_choice')
 
         tracing.print_summary('trip_mode_choice_simulate %s' % tour_type,
                               choices, value_counts=True)
@@ -305,7 +329,8 @@ def trip_mode_choice_simulate(tours_merged,
         #                  label = "mode",
         #                  slicer='tour_id',
         #                  index_label='tour_id',
-        #                  columns = trace_columns)
+        #                  columns = trace_columns,
+        #                  warn=True)
 
     # FIXME - this forces garbage collection
     asim.memory_info()

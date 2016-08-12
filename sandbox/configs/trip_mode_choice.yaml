@@ -1,30 +1,49 @@
 NESTS:
-    AUTO:
-        DRIVEALONE:
-            - DRIVEALONEFREE
-            - DRIVEALONEPAY
-        SHAREDRIDE2:
-            - SHARED2FREE
-            - SHARED2PAY
-        SHAREDRIDE3:
-            - SHARED3FREE
-            - SHARED3PAY
-    NONMOTORIZED:
-        - WALK
-        - BIKE
-    TRANSIT:
-        WALKACCESS:
-            - WALK_LOC
-            - WALK_LRF
-            - WALK_EXP
-            - WALK_HVY
-            - WALK_COM
-        DRIVEACCESS:
-            - DRIVE_LOC
-            - DRIVE_LRF
-            - DRIVE_EXP
-            - DRIVE_HVY
-            - DRIVE_COM
+  name: root
+  coefficient: 1.00
+  alternatives:
+      - name: AUTO
+        coefficient: 0.72
+        alternatives:
+            - name: DRIVEALONE
+              coefficient: 0.35
+              alternatives:
+                - DRIVEALONEFREE
+                - DRIVEALONEPAY
+            - name: SHAREDRIDE2
+              coefficient: 0.35
+              alternatives:
+                - SHARED2FREE
+                - SHARED2PAY
+            - name: SHAREDRIDE3
+              coefficient: 0.35
+              alternatives:
+                - SHARED3FREE
+                - SHARED3PAY
+      - name: NONMOTORIZED
+        coefficient: 0.72
+        alternatives:
+          - WALK
+          - BIKE
+      - name: TRANSIT
+        coefficient:  0.72
+        alternatives:
+            - name: WALKACCESS
+              coefficient: 0.5
+              alternatives:
+              - WALK_LOC
+              - WALK_LRF
+              - WALK_EXP
+              - WALK_HVY
+              - WALK_COM
+            - name: DRIVEACCESS
+              coefficient: 0.5
+              alternatives:
+              - DRIVE_LOC
+              - DRIVE_LRF
+              - DRIVE_EXP
+              - DRIVE_HVY
+              - DRIVE_COM
 
 
 VARIABLE_TEMPLATES:

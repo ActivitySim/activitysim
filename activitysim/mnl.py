@@ -12,7 +12,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def utils_to_probs(utils):
+def utils_to_probs(utils, exponentiated=False):
     """
     Convert a table of utilities to exponentiated probabilities.
 
@@ -30,7 +30,9 @@ def utils_to_probs(utils):
     prob_min = 1e-300
     prob_max = np.inf
 
-    utils_arr = np.exp(utils.as_matrix().astype('float'))
+    utils_arr = utils.as_matrix().astype('float')
+    if not exponentiated:
+        utils_arr = np.exp(utils_arr)
 
     np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
 
@@ -170,3 +172,124 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     # print "\n######################\n"
 
     return alts_sample
+
+
+class Nest(object):
+    """
+    Data for a nest-logit node or leaf
+
+    This object is passed on yield when iterate over nest nodes (branch or leaf)
+    The nested logit design is stored in a yaml file as a tree of dict objects,
+    but using an object to pass the nest data makes the code a little more readable
+    """
+    def __init__(self, name=None, level=0):
+        self.name = name
+        self.level = level
+        self.product_of_coefficients = 1
+        self.ancestors = []
+        self.alternatives = None
+        self.coefficient = 0
+
+    @property
+    def is_leaf(self):
+        return (self.alternatives is None)
+
+    @property
+    def type(self):
+        return 'leaf' if self.is_leaf else 'node'
+
+    @classmethod
+    def nest_types(cls):
+        return ['leaf', 'node']
+
+
+def _each_nest(spec, parent_nest, post_order):
+    """
+    Iterate over each nest or leaf node in the tree (of subtree)
+
+    This internal routine is called by each_nest, which presents a slightly higer level interface
+
+    Parameters
+    ----------
+    spec : dict
+        Nest spec dict tree (or subtree when recursing) from the model spec yaml file
+    parent_nest : Nest
+        nest of parent node (passed to accumulate level, ancestors, and product_of_coefficients)
+    post_order : Bool
+        Should we iterate over the nodes of the tree in post-order or pre-order?
+        (post-order means we yield the alternatives sub-tree before current node.)
+
+    Yields
+    -------
+        spec_node : dict
+            Nest tree spec dict for this node subtree
+        nest : Nest
+            Nest object with info about the current node (nest or leaf)
+    """
+    pre_order = not post_order
+
+    level = parent_nest.level + 1
+
+    if isinstance(spec, dict):
+        name = spec['name']
+        coefficient = spec['coefficient']
+        alternatives = [a['name'] if isinstance(a, dict) else a for a in spec['alternatives']]
+
+        nest = Nest(name=name)
+        nest.level = parent_nest.level + 1
+        nest.coefficient = coefficient
+        nest.product_of_coefficients = parent_nest.product_of_coefficients * coefficient
+        nest.alternatives = alternatives
+        nest.ancestors = parent_nest.ancestors + [name]
+
+        if pre_order:
+            yield spec, nest
+
+        # recursively iterate the list of alternatives
+        for alternative in spec['alternatives']:
+            for sub_node, sub_nest in _each_nest(alternative, nest, post_order):
+                yield sub_node, sub_nest
+
+        if post_order:
+            yield spec, nest
+
+    elif isinstance(spec, str):
+        name = spec
+
+        nest = Nest(name=name)
+        nest.level = parent_nest.level + 1
+        nest.product_of_coefficients = parent_nest.product_of_coefficients
+        nest.ancestors = parent_nest.ancestors + [name]
+
+        yield spec, nest
+
+
+def each_nest(nest_spec, type=None, post_order=False):
+    """
+    Iterate over each nest or leaf node in the tree (of subtree)
+
+    Parameters
+    ----------
+    nest_spec : dict
+        Nest tree dict from the model spec yaml file
+    type : str
+        Nest class type to yield
+        None yields all nests
+        'leaf' yields only leaf nodes
+        'branch' yields only branch nodes
+    post_order : Bool
+        Should we iterate over the nodes of the tree in post-order or pre-order?
+        (post-order means we yield the alternatives sub-tree before current node.)
+
+    Yields
+    -------
+        nest : Nest
+            Nest object with info about the current node (nest or leaf)
+    """
+    if type is not None and type not in Nest.nest_types():
+        tracing.error(__name__, "Unknown nest type '%s' in call to each_nest" % type)
+        raise RuntimeError("Unknown nest type '%s' in call to each_nest" % type)
+
+    for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
+        if type is None or (type == nest.type):
+            yield nest

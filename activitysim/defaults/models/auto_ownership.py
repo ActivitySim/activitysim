@@ -43,4 +43,5 @@ def auto_ownership_simulate(set_random_seed, households_merged,
         trace_columns = ['auto_ownership'] + orca.get_table('households_autoown').columns
         tracing.trace_df(orca.get_table('households').to_frame(),
                          label="auto_ownership",
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)

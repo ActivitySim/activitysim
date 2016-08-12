@@ -16,6 +16,8 @@ from activitysim import defaults
 from activitysim import activitysim as asim
 from activitysim import tracing
 
+from activitysim import mnl
+
 
 # you will want to configure this with the locations of the canonical datasets
 DATA_REPO = os.path.join(os.path.dirname(__file__), '..', '..', 'activitysim-data')
@@ -119,7 +121,7 @@ orca.add_injectable("set_random_seed", set_random_seed)
 
 inject_settings(config='sandbox',
                 data='example',
-                households_sample_size=50,
+                households_sample_size=5000,
                 preload_3d_skims=True,
                 chunk_size = 0,
                 hh_chunk_size = 0)
@@ -138,6 +140,24 @@ log_memory_info(logger, 'after stacked_skims load')
 # df = df[ ( df.hhsize > 2 )]
 # df = df[['household_id', 'is_student', 'is_worker']]
 # print df.head(20)
+
+
+EMPTY_NEST = {'level': 0, 'product_of_coefficients': 1}
+
+
+nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']
+
+# asim.trace_nests(nests, 'xxx')
+#
+# print "### each_nest"
+# for nest in mnl.each_nest(nests):
+#
+#     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
+#
+# print "### each_nest_leaf"
+# for nest in mnl.each_nest(nests, type='leaf'):
+#
+#     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
 
 run_model('compute_accessibility')
 run_model('school_location_simulate')

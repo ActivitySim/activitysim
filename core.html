@@ -205,6 +205,101 @@ the skims object is intended to be used.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.activitysim.compute_base_probabilities">
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute base probabilities for nest leaves</p>
+<p>Base probabilities will be the nest-adjusted probabilities of all leaves
+This flattens or normalizes all the nested probabilities so that they have the proper global
+relative values (the leaf probabilities sum to 1 for each row.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>dataframe with the nested probabilities for nest leafs and nodes</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>base_probabilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.compute_nested_exp_utilities">
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">compute_nested_exp_utilities</code><span class="sig-paren">(</span><em>raw_utilities</em>, <em>nest_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.compute_nested_exp_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute exponentiated nest utilities based on nesting coefficients</p>
+<p>For nest nodes this is the exponentiated logsum of alternatives adjusted by nesting coefficient</p>
+<p>leaf &lt;- exp( raw_utility )
+nest &lt;- exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>raw_utilities</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>dataframe with the raw alternative utilities of all leaves
+(what in non-nested logit would be the utilities of all the alternatives)</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nested_utilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>raw_utilities</cite> and columns for exponentiated leaf and node utilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.compute_nested_probabilities">
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">compute_nested_probabilities</code><span class="sig-paren">(</span><em>nested_exp_utilities</em>, <em>nest_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.compute_nested_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute nested probabilities for nest leafs and nodes</p>
+<p>probability for nest alternatives is simply the alternatives&#8217;s local (to nest) probability
+computed in the same way as the probability of non-nested alternatives in multinomial logit
+i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
+except in nested logit, its sib group is restricted to the nest</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_exp_utilities</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>dataframe with the exponentiated nested utilities of all leaves and nodes</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.activitysim.eval_variables">
 <code class="descclassname">activitysim.activitysim.</code><code class="descname">eval_variables</code><span class="sig-paren">(</span><em>exprs</em>, <em>df</em>, <em>locals_d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.eval_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate a set of variable expressions from a spec in the context
@@ -234,6 +329,65 @@ for an evaluation of an expression that begins with &#64;</p>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>Will have the index of <cite>df</cite> and columns of <cite>exprs</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.nested_simulate">
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">nested_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.nested_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a nested-logit simulation for when the model spec does not involve alternative
+specific data, e.g. there are no interactions with alternative
+properties and no need to sample from alternatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A table of variable specifications and coefficient values.
+Variable expressions should be in the table index and the table
+should have a column for each alternative.</p>
+</div></blockquote>
+<p><strong>nest_spec:</strong></p>
+<blockquote>
+<div><p>dictionary specifying nesting structure and nesting coefficients
+(from the model spec yaml file)</p>
+</div></blockquote>
+<p><strong>skims</strong> : Skims object</p>
+<blockquote>
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>trace_label: str</strong></p>
+<blockquote>
+<div><p>This is the label to be used  for trace log file entries and dump file names
+when household tracing enabled. No tracing occurs if label is empty or None.</p>
+</div></blockquote>
+<p><strong>trace_choice_name: str</strong></p>
+<blockquote>
+<div><p>This is the column label to be used in trace file csv dump of choices</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
+of <cite>spec</cite>.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -360,6 +514,31 @@ when household tracing enabled. No tracing occurs if label is empty or None.</p>
 <blockquote class="last">
 <div><p>Index will be that of <cite>choosers</cite>, values will match the columns
 of <cite>spec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.activitysim.trace_nests">
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">trace_nests</code><span class="sig-paren">(</span><em>nest_spec</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.trace_nests" title="Permalink to this definition">¶</a></dt>
+<dd><p>dump the nest spec to the trace file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nest_spec</strong> : dict</p>
+<blockquote class="last">
+<div><blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>trace_label: str</dt>
+<dd><p class="first last">trace file row label</p>
+</dd>
+</dl>
 </div></blockquote>
 </td>
 </tr>
@@ -676,7 +855,46 @@ offsets will be ignored</p>
 for more information.</p>
 <div class="section" id="id2">
 <h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.mnl"></span><dl class="function">
+<span class="target" id="module-activitysim.mnl"></span><dl class="class">
+<dt id="activitysim.mnl.Nest">
+<em class="property">class </em><code class="descclassname">activitysim.mnl.</code><code class="descname">Nest</code><span class="sig-paren">(</span><em>name=None</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.Nest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Data for a nest-logit node or leaf</p>
+<p>This object is passed on yield when iterate over nest nodes (branch or leaf)
+The nested logit design is stored in a yaml file as a tree of dict objects,
+but using an object to pass the nest data makes the code a little more readable</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.mnl.each_nest">
+<code class="descclassname">activitysim.mnl.</code><code class="descname">each_nest</code><span class="sig-paren">(</span><em>nest_spec</em>, <em>type=None</em>, <em>post_order=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.each_nest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over each nest or leaf node in the tree (of subtree)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+<p><strong>type</strong> : str</p>
+<blockquote>
+<div><p>Nest class type to yield
+None yields all nests
+&#8216;leaf&#8217; yields only leaf nodes
+&#8216;branch&#8217; yields only branch nodes</p>
+</div></blockquote>
+<p><strong>post_order</strong> : Bool</p>
+<blockquote class="last">
+<div><p>Should we iterate over the nodes of the tree in post-order or pre-order?
+(post-order means we yield the alternatives sub-tree before current node.)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.mnl.interaction_dataset">
 <code class="descclassname">activitysim.mnl.</code><code class="descname">interaction_dataset</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.interaction_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine choosers and alternatives into one table for the purposes
@@ -734,7 +952,7 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.mnl.utils_to_probs">
-<code class="descclassname">activitysim.mnl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.mnl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>exponentiated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a table of utilities to exponentiated probabilities.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -765,16 +983,16 @@ is an index into the columns of <cite>probs</cite>.</p>
 <h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.tracing"></span><dl class="function">
 <dt id="activitysim.tracing.canonical_slicer">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">canonical_slicer</code><span class="sig-paren">(</span><em>index_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.canonical_slicer" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">canonical_slicer</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.canonical_slicer" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a canonical column name and targets (hh id or person ids) to
 annotate a dataframe with trace targets in a manner grokable by slice_canonically method</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>index_name: str</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: DataFrame</strong></p>
 <blockquote>
-<div><p>name of column or index to use for slicing</p>
+<div><p>dataframe whose the values of whose index we will use for slicing</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1006,8 +1224,33 @@ annotate a dataframe with trace targets in a manner grokable by slice_canonicall
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.tracing.register_tours">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">register_tours</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.register_tours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register with orca persons for tracing</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced dataframe</p>
+</div></blockquote>
+<p><strong>trace_hh_id: int</strong></p>
+<blockquote>
+<div><p>household ID to trace</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.tracing.slice_canonically">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_canonically</code><span class="sig-paren">(</span><em>df</em>, <em>slicer</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_canonically" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_canonically</code><span class="sig-paren">(</span><em>df</em>, <em>slicer</em>, <em>label</em>, <em>warn=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_canonically" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1036,7 +1279,7 @@ annotate a dataframe with trace targets in a manner grokable by slice_canonicall
 
 <dl class="function">
 <dt id="activitysim.tracing.slice_ids">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_ids</code><span class="sig-paren">(</span><em>df</em>, <em>ids</em>, <em>column=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_ids" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_ids</code><span class="sig-paren">(</span><em>df</em>, <em>ids</em>, <em>column=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_ids" title="Permalink to this definition">¶</a></dt>
 <dd><p>slice a dataframe to select only records with the specified ids</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1117,58 +1360,8 @@ annotate a dataframe with trace targets in a manner grokable by slice_canonicall
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.tracing.trace_choices">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_choices</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>columns=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_choices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace choices</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.tracing.trace_choosers">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_choosers</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_choosers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace choosers</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.tracing.trace_df">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>column_labels=None</em>, <em>transpose=True</em>, <em>warn=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>column_labels=None</em>, <em>transpose=True</em>, <em>warn=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1246,31 +1439,6 @@ annotate a dataframe with trace targets in a manner grokable by slice_canonicall
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.tracing.trace_model_design">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_model_design</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_model_design" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace model design</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.tracing.trace_nan_values">
 <code class="descclassname">activitysim.tracing.</code><code class="descname">trace_nan_values</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_nan_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trace NaN values</p>
@@ -1281,56 +1449,6 @@ annotate a dataframe with trace targets in a manner grokable by slice_canonicall
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
 <blockquote>
 <div><p>data frame</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.tracing.trace_probs">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_probs</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_probs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace probabilities</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.tracing.trace_utilities">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_utilities</code><span class="sig-paren">(</span><em>df</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_utilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace utilities</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
 </div></blockquote>
 <p><strong>label: str</strong></p>
 <blockquote>

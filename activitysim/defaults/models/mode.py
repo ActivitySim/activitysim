@@ -243,7 +243,8 @@ def tour_mode_choice_simulate(tours_merged,
                          label="mode",
                          slicer='tour_id',
                          index_label='tour',
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)
 
     # FIXME - this forces garbage collection
     asim.memory_info()
@@ -289,7 +290,7 @@ def trip_mode_choice_simulate(tours_merged,
         # FIXME - log
         # print "dest_taz counts:\n", tour_type_tours[dest_key].value_counts()
 
-        trace_label = trace_hh_id and ('tour_mode_choice_%s' % tour_type)
+        trace_label = trace_hh_id and ('trip_mode_choice_%s' % tour_type)
 
         choices = _mode_choice_simulate(
             segment,
@@ -328,7 +329,8 @@ def trip_mode_choice_simulate(tours_merged,
         #                  label = "mode",
         #                  slicer='tour_id',
         #                  index_label='tour_id',
-        #                  columns = trace_columns)
+        #                  columns = trace_columns,
+        #                  warn=True)
 
     # FIXME - this forces garbage collection
     asim.memory_info()

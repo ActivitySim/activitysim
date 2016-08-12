@@ -472,14 +472,14 @@ def _run_cdap(
 
     if trace_label:
         tracing.trace_df(hh_choices, '%s.hh_choices' % trace_label,
-                         slicer='HHID', columns='choice', warn=False)
+                         slicer='HHID', columns='choice')
 
     person_choices = household_choices_to_people(hh_choices, people)
 
     if trace_label:
         print person_choices
         tracing.trace_df(person_choices, '%s.person_choices' % trace_label,
-                         columns='choice', warn=False)
+                         columns='choice')
 
     return person_choices
 

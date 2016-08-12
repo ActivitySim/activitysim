@@ -80,4 +80,5 @@ def workplace_location_simulate(set_random_seed,
         trace_columns = ['workplace_taz'] + orca.get_table('persons_workplace').columns
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="workplace_location",
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)

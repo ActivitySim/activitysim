@@ -82,4 +82,5 @@ def cdap_simulate(set_random_seed, persons_merged,
         trace_columns = ['cdap_activity']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="cdap",
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)

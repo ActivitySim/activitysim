@@ -98,4 +98,5 @@ def school_location_simulate(set_random_seed,
         trace_columns = ['school_taz'] + orca.get_table('persons_school').columns
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="school_location",
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)

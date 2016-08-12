@@ -572,7 +572,7 @@ def slice_canonically(df, slicer, label, warn=False):
                 tracer.error("trace_tour_ids error in %s index %s columns %s"
                              % (label, df.index.name, df.columns.values))
                 raise
-    elif slicer == 'taz' or slicer == 'ZONE':
+    elif slicer == 'TAZ' or slicer == 'ZONE':
         target = orca.get_injectable('trace_od')
     elif slicer == 'NONE':
         target = None
@@ -581,6 +581,7 @@ def slice_canonically(df, slicer, label, warn=False):
         # print df.head(3)
         target = None
         df = df[0:0]
+        raise RuntimeError("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
 
     if target is not None:
         df = slice_ids(df, target, column)
@@ -593,7 +594,7 @@ def slice_canonically(df, slicer, label, warn=False):
 
 
 def trace_df(df, label, slicer=None, columns=None,
-             index_label=None, column_labels=None, transpose=True, warn=True):
+             index_label=None, column_labels=None, transpose=True, warn=False):
     """
     Slice dataframe by traced household or person id dataframe and write to CSV
 
@@ -627,96 +628,6 @@ def trace_df(df, label, slicer=None, columns=None,
     if len(df.index) > 0:
         write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,
                   column_labels=column_labels, transpose=transpose)
-
-
-def trace_choosers(df, label):
-    """
-    Trace choosers
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    trace_df(df, '%s.choosers' % label, warn=False)
-
-
-def trace_utilities(df, label):
-    """
-    Trace utilities
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    trace_df(df, '%s.utilities' % label, column_labels=['alternative', 'utility'], warn=False)
-
-
-def trace_probs(df, label):
-    """
-    Trace probabilities
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    trace_df(df, '%s.probs' % label, column_labels=['alternative', 'probability'], warn=False)
-
-
-def trace_choices(df, label, columns=None):
-    """
-    Trace choices
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    trace_df(df, '%s.choices' % label, columns=columns, warn=False)
-
-
-def trace_model_design(df, label):
-    """
-    Trace model design
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    trace_df(df, '%s.model_design' % label, column_labels=['expression', None], warn=False)
 
 
 def trace_interaction_model_design(model_design, choosers, label):

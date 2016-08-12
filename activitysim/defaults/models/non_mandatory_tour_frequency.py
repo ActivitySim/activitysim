@@ -91,7 +91,8 @@ def non_mandatory_tour_frequency(set_random_seed,
         trace_columns = ['non_mandatory_tour_frequency']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="non_mandatory_tour_frequency",
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)
 
 """
 We have now generated non-mandatory tours, but they are attributes of the

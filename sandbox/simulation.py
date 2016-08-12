@@ -16,6 +16,8 @@ from activitysim import defaults
 from activitysim import activitysim as asim
 from activitysim import tracing
 
+from activitysim import mnl
+
 
 # you will want to configure this with the locations of the canonical datasets
 DATA_REPO = os.path.join(os.path.dirname(__file__), '..', '..', 'activitysim-data')
@@ -118,8 +120,8 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 hh_chunk_size = 50000)
 
 inject_settings(config='sandbox',
-                data='test',
-                households_sample_size=50,
+                data='example',
+                households_sample_size=5000,
                 preload_3d_skims=True,
                 chunk_size = 0,
                 hh_chunk_size = 0)
@@ -147,15 +149,15 @@ nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']
 
 # asim.trace_nests(nests, 'xxx')
 #
-# for node, nest in asim.each_nest(nests):
+# print "### each_nest"
+# for nest in mnl.each_nest(nests):
 #
-#     indent = "   " * nest['level']
+#     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
 #
-#     if nest['leaf']:
-#         print "%sleaf name: %s parents %s" % (indent, nest['name'], nest['ancestors'])
-#     else:
-#         print "%snode name: %s parents %s" % (indent, nest['name'], nest['ancestors'])
-
+# print "### each_nest_leaf"
+# for nest in mnl.each_nest(nests, type='leaf'):
+#
+#     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
 
 run_model('compute_accessibility')
 run_model('school_location_simulate')
@@ -169,7 +171,7 @@ run_model('destination_choice')
 run_model('non_mandatory_scheduling')
 run_model('patch_mandatory_tour_destination')
 run_model('tour_mode_choice_simulate')
-#run_model('trip_mode_choice_simulate')
+run_model('trip_mode_choice_simulate')
 
 orca.get_injectable('store').close()
 orca.get_injectable('omx_file').close()

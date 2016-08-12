@@ -59,7 +59,8 @@ def mandatory_tour_frequency(set_random_seed,
         trace_columns = ['mandatory_tour_frequency']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="mandatory_tour_frequency",
-                         columns=trace_columns)
+                         columns=trace_columns,
+                         warn=True)
 
 """
 This reprocesses the choice of index of the mandatory tour frequency

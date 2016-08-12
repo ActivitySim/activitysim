@@ -145,15 +145,13 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
                          message="RESULT: %s = %s" % (column, df[column].iloc[0]))
 
         tracing.trace_df(df,
-                         label='accessibility.result',
+                         label='accessibility',
                          index_label='skim_offset',
-                         slicer='NONE')
+                         slicer='NONE',
+                         warn=True)
 
-        tracing.trace_df(orca.get_table('accessibility').to_frame(),
-                         label="accessibility",
-                         column_labels=['label', 'orig_taz', 'dest_taz'])
+        # tracing.trace_df(orca.get_table('accessibility').to_frame(), "accessibility.full",
+        #                  slicer='NONE', transpose=False, warn=True)
 
-        tracing.trace_df(orca.get_table('accessibility').to_frame(), "accessibility.full",
-                         slicer='NONE', transpose=False)
-
-        tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged")
+        tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
+                         warn=True)

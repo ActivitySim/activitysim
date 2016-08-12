@@ -56,4 +56,5 @@ def non_mandatory_scheduling(set_random_seed,
                          label="non_mandatory_tours",
                          slicer='person_id',
                          index_label='tour_id',
-                         columns=None)
+                         columns=None,
+                         warn=True)

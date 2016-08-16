@@ -250,6 +250,6 @@ def test_full_run_with_hh_trace(store, omx_file):
     # should have created accessibility csv trace file
     a = pd.read_csv(accessibility_fname)
     assert a.iloc[1][0] == 'dest'
-    assert a.iloc[1][1] == OD[1]
+    assert int(a.iloc[1][1]) == OD[1]
     assert a.iloc[2][0] == 'orig'
-    assert a.iloc[2][1] == OD[0]
+    assert int(a.iloc[2][1]) == OD[0]

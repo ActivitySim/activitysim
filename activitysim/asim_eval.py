@@ -10,6 +10,36 @@ import pandas as pd
 logger = logging.getLogger('activitysim')
 
 
+def undupe_column_names(df, template="{} ({})"):
+    """
+    rename df column names so there are no duplicates (in place)
+
+    e.g. if there are two columns named "dog", the second column will be reformatted to "dog (2)"
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        dataframe whose column names should be de-duplicated
+    template : template taking two arguments (old_name, int) to use to rename columns
+
+    Returns
+    -------
+    df : pandas.DataFrame
+        dataframe that was renamed in place, for convenience in chaining
+    """
+    new_names = []
+    seen = set()
+    for name in df.columns:
+        n = 1
+        new_name = name
+        while new_name in seen:
+            n += 1
+            new_name = template.format(name, n)
+        new_names.append(new_name)
+        seen.add(new_name)
+    df.columns = new_names
+    return df
+
+
 def read_assignment_spec(fname,
                          description_name="Description",
                          target_name="Target",
@@ -63,7 +93,7 @@ def read_assignment_spec(fname,
     return cfg
 
 
-def assign_variables(assignment_expressions, df, locals_d):
+def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -72,6 +102,9 @@ def assign_variables(assignment_expressions, df, locals_d):
     Python expressions have access to variables in locals_d (and df being
     accessible as variable df.) They also have access to previously assigned
     targets as the assigned target name.
+
+    variables starting with underscore are considered temps variables and returned seperately
+    (and only if return_temp_variables is true)
 
     Users should take care that expressions should result in
     a Pandas Series (scalars will be automatically promoted to series.)
@@ -85,13 +118,14 @@ def assign_variables(assignment_expressions, df, locals_d):
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of "python" expression.
-
+    trace_rows: series or array of bools to use as mask to select target rows to trace
     Returns
     -------
     variables : pandas.DataFrame
         Will have the index of `df` and columns named by target and containing
         the result of evaluating expression
-
+    trace_df : pandas.DataFrame or None
+        a dataframe containing the eval result values for each assignment expression
     """
 
     def to_series(x, target=None):
@@ -101,16 +135,27 @@ def assign_variables(assignment_expressions, df, locals_d):
             return pd.Series([x] * len(df.index), index=df.index)
         return x
 
-    # avoid trashing parameter when we add target
+    trace = False
+    if trace_rows is not None:
+        # convert to numpy array so we can slice ndarrays as well as series
+        trace_rows = np.asanyarray(trace_rows)
+        trace_results = []
+        trace = trace_rows.any()
+
+    # avoid touching caller's passed-in locals_d parameter (they may be looping)
     locals_d = locals_d.copy() if locals_d is not None else {}
     locals_d['df'] = df
+    local_keys = locals_d.keys()
 
     l = []
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
-        target = e[0]
-        expression = e[1]
+        target, expression = e
+
+        if target in local_keys:
+            logger.warn("assign_variables target obscures local_d name '%s'" % str(target))
+
         try:
             values = to_series(eval(expression, globals(), locals_d), target=target)
         except Exception as err:
@@ -121,20 +166,33 @@ def assign_variables(assignment_expressions, df, locals_d):
 
         l.append((target, values))
 
+        if trace:
+            trace_results.append((target, values[trace_rows]))
+
         # update locals to allows us to ref previously assigned targets
         locals_d[target] = values
 
+    # build a dataframe of eval results for non-temp targets
     # since we allow targets to be recycled, we want to only keep the last usage
-    keepers = []
+    # we scan through targets in reverse order and add them to the front of the list
+    # the first time we see them so they end up in execution order
+    variables = []
+    seen = set()
     for statement in reversed(l):
-        # don't keep targets that start with underscore
-        if statement[0].startswith('_'):
-            continue
-        # add statement to keepers list unless target is already in list
-        if not next((True for keeper in keepers if keeper[0] == statement[0]), False):
-            keepers.append(statement)
+        # statement is a tuple (<target_name>, <eval results in pandas.Series>)
+        target_name = statement[0]
+        if not target_name.startswith('_') and target_name not in seen:
+            variables.insert(0, statement)
+            seen.add(target_name)
 
-    return pd.DataFrame.from_items(keepers)
+    # DataFrame from list of tuples [<target_name>, <eval results>), ...]
+    variables = pd.DataFrame.from_items(variables)
+
+    if trace:
+        trace_results = undupe_column_names(pd.DataFrame.from_items(trace_results))
+        return variables, trace_results
+    else:
+        return variables, None
 
 
 def assign_variables_locals(locals=None):

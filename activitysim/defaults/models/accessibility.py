@@ -110,6 +110,12 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
         }
     )
 
+    if trace_od:
+        trace_orig, trace_dest = trace_od
+        trace_od_rows = (od_df.orig == trace_orig) & (od_df.dest == trace_dest)
+    else:
+        trace_od_rows = None
+
     # merge land_use_columns into od_df
     land_use_columns = settings_locals.get('land_use_columns', [])
     land_use_df = land_use_df[land_use_columns]
@@ -119,11 +125,12 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
     locals_d['skim_od'] = AccessibilitySkims(skims, omx_file, zone_count)
     locals_d['skim_do'] = AccessibilitySkims(skims, omx_file, zone_count, transpose=True)
 
-    result = asim_eval.assign_variables(accessibility_spec, od_df, locals_d)
+    results, trace_results = asim_eval.assign_variables(accessibility_spec, od_df, locals_d,
+                                                        trace_rows=trace_od_rows)
 
     accessibility_df = pd.DataFrame(index=land_use.index)
-    for column in result.columns:
-        data = np.asanyarray(result[column])
+    for column in results.columns:
+        data = np.asanyarray(results[column])
         data.shape = (zone_count, zone_count)
         accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
 
@@ -131,27 +138,28 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
 
     if trace_od:
 
-        tracing.info(__name__,
-                     "trace origin = %s, dest = %s" % (trace_od[0], trace_od[1]))
-
+        # trace settings
         for key, value in settings_locals.iteritems():
             tracing.info(__name__,
                          message="SETTING: %s = %s" % (key, value))
 
-        o, d = trace_od
-        df = pd.concat([od_df, result], axis=1)[(od_df.orig == o) & (od_df.dest == d)]
-        for column in df.columns:
-            tracing.info(__name__,
-                         message="RESULT: %s = %s" % (column, df[column].iloc[0]))
+        if not trace_od_rows.any():
+            tracing.warn(__name__,
+                         "trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
+        else:
 
-        tracing.trace_df(df,
-                         label='accessibility',
-                         index_label='skim_offset',
-                         slicer='NONE',
-                         warn=True)
+            # concat first temps then results
+            df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
-        # tracing.trace_df(orca.get_table('accessibility').to_frame(), "accessibility.full",
-        #                  slicer='NONE', transpose=False, warn=True)
+            for column in df.columns:
+                tracing.info(__name__,
+                             message="EVAL: %s = %s" % (column, df[column].iloc[0]))
+
+            tracing.trace_df(df,
+                             label='accessibility',
+                             index_label='skim_offset',
+                             slicer='NONE',
+                             warn=True)
 
         tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
                          warn=True)

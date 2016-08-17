@@ -1516,13 +1516,15 @@ This is used by the <code class="xref py py-func docutils literal"><span class="
 <h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.asim_eval"></span><dl class="function">
 <dt id="activitysim.asim_eval.assign_variables">
-<code class="descclassname">activitysim.asim_eval.</code><code class="descname">assign_variables</code><span class="sig-paren">(</span><em>assignment_expressions</em>, <em>df</em>, <em>locals_d</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.asim_eval.assign_variables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.asim_eval.</code><code class="descname">assign_variables</code><span class="sig-paren">(</span><em>assignment_expressions</em>, <em>df</em>, <em>locals_d</em>, <em>trace_rows=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.asim_eval.assign_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate a set of variable expressions from a spec in the context
 of a given data table.</p>
 <p>Expressions are evaluated using Python&#8217;s eval function.
 Python expressions have access to variables in locals_d (and df being
 accessible as variable df.) They also have access to previously assigned
 targets as the assigned target name.</p>
+<p>variables starting with underscore are considered temps variables and returned seperately
+(and only if return_temp_variables is true)</p>
 <p>Users should take care that expressions should result in
 a Pandas Series (scalars will be automatically promoted to series.)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1540,12 +1542,17 @@ expression: pandas or python expression to evaluate</p>
 <div><p>This is a dictionary of local variables that will be the environment
 for an evaluation of &#8220;python&#8221; expression.</p>
 </div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
-<blockquote class="last">
+<p><strong>trace_rows: series or array of bools to use as mask to select target rows to trace</strong></p>
+<p><strong>Returns</strong></p>
+<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>variables</strong> : pandas.DataFrame</p>
+<blockquote>
 <div><p>Will have the index of <cite>df</cite> and columns named by target and containing
 the result of evaluating expression</p>
+</div></blockquote>
+<p><strong>trace_df</strong> : pandas.DataFrame or None</p>
+<blockquote class="last">
+<div><p>a dataframe containing the eval result values for each assignment expression</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1614,6 +1621,31 @@ targets, and expressions,</p>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>dataframe with three columns: [&#8216;description&#8217; &#8216;target&#8217; &#8216;expression&#8217;]</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.asim_eval.undupe_column_names">
+<code class="descclassname">activitysim.asim_eval.</code><code class="descname">undupe_column_names</code><span class="sig-paren">(</span><em>df</em>, <em>template='{} ({})'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.asim_eval.undupe_column_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>rename df column names so there are no duplicates (in place)</p>
+<p>e.g. if there are two columns named &#8220;dog&#8221;, the second column will be reformatted to &#8220;dog (2)&#8221;
+Parameters
+&#8212;&#8212;&#8212;-
+df : pandas.DataFrame</p>
+<blockquote>
+<div>dataframe whose column names should be de-duplicated</div></blockquote>
+<p>template : template taking two arguments (old_name, int) to use to rename columns</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>dataframe that was renamed in place, for convenience in chaining</p>
 </div></blockquote>
 </td>
 </tr>

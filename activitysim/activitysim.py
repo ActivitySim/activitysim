@@ -9,8 +9,8 @@ import pandas as pd
 from zbox import toolz as tz
 
 from .skim import Skims, Skims3D
-from .mnl import utils_to_probs, make_choices, interaction_dataset
-from .mnl import each_nest
+from .nl import utils_to_probs, make_choices, interaction_dataset
+from .nl import each_nest
 import tracing
 
 import os
@@ -188,7 +188,7 @@ def _check_for_variability(model_design):
 
 def trace_nests(nest_spec, trace_label):
     """
-   dump the nest spec to the trace file
+    dump the nest spec to the trace file
 
     Parameters
     ----------
@@ -197,6 +197,7 @@ def trace_nests(nest_spec, trace_label):
     trace_label: str
         trace file row label
     """
+
     for nest in each_nest(nest_spec):
 
         indent = "   " * nest.level
@@ -441,7 +442,7 @@ def nested_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 def simple_simulate(choosers, spec, skims=None, locals_d=None,
                     trace_label=None, trace_choice_name=None):
     """
-    Run a simulation for when the model spec does not involve alternative
+    Run a MNL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
     properties and no need to sample from alternatives.
 
@@ -565,7 +566,7 @@ def _interaction_simulate(
         skims=None, locals_d=None, sample_size=None,
         trace_label=None, trace_choice_name=None):
     """
-    Run a simulation in the situation in which alternatives must
+    Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
     because alternatives are being sampled.
 
@@ -595,6 +596,11 @@ def _interaction_simulate(
     sample_size : int, optional
         Sample alternatives with sample of given size.  By default is None,
         which does not sample alternatives.
+    trace_label: str
+        This is the label to be used  for trace log file entries and dump file names
+        when household tracing enabled. No tracing occurs if label is empty or None.
+    trace_choice_name: str
+        This is the column label to be used in trace file csv dump of choices
 
     Returns
     -------

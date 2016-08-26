@@ -15,6 +15,7 @@ def undupe_column_names(df, template="{} ({})"):
     rename df column names so there are no duplicates (in place)
 
     e.g. if there are two columns named "dog", the second column will be reformatted to "dog (2)"
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -26,6 +27,7 @@ def undupe_column_names(df, template="{} ({})"):
     df : pandas.DataFrame
         dataframe that was renamed in place, for convenience in chaining
     """
+
     new_names = []
     seen = set()
     for name in df.columns:

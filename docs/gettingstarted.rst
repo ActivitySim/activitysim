@@ -152,7 +152,8 @@ coefficients as columns.  Broadly speaking, there are currently three types of m
 
 The tour mode choice model expressions file is structured a little differently, as shown below.  Each row is an expression for one
 alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as 
-``$IN_N_OUT_EXPR.format(sk='SOV_TIME')`` are specified in the YAML settings file for the model.
+``$IN_N_OUT_EXPR.format(sk='SOV_TIME')`` are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit model
+and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.
 
 +----------------------------------------+------------------------------------------+----------------------+-----------+----------+
 | Description                            |  Expression                              |     Alternative      |   school  | shopping |
@@ -237,7 +238,7 @@ is the main settings file for the model run.  This file includes:
 Logging Files
 ^^^^^^^^^^^^^
 
-Included in the configuration folder is the ``logging.yaml``, which configures Python ``logging`` 
+Included in the ``configs`` folder is the ``logging.yaml``, which configures Python logging 
 library and defines two key log files: 
 
 * ``asim.log`` - overall system log file
@@ -248,7 +249,7 @@ Refer to the :ref:`tracing` section for more detail on tracing.
 Model Specification Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Included in the configuration folder are the model specification files that store the 
+Included in the ``configs`` folder are the model specification files that store the 
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an 
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each 
@@ -306,6 +307,8 @@ file:
 
 With the set of output CSV files, the user can trace ActivitySim's calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.
+
+.. _how_the_system_works:
 
 How the System Works
 --------------------
@@ -437,19 +440,25 @@ generation code which get merged during interaction as renamed ``TAZ_r``.  The s
     skims.set_keys("TAZ", "TAZ_r")
     locals_d = {"skims": skims}
 
-The next step is to call ``asim.interaction_simulate`` function which run a simulation in which alternatives 
-must be merged with choosers because there are interaction terms or because alternatives are being sampled.  The choosers table, the
+The next step is to call ``asim.interaction_simulate`` function which run a MNL choice model simulation in which alternatives 
+must be merged with choosers because there are interaction terms or because alternatives are sampled.  The choosers table, the
 alternatives table, the model specification expressions file, the skims, and the sample size are all passed in.  
 
 :: 
-  
+      
   asim.interaction_simulate(choosers_segment, alternatives, spec[[school_type]],
-    skims=skims, locals_d=locals_d, sample_size=50, chunk_size=0, trace_label=None)
+    skims=skims, locals_d=locals_d, sample_size=50, chunk_size=0, trace_label=None, trace_choice_name=None)
 
-This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices. 
+This function solves the MNL utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices. 
 This is done in a for loop of chunks of choosers in order to avoid running out of RAM when building the often large data tables.
 The ``eval_variables`` loops through each expression and solves it at once for all records in the chunked chooser table using 
 either pandas' eval() or Python's eval().
+
+As introduced earlier, there are three different simulate methods currently in ActivitySim:
+
+* simple_simulate - Multinomial logit simulation - such as a simple auto ownership model
+* nested_simulate - Nested logit simulation - such as a nested mode choice model
+* interaction_simulate - Multinomial logit simulation where alternatives are interacted with choosers or because alternatives are sampled - such as a tour destination choice model
 
 If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array) 
 in one vectorized step.  The ``orig`` and ``dest`` objects in ``self.data[orig, dest]`` in ``activitysim.skim.py`` are vectors
@@ -475,10 +484,12 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
     choices = pd.Series(choices, index=choosers.index)
 
     if trace_label:
-        tracing.trace_choosers(choosers, trace_label)
-        tracing.trace_utilities(utilities, trace_label)
-        tracing.trace_probs(probs, trace_label)
-        tracing.trace_choices(choices, trace_label)
+        trace_label = "%s.interaction_simulate" % trace_label
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+        tracing.trace_df(utilities, '%s.utilities' % trace_label,column_labels=['alternative', 'utility'])
+        tracing.trace_df(probs, '%s.probs' % trace_label,column_labels=['alternative', 'probability'])
+        tracing.trace_df(choices, '%s.choices' % trace_label,columns=[None, trace_choice_name])
+        tracing.trace_interaction_model_design(model_design, choosers, label=trace_label)
 
     return choices, model_design
 

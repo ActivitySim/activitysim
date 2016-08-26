@@ -181,6 +181,12 @@ An example of model expressions is found in the example auto ownership model spe
 <a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv">auto_ownership.csv</a>.
 Refer to the <a class="reference internal" href="gettingstarted.html#expressions-in-detail"><span class="std std-ref">Expressions</span></a> section for more detail.</p>
 </div>
+<div class="section" id="choice-models">
+<h3>Choice Models<a class="headerlink" href="#choice-models" title="Permalink to this headline">¶</a></h3>
+<p>ActivitySim supports multinomial (MNL) and nested logit (NL) choice models. Refer to <a class="reference internal" href="core.html#nl-in-detail"><span class="std std-ref">Nested Logit</span></a> for more information.
+It also supports custom expressions as noted above, which can often be used to code additional types of choice models.  In addition,
+developers can write their own choice models in Python and expose these through the framework.</p>
+</div>
 </div>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
@@ -207,7 +213,7 @@ Refer to the <a class="reference internal" href="gettingstarted.html#expressions
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="core.html#activitysim">Activitysim</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#skim">Skim</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#mnl">MNL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#nested-logit">Nested Logit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#tracing">Tracing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#asim-eval">Asim_Eval</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#utilities">Utilities</a></li>

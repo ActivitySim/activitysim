@@ -324,7 +324,8 @@ coefficients as columns.  Broadly speaking, there are currently three types of m
 </ul>
 <p>The tour mode choice model expressions file is structured a little differently, as shown below.  Each row is an expression for one
 alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as
-<code class="docutils literal"><span class="pre">$IN_N_OUT_EXPR.format(sk='SOV_TIME')</span></code> are specified in the YAML settings file for the model.</p>
+<code class="docutils literal"><span class="pre">$IN_N_OUT_EXPR.format(sk='SOV_TIME')</span></code> are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit model
+and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="32%" />
@@ -447,7 +448,7 @@ is the main settings file for the model run.  This file includes:</p>
 </ul>
 <div class="section" id="logging-files">
 <h4>Logging Files<a class="headerlink" href="#logging-files" title="Permalink to this headline">¶</a></h4>
-<p>Included in the configuration folder is the <code class="docutils literal"><span class="pre">logging.yaml</span></code>, which configures Python <code class="docutils literal"><span class="pre">logging</span></code>
+<p>Included in the <code class="docutils literal"><span class="pre">configs</span></code> folder is the <code class="docutils literal"><span class="pre">logging.yaml</span></code>, which configures Python logging
 library and defines two key log files:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">asim.log</span></code> - overall system log file</li>
@@ -457,7 +458,7 @@ library and defines two key log files:</p>
 </div>
 <div class="section" id="model-specification-files">
 <h4>Model Specification Files<a class="headerlink" href="#model-specification-files" title="Permalink to this headline">¶</a></h4>
-<p>Included in the configuration folder are the model specification files that store the
+<p>Included in the <code class="docutils literal"><span class="pre">configs</span></code> folder are the model specification files that store the
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each
@@ -514,7 +515,7 @@ help debug data and/or logic errors.</p>
 </div>
 </div>
 <div class="section" id="how-the-system-works">
-<h2>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h2>
 <p>This section describes ActivitySim&#8217;s flow of execution.</p>
 <div class="section" id="the-basic-flow-of-execution">
 <h3>The Basic Flow of Execution<a class="headerlink" href="#the-basic-flow-of-execution" title="Permalink to this headline">¶</a></h3>
@@ -625,17 +626,23 @@ generation code which get merged during interaction as renamed <code class="docu
 <span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;skims&quot;</span><span class="p">:</span> <span class="n">skims</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>The next step is to call <code class="docutils literal"><span class="pre">asim.interaction_simulate</span></code> function which run a simulation in which alternatives
-must be merged with choosers because there are interaction terms or because alternatives are being sampled.  The choosers table, the
+<p>The next step is to call <code class="docutils literal"><span class="pre">asim.interaction_simulate</span></code> function which run a MNL choice model simulation in which alternatives
+must be merged with choosers because there are interaction terms or because alternatives are sampled.  The choosers table, the
 alternatives table, the model specification expressions file, the skims, and the sample size are all passed in.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asim</span><span class="o">.</span><span class="n">interaction_simulate</span><span class="p">(</span><span class="n">choosers_segment</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">spec</span><span class="p">[[</span><span class="n">school_type</span><span class="p">]],</span>
-  <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span> <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+  <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span> <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace_choice_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
+<p>This function solves the MNL utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
 This is done in a for loop of chunks of choosers in order to avoid running out of RAM when building the often large data tables.
 The <code class="docutils literal"><span class="pre">eval_variables</span></code> loops through each expression and solves it at once for all records in the chunked chooser table using
 either pandas&#8217; eval() or Python&#8217;s eval().</p>
+<p>As introduced earlier, there are three different simulate methods currently in ActivitySim:</p>
+<ul class="simple">
+<li>simple_simulate - Multinomial logit simulation - such as a simple auto ownership model</li>
+<li>nested_simulate - Nested logit simulation - such as a nested mode choice model</li>
+<li>interaction_simulate - Multinomial logit simulation where alternatives are interacted with choosers or because alternatives are sampled - such as a tour destination choice model</li>
+</ul>
 <p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
 in one vectorized step.  The <code class="docutils literal"><span class="pre">orig</span></code> and <code class="docutils literal"><span class="pre">dest</span></code> objects in <code class="docutils literal"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <code class="docutils literal"><span class="pre">activitysim.skim.py</span></code> are vectors
 and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured.</p>
@@ -657,10 +664,12 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
 <span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">trace_label</span><span class="p">:</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_choosers</span><span class="p">(</span><span class="n">choosers</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_utilities</span><span class="p">(</span><span class="n">utilities</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_probs</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_choices</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
+    <span class="n">trace_label</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.interaction_simulate&quot;</span> <span class="o">%</span> <span class="n">trace_label</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">choosers</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.choosers&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">)</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">utilities</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.utilities&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">,</span><span class="n">column_labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alternative&#39;</span><span class="p">,</span> <span class="s1">&#39;utility&#39;</span><span class="p">])</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.probs&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">,</span><span class="n">column_labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alternative&#39;</span><span class="p">,</span> <span class="s1">&#39;probability&#39;</span><span class="p">])</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.choices&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace_choice_name</span><span class="p">])</span>
+    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_interaction_model_design</span><span class="p">(</span><span class="n">model_design</span><span class="p">,</span> <span class="n">choosers</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">trace_label</span><span class="p">)</span>
 
 <span class="k">return</span> <span class="n">choices</span><span class="p">,</span> <span class="n">model_design</span>
 </pre></div>

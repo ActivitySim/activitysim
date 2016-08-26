@@ -4,7 +4,7 @@ Core Utilities
 ActivitySim's core components include the model specification reader, 
 the expression evaluator, the skim matrix manager, the simulate methods for solving
 models (i.e. calculating utilities, probabilties, and making choices),  the choice 
-models such as :ref:`mnl_in_detail`, and the tracer.
+models such as :ref:`nl_in_detail`, and the tracer.
 
 Activitysim
 ------------
@@ -15,10 +15,10 @@ API
 .. automodule:: activitysim.activitysim
    :members:
 
-.. _skims_in_detail :
+.. _skims_in_detail:
 
 Skim
-------------
+----
 
 Skim Abstractions
 
@@ -28,23 +28,26 @@ API
 .. automodule:: activitysim.skim
    :members:
 
-.. _mnl_in_detail :
+.. _nl_in_detail:
 
-MNL
+Nested Logit
 ------------
 
-Multinomial logit choice model. See `choice models 
-<http://tfresource.org/Category:Choice_models>`__
-for more information.
+Nested or multinomial logit choice model.  These choice models depend on the foundational components of ActivitySim, such
+as the expression and data handling described in the :ref:`how_the_system_works` section. To solve an MNL model, call 
+``asim.simple_simulate()``. To solve an NL model, first specify the nesting structure via the NESTS setting in the 
+model configuration file.  An example nested logit NESTS entry can be found in 
+``example/configs/tour_mode_choice.yaml``.  With the NESTS defined, call ``asim.nested_simulate()`` to solve the 
+model and make choices. 
 
 API
 ~~~
 
-.. automodule:: activitysim.mnl
+.. automodule:: activitysim.nl
    :members:
    
 Tracing
-------------
+-------
 
 Household tracer 
 
@@ -55,7 +58,7 @@ API
    :members:
 
 Asim_Eval
-------------
+---------
 
 Alternative version of the expression evaluator in ``activitysim`` that supports temporary variable assignment.  
 This is used by the :py:func:`~activitysim.defaults.models.compute_accessibility`  module.
@@ -68,7 +71,7 @@ API
 
 
 Utilities
-------------
+---------
 
 Reindex
 ~~~~~~~

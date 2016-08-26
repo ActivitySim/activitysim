@@ -93,7 +93,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#id1">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#mnl">MNL</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#nested-logit">Nested Logit</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id2">API</a></li>
 </ul>
 </li>
@@ -169,7 +169,7 @@
 <p>ActivitySim&#8217;s core components include the model specification reader,
 the expression evaluator, the skim matrix manager, the simulate methods for solving
 models (i.e. calculating utilities, probabilties, and making choices),  the choice
-models such as <a class="reference internal" href="#mnl-in-detail"><span class="std std-ref">MNL</span></a>, and the tracer.</p>
+models such as <a class="reference internal" href="#nl-in-detail"><span class="std std-ref">Nested Logit</span></a>, and the tracer.</p>
 <div class="section" id="activitysim">
 <h2>Activitysim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="module-activitysim.activitysim">
@@ -470,7 +470,7 @@ expression values are set as the table index.</p>
 <dl class="function">
 <dt id="activitysim.activitysim.simple_simulate">
 <code class="descclassname">activitysim.activitysim.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.simple_simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a simulation for when the model spec does not involve alternative
+<dd><p>Run a MNL simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -530,15 +530,12 @@ of <cite>spec</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nest_spec</strong> : dict</p>
-<blockquote class="last">
-<div><blockquote>
+<blockquote>
 <div><p>Nest tree dict from the model spec yaml file</p>
 </div></blockquote>
-<dl class="docutils">
-<dt>trace_label: str</dt>
-<dd><p class="first last">trace file row label</p>
-</dd>
-</dl>
+<p><strong>trace_label: str</strong></p>
+<blockquote class="last">
+<div><p>trace file row label</p>
 </div></blockquote>
 </td>
 </tr>
@@ -849,24 +846,30 @@ offsets will be ignored</p>
 
 </div>
 </div>
-<div class="section" id="mnl">
-<span id="mnl-in-detail"></span><h2>MNL<a class="headerlink" href="#mnl" title="Permalink to this headline">¶</a></h2>
-<p>Multinomial logit choice model. See <a class="reference external" href="http://tfresource.org/Category:Choice_models">choice models</a>
-for more information.</p>
+<div class="section" id="nested-logit">
+<span id="nl-in-detail"></span><h2>Nested Logit<a class="headerlink" href="#nested-logit" title="Permalink to this headline">¶</a></h2>
+<p>Nested or multinomial logit choice model.  These choice models depend on the foundational components of ActivitySim, such
+as the expression and data handling described in the <a class="reference internal" href="gettingstarted.html#how-the-system-works"><span class="std std-ref">How the System Works</span></a> section. To solve an MNL model, call
+<code class="docutils literal"><span class="pre">asim.simple_simulate()</span></code>. To solve an NL model, first specify the nesting structure via the NESTS setting in the
+model configuration file.  An example nested logit NESTS entry can be found in
+<code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code>.  With the NESTS defined, call <code class="docutils literal"><span class="pre">asim.nested_simulate()</span></code> to solve the
+model and make choices.</p>
 <div class="section" id="id2">
 <h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.mnl"></span><dl class="class">
-<dt id="activitysim.mnl.Nest">
-<em class="property">class </em><code class="descclassname">activitysim.mnl.</code><code class="descname">Nest</code><span class="sig-paren">(</span><em>name=None</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.Nest" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="module-activitysim.nl"></span><dl class="class">
+<dt id="activitysim.nl.Nest">
+<em class="property">class </em><code class="descclassname">activitysim.nl.</code><code class="descname">Nest</code><span class="sig-paren">(</span><em>name=None</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.Nest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data for a nest-logit node or leaf</p>
 <p>This object is passed on yield when iterate over nest nodes (branch or leaf)
 The nested logit design is stored in a yaml file as a tree of dict objects,
 but using an object to pass the nest data makes the code a little more readable</p>
+<p>An example nest specification is in the example tour mode choice model
+yaml configuration file - example/configs/tour_mode_choice.yaml.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.mnl.each_nest">
-<code class="descclassname">activitysim.mnl.</code><code class="descname">each_nest</code><span class="sig-paren">(</span><em>nest_spec</em>, <em>type=None</em>, <em>post_order=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.each_nest" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.nl.each_nest">
+<code class="descclassname">activitysim.nl.</code><code class="descname">each_nest</code><span class="sig-paren">(</span><em>nest_spec</em>, <em>type=None</em>, <em>post_order=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.each_nest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate over each nest or leaf node in the tree (of subtree)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -884,9 +887,15 @@ None yields all nests
 &#8216;branch&#8217; yields only branch nodes</p>
 </div></blockquote>
 <p><strong>post_order</strong> : Bool</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Should we iterate over the nodes of the tree in post-order or pre-order?
 (post-order means we yield the alternatives sub-tree before current node.)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>nest</strong> : Nest</p>
+<blockquote class="last">
+<div><p>Nest object with info about the current node (nest or leaf)</p>
 </div></blockquote>
 </td>
 </tr>
@@ -895,8 +904,8 @@ None yields all nests
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.mnl.interaction_dataset">
-<code class="descclassname">activitysim.mnl.</code><code class="descname">interaction_dataset</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.interaction_dataset" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.nl.interaction_dataset">
+<code class="descclassname">activitysim.nl.</code><code class="descname">interaction_dataset</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.interaction_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine choosers and alternatives into one table for the purposes
 of creating interaction variables and/or sampling alternatives.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -924,8 +933,8 @@ len(alternatives) or <cite>sample_size</cite> times.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.mnl.make_choices">
-<code class="descclassname">activitysim.mnl.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.make_choices" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.nl.make_choices">
+<code class="descclassname">activitysim.nl.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.make_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make choices for each chooser from among a set of alternatives.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -951,8 +960,8 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.mnl.utils_to_probs">
-<code class="descclassname">activitysim.mnl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>exponentiated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.mnl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.nl.utils_to_probs">
+<code class="descclassname">activitysim.nl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>exponentiated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a table of utilities to exponentiated probabilities.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1632,18 +1641,19 @@ targets, and expressions,</p>
 <dt id="activitysim.asim_eval.undupe_column_names">
 <code class="descclassname">activitysim.asim_eval.</code><code class="descname">undupe_column_names</code><span class="sig-paren">(</span><em>df</em>, <em>template='{} ({})'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.asim_eval.undupe_column_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>rename df column names so there are no duplicates (in place)</p>
-<p>e.g. if there are two columns named &#8220;dog&#8221;, the second column will be reformatted to &#8220;dog (2)&#8221;
-Parameters
-&#8212;&#8212;&#8212;-
-df : pandas.DataFrame</p>
-<blockquote>
-<div>dataframe whose column names should be de-duplicated</div></blockquote>
-<p>template : template taking two arguments (old_name, int) to use to rename columns</p>
+<p>e.g. if there are two columns named &#8220;dog&#8221;, the second column will be reformatted to &#8220;dog (2)&#8221;</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>dataframe whose column names should be de-duplicated</p>
+</div></blockquote>
+<p><strong>template</strong> : template taking two arguments (old_name, int) to use to rename columns</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>dataframe that was renamed in place, for convenience in chaining</p>
 </div></blockquote>

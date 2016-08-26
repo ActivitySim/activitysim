@@ -62,6 +62,13 @@ An example of model expressions is found in the example auto ownership model spe
 `auto_ownership.csv <https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv>`__. 
 Refer to the :ref:`expressions_in_detail` section for more detail.
 
+Choice Models
+~~~~~~~~~~~~~
+
+ActivitySim supports multinomial (MNL) and nested logit (NL) choice models. Refer to :ref:`nl_in_detail` for more information.
+It also supports custom expressions as noted above, which can often be used to code additional types of choice models.  In addition,
+developers can write their own choice models in Python and expose these through the framework.  
+
 Contents
 --------
 

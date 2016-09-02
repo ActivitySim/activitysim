@@ -1,17 +1,17 @@
-# input data store and skims
+#input data store and skims
 store: mtc_asim.h5
 skims_file: skims.omx
 
-# number of households to simulate
+#number of households to simulate
 households_sample_size: 1000
 
-# trace household id; comment out for no trace
+#trace household id; comment out for no trace
 trace_hh_id: 961042
 
 # trace origin, destination in accessibility calculation
-trace_od: [5, 15]
+trace_od: [5, 11]
 
-# internal settings
+#internal settings 
 preload_3d_skims: True
 chunk_size: 10000
 
@@ -75,14 +75,4 @@ time_periods:
         - MD
         - PM
 
-locals_accessibility:
-  # columns from land_use table to add to df
-  land_use_columns: ['RETEMPN', 'TOTEMP']
-  # dispersion parameters
-  dispersion_parameter_automobile: -0.05
-  dispersion_parameter_transit: -0.05
-  dispersion_parameter_walk: -1.00
-  # maximum walk distance in miles
-  maximum_walk_distance: 3.0
-  # perceived minute of in-vehicle time for every minute of out-of-vehicle time
-  out_of_vehicle_time_weight: 2.0
+

@@ -4,11 +4,11 @@
 import os
 
 import orca
-import yaml
 
 from activitysim import activitysim as asim
 from activitysim import tracing
 from .util.misc import add_dependent_columns
+from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
 
 
 @orca.injectable()
@@ -19,12 +19,7 @@ def auto_ownership_spec(configs_dir):
 
 @orca.injectable()
 def auto_ownership_settings(configs_dir):
-    file_path = os.path.join(configs_dir,  'auto_ownership.yaml')
-    if os.path.isfile(file_path):
-        with open(file_path) as f:
-            return yaml.load(f)
-    else:
-        return None
+    return read_model_settings(configs_dir, 'auto_ownership.yaml')
 
 
 @orca.step()
@@ -40,7 +35,8 @@ def auto_ownership_simulate(set_random_seed, households_merged,
     tracing.info(__name__,
                  "Running auto_ownership_simulate with %d households" % len(households_merged))
 
-    nest_spec, constants = asim.logit_model_settings(auto_ownership_settings)
+    nest_spec = get_logit_model_settings(auto_ownership_settings)
+    constants = get_model_constants(auto_ownership_settings)
 
     choices = asim.simple_simulate(
         choosers=households_merged.to_frame(),

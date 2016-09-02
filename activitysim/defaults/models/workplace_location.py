@@ -9,7 +9,7 @@ import orca
 from activitysim import activitysim as asim
 from activitysim import tracing
 from .util.misc import add_dependent_columns
-
+from .util.misc import read_model_settings, get_model_constants
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +20,16 @@ def workplace_location_spec(configs_dir):
     return asim.read_model_spec(f).fillna(0)
 
 
+@orca.injectable()
+def workplace_location_settings(configs_dir):
+    return read_model_settings(configs_dir, 'school_location.yaml')
+
+
 @orca.step()
 def workplace_location_simulate(set_random_seed,
                                 persons_merged,
                                 workplace_location_spec,
+                                workplace_location_settings,
                                 skims,
                                 destination_size_terms,
                                 chunk_size,
@@ -41,14 +47,21 @@ def workplace_location_simulate(set_random_seed,
     choosers = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
 
+    constants = get_model_constants(workplace_location_settings)
+
     tracing.info(__name__,
                  "Running workplace_location_simulate with %d persons" % len(choosers))
 
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
-    skims.set_keys("TAZ", "TAZ_r")
     # the skims will be available under the name "skims" for any @ expressions
-    locals_d = {"skims": skims}
+    skims.set_keys("TAZ", "TAZ_r")
+
+    locals_d = {
+        'skims': skims
+    }
+    if constants is not None:
+        locals_d.update(constants)
 
     # FIXME - HACK - only include columns actually used in spec (which we pathologically know)
     choosers = choosers[["income_segment", "TAZ", "mode_choice_logsums"]]

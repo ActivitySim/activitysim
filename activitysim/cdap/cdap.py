@@ -10,7 +10,7 @@ from zbox import toolz as tz, gen
 
 
 from ..activitysim import eval_variables
-from .. import mnl
+from .. import nl
 
 from .. import tracing
 
@@ -369,7 +369,7 @@ def make_household_choices(hh_util):
     # go over all the DFs and do utils_to_probs and make_choices
     choices = (
         pd.Series(
-            df.columns[mnl.make_choices(mnl.utils_to_probs(df))].values,
+            df.columns[nl.make_choices(nl.utils_to_probs(df))].values,
             index=df.index)
         for df in dfs)
 

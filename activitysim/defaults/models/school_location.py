@@ -11,21 +11,28 @@ import numpy as np
 from activitysim import activitysim as asim
 from activitysim import tracing
 from .util.misc import add_dependent_columns
+from .util.misc import read_model_settings, get_model_constants
 
 
 logger = logging.getLogger(__name__)
 
 
-@orca.table()
+@orca.injectable()
 def school_location_spec(configs_dir):
     f = os.path.join(configs_dir, 'school_location.csv')
     return asim.read_model_spec(f).fillna(0)
+
+
+@orca.injectable()
+def school_location_settings(configs_dir):
+    return read_model_settings(configs_dir, 'school_location.yaml')
 
 
 @orca.step()
 def school_location_simulate(set_random_seed,
                              persons_merged,
                              school_location_spec,
+                             school_location_settings,
                              skims,
                              destination_size_terms,
                              chunk_size,
@@ -38,16 +45,22 @@ def school_location_simulate(set_random_seed,
 
     choosers = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
-    spec = school_location_spec.to_frame()
+
+    constants = get_model_constants(school_location_settings)
 
     tracing.info(__name__,
                  "Running school_location_simulate with %d persons" % len(choosers))
 
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
-    skims.set_keys("TAZ", "TAZ_r")
     # the skims will be available under the name "skims" for any @ expressions
-    locals_d = {"skims": skims}
+    skims.set_keys("TAZ", "TAZ_r")
+
+    locals_d = {
+        'skims': skims
+    }
+    if constants is not None:
+        locals_d.update(constants)
 
     choices_list = []
     for school_type in ['university', 'highschool', 'gradeschool']:
@@ -61,7 +74,7 @@ def school_location_simulate(set_random_seed,
         choices = asim.interaction_simulate(
             choosers_segment,
             alternatives,
-            spec=spec[[school_type]],
+            spec=school_location_spec[[school_type]],
             skims=skims,
             locals_d=locals_d,
             sample_size=50,

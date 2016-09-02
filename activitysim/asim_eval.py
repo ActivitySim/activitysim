@@ -15,6 +15,7 @@ def undupe_column_names(df, template="{} ({})"):
     rename df column names so there are no duplicates (in place)
 
     e.g. if there are two columns named "dog", the second column will be reformatted to "dog (2)"
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -26,6 +27,7 @@ def undupe_column_names(df, template="{} ({})"):
     df : pandas.DataFrame
         dataframe that was renamed in place, for convenience in chaining
     """
+
     new_names = []
     seen = set()
     for name in df.columns:
@@ -193,32 +195,3 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
         trace_results = undupe_column_names(pd.DataFrame.from_items(trace_results))
 
     return variables, trace_results
-
-
-def assign_variables_locals(locals=None):
-    """
-    assign locals whose values will be accessible to the execution context
-    when the expressions in spec are applied to choosers
-
-    adds numpy functions so they can be called from expressions
-    plus any additional values passed in locals dict
-
-    Parameters
-    ----------
-    locals : dict
-        dict of local variables to assign (probably from settings file)
-
-    Returns
-    -------
-    locals_d : dict
-        dict of locals suitable to pass to assign_variables method
-
-    """
-
-    locals_d = {
-        'log': np.log,
-        'exp': np.exp
-    }
-    if locals:
-        locals_d.update(locals)
-    return locals_d

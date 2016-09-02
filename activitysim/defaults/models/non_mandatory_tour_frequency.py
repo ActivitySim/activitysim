@@ -14,8 +14,14 @@ from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
 
+from .util.misc import read_model_settings, get_model_constants
 
 logger = logging.getLogger(__name__)
+
+
+@orca.injectable()
+def non_mandatory_tour_frequency_settings(configs_dir):
+    return read_model_settings(configs_dir, 'non_mandatory_tour_frequency.yaml')
 
 
 @orca.injectable()
@@ -40,6 +46,7 @@ def non_mandatory_tour_frequency(set_random_seed,
                                  persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec,
+                                 non_mandatory_tour_frequency_settings,
                                  chunk_size,
                                  trace_hh_id):
 
@@ -58,6 +65,8 @@ def non_mandatory_tour_frequency(set_random_seed,
     tracing.info(__name__,
                  "Running non_mandatory_tour_frequency with %d persons" % len(choosers))
 
+    constants = get_model_constants(non_mandatory_tour_frequency_settings)
+
     choices_list = []
     # segment by person type and pick the right spec for each person type
     for name, segment in choosers.groupby('ptype_cat'):
@@ -70,6 +79,7 @@ def non_mandatory_tour_frequency(set_random_seed,
             # notice that we pick the column for the
             # segment for each segment we run
             non_mandatory_tour_frequency_spec[[name]],
+            locals_d=constants,
             sample_size=50,
             chunk_size=chunk_size,
             trace_label=trace_hh_id and 'non_mandatory_tour_frequency.%s' % name,

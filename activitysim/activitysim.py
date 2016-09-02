@@ -9,8 +9,8 @@ import pandas as pd
 from zbox import toolz as tz
 
 from .skim import Skims, Skims3D
-from .mnl import utils_to_probs, make_choices, interaction_dataset
-from .mnl import each_nest
+from .nl import utils_to_probs, make_choices, interaction_dataset
+from .nl import each_nest
 import tracing
 
 import os
@@ -454,7 +454,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     trace_label=None, trace_choice_name=None):
     """
-    Run a simulation for when the model spec does not involve alternative
+    Run a MNL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
     properties and no need to sample from alternatives.
 
@@ -504,46 +504,12 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     return choices
 
 
-def logit_model_settings(model_settings):
-    """
-    Read nest spec (for nested logit) and constant values from model settings file
-
-    Returns
-    -------
-    nests : dict
-        dictionary specifying nesting structure and nesting coefficients
-
-    constants : dict
-        dictionary of constants to add to locals for use by expressions in model spec
-    """
-    nests = None
-    constants = None
-
-    if model_settings is not None:
-
-        model_type = model_settings.get('MODEL_TYPE', None)
-
-        if model_type not in ['NL', 'MNL']:
-            tracing.error(__name__, "Unrecognized model type '%s'" % model_type)
-            raise RuntimeError("Unrecognized model type '%s'" % model_type)
-
-        if model_type == 'NL':
-            nests = model_settings.get('NESTS', None)
-            if nests is None:
-                tracing.error(__name__, "No NEST found in model spec for NL model type")
-                raise RuntimeError("No NEST found in model spec for NL model type")
-
-        constants = model_settings.get('CONSTANTS', None)
-
-    return nests, constants
-
-
 def _interaction_simulate(
         choosers, alternatives, spec,
         skims=None, locals_d=None, sample_size=None,
         trace_label=None, trace_choice_name=None):
     """
-    Run a simulation in the situation in which alternatives must
+    Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
     because alternatives are being sampled.
 

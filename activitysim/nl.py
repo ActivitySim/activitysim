@@ -181,7 +181,11 @@ class Nest(object):
     This object is passed on yield when iterate over nest nodes (branch or leaf)
     The nested logit design is stored in a yaml file as a tree of dict objects,
     but using an object to pass the nest data makes the code a little more readable
+
+    An example nest specification is in the example tour mode choice model
+    yaml configuration file - example/configs/tour_mode_choice.yaml.
     """
+
     def __init__(self, name=None, level=0):
         self.name = name
         self.level = level

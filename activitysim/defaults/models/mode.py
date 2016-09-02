@@ -14,6 +14,8 @@ from activitysim import tracing
 from activitysim import skim as askim
 from .util.mode import _mode_choice_spec
 
+from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,8 +27,7 @@ will be used for the tour
 
 @orca.injectable()
 def tour_mode_choice_settings(configs_dir):
-    with open(os.path.join(configs_dir, 'tour_mode_choice.yaml')) as f:
-        return yaml.load(f)
+    return read_model_settings(configs_dir, 'tour_mode_choice.yaml')
 
 
 @orca.injectable()
@@ -52,8 +53,7 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
 
 @orca.injectable()
 def trip_mode_choice_settings(configs_dir):
-    with open(os.path.join(configs_dir, 'trip_mode_choice.yaml')) as f:
-        return yaml.load(f)
+    return read_model_settings(configs_dir, 'trip_mode_choice.yaml')
 
 
 @orca.injectable()
@@ -164,7 +164,8 @@ def tour_mode_choice_simulate(tours_merged,
 
     tours = tours_merged.to_frame()
 
-    nest_spec, constants = asim.logit_model_settings(tour_mode_choice_settings)
+    nest_spec = get_logit_model_settings(tour_mode_choice_settings)
+    constants = get_model_constants(tour_mode_choice_settings)
 
     if trace_hh_id:
         tracing.register_tours(tours, trace_hh_id)
@@ -255,7 +256,8 @@ def trip_mode_choice_simulate(tours_merged,
 
     trips = tours_merged.to_frame()
 
-    nest_spec, constants = asim.logit_model_settings(trip_mode_choice_settings)
+    nest_spec = get_logit_model_settings(trip_mode_choice_settings)
+    constants = get_model_constants(trip_mode_choice_settings)
 
     tracing.info(__name__, "Running trip_mode_choice_simulate with %d trips" % len(trips))
 

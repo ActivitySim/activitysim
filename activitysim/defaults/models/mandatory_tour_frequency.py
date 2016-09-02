@@ -12,6 +12,8 @@ from activitysim import activitysim as asim
 from activitysim import tracing
 from .util.mandatory_tour_frequency import process_mandatory_tours
 
+from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +26,7 @@ def mandatory_tour_frequency_spec(configs_dir):
 
 @orca.injectable()
 def mandatory_tour_frequency_settings(configs_dir):
-    file_path = os.path.join(configs_dir,  'mandatory_tour_frequency.yaml')
-    if os.path.isfile(file_path):
-        with open(file_path) as f:
-            return yaml.load(f)
-    else:
-        return None
+    return read_model_settings(configs_dir, 'mandatory_tour_frequency.yaml')
 
 
 @orca.step()
@@ -49,7 +46,8 @@ def mandatory_tour_frequency(set_random_seed,
     tracing.info(__name__,
                  "Running mandatory_tour_frequency with %d persons" % len(choosers))
 
-    nest_spec, constants = asim.logit_model_settings(mandatory_tour_frequency_settings)
+    nest_spec = get_logit_model_settings(mandatory_tour_frequency_settings)
+    constants = get_model_constants(mandatory_tour_frequency_settings)
 
     choices = asim.simple_simulate(
         choosers,

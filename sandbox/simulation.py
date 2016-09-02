@@ -16,7 +16,7 @@ from activitysim import defaults
 from activitysim import activitysim as asim
 from activitysim import tracing
 
-from activitysim import mnl
+from activitysim import nl
 
 
 # you will want to configure this with the locations of the canonical datasets
@@ -150,12 +150,12 @@ nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']
 # asim.trace_nests(nests, 'xxx')
 #
 # print "### each_nest"
-# for nest in mnl.each_nest(nests):
+# for nest in nl.each_nest(nests):
 #
 #     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
 #
 # print "### each_nest_leaf"
-# for nest in mnl.each_nest(nests, type='leaf'):
+# for nest in nl.each_nest(nests, type='leaf'):
 #
 #     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
 

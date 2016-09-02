@@ -9,7 +9,7 @@ import pandas.util.testing as pdt
 import pytest
 
 from ..activitysim import eval_variables
-from .. import mnl
+from .. import nl
 
 
 @pytest.fixture(scope='module')
@@ -63,20 +63,20 @@ def utilities(choosers_dm, spec, test_data):
 
 
 def test_utils_to_probs(utilities, test_data):
-    probs = mnl.utils_to_probs(utilities)
+    probs = nl.utils_to_probs(utilities)
     pdt.assert_frame_equal(probs, test_data['probabilities'])
 
 
 def test_utils_to_probs_raises():
     with pytest.raises(RuntimeError):
-        mnl.utils_to_probs(
+        nl.utils_to_probs(
             pd.DataFrame([[1, 2, np.inf, 3]]))
 
 
 def test_make_choices_only_one():
     probs = pd.DataFrame(
         [[1, 0, 0], [0, 1, 0]], columns=['a', 'b', 'c'], index=['x', 'y'])
-    choices = mnl.make_choices(probs)
+    choices = nl.make_choices(probs)
 
     pdt.assert_series_equal(
         choices,
@@ -84,8 +84,8 @@ def test_make_choices_only_one():
 
 
 def test_make_choices_real_probs(random_seed, utilities):
-    probs = mnl.utils_to_probs(utilities)
-    choices = mnl.make_choices(probs)
+    probs = nl.utils_to_probs(utilities)
+    choices = nl.make_choices(probs)
 
     pdt.assert_series_equal(
         choices,
@@ -113,7 +113,7 @@ def test_interaction_dataset_no_sample(interaction_choosers, interaction_alts):
         'chooser_idx': ['w'] * 4 + ['x'] * 4 + ['y'] * 4 + ['z'] * 4},
         index=[1, 2, 3, 4] * 4)
 
-    interacted = mnl.interaction_dataset(
+    interacted = nl.interaction_dataset(
         interaction_choosers, interaction_alts)
 
     interacted, expected = interacted.align(expected, axis=1)
@@ -128,7 +128,7 @@ def test_interaction_dataset_sampled(
         'chooser_idx': ['w'] * 2 + ['x'] * 2 + ['y'] * 2 + ['z'] * 2},
         index=[3, 4, 1, 3, 4, 1, 2, 1])
 
-    interacted = mnl.interaction_dataset(
+    interacted = nl.interaction_dataset(
         interaction_choosers, interaction_alts, sample_size=2)
 
     interacted, expected = interacted.align(expected, axis=1)

@@ -11,6 +11,8 @@ import numpy as np
 from activitysim import activitysim as asim
 from activitysim import tracing
 
+from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,11 +22,17 @@ def destination_choice_spec(configs_dir):
     return asim.read_model_spec(f).fillna(0)
 
 
+@orca.injectable()
+def destination_choice_settings(configs_dir):
+    return read_model_settings(configs_dir, 'destination_choice.yaml')
+
+
 @orca.step()
 def destination_choice(set_random_seed,
                        non_mandatory_tours_merged,
                        skims,
                        destination_choice_spec,
+                       destination_choice_settings,
                        destination_size_terms,
                        chunk_size,
                        trace_hh_id):
@@ -40,6 +48,8 @@ def destination_choice(set_random_seed,
     alternatives = destination_size_terms.to_frame()
     spec = destination_choice_spec.to_frame()
 
+    constants = get_model_constants(destination_choice_settings)
+
     if trace_hh_id:
         # register non_mandatory_tours so we can slice utilities
         tracing.register_tours(choosers, trace_hh_id)
@@ -48,7 +58,12 @@ def destination_choice(set_random_seed,
     # and a TAZ in the alternatives which get merged during interaction
     skims.set_keys("TAZ", "TAZ_r")
     # the skims will be available under the name "skims" for any @ expressions
-    locals_d = {"skims": skims}
+
+    locals_d = {
+        'skims': skims
+    }
+    if constants is not None:
+        locals_d.update(constants)
 
     tracing.info(__name__,
                  "Running destination_choice  with %d non_mandatory_tours" % len(choosers.index))

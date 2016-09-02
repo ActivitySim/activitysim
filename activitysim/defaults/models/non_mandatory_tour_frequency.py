@@ -20,14 +20,13 @@ logger = logging.getLogger(__name__)
 
 @orca.injectable()
 def non_mandatory_tour_frequency_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "non_mandatory_tour_frequency.csv")
+    f = os.path.join(configs_dir, 'non_mandatory_tour_frequency.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
 @orca.table()
 def non_mandatory_tour_frequency_alts(configs_dir):
-    f = os.path.join(configs_dir, "configs",
-                     "non_mandatory_tour_frequency_alternatives.csv")
+    f = os.path.join(configs_dir, 'non_mandatory_tour_frequency_alternatives.csv')
     return pd.read_csv(f)
 
 

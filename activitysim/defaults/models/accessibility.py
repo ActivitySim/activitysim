@@ -66,7 +66,7 @@ class AccessibilitySkims(object):
 
 @orca.injectable()
 def accessibility_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "accessibility.csv")
+    f = os.path.join(configs_dir, 'accessibility.csv')
     return asim_eval.read_assignment_spec(f)
 
 
@@ -148,7 +148,7 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
                          "trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
         else:
 
-            # concat first temps then results
+            # add OD columns to trace results
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
             for column in df.columns:

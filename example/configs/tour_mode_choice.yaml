@@ -1,3 +1,6 @@
+MODEL_TYPE: NL
+#MODEL_TYPE: MNL
+
 NESTS:
   name: root
   coefficient: 1.00

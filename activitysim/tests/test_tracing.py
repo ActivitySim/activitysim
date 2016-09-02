@@ -4,7 +4,10 @@
 import os.path
 import logging
 
+import pytest
+
 import orca
+import pandas as pd
 
 from .. import tracing as tracing
 
@@ -17,14 +20,41 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def test_bad_custom_config_file(capsys):
+def add_canonical_dirs():
 
-    configs_dir = os.path.join(os.path.dirname(__file__))
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     orca.add_injectable("configs_dir", configs_dir)
 
-    orca.add_injectable("output_dir", '.')
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    orca.add_injectable("output_dir", output_dir)
 
-    custom_config_file = os.path.join(os.path.dirname(__file__), 'data', 'xlogging.yaml')
+
+def test_get_tracer(capsys):
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    orca.add_injectable("output_dir", output_dir)
+
+    tracing.get_tracer().warn("calling get_tracer before config_logger")
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    logfile_name = os.path.join(output_dir, 'asim.log')
+    with open(logfile_name, 'r') as f:
+        log = f.read()
+
+    assert "Initialized tracer activitysim.trace fileHandler" in log
+
+    close_handlers()
+
+
+def test_bad_custom_config_file(capsys):
+
+    add_canonical_dirs()
+
+    custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'xlogging.yaml')
     tracing.config_logger(custom_config_file=custom_config_file)
 
     logger = logging.getLogger('activitysim')
@@ -34,6 +64,7 @@ def test_bad_custom_config_file(capsys):
     asim_logger_baseFilename = file_handlers[0].baseFilename
 
     logger = logging.getLogger(__name__)
+    logger.info('test_bad_custom_config_file')
     logger.info('log_info')
     logger.warn('log_warn1')
 
@@ -68,10 +99,7 @@ def test_bad_custom_config_file(capsys):
 
 def test_config_logger(capsys):
 
-    configs_dir = os.path.join(os.path.dirname(__file__))
-    orca.add_injectable("configs_dir", configs_dir)
-
-    orca.add_injectable("output_dir", '.')
+    add_canonical_dirs()
 
     tracing.config_logger()
 
@@ -83,6 +111,7 @@ def test_config_logger(capsys):
 
     print "handlers:", logger.handlers
 
+    logger.info('test_config_logger')
     logger.info('log_info')
     logger.warn('log_warn1')
 
@@ -107,12 +136,38 @@ def test_config_logger(capsys):
     assert 'log_warn2' not in content
 
 
+def test_custom_config_logger(capsys):
+
+    add_canonical_dirs()
+
+    custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'custom_logging.yaml')
+    tracing.config_logger(custom_config_file)
+
+    logger = logging.getLogger('activitysim')
+
+    logger.warn('custom_log_warn')
+
+    asim_logger_filename = os.path.join(os.path.dirname(__file__), 'output', 'xasim.log')
+
+    with open(asim_logger_filename, 'r') as content_file:
+        content = content_file.read()
+    assert 'custom_log_warn' in content
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    assert 'custom_log_warn' in out
+
+
 def test_basic(capsys):
 
-    configs_dir = os.path.join(os.path.dirname(__file__))
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     orca.add_injectable("configs_dir", configs_dir)
 
-    orca.add_injectable("output_dir", '.')
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    orca.add_injectable("output_dir", output_dir)
 
     # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []
@@ -124,6 +179,8 @@ def test_basic(capsys):
     assert len(file_handlers) == 0
 
     logger = logging.getLogger('activitysim')
+
+    logger.info('test_basic')
     logger.debug('log_debug')
     logger.info('log_info')
     logger.warn('log_warn')
@@ -138,3 +195,144 @@ def test_basic(capsys):
     assert 'log_debug' not in out
 
     close_handlers()
+
+
+def test_print_summary(capsys):
+
+    add_canonical_dirs()
+
+    tracing.config_logger()
+
+    tracing.print_summary('label', df=None, describe=False, value_counts=False)
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    assert 'print_summary neither value_counts nor describe' in out
+
+    close_handlers()
+
+
+def test_register_households(capsys):
+
+    add_canonical_dirs()
+
+    tracing.config_logger()
+
+    df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
+
+    # household id should not be None
+    tracing.register_households(df, trace_hh_id=None)
+
+    tracing.register_households(df, trace_hh_id=5)
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    assert "register_households called with null trace_hh_id" in out
+
+    # should warn that household id not in index
+    assert 'trace_hh_id 5 not in dataframe' in out
+
+    # should warn and rename index if index name is None
+    assert "households table index had no name. renamed index 'household_id'" in out
+
+    close_handlers()
+
+
+def test_register_tours(capsys):
+
+    add_canonical_dirs()
+
+    tracing.config_logger()
+
+    df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
+
+    # household id should not be None
+    tracing.register_tours(df, trace_hh_id=None)
+
+    #
+    with pytest.raises(RuntimeError) as excinfo:
+        tracing.register_tours(df, trace_hh_id=5)
+    assert "register_tours called before register_persons" in str(excinfo.value)
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    assert "register_tours called with null trace_hh_id" in out
+
+    close_handlers()
+
+
+def test_register_persons(capsys):
+
+    add_canonical_dirs()
+
+    tracing.config_logger()
+
+    df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
+
+    # household id should not be None
+    tracing.register_persons(df, trace_hh_id=None)
+
+    tracing.register_persons(df, trace_hh_id=5)
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    assert "register_persons called with null trace_hh_id" in out
+
+    # should warn that household id not in index
+    assert 'trace_hh_id 5 not found' in out
+
+    # should warn and rename index if index name is None
+    assert "persons table index had no name. renamed index 'person_id'" in out
+
+    close_handlers()
+
+
+def test_write_csv(capsys):
+
+    add_canonical_dirs()
+
+    tracing.config_logger()
+
+    df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
+
+    # should complain if df not a DataFrame or Series
+    tracing.write_csv(df='not a df or series', file_name='baddie')
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    assert "write_df_csv object 'baddie' of unexpected type" in out
+
+    close_handlers()
+
+
+def test_slice_ids():
+
+    df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
+
+    # slice by named column
+    sliced_df = tracing.slice_ids(df, [1, 3, 6], column='household_id')
+    assert len(sliced_df.index) == 2
+
+    # slice by index
+    sliced_df = tracing.slice_ids(df, [6, 12], column=None)
+    assert len(sliced_df.index) == 1
+
+    # attempt to slice by non-existent column
+    with pytest.raises(RuntimeError) as excinfo:
+        sliced_df = tracing.slice_ids(df, [5, 6], column='baddie')
+    assert "slice_ids slicer column 'baddie' not in dataframe" in str(excinfo.value)

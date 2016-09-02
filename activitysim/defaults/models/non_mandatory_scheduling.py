@@ -17,8 +17,7 @@ logger = logging.getLogger(__name__)
 
 @orca.table()
 def tdd_non_mandatory_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs',
-                     'tour_departure_and_duration_nonmandatory.csv')
+    f = os.path.join(configs_dir, 'tour_departure_and_duration_nonmandatory.csv')
     return asim.read_model_spec(f).fillna(0)
 
 

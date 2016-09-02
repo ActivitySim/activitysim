@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @orca.injectable()
 def workplace_location_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "workplace_location.csv")
+    f = os.path.join(configs_dir, 'workplace_location.csv')
     return asim.read_model_spec(f).fillna(0)
 
 

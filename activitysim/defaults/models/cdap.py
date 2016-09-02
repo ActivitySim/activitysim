@@ -13,31 +13,31 @@ from activitysim.cdap import cdap
 
 @orca.injectable()
 def cdap_1_person_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "cdap_1_person.csv")
+    f = os.path.join(configs_dir, 'cdap_1_person.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
 @orca.injectable()
 def cdap_2_person_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "cdap_2_person.csv")
+    f = os.path.join(configs_dir, 'cdap_2_person.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
 @orca.injectable()
 def cdap_3_person_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "cdap_3_person.csv")
+    f = os.path.join(configs_dir, 'cdap_3_person.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
 @orca.injectable()
 def cdap_final_rules(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "cdap_final_rules.csv")
+    f = os.path.join(configs_dir, 'cdap_final_rules.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
 @orca.injectable()
 def cdap_all_people(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "cdap_all_people.csv")
+    f = os.path.join(configs_dir, 'cdap_all_people.csv')
     return asim.read_model_spec(f).fillna(0)
 
 

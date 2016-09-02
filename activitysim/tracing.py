@@ -92,7 +92,7 @@ def config_logger(custom_config_file=None, basic=False):
     elif not basic:
         # look for conf file in configs_dir
         configs_dir = orca.get_injectable('configs_dir')
-        default_config_file = os.path.join(configs_dir, "configs", LOGGING_CONF_FILE_NAME)
+        default_config_file = os.path.join(configs_dir, LOGGING_CONF_FILE_NAME)
         if os.path.isfile(default_config_file):
             log_config_file = default_config_file
 
@@ -142,12 +142,15 @@ def get_tracer(name=TRACE_LOGGER):
         tracer.propagate = False
         tracer.setLevel(logging.INFO)
 
-        file_path = log_file_path('%s.log' % name)
+        file_path = log_file_path('asim.log')
         fileHandler = logging.FileHandler(filename=file_path, mode='w')
         tracer.addHandler(fileHandler)
 
-        logger = logging.getLogger(ASIM_LOGGER)
-        logger.info("Initialized tracer %s fileHandler %s" % (name, file_path))
+        tracer.info("Initialized tracer %s fileHandler %s" % (name, file_path))
+
+        if name != ASIM_LOGGER:
+            logger = logging.getLogger(ASIM_LOGGER)
+            logger.info("Initialized tracer %s fileHandler %s" % (name, file_path))
 
     return tracer
 
@@ -261,7 +264,7 @@ def register_households(df, trace_hh_id):
     info(message="tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
 
     if trace_hh_id not in df.index:
-        warn(message="trace_hh_id %s not in dataframe")
+        warn(message="trace_hh_id %s not in dataframe" % trace_hh_id)
 
     # inject persons_index name of person dataframe index
     if df.index.name is None:
@@ -297,7 +300,13 @@ def register_tours(df, trace_hh_id):
     # this allows us to slice by tour_id without requiring presence of person_id column
 
     # get list of persons in traced household (should already have been registered)
-    person_ids = orca.get_injectable("trace_person_ids")
+    try:
+        person_ids = orca.get_injectable("trace_person_ids")
+    except RuntimeError as err:
+        if 'trace_person_ids called before being overridden' in err.message:
+            error(message="register_tours called before register_persons")
+            err = RuntimeError('register_tours called before register_persons')
+        raise err
 
     traced_tours_df = slice_ids(df, person_ids, column='person_id')
 
@@ -426,21 +435,16 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     """
     tracer = get_tracer()
 
-    if isinstance(df, pd.Series):
-        # file_name = "%s.series" % file_name
-        debug(message="dumping %s element series to %s" % (len(df.index), file_name))
-    else:
-        # file_name = "%s.df" % file_name
-        debug(message="dumping %s dataframe to %s" % (df.shape, file_name))
-
     file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
 
     if os.path.isfile(file_path):
         error(message="write_csv file exists %s %s" % (type(df).__name__, file_name))
 
     if isinstance(df, pd.DataFrame):
+        debug(message="dumping %s dataframe to %s" % (df.shape, file_name))
         write_df_csv(df, file_path, index_label, columns, column_labels, transpose=transpose)
     elif isinstance(df, pd.Series):
+        debug(message="dumping %s element series to %s" % (len(df.index), file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
         tracer.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
@@ -475,53 +479,11 @@ def slice_ids(df, ids, column=None):
         else:
             df = df[df[column].isin(ids)]
     except KeyError:
-        df = df[0:0]
+        # this happens if specified slicer column is not in df
+        # df = df[0:0]
+        raise RuntimeError("slice_ids slicer column '%s' not in dataframe" % column)
+
     return df
-
-
-def canonical_slicer(df):
-    """
-    return a canonical column name and targets (hh id or person ids) to
-    annotate a dataframe with trace targets in a manner grokable by slice_canonically method
-
-    Parameters
-    ----------
-    df: DataFrame
-        dataframe whose the values of whose index we will use for slicing
-
-    Returns
-    -------
-        name of column to use
-        target hh_id or person_ids
-    """
-
-    index_name = df.index.name
-
-    if index_name == 'PERID' or index_name == orca.get_injectable('persons_index_name'):
-        column_name = 'person_id'
-    elif index_name == 'HHID' or index_name == orca.get_injectable('hh_index_name'):
-        column_name = 'hh_id'
-    elif index_name == 'tour_id':
-        if 'person_id' in df.columns:
-            # if there is a person_id column, then use it
-            column_name = 'person_id'
-        else:
-            # otherwise we can use tour_id, assuming register_tours has been called
-            column_name = 'tour_id'
-    else:
-        get_tracer().error("canonical_slicer undefined for index %s" % (index_name,))
-        column_name = ''
-
-    if column_name == 'person_id':
-        targets = orca.get_injectable('trace_person_ids')
-    elif column_name == 'hh_id':
-        targets = [orca.get_injectable('trace_hh_id')]
-    elif column_name == 'tour_id':
-        targets = [orca.get_injectable('trace_tour_ids')]
-    else:
-        targets = []
-
-    return column_name, targets
 
 
 def slice_canonically(df, slicer, label, warn=False):
@@ -578,9 +540,6 @@ def slice_canonically(df, slicer, label, warn=False):
         target = None
     else:
         get_tracer().error("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
-        # print df.head(3)
-        target = None
-        df = df[0:0]
         raise RuntimeError("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
 
     if target is not None:
@@ -651,8 +610,17 @@ def trace_interaction_model_design(model_design, choosers, label):
 
     label = '%s.model_design' % label
 
-    # column name to use for chooser id (hh or person) added to model_design dataframe
-    slicer_column_name, targets = canonical_slicer(choosers)
+    # slicer column name and id targets to use for chooser id added to model_design dataframe
+    # currently we only ever slice by person_id, but that could change, so we check here...
+
+    if choosers.index.name == 'PERID' \
+            or choosers.index.name == orca.get_injectable('persons_index_name') \
+            or (choosers.index.name == 'tour_id' and 'person_id' in choosers.columns):
+        slicer_column_name = 'person_id'
+        targets = orca.get_injectable('trace_person_ids')
+    else:
+        raise RuntimeError("trace_interaction_model_design don't know how to slice index '%s'"
+                           % choosers.index.name)
 
     # we can deduce the sample_size from the relative size of model_design and choosers
     # (model design rows are repeated once for each alternative)

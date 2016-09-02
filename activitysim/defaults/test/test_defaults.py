@@ -20,34 +20,13 @@ from ... import tracing
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
-
-@pytest.fixture(scope="module")
-def store(request):
-    store = pd.HDFStore(
-        os.path.join(os.path.dirname(__file__), 'mtc_asim.h5'), "r")
-
-    def fin():
-        store.close()
-    request.addfinalizer(fin)
-
-    return store
-
-
-@pytest.fixture(scope="module")
-def omx_file(request):
-    omx_file = omx.openFile(os.path.join(os.path.dirname(__file__), "skims.omx"))
-
-    def fin():
-        omx_file.close()
-    request.addfinalizer(fin)
-
-    return omx_file
+SKIP_FULL_RUN = False
 
 
 def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None,
                     trace_hh_id=None, trace_od=None):
 
-    with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
+    with open(os.path.join(configs_dir, 'settings.yaml')) as f:
         settings = yaml.load(f)
         settings['households_sample_size'] = households_sample_size
         if preload_3d_skims is not None:
@@ -84,19 +63,18 @@ def test_size_term():
     pdt.assert_series_equal(s, pd.Series(answer))
 
 
-def test_mini_run(store, omx_file, random_seed):
+def test_mini_run(random_seed):
 
-    configs_dir = os.path.join(os.path.dirname(__file__))
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     orca.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
     orca.add_injectable("output_dir", output_dir)
 
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    orca.add_injectable("data_dir", data_dir)
+
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
-
-    orca.add_injectable("omx_file", omx_file)
-
-    orca.add_injectable("store", store)
 
     orca.add_injectable("set_random_seed", set_random_seed)
 
@@ -132,12 +110,15 @@ def test_mini_run(store, omx_file, random_seed):
     orca.clear_cache()
 
 
-def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
+def full_run(preload_3d_skims, chunk_size=0,
              households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
              trace_hh_id=None, trace_od=None):
 
-    configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example')
+    configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example', 'configs')
     orca.add_injectable("configs_dir", configs_dir)
+
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    orca.add_injectable("data_dir", data_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
     orca.add_injectable("output_dir", output_dir)
@@ -149,11 +130,11 @@ def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
                     trace_hh_id=trace_hh_id,
                     trace_od=trace_od)
 
-    orca.add_injectable("omx_file", omx_file)
-    orca.add_injectable("store", store)
     orca.add_injectable("set_random_seed", set_random_seed)
 
     orca.clear_cache()
+
+    tracing.config_logger()
 
     # grab some of the tables
     orca.get_table("land_use").to_frame().info()
@@ -189,31 +170,43 @@ def full_run(store, omx_file, preload_3d_skims, chunk_size=0,
     return tour_count
 
 
-def test_full_run(store, omx_file):
+def test_full_run():
 
-    tour_count = full_run(store, omx_file, preload_3d_skims=False)
+    if SKIP_FULL_RUN:
+        return
+
+    tour_count = full_run(preload_3d_skims=False)
+    assert(tour_count == 177)
+
+
+def test_full_run_with_preload_skims():
+
+    if SKIP_FULL_RUN:
+        return
+
+    tour_count = full_run(preload_3d_skims=True)
 
     assert(tour_count == 177)
 
 
-def test_full_run_with_preload_skims(store, omx_file):
+def test_full_run_with_chunks():
 
-    tour_count = full_run(store, omx_file, preload_3d_skims=True)
+    if SKIP_FULL_RUN:
+        return
 
-    assert(tour_count == 177)
-
-
-def test_full_run_with_chunks(store, omx_file):
-
-    tour_count = full_run(store, omx_file, preload_3d_skims=True, chunk_size=10)
+    tour_count = full_run(preload_3d_skims=True, chunk_size=10)
 
     # different sampling causes slightly different results
     assert(tour_count == 189)
 
 
-def test_full_run_with_hh_trace(store, omx_file):
+def test_full_run_with_hh_trace():
+
+    if SKIP_FULL_RUN:
+        return
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
+
     hh_fname = os.path.join(output_dir, 'households.csv')
     accessibility_fname = os.path.join(output_dir, 'accessibility.csv')
     goner_fname = os.path.join(output_dir, 'x.csv')
@@ -225,10 +218,8 @@ def test_full_run_with_hh_trace(store, omx_file):
 
     HH_ID = 961042
     OD = [5, 11]
-    orca.add_injectable("output_dir", output_dir)
-    tracing.config_logger(custom_config_file=None, basic=False)
 
-    tour_count = full_run(store, omx_file, preload_3d_skims=True, trace_hh_id=HH_ID, trace_od=OD)
+    tour_count = full_run(preload_3d_skims=True, trace_hh_id=HH_ID, trace_od=OD)
 
     assert(tour_count == 177)
 

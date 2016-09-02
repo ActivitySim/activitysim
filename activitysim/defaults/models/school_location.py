@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @orca.table()
 def school_location_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "school_location.csv")
+    f = os.path.join(configs_dir, 'school_location.csv')
     return asim.read_model_spec(f).fillna(0)
 
 

@@ -12,39 +12,30 @@ from .. import activitysim as asim
 
 
 @pytest.fixture(scope='module')
-def spec_name():
-    return os.path.join(os.path.dirname(__file__), 'data', 'sample_spec.csv')
+def data_dir():
+    return os.path.join(os.path.dirname(__file__), 'data')
 
 
 @pytest.fixture(scope='module')
-def data_name():
-    return os.path.join(os.path.dirname(__file__), 'data', 'data.csv')
+def spec_name(data_dir):
+    return os.path.join(data_dir, 'sample_spec.csv')
 
 
 @pytest.fixture(scope='module')
-def desc_name():
-    return 'description'
+def spec(spec_name):
+    return asim.read_model_spec(spec_name,
+                                description_name='description',
+                                expression_name='expression')
 
 
 @pytest.fixture(scope='module')
-def expr_name():
-    return 'expression'
+def data(data_dir):
+    return pd.read_csv(os.path.join(data_dir, 'data.csv'))
 
 
-@pytest.fixture(scope='module')
-def spec(spec_name, desc_name, expr_name):
-    return asim.read_model_spec(
-        spec_name, description_name=desc_name, expression_name=expr_name)
-
-
-@pytest.fixture(scope='module')
-def data(data_name):
-    return pd.read_csv(data_name)
-
-
-def test_read_model_spec(spec_name, desc_name, expr_name):
+def test_read_model_spec(spec_name):
     spec = asim.read_model_spec(
-        spec_name, description_name=desc_name, expression_name=expr_name)
+        spec_name, description_name='description', expression_name='expression')
 
     assert len(spec) == 4
     assert spec.index.name == 'expression'
@@ -68,6 +59,6 @@ def test_eval_variables(spec, data):
 
 
 def test_simple_simulate(random_seed, data, spec):
-    choices, _ = asim.simple_simulate(data, spec)
+    choices = asim.simple_simulate(data, spec, None)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)

@@ -2,7 +2,9 @@
 # See full license in LICENSE.txt.
 
 import os
+
 import orca
+import yaml
 
 from activitysim import activitysim as asim
 from activitysim import tracing
@@ -11,13 +13,24 @@ from .util.misc import add_dependent_columns
 
 @orca.injectable()
 def auto_ownership_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "auto_ownership.csv")
+    f = os.path.join(configs_dir, 'auto_ownership.csv')
     return asim.read_model_spec(f).fillna(0)
+
+
+@orca.injectable()
+def auto_ownership_settings(configs_dir):
+    file_path = os.path.join(configs_dir,  'auto_ownership.yaml')
+    if os.path.isfile(file_path):
+        with open(file_path) as f:
+            return yaml.load(f)
+    else:
+        return None
 
 
 @orca.step()
 def auto_ownership_simulate(set_random_seed, households_merged,
                             auto_ownership_spec,
+                            auto_ownership_settings,
                             trace_hh_id):
     """
     Auto ownership is a standard model which predicts how many cars a household
@@ -27,21 +40,25 @@ def auto_ownership_simulate(set_random_seed, households_merged,
     tracing.info(__name__,
                  "Running auto_ownership_simulate with %d households" % len(households_merged))
 
-    choices, _ = asim.simple_simulate(
+    nest_spec, constants = asim.logit_model_settings(auto_ownership_settings)
+
+    choices = asim.simple_simulate(
         choosers=households_merged.to_frame(),
         spec=auto_ownership_spec,
+        nest_spec=nest_spec,
+        locals_d=constants,
         trace_label=trace_hh_id and 'auto_ownership',
         trace_choice_name='auto_ownership')
 
     tracing.print_summary('auto_ownership', choices, value_counts=True)
 
-    orca.add_column("households", "auto_ownership", choices)
+    orca.add_column('households', 'auto_ownership', choices)
 
-    add_dependent_columns("households", "households_autoown")
+    add_dependent_columns('households', 'households_autoown')
 
     if trace_hh_id:
         trace_columns = ['auto_ownership'] + orca.get_table('households_autoown').columns
         tracing.trace_df(orca.get_table('households').to_frame(),
-                         label="auto_ownership",
+                         label='auto_ownership',
                          columns=trace_columns,
                          warn=True)

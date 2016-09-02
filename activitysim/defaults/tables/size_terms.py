@@ -49,8 +49,7 @@ def size_term(land_use, destination_choice_coeffs):
 
 @orca.table()
 def size_terms(configs_dir):
-    f = os.path.join(configs_dir, 'configs',
-                     'destination_choice_size_terms.csv')
+    f = os.path.join(configs_dir, 'destination_choice_size_terms.csv')
     return pd.read_csv(f, index_col='segment')
 
 

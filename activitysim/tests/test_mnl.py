@@ -12,6 +12,11 @@ from ..activitysim import eval_variables
 from .. import mnl
 
 
+@pytest.fixture(scope='module')
+def data_dir():
+    return os.path.join(os.path.dirname(__file__), 'data')
+
+
 # this is lifted straight from urbansim's test_mnl.py
 @pytest.fixture(scope='module', params=[
     ('fish.csv',
@@ -34,9 +39,8 @@ def test_data(request):
 
 
 @pytest.fixture
-def choosers(test_data):
-    filen = os.path.join(
-        os.path.dirname(__file__), 'data', test_data['choosers'])
+def choosers(test_data, data_dir):
+    filen = os.path.join(data_dir, test_data['choosers'])
     return pd.read_csv(filen)
 
 

@@ -1,4 +1,5 @@
 store: mtc_asim.h5
+skims_file: skims.omx
 
 # area_types less than this are considered urban
 urban_threshold: 4

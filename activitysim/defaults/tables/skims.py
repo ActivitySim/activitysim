@@ -21,7 +21,8 @@ Read in the omx files and create the skim objects
 @orca.injectable(cache=True)
 def omx_file(data_dir, settings):
     logger.debug("opening omx file")
-    return omx.openFile(os.path.join(data_dir, 'data', settings["skims_file"]))
+
+    return omx.openFile(os.path.join(data_dir, settings["skims_file"]))
 
 
 @orca.injectable()

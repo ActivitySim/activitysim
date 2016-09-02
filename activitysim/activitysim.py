@@ -67,6 +67,7 @@ def read_model_spec(fname,
         The description column is dropped from the returned data and the
         expression values are set as the table index.
     """
+
     cfg = pd.read_csv(fname, comment='#')
 
     cfg = cfg.dropna(subset=[expression_name])
@@ -186,36 +187,6 @@ def _check_for_variability(model_design):
             logger.info("missing values in: %s" % v)
 
 
-def trace_nests(nest_spec, trace_label):
-    """
-   dump the nest spec to the trace file
-
-    Parameters
-    ----------
-    nest_spec : dict
-        Nest tree dict from the model spec yaml file
-    trace_label: str
-        trace file row label
-    """
-    for nest in each_nest(nest_spec):
-
-        indent = "   " * nest.level
-
-        tracing.info(trace_label,
-                     "%s %s name: %s level %s" % (indent, nest.type, nest.name, nest.level))
-        tracing.info(trace_label,
-                     "%s ... ancestors: %s" % (indent, nest.ancestors))
-        tracing.info(trace_label,
-                     "%s ... product_of_coefficients: %s"
-                     % (indent, nest.product_of_coefficients))
-
-        if not nest.is_leaf:
-            tracing.info(trace_label,
-                         "%s ... coefficient: %s" % (indent, nest.coefficient))
-            tracing.info(trace_label,
-                         "%s ... alternatives: %s" % (indent, nest.alternatives))
-
-
 def compute_nested_exp_utilities(raw_utilities, nest_spec):
     """
     compute exponentiated nest utilities based on nesting coefficients
@@ -328,10 +299,9 @@ def compute_base_probabilities(nested_probabilities, nests):
     return base_probabilities
 
 
-def nested_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
-                    trace_label=None, trace_choice_name=None):
+def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=None):
     """
-    Run a nested-logit simulation for when the model spec does not involve alternative
+    Run a simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
     properties and no need to sample from alternatives.
 
@@ -342,17 +312,6 @@ def nested_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         A table of variable specifications and coefficient values.
         Variable expressions should be in the table index and the table
         should have a column for each alternative.
-    nest_spec:
-        dictionary specifying nesting structure and nesting coefficients
-        (from the model spec yaml file)
-    skims : Skims object
-        The skims object is used to contain multiple matrices of
-        origin-destination impedances.  Make sure to also add it to the
-        locals_d below in order to access it in expressions.  The *only* job
-        of this method in regards to skims is to call set_df with the
-        dataframe that comes back from interacting choosers with
-        alternatives.  See the skims module for more documentation on how
-        the skims object is intended to be used.
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
@@ -369,12 +328,66 @@ def nested_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         of `spec`.
     """
 
+    model_design = eval_variables(spec.index, choosers, locals_d)
+
+    _check_for_variability(model_design)
+
+    utilities = model_design.dot(spec)
+
+    probs = utils_to_probs(utilities)
+    choices = make_choices(probs)
+
     if trace_label:
-        trace_nests(nest_spec, "%s.trace_nests" % trace_label)
+        trace_label = "%s.mnl" % trace_label
 
-    if skims:
-        add_skims(choosers, skims)
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
+        tracing.trace_df(utilities, '%s.utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+
+        tracing.trace_df(probs, '%s.probs' % trace_label,
+                         column_labels=['alternative', 'probability'])
+
+        tracing.trace_df(choices, '%s.choices' % trace_label,
+                         columns=[None, trace_choice_name])
+
+        tracing.trace_df(model_design, '%s.model_design' % trace_label,
+                         column_labels=['expression', None])
+
+    return choices
+
+
+def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_choice_name=None):
+    """
+    Run a nested-logit simulation for when the model spec does not involve alternative
+    specific data, e.g. there are no interactions with alternative
+    properties and no need to sample from alternatives.
+
+    Parameters
+    ----------
+    choosers : pandas.DataFrame
+    spec : pandas.DataFrame
+        A table of variable specifications and coefficient values.
+        Variable expressions should be in the table index and the table
+        should have a column for each alternative.
+    nest_spec:
+        dictionary specifying nesting structure and nesting coefficients
+        (from the model spec yaml file)
+    locals_d : Dict
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
+    trace_label: str
+        This is the label to be used  for trace log file entries and dump file names
+        when household tracing enabled. No tracing occurs if label is empty or None.
+    trace_choice_name: str
+        This is the column label to be used in trace file csv dump of choices
+
+    Returns
+    -------
+    choices : pandas.Series
+        Index will be that of `choosers`, values will match the columns
+        of `spec`.
+    """
     model_design = eval_variables(spec.index, choosers, locals_d)
 
     _check_for_variability(model_design)
@@ -395,7 +408,7 @@ def nested_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     if trace_label:
 
-        trace_label = "%s.nested_simulate" % trace_label
+        trace_label = "%s.nl" % trace_label
 
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
@@ -438,7 +451,7 @@ def nested_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     return choices
 
 
-def simple_simulate(choosers, spec, skims=None, locals_d=None,
+def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     trace_label=None, trace_choice_name=None):
     """
     Run a simulation for when the model spec does not involve alternative
@@ -452,6 +465,9 @@ def simple_simulate(choosers, spec, skims=None, locals_d=None,
         A table of variable specifications and coefficient values.
         Variable expressions should be in the table index and the table
         should have a column for each alternative.
+    nest_spec:
+        for nested logit (nl): dictionary specifying nesting structure and nesting coefficients
+        for multinomial logit (mnl): None
     skims : Skims object
         The skims object is used to contain multiple matrices of
         origin-destination impedances.  Make sure to also add it to the
@@ -478,86 +494,48 @@ def simple_simulate(choosers, spec, skims=None, locals_d=None,
     if skims:
         add_skims(choosers, skims)
 
-    model_design = eval_variables(spec.index, choosers, locals_d)
+    trace_label = trace_label and "%s.simple_simulate" % trace_label
 
-    _check_for_variability(model_design)
-
-    utilities = model_design.dot(spec)
-
-    probs = utils_to_probs(utilities)
-    choices = make_choices(probs)
-
-    if trace_label:
-        trace_label = "%s.simple_simulate" % trace_label
-
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-
-        tracing.trace_df(utilities, '%s.utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
-
-        tracing.trace_df(probs, '%s.probs' % trace_label,
-                         column_labels=['alternative', 'probability'])
-
-        tracing.trace_df(choices, '%s.choices' % trace_label,
-                         columns=[None, trace_choice_name])
-
-        tracing.trace_df(model_design, '%s.model_design' % trace_label,
-                         column_labels=['expression', None])
-
-    return choices, model_design
-
-
-def chunked_choosers(choosers, chunk_size):
-    # generator to iterate over chooses in chunk_size chunks
-    chunk_size = int(chunk_size)
-    num_choosers = len(choosers.index)
-
-    i = 0
-    while i < num_choosers:
-        yield i, choosers[i: i+chunk_size]
-        i += chunk_size
-
-
-def interaction_simulate(
-        choosers, alternatives, spec,
-        skims=None, locals_d=None, sample_size=None, chunk_size=0,
-        trace_label=None, trace_choice_name=None):
-
-    # like _interaction_simulate but iterates over choosers in chunk_size chunks
-    # FIXME - chunk size should take number of chooser and alternative columns into account
-    # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
-
-    chunk_size = int(chunk_size)
-
-    if (chunk_size == 0) or (chunk_size >= len(choosers.index)):
-        choices = _interaction_simulate(choosers, alternatives, spec,
-                                        skims, locals_d, sample_size,
-                                        trace_label, trace_choice_name)
-        return choices
-
-    logger.info("interaction_simulate chunk_size %s num_choosers %s" %
-                (chunk_size, len(choosers.index)))
-
-    choices_list = []
-    # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
-
-        logger.info("Running chunk =%s of size %d" % (i, len(chooser_chunk)))
-
-        choices = _interaction_simulate(chooser_chunk, alternatives, spec,
-                                        skims, locals_d, sample_size,
-                                        trace_label, trace_choice_name)
-
-        choices_list.append(choices)
-
-    # FIXME: this will require 2X RAM
-    # if necessary, could append to hdf5 store on disk:
-    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
-    choices = pd.concat(choices_list)
-
-    assert len(choices.index == len(choosers.index))
+    if nest_spec is None:
+        choices = eval_mnl(choosers, spec, locals_d, trace_label, trace_choice_name)
+    else:
+        choices = eval_nl(choosers, spec, nest_spec, locals_d, trace_label, trace_choice_name)
 
     return choices
+
+
+def logit_model_settings(model_settings):
+    """
+    Read nest spec (for nested logit) and constant values from model settings file
+
+    Returns
+    -------
+    nests : dict
+        dictionary specifying nesting structure and nesting coefficients
+
+    constants : dict
+        dictionary of constants to add to locals for use by expressions in model spec
+    """
+    nests = None
+    constants = None
+
+    if model_settings is not None:
+
+        model_type = model_settings.get('MODEL_TYPE', None)
+
+        if model_type not in ['NL', 'MNL']:
+            tracing.error(__name__, "Unrecognized model type '%s'" % model_type)
+            raise RuntimeError("Unrecognized model type '%s'" % model_type)
+
+        if model_type == 'NL':
+            nests = model_settings.get('NESTS', None)
+            if nests is None:
+                tracing.error(__name__, "No NEST found in model spec for NL model type")
+                raise RuntimeError("No NEST found in model spec for NL model type")
+
+        constants = model_settings.get('CONSTANTS', None)
+
+    return nests, constants
 
 
 def _interaction_simulate(
@@ -569,32 +547,7 @@ def _interaction_simulate(
     be merged with choosers because there are interaction terms or
     because alternatives are being sampled.
 
-    Parameters
-    ----------
-    choosers : pandas.DataFrame
-        DataFrame of choosers
-    alternatives : pandas.DataFrame
-        DataFrame of alternatives - will be merged with choosers, currently
-        without sampling
-    spec : pandas.DataFrame
-        A Pandas DataFrame that gives the specification of the variables to
-        compute and the coefficients for each variable.
-        Variable specifications must be in the table index and the
-        table should have only one column of coefficients.
-    skims : Skims object
-        The skims object is used to contain multiple matrices of
-        origin-destination impedances.  Make sure to also add it to the
-        locals_d below in order to access it in expressions.  The *only* job
-        of this method in regards to skims is to call set_df with the
-        dataframe that comes back from interacting choosers with
-        alternatives.  See the skims module for more documentation on how
-        the skims object is intended to be used.
-    locals_d : Dict
-        This is a dictionary of local variables that will be the environment
-        for an evaluation of an expression that begins with @
-    sample_size : int, optional
-        Sample alternatives with sample of given size.  By default is None,
-        which does not sample alternatives.
+    Parameters are same as for public function interaction_simulate
 
     Returns
     -------
@@ -631,6 +584,7 @@ def _interaction_simulate(
 
     # multiply by coefficients and reshape into choosers by alts
     utilities = model_design.dot(spec).astype('float')
+
     utilities = pd.DataFrame(
         utilities.as_matrix().reshape(len(choosers), sample_size),
         index=choosers.index)
@@ -661,6 +615,107 @@ def _interaction_simulate(
                          columns=[None, trace_choice_name])
 
         tracing.trace_interaction_model_design(model_design, choosers, label=trace_label)
+
+    return choices
+
+
+def chunked_choosers(choosers, chunk_size):
+    # generator to iterate over chooses in chunk_size chunks
+    chunk_size = int(chunk_size)
+    num_choosers = len(choosers.index)
+
+    i = 0
+    while i < num_choosers:
+        yield i, choosers[i: i+chunk_size]
+        i += chunk_size
+
+
+def interaction_simulate(
+        choosers, alternatives, spec,
+        skims=None, locals_d=None, sample_size=None, chunk_size=0,
+        trace_label=None, trace_choice_name=None):
+
+    """
+    Run a simulation in the situation in which alternatives must
+    be merged with choosers because there are interaction terms or
+    because alternatives are being sampled.
+
+    optionally (if chunk_size > 0) iterates over choosers in chunk_size chunks
+
+    Parameters
+    ----------
+    choosers : pandas.DataFrame
+        DataFrame of choosers
+    alternatives : pandas.DataFrame
+        DataFrame of alternatives - will be merged with choosers, currently
+        without sampling
+    spec : pandas.DataFrame
+        A Pandas DataFrame that gives the specification of the variables to
+        compute and the coefficients for each variable.
+        Variable specifications must be in the table index and the
+        table should have only one column of coefficients.
+    skims : Skims object
+        The skims object is used to contain multiple matrices of
+        origin-destination impedances.  Make sure to also add it to the
+        locals_d below in order to access it in expressions.  The *only* job
+        of this method in regards to skims is to call set_df with the
+        dataframe that comes back from interacting choosers with
+        alternatives.  See the skims module for more documentation on how
+        the skims object is intended to be used.
+    locals_d : Dict
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
+    sample_size : int, optional
+        Sample alternatives with sample of given size.  By default is None,
+        which does not sample alternatives.
+    chunk_size : int
+        if chunk_size > 0 iterates over choosers in chunk_size chunks
+    trace_label: str
+        This is the label to be used  for trace log file entries and dump file names
+        when household tracing enabled. No tracing occurs if label is empty or None.
+    trace_choice_name: str
+        This is the column label to be used in trace file csv dump of choices
+
+    Returns
+    -------
+    ret : pandas.Series
+        A series where index should match the index of the choosers DataFrame
+        and values will match the index of the alternatives DataFrame -
+        choices are simulated in the standard Monte Carlo fashion
+    """
+
+    # FIXME - chunk size should take number of chooser and alternative columns into account
+    # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
+
+    chunk_size = int(chunk_size)
+
+    if (chunk_size == 0) or (chunk_size >= len(choosers.index)):
+        choices = _interaction_simulate(choosers, alternatives, spec,
+                                        skims, locals_d, sample_size,
+                                        trace_label, trace_choice_name)
+        return choices
+
+    logger.info("interaction_simulate chunk_size %s num_choosers %s" %
+                (chunk_size, len(choosers.index)))
+
+    choices_list = []
+    # segment by person type and pick the right spec for each person type
+    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+
+        logger.info("Running chunk =%s of size %d" % (i, len(chooser_chunk)))
+
+        choices = _interaction_simulate(chooser_chunk, alternatives, spec,
+                                        skims, locals_d, sample_size,
+                                        trace_label, trace_choice_name)
+
+        choices_list.append(choices)
+
+    # FIXME: this will require 2X RAM
+    # if necessary, could append to hdf5 store on disk:
+    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
+    choices = pd.concat(choices_list)
+
+    assert len(choices.index == len(choosers.index))
 
     return choices
 

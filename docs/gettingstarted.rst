@@ -340,7 +340,7 @@ whenever ``store`` is called by orca.
 
   @orca.injectable(cache=True)
   def store(data_dir, settings):
-    return pd.HDFStore(os.path.join(data_dir, "data", settings["store"]),mode='r')
+    return pd.HDFStore(os.path.join(data_dir, settings["store"]),mode='r')
 
 Next, the following import statement define the dynamic orca tables households, persons, skims, etc., but does not load them.
 It also defines the dynamic orca table columns (calculated fields) and injectables (functions) defined in the classes.  The

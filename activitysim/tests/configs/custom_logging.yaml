@@ -33,14 +33,14 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.tracing.log_file_path ['asim.log']
+      filename: !!python/object/apply:activitysim.tracing.log_file_path ['xasim.log']
       mode: w
       formatter: simpleFormatter
       level: !!python/name:logging.NOTSET
 
     tracefile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.tracing.log_file_path ['hhtrace.log']
+      filename: !!python/object/apply:activitysim.tracing.log_file_path ['xhhtrace.log']
       mode: w
       formatter: simpleFormatter
       level: !!python/name:logging.NOTSET

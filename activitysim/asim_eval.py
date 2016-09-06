@@ -121,6 +121,7 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
         This is a dictionary of local variables that will be the environment
         for an evaluation of "python" expression.
     trace_rows: series or array of bools to use as mask to select target rows to trace
+
     Returns
     -------
     variables : pandas.DataFrame
@@ -137,12 +138,12 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
             return pd.Series([x] * len(df.index), index=df.index)
         return x
 
-    trace = False
+    trace_results = None
     if trace_rows is not None:
         # convert to numpy array so we can slice ndarrays as well as series
         trace_rows = np.asanyarray(trace_rows)
-        trace_results = []
-        trace = trace_rows.any()
+        if trace_rows.any():
+            trace_results = []
 
     # avoid touching caller's passed-in locals_d parameter (they may be looping)
     locals_d = locals_d.copy() if locals_d is not None else {}
@@ -164,11 +165,11 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
             logger.error("assign_variables failed target: %s expression: %s"
                          % (str(target), str(expression)))
             # raise err
-            values = to_series(None, target=target)
+            raise err
 
         l.append((target, values))
 
-        if trace:
+        if trace_results is not None:
             trace_results.append((target, values[trace_rows]))
 
         # update locals to allows us to ref previously assigned targets
@@ -190,37 +191,7 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
     # DataFrame from list of tuples [<target_name>, <eval results>), ...]
     variables = pd.DataFrame.from_items(variables)
 
-    if trace:
+    if trace_results is not None:
         trace_results = undupe_column_names(pd.DataFrame.from_items(trace_results))
-        return variables, trace_results
-    else:
-        return variables, None
 
-
-def assign_variables_locals(locals=None):
-    """
-    assign locals whose values will be accessible to the execution context
-    when the expressions in spec are applied to choosers
-
-    adds numpy functions so they can be called from expressions
-    plus any additional values passed in locals dict
-
-    Parameters
-    ----------
-    locals : dict
-        dict of local variables to assign (probably from settings file)
-
-    Returns
-    -------
-    locals_d : dict
-        dict of locals suitable to pass to assign_variables method
-
-    """
-
-    locals_d = {
-        'log': np.log,
-        'exp': np.exp
-    }
-    if locals:
-        locals_d.update(locals)
-    return locals_d
+    return variables, trace_results

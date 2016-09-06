@@ -13,45 +13,45 @@ from ...activitysim import read_model_spec
 
 
 @pytest.fixture(scope='module')
-def people():
+def data_dir():
+    return os.path.join(os.path.dirname(__file__), 'data')
+
+
+@pytest.fixture(scope='module')
+def people(data_dir):
     return pd.read_csv(
-        os.path.join(os.path.dirname(__file__), 'data', 'people.csv'),
+        os.path.join(data_dir, 'people.csv'),
         index_col='id')
 
 
 @pytest.fixture(scope='module')
-def one_spec():
+def one_spec(data_dir):
     return read_model_spec(
-        os.path.join(
-            os.path.dirname(__file__), 'data', 'cdap_1_person.csv'))
+        os.path.join(data_dir, 'cdap_1_person.csv'))
 
 
 @pytest.fixture(scope='module')
-def two_spec():
+def two_spec(data_dir):
     return read_model_spec(
-        os.path.join(
-            os.path.dirname(__file__), 'data', 'cdap_2_person.csv'))
+        os.path.join(data_dir, 'cdap_2_person.csv'))
 
 
 @pytest.fixture(scope='module')
-def three_spec():
+def three_spec(data_dir):
     return read_model_spec(
-        os.path.join(
-            os.path.dirname(__file__), 'data', 'cdap_3_person.csv'))
+        os.path.join(data_dir, 'cdap_3_person.csv'))
 
 
 @pytest.fixture(scope='module')
-def final_rules():
+def final_rules(data_dir):
     return read_model_spec(
-        os.path.join(
-            os.path.dirname(__file__), 'data', 'cdap_final_rules.csv'))
+        os.path.join(data_dir, 'cdap_final_rules.csv'))
 
 
 @pytest.fixture
-def all_people():
+def all_people(data_dir):
     return read_model_spec(
-        os.path.join(
-            os.path.dirname(__file__), 'data', 'cdap_all_people.csv'),
+        os.path.join(data_dir, 'cdap_all_people.csv'),
         expression_name='Alternative')
 
 

@@ -22,16 +22,16 @@ from activitysim import nl
 # you will want to configure this with the locations of the canonical datasets
 DATA_REPO = os.path.join(os.path.dirname(__file__), '..', '..', 'activitysim-data')
 DATA_DIRS = {
-        'test': os.path.join(DATA_REPO, 'mtc_tm1_sf_test'),
-        'example': os.path.join(DATA_REPO, 'mtc_tm1_sf'),
-        'full': os.path.join(DATA_REPO, 'mtc_tm1'),
+        'test': os.path.join(DATA_REPO, 'mtc_tm1_sf_test', 'data'),
+        'example': os.path.join(DATA_REPO, 'mtc_tm1_sf', 'data'),
+        'full': os.path.join(DATA_REPO, 'mtc_tm1', 'data'),
     }
 
 
 # these shouldn't have to change
 CONFIGS_DIRS = {
-        'example': os.path.join(os.path.dirname(__file__), '..', 'example'),
-        'sandbox': os.path.join(os.path.dirname(__file__)),
+        'example': os.path.join(os.path.dirname(__file__), '..', 'example', 'configs'),
+        'sandbox': os.path.join(os.path.dirname(__file__), 'configs'),
     }
 
 
@@ -50,7 +50,7 @@ def inject_settings(config='sandbox',
     data_dir = DATA_DIRS.get(data)
     orca.add_injectable("data_dir", data_dir)
 
-    with open(os.path.join(config_dir, "configs", "settings.yaml")) as f:
+    with open(os.path.join(config_dir, 'settings.yaml')) as f:
         settings = yaml.load(f)
         if households_sample_size is not None:
             settings['households_sample_size'] = households_sample_size
@@ -119,7 +119,7 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 chunk_size = 50000,
 #                 hh_chunk_size = 50000)
 
-inject_settings(config='sandbox',
+inject_settings(config='example',
                 data='test',
                 households_sample_size=50,
                 preload_3d_skims=True,

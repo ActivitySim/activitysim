@@ -46,8 +46,8 @@ manifest_dir = '.'
 source_data_dir = './source_skims'
 dest_data_dir = './data'
 
-manifest_file_name = os.path.join(manifest_dir, "skim_manifest.csv")
-dest_file_name = os.path.join(dest_data_dir, "skims.omx")
+manifest_file_name = os.path.join(manifest_dir, 'skim_manifest.csv')
+dest_file_name = os.path.join(dest_data_dir, 'skims.omx')
 
 with omx.openFile(dest_file_name, 'a') as dest_omx:
 

@@ -6,10 +6,13 @@ import logging
 
 import orca
 import pandas as pd
+import yaml
 
 from activitysim import activitysim as asim
 from activitysim import tracing
 from .util.mandatory_tour_frequency import process_mandatory_tours
+
+from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
 
 
 logger = logging.getLogger(__name__)
@@ -17,14 +20,20 @@ logger = logging.getLogger(__name__)
 
 @orca.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "mandatory_tour_frequency.csv")
+    f = os.path.join(configs_dir, 'mandatory_tour_frequency.csv')
     return asim.read_model_spec(f).fillna(0)
+
+
+@orca.injectable()
+def mandatory_tour_frequency_settings(configs_dir):
+    return read_model_settings(configs_dir, 'mandatory_tour_frequency.yaml')
 
 
 @orca.step()
 def mandatory_tour_frequency(set_random_seed,
                              persons_merged,
                              mandatory_tour_frequency_spec,
+                             mandatory_tour_frequency_settings,
                              trace_hh_id):
     """
     This model predicts the frequency of making mandatory trips (see the
@@ -37,12 +46,14 @@ def mandatory_tour_frequency(set_random_seed,
     tracing.info(__name__,
                  "Running mandatory_tour_frequency with %d persons" % len(choosers))
 
-    # trace.print_summary('mandatory_tour_frequency choosers',
-    #                     choosers.workplace_taz, describe=True)
+    nest_spec = get_logit_model_settings(mandatory_tour_frequency_settings)
+    constants = get_model_constants(mandatory_tour_frequency_settings)
 
-    choices, _ = asim.simple_simulate(
+    choices = asim.simple_simulate(
         choosers,
         spec=mandatory_tour_frequency_spec,
+        nest_spec=nest_spec,
+        locals_d=constants,
         trace_label=trace_hh_id and 'mandatory_tour_frequency',
         trace_choice_name='mandatory_tour_frequency')
 

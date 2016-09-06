@@ -56,4 +56,4 @@ def test_vts():
     pdt.assert_series_equal(
         choices,
         pd.Series(expected,
-                  index=pd.Index([0, 2, 3, 1, 4], name='index')))
+                  index=pd.Index([0, 2, 3, 1, 4], name='tour_id')))

@@ -54,7 +54,7 @@ def get_previous_tour_by_tourid(current_tour_person_ids,
     return previous_tour_by_tourid
 
 
-def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0, trace_label=None):
+def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, trace_label=None):
     """
     The purpose of this method is fairly straightforward - it takes tours
     and schedules them into time slots.  Alternatives should be specified so
@@ -118,6 +118,8 @@ def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0, trace_label=None)
         nth_tours = tours.reset_index().\
             groupby('person_id').nth(i).reset_index().set_index('index')
 
+        nth_tours.index.name = 'tour_id'
+
         if trace_label:
             tracing.info(__name__,
                          "vectorize_tour_scheduling %s running %d #%d tour choices" %
@@ -132,12 +134,16 @@ def vectorize_tour_scheduling(tours, alts, spec, chunk_size=0, trace_label=None)
             previous_tour_by_personid,
             alts))
 
+        tour_trace_label = trace_label and "%s.tour_%s" % (trace_label, i)
+
         nth_choices = asim.interaction_simulate(
             nth_tours,
             alts.copy(),
             spec,
+            locals_d=constants,
             sample_size=min(len(alts), 50),
-            chunk_size=chunk_size
+            chunk_size=chunk_size,
+            trace_label=tour_trace_label
         )
 
         choices.append(nth_choices)

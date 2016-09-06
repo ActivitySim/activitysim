@@ -14,6 +14,8 @@ from activitysim import tracing
 from activitysim import skim as askim
 from .util.mode import _mode_choice_spec
 
+from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,25 +27,18 @@ will be used for the tour
 
 @orca.injectable()
 def tour_mode_choice_settings(configs_dir):
-    with open(os.path.join(configs_dir,
-                           "configs",
-                           "tour_mode_choice.yaml")) as f:
-        return yaml.load(f)
+    return read_model_settings(configs_dir, 'tour_mode_choice.yaml')
 
 
 @orca.injectable()
 def tour_mode_choice_spec_df(configs_dir):
-    with open(os.path.join(configs_dir,
-                           "configs",
-                           "tour_mode_choice.csv")) as f:
+    with open(os.path.join(configs_dir, 'tour_mode_choice.csv')) as f:
         return asim.read_model_spec(f)
 
 
 @orca.injectable()
 def tour_mode_choice_coeffs(configs_dir):
-    with open(os.path.join(configs_dir,
-                           "configs",
-                           "tour_mode_choice_coeffs.csv")) as f:
+    with open(os.path.join(configs_dir, 'tour_mode_choice_coeffs.csv')) as f:
         return pd.read_csv(f, index_col='Expression')
 
 
@@ -58,25 +53,18 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
 
 @orca.injectable()
 def trip_mode_choice_settings(configs_dir):
-    with open(os.path.join(configs_dir,
-                           "configs",
-                           "trip_mode_choice.yaml")) as f:
-        return yaml.load(f)
+    return read_model_settings(configs_dir, 'trip_mode_choice.yaml')
 
 
 @orca.injectable()
 def trip_mode_choice_spec_df(configs_dir):
-    with open(os.path.join(configs_dir,
-                           "configs",
-                           "trip_mode_choice.csv")) as f:
+    with open(os.path.join(configs_dir, 'trip_mode_choice.csv')) as f:
         return asim.read_model_spec(f)
 
 
 @orca.injectable()
 def trip_mode_choice_coeffs(configs_dir):
-    with open(os.path.join(configs_dir,
-                           "configs",
-                           "trip_mode_choice_coeffs.csv")) as f:
+    with open(os.path.join(configs_dir, 'trip_mode_choice_coeffs.csv')) as f:
         return pd.read_csv(f, index_col='Expression')
 
 
@@ -95,8 +83,8 @@ def _mode_choice_simulate(tours,
                           orig_key,
                           dest_key,
                           spec,
-                          additional_constants,
-                          nests,
+                          constants,
+                          nest_spec,
                           omx=None,
                           trace_label=None, trace_choice_name=None
                           ):
@@ -133,11 +121,12 @@ def _mode_choice_simulate(tours,
         "out_skims": out_skims,
         "skims": skims
     }
-    locals_d.update(additional_constants)
+    if constants is not None:
+        locals_d.update(constants)
 
-    choices = asim.nested_simulate(tours,
+    choices = asim.simple_simulate(tours,
                                    spec,
-                                   nests,
+                                   nest_spec,
                                    skims=[in_skims, out_skims, skims],
                                    locals_d=locals_d,
                                    trace_label=trace_label,
@@ -175,6 +164,9 @@ def tour_mode_choice_simulate(tours_merged,
 
     tours = tours_merged.to_frame()
 
+    nest_spec = get_logit_model_settings(tour_mode_choice_settings)
+    constants = get_model_constants(tour_mode_choice_settings)
+
     if trace_hh_id:
         tracing.register_tours(tours, trace_hh_id)
 
@@ -207,7 +199,7 @@ def tour_mode_choice_simulate(tours_merged,
         tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
                               segment[dest_key], value_counts=True)
 
-        trace_label = trace_hh_id and ('tour_mode_choice_%s' % tour_type)
+        trace_label = trace_hh_id and ('tour_mode_choice.%s' % tour_type)
 
         choices = _mode_choice_simulate(
             segment,
@@ -215,8 +207,8 @@ def tour_mode_choice_simulate(tours_merged,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
-            additional_constants=tour_mode_choice_settings['CONSTANTS'],
-            nests=tour_mode_choice_settings['NESTS'],
+            constants=constants,
+            nest_spec=nest_spec,
             omx=omx_file,
             trace_label=trace_label,
             trace_choice_name='tour_mode_choice')
@@ -263,7 +255,9 @@ def trip_mode_choice_simulate(tours_merged,
     tracing.error(__name__, 'trips not implemented running the trips model on tours')
 
     trips = tours_merged.to_frame()
-    stack = askim.SkimStack(skims)
+
+    nest_spec = get_logit_model_settings(trip_mode_choice_settings)
+    constants = get_model_constants(trip_mode_choice_settings)
 
     tracing.info(__name__, "Running trip_mode_choice_simulate with %d trips" % len(trips))
 
@@ -298,8 +292,8 @@ def trip_mode_choice_simulate(tours_merged,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),
-            additional_constants=trip_mode_choice_settings['CONSTANTS'],
-            nests=trip_mode_choice_settings['NESTS'],
+            constants=constants,
+            nest_spec=nest_spec,
             omx=omx_file,
             trace_label=trace_label,
             trace_choice_name='trip_mode_choice')

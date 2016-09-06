@@ -11,6 +11,8 @@ import numpy as np
 from activitysim import asim_eval as asim_eval
 from activitysim import tracing
 
+from .util.misc import read_model_settings, get_model_constants
+
 
 class AccessibilitySkims(object):
     """
@@ -66,12 +68,19 @@ class AccessibilitySkims(object):
 
 @orca.injectable()
 def accessibility_spec(configs_dir):
-    f = os.path.join(configs_dir, 'configs', "accessibility.csv")
+    f = os.path.join(configs_dir, 'accessibility.csv')
     return asim_eval.read_assignment_spec(f)
 
 
+@orca.injectable()
+def accessibility_settings(configs_dir):
+    return read_model_settings(configs_dir, 'accessibility.yaml')
+
+
 @orca.step()
-def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_use, trace_od):
+def compute_accessibility(settings, accessibility_spec,
+                          accessibility_settings,
+                          skims, omx_file, land_use, trace_od):
 
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
@@ -92,11 +101,8 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
     tracing.info(__name__,
                  "Running compute_accessibility")
 
-    settings_locals = settings.get('locals_accessibility', None)
-
-    if not settings_locals:
-        tracing.error(__name__, "no locals_accessibility settings")
-        return
+    constants = get_model_constants(accessibility_settings)
+    land_use_columns = accessibility_settings.get('land_use_columns', [])
 
     land_use_df = land_use.to_frame()
 
@@ -117,13 +123,17 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
         trace_od_rows = None
 
     # merge land_use_columns into od_df
-    land_use_columns = settings_locals.get('land_use_columns', [])
     land_use_df = land_use_df[land_use_columns]
     od_df = pd.merge(od_df, land_use_df, left_on='dest', right_index=True).sort_index()
 
-    locals_d = asim_eval.assign_variables_locals(settings_locals)
-    locals_d['skim_od'] = AccessibilitySkims(skims, omx_file, zone_count)
-    locals_d['skim_do'] = AccessibilitySkims(skims, omx_file, zone_count, transpose=True)
+    locals_d = {
+        'log': np.log,
+        'exp': np.exp,
+        'skim_od': AccessibilitySkims(skims, omx_file, zone_count),
+        'skim_do': AccessibilitySkims(skims, omx_file, zone_count, transpose=True)
+    }
+    if constants is not None:
+        locals_d.update(constants)
 
     results, trace_results = asim_eval.assign_variables(accessibility_spec, od_df, locals_d,
                                                         trace_rows=trace_od_rows)
@@ -139,16 +149,16 @@ def compute_accessibility(settings, accessibility_spec, skims, omx_file, land_us
     if trace_od:
 
         # trace settings
-        for key, value in settings_locals.iteritems():
+        for key, value in constants.iteritems():
             tracing.info(__name__,
-                         message="SETTING: %s = %s" % (key, value))
+                         message="CONSTANT: %s = %s" % (key, value))
 
         if not trace_od_rows.any():
             tracing.warn(__name__,
                          "trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
         else:
 
-            # concat first temps then results
+            # add OD columns to trace results
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
             for column in df.columns:

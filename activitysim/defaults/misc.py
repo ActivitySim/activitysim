@@ -23,29 +23,35 @@ def set_random_seed():
 
 @orca.injectable()
 def configs_dir():
-    return '.'
+    return 'configs'
 
 
 @orca.injectable()
 def data_dir():
-    return '.'
+    return 'data'
 
 
 @orca.injectable()
 def output_dir():
-    return '.'
+    return 'output'
 
 
 @orca.injectable()
 def settings(configs_dir):
-    with open(os.path.join(configs_dir, "configs", "settings.yaml")) as f:
+    with open(os.path.join(configs_dir, 'settings.yaml')) as f:
         return yaml.load(f)
 
 
 @orca.injectable(cache=True)
 def store(data_dir, settings):
-    return pd.HDFStore(os.path.join(data_dir, "data", settings["store"]),
-                       mode='r')
+    if 'store' not in settings:
+        logger.error("store file name not specified in settings")
+        raise RuntimeError("store file name not specified in settings")
+    fname = os.path.join(data_dir, settings["store"])
+    if not os.path.exists(fname):
+        logger.error("store file not found: %s" % fname)
+        raise RuntimeError("store file not found: %s" % fname)
+    return pd.HDFStore(fname, mode='r')
 
 
 @orca.injectable(cache=True)
@@ -92,17 +98,16 @@ def trace_hh_id(settings):
 
 
 @orca.injectable()
-def trace_person_ids(persons):
-    # overridden when persons table is loaded
-    # if trace_hh_id is defined
+def trace_person_ids():
+    # overridden by register_persons if trace_hh_id is defined
     logger.error("trace_person_ids called before being overridden")
+    raise RuntimeError('trace_person_ids called before being overridden')
     return []
 
 
 @orca.injectable()
-def trace_tour_ids(persons):
-    # overridden when tours table is loaded
-    # if trace_hh_id is defined
+def trace_tour_ids():
+    # overridden by register_tours if trace_hh_id is defined
     logger.error("trace_tour_ids called before being overridden")
     raise RuntimeError('trace_tour_ids called before being overridden')
     return []
@@ -110,11 +115,13 @@ def trace_tour_ids(persons):
 
 @orca.injectable(cache=True)
 def hh_index_name(settings):
+    # overridden by register_households if trace_hh_id is defined
     return None
 
 
 @orca.injectable(cache=True)
 def persons_index_name(settings):
+    # overridden by register_persons if trace_hh_id is defined
     return None
 
 

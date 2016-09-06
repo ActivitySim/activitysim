@@ -6,8 +6,8 @@ import pandas as pd
 import openmatrix as omx
 
 # input files, SF county is zones 1 to 190, output files
-data_file = "mtc_asim.h5"
-skims_file = "skims.omx"
+data_file = 'mtc_asim.h5'
+skims_file = 'skims.omx'
 
 
 def create_subset(data_file_out, skims_file_out, maxZone, households_sample_size=0):
@@ -46,13 +46,13 @@ def create_subset(data_file_out, skims_file_out, maxZone, households_sample_size
         skims_out[skimName].attrs.TITLE = ''  # remove funny character for OMX viewer
 
 
-create_subset(data_file_out="mtc_asim_sf.h5",
-              skims_file_out="skims_sf.omx",
+create_subset(data_file_out='mtc_asim_sf.h5',
+              skims_file_out='skims_sf.omx',
               maxZone=190
               )
 
-create_subset(data_file_out="mtc_asim_sf_test.h5",
-              skims_file_out="skims_sf_test.omx",
+create_subset(data_file_out='mtc_asim_sf_test.h5',
+              skims_file_out='skims_sf_test.omx',
               maxZone=25,
               households_sample_size=5000
               )

@@ -63,14 +63,15 @@ def utilities(choosers_dm, spec, test_data):
 
 
 def test_utils_to_probs(utilities, test_data):
-    probs = nl.utils_to_probs(utilities)
+    probs = nl.utils_to_probs(utilities, trace_label=None)
     pdt.assert_frame_equal(probs, test_data['probabilities'])
 
 
 def test_utils_to_probs_raises():
-    with pytest.raises(RuntimeError):
-        nl.utils_to_probs(
-            pd.DataFrame([[1, 2, np.inf, 3]]))
+
+    with pytest.raises(RuntimeError) as excinfo:
+        nl.utils_to_probs(pd.DataFrame([[1, 2, np.inf, 3]]), trace_label=None)
+    assert "utility rows have infinite values" in str(excinfo.value)
 
 
 def test_make_choices_only_one():
@@ -84,7 +85,7 @@ def test_make_choices_only_one():
 
 
 def test_make_choices_real_probs(random_seed, utilities):
-    probs = nl.utils_to_probs(utilities)
+    probs = nl.utils_to_probs(utilities, trace_label=None)
     choices = nl.make_choices(probs)
 
     pdt.assert_series_equal(

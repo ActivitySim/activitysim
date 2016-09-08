@@ -169,7 +169,7 @@ def compute_accessibility(settings, accessibility_spec,
                              label='accessibility',
                              index_label='skim_offset',
                              slicer='NONE',
-                             warn=True)
+                             warn_if_empty=True)
 
         tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
-                         warn=True)
+                         warn_if_empty=True)

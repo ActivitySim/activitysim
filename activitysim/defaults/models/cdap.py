@@ -70,7 +70,8 @@ def cdap_simulate(set_random_seed, persons_merged,
                             cdap_final_rules,
                             cdap_all_people,
                             hh_chunk_size,
-                            trace_label=trace_hh_id and 'cdap')
+                            trace_hh_id,
+                            trace_label='cdap')
 
     choices = choices.reindex(persons_merged.index)
 
@@ -83,4 +84,4 @@ def cdap_simulate(set_random_seed, persons_merged,
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="cdap",
                          columns=trace_columns,
-                         warn=True)
+                         warn_if_empty=True)

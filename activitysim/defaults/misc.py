@@ -23,16 +23,22 @@ def set_random_seed():
 
 @orca.injectable()
 def configs_dir():
+    if not os.path.exists('configs'):
+        raise RuntimeError("configs_dir: directory does not exist")
     return 'configs'
 
 
 @orca.injectable()
 def data_dir():
+    if not os.path.exists('data'):
+        raise RuntimeError("data: directory does not exist")
     return 'data'
 
 
 @orca.injectable()
 def output_dir():
+    if not os.path.exists('output'):
+        raise RuntimeError("output_dir: directory does not exist")
     return 'output'
 
 
@@ -74,15 +80,15 @@ def households_sample_size(settings):
 
 @orca.injectable(cache=True)
 def chunk_size(settings):
-    return settings.get('chunk_size', 0)
+    return int(settings.get('chunk_size', 0))
 
 
 @orca.injectable(cache=True)
 def hh_chunk_size(settings):
     if 'hh_chunk_size' in settings:
-        return settings.get('hh_chunk_size', 0)
+        return int(settings.get('hh_chunk_size', 0))
     else:
-        return settings.get('chunk_size', 0)
+        return int(settings.get('chunk_size', 0))
 
 
 @orca.injectable(cache=True)

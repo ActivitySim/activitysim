@@ -73,8 +73,6 @@ def read_assignment_spec(fname,
         dataframe with three columns: ['description' 'target' 'expression']
     """
 
-    # print "read_assignment_spec", fname
-
     cfg = pd.read_csv(fname, comment='#')
 
     # drop null expressions

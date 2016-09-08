@@ -36,7 +36,7 @@ def persons(persons_internal, trace_hh_id):
     if trace_hh_id:
         tracing.register_persons(df, trace_hh_id)
         tracing.trace_df(df, "persons",
-                         warn=True)
+                         warn_if_empty=True)
 
     return df
 

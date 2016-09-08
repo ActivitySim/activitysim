@@ -207,32 +207,23 @@ the skims object is intended to be used.</p>
 <dl class="function">
 <dt id="activitysim.activitysim.compute_base_probabilities">
 <code class="descclassname">activitysim.activitysim.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>compute base probabilities for nest leaves</p>
-<p>Base probabilities will be the nest-adjusted probabilities of all leaves
+<dd><p>compute base probabilities for nest leaves
+Base probabilities will be the nest-adjusted probabilities of all leaves
 This flattens or normalizes all the nested probabilities so that they have the proper global
-relative values (the leaf probabilities sum to 1 for each row.)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
+relative values (the leaf probabilities sum to 1 for each row.)
+Parameters
+&#8212;&#8212;&#8212;-
+nested_probabilities : pandas.DataFrame</p>
 <blockquote>
-<div><p>dataframe with the nested probabilities for nest leafs and nodes</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>base_probabilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<div>dataframe with the nested probabilities for nest leafs and nodes</div></blockquote>
+<dl class="docutils">
+<dt>nest_spec</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>Nest tree dict from the model spec yaml file</dd>
+</dl>
+<dl class="docutils">
+<dt>base_probabilities</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span><dd>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -269,34 +260,25 @@ nest &lt;- exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficien
 
 <dl class="function">
 <dt id="activitysim.activitysim.compute_nested_probabilities">
-<code class="descclassname">activitysim.activitysim.</code><code class="descname">compute_nested_probabilities</code><span class="sig-paren">(</span><em>nested_exp_utilities</em>, <em>nest_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.compute_nested_probabilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>compute nested probabilities for nest leafs and nodes</p>
-<p>probability for nest alternatives is simply the alternatives&#8217;s local (to nest) probability
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">compute_nested_probabilities</code><span class="sig-paren">(</span><em>nested_exp_utilities</em>, <em>nest_spec</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.compute_nested_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute nested probabilities for nest leafs and nodes
+probability for nest alternatives is simply the alternatives&#8217;s local (to nest) probability
 computed in the same way as the probability of non-nested alternatives in multinomial logit
 i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
-except in nested logit, its sib group is restricted to the nest</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_exp_utilities</strong> : pandas.DataFrame</p>
+except in nested logit, its sib group is restricted to the nest
+Parameters
+&#8212;&#8212;&#8212;-
+nested_exp_utilities : pandas.DataFrame</p>
 <blockquote>
-<div><p>dataframe with the exponentiated nested utilities of all leaves and nodes</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<div>dataframe with the exponentiated nested utilities of all leaves and nodes</div></blockquote>
+<dl class="docutils">
+<dt>nest_spec</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>Nest tree dict from the model spec yaml file</dd>
+</dl>
+<dl class="docutils">
+<dt>nested_probabilities</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span><dd>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -1025,7 +1007,7 @@ len(alternatives) or <cite>sample_size</cite> times.</p>
 
 <dl class="function">
 <dt id="activitysim.nl.make_choices">
-<code class="descclassname">activitysim.nl.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.make_choices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.nl.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.make_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make choices for each chooser from among a set of alternatives.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1052,7 +1034,7 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.nl.utils_to_probs">
-<code class="descclassname">activitysim.nl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>exponentiated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.nl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>trace_label=None</em>, <em>exponentiated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a table of utilities to exponentiated probabilities.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1062,9 +1044,13 @@ is an index into the columns of <cite>probs</cite>.</p>
 <blockquote>
 <div><p>Rows should be choosers and columns should be alternatives.</p>
 </div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
+<p><strong>trace_label</strong> : str</p>
+<blockquote>
+<div><p>label for tracing bad utility or probability values</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>probs</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>Will have the same index and columns as <cite>utils</cite>.</p>
 </div></blockquote>
@@ -1325,7 +1311,7 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.tracing.slice_canonically">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_canonically</code><span class="sig-paren">(</span><em>df</em>, <em>slicer</em>, <em>label</em>, <em>warn=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_canonically" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">slice_canonically</code><span class="sig-paren">(</span><em>df</em>, <em>slicer</em>, <em>label</em>, <em>warn_if_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.slice_canonically" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1436,7 +1422,7 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.tracing.trace_df">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>column_labels=None</em>, <em>transpose=True</em>, <em>warn=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>column_labels=None</em>, <em>transpose=True</em>, <em>warn_if_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1470,9 +1456,9 @@ is an index into the columns of <cite>probs</cite>.</p>
 <blockquote>
 <div><p>whether to transpose file for legibility</p>
 </div></blockquote>
-<p><strong>warn: boolean</strong></p>
+<p><strong>warn_if_empty: boolean</strong></p>
 <blockquote>
-<div><p>write warnings</p>
+<div><p>write warning if sliced df is empty</p>
 </div></blockquote>
 </td>
 </tr>

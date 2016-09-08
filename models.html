@@ -262,7 +262,7 @@ with given characteristics owns</p>
 </div>
 <div class="section" id="coordinated-daily-activity-pattern-cdap">
 <h2>Coordinated Daily Activity Pattern (CDAP)<a class="headerlink" href="#coordinated-daily-activity-pattern-cdap" title="Permalink to this headline">¶</a></h2>
-<p>The main interface to the CDAP model is the <code class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></code>
+<p>The main interface to the CDAP model is the <a class="reference internal" href="#activitysim.cdap.cdap.run_cdap" title="activitysim.cdap.cdap.run_cdap"><code class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></code></a>
 function.  This function is called by the orca step <code class="docutils literal"><span class="pre">cdap_simulate</span></code> which is
 registered as an orca step and is called in the example via
 <code class="docutils literal"><span class="pre">orca.run([&quot;cdap_simulate&quot;])</span></code>.  There are two cdap class definitions in
@@ -376,7 +376,7 @@ is a tuple of individual utilities.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.individual_utilities">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate CDAP utilities for all individuals.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -454,7 +454,7 @@ mapping alternative choices to their utility.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.make_household_choices">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_household_choices</code><span class="sig-paren">(</span><em>hh_util</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_household_choices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_household_choices</code><span class="sig-paren">(</span><em>hh_util</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_household_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decide on the activity pattern for each household.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -463,8 +463,35 @@ mapping alternative choices to their utility.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
 <blockquote>
 <div><p>Keys will be household IDs and values will be Series
-mapping alternative choices to their utility.</p>
+mapping alternative choices to their utility.
+The series index values are tuples e.g. (&#8216;NonMandatory&#8217;, &#8216;Mandatory&#8217;, &#8216;Home&#8217;)
+The length of the tuple in the index depends on the number of hh members</p>
 </div></blockquote>
+<p><strong>In other words, hh_utils looks something like this:</strong></p>
+<p><strong>hh_util =  {</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt>237824: pandas.Series(</dt>
+<dd><p class="first last">(Mandatory, Mandatory)       :   6.39426
+(Mandatory, NonMandatory)    :   5.09445
+(Mandatory, Home)            :    4.6314
+(NonMandatory, Mandatory)    :   4.48733
+(NonMandatory, NonMandatory) :   3.18751
+(NonMandatory, Home)         :   2.72446
+(Home, Mandatory)            :   4.76486
+(Home, NonMandatory)         :   3.46505</p>
+</dd>
+</dl>
+<p>),
+237825: pandas.Series(</p>
+<blockquote>
+<div><p>(Mandatory)                  :   6.39426
+(NonMandatory)               :   5.09445
+(Home)                       :    4.6314</p>
+</div></blockquote>
+<p>)</p>
+</div></blockquote>
+<p><strong>}</strong></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
@@ -520,6 +547,86 @@ The table will have one column called <cite>interaction</cite>.</p>
 <div><p>Interactions between three people. Index will be person IDs taken
 from the index of <cite>people</cite>.
 The table will have one column called <cite>interaction</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.run_cdap">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">run_cdap</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>final_rules</em>, <em>all_people</em>, <em>chunk_size=0</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.run_cdap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose individual activity patterns for people.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Table of people data. Must contain at least a household ID
+column and a categorization of person type.</p>
+</div></blockquote>
+<p><strong>hh_id_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
+</div></blockquote>
+<p><strong>p_type_col</strong> : str</p>
+<blockquote>
+<div><p>Name of the column in <cite>people</cite> that contains the person type number.</p>
+</div></blockquote>
+<p><strong>one_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to individuals.</p>
+</div></blockquote>
+<p><strong>two_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to interactions between two people.</p>
+</div></blockquote>
+<p><strong>three_spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP spec applied to interactions between three people.</p>
+</div></blockquote>
+<p><strong>final_rules</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>This table must have an index of expressions that can be used
+to filter the <cite>people</cite> table. It must have two columns:
+the first must have the name of the alternative to which the rule
+applies, and the second must have the value of the utility for that
+alternative. The names of the columns is not important, but
+the order is.</p>
+</div></blockquote>
+<p><strong>all_people</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Adjustments to household alternatives, with alternatives in the
+index and the adjustment values in the first column.
+Index should be household alternatives in the form of tuples
+containing individual alternatives, e.g.
+(&#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;), where &#8216;Mandatory&#8217; is
+one of the alternatives available to individual household members.
+Note that these may also be expressed as Python code to save space,
+so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
+</div></blockquote>
+<p><strong>chunk_size: int</strong></p>
+<blockquote>
+<div><p>chunk size or 0 for no chunking</p>
+</div></blockquote>
+<p><strong>trace_hh_id</strong> : int</p>
+<blockquote>
+<div><p>hh_id to trace or None if no hh tracing</p>
+</div></blockquote>
+<p><strong>trace_label</strong> : str</p>
+<blockquote>
+<div><p>label for tracing or None if no tracing</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Maps index of <cite>people</cite> to their activity pattern choice,
+where that choice is taken from the columns of specs
+(so it&#8217;s important that the specs all refer to alternatives
+in the same way).</p>
 </div></blockquote>
 </td>
 </tr>

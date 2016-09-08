@@ -147,12 +147,12 @@ in the destination choice model, the size terms expressions file has market segm
 coefficients as columns.  Broadly speaking, there are currently three types of model expression configurations:
 
 * simple choice model - selects from a fixed set of choices defined in the specification file, such as the example above
-* destination choice model - which combines the destination choice expressions and destination choice alternatives files
-* complex choice model - a CSV expressions file with description, a CSV coefficient file, and a YAML settings file, such as the example below
+* destination choice model - which combines the destination choice expressions and destination choice alternatives files since the alternatives are not listed in the expressions file
+* complex choice model - an expressions file, a coefficients file, a YAML settings file.
 
-The tour mode choice model expressions file is structured a little differently, as shown below.  Each row is an expression for one
-alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as 
-``$IN_N_OUT_EXPR.format(sk='SOV_TIME')`` are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit model
+The tour mode choice model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
+Each row is an expression for one alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as 
+``$IN_N_OUT_EXPR.format(sk='SOV_TIME')`` are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit (NL) model
 and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.
 
 +----------------------------------------+------------------------------------------+----------------------+-----------+----------+
@@ -189,14 +189,14 @@ Inputs
 
 In order to run the example, you first need two input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file:
 
-* store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
+* store: mtc_asim.h5 - an HDF5 file containing the following MTC travel model one tables as pandas DataFrames for a subset of zones:
 
     * skims/accessibility - Zone-based accessibility measures
     * land_use/taz_data - Zone-based land use data (population and employment for example)
     * persons - Synthetic population person records
     * households - Synthetic population household records
     
-* skims_file: skims.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.
+* skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.
 
 Both of these files can be downloaded from the `SF 25 zone example` example data folder on 
 MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  Both files can 
@@ -208,8 +208,8 @@ The ``scripts\data_mover.ipynb`` was used to create the mtc_asim.h5 file from th
 This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 
 file.
 
-The full set of MTC TM1 OMX skims are also on the box account. The ``scripts\build_omx.py`` script 
-will build one OMX file containing all the skims. The original MTC TM1 skims were converted from 
+The full set of MTC travel model one OMX skims are also on the box account. The ``scripts\build_omx.py`` script 
+will build one OMX file containing all the skims. The original MTC travel model one skims were converted from 
 Cube to OMX using the `Cube to OMX converter <https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter>`__.
 
 Finally, the example inputs were created by the ``scripts\create_sf_example.py`` script,
@@ -257,8 +257,8 @@ columns indicates the number of non-mandatory tours by purpose.
 
 The current set of files are:
 
-* ``accessibility.csv`` - accessibility model
-* ``auto_ownership.csv`` - auto ownership model
+* ``accessibility.csv, , accessibility.yaml`` - accessibility model
+* ``auto_ownership.csv, auto_ownership.yaml`` - auto ownership model
 * ``cdap_*.csv`` - CDAP model
 * ``destination_choice.csv, destination_choice_size_terms.csv`` - destination choice model
 * ``mandatory_tour_frequency.csv`` - mandatory tour frequency model
@@ -373,9 +373,13 @@ the function as runnable by orca.
   orca.run(["school_location_simulate"])
 
   @orca.step()
-  def school_location_simulate(set_random_seed, persons_merged,
-    school_location_spec, skims, destination_size_terms, chunk_size, trace_hh_id):
-
+  def school_location_simulate(
+    set_random_seed, persons_merged,
+    school_location_spec, school_location_settings, 
+    skims,
+    destination_size_terms, 
+    chunk_size, trace_hh_id):
+                             
 The ``school_location_simulate`` step requires the objects defined in the function definition above.  Since they are not yet loaded, 
 orca goes looking for them.  This is called lazy loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.
 
@@ -426,9 +430,16 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
   #households calls asim.random_rows to read a sample of households records 
   #households calls tracing.register_households to setup tracing
 
-``school_location_simulate`` then sets the persons merged table as choosers, reads the destination_size_terms 
-alternatives file, and reads the expressions specification file. 
+``school_location_simulate`` also reads the expressions specification file, settings yaml file,
+destination_size_terms file, sets the persons merged table as choosers, and sets the chunk size, trace id, and random seed. 
 
+  def school_location_simulate(
+    set_random_seed, persons_merged,
+    school_location_spec, school_location_settings, 
+    skims,
+    destination_size_terms, 
+    chunk_size, trace_hh_id):
+    
 Next the method sets up the skims required for this model.
 The following code set the keys for looking up the skim values for this model. In this case there is a ``TAZ`` column in the choosers,
 which was in the ``households`` table that was joined with ``persons`` to make ``persons_merged`` and a ``TAZ`` in the alternatives 
@@ -449,16 +460,14 @@ alternatives table, the model specification expressions file, the skims, and the
   asim.interaction_simulate(choosers_segment, alternatives, spec[[school_type]],
     skims=skims, locals_d=locals_d, sample_size=50, chunk_size=0, trace_label=None, trace_choice_name=None)
 
-This function solves the MNL utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices. 
+This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices. 
 This is done in a for loop of chunks of choosers in order to avoid running out of RAM when building the often large data tables.
 The ``eval_variables`` loops through each expression and solves it at once for all records in the chunked chooser table using 
 either pandas' eval() or Python's eval().
 
-As introduced earlier, there are three different simulate methods currently in ActivitySim:
-
-* simple_simulate - Multinomial logit simulation - such as a simple auto ownership model
-* nested_simulate - Nested logit simulation - such as a nested mode choice model
-* interaction_simulate - Multinomial logit simulation where alternatives are interacted with choosers or because alternatives are sampled - such as a tour destination choice model
+The ``asim.interaction_simulate`` method is currently only a multinomial logit choice model.  The ``asim.simple_simulate`` method 
+supports both MNL and NL as specified by the ``LOGIT_TYPE`` setting in the model settings YAML file.   The ``auto_ownership.yaml`` 
+file for example specifies the ``LOGIT_TYPE`` as ``MNL.``
 
 If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array) 
 in one vectorized step.  The ``orig`` and ``dest`` objects in ``self.data[orig, dest]`` in ``activitysim.skim.py`` are vectors
@@ -467,31 +476,21 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
 :: 
 
     # evaluate variables from the spec
-    model_design = eval_variables(spec.index, df, locals_d)
+    model_design = eval_variables(spec.index, choosers, locals_d)
     
     # multiply by coefficients and reshape into choosers by alts
-    utilities = model_design.dot(spec).astype('float')
+    utilities = model_design.dot(spec)
 
     # convert to probabilities and make choices
     probs = utils_to_probs(utilities)
-    positions = make_choices(probs)
+    choices = make_choices(probs)
 
-    # positions come back between zero and num alternatives in the sample -
-    # need to get back to the indexes
-    offsets = np.arange(len(positions)) * sample_size
-    choices = model_design.index.take(positions + offsets)
-
-    choices = pd.Series(choices, index=choosers.index)
-
+    #write trace information
     if trace_label:
-        trace_label = "%s.interaction_simulate" % trace_label
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(utilities, '%s.utilities' % trace_label,column_labels=['alternative', 'utility'])
-        tracing.trace_df(probs, '%s.probs' % trace_label,column_labels=['alternative', 'probability'])
-        tracing.trace_df(choices, '%s.choices' % trace_label,columns=[None, trace_choice_name])
-        tracing.trace_interaction_model_design(model_design, choosers, label=trace_label)
-
-    return choices, model_design
+        #write trace information
+    
+    #return choices
+    return choices
 
 Finally, the model adds the choices as a column to the applicable table - ``persons`` - and adds 
 additional dependent columns.  The dependent columns are those orca columns with the virtual table 
@@ -524,7 +523,7 @@ name ``persons_school``.
 Any orca columns that are required are calculated-on-the-fly, such as ``roundtrip_auto_time_to_school`` as a 
 function of the ``sovam_skim`` and ``sovmd_skim`` orca injectables.
 
-The rest of the microsimulation models operate in a similar fashion with two notable additions:
+The rest of the microsimulation models operate in a similar fashion with a few notable additions:
 
 * creating new tables
 * using 3D skims instead of skims (which is 2D)

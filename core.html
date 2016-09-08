@@ -921,12 +921,20 @@ offsets will be ignored</p>
 </div>
 <div class="section" id="nested-logit">
 <span id="nl-in-detail"></span><h2>Nested Logit<a class="headerlink" href="#nested-logit" title="Permalink to this headline">¶</a></h2>
-<p>Nested or multinomial logit choice model.  These choice models depend on the foundational components of ActivitySim, such
-as the expression and data handling described in the <a class="reference internal" href="gettingstarted.html#how-the-system-works"><span class="std std-ref">How the System Works</span></a> section. To solve an MNL model, call
-<code class="docutils literal"><span class="pre">asim.simple_simulate()</span></code>. To solve an NL model, first specify the nesting structure via the NESTS setting in the
-model configuration file.  An example nested logit NESTS entry can be found in
-<code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code>.  With the NESTS defined, call <code class="docutils literal"><span class="pre">asim.nested_simulate()</span></code> to solve the
-model and make choices.</p>
+<p>Multinomial logit (MNL) or Nested logit (NL) choice model.  These choice models depend on the foundational components of ActivitySim, such
+as the expressions and data handling described in the <a class="reference internal" href="gettingstarted.html#how-the-system-works"><span class="std std-ref">How the System Works</span></a> section.</p>
+<p>To specify and solve an MNL model:</p>
+<ul class="simple">
+<li>either specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">MNL</span></code> in the model configuration YAML file or omit the setting</li>
+<li>call either <code class="docutils literal"><span class="pre">asim.simple_simulate()</span></code> or <code class="docutils literal"><span class="pre">asim.interaction_simulate()</span></code> depending if the alternatives are interacted with the choosers or because alternatives are sampled</li>
+</ul>
+<p>To specify and solve an NL model:</p>
+<ul class="simple">
+<li>specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">NL</span></code> in the model configuration YAML file</li>
+<li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in</li>
+</ul>
+<p><code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code>
+* call <code class="docutils literal"><span class="pre">asim.simple_simulate()</span></code>.  The <code class="docutils literal"><span class="pre">asim.interaction_simulate()</span></code> functionality is not yet supported for NL.</p>
 <div class="section" id="id2">
 <h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.nl"></span><dl class="class">

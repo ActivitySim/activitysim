@@ -319,12 +319,12 @@ in the destination choice model, the size terms expressions file has market segm
 coefficients as columns.  Broadly speaking, there are currently three types of model expression configurations:</p>
 <ul class="simple">
 <li>simple choice model - selects from a fixed set of choices defined in the specification file, such as the example above</li>
-<li>destination choice model - which combines the destination choice expressions and destination choice alternatives files</li>
-<li>complex choice model - a CSV expressions file with description, a CSV coefficient file, and a YAML settings file, such as the example below</li>
+<li>destination choice model - which combines the destination choice expressions and destination choice alternatives files since the alternatives are not listed in the expressions file</li>
+<li>complex choice model - an expressions file, a coefficients file, a YAML settings file.</li>
 </ul>
-<p>The tour mode choice model expressions file is structured a little differently, as shown below.  Each row is an expression for one
-alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as
-<code class="docutils literal"><span class="pre">$IN_N_OUT_EXPR.format(sk='SOV_TIME')</span></code> are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit model
+<p>The tour mode choice model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
+Each row is an expression for one alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as
+<code class="docutils literal"><span class="pre">$IN_N_OUT_EXPR.format(sk='SOV_TIME')</span></code> are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit (NL) model
 and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -389,7 +389,7 @@ and the nesting structure (including nesting coefficients) is specified in the Y
 <h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
 <p>In order to run the example, you first need two input files in the <code class="docutils literal"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal"><span class="pre">configs\settings.yaml</span></code> file:</p>
 <ul>
-<li><p class="first">store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:</p>
+<li><p class="first">store: mtc_asim.h5 - an HDF5 file containing the following MTC travel model one tables as pandas DataFrames for a subset of zones:</p>
 <blockquote>
 <div><ul class="simple">
 <li>skims/accessibility - Zone-based accessibility measures</li>
@@ -399,7 +399,7 @@ and the nesting structure (including nesting coefficients) is specified in the Y
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">skims_file: skims.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.</p>
+<li><p class="first">skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.</p>
 </li>
 </ul>
 <p>Both of these files can be downloaded from the <cite>SF 25 zone example</cite> example data folder on
@@ -410,8 +410,8 @@ bit cumbersome to inspect.</p>
 <p>The <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
 This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5
 file.</p>
-<p>The full set of MTC TM1 OMX skims are also on the box account. The <code class="docutils literal"><span class="pre">scripts\build_omx.py</span></code> script
-will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
+<p>The full set of MTC travel model one OMX skims are also on the box account. The <code class="docutils literal"><span class="pre">scripts\build_omx.py</span></code> script
+will build one OMX file containing all the skims. The original MTC travel model one skims were converted from
 Cube to OMX using the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter">Cube to OMX converter</a>.</p>
 <p>Finally, the example inputs were created by the <code class="docutils literal"><span class="pre">scripts\create_sf_example.py</span></code> script,
 which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.</p>
@@ -465,8 +465,8 @@ of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists e
 columns indicates the number of non-mandatory tours by purpose.</p>
 <p>The current set of files are:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">accessibility.csv</span></code> - accessibility model</li>
-<li><code class="docutils literal"><span class="pre">auto_ownership.csv</span></code> - auto ownership model</li>
+<li><code class="docutils literal"><span class="pre">accessibility.csv,</span> <span class="pre">,</span> <span class="pre">accessibility.yaml</span></code> - accessibility model</li>
+<li><code class="docutils literal"><span class="pre">auto_ownership.csv,</span> <span class="pre">auto_ownership.yaml</span></code> - auto ownership model</li>
 <li><code class="docutils literal"><span class="pre">cdap_*.csv</span></code> - CDAP model</li>
 <li><code class="docutils literal"><span class="pre">destination_choice.csv,</span> <span class="pre">destination_choice_size_terms.csv</span></code> - destination choice model</li>
 <li><code class="docutils literal"><span class="pre">mandatory_tour_frequency.csv</span></code> - mandatory tour frequency model</li>
@@ -563,8 +563,12 @@ the function as runnable by orca.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_simulate&quot;</span><span class="p">])</span>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">persons_merged</span><span class="p">,</span>
-  <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">skims</span><span class="p">,</span> <span class="n">destination_size_terms</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span>
+  <span class="n">set_random_seed</span><span class="p">,</span> <span class="n">persons_merged</span><span class="p">,</span>
+  <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">school_location_settings</span><span class="p">,</span>
+  <span class="n">skims</span><span class="p">,</span>
+  <span class="n">destination_size_terms</span><span class="p">,</span>
+  <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition above.  Since they are not yet loaded,
@@ -615,8 +619,18 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
 <span class="c1">#households calls tracing.register_households to setup tracing</span>
 </pre></div>
 </div>
-<p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> then sets the persons merged table as choosers, reads the destination_size_terms
-alternatives file, and reads the expressions specification file.</p>
+<p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> also reads the expressions specification file, settings yaml file,
+destination_size_terms file, sets the persons merged table as choosers, and sets the chunk size, trace id, and random seed.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>def school_location_simulate(</dt>
+<dd>set_random_seed, persons_merged,
+school_location_spec, school_location_settings,
+skims,
+destination_size_terms,
+chunk_size, trace_hh_id):</dd>
+</dl>
+</div></blockquote>
 <p>Next the method sets up the skims required for this model.
 The following code set the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal"><span class="pre">TAZ</span></code> column in the choosers,
 which was in the <code class="docutils literal"><span class="pre">households</span></code> table that was joined with <code class="docutils literal"><span class="pre">persons</span></code> to make <code class="docutils literal"><span class="pre">persons_merged</span></code> and a <code class="docutils literal"><span class="pre">TAZ</span></code> in the alternatives
@@ -633,45 +647,32 @@ alternatives table, the model specification expressions file, the skims, and the
   <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span> <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace_choice_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This function solves the MNL utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
+<p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
 This is done in a for loop of chunks of choosers in order to avoid running out of RAM when building the often large data tables.
 The <code class="docutils literal"><span class="pre">eval_variables</span></code> loops through each expression and solves it at once for all records in the chunked chooser table using
 either pandas&#8217; eval() or Python&#8217;s eval().</p>
-<p>As introduced earlier, there are three different simulate methods currently in ActivitySim:</p>
-<ul class="simple">
-<li>simple_simulate - Multinomial logit simulation - such as a simple auto ownership model</li>
-<li>nested_simulate - Nested logit simulation - such as a nested mode choice model</li>
-<li>interaction_simulate - Multinomial logit simulation where alternatives are interacted with choosers or because alternatives are sampled - such as a tour destination choice model</li>
-</ul>
+<p>The <code class="docutils literal"><span class="pre">asim.interaction_simulate</span></code> method is currently only a multinomial logit choice model.  The <code class="docutils literal"><span class="pre">asim.simple_simulate</span></code> method
+supports both MNL and NL as specified by the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal"><span class="pre">auto_ownership.yaml</span></code>
+file for example specifies the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> as <code class="docutils literal"><span class="pre">MNL.</span></code></p>
 <p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
 in one vectorized step.  The <code class="docutils literal"><span class="pre">orig</span></code> and <code class="docutils literal"><span class="pre">dest</span></code> objects in <code class="docutils literal"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <code class="docutils literal"><span class="pre">activitysim.skim.py</span></code> are vectors
 and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># evaluate variables from the spec</span>
-<span class="n">model_design</span> <span class="o">=</span> <span class="n">eval_variables</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">locals_d</span><span class="p">)</span>
+<span class="n">model_design</span> <span class="o">=</span> <span class="n">eval_variables</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">choosers</span><span class="p">,</span> <span class="n">locals_d</span><span class="p">)</span>
 
 <span class="c1"># multiply by coefficients and reshape into choosers by alts</span>
-<span class="n">utilities</span> <span class="o">=</span> <span class="n">model_design</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+<span class="n">utilities</span> <span class="o">=</span> <span class="n">model_design</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 
 <span class="c1"># convert to probabilities and make choices</span>
 <span class="n">probs</span> <span class="o">=</span> <span class="n">utils_to_probs</span><span class="p">(</span><span class="n">utilities</span><span class="p">)</span>
-<span class="n">positions</span> <span class="o">=</span> <span class="n">make_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">make_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
 
-<span class="c1"># positions come back between zero and num alternatives in the sample -</span>
-<span class="c1"># need to get back to the indexes</span>
-<span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span> <span class="o">*</span> <span class="n">sample_size</span>
-<span class="n">choices</span> <span class="o">=</span> <span class="n">model_design</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">positions</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">)</span>
-
-<span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-
+<span class="c1">#write trace information</span>
 <span class="k">if</span> <span class="n">trace_label</span><span class="p">:</span>
-    <span class="n">trace_label</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.interaction_simulate&quot;</span> <span class="o">%</span> <span class="n">trace_label</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">choosers</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.choosers&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">)</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">utilities</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.utilities&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">,</span><span class="n">column_labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alternative&#39;</span><span class="p">,</span> <span class="s1">&#39;utility&#39;</span><span class="p">])</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.probs&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">,</span><span class="n">column_labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alternative&#39;</span><span class="p">,</span> <span class="s1">&#39;probability&#39;</span><span class="p">])</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.choices&#39;</span> <span class="o">%</span> <span class="n">trace_label</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace_choice_name</span><span class="p">])</span>
-    <span class="n">tracing</span><span class="o">.</span><span class="n">trace_interaction_model_design</span><span class="p">(</span><span class="n">model_design</span><span class="p">,</span> <span class="n">choosers</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">trace_label</span><span class="p">)</span>
+    <span class="c1">#write trace information</span>
 
-<span class="k">return</span> <span class="n">choices</span><span class="p">,</span> <span class="n">model_design</span>
+<span class="c1">#return choices</span>
+<span class="k">return</span> <span class="n">choices</span>
 </pre></div>
 </div>
 <p>Finally, the model adds the choices as a column to the applicable table - <code class="docutils literal"><span class="pre">persons</span></code> - and adds
@@ -702,7 +703,7 @@ name <code class="docutils literal"><span class="pre">persons_school</span></cod
 </div>
 <p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code> as a
 function of the <code class="docutils literal"><span class="pre">sovam_skim</span></code> and <code class="docutils literal"><span class="pre">sovmd_skim</span></code> orca injectables.</p>
-<p>The rest of the microsimulation models operate in a similar fashion with two notable additions:</p>
+<p>The rest of the microsimulation models operate in a similar fashion with a few notable additions:</p>
 <ul class="simple">
 <li>creating new tables</li>
 <li>using 3D skims instead of skims (which is 2D)</li>

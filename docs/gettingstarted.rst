@@ -433,6 +433,8 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
 ``school_location_simulate`` also reads the expressions specification file, settings yaml file,
 destination_size_terms file, sets the persons merged table as choosers, and sets the chunk size, trace id, and random seed. 
 
+::
+
   def school_location_simulate(
     set_random_seed, persons_merged,
     school_location_spec, school_location_settings, 

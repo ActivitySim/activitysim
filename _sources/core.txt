@@ -44,8 +44,7 @@ To specify and solve an MNL model:
 To specify and solve an NL model:
 
 * specify ``LOGIT_TYPE: NL`` in the model configuration YAML file
-* specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in 
-``example/configs/tour_mode_choice.yaml``
+* specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in ``example/configs/tour_mode_choice.yaml``
 * call ``asim.simple_simulate()``.  The ``asim.interaction_simulate()`` functionality is not yet supported for NL.
 
 API

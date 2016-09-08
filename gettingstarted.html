@@ -621,16 +621,14 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
 </div>
 <p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> also reads the expressions specification file, settings yaml file,
 destination_size_terms file, sets the persons merged table as choosers, and sets the chunk size, trace id, and random seed.</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>def school_location_simulate(</dt>
-<dd>set_random_seed, persons_merged,
-school_location_spec, school_location_settings,
-skims,
-destination_size_terms,
-chunk_size, trace_hh_id):</dd>
-</dl>
-</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span>
+  <span class="n">set_random_seed</span><span class="p">,</span> <span class="n">persons_merged</span><span class="p">,</span>
+  <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">school_location_settings</span><span class="p">,</span>
+  <span class="n">skims</span><span class="p">,</span>
+  <span class="n">destination_size_terms</span><span class="p">,</span>
+  <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+</pre></div>
+</div>
 <p>Next the method sets up the skims required for this model.
 The following code set the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal"><span class="pre">TAZ</span></code> column in the choosers,
 which was in the <code class="docutils literal"><span class="pre">households</span></code> table that was joined with <code class="docutils literal"><span class="pre">persons</span></code> to make <code class="docutils literal"><span class="pre">persons_merged</span></code> and a <code class="docutils literal"><span class="pre">TAZ</span></code> in the alternatives

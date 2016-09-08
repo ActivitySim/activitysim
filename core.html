@@ -931,10 +931,9 @@ as the expressions and data handling described in the <a class="reference intern
 <p>To specify and solve an NL model:</p>
 <ul class="simple">
 <li>specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">NL</span></code> in the model configuration YAML file</li>
-<li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in</li>
+<li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></li>
+<li>call <code class="docutils literal"><span class="pre">asim.simple_simulate()</span></code>.  The <code class="docutils literal"><span class="pre">asim.interaction_simulate()</span></code> functionality is not yet supported for NL.</li>
 </ul>
-<p><code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code>
-* call <code class="docutils literal"><span class="pre">asim.simple_simulate()</span></code>.  The <code class="docutils literal"><span class="pre">asim.interaction_simulate()</span></code> functionality is not yet supported for NL.</p>
 <div class="section" id="id2">
 <h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.nl"></span><dl class="class">

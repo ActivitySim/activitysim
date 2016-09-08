@@ -27,11 +27,17 @@ def test_misc():
 
     orca.clear_cache()
 
-    assert orca.get_injectable("configs_dir") == 'configs'
+    with pytest.raises(RuntimeError) as excinfo:
+        orca.get_injectable("configs_dir")
+    assert "directory does not exist" in str(excinfo.value)
 
-    assert orca.get_injectable("data_dir") == 'data'
+    with pytest.raises(RuntimeError) as excinfo:
+        orca.get_injectable("data_dir")
+    assert "directory does not exist" in str(excinfo.value)
 
-    assert orca.get_injectable("output_dir") == 'output'
+    with pytest.raises(RuntimeError) as excinfo:
+        orca.get_injectable("output_dir")
+    assert "directory does not exist" in str(excinfo.value)
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs_test_misc')
     orca.add_injectable("configs_dir", configs_dir)
@@ -48,6 +54,9 @@ def test_misc():
     with pytest.raises(RuntimeError) as excinfo:
         orca.get_injectable("trace_tour_ids")
     assert "trace_tour_ids called before being overridden" in str(excinfo.value)
+
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    orca.add_injectable("data_dir", data_dir)
 
     with pytest.raises(RuntimeError) as excinfo:
         orca.get_injectable("store")

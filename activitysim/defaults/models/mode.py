@@ -95,10 +95,6 @@ def _mode_choice_simulate(tours,
     you want to use in the evaluation of variables.
     """
 
-    # FIXME - log
-    # print "Skims3D %s skim_key2 values = %s" % ('in_period', tours['in_period'].unique())
-    # print "Skims3D %s skim_key2 values = %s" % ('out_period', tours['out_period'].unique())
-
     # FIXME - check that periods are in time_periods?
 
     in_skims = askim.Skims3D(stack=stack,
@@ -196,8 +192,9 @@ def tour_mode_choice_simulate(tours_merged,
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
-        tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
-                              segment[dest_key], value_counts=True)
+        # FIXME - no point in printing verbose dest_taz value_counts now that we have tracing?
+        # tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
+        #                       segment[dest_key], value_counts=True)
 
         trace_label = trace_hh_id and ('tour_mode_choice.%s' % tour_type)
 
@@ -236,7 +233,7 @@ def tour_mode_choice_simulate(tours_merged,
                          slicer='tour_id',
                          index_label='tour',
                          columns=trace_columns,
-                         warn=True)
+                         warn_if_empty=True)
 
     # FIXME - this forces garbage collection
     asim.memory_info()
@@ -263,9 +260,6 @@ def trip_mode_choice_simulate(tours_merged,
 
     choices_list = []
 
-    # FIXME - log
-    print "Trip types:\n", trips.tour_type.value_counts()
-
     for tour_type, segment in trips.groupby('tour_type'):
 
         tracing.info(__name__, "running %s tour_type '%s'" % (len(segment.index), tour_type, ))
@@ -278,11 +272,9 @@ def trip_mode_choice_simulate(tours_merged,
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
-        tracing.print_summary('trip_mode_choice_simulate %s dest_taz' % tour_type,
-                              segment[dest_key], value_counts=True)
-
-        # FIXME - log
-        # print "dest_taz counts:\n", tour_type_tours[dest_key].value_counts()
+        # FIXME - no point in printing verbose dest_taz value_counts now that we have tracing?
+        # tracing.print_summary('trip_mode_choice_simulate %s dest_taz' % tour_type,
+        #                       segment[dest_key], value_counts=True)
 
         trace_label = trace_hh_id and ('trip_mode_choice_%s' % tour_type)
 
@@ -298,6 +290,7 @@ def trip_mode_choice_simulate(tours_merged,
             trace_label=trace_label,
             trace_choice_name='trip_mode_choice')
 
+        # FIXME - no point in printing verbose value_counts now that we have tracing?
         tracing.print_summary('trip_mode_choice_simulate %s' % tour_type,
                               choices, value_counts=True)
 
@@ -324,7 +317,7 @@ def trip_mode_choice_simulate(tours_merged,
         #                  slicer='tour_id',
         #                  index_label='tour_id',
         #                  columns = trace_columns,
-        #                  warn=True)
+        #                  warn_if_empty=True)
 
     # FIXME - this forces garbage collection
     asim.memory_info()

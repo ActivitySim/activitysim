@@ -305,8 +305,6 @@ def test_write_csv(capsys):
 
     tracing.config_logger()
 
-    df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
-
     # should complain if df not a DataFrame or Series
     tracing.write_csv(df='not a df or series', file_name='baddie')
 

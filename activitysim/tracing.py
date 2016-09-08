@@ -433,7 +433,6 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     -------
     Nothing
     """
-    tracer = get_tracer()
 
     file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
 
@@ -447,7 +446,7 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
         debug(message="dumping %s element series to %s" % (len(df.index), file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
-        tracer.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
+        error(message="write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
 
 
 def slice_ids(df, ids, column=None):
@@ -486,7 +485,7 @@ def slice_ids(df, ids, column=None):
     return df
 
 
-def slice_canonically(df, slicer, label, warn=False):
+def slice_canonically(df, slicer, label, warn_if_empty=False):
     """
     Slice dataframe by traced household or person id dataframe and write to CSV
 
@@ -503,8 +502,6 @@ def slice_canonically(df, slicer, label, warn=False):
     -------
     sliced subset of dataframe
     """
-
-    tracer = get_tracer()
 
     if slicer is None:
         slicer = df.index.name
@@ -531,29 +528,30 @@ def slice_canonically(df, slicer, label, warn=False):
             try:
                 target = orca.get_injectable('trace_tour_ids')
             except:
-                tracer.error("trace_tour_ids error in %s index %s columns %s"
-                             % (label, df.index.name, df.columns.values))
+                error(message="trace_tour_ids error in %s index %s columns %s"
+                              % (label, df.index.name, df.columns.values))
                 raise
     elif slicer == 'TAZ' or slicer == 'ZONE':
         target = orca.get_injectable('trace_od')
     elif slicer == 'NONE':
         target = None
     else:
-        get_tracer().error("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
+        error(message="slice_canonically: bad slicer '%s' for %s " % (slicer, label))
         raise RuntimeError("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
 
     if target is not None:
         df = slice_ids(df, target, column)
 
-    if warn and len(df.index) == 0:
+    if warn_if_empty and len(df.index) == 0:
         column_name = column or slicer
-        tracer.warn("slice_canonically: no rows in %s with %s == %s" % (label, column_name, target))
+        warn(message="slice_canonically: no rows in %s with %s == %s"
+                     % (label, column_name, target))
 
     return df
 
 
 def trace_df(df, label, slicer=None, columns=None,
-             index_label=None, column_labels=None, transpose=True, warn=False):
+             index_label=None, column_labels=None, transpose=True, warn_if_empty=False):
     """
     Slice dataframe by traced household or person id dataframe and write to CSV
 
@@ -573,16 +571,15 @@ def trace_df(df, label, slicer=None, columns=None,
         labels for columns in csv
     transpose: boolean
         whether to transpose file for legibility
-    warn: boolean
-        write warnings
+    warn_if_empty: boolean
+        write warning if sliced df is empty
 
     Returns
     -------
     Nothing
     """
-    tracer = get_tracer()
 
-    df = slice_canonically(df, slicer, label, warn)
+    df = slice_canonically(df, slicer, label, warn_if_empty)
 
     if len(df.index) > 0:
         write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,
@@ -664,7 +661,7 @@ def trace_interaction_model_design(model_design, choosers, label):
                  slicer="NONE",
                  transpose=True,
                  column_labels=['expression', None],
-                 warn=False)
+                 warn_if_empty=False)
 
 
 def trace_cdap_hh_utils(hh_utils, label):
@@ -688,7 +685,7 @@ def trace_cdap_hh_utils(hh_utils, label):
     hh_id = orca.get_injectable('trace_hh_id')
     s = hh_id and hh_utils.get(hh_id, None)
     if s is not None:
-        trace_df(s, label, slicer='NONE', columns=['choice', 'utility'], warn=False)
+        trace_df(s, label, slicer='NONE', columns=['choice', 'utility'], warn_if_empty=False)
 
 
 def trace_cdap_ind_utils(ind_utils, label):
@@ -706,7 +703,7 @@ def trace_cdap_ind_utils(ind_utils, label):
     -------
     Nothing
     """
-    trace_df(ind_utils, label, slicer='PERID', warn=False)
+    trace_df(ind_utils, label, slicer='PERID', warn_if_empty=False)
 
 
 def trace_nan_values(df, label):

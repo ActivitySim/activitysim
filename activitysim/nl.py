@@ -8,11 +8,21 @@ import logging
 import numpy as np
 import pandas as pd
 
+import tracing
 
 logger = logging.getLogger(__name__)
 
 
-def utils_to_probs(utils, exponentiated=False):
+EXP_UTIL_MIN = 1e-300
+EXP_UTIL_MAX = np.inf
+
+PROB_MIN = 1e-300
+PROB_MAX = np.inf
+
+MAX_DUMP = 50
+
+
+def utils_to_probs(utils, trace_label=None, exponentiated=False):
     """
     Convert a table of utilities to exponentiated probabilities.
 
@@ -21,56 +31,83 @@ def utils_to_probs(utils, exponentiated=False):
     utils : pandas.DataFrame
         Rows should be choosers and columns should be alternatives.
 
+    trace_label : str
+        label for tracing bad utility or probability values
     Returns
     -------
     probs : pandas.DataFrame
         Will have the same index and columns as `utils`.
 
     """
-    prob_min = 1e-300
-    prob_max = np.inf
+
+    # avoid confusion if wrong args passed by position
+    assert isinstance(trace_label, str) or (trace_label is None)
+    assert isinstance(exponentiated, bool)
 
     utils_arr = utils.as_matrix().astype('float')
     if not exponentiated:
         utils_arr = np.exp(utils_arr)
 
-    np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
+    np.clip(utils_arr, EXP_UTIL_MIN, EXP_UTIL_MAX, out=utils_arr)
 
     # FIXME - do this after the clip so utils_arr rows don't sum to zero
     # FIXME - when all utilities are large negative numbers
     arr_sum = utils_arr.sum(axis=1)
 
-    if np.isinf(arr_sum).any():
-        logger.critical("%s utilities have infinite values" % np.isinf(arr_sum).sum())
-        raise RuntimeError('utilities have infinite values')
+    bad_utils = np.isinf(arr_sum)
+    if bad_utils.any():
+        msg = "%s exponentiated utility rows have infinite values" % bad_utils.sum()
+
+        logger.critical(msg)
+        # log the indexes of the first MAX_DUMP offending rows
+        for i in utils.index[bad_utils][:MAX_DUMP].values:
+            logger.critical("infinite value for exponentiated utilities of %s" % i)
+
+        if trace_label:
+            label = "%s.utils_to_probs.bad_utils" % trace_label
+            logger.critical("dumping offending utilities to %s" % label)
+            tracing.write_csv(utils[bad_utils][:MAX_DUMP],
+                              file_name=label,
+                              transpose=False)
+
+        raise RuntimeError(msg)
 
     np.divide(
         utils_arr, arr_sum.reshape(len(utils_arr), 1),
         out=utils_arr)
-    utils_arr[np.isnan(utils_arr)] = prob_min
+    utils_arr[np.isnan(utils_arr)] = PROB_MIN
 
-    np.clip(utils_arr, prob_min, prob_max, out=utils_arr)
+    np.clip(utils_arr, PROB_MIN, PROB_MAX, out=utils_arr)
 
     probs = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
 
-    # FIXME - make_choices says probs should sum to 1 across each row
-    # FIXME - probs can have infs
-    # FIXME - is the comment wrong, or the code?
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \
         probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
         > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
     if bad_probs.any():
-        logger.critical("%s probabilities do not sum to 1" % bad_probs.sum())
-        # print "utils\n", utils[bad_probs]
-        # print "probs\n", probs[bad_probs]
-        raise RuntimeError('probabilities do not sum to 1')
+        msg = "utils_to_probs:  %s probabilities do not sum to 1" % bad_probs.sum()
+
+        logger.critical(msg)
+
+        # log the indexes of the first MAX_DUMP offending rows
+        for i in probs.index[bad_probs][:MAX_DUMP].values:
+            logger.critical("probabilities do not sum to 1 for %s" % i)
+
+        if trace_label:
+            label = "%s.utils_to_probs.bad_probs" % trace_label
+            logger.critical("dumping offending probabilities to %s" % label)
+            tracing.write_csv(probs[bad_probs][:MAX_DUMP],
+                              file_name=label,
+                              transpose=False)
+
+        raise RuntimeError(msg)
 
     return probs
 
 
-def make_choices(probs):
+def make_choices(probs, trace_label=None):
     """
     Make choices for each chooser from among a set of alternatives.
 
@@ -90,18 +127,30 @@ def make_choices(probs):
     """
     nchoosers = len(probs)
 
-    # FIXME - probs should sum to 1 across each row
-    # FIXME - but utils_to_probs creates "exponentiated probabilities" which can have infs
-    # FIXME - is the comment wrong, or the code?
+    # probs should sum to 1 across each row
+
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \
         probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
         > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
     if bad_probs.any():
-        logger.error("%s probabilities do not sum to 1" % bad_probs.sum())
-        print probs[bad_probs]
-        print probs[bad_probs].sum(axis=1)
+        msg = "make_choices: %s probabilities do not sum to 1" % bad_probs.sum()
+
+        logger.critical(msg)
+
+        # log the indexes of the first MAX_DUMP offending rows
+        for i in probs.index[bad_probs][:MAX_DUMP].values:
+            logger.critical("probabilities do not sum to 1 for %s" % i)
+
+        if trace_label:
+            label = "%s.make_choices.bad_probs" % trace_label
+            logger.critical("dumping offending probabilities to %s" % label)
+            tracing.write_csv(probs[bad_probs][:MAX_DUMP],
+                              file_name=label,
+                              transpose=False)
+
+        raise RuntimeError(msg)
 
     probs_arr = (
         probs.as_matrix().cumsum(axis=1) - np.random.random((nchoosers, 1)))
@@ -155,21 +204,9 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     alts_sample = alternatives.take(sample)
     alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
 
-    # FIXME - log
-    # print "\n###################### interaction_dataset\n"
-    # print "\nalts_sample.shape=", alts_sample.info(), "\n"
-    # print "\nchoosers.shape=", choosers.info(), "\n"
-    # print "\n##### alts_sample\n", alts_sample.head(10)
-    # print "\n##### choosers\n", choosers.head(10)
-
     alts_sample = pd.merge(
         alts_sample, choosers, left_on='chooser_idx', right_index=True,
         suffixes=('', '_r'))
-
-    # FIXME - log
-    # print "\npost-merge alts_sample.shape=", alts_sample.info(), "\n"
-    # print "\n##### alts_sample\n", alts_sample.head(10)
-    # print "\n######################\n"
 
     return alts_sample
 
@@ -291,7 +328,6 @@ def each_nest(nest_spec, type=None, post_order=False):
             Nest object with info about the current node (nest or leaf)
     """
     if type is not None and type not in Nest.nest_types():
-        tracing.error(__name__, "Unknown nest type '%s' in call to each_nest" % type)
         raise RuntimeError("Unknown nest type '%s' in call to each_nest" % type)
 
     for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):

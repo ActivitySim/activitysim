@@ -105,4 +105,4 @@ def mandatory_scheduling(set_random_seed,
                          slicer='person_id',
                          index_label='tour',
                          columns=None,
-                         warn=True)
+                         warn_if_empty=True)

@@ -76,8 +76,7 @@ def non_mandatory_tour_frequency(set_random_seed,
         choices = asim.interaction_simulate(
             segment,
             non_mandatory_tour_frequency_alts.to_frame(),
-            # notice that we pick the column for the
-            # segment for each segment we run
+            # notice that we pick the column for the segment for each segment we run
             non_mandatory_tour_frequency_spec[[name]],
             locals_d=constants,
             sample_size=50,
@@ -89,7 +88,8 @@ def non_mandatory_tour_frequency(set_random_seed,
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
+    # FIXME - no point in printing verbose value_counts now that we have tracing?
+    # tracing.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
 
     # FIXME - no need to reindex?
     orca.add_column("persons", "non_mandatory_tour_frequency", choices)
@@ -101,7 +101,7 @@ def non_mandatory_tour_frequency(set_random_seed,
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="non_mandatory_tour_frequency",
                          columns=trace_columns,
-                         warn=True)
+                         warn_if_empty=True)
 
 """
 We have now generated non-mandatory tours, but they are attributes of the

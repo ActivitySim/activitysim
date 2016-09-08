@@ -94,4 +94,4 @@ def workplace_location_simulate(set_random_seed,
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="workplace_location",
                          columns=trace_columns,
-                         warn=True)
+                         warn_if_empty=True)

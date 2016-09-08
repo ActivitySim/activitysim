@@ -117,7 +117,7 @@ def destination_choice(set_random_seed,
                          slicer='person_id',
                          index_label='tour',
                          columns=None,
-                         warn=True)
+                         warn_if_empty=True)
 
 
 @orca.step()
@@ -144,4 +144,4 @@ def patch_mandatory_tour_destination(mandatory_tours_merged, trace_hh_id):
                          slicer='person_id',
                          index_label='tour',
                          columns=None,
-                         warn=True)
+                         warn_if_empty=True)

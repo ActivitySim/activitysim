@@ -232,22 +232,19 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
     return nested_utilities
 
 
-def compute_nested_probabilities(nested_exp_utilities, nest_spec):
+def compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label):
     """
     compute nested probabilities for nest leafs and nodes
-
     probability for nest alternatives is simply the alternatives's local (to nest) probability
     computed in the same way as the probability of non-nested alternatives in multinomial logit
     i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
     except in nested logit, its sib group is restricted to the nest
-
     Parameters
     ----------
     nested_exp_utilities : pandas.DataFrame
         dataframe with the exponentiated nested utilities of all leaves and nodes
     nest_spec : dict
         Nest tree dict from the model spec yaml file
-
     Returns
     -------
     nested_probabilities : pandas.DataFrame
@@ -258,7 +255,9 @@ def compute_nested_probabilities(nested_exp_utilities, nest_spec):
 
     for nest in each_nest(nest_spec, type='node', post_order=False):
 
-        probs = utils_to_probs(nested_exp_utilities[nest.alternatives], exponentiated=True)
+        probs = utils_to_probs(nested_exp_utilities[nest.alternatives],
+                               trace_label=trace_label,
+                               exponentiated=True)
 
         nested_probabilities = pd.concat([nested_probabilities, probs], axis=1)
 
@@ -268,19 +267,15 @@ def compute_nested_probabilities(nested_exp_utilities, nest_spec):
 def compute_base_probabilities(nested_probabilities, nests):
     """
     compute base probabilities for nest leaves
-
     Base probabilities will be the nest-adjusted probabilities of all leaves
     This flattens or normalizes all the nested probabilities so that they have the proper global
     relative values (the leaf probabilities sum to 1 for each row.)
-
-
     Parameters
     ----------
     nested_probabilities : pandas.DataFrame
         dataframe with the nested probabilities for nest leafs and nodes
     nest_spec : dict
         Nest tree dict from the model spec yaml file
-
     Returns
     -------
     base_probabilities : pandas.DataFrame
@@ -334,8 +329,8 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
 
     utilities = model_design.dot(spec)
 
-    probs = utils_to_probs(utilities)
-    choices = make_choices(probs)
+    probs = utils_to_probs(utilities, trace_label=trace_label)
+    choices = make_choices(probs, trace_label=trace_label)
 
     if trace_label:
         trace_label = "%s.mnl" % trace_label
@@ -399,12 +394,13 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
 
     # probabilities of alternatives relative to siblings sharing the same nest
-    nested_probabilities = compute_nested_probabilities(nested_exp_utilities, nest_spec)
+    nested_probabilities = compute_nested_probabilities(nested_exp_utilities, nest_spec,
+                                                        trace_label=trace_label)
 
     # global (flattened) leaf probabilities based on relative nest coefficients
     base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec)
 
-    choices = make_choices(base_probabilities)
+    choices = make_choices(base_probabilities, trace_label)
 
     if trace_label:
 
@@ -427,14 +423,16 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
         tracing.trace_df(model_design, '%s.model_design' % trace_label,
                          column_labels=['expression', None])
 
+        # FIXME - do we want to do this?
         # to facilitiate debugging, compare to multinomial (non-nested) logit utilities
-        unnested_probabilities = utils_to_probs(raw_utilities)
-        unnested_choices = make_choices(unnested_probabilities)
-        tracing.trace_df(unnested_probabilities, '%s.unnested_probabilities' % trace_label,
-                         column_labels=['alternative', 'probability'])
-
-        tracing.trace_df(unnested_choices, '%s.unnested_choices' % trace_label,
-                         columns=[None, trace_choice_name])
+        # unnested_probabilities = utils_to_probs(raw_utilities,
+        #                                         trace_label='%s.unnested' % trace_label)
+        # unnested_choices = make_choices(unnested_probabilities,
+        #                                 trace_label='%s.unnested' % trace_label)
+        # tracing.trace_df(unnested_probabilities, '%s.unnested_probabilities' % trace_label,
+        #                  column_labels=['alternative', 'probability'])
+        # tracing.trace_df(unnested_choices, '%s.unnested_choices' % trace_label,
+        #                  columns=[None, trace_choice_name])
 
         # dump whole df - for software development debugging
         # tracing.trace_df(raw_utilities, "%s.raw_utilities" % trace_label,
@@ -556,8 +554,8 @@ def _interaction_simulate(
         index=choosers.index)
 
     # convert to probabilities and make choices
-    probs = utils_to_probs(utilities)
-    positions = make_choices(probs)
+    probs = utils_to_probs(utilities, trace_label=trace_label)
+    positions = make_choices(probs, trace_label=trace_label)
 
     # positions come back between zero and num alternatives in the sample -
     # need to get back to the indexes

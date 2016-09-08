@@ -110,7 +110,8 @@ def make_interactions(people, hh_id_col, p_type_col):
 
 
 def individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec, trace_label=None):
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        trace_hh_id=None, trace_label=None):
     """
     Calculate CDAP utilities for all individuals.
 
@@ -162,7 +163,7 @@ def individual_utilities(
     utils = one_utils.add(
         two_utils, fill_value=0).add(three_utils, fill_value=0)
 
-    if trace_label:
+    if trace_hh_id:
         tracing.trace_cdap_ind_utils(one_vars, '%s.ind_utils.one_vars' % trace_label)
         tracing.trace_cdap_ind_utils(one_utils, '%s.ind_utils.one_utils' % trace_label)
 
@@ -339,7 +340,7 @@ def apply_all_people(hh_util, all_people):
         hh.loc[matching] += all_people.loc[matching]
 
 
-def make_household_choices(hh_util):
+def make_household_choices(hh_util, trace_hh_id=None, trace_label=None):
     """
     Decide on the activity pattern for each household.
 
@@ -348,6 +349,27 @@ def make_household_choices(hh_util):
     hh_util : dict of pandas.Series
         Keys will be household IDs and values will be Series
         mapping alternative choices to their utility.
+        The series index values are tuples e.g. ('NonMandatory', 'Mandatory', 'Home')
+        The length of the tuple in the index depends on the number of hh members
+
+    In other words, hh_utils looks something like this:
+    hh_util =  {
+        237824: pandas.Series(
+            (Mandatory, Mandatory)       :   6.39426
+            (Mandatory, NonMandatory)    :   5.09445
+            (Mandatory, Home)            :    4.6314
+            (NonMandatory, Mandatory)    :   4.48733
+            (NonMandatory, NonMandatory) :   3.18751
+            (NonMandatory, Home)         :   2.72446
+            (Home, Mandatory)            :   4.76486
+            (Home, NonMandatory)         :   3.46505
+        ),
+        237825: pandas.Series(
+            (Mandatory)                  :   6.39426
+            (NonMandatory)               :   5.09445
+            (Home)                       :    4.6314
+        )
+    }
 
     Returns
     -------
@@ -356,25 +378,58 @@ def make_household_choices(hh_util):
         is a tuple of individual utilities.
 
     """
-    # convert hh_util dict to a few DFs with alternatives in the columns
-    # and household IDs in the index
-    df_func = tz.compose(
-        pd.DataFrame.transpose,
-        pd.DataFrame.from_dict)
-    grouped_by_size = (
-        tz.valfilter(lambda x: len(x) == l, hh_util)
-        for l in tz.unique(tz.map(len, hh_util.values())))
-    dfs = tz.map(df_func, grouped_by_size)
 
-    # go over all the DFs and do utils_to_probs and make_choices
-    choices = (
-        pd.Series(
-            df.columns[nl.make_choices(nl.utils_to_probs(df))].values,
+    # we want to segregate hh_utils by number of alternatives
+    unique_alternative_counts = tz.unique(tz.map(len, hh_util.values()))
+
+    choices_list = []
+    for alternative_count in unique_alternative_counts:
+
+        # filter hh_util to segregate series with this number of alternatives
+        hh_util_n = tz.valfilter(lambda x: len(x) == alternative_count, hh_util)
+
+        if trace_hh_id and trace_hh_id in hh_util_n:
+            tracing.info(message="household %s in %s.make_household_choices with %s alternatives"
+                         % (trace_hh_id, trace_label, alternative_count))
+
+        # compose a function to convert hh_util dict subset to a df of alternative utilities
+        # input dict should be filtered to contain only series with same number of alternatives
+        # pd.DataFrame.from_dict returns a df with a column for each hh_id
+        #                        and utility values indexed by alternative list tuples
+        # pd.DataFrame.transpose takes that df and transposes it to return a df
+        #                        indexed by hh_id with utilities of the alternatives in the columns
+
+        standard_hh_util_df = tz.compose(
+            pd.DataFrame.transpose,
+            pd.DataFrame.from_dict)
+
+        df = standard_hh_util_df(hh_util_n)
+
+        # resulting df has one row per hh_id
+        assert len(df.index) == len(hh_util_n)
+
+        # resulting df has one column per alternative
+        assert len(df.columns) == alternative_count
+
+        if trace_hh_id:
+            tracing.trace_df(df, '%s.hh_choices.utilities' % trace_label,
+                             slicer='HHID', column_labels=['alternative', 'utility'])
+
+        probs = nl.utils_to_probs(df, trace_label=trace_label)
+        if trace_hh_id:
+            tracing.trace_df(probs, '%s.hh_choices.probs' % trace_label,
+                             slicer='HHID', column_labels=['alternative', 'probability'])
+
+        choices = pd.Series(
+            df.columns[nl.make_choices(probs, trace_label)].values,
             index=df.index)
-        for df in dfs)
+
+        choices_list.append(choices)
 
     # concat all the resulting Series
-    return pd.concat(choices)
+    choices = pd.concat(choices_list)
+
+    return choices
 
 
 def household_choices_to_people(hh_choices, people):
@@ -402,7 +457,61 @@ def household_choices_to_people(hh_choices, people):
 
 def _run_cdap(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules, all_people, trace_label):
+        final_rules, all_people, trace_hh_id, trace_label):
+
+    """
+    implements core run_cdap functionality but without chunking of people df
+    """
+
+    ind_utils = individual_utilities(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec, trace_hh_id, trace_label)
+
+    if trace_hh_id:
+        tracing.trace_cdap_ind_utils(ind_utils, '%s.ind_utils' % trace_label)
+
+    hh_utils = initial_household_utilities(ind_utils, people, hh_id_col)
+
+    if trace_hh_id:
+        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils' % trace_label)
+
+    apply_final_rules(hh_utils, people, hh_id_col, final_rules)
+
+    if trace_hh_id:
+        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils.apply_final_rules' % trace_label)
+
+    apply_all_people(hh_utils, all_people)
+
+    if trace_hh_id:
+        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils.apply_all_people' % trace_label)
+
+    hh_choices = make_household_choices(hh_utils, trace_hh_id, trace_label)
+
+    if trace_hh_id:
+        tracing.trace_df(hh_choices, '%s.hh_choices' % trace_label,
+                         slicer='HHID', columns='choice')
+
+    person_choices = household_choices_to_people(hh_choices, people)
+
+    if trace_hh_id:
+        tracing.trace_df(person_choices, '%s.person_choices' % trace_label,
+                         columns='choice')
+
+    return person_choices
+
+
+def hh_chunked_choosers(choosers):
+    # generator to iterate over chooses in chunk_size chunks
+    last_chooser = choosers['chunk_id'].max()
+    i = 0
+    while i <= last_chooser:
+        yield i, choosers[choosers['chunk_id'] == i]
+        i += 1
+
+
+def run_cdap(
+        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+        final_rules, all_people,
+        chunk_size=0, trace_hh_id=None, trace_label=None):
     """
     Choose individual activity patterns for people.
 
@@ -437,6 +546,12 @@ def _run_cdap(
         one of the alternatives available to individual household members.
         Note that these may also be expressed as Python code to save space,
         so the previous could also be written as ('Mandatory',) * 3.
+    chunk_size: int
+        chunk size or 0 for no chunking
+    trace_hh_id : int
+        hh_id to trace or None if no hh tracing
+    trace_label : str
+        label for tracing or None if no tracing
 
     Returns
     -------
@@ -447,64 +562,12 @@ def _run_cdap(
         in the same way).
 
     """
-    ind_utils = individual_utilities(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec, trace_label)
 
-    if trace_label:
-        tracing.trace_cdap_ind_utils(ind_utils, '%s.ind_utils' % trace_label)
-
-    hh_utils = initial_household_utilities(ind_utils, people, hh_id_col)
-
-    if trace_label:
-        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils' % trace_label)
-
-    apply_final_rules(hh_utils, people, hh_id_col, final_rules)
-
-    if trace_label:
-        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils.apply_final_rules' % trace_label)
-
-    apply_all_people(hh_utils, all_people)
-
-    if trace_label:
-        tracing.trace_cdap_hh_utils(hh_utils, '%s.hh_utils.apply_all_people' % trace_label)
-
-    hh_choices = make_household_choices(hh_utils)
-
-    if trace_label:
-        tracing.trace_df(hh_choices, '%s.hh_choices' % trace_label,
-                         slicer='HHID', columns='choice')
-
-    person_choices = household_choices_to_people(hh_choices, people)
-
-    if trace_label:
-        print person_choices
-        tracing.trace_df(person_choices, '%s.person_choices' % trace_label,
-                         columns='choice')
-
-    return person_choices
-
-
-def hh_chunked_choosers(choosers):
-    # generator to iterate over chooses in chunk_size chunks
-    last_chooser = choosers['chunk_id'].max()
-    i = 0
-    while i <= last_chooser:
-        yield i, choosers[choosers['chunk_id'] == i]
-        i += 1
-
-
-def run_cdap(
-        people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-        final_rules, all_people,
-        chunk_size=0, trace_label=None):
-
-    # like run_cdap but iterates over people in hh_chunk_size chunks
-    # we need to use hh_chunks because all household persons need to be in the same chunk
-    chunk_size = int(chunk_size)
+    trace_label = (trace_label or 'cdap')
 
     if (chunk_size == 0) or (chunk_size >= len(people.index)):
         choices = _run_cdap(people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-                            final_rules, all_people, trace_label)
+                            final_rules, all_people, trace_hh_id, trace_label)
         return choices
 
     choices_list = []
@@ -513,8 +576,10 @@ def run_cdap(
 
         logger.info("run_cdap running hh_chunk =%s of size %d" % (i, len(people_chunk)))
 
+        chunk_trace_label = "%s.chunk_%s" % (trace_label, i)
+
         choices = _run_cdap(people_chunk, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-                            final_rules, all_people, trace_label)
+                            final_rules, all_people, trace_hh_id, chunk_trace_label)
 
         choices_list.append(choices)
 

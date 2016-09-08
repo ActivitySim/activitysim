@@ -124,7 +124,7 @@ inject_settings(config='example',
                 households_sample_size=50,
                 preload_3d_skims=True,
                 chunk_size = 0,
-                hh_chunk_size = 0)
+                hh_chunk_size = 4)
 
 print_settings()
 
@@ -171,7 +171,7 @@ run_model('destination_choice')
 run_model('non_mandatory_scheduling')
 run_model('patch_mandatory_tour_destination')
 run_model('tour_mode_choice_simulate')
-run_model('trip_mode_choice_simulate')
+# run_model('trip_mode_choice_simulate')
 
 orca.get_injectable('store').close()
 orca.get_injectable('omx_file').close()

@@ -343,6 +343,7 @@ def test_household_choices_to_people(hh_choices, people):
 def test_run_cdap(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
         final_rules, all_people, random_seed):
+
     people_choices = cdap.run_cdap(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
         final_rules, all_people)

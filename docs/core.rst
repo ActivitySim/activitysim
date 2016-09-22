@@ -33,12 +33,19 @@ API
 Nested Logit
 ------------
 
-Nested or multinomial logit choice model.  These choice models depend on the foundational components of ActivitySim, such
-as the expression and data handling described in the :ref:`how_the_system_works` section. To solve an MNL model, call 
-``asim.simple_simulate()``. To solve an NL model, first specify the nesting structure via the NESTS setting in the 
-model configuration file.  An example nested logit NESTS entry can be found in 
-``example/configs/tour_mode_choice.yaml``.  With the NESTS defined, call ``asim.nested_simulate()`` to solve the 
-model and make choices. 
+Multinomial logit (MNL) or Nested logit (NL) choice model.  These choice models depend on the foundational components of ActivitySim, such
+as the expressions and data handling described in the :ref:`how_the_system_works` section.
+
+To specify and solve an MNL model:
+
+* either specify ``LOGIT_TYPE: MNL`` in the model configuration YAML file or omit the setting
+* call either ``asim.simple_simulate()`` or ``asim.interaction_simulate()`` depending if the alternatives are interacted with the choosers or because alternatives are sampled
+
+To specify and solve an NL model:
+
+* specify ``LOGIT_TYPE: NL`` in the model configuration YAML file
+* specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in ``example/configs/tour_mode_choice.yaml``
+* call ``asim.simple_simulate()``.  The ``asim.interaction_simulate()`` functionality is not yet supported for NL.
 
 API
 ~~~

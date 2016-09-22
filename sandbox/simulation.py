@@ -98,7 +98,7 @@ def run_model(model_name):
 
 
 orca.add_injectable("output_dir", 'output')
-tracing.config_logger('logging.yaml')
+tracing.config_logger(os.path.join('configs', 'logging.yaml'))
 
 logger = logging.getLogger(__name__)
 
@@ -119,12 +119,12 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 chunk_size = 50000,
 #                 hh_chunk_size = 50000)
 
-inject_settings(config='example',
-                data='test',
-                households_sample_size=50,
+inject_settings(config='sandbox',
+                data='example',
+                households_sample_size=1,
                 preload_3d_skims=True,
                 chunk_size = 0,
-                hh_chunk_size = 4)
+                hh_chunk_size=1)
 
 print_settings()
 
@@ -135,11 +135,21 @@ log_memory_info(logger, 'after skim load')
 skims = orca.get_injectable('stacked_skims')
 log_memory_info(logger, 'after stacked_skims load')
 
-#t = orca.get_table('persons')
 # df = orca.get_table('persons_merged').to_frame()
-# df = df[ ( df.hhsize > 2 )]
-# df = df[['household_id', 'is_student', 'is_worker']]
+# df = df[ ( df.hhsize == 6 )]
+# df = df[['household_id', 'hhsize', 'is_student', 'is_worker']]
 # print df.head(20)
+
+
+
+# p = orca.get_table('persons_merged').to_frame()
+#
+# print "len(p.index)", len(p.index)
+# print "max(p.hhsize)", max(p.hhsize)
+#
+# p = p[p.hhsize==4]
+# print "len(p.index)", len(p.index)
+# print "unique hh", p.household_id.unique()
 
 
 EMPTY_NEST = {'level': 0, 'product_of_coefficients': 1}
@@ -160,17 +170,25 @@ nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']
 #     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
 
 run_model('compute_accessibility')
+
+trace_hh_id = orca.get_injectable('trace_hh_id')
+if trace_hh_id:
+    tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
+                     warn_if_empty=True)
+
+
 run_model('school_location_simulate')
 run_model('workplace_location_simulate')
 run_model('auto_ownership_simulate')
 run_model('cdap_simulate')
-run_model('mandatory_tour_frequency')
-run_model('mandatory_scheduling')
-run_model('non_mandatory_tour_frequency')
-run_model('destination_choice')
-run_model('non_mandatory_scheduling')
-run_model('patch_mandatory_tour_destination')
-run_model('tour_mode_choice_simulate')
+
+# run_model('mandatory_tour_frequency')
+# run_model('mandatory_scheduling')
+# run_model('non_mandatory_tour_frequency')
+# run_model('destination_choice')
+# run_model('non_mandatory_scheduling')
+# run_model('patch_mandatory_tour_destination')
+# run_model('tour_mode_choice_simulate')
 # run_model('trip_mode_choice_simulate')
 
 orca.get_injectable('store').close()

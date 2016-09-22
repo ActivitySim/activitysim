@@ -6,6 +6,7 @@ skims_file: skims.omx
 households_sample_size: 1000
 
 #trace household id; comment out for no trace
+
 trace_hh_id: 961042
 
 # trace origin, destination in accessibility calculation
@@ -14,6 +15,9 @@ trace_od: [5, 11]
 #internal settings 
 preload_3d_skims: True
 chunk_size: 10000
+# chunk size for models that must process all data for a household in he same chunk (e.g. cdap)
+# if not specified, chunk_size setting value is used
+# hh_chunk_size: 5000
 
 # area_types less than this are considered urban
 urban_threshold: 4

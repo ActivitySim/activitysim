@@ -17,19 +17,20 @@ from .. import tracing
 logger = logging.getLogger(__name__)
 
 
-def make_interactions(people, hh_id_col, p_type_col):
+def make_interactions(people, hh_id_col, p_type_col, trace_hh_id=None, trace_label=None):
     """
     Make two Pandas DataFrames associating people IDs with two
     and three person interactions they have within their households.
 
     Interactions are strings of numbers representing the makeup
-    of the interaction, e.g. '12' or '341'.
+    of the interaction, e.g. '12' or '341' where each digit is a ptype
+    (this obviously assumes ptypes can be represented by a single digit!)
 
     Note that for two-person interactions the interaction string is ordered
-    with the person from the index in the first position of the string
+    with the ptype of the person from the index in the first position of the string
     and some other person in the second position. In contrast,
     the interaction strings for three-person interactions are not ordered.
-    The person from the index may be in any position of the string.
+    The ptype of the person from the index may be in any position of the string.
 
     Parameters
     ----------
@@ -60,7 +61,11 @@ def make_interactions(people, hh_id_col, p_type_col):
     two_perm_cache = {}
     three_combo_cache = {}
 
+    # FIXME - note we are iterating people grouped by over each household - one iteration per hh
     for hh_id, df in people.groupby(hh_id_col, sort=False):
+
+        # df contains only the people in this household
+
         hh_size = len(df)
 
         # skip households with only one person
@@ -70,29 +75,43 @@ def make_interactions(people, hh_id_col, p_type_col):
         ptypes = df[p_type_col].values
         hh_idx = df.index.values
 
+        # two_perms: list (ordered permutations) of possible two-person interactions
+        # for this hh_size expressed as tuples of zero-based person numbers (0 for person 1, etc)
+        # e.g. for a 3 person household two_perms = [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
         if hh_size in two_perm_cache:
             two_perms = two_perm_cache[hh_size]
         else:
             two_perms = list(itertools.permutations(np.arange(hh_size), 2))
             two_perm_cache[hh_size] = two_perms
 
-        two.extend(
-            (hh_idx[pA], two_fmt(*ptypes[[pA, pB]])) for pA, pB in two_perms)
+        # create list of tuples [(<person_id>, <interaction_string.), ...]
+        # e.g. [(227139, '14'), (227140, '41'), (270781, '21'), (270782, '12'), ...]
+        twos = [(hh_idx[pA], two_fmt(*ptypes[[pA, pB]])) for pA, pB in two_perms]
+        two.extend(twos)
+        if trace_hh_id == hh_id:
+            tracing.debug(message="%s: two_perms=%s" % (trace_label, two_perms))
+            tracing.debug(message="%s: two: %s" % (trace_label, twos))
 
         # now skip households with two people
         if hh_size == 2:
             continue
 
+        # three_combos: list (unordered combinations) of possible three-person interactions
+        # for this hh_size expressed as tuples of zero-based person numbers (0 for person 1, etc)
+        # e.g. for a 4 person household three_combos = [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
         if hh_size in three_combo_cache:
             three_combos = three_combo_cache[hh_size]
         else:
             three_combos = list(itertools.combinations(np.arange(hh_size), 3))
             three_combo_cache[hh_size] = three_combos
 
-        three.extend(
-            (hh_idx[p], three_fmt(*ptypes.take(idx)))
-            for idx in three_combos
-            for p in idx)
+        # create list of tuples [(<person_id>, <interaction_string.), ...]
+        # e.g. [(746220, '147'), (746221, '147'), (746222, '147'), ...]
+        threes = [(hh_idx[p], three_fmt(*ptypes.take(idx))) for idx in three_combos for p in idx]
+        three.extend(threes)
+        if trace_hh_id == hh_id:
+            tracing.debug(message="%s: three_combos=%s" % (trace_label, three_combos))
+            tracing.debug(message="%s: three: %s" % (trace_label, threes))
 
     if two:
         two_idx, two_val = zip(*two)
@@ -143,7 +162,7 @@ def individual_utilities(
     one_utils = one_vars.dot(one_spec)
 
     # make two- and three-person interactions
-    two_int, three_int = make_interactions(people, hh_id_col, p_type_col)
+    two_int, three_int = make_interactions(people, hh_id_col, p_type_col, trace_hh_id, trace_label)
 
     # calculate two-interaction utilities
     #     evaluate variables from two_spec expressions
@@ -167,9 +186,13 @@ def individual_utilities(
         tracing.trace_cdap_ind_utils(one_vars, '%s.ind_utils.one_vars' % trace_label)
         tracing.trace_cdap_ind_utils(one_utils, '%s.ind_utils.one_utils' % trace_label)
 
+        tracing.trace_df(two_int, "%s.ind_utils.two_int" % trace_label,
+                         slicer='PERID', transpose=False)
         tracing.trace_cdap_ind_utils(two_vars, '%s.ind_utils.two_vars' % trace_label)
         tracing.trace_cdap_ind_utils(two_utils, '%s.ind_utils.two_utils' % trace_label)
 
+        tracing.trace_df(three_int, "%s.ind_utils.three_int" % trace_label,
+                         slicer='PERID', transpose=False)
         tracing.trace_cdap_ind_utils(three_vars, '%s.ind_utils.three_vars' % trace_label)
         tracing.trace_cdap_ind_utils(three_utils, '%s.ind_util.three_utils' % trace_label)
 
@@ -202,6 +225,7 @@ def initial_household_utilities(utilities, people, hh_id_col):
     alts = utilities.columns
     combo_cache = {}
 
+    # FIXME - note we are iterating people grouped by over each household - one iteration per hh
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         hh_size = len(df)
         utils = utilities.loc[df.index].as_matrix()
@@ -257,6 +281,7 @@ def apply_final_rules(hh_util, people, hh_id_col, final_rules):
 
     alt_match_cache = {}
 
+    # FIXME - note we are iterating people grouped by over each household - one iteration per hh
     for hh_id, df in people.groupby(hh_id_col, sort=False):
         mask = rule_mask.loc[df.index]
         if not mask.as_matrix().any():
@@ -463,10 +488,19 @@ def _run_cdap(
     implements core run_cdap functionality but without chunking of people df
     """
 
+    # Calculate CDAP utilities for each individual.
+    # ind_utils has index of `PERID` and a column for each alternative
+    # e.g. three columns" Mandatory, NonMandatory, Home
     ind_utils = individual_utilities(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec, trace_hh_id, trace_label)
 
     if trace_hh_id:
+
+        tracing.trace_df(ind_utils,
+                         '%s.ind_utils_raw' % trace_label,
+                         transpose=False,
+                         slicer='PERID')
+
         tracing.trace_cdap_ind_utils(ind_utils, '%s.ind_utils' % trace_label)
 
     hh_utils = initial_household_utilities(ind_utils, people, hh_id_col)

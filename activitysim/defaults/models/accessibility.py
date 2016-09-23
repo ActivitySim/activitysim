@@ -147,11 +147,6 @@ def compute_accessibility(settings, accessibility_spec,
 
     if trace_od:
 
-        # trace settings
-        for key, value in constants.iteritems():
-            tracing.info(__name__,
-                         message="CONSTANT: %s = %s" % (key, value))
-
         if not trace_od_rows.any():
             tracing.warn(__name__,
                          "trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
@@ -159,10 +154,6 @@ def compute_accessibility(settings, accessibility_spec,
 
             # add OD columns to trace results
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
-
-            for column in df.columns:
-                tracing.info(__name__,
-                             message="EVAL: %s = %s" % (column, df[column].iloc[0]))
 
             # dump the trace results table (with _temp variables) to aid debugging
             # note that this is not the same as the orca-injected accessibility table

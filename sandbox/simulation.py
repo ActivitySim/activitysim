@@ -121,10 +121,10 @@ orca.add_injectable("set_random_seed", set_random_seed)
 
 inject_settings(config='sandbox',
                 data='example',
-                households_sample_size=1,
+                households_sample_size=100,
                 preload_3d_skims=True,
                 chunk_size = 0,
-                hh_chunk_size=1)
+                hh_chunk_size=0)
 
 print_settings()
 
@@ -180,7 +180,10 @@ if trace_hh_id:
 run_model('school_location_simulate')
 run_model('workplace_location_simulate')
 run_model('auto_ownership_simulate')
-run_model('cdap_simulate')
+
+run_model('xdap_simulate')
+
+# run_model('cdap_simulate')
 
 # run_model('mandatory_tour_frequency')
 # run_model('mandatory_scheduling')

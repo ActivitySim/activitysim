@@ -37,11 +37,11 @@ def _run_cdap(
     WORKER_PTYPES = [1, 2]
     CHILD_PTYPES = [6, 7, 8]
 
-    CDAP_WORKER = 1
-    CDAP_CHILD = 2
-    CDAP_BACKFILL = 3
-    CDAP_UNASSIGNED = 9
-    people['cdap_person'] = CDAP_UNASSIGNED
+    RANK_WORKER = 1
+    RANK_CHILD = 2
+    RANK_BACKFILL = 3
+    RANK_UNASSIGNED = 9
+    people['cdap_rank'] = RANK_UNASSIGNED
 
     # choose up to 2 workers, preferring full over part, older over younger
     workers = people.loc[people[p_type_col].isin(WORKER_PTYPES),
@@ -49,7 +49,8 @@ def _run_cdap(
         .sort_values(by=['household_id', 'ptype', 'age'], ascending=[True, True, False])\
         .groupby(hh_id_col).head(2)
     # tag the selected workers
-    people.loc[workers.index, 'cdap_person'] = CDAP_WORKER
+    people.loc[workers.index, 'cdap_rank'] = RANK_WORKER
+    del workers
 
     # choose up to 3, preferring youngest
     children = people.loc[people[p_type_col].isin(CHILD_PTYPES),
@@ -57,16 +58,53 @@ def _run_cdap(
         .sort_values(by=['household_id', 'age'], ascending=[True, True])\
         .groupby(hh_id_col).head(3)
     # tag the selected children
-    people.loc[children.index, 'cdap_person'] = CDAP_CHILD
+    people.loc[children.index, 'cdap_rank'] = RANK_CHILD
+    del children
 
     # choose up to 5, preferring anyone already chosen
-    others = people[['household_id', 'cdap_person']]\
-        .sort_values(by=['household_id', 'cdap_person'], ascending=[True, True])\
+    others = people[['household_id', 'cdap_rank']]\
+        .sort_values(by=['household_id', 'cdap_rank'], ascending=[True, True])\
         .groupby(hh_id_col).head(5)
     # tag the backfilled persons
-    people.loc[others[others.cdap_person == CDAP_UNASSIGNED].index, 'cdap_person'] = CDAP_BACKFILL
+    people.loc[others[others.cdap_rank == RANK_UNASSIGNED].index, 'cdap_rank'] \
+        = RANK_BACKFILL
+    del others
 
-    tracing.trace_df(people[['household_id', 'PERSONS', 'ptype', 'age', 'cdap_person']],
+    # FIXME - possible workaround if below too big/slow
+    # stackoverflow.com/questions/26720916/faster-way-to-rank-rows-in-subgroups-in-pandas-dataframe
+    # Working with a big DataFrame (13 million lines), the method rank with groupby
+    # maxed out my 8GB of RAM an it took a really long time. I found a workaround
+    # less greedy in memory , that I put here just in case:
+    # df.sort_values('value')
+    # tmp = df.groupby('group').size()
+    # rank = tmp.map(range)
+    # rank =[item for sublist in rank for item in sublist]
+    # df['rank'] = rank
+
+    # FIXME - redundant chose between column in people or cdapPersonArray df
+    # assign person number in cdapPersonArray preference order
+    # i.e. convert cdap_rank from category to index in order of category rank within household
+    cdapPersonArray = people.loc[people[p_type_col] < RANK_UNASSIGNED, ['household_id', 'ptype']]
+    cdapPersonArray['cdap_pnum'] = people\
+        .sort_values(by=['household_id', 'cdap_rank', 'age'], ascending=[True, True, True])\
+        .groupby(hh_id_col)['household_id']\
+        .rank(method='first', na_option='top')\
+        .astype(int)
+
+    tracing.trace_df(cdapPersonArray,
+                     '%s.cdapPersonArray' % trace_label,
+                     transpose=False,
+                     slicer='NONE')
+
+    # FIXME - redundant chose between column in people or cdapPersonArray df
+    # assign person number in cdapPersonArray preference order
+    people['cdap_rank'] = people\
+        .sort_values(by=['household_id', 'cdap_rank', 'age'], ascending=[True, True, True])\
+        .groupby(hh_id_col)['household_id']\
+        .rank(method='first', na_option='top')\
+        .astype(int)
+
+    tracing.trace_df(people[['household_id', 'PERSONS', 'ptype', 'age', 'cdap_rank']],
                      '%s.people' % trace_label,
                      transpose=False,
                      slicer='NONE')

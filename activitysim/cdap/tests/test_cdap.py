@@ -57,7 +57,7 @@ def all_people(data_dir):
 
 @pytest.fixture(scope='module')
 def hh_id_col():
-    return 'household'
+    return 'household_id'
 
 
 @pytest.fixture(scope='module')

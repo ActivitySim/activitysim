@@ -1,4 +1,4 @@
-id,household,ptype,age,income
+id,household_id,ptype,age,income
 1,1,1,20,100
 2,2,3,21,200
 3,3,1,22,300

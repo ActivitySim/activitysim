@@ -18,9 +18,16 @@ def cdap_settings(configs_dir):
     return read_model_settings(configs_dir, 'cdap.yaml')
 
 
+@orca.injectable()
+def cdap_indiv_spec(configs_dir):
+    f = os.path.join(configs_dir, 'cdap_indiv_and_hhsize1.csv')
+    return asim.read_model_spec(f).fillna(0)
+
+
 @orca.step()
 def xdap_simulate(persons_merged,
                   cdap_settings,
+                  cdap_indiv_spec,
                   hh_chunk_size, trace_hh_id):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
@@ -40,8 +47,7 @@ def xdap_simulate(persons_merged,
                  "Running xdap_simulate with %d persons" % len(choosers.index))
 
     choices = xdap.run_cdap(people=choosers,
-                            hh_id_col="household_id",
-                            p_type_col="ptype",
+                            cdap_indiv_spec=cdap_indiv_spec,
                             locals_d=constants,
                             chunk_size=hh_chunk_size,
                             trace_hh_id=trace_hh_id,

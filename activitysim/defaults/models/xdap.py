@@ -37,6 +37,9 @@ def cdap_interaction_coefficients(configs_dir):
 
     coefficients['cardinality'] = coefficients[ptypes_column_name].astype(str).str.len()
 
+    wildcards = coefficients.interaction_ptypes == coefficients.cardinality.map(lambda x: x*'*')
+    coefficients.loc[wildcards, ptypes_column_name] = ''
+
     coefficients['slug'] = \
         coefficients[activity_column_name] * coefficients['cardinality'] \
         + coefficients[ptypes_column_name].astype(str)
@@ -44,11 +47,22 @@ def cdap_interaction_coefficients(configs_dir):
     return coefficients
 
 
+@orca.injectable()
+def cdap_fixed_relative_proportions(configs_dir):
+
+    f = os.path.join(configs_dir, 'cdap_fixed_relative_proportions.csv')
+
+    proportions = pd.read_csv(f, comment='#')
+
+    return proportions
+
+
 @orca.step()
 def xdap_simulate(households, persons_merged,
                   cdap_settings,
                   cdap_indiv_spec,
                   cdap_interaction_coefficients,
+                  cdap_fixed_relative_proportions,
                   hh_chunk_size, trace_hh_id):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
@@ -73,6 +87,7 @@ def xdap_simulate(households, persons_merged,
                             persons=persons_df,
                             cdap_indiv_spec=cdap_indiv_spec,
                             cdap_interaction_coefficients=cdap_interaction_coefficients,
+                            cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
                             locals_d=constants,
                             chunk_size=hh_chunk_size,
                             trace_hh_id=trace_hh_id,

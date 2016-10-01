@@ -14,13 +14,13 @@ households_sample_size: 1000
 # trace_hh_id: 1026570
 
 # 6 members
-trace_hh_id: 2426191
+#trace_hh_id: 2426191
 
 # 5 members
 # trace_hh_id: 372947
 
 # 4 members
-#trace_hh_id: 356174
+trace_hh_id: 356174
 
 
 # trace origin, destination in accessibility calculation

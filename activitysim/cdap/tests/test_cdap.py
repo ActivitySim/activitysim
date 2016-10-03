@@ -197,7 +197,7 @@ def test_individual_utilities(people, one_spec, individual_utils):
 
 
 def test_initial_household_utilities(hh_utils):
-    alts = ['Mandatory', 'NonMandatory', 'Home']
+    alts = ['M', 'N', 'H']
     one_alts = list(product(alts, repeat=1))
     two_alts = list(product(alts, repeat=2))
     three_alts = list(product(alts, repeat=3))
@@ -268,8 +268,8 @@ def test_apply_final_rules(hh_utils, final_rules, people, hh_id_col):
 
 
 def test_apply_all_people(hh_utils, all_people):
-    all_people.at["('Mandatory',) * 3", 'Value'] = 300
-    all_people.at["('Home',) * 4", 'Value'] = 500
+    all_people.at["('M',) * 3", 'Value'] = 300
+    all_people.at["('H',) * 4", 'Value'] = 500
 
     expected = hh_utils.copy()
     expected[5] = pd.Series([
@@ -313,14 +313,14 @@ def test_apply_all_people(hh_utils, all_people):
 
 def test_make_household_choices(hh_choices):
     expected = pd.Series([
-        ('Mandatory',),
-        ('Home',),
-        ('Mandatory', 'Mandatory'),
-        ('NonMandatory', 'NonMandatory'),
-        ('Mandatory', 'NonMandatory', 'Home'),
-        ('Mandatory', 'Home', 'Home'),
-        ('Mandatory', 'Mandatory', 'NonMandatory', 'NonMandatory'),
-        ('Home', 'Home', 'Mandatory', 'NonMandatory')],
+        ('M',),
+        ('H',),
+        ('M', 'M'),
+        ('N', 'N'),
+        ('M', 'N', 'H'),
+        ('M', 'H', 'H'),
+        ('M', 'M', 'N', 'N'),
+        ('H', 'H', 'M', 'N')],
         index=range(1, 9))
     pdt.assert_series_equal(hh_choices, expected)
 
@@ -328,14 +328,14 @@ def test_make_household_choices(hh_choices):
 def test_household_choices_to_people(hh_choices, people):
     people_choices = cdap.household_choices_to_people(hh_choices, people)
     expected = pd.Series([
-        'Mandatory',
-        'Home',
-        'Mandatory', 'Mandatory',
-        'NonMandatory', 'NonMandatory',
-        'Mandatory', 'NonMandatory', 'Home',
-        'Mandatory', 'Home', 'Home',
-        'Mandatory', 'Mandatory', 'NonMandatory', 'NonMandatory',
-        'Home', 'Home', 'Mandatory', 'NonMandatory'],
+        'M',
+        'H',
+        'M', 'M',
+        'N', 'N',
+        'M', 'N', 'H',
+        'M', 'H', 'H',
+        'M', 'M', 'N', 'N',
+        'H', 'H', 'M', 'N'],
         index=people.index)
     pdt.assert_series_equal(people_choices, expected)
 
@@ -348,13 +348,13 @@ def test_run_cdap(
         people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
         final_rules, all_people)
     expected = pd.Series([
-        'Mandatory',
-        'Home',
-        'Mandatory', 'Mandatory',
-        'NonMandatory', 'NonMandatory',
-        'Mandatory', 'NonMandatory', 'Home',
-        'Mandatory', 'Home', 'Home',
-        'Mandatory', 'Mandatory', 'NonMandatory', 'NonMandatory',
-        'Home', 'Home', 'Home', 'NonMandatory'],
+        'M',
+        'H',
+        'M', 'M',
+        'N', 'N',
+        'M', 'N', 'H',
+        'M', 'H', 'H',
+        'M', 'M', 'N', 'N',
+        'H', 'H', 'H', 'N'],
         index=people.index)
     pdt.assert_series_equal(people_choices, expected)

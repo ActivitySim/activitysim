@@ -600,26 +600,33 @@ def run_cdap(
     trace_label = (trace_label or 'cdap')
 
     if (chunk_size == 0) or (chunk_size >= len(people.index)):
+
         choices = _run_cdap(people, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
                             final_rules, all_people, trace_hh_id, trace_label)
-        return choices
 
-    choices_list = []
-    # segment by person type and pick the right spec for each person type
-    for i, people_chunk in hh_chunked_choosers(people):
+    else:
 
-        logger.info("run_cdap running hh_chunk =%s of size %d" % (i, len(people_chunk)))
+        choices_list = []
+        # segment by person type and pick the right spec for each person type
+        for i, people_chunk in hh_chunked_choosers(people):
 
-        chunk_trace_label = "%s.chunk_%s" % (trace_label, i)
+            logger.info("run_cdap running hh_chunk =%s of size %d" % (i, len(people_chunk)))
 
-        choices = _run_cdap(people_chunk, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
-                            final_rules, all_people, trace_hh_id, chunk_trace_label)
+            chunk_trace_label = "%s.chunk_%s" % (trace_label, i)
 
-        choices_list.append(choices)
+            choices = _run_cdap(people_chunk, hh_id_col, p_type_col, one_spec, two_spec, three_spec,
+                                final_rules, all_people, trace_hh_id, chunk_trace_label)
 
-    # FIXME: this will require 2X RAM
-    # if necessary, could append to hdf5 store on disk:
-    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
-    choices = pd.concat(choices_list)
+            choices_list.append(choices)
+
+        # FIXME: this will require 2X RAM
+        # if necessary, could append to hdf5 store on disk:
+        # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
+        choices = pd.concat(choices_list)
+
+    # nomenclature change
+    # choices.loc[choices == 'Mandatory'] = 'M'
+    # choices.loc[choices == 'NonMandatory'] = 'N'
+    # choices.loc[choices == 'Home'] = 'H'
 
     return choices

@@ -11,13 +11,15 @@ from zbox import toolz as tz, gen
 
 
 from ..activitysim import eval_variables
+
+
 from .. import nl
 
 from .. import tracing
 
 logger = logging.getLogger(__name__)
 
-DUMP = True
+DUMP = False
 
 _persons_index_ = 'PERID'
 _hh_index_ = 'HHID'
@@ -34,11 +36,6 @@ MAX_INTERACTION_CARDINALITY = 3
 
 WORKER_PTYPES = [1, 2]
 CHILD_PTYPES = [6, 7, 8]
-
-RANK_WORKER = 1
-RANK_CHILD = 2
-RANK_BACKFILL = 3
-RANK_UNASSIGNED = 9
 
 
 def set_hh_index(df):
@@ -103,6 +100,12 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     # in principal other numbers should work, though this has not been tested and higher values
     # higher values might cause problems as the number of alternative patterns will be 3**MAX_HHSIZE
 
+    # transient categories used to categorize persons in _cdap_rank_ before assigning final rank
+    RANK_WORKER = 1
+    RANK_CHILD = 2
+    RANK_BACKFILL = 3
+    RANK_UNASSIGNED = 9
+
     cdap_persons = persons[[_hh_id_, _hh_size_, _ptype_, _age_]]
 
     cdap_persons[_cdap_rank_] = RANK_UNASSIGNED
@@ -156,7 +159,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 
     if DUMP:
         tracing.trace_df(cdap_persons,
-                         '%s.cdap_person_array' % trace_label,
+                         '%s.DUMP.cdap_person_array' % trace_label,
                          transpose=False,
                          slicer='NONE')
 
@@ -170,6 +173,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 def individual_utilities(
         persons,
         cdap_indiv_spec,
+        locals_d,
         trace_hh_id=None, trace_label=None):
     """
     Calculate CDAP utilities for all individuals.
@@ -185,11 +189,12 @@ def individual_utilities(
     -------
     utilities : pandas.DataFrame
         Will have index of `persons` and columns for each of the alternatives.
+        plus some 'useful columns' [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]
 
     """
 
     # calculate single person utilities
-    individual_vars = eval_variables(cdap_indiv_spec.index, persons)
+    individual_vars = eval_variables(cdap_indiv_spec.index, persons, locals_d)
     indiv_utils = individual_vars.dot(cdap_indiv_spec)
 
     # add columns from persons to facilitate building household interactions
@@ -216,7 +221,7 @@ def individual_utilities(
 def build_cdap_spec(cdap_interaction_coefficients, hhsize,
                     trace_hh_id, trace_label):
 
-    if trace_hh_id:
+    if DUMP or trace_hh_id:
         tracing.trace_df(cdap_interaction_coefficients,
                          '%s.hhsize%d_cdap_interaction_coefficients' % (trace_label, hhsize),
                          transpose=False,
@@ -293,7 +298,7 @@ def build_cdap_spec(cdap_interaction_coefficients, hhsize,
 
     spec.set_index(expression_name, inplace=True)
 
-    if trace_hh_id:
+    if DUMP or trace_hh_id:
         tracing.trace_df(spec,
                          '%s.hhsize%d_spec' % (trace_label, hhsize),
                          transpose=False,
@@ -305,7 +310,7 @@ def build_cdap_spec(cdap_interaction_coefficients, hhsize,
         spec[c] =\
             spec[c].map(lambda x: d.get(x, x or 0.0)).fillna(0)
 
-    if trace_hh_id:
+    if DUMP or trace_hh_id:
         tracing.trace_df(spec,
                          '%s.hhsize%d_spec_patched' % (trace_label, hhsize),
                          transpose=False,
@@ -353,10 +358,14 @@ def hh_choosers(indiv_utils, hhsize):
 def hh_utilities(indiv_utils, cdap_interaction_coefficients, hhsize,
                  trace_hh_id, trace_label):
 
+    choosers = hh_choosers(indiv_utils, hhsize=hhsize)
+
+    # only trace if trace_hh_id is in this hhsize (build_cdap_spec can't tell if that is the case)
+    if trace_hh_id not in choosers.index:
+        trace_hh_id = None
+
     spec = build_cdap_spec(cdap_interaction_coefficients, hhsize,
                            trace_hh_id, trace_label)
-
-    choosers = hh_choosers(indiv_utils, hhsize=hhsize)
 
     vars = eval_variables(spec.index, choosers)
 
@@ -388,8 +397,8 @@ def hh_utilities(indiv_utils, cdap_interaction_coefficients, hhsize,
     return utils
 
 
-def household_choices(indiv_utils, cdap_interaction_coefficients, hhsize,
-                      trace_hh_id, trace_label):
+def household_activity_choices(indiv_utils, cdap_interaction_coefficients, hhsize,
+                               trace_hh_id, trace_label):
     """
 
     Parameters
@@ -440,7 +449,7 @@ def household_choices(indiv_utils, cdap_interaction_coefficients, hhsize,
                          slicer='NONE')
 
         tracing.trace_df(choices,
-                         '%s.DUMP.hhsize%d_choices' % (trace_label, hhsize),
+                         '%s.DUMP.hhsize%d_activity_choices' % (trace_label, hhsize),
                          transpose=False,
                          slicer='NONE')
 
@@ -453,8 +462,128 @@ def household_choices(indiv_utils, cdap_interaction_coefficients, hhsize,
                          column_labels=['expression', 'household'],
                          warn_if_empty=False)
 
-        tracing.trace_df(choices, '%s.hhsize%d_choices' % (trace_label, hhsize),
+        tracing.trace_df(choices, '%s.hhsize%d_activity_choices' % (trace_label, hhsize),
                          column_labels=['expression', 'household'],
+                         warn_if_empty=False)
+
+    return choices
+
+
+def unpack_cdap_indiv_activity_choices(indiv_utils, hh_choices,
+                                       trace_hh_id, trace_label):
+    # return a list of alternatives chosen indexed by _person_idx_
+
+    # indiv_utils has index of `persons` and columns for each of the alternatives.
+    # plus some 'useful columns' [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]
+
+    cdap_indivs = indiv_utils[_cdap_rank_] <= MAX_HHSIZE
+
+    indiv_activity = pd.merge(
+        left=indiv_utils.loc[cdap_indivs, [_hh_id_, _cdap_rank_]],
+        right=hh_choices.to_frame(name='hh_choices'),
+        left_on=_hh_id_,
+        right_index=True
+    )
+
+    # resulting dataframe has columns _hh_id_,_cdap_rank_, hh_choices indexed on _persons_index_
+
+    indiv_activity["cdap_activity"] = ''
+
+    # for each cdap_rank (1..5)
+    for i in range(MAX_HHSIZE):
+        pnum_i = (indiv_activity[_cdap_rank_] == i+1)
+        indiv_activity.loc[pnum_i, ["cdap_activity"]] = indiv_activity[pnum_i]['hh_choices'].str[i]
+
+    cdap_indiv_activity_choices = indiv_activity['cdap_activity']
+
+    if DUMP:
+        tracing.trace_df(cdap_indiv_activity_choices,
+                         '%s.DUMP.cdap_indiv_activity_choices' % trace_label,
+                         transpose=False,
+                         slicer='NONE')
+
+    return cdap_indiv_activity_choices
+
+
+def extra_hh_member_choices(indiv_utils, cdap_fixed_relative_proportions, locals_d,
+                            trace_hh_id, trace_label):
+
+    # return a list of alternatives chosen indexed by _person_idx_
+
+    # indiv_utils has index of `persons` and columns for each of the alternatives.
+    # plus some 'useful columns' [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]
+
+    print "CONSTANTS: ", locals_d
+
+    USE_FIXED_PROPORTIONS = True
+
+    if USE_FIXED_PROPORTIONS:
+        # relative probabilities depend only on ptype
+        choosers = indiv_utils[indiv_utils[_cdap_rank_] > MAX_HHSIZE][[_hh_id_, _ptype_]]
+
+        # eval the expression file
+        model_design = eval_variables(cdap_fixed_relative_proportions.index, choosers, locals_d)
+
+        # cdap_fixed_relative_proportions computes relative proportions by ptype, not utilities
+        proportions = model_design.dot(cdap_fixed_relative_proportions)
+
+        # convert relative proportions to probability
+        probs = proportions.div(proportions.sum(axis=1), axis=0)
+
+    else:
+        # select only the utility columns
+        utils = indiv_utils[indiv_utils[_cdap_rank_] > MAX_HHSIZE][['M', 'N', 'H']]
+
+        # convert utilities to probabilities
+        probs = nl.utils_to_probs(utils, trace_label=None)
+
+    # select an activity pattern alternative for each person based on probability
+    # result is a series indexed on _person_index_ with the (0 based) index of the column from probs
+    idx_choices = nl.make_choices(probs, trace_label=trace_label)
+
+    # convert choice from column index to activity name
+    choices = pd.Series(probs.columns[idx_choices].values, index=probs.index)
+
+    if DUMP:
+
+        if USE_FIXED_PROPORTIONS:
+            tracing.trace_df(proportions,
+                             '%s.DUMP.extra_proportions' % trace_label,
+                             transpose=False,
+                             slicer='NONE')
+        else:
+            tracing.trace_df(utils,
+                             '%s.DUMP.extra_utils' % trace_label,
+                             transpose=False,
+                             slicer='NONE')
+
+        tracing.trace_df(probs,
+                         '%s.DUMP.extra_probs' % trace_label,
+                         transpose=False,
+                         slicer='NONE')
+
+        tracing.trace_df(choices,
+                         '%s.DUMP.extra_choices' % trace_label,
+                         transpose=False,
+                         slicer='NONE')
+
+    if trace_hh_id:
+
+        if USE_FIXED_PROPORTIONS:
+            tracing.trace_df(proportions, '%s.extra_hh_member_choices_proportions' % trace_label,
+                             column_labels=['expression', 'person'],
+                             warn_if_empty=False)
+        else:
+            tracing.trace_df(utils, '%s.extra_hh_member_choices_utils' % trace_label,
+                             column_labels=['expression', 'person'],
+                             warn_if_empty=False)
+
+        tracing.trace_df(probs, '%s.extra_hh_member_choices_probs' % trace_label,
+                         column_labels=['expression', 'person'],
+                         warn_if_empty=False)
+
+        tracing.trace_df(choices, '%s.extra_hh_member_choices_choices' % trace_label,
+                         column_labels=['expression', 'person'],
                          warn_if_empty=False)
 
     return choices
@@ -462,12 +591,12 @@ def household_choices(indiv_utils, cdap_interaction_coefficients, hhsize,
 
 def print_elapsed_time(msg, t0=None):
     t1 = time.time()
-    print "%s : %s" % (msg, t1 - (t0 or t1))
+    if DUMP:
+        print "%s : %s" % (msg, t1 - (t0 or t1))
     return t1
 
 
 def _run_cdap(
-        households,
         persons,
         cdap_indiv_spec,
         cdap_interaction_coefficients,
@@ -487,15 +616,17 @@ def _run_cdap(
 
     # Calculate CDAP utilities for each individual.
     # ind_utils has index of `PERID` and a column for each alternative
-    # e.g. three columns" Mandatory, NonMandatory, Home
-    indiv_utils = individual_utilities(persons, cdap_indiv_spec, trace_hh_id, trace_label)
+    # e.g. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
+    indiv_utils = individual_utilities(persons, cdap_indiv_spec, locals_d,
+                                       trace_hh_id, trace_label)
+
     t0 = print_elapsed_time("individual_utilities", t0)
 
     hh_choices_list = []
 
     for hhsize in range(1, MAX_HHSIZE+1):
 
-        choices = household_choices(
+        choices = household_activity_choices(
             indiv_utils, cdap_interaction_coefficients, hhsize=hhsize,
             trace_hh_id=trace_hh_id, trace_label=trace_label)
 
@@ -504,15 +635,28 @@ def _run_cdap(
         t0 = print_elapsed_time("hhsize%d_utils" % hhsize, t0)
 
     # concat all the resulting Series
-    hh_choices = pd.concat(hh_choices_list)
+    hh_activity_choices = pd.concat(hh_choices_list)
+
+    cdap_person_choices \
+        = unpack_cdap_indiv_activity_choices(indiv_utils, hh_activity_choices,
+                                             trace_hh_id, trace_label)
+
+    extra_person_choices \
+        = extra_hh_member_choices(indiv_utils, cdap_fixed_relative_proportions, locals_d,
+                                  trace_hh_id, trace_label)
+
+    person_choices = pd.concat([cdap_person_choices, extra_person_choices])
 
     if DUMP:
-        tracing.trace_df(hh_choices,
-                         '%s.DUMP.hh_choices' % trace_label,
+        tracing.trace_df(hh_activity_choices,
+                         '%s.DUMP.hh_activity_choices' % trace_label,
                          transpose=False,
                          slicer='NONE')
 
-    person_choices = pd.Series(['Home'] * len(persons), index=persons.index)
+        tracing.trace_df(person_choices,
+                         '%s.DUMP.person_choices' % trace_label,
+                         transpose=False,
+                         slicer='NONE')
 
     if trace_hh_id:
         tracing.trace_df(person_choices, '%s.person_choices' % trace_label,
@@ -521,19 +665,16 @@ def _run_cdap(
     return person_choices
 
 
-def chunked_hh_and_persons(households, persons):
-    # generator to iterate over households and persons df in chunk_size chunks simultaneously
-    last_chooser = households['chunk_id'].max()
+def hh_chunked_choosers(choosers):
+    # generator to iterate over chooses in chunk_size chunks
+    last_chooser = choosers['chunk_id'].max()
     i = 0
     while i <= last_chooser:
-        yield i, \
-              persons[persons['chunk_id'] == i], \
-              households[households['chunk_id'] == i]
+        yield i, choosers[choosers['chunk_id'] == i]
         i += 1
 
 
 def run_cdap(
-        households,
         persons,
         cdap_indiv_spec,
         cdap_interaction_coefficients,
@@ -570,27 +711,27 @@ def run_cdap(
     trace_label = (trace_label or 'cdap')
 
     if (chunk_size == 0) or (chunk_size >= len(persons.index)):
-        choices = _run_cdap(households,
-                            persons,
+        choices = _run_cdap(persons,
                             cdap_indiv_spec,
                             cdap_interaction_coefficients,
+                            cdap_fixed_relative_proportions,
                             locals_d,
                             trace_hh_id, trace_label)
         return choices
 
     choices_list = []
     # segment by person type and pick the right spec for each person type
-    for i, persons_chunk, household_chunk in chunked_hh_and_persons(households, persons):
+    for i, persons_chunk in hh_chunked_choosers(persons):
 
-        logger.info("run_cdap running hh_chunk = %s with %d households and %d persons"
-                    % (i, len(household_chunk), len(persons_chunk)))
+        logger.info("run_cdap running hh_chunk = %s with %d persons"
+                    % (i, len(persons_chunk)))
 
         chunk_trace_label = "%s.chunk_%s" % (trace_label, i)
 
-        choices = _run_cdap(household_chunk,
-                            persons_chunk,
+        choices = _run_cdap(persons_chunk,
                             cdap_indiv_spec,
                             cdap_interaction_coefficients,
+                            cdap_fixed_relative_proportions,
                             locals_d,
                             trace_hh_id, chunk_trace_label)
 

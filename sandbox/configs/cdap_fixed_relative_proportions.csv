@@ -1,11 +1,9 @@
 Description,Expression,M,N,H
-Full-time worker,ptype == 1,1,1,1
-Part-time worker,ptype == 2,1,1,1
-University student,ptype == 3,1,1,1
-Non-working adultptype == 4,1,1,1
-Retired,ptype == 5,1,1,1
-Driving-age child who is in school,ptype == 6,1,1,1
-Pre-driving-age child who is in school,ptype == 7,1,1,1
-Pre-driving-age child who is too young for school with age 0 to 1,(ptype == 8) & (age <= 1),1,1,1
-Pre-driving-age child who is too young for school with age 4 to 5,(ptype == 8) & (age >1) & (age <= 4),1,1,1
-Pre-driving-age child who is too young for school with age 4 to 5,(ptype == 8) & (age >= 4),1,1,1
+Full-time worker,ptype == 1,8,1,1
+Part-time worker,ptype == 2,6,2,2
+University student,ptype == 3,6,2,2
+Non-working adult,ptype == 4,0,5,5
+Retired,ptype == 5,0,5,5
+Driving-age child who is in school,ptype == 6,6,2,2
+Pre-driving-age child who is in school,ptype == 7,6,2,2
+Pre-driving-age child who is too young for school,(ptype == 8),0,5,5

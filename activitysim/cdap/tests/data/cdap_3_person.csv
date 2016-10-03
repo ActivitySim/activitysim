@@ -1,4 +1,4 @@
-Description,Expression,Mandatory,NonMandatory,Home
+Description,Expression,M,N,H
 All one,interaction == '111',1,0,0
 All two,interaction == '222',0,1,0
 All three,interaction == '333',0,0,1

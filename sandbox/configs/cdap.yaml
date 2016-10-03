@@ -7,18 +7,3 @@ CONSTANTS:
   DRIVING: 6
   SCHOOL: 7
   PRESCHOOL: 8
-
-
-#    1: full           1
-#    2: part           2
-#    3: university     8
-#    4: nonwork        7
-#    5: retired        6
-#    6: driving        5
-#    7: school         4
-#    8: preschool      3
-
-ptype_priority_map: [0, 1, 2, 8, 7, 6, 5, 4, 3]
-
-
-

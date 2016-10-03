@@ -107,8 +107,9 @@ def eval_variables(exprs, df, locals_d=None):
         Will have the index of `df` and columns of `exprs`.
 
     """
-    if locals_d is None:
-        locals_d = {}
+
+    # avoid altering caller's passed-in locals_d parameter (they may be looping)
+    locals_d = locals_d.copy() if locals_d is not None else {}
     locals_d.update(locals())
 
     def to_series(x):

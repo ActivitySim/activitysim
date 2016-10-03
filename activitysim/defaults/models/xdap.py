@@ -49,16 +49,12 @@ def cdap_interaction_coefficients(configs_dir):
 
 @orca.injectable()
 def cdap_fixed_relative_proportions(configs_dir):
-
     f = os.path.join(configs_dir, 'cdap_fixed_relative_proportions.csv')
-
-    proportions = pd.read_csv(f, comment='#')
-
-    return proportions
+    return asim.read_model_spec(f).fillna(0)
 
 
 @orca.step()
-def xdap_simulate(households, persons_merged,
+def xdap_simulate(persons_merged,
                   cdap_settings,
                   cdap_indiv_spec,
                   cdap_interaction_coefficients,
@@ -74,17 +70,14 @@ def xdap_simulate(households, persons_merged,
     simply applies those utilities using the simulation framework.
     """
 
-    households_df = households.to_frame()
     persons_df = persons_merged.to_frame()
 
     constants = get_model_constants(cdap_settings)
 
     tracing.info(__name__,
-                 "Running xdap_simulate with %d households and %d persons"
-                 % (len(households_df.index), len(persons_df.index)))
+                 "Running xdap_simulate with %d persons" % len(persons_df.index))
 
-    choices = xdap.run_cdap(households=households_df,
-                            persons=persons_df,
+    choices = xdap.run_cdap(persons=persons_df,
                             cdap_indiv_spec=cdap_indiv_spec,
                             cdap_interaction_coefficients=cdap_interaction_coefficients,
                             cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
@@ -95,13 +88,12 @@ def xdap_simulate(households, persons_merged,
 
     choices = choices.reindex(persons_merged.index)
 
-    tracing.print_summary('xdap_activity', choices, value_counts=True)
+    tracing.print_summary('cdap_activity', choices, value_counts=True)
 
     orca.add_column("persons", "xdap_activity", choices)
 
     if trace_hh_id:
-        trace_columns = ['xdap_activity']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="xdap",
-                         columns=trace_columns,
+                         columns=['cdap_activity'],
                          warn_if_empty=True)

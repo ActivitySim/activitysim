@@ -370,7 +370,7 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
         df = df[columns]
 
     if not transpose:
-        df.to_csv(file_path, mmode="a", index=True, header=True)
+        df.to_csv(file_path, mode="a", index=True, header=True)
         return
 
     df_t = df.transpose()

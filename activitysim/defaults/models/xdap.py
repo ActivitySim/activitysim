@@ -15,17 +15,69 @@ from activitysim.cdap import xdap
 
 @orca.injectable()
 def cdap_settings(configs_dir):
+    """
+    canonical model settings file to permit definition of local constants for by
+    cdap_indiv_spec and cdap_fixed_relative_proportions
+    """
+
     return read_model_settings(configs_dir, 'cdap.yaml')
 
 
 @orca.injectable()
 def cdap_indiv_spec(configs_dir):
+    """
+    spec to compute the activity utilities for each individual hh member
+    with no interactions with other household members taken into account
+    """
+
     f = os.path.join(configs_dir, 'cdap_indiv_and_hhsize1.csv')
     return asim.read_model_spec(f).fillna(0)
 
 
 @orca.injectable()
 def cdap_interaction_coefficients(configs_dir):
+    """
+    The input cdap_interaction_coefficients.csv file has three columns:
+
+    activity
+        A single character activity type name (M, N, or H)
+
+    interaction_ptypes
+        List of ptypes in the interaction (in order of increasing ptype)
+        Stars (***) instead of ptypes means the interaction applies to all ptypes in that size hh
+
+    coefficient
+        The coefficient to apply for all hh interactions for this activity and set of ptypes
+
+    --------------------------------------------------------
+    cdap_interaction_coefficients.csv
+    --------------------------------------------------------
+    activity,interaction_ptypes,coefficient
+    # 2-way interactions,,
+    H,11,1.626
+    H,12,0.7407
+    [...]
+    # 3-way interactions,,
+    H,124,0.9573
+    H,122,0.9573
+    # cdap_final_rules,,
+    M,5,-999
+    [...]
+    # cdap_all_people,,
+    M,***,-0.0671
+    N,***,-0.3653
+    [...]
+    --------------------------------------------------------
+
+    To facilitate building the spec for a given hh ssize, we add two additional columns:
+
+    cardinality
+        the number of persons in the interaction (e.g. 3 for a 3-way interaction)
+
+    slug
+        a human friendly efficient name so we can dump a readable spec trace file for debugging
+        this slug is then replaced with the numerical coefficient value prior to evaluation
+    """
 
     activity_column_name = 'activity'
     ptypes_column_name = 'interaction_ptypes'
@@ -49,6 +101,15 @@ def cdap_interaction_coefficients(configs_dir):
 
 @orca.injectable()
 def cdap_fixed_relative_proportions(configs_dir):
+    """
+    spec to compute/specify the relative proportions of each activity (M, N, H)
+    that should be used to choose activities for additional household members
+    not handled by CDAP
+
+    This spec is handled much like an activitysim logit utility spec,
+    EXCEPT that the values computed are relative proportions, not utilities
+    (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
+    """
     f = os.path.join(configs_dir, 'cdap_fixed_relative_proportions.csv')
     return asim.read_model_spec(f).fillna(0)
 

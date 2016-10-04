@@ -181,9 +181,9 @@ run_model('school_location_simulate')
 run_model('workplace_location_simulate')
 run_model('auto_ownership_simulate')
 
-# run_model('xdap_simulate')
+run_model('xdap_simulate')
 
-run_model('cdap_simulate')
+# run_model('cdap_simulate')
 
 # run_model('mandatory_tour_frequency')
 # run_model('mandatory_scheduling')

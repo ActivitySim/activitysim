@@ -641,7 +641,7 @@ def trace_interaction_model_design(model_design, choosers, label):
 
     # write out the raw dataframe
     file_path = log_file_path('%s.raw.csv' % label)
-    df.to_csv(file_path, mmode="a", index=True, header=True)
+    df.to_csv(file_path, mode="a", index=True, header=True)
 
     # if there are multiple targets, we want them in seperate tables for readability
     for target in targets:

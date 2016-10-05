@@ -1,0 +1,33 @@
+Description,Expression,M,N,H
+Age filter 1,age < 30,1,0,0
+Age filter 2,age >= 30,0,1,0
+Type 1 and low age,(ptype == 1) & (age < 25),1,0,0
+Type 2 and high age,(ptype == 2) & (age >= 35),0,0,1
+# The rest of these are corrections so results come out the way I want
+Person 2 -> H,age == 21,-1,0,1
+Person 3 -> M,age == 22,1,0,0
+Person 4 -> M,age == 23,1,0,0
+Person 5 -> N,age == 24,-1,1,0
+Person 8 -> N,age == 27,-1,2,0
+Person 9 -> H,age == 28,-1,0,1
+Person 10 -> M,age == 29,1,0,0
+Person 11 -> H,age == 30,0,-1,3
+Person 12 -> H,age == 31,0,-1,2
+Person 13 -> M,age == 32,3,-1,0
+Person 14 -> M,age == 33,1,-1,0
+Person 15 -> N,age == 34,0,3,0
+Person 16 -> N,age == 35,0,3,-1
+Person 17 -> H,age == 36,0,-1,4
+Person 18 -> H,age == 37,0,-1,5
+Person 19 -> H,age == 38,50,-1,3
+Person 20 -> M,age == 39,2,-1,0
+
+
+
+
+
+
+
+
+
+

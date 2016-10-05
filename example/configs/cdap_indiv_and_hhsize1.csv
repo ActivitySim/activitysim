@@ -1,4 +1,4 @@
-Description,Expression,Mandatory,NonMandatory,Home
+Description,Expression,M,N,H
 Full-time worker alternative-specific constants,ptype == 1,1.378734579,0.622662391,
 Part-time worker alternative-specific constants,ptype == 2,-0.718823738,0.636032467,
 University student alternative-specific constants,ptype == 3,2.353595176,0.609709846,

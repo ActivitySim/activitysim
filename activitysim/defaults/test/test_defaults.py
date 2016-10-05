@@ -101,8 +101,8 @@ def test_mini_run(random_seed):
     orca.run(['mandatory_tour_frequency'])
 
     mtf_choice = orca.get_table('persons').get_column('mandatory_tour_frequency')
-    per_ids = [172616, 172781, 172782]
-    choices = ['work1', 'work_and_school', 'work1']
+    per_ids = [326914, 172781, 298898]
+    choices = ['school1', 'work_and_school', 'work2']
     print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(
         mtf_choice[per_ids],
@@ -176,7 +176,7 @@ def test_full_run():
         return
 
     tour_count = full_run(preload_3d_skims=False)
-    assert(tour_count == 177)
+    assert(tour_count == 222)
 
 
 def test_full_run_with_preload_skims():
@@ -186,7 +186,7 @@ def test_full_run_with_preload_skims():
 
     tour_count = full_run(preload_3d_skims=True)
 
-    assert(tour_count == 177)
+    assert(tour_count == 222)
 
 
 def test_full_run_with_chunks():
@@ -197,7 +197,7 @@ def test_full_run_with_chunks():
     tour_count = full_run(preload_3d_skims=True, chunk_size=10)
 
     # different sampling causes slightly different results
-    assert(tour_count == 189)
+    assert(tour_count == 219)
 
 
 def test_full_run_with_hh_trace():
@@ -221,7 +221,7 @@ def test_full_run_with_hh_trace():
 
     tour_count = full_run(preload_3d_skims=True, trace_hh_id=HH_ID, trace_od=OD)
 
-    assert(tour_count == 177)
+    assert(tour_count == 222)
 
     # should delete any csv files from output
     assert not os.path.isfile(goner_fname)

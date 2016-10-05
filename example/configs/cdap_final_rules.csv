@@ -1,3 +1,0 @@
-Description,Expression,Alternative,Value
-M not allowed for retired,ptype == 5,Mandatory,-999
-M not allowed for non-working,ptype == 4,Mandatory,-999

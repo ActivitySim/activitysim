@@ -98,7 +98,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     Returns
     -------
     cdap_rank : pandas.Series
-        integer cdap_rank of every person, indexed on _person_idx_
+        integer cdap_rank of every person, indexed on _persons_index_
     """
 
     # transient categories used to categorize persons in _cdap_rank_ before assigning final rank
@@ -457,7 +457,7 @@ def add_interaction_column(choosers, p_tup):
     Parameters
     ----------
     choosers : pandas.DataFrame
-        household choosers, indexed on _hh_idx_
+        household choosers, indexed on _hh_index_
         choosers should contain columns ptype_p1, ptype_p2 for each cdap_rank person in hh
 
     p_tup : int tuple
@@ -511,7 +511,7 @@ def hh_choosers(indiv_utils, hhsize):
     ----------
     indiv_utils : pandas.DataFrame
         CDAP utilities for each individual, ignoring interactions.
-        ind_utils has index of _person_idx_ and a column for each alternative
+        ind_utils has index of _persons_index_ and a column for each alternative
         i.e. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
 
     hhsize : int
@@ -581,7 +581,7 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
     ----------
     indiv_utils : pandas.DataFrame
         CDAP utilities for each individual, ignoring interactions
-        ind_utils has index of _person_idx_ and a column for each alternative
+        ind_utils has index of _persons_index_ and a column for each alternative
         i.e. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
 
     interaction_coefficients : pandas.DataFrame
@@ -673,7 +673,7 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices,
     Parameters
     ----------
     persons : pandas.DataFrame
-        Table of persons data indexed on _person_index_
+        Table of persons data indexed on _persons_index_
         We expect, at least, columns [_hh_id_, _cdap_rank_]
     hh_choices : pandas.Series
         household activity pattern is encoded as a string (of length hhsize) of activity codes
@@ -682,7 +682,7 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices,
     Returns
     -------
     cdap_indiv_activity_choices : pandas.Series
-        series contains one activity per individual hh member, indexed on _person_index_
+        series contains one activity per individual hh member, indexed on _persons_index_
     """
 
     cdap_indivs = persons[_cdap_rank_] <= MAX_HHSIZE
@@ -728,7 +728,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     Parameters
     ----------
     persons : pandas.DataFrame
-        Table of persons data indexed on _person_index_
+        Table of persons data indexed on _persons_index_
          We expect, at least, columns [_hh_id_, _ptype_]
     cdap_fixed_relative_proportions
         spec to compute/specify the relative proportions of each activity (M, N, H)
@@ -741,7 +741,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     Returns
     -------
     choices : pandas.Series
-        list of alternatives chosen for all extra members, indexed by _person_idx_
+        list of alternatives chosen for all extra members, indexed by _persons_index_
     """
 
     # extra household members have cdap_ran > MAX_HHSIZE
@@ -760,7 +760,8 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     probs = proportions.div(proportions.sum(axis=1), axis=0)
 
     # select an activity pattern alternative for each person based on probability
-    # result is a series indexed on _person_index_ with the (0 based) index of the column from probs
+    # idx_choices is a series (indexed on _persons_index_ ) with the chosen alternative represented
+    # as the integer (0 based) index of the chosen column from probs
     idx_choices = nl.make_choices(probs, trace_label=trace_label)
 
     # convert choice from column index to activity name
@@ -789,8 +790,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
 def print_elapsed_time(msg, t0=None):
     # FIXME - development debugging code to be removed
     t1 = time.time()
-    if DUMP:
-        print "%s : %s" % (msg, t1 - (t0 or t1))
+    print "%s : %s seconds" % (msg, t1 - (t0 or t1))
     return t1
 
 
@@ -809,6 +809,7 @@ def _run_cdap(
     t0 = print_elapsed_time("_run_cdap")
 
     interaction_coefficients = preprocess_interaction_coefficients(cdap_interaction_coefficients)
+    t0 = print_elapsed_time("preprocess_interaction_coefficients", t0)
 
     # assign integer cdap_rank to each household member
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model
@@ -844,35 +845,34 @@ def _run_cdap(
     hh_activity_choices = pd.concat(hh_choices_list)
 
     # unpack the household activity choice list into choices for each (non-extra) household member
-    # resulting series contains one activity per individual hh member, indexed on _person_index_
+    # resulting series contains one activity per individual hh member, indexed on _persons_index_
     cdap_person_choices \
         = unpack_cdap_indiv_activity_choices(persons, hh_activity_choices,
                                              trace_hh_id, trace_label)
 
     # assign activities to extra household members (with cdap_rank > MAX_HHSIZE)
-    # resulting series contains one activity per individual hh member, indexed on _person_index_
+    # resulting series contains one activity per individual hh member, indexed on _persons_index_
     extra_person_choices \
         = extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
                                   trace_hh_id, trace_label)
 
     # concat cdap and extra persoin choices into a single series
-    # this series will be the same length as the persons dataframe and be indexed on _person_index_
+    # this series will be the same length as the persons dataframe and be indexed on _persons_index_
+
     person_choices = pd.concat([cdap_person_choices, extra_person_choices])
 
     persons['cdap_activity'] = person_choices
 
+    cdap_results = persons[['cdap_rank', 'cdap_activity']]
+
     if DUMP:
         tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
                          transpose=False, slicer='NONE')
-        tracing.trace_df(person_choices, '%s.DUMP.person_choices' % trace_label,
+        tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
                          transpose=False, slicer='NONE')
 
-    if trace_hh_id:
-        tracing.trace_df(person_choices, '%s.person_choices' % trace_label,
-                         columns='choice')
-
     # return dataframe with two columns
-    return persons[['cdap_rank', 'cdap_activity']]
+    return cdap_results
 
 
 def hh_chunked_choosers(choosers):
@@ -921,7 +921,7 @@ def run_cdap(
     -------
     choices : pandas.DataFrame
 
-        dataframe is indexed on _person_idx_ and has two columns:
+        dataframe is indexed on _persons_index_ and has two columns:
 
         cdap_activity : str
             activity for that person expressed as 'M', 'N', 'H'

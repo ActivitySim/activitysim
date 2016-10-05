@@ -509,7 +509,9 @@ def slice_canonically(df, slicer, label, warn_if_empty=False):
     target = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
     column = None  # column name to slice on or None to slice on index
 
-    if slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
+    if len(df.index) == 0:
+        target = None
+    elif slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
         target = orca.get_injectable('trace_person_ids')
     elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
         target = orca.get_injectable('trace_hh_id')

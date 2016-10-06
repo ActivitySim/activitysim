@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="ActivitySim 0.1 documentation" href="index.html"/>
         <link rel="next" title="Development" href="development.html"/>
         <link rel="prev" title="Core Utilities" href="core.html"/> 
@@ -103,37 +106,37 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#destination-choice">Destination Choice</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id3">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mandatory-scheduling">Mandatory Scheduling</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mandatory-tour-frequency">Mandatory Tour Frequency</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id5">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mode-tour-and-trip">Mode (Tour and Trip)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#tour">Tour</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#trip">Trip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#non-mandatory-scheduling">Non-Mandatory Scheduling</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id7">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id8">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#school-location">School Location</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id9">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#workplace-location">Workplace Location</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id10">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">API</a></li>
 </ul>
 </li>
 </ul>
@@ -275,29 +278,31 @@ contains the orca wrapper for running it as part of the model pipeline.</p>
 <div class="section" id="module-activitysim.cdap.cdap">
 <span id="cdap"></span><h4>cdap<a class="headerlink" href="#module-activitysim.cdap.cdap" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
-<dt id="activitysim.cdap.cdap.apply_all_people">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">apply_all_people</code><span class="sig-paren">(</span><em>hh_util</em>, <em>all_people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.apply_all_people" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply utility adjustments to household alternatives.</p>
-<p>This modifies the <cite>hh_util</cite> data inplace.</p>
+<dt id="activitysim.cdap.cdap.add_interaction_column">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">add_interaction_column</code><span class="sig-paren">(</span><em>choosers</em>, <em>p_tup</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.add_interaction_column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an interaction column in place to choosers, listing the ptypes of the persons in p_tup</p>
+<p>The name of the interaction column will be determined by the cdap_ranks from p_tup,
+and the rows in the column contain the ptypes of those persons in that household row.</p>
+<p>For instance, for p_tup = (1,3) choosers interaction column name will be &#8216;p1_p3&#8217;</p>
+<p>For a household where person 1 is part-time worker (ptype=2) and person 3 is infant (ptype 8)
+the corresponding row value interaction code will be 28</p>
+<p>We take advantage of the fact that interactions are symmetrical to simplify spec expressions:
+We name the interaction_column in increasing pnum (cdap_rank) order (p1_p2 and not p3_p1)
+And we format row values in increasing ptype order (28 and not 82)
+This simplifies the spec expressions as we don&#8217;t have to test for p1_p3 == 28 | p1_p3 == 82</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>Keys will be household IDs and values will be Series
-mapping alternative choices to their utility.</p>
+<div><p>household choosers, indexed on _hh_index_
+choosers should contain columns ptype_p1, ptype_p2 for each cdap_rank person in hh</p>
 </div></blockquote>
-<p><strong>all_people</strong> : pandas.DataFrame</p>
+<p><strong>p_tup</strong> : int tuple</p>
 <blockquote class="last">
-<div><p>Adjustments to household alternatives, with alternatives in the
-index and the adjustment values in the first column.
-Index should be household alternatives in the form of tuples
-containing individual alternatives, e.g.
-(&#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;), where &#8216;Mandatory&#8217; is
-one of the alternatives available to individual household members.
-Note that these may also be expressed as Python code to save space,
-so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
+<div><p>tuple specifying the cdap_ranks for the interaction column
+p_tup = (1,3) means persons with cdap_rank 1 and 3</p>
 </div></blockquote>
 </td>
 </tr>
@@ -306,37 +311,47 @@ so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.cdap.cdap.apply_final_rules">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">apply_final_rules</code><span class="sig-paren">(</span><em>hh_util</em>, <em>people</em>, <em>hh_id_col</em>, <em>final_rules</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.apply_final_rules" title="Permalink to this definition">¶</a></dt>
-<dd><p>Final rules can be used to set the utility values for certain
-household alternatives. Often they are set to zero to reflect
-the unavailability of certain alternatives to certain types of people.</p>
-<p>This modifies the <cite>hh_util</cite> data inplace.</p>
+<dt id="activitysim.cdap.cdap.add_pn">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">add_pn</code><span class="sig-paren">(</span><em>col</em>, <em>pnum</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.add_pn" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the canonical column name for the indiv_util column or columns
+in merged hh_chooser df for individual with cdap_rank pnum</p>
+<p>e.g. M_p1, ptype_p2 but leave _hh_id_ column unchanged</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.assign_cdap_rank">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">assign_cdap_rank</code><span class="sig-paren">(</span><em>persons</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.assign_cdap_rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign an integer index, cdap_rank, to each household member. (Starting with 1, not 0)</p>
+<p>Modifies persons df in place</p>
+<p>The cdap_rank order is important, because cdap only assigns activities to the first
+MAX_HHSIZE persons in each household.</p>
+<p>This will preferentially be two working adults and the three youngest children.</p>
+<p>Rank is assigned starting at 1. This necessitates some care indexing, but is preferred as
+it follows the convention of 1-based pnums in expression files.</p>
+<p>According to the documentation of reOrderPersonsForCdap in mtctm2.abm.ctramp
+HouseholdCoordinatedDailyActivityPatternModel:</p>
+<p>&#8220;Method reorders the persons in the household for use with the CDAP model,
+which only explicitly models the interaction of five persons in a HH. Priority
+in the reordering is first given to full time workers (up to two), then to
+part time workers (up to two workers, of any type), then to children (youngest
+to oldest, up to three). If the method is called for a household with less
+than 5 people, the cdapPersonArray is the same as the person array.&#8221;</p>
+<p>We diverge from the above description in that a cdap_rank is assigned to all persons,
+including &#8216;extra&#8217; householld members, whose activity is assigned subsequently.
+The pair _hh_id_, _cdap_rank_ will uniquely identify each household member.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>persons</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>Keys will be household IDs and values will be Series
-mapping alternative choices to their utility.</p>
+<div><p>Table of persons data. Must contain columns _hh_size_, _hh_id_, _ptype_, _age_</p>
 </div></blockquote>
-<p><strong>people</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of individual people data.</p>
-</div></blockquote>
-<p><strong>hh_id_col</strong> : str</p>
-<blockquote>
-<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
-</div></blockquote>
-<p><strong>final_rules</strong> : pandas.DataFrame</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>cdap_rank</strong> : pandas.Series</p>
 <blockquote class="last">
-<div><p>This table must have an index of expressions that can be used
-to filter the <cite>people</cite> table. It must have two columns:
-the first must have the name of the alternative to which the rule
-applies, and the second must have the value of the utility for that
-alternative. The names of the columns is not important, but
-the order is.</p>
+<div><p>integer cdap_rank of every person, indexed on _persons_index_</p>
 </div></blockquote>
 </td>
 </tr>
@@ -345,28 +360,174 @@ the order is.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.cdap.cdap.household_choices_to_people">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">household_choices_to_people</code><span class="sig-paren">(</span><em>hh_choices</em>, <em>people</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.household_choices_to_people" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map household choices to people so that we know the activity pattern
-for individuals.</p>
+<dt id="activitysim.cdap.cdap.build_cdap_spec">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">build_cdap_spec</code><span class="sig-paren">(</span><em>interaction_coefficients</em>, <em>hhsize</em>, <em>trace_spec=False</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.build_cdap_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a spec file for computing utilities of alternative household member interaction patterns
+for households of specified size.</p>
+<p>We generate this spec automatically from a table of rules and coefficients because the
+interaction rulkes are fairly simple and can be expressed compactly whereas
+there is a lot of redundancy between the spec files for different household sizes, as well as
+in the vectorized expression of the interaction alternatives within the spec file itself</p>
+<dl class="docutils">
+<dt>interaction_coefficients has five columns:</dt>
+<dd><dl class="first last docutils">
+<dt>activity</dt>
+<dd>A single character activity type name (M, N, or H)</dd>
+<dt>interaction_ptypes</dt>
+<dd>List of ptypes in the interaction (in order of increasing ptype) or empty for wildcards
+(meaning that the interaction applies to all ptypes in that size hh)</dd>
+<dt>cardinality</dt>
+<dd>the number of persons in the interaction (e.g. 3 for a 3-way interaction)</dd>
+<dt>slug</dt>
+<dd>a human friendly efficient name so we can dump a readable spec trace file for debugging
+this slug is replaced with the numerical coefficient value after we dump the trace file</dd>
+<dt>coefficient</dt>
+<dd>The coefficient to apply for all hh interactions for this activity and set of ptypes</dd>
+</dl>
+</dd>
+</dl>
+<p>The generated spec will have the eval expression in the index, and a utility column for each
+alternative (e.g. [&#8216;HH&#8217;, &#8216;HM&#8217;, &#8216;HN&#8217;, &#8216;MH&#8217;, &#8216;MM&#8217;, &#8216;MN&#8217;, &#8216;NH&#8217;, &#8216;NM&#8217;, &#8216;NN&#8217;] for hhsize 2)</p>
+<p>In order to be able to dump the spec in a human-friendly fashion to facilitate debugging the
+cdap_interaction_coefficients table, we first populate utility columns in the spec file
+with the coefficient slugs, dump the spec file, and then replace the slugs with coefficients.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_choices</strong> : pandas.Series</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>interaction_coefficients</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>Maps household ID to chosen alternative, where the alternative
-is a tuple of individual utilities.</p>
+<div><p>Rules and coefficients for generating interaction specs for different household sizes</p>
 </div></blockquote>
-<p><strong>people</strong> : pandas.DataFrame</p>
+<p><strong>hhsize</strong> : int</p>
 <blockquote>
-<div><p>DataFrame of individual people data.</p>
+<div><p>household size for which the spec should be built.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">spec: pandas.DataFrame</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.extra_hh_member_choices">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">extra_hh_member_choices</code><span class="sig-paren">(</span><em>persons</em>, <em>cdap_fixed_relative_proportions</em>, <em>locals_d</em>, <em>trace_hh_id</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.extra_hh_member_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the activity choices for the &#8216;extra&#8217; household members who weren&#8217;t handled by cdap</p>
+<p>Following the CTRAMP HouseholdCoordinatedDailyActivityPatternModel, &#8220;a separate,
+simple cross-sectional distribution is looked up for the remaining household members&#8221;</p>
+<p>The cdap_fixed_relative_proportions spec is handled like an activitysim logit utility spec,
+EXCEPT that the values computed are relative proportions, not utilities
+(i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>persons</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>Table of persons data indexed on _persons_index_</dt>
+<dd><p class="first last">We expect, at least, columns [_hh_id_, _ptype_]</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>cdap_fixed_relative_proportions</strong></p>
+<blockquote>
+<div><p>spec to compute/specify the relative proportions of each activity (M, N, H)
+that should be used to choose activities for additional household members
+not handled by CDAP.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>dictionary of local variables that eval_variables adds to the environment
+for an evaluation of an expression that begins with &#64;</p>
 </div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
 <blockquote class="last">
-<div><p>Maps index of <cite>people</cite> to their activity pattern choice.</p>
+<div><p>list of alternatives chosen for all extra members, indexed by _persons_index_</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.hh_choosers">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">hh_choosers</code><span class="sig-paren">(</span><em>indiv_utils</em>, <em>hhsize</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.hh_choosers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a chooser table for calculating house utilities for all households of specified hhsize</p>
+<p>The choosers table will have one row per household with columns containing the indiv_utils
+for all non-extra (i.e. cdap_rank &lt;- MAX_HHSIZE) persons. That makes 3 columns for each
+individual. e.g. the utilities of person with cdap_rank 1 will be included as M_p1, N_p1, H_p1</p>
+<p>The chooser table will also contain interaction columns for all possible interactions involving
+from 2 to 3 persons (actually MAX_INTERACTION_CARDINALITY, which is currently 3).</p>
+<p>The interaction columns list the ptypes of the persons in the interaction set, sorted by ptype.
+For instance the interaction between persons with cdap_rank 1 and three and ptypes will
+be listed in a column named &#8216;p1_p3&#8217; and for a household where persons p1 and p3 are 2 and 4
+will a row value of 24 in the p1_p3 column.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>indiv_utils</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP utilities for each individual, ignoring interactions.
+ind_utils has index of _persons_index_ and a column for each alternative
+i.e. three columns &#8216;M&#8217; (Mandatory), &#8216;N&#8217; (NonMandatory), &#8216;H&#8217; (Home)</p>
+</div></blockquote>
+<p><strong>hhsize</strong> : int</p>
+<blockquote>
+<div><p>household size for which the choosers table should be built. Households with more than
+MAX_HHSIZE members will be included with MAX_HHSIZE choosers since the are handled the
+same, and the activities of the extra members are assigned afterwards</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>choosers households of hhsize with activity utility columns interaction columns
+for all (non-extra) household members</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.household_activity_choices">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">household_activity_choices</code><span class="sig-paren">(</span><em>indiv_utils</em>, <em>interaction_coefficients</em>, <em>hhsize</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.household_activity_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate household utilities for each activity pattern alternative for households of hhsize
+The resulting activity pattern for each household will be coded as a string of activity codes.
+e.g. &#8216;MNHH&#8217; for a 4 person household with activities Mandatory, NonMandatory, Home, Home</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>indiv_utils</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>CDAP utilities for each individual, ignoring interactions
+ind_utils has index of _persons_index_ and a column for each alternative
+i.e. three columns &#8216;M&#8217; (Mandatory), &#8216;N&#8217; (NonMandatory), &#8216;H&#8217; (Home)</p>
+</div></blockquote>
+<p><strong>interaction_coefficients</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Rules and coefficients for generating interaction specs for different household sizes</p>
+</div></blockquote>
+<p><strong>hhsize</strong> : int</p>
+<blockquote>
+<div><p>the size of household for which activity perttern should be calculated (1..MAX_HHSIZE)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>the chosen cdap activity pattern for each household represented as a string (e.g. &#8216;MNH&#8217;)
+with same index (_hh_index_) as utils</p>
 </div></blockquote>
 </td>
 </tr>
@@ -376,41 +537,26 @@ is a tuple of individual utilities.</p>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.individual_utilities">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">individual_utilities</code><span class="sig-paren">(</span><em>persons</em>, <em>cdap_indiv_spec</em>, <em>locals_d</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.individual_utilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate CDAP utilities for all individuals.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>people</strong> : pandas.DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>persons</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>DataFrame of individual people data.</p>
+<div><p>DataFrame of individual persons data.</p>
 </div></blockquote>
-<p><strong>hh_id_col</strong> : str</p>
-<blockquote>
-<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
-</div></blockquote>
-<p><strong>p_type_col</strong> : str</p>
-<blockquote>
-<div><p>Name of the column in <cite>people</cite> that contains the person type number.</p>
-</div></blockquote>
-<p><strong>one_spec</strong> : pandas.DataFrame</p>
+<p><strong>cdap_indiv_spec</strong> : pandas.DataFrame</p>
 <blockquote>
 <div><p>CDAP spec applied to individuals.</p>
-</div></blockquote>
-<p><strong>two_spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>CDAP spec applied to interactions between two people.</p>
-</div></blockquote>
-<p><strong>three_spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>CDAP spec applied to interactions between three people.</p>
 </div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
 <blockquote class="last">
-<div><p>Will have index of <cite>people</cite> and columns for each of the alternatives.</p>
+<div><p>Will have index of <cite>persons</cite> and columns for each of the alternatives.
+plus some &#8216;useful columns&#8217; [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]</p>
 </div></blockquote>
 </td>
 </tr>
@@ -419,197 +565,79 @@ is a tuple of individual utilities.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.cdap.cdap.initial_household_utilities">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">initial_household_utilities</code><span class="sig-paren">(</span><em>utilities</em>, <em>people</em>, <em>hh_id_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.initial_household_utilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create initial household utilities by grouping and summing utilities
-from individual household members.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Should have the index of <cite>people</cite> and columns for each alternative.</p>
-</div></blockquote>
-<p><strong>people</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of individual people data.</p>
-</div></blockquote>
-<p><strong>hh_id_col</strong> : str</p>
-<blockquote>
-<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
-<blockquote class="last">
-<div><p>Keys will be household IDs and values will be Series
-mapping alternative choices to their utility.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.cdap.cdap.make_household_choices">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_household_choices</code><span class="sig-paren">(</span><em>hh_util</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_household_choices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decide on the activity pattern for each household.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_util</strong> : dict of pandas.Series</p>
-<blockquote>
-<div><p>Keys will be household IDs and values will be Series
-mapping alternative choices to their utility.
-The series index values are tuples e.g. (&#8216;NonMandatory&#8217;, &#8216;Mandatory&#8217;, &#8216;Home&#8217;)
-The length of the tuple in the index depends on the number of hh members</p>
-</div></blockquote>
-<p><strong>In other words, hh_utils looks something like this:</strong></p>
-<p><strong>hh_util =  {</strong></p>
-<blockquote>
-<div><dl class="docutils">
-<dt>237824: pandas.Series(</dt>
-<dd><p class="first last">(Mandatory, Mandatory)       :   6.39426
-(Mandatory, NonMandatory)    :   5.09445
-(Mandatory, Home)            :    4.6314
-(NonMandatory, Mandatory)    :   4.48733
-(NonMandatory, NonMandatory) :   3.18751
-(NonMandatory, Home)         :   2.72446
-(Home, Mandatory)            :   4.76486
-(Home, NonMandatory)         :   3.46505</p>
-</dd>
+<dt id="activitysim.cdap.cdap.preprocess_interaction_coefficients">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">preprocess_interaction_coefficients</code><span class="sig-paren">(</span><em>interaction_coefficients</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.preprocess_interaction_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>The input cdap_interaction_coefficients.csv file has three columns:</p>
+<dl class="docutils">
+<dt>activity</dt>
+<dd>A single character activity type name (M, N, or H)</dd>
+<dt>interaction_ptypes</dt>
+<dd>List of ptypes in the interaction (in order of increasing ptype)
+Stars (<a href="#id3"><span class="problematic" id="id4">**</span></a><a href="#id5"><span class="problematic" id="id6">*</span></a>) instead of ptypes means the interaction applies to all ptypes in that size hh</dd>
+<dt>coefficient</dt>
+<dd>The coefficient to apply for all hh interactions for this activity and set of ptypes</dd>
 </dl>
-<p>),
-237825: pandas.Series(</p>
-<blockquote>
-<div><p>(Mandatory)                  :   6.39426
-(NonMandatory)               :   5.09445
-(Home)                       :    4.6314</p>
-</div></blockquote>
-<p>)</p>
-</div></blockquote>
-<p><strong>}</strong></p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Maps household ID to chosen alternative, where the alternative
-is a tuple of individual utilities.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.cdap.cdap.make_interactions">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">make_interactions</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.make_interactions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make two Pandas DataFrames associating people IDs with two
-and three person interactions they have within their households.</p>
-<p>Interactions are strings of numbers representing the makeup
-of the interaction, e.g. &#8216;12&#8217; or &#8216;341&#8217;.</p>
-<p>Note that for two-person interactions the interaction string is ordered
-with the person from the index in the first position of the string
-and some other person in the second position. In contrast,
-the interaction strings for three-person interactions are not ordered.
-The person from the index may be in any position of the string.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>people</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Table of people data. Must contain at least a household ID
-column and a categorization of person type.</p>
-</div></blockquote>
-<p><strong>hh_id_col</strong> : str</p>
-<blockquote>
-<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
-</div></blockquote>
-<p><strong>p_type_col</strong> : str</p>
-<blockquote>
-<div><p>Name of the column in <cite>people</cite> that contains the person type number.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>two_interaction</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Interactions between two people. Index will be person IDs taken
-from the index of <cite>people</cite>.
-The table will have one column called <cite>interaction</cite>.</p>
-</div></blockquote>
-<p><strong>three_interaction</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Interactions between three people. Index will be person IDs taken
-from the index of <cite>people</cite>.
-The table will have one column called <cite>interaction</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<p>activity,interaction_ptypes,coefficient
+# 2-way interactions,,
+H,11,1.626
+H,12,0.7407
+[...]
+# 3-way interactions,,
+H,124,0.9573
+H,122,0.9573
+# cdap_final_rules,,
+M,5,-999
+[...]
+# cdap_all_people,,
+M,***,-0.0671
+N,***,-0.3653
+[...]
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;</p>
+<p>To facilitate building the spec for a given hh ssize, we add two additional columns:</p>
+<dl class="docutils">
+<dt>cardinality</dt>
+<dd>the number of persons in the interaction (e.g. 3 for a 3-way interaction)</dd>
+<dt>slug</dt>
+<dd>a human friendly efficient name so we can dump a readable spec trace file for debugging
+this slug is then replaced with the numerical coefficient value prior to evaluation</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="activitysim.cdap.cdap.run_cdap">
-<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">run_cdap</code><span class="sig-paren">(</span><em>people</em>, <em>hh_id_col</em>, <em>p_type_col</em>, <em>one_spec</em>, <em>two_spec</em>, <em>three_spec</em>, <em>final_rules</em>, <em>all_people</em>, <em>chunk_size=0</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.run_cdap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Choose individual activity patterns for people.</p>
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">run_cdap</code><span class="sig-paren">(</span><em>persons</em>, <em>cdap_indiv_spec</em>, <em>cdap_interaction_coefficients</em>, <em>cdap_fixed_relative_proportions</em>, <em>locals_d</em>, <em>chunk_size=0</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.run_cdap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose individual activity patterns for persons.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>people</strong> : pandas.DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>persons</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>Table of people data. Must contain at least a household ID
-column and a categorization of person type.</p>
+<div><p>Table of persons data. Must contain at least a household ID, household size,
+person type category, and age, plus any columns used in cdap_indiv_spec</p>
 </div></blockquote>
-<p><strong>hh_id_col</strong> : str</p>
+<p><strong>cdap_indiv_spec</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>Name of the column in <cite>people</cite> that has their household ID.</p>
+<div><p>CDAP spec for individuals without taking any interactions into account.</p>
 </div></blockquote>
-<p><strong>p_type_col</strong> : str</p>
+<p><strong>cdap_interaction_coefficients</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>Name of the column in <cite>people</cite> that contains the person type number.</p>
+<div><p>Rules and coefficients for generating interaction specs for different household sizes</p>
 </div></blockquote>
-<p><strong>one_spec</strong> : pandas.DataFrame</p>
+<p><strong>cdap_fixed_relative_proportions</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>CDAP spec applied to individuals.</p>
+<div><p>Spec to for the relative proportions of each activity (M, N, H)
+to choose activities for additional household members not handled by CDAP</p>
 </div></blockquote>
-<p><strong>two_spec</strong> : pandas.DataFrame</p>
+<p><strong>locals_d</strong> : Dict</p>
 <blockquote>
-<div><p>CDAP spec applied to interactions between two people.</p>
-</div></blockquote>
-<p><strong>three_spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>CDAP spec applied to interactions between three people.</p>
-</div></blockquote>
-<p><strong>final_rules</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>This table must have an index of expressions that can be used
-to filter the <cite>people</cite> table. It must have two columns:
-the first must have the name of the alternative to which the rule
-applies, and the second must have the value of the utility for that
-alternative. The names of the columns is not important, but
-the order is.</p>
-</div></blockquote>
-<p><strong>all_people</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Adjustments to household alternatives, with alternatives in the
-index and the adjustment values in the first column.
-Index should be household alternatives in the form of tuples
-containing individual alternatives, e.g.
-(&#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;, &#8216;Mandatory&#8217;), where &#8216;Mandatory&#8217; is
-one of the alternatives available to individual household members.
-Note that these may also be expressed as Python code to save space,
-so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;
+in either the cdap_indiv_spec or cdap_fixed_relative_proportions expression files</p>
 </div></blockquote>
 <p><strong>chunk_size: int</strong></p>
 <blockquote>
-<div><p>chunk size or 0 for no chunking</p>
+<div><p>Chunk size or 0 for no chunking</p>
 </div></blockquote>
 <p><strong>trace_hh_id</strong> : int</p>
 <blockquote>
@@ -621,12 +649,48 @@ so the previous could also be written as (&#8216;Mandatory&#8217;,) * 3.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.DataFrame</p>
 <blockquote class="last">
-<div><p>Maps index of <cite>people</cite> to their activity pattern choice,
-where that choice is taken from the columns of specs
-(so it&#8217;s important that the specs all refer to alternatives
-in the same way).</p>
+<div><p>dataframe is indexed on _persons_index_ and has two columns:</p>
+<dl class="docutils">
+<dt>cdap_activity</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">activity for that person expressed as &#8216;M&#8217;, &#8216;N&#8217;, &#8216;H&#8217;</p>
+</dd>
+<dt>cdap_rank</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd><p class="first last">activities for persons with cdap_rank &lt;= MAX_HHSIZE are determined by cdap
+&#8216;extra&#8217; household members activities are assigned by cdap_fixed_relative_proportions</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.cdap.cdap.unpack_cdap_indiv_activity_choices">
+<code class="descclassname">activitysim.cdap.cdap.</code><code class="descname">unpack_cdap_indiv_activity_choices</code><span class="sig-paren">(</span><em>persons</em>, <em>hh_choices</em>, <em>trace_hh_id</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cdap.cdap.unpack_cdap_indiv_activity_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unpack the household activity choice list into choices for each (non-extra) household member</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>persons</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Table of persons data indexed on _persons_index_
+We expect, at least, columns [_hh_id_, _cdap_rank_]</p>
+</div></blockquote>
+<p><strong>hh_choices</strong> : pandas.Series</p>
+<blockquote>
+<div><p>household activity pattern is encoded as a string (of length hhsize) of activity codes
+e.g. &#8216;MNHH&#8217; for a 4 person household with activities Mandatory, NonMandatory, Home, Home</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>cdap_indiv_activity_choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>series contains one activity per individual hh member, indexed on _persons_index_</p>
 </div></blockquote>
 </td>
 </tr>
@@ -638,8 +702,39 @@ in the same way).</p>
 <div class="section" id="module-activitysim.defaults.models.cdap">
 <span id="models-cdap"></span><h4>models.cdap<a class="headerlink" href="#module-activitysim.defaults.models.cdap" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
+<dt id="activitysim.defaults.models.cdap.cdap_fixed_relative_proportions">
+<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_fixed_relative_proportions</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_fixed_relative_proportions" title="Permalink to this definition">¶</a></dt>
+<dd><p>spec to compute/specify the relative proportions of each activity (M, N, H)
+that should be used to choose activities for additional household members
+not handled by CDAP</p>
+<p>This spec is handled much like an activitysim logit utility spec,
+EXCEPT that the values computed are relative proportions, not utilities
+(i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.defaults.models.cdap.cdap_indiv_spec">
+<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_indiv_spec</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_indiv_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>spec to compute the activity utilities for each individual hh member
+with no interactions with other household members taken into account</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.defaults.models.cdap.cdap_interaction_coefficients">
+<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_interaction_coefficients</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_interaction_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rules and coefficients for generating interaction specs for different household sizes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.defaults.models.cdap.cdap_settings">
+<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_settings</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>canonical model settings file to permit definition of local constants for by
+cdap_indiv_spec and cdap_fixed_relative_proportions</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.defaults.models.cdap.cdap_simulate">
-<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>cdap_1_person_spec</em>, <em>cdap_2_person_spec</em>, <em>cdap_3_person_spec</em>, <em>cdap_final_rules</em>, <em>cdap_all_people</em>, <em>hh_chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.cdap.</code><code class="descname">cdap_simulate</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>cdap_settings</em>, <em>cdap_indiv_spec</em>, <em>cdap_interaction_coefficients</em>, <em>cdap_fixed_relative_proportions</em>, <em>hh_chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.cdap.cdap_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
 high-level activity pattern for each person, in a coordinated way with other
 members of a person&#8217;s household.</p>
@@ -658,8 +753,8 @@ simply applies those utilities using the simulation framework.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;destination_choice&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id3">
-<h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.destination"></span><dl class="function">
 <dt id="activitysim.defaults.models.destination.destination_choice">
 <code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skims</em>, <em>destination_choice_spec</em>, <em>destination_choice_settings</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
@@ -685,8 +780,8 @@ table can use destination for any tour type.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_scheduling&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
-<div class="section" id="id4">
-<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling">
 <code class="descclassname">activitysim.defaults.models.mandatory_scheduling.</code><code class="descname">mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_school_spec</em>, <em>tdd_work_spec</em>, <em>mandatory_scheduling_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
@@ -703,8 +798,8 @@ mandatory tours</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_tour_frequency&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">mandatory_tour_frequency</span></code> | Skims Keys: NA</p>
-<div class="section" id="id5">
-<h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency">
 <code class="descclassname">activitysim.defaults.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em>, <em>mandatory_tour_frequency_settings</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
@@ -736,8 +831,8 @@ the example via <code class="docutils literal"><span class="pre">orca.run([&quot
 <p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code>
 Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
 </div>
-<div class="section" id="id6">
-<h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id10">
+<h3>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mode"></span><dl class="function">
 <dt id="activitysim.defaults.models.mode.get_segment_and_unstack">
 <code class="descclassname">activitysim.defaults.models.mode.</code><code class="descname">get_segment_and_unstack</code><span class="sig-paren">(</span><em>spec</em>, <em>segment</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mode.get_segment_and_unstack" title="Permalink to this definition">¶</a></dt>
@@ -768,8 +863,8 @@ will be used for the tour</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_scheduling&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
-<div class="section" id="id7">
-<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id11">
+<h3>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling">
 <code class="descclassname">activitysim.defaults.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_non_mandatory_spec</em>, <em>non_mandatory_scheduling_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
@@ -786,8 +881,8 @@ non-mandatory tours</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_tour_frequency&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">persons_nmtf</span></code> | Skims Keys: NA</p>
-<div class="section" id="id8">
-<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id12">
+<h3>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">
 <code class="descclassname">activitysim.defaults.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>non_mandatory_tour_frequency_alts</em>, <em>non_mandatory_tour_frequency_spec</em>, <em>non_mandatory_tour_frequency_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
@@ -806,8 +901,8 @@ othdiscr, eatout, and social trips in various combination.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;school_location_simulate&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id9">
-<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id13">
+<h3>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.school_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.school_location.school_location_simulate">
 <code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>school_location_settings</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
@@ -824,8 +919,8 @@ go to school.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;workplace_location_simulate&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id10">
-<h3>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id14">
+<h3>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.workplace_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.workplace_location.workplace_location_simulate">
 <code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>workplace_location_settings</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>

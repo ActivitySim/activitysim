@@ -137,7 +137,6 @@ def compute_accessibility(settings, accessibility_spec,
 
     results, trace_results = asim_eval.assign_variables(accessibility_spec, od_df, locals_d,
                                                         trace_rows=trace_od_rows)
-
     accessibility_df = pd.DataFrame(index=land_use.index)
     for column in results.columns:
         data = np.asanyarray(results[column])
@@ -148,11 +147,6 @@ def compute_accessibility(settings, accessibility_spec,
 
     if trace_od:
 
-        # trace settings
-        for key, value in constants.iteritems():
-            tracing.info(__name__,
-                         message="CONSTANT: %s = %s" % (key, value))
-
         if not trace_od_rows.any():
             tracing.warn(__name__,
                          "trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
@@ -161,10 +155,9 @@ def compute_accessibility(settings, accessibility_spec,
             # add OD columns to trace results
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
-            for column in df.columns:
-                tracing.info(__name__,
-                             message="EVAL: %s = %s" % (column, df[column].iloc[0]))
-
+            # dump the trace results table (with _temp variables) to aid debugging
+            # note that this is not the same as the orca-injected accessibility table
+            # FIXME - should we name this differently and also dump the updated accessibility table?
             tracing.trace_df(df,
                              label='accessibility',
                              index_label='skim_offset',

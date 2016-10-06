@@ -88,9 +88,9 @@ def adult(persons):
 def cdap_activity(set_random_seed, persons):
     # return a default until it gets filled in by the model
     return pd.Series(np.random.randint(3, size=len(persons)),
-                     index=persons.index).map({0: 'Mandatory',
-                                               1: 'NonMandatory',
-                                               2: 'Home'})
+                     index=persons.index).map({0: 'M',
+                                               1: 'N',
+                                               2: 'H'})
 
 
 # FIXME - these are my "placeholder" for joint trip generation

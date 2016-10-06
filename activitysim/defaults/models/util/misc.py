@@ -30,8 +30,6 @@ def read_model_settings(configs_dir, file_name):
     if settings is None:
         settings = {}
 
-    print "------------------read_model_settings %s" % file_path
-
     return settings
 
 

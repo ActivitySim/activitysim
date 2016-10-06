@@ -65,24 +65,27 @@ def school_location_simulate(set_random_seed,
     choices_list = []
     for school_type in ['university', 'highschool', 'gradeschool']:
 
-        tracing.info(__name__, "Running school_type %s" % school_type)
-
         locals_d['segment'] = school_type
 
         choosers_segment = choosers[choosers["is_" + school_type]]
 
-        choices = asim.interaction_simulate(
-            choosers_segment,
-            alternatives,
-            spec=school_location_spec[[school_type]],
-            skims=skims,
-            locals_d=locals_d,
-            sample_size=50,
-            chunk_size=chunk_size,
-            trace_label='school_location.%s' % school_type,
-            trace_choice_name='school_location')
+        tracing.info(__name__,
+                     "school_type %s: %s persons" % (school_type, len(choosers_segment)))
 
-        choices_list.append(choices)
+        if len(choosers_segment.index) > 0:
+
+            choices = asim.interaction_simulate(
+                choosers_segment,
+                alternatives,
+                spec=school_location_spec[[school_type]],
+                skims=skims,
+                locals_d=locals_d,
+                sample_size=50,
+                chunk_size=chunk_size,
+                trace_label='school_location.%s' % school_type,
+                trace_choice_name='school_location')
+
+            choices_list.append(choices)
 
     choices = pd.concat(choices_list)
 

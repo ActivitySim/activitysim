@@ -14,7 +14,6 @@ from .util.mandatory_tour_frequency import process_mandatory_tours
 
 from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +41,7 @@ def mandatory_tour_frequency(set_random_seed,
 
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
-    choosers = choosers[choosers.cdap_activity == 'Mandatory']
+    choosers = choosers[choosers.cdap_activity == 'M']
     tracing.info(__name__,
                  "Running mandatory_tour_frequency with %d persons" % len(choosers))
 

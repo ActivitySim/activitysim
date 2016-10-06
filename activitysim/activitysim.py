@@ -107,8 +107,9 @@ def eval_variables(exprs, df, locals_d=None):
         Will have the index of `df` and columns of `exprs`.
 
     """
-    if locals_d is None:
-        locals_d = {}
+
+    # avoid altering caller's passed-in locals_d parameter (they may be looping)
+    locals_d = locals_d.copy() if locals_d is not None else {}
     locals_d.update(locals())
 
     def to_series(x):
@@ -158,7 +159,7 @@ def add_skims(df, skims):
             skim.set_df(df)
 
 
-def _check_for_variability(model_design):
+def _check_for_variability(model_design, trace_label=None):
     """
     This is an internal method which checks for variability in each
     expression - under the assumption that you probably wouldn't be using a
@@ -177,14 +178,14 @@ def _check_for_variability(model_design):
 
     error = sample[sample["std"] == 0]
     if len(error):
-        logger.warn("%s columns have no variability" % len(error))
+        logger.warn("%s: %s columns have no variability" % (trace_label, len(error)))
         for v in error.index.values:
-            logger.info("no variability in: %s" % v)
+            logger.info("%s: no variability in: %s" % (trace_label, v))
     error = sample[sample["count"] < l]
     if len(error):
-        logger.warn("%s columns have missing values" % len(error))
+        logger.warn("%s: %s columns have missing values" % (trace_label, len(error)))
         for v in error.index.values:
-            logger.info("missing values in: %s" % v)
+            logger.info("%s: missing values in: %s" % (trace_label, v))
 
 
 def compute_nested_exp_utilities(raw_utilities, nest_spec):
@@ -325,7 +326,7 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
 
     model_design = eval_variables(spec.index, choosers, locals_d)
 
-    _check_for_variability(model_design)
+    _check_for_variability(model_design, trace_label=trace_label or 'eval_mnl')
 
     utilities = model_design.dot(spec)
 
@@ -385,7 +386,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
     """
     model_design = eval_variables(spec.index, choosers, locals_d)
 
-    _check_for_variability(model_design)
+    _check_for_variability(model_design, trace_label=trace_label or 'eval_nl')
 
     # raw utilities of all the leaves
     raw_utilities = model_design.dot(spec)
@@ -544,7 +545,7 @@ def _interaction_simulate(
     # evaluate variables from the spec
     model_design = eval_variables(spec.index, df, locals_d)
 
-    _check_for_variability(model_design)
+    _check_for_variability(model_design, trace_label=trace_label or 'interaction_simulate')
 
     # multiply by coefficients and reshape into choosers by alts
     utilities = model_design.dot(spec).astype('float')

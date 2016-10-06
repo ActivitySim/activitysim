@@ -370,7 +370,7 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
         df = df[columns]
 
     if not transpose:
-        df.to_csv(file_path, mmode="a", index=True, header=True)
+        df.to_csv(file_path, mode="a", index=True, header=True)
         return
 
     df_t = df.transpose()
@@ -509,7 +509,9 @@ def slice_canonically(df, slicer, label, warn_if_empty=False):
     target = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
     column = None  # column name to slice on or None to slice on index
 
-    if slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
+    if len(df.index) == 0:
+        target = None
+    elif slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
         target = orca.get_injectable('trace_person_ids')
     elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
         target = orca.get_injectable('trace_hh_id')
@@ -641,7 +643,7 @@ def trace_interaction_model_design(model_design, choosers, label):
 
     # write out the raw dataframe
     file_path = log_file_path('%s.raw.csv' % label)
-    df.to_csv(file_path, mmode="a", index=True, header=True)
+    df.to_csv(file_path, mode="a", index=True, header=True)
 
     # if there are multiple targets, we want them in seperate tables for readability
     for target in targets:

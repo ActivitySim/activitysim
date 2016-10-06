@@ -60,7 +60,7 @@ def non_mandatory_tour_frequency(set_random_seed,
     choosers = persons_merged.to_frame()
 
     # filter based on results of CDAP
-    choosers = choosers[choosers.cdap_activity.isin(['Mandatory', 'NonMandatory'])]
+    choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
 
     tracing.info(__name__,
                  "Running non_mandatory_tour_frequency with %d persons" % len(choosers))

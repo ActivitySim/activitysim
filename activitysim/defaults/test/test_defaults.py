@@ -176,7 +176,7 @@ def test_full_run():
         return
 
     tour_count = full_run(preload_3d_skims=False)
-    assert(tour_count == 222)
+    assert(tour_count == 230)
 
 
 def test_full_run_with_preload_skims():
@@ -186,7 +186,7 @@ def test_full_run_with_preload_skims():
 
     tour_count = full_run(preload_3d_skims=True)
 
-    assert(tour_count == 222)
+    assert(tour_count == 230)
 
 
 def test_full_run_with_chunks():
@@ -221,7 +221,7 @@ def test_full_run_with_hh_trace():
 
     tour_count = full_run(preload_3d_skims=True, trace_hh_id=HH_ID, trace_od=OD)
 
-    assert(tour_count == 222)
+    assert(tour_count == 230)
 
     # should delete any csv files from output
     assert not os.path.isfile(goner_fname)
@@ -236,7 +236,7 @@ def test_full_run_with_hh_trace():
     assert h.columns[0] == 'PERID'
     assert h.columns[1] == 'workplace_location'
     assert h.iloc[0][0] == 1888694
-    assert h.iloc[0][1] == 18
+    assert h.iloc[0][1] == 17
 
     # should have created accessibility csv trace file
     a = pd.read_csv(accessibility_fname)

@@ -15,6 +15,7 @@ import pandas as pd
 from activitysim import defaults
 from activitysim import activitysim as asim
 from activitysim import tracing
+from activitysim.tracing import print_elapsed_time
 
 from activitysim import nl
 
@@ -36,8 +37,8 @@ CONFIGS_DIRS = {
 
 
 def inject_settings(config='sandbox',
-                    data='test',
-                    households_sample_size=0,
+                    data='example',
+                    households_sample_size=10000,
                     preload_3d_skims=True,
                     chunk_size = 0,
                     hh_chunk_size = 0):
@@ -93,7 +94,9 @@ def set_random_seed():
 
 
 def run_model(model_name):
+    t0 = print_elapsed_time()
     orca.run([model_name])
+    t0 = print_elapsed_time(model_name, t0)
     log_memory_info(logger, 'after %s' % model_name)
 
 
@@ -119,12 +122,12 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 chunk_size = 50000,
 #                 hh_chunk_size = 50000)
 
-inject_settings(config='sandbox',
+inject_settings(config='example',
                 data='example',
-                households_sample_size=100,
+                households_sample_size=10000,
                 preload_3d_skims=True,
                 chunk_size = 0,
-                hh_chunk_size=10)
+                hh_chunk_size=0)
 
 print_settings()
 
@@ -169,6 +172,8 @@ nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']
 #
 #     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
 
+t0 = print_elapsed_time()
+
 run_model('compute_accessibility')
 
 trace_hh_id = orca.get_injectable('trace_hh_id')
@@ -183,14 +188,16 @@ run_model('auto_ownership_simulate')
 
 run_model('cdap_simulate')
 
-# run_model('mandatory_tour_frequency')
-# run_model('mandatory_scheduling')
-# run_model('non_mandatory_tour_frequency')
-# run_model('destination_choice')
-# run_model('non_mandatory_scheduling')
-# run_model('patch_mandatory_tour_destination')
-# run_model('tour_mode_choice_simulate')
-# run_model('trip_mode_choice_simulate')
+run_model('mandatory_tour_frequency')
+run_model('mandatory_scheduling')
+run_model('non_mandatory_tour_frequency')
+run_model('destination_choice')
+run_model('non_mandatory_scheduling')
+run_model('patch_mandatory_tour_destination')
+run_model('tour_mode_choice_simulate')
+run_model('trip_mode_choice_simulate')
+
+t0 = print_elapsed_time("all models", t0)
 
 orca.get_injectable('store').close()
 orca.get_injectable('omx_file').close()
@@ -207,3 +214,6 @@ peak_bytes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 peak_gb = (peak_bytes / (1024 * 1024 * 1024.0))
 logger.debug("max memory footprint = %s (%s GB)" % (peak_bytes, round(peak_gb, 2),))
 
+tours_merged = orca.get_table("tours_merged").to_frame()
+tour_count = len(tours_merged.index)
+print "tour_count", tour_count

@@ -45,15 +45,9 @@ def test_misc():
     settings = orca.get_injectable("settings")
     assert isinstance(settings, dict)
 
-    # assert orca.get_injectable("trace_person_ids") == []
-    with pytest.raises(RuntimeError) as excinfo:
-        orca.get_injectable("trace_person_ids")
-    assert "trace_person_ids called before being overridden" in str(excinfo.value)
+    assert orca.get_injectable("trace_person_ids") == []
 
-    # assert orca.get_injectable("trace_tour_ids") == []
-    with pytest.raises(RuntimeError) as excinfo:
-        orca.get_injectable("trace_tour_ids")
-    assert "trace_tour_ids called before being overridden" in str(excinfo.value)
+    assert orca.get_injectable("trace_tour_ids") == []
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     orca.add_injectable("data_dir", data_dir)

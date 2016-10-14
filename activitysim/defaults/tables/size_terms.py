@@ -57,8 +57,7 @@ def size_terms(configs_dir):
 def destination_size_terms(land_use, size_terms):
     land_use = land_use.to_frame()
     size_terms = size_terms.to_frame()
-    df = pd.DataFrame({key: size_term(land_use, row)
-                      for key, row in size_terms.iterrows()},
+    df = pd.DataFrame({key: size_term(land_use, row) for key, row in size_terms.iterrows()},
                       index=land_use.index)
     df.index.name = "TAZ"
     return df

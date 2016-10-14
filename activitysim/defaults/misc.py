@@ -106,16 +106,12 @@ def trace_hh_id(settings):
 @orca.injectable()
 def trace_person_ids():
     # overridden by register_persons if trace_hh_id is defined
-    logger.error("trace_person_ids called before being overridden")
-    raise RuntimeError('trace_person_ids called before being overridden')
     return []
 
 
 @orca.injectable()
 def trace_tour_ids():
     # overridden by register_tours if trace_hh_id is defined
-    logger.error("trace_tour_ids called before being overridden")
-    raise RuntimeError('trace_tour_ids called before being overridden')
     return []
 
 

@@ -4,7 +4,6 @@
 import logging
 
 from activitysim import activitysim as asim
-from activitysim import tracing
 
 import numpy as np
 import pandas as pd
@@ -150,5 +149,7 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
 
         previous_tour_by_personid.loc[nth_tours.person_id] = nth_choices.values
 
+    choices = pd.concat(choices)
+
     # return the concatenated choices
-    return pd.concat(choices)
+    return choices

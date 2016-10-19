@@ -3,19 +3,19 @@
 
 import logging
 import itertools
-import time
+
 
 import numpy as np
 import pandas as pd
 from zbox import toolz as tz, gen
 
-
 from ..activitysim import eval_variables
-
 
 from .. import nl
 
 from .. import tracing
+from ..tracing import print_elapsed_time
+
 
 logger = logging.getLogger(__name__)
 
@@ -138,30 +138,28 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 
     # assign person number in cdapPersonArray preference order
     # i.e. convert cdap_rank from category to index in order of category rank within household
-    persons[_cdap_rank_] = persons\
-        .sort_values(by=[_hh_id_, _cdap_rank_, _age_], ascending=[True, True, True])\
-        .groupby(_hh_id_)[_hh_id_]\
-        .rank(method='first', na_option='top')\
-        .astype(int)
+    # groupby rank() is slow, so we compute rank artisanally
+    # save time by sorting only the columns we need (persons is big, and sort moves data)
+    p = persons[[_hh_id_, _cdap_rank_, _age_]]\
+        .sort_values(by=[_hh_id_, _cdap_rank_, _age_], ascending=[True, True, True])
+    rank = p.groupby(_hh_id_).size().map(range)
+    rank = [item+1 for sublist in rank for item in sublist]
+    p[_cdap_rank_] = rank
+    persons[_cdap_rank_] = p[_cdap_rank_]  # assignment aligns on index values
 
-    # FIXME - possible workaround if above too big/slow
-    # stackoverflow.com/questions/26720916/faster-way-to-rank-rows-in-subgroups-in-pandas-dataframe
-    # Working with a big DataFrame (13 million lines), the method rank with groupby
-    # maxed out my 8GB of RAM an it took a really long time. I found a workaround
-    # less greedy in memory , that I put here just in case:
-    # df.sort_values('value')
-    # tmp = df.groupby('group').size()
-    # rank = tmp.map(range)
-    # rank =[item for sublist in rank for item in sublist]
-    # df['rank'] = rank
+    # FIXME - as noted above, this is slow, the brute force code above is equivalent
+    # persons[_cdap_rank_] = persons\
+    #     .sort_values(by=[_hh_id_, _cdap_rank_, _age_], ascending=[True, True, True])\
+    #     .groupby(_hh_id_)[_hh_id_]\
+    #     .rank(method='first', na_option='top')\
+    #     .astype(int)
 
     if DUMP:
         tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
                          transpose=False, slicer='NONE')
 
     if trace_hh_id:
-        tracing.trace_df(persons, '%s.cdap_rank' % trace_label,
-                         warn_if_empty=True)
+        tracing.trace_df(persons, '%s.cdap_rank' % trace_label)
 
     return persons[_cdap_rank_]
 
@@ -318,7 +316,7 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     spec: pandas.DataFrame
 
     """
-    if DUMP or trace_spec:
+    if DUMP:
         # dump the interaction_coefficients table because it has been preprocessed
         tracing.trace_df(interaction_coefficients,
                          '%s.hhsize%d_interaction_coefficients' % (trace_label, hhsize),
@@ -787,13 +785,6 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     return choices
 
 
-def print_elapsed_time(msg, t0=None):
-    # FIXME - development debugging code to be removed
-    t1 = time.time()
-    print "%s : %s seconds" % (msg, t1 - (t0 or t1))
-    return t1
-
-
 def _run_cdap(
         persons,
         cdap_indiv_spec,
@@ -806,25 +797,19 @@ def _run_cdap(
     Aside from chunking of persons df, params are passed through from run_cdap unchanged
     """
 
-    t0 = print_elapsed_time("_run_cdap")
-
     interaction_coefficients = preprocess_interaction_coefficients(cdap_interaction_coefficients)
-    t0 = print_elapsed_time("preprocess_interaction_coefficients", t0)
 
     # assign integer cdap_rank to each household member
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model
     # extra household members, will have activities assigned by in fixed proportions
     assign_cdap_rank(persons, trace_hh_id, trace_label)
 
-    t0 = print_elapsed_time("assign_cdap_rank", t0)
-
     # Calculate CDAP utilities for each individual, ignoring interactions
     # ind_utils has index of `PERID` and a column for each alternative
     # i.e. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
-    indiv_utils = individual_utilities(persons, cdap_indiv_spec, locals_d,
+    indiv_utils = individual_utilities(persons[persons.cdap_rank <= MAX_HHSIZE],
+                                       cdap_indiv_spec, locals_d,
                                        trace_hh_id, trace_label)
-
-    t0 = print_elapsed_time("individual_utilities", t0)
 
     # compute interaction utilities, probabilities, and hh activity pattern choices
     # for each size household separately in turn up to MAX_HHSIZE
@@ -836,8 +821,6 @@ def _run_cdap(
             trace_hh_id=trace_hh_id, trace_label=trace_label)
 
         hh_choices_list.append(choices)
-
-        t0 = print_elapsed_time("hhsize%d_utils" % hhsize, t0)
 
     del indiv_utils
 

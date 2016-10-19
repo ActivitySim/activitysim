@@ -10,6 +10,8 @@ import pandas as pd
 
 from activitysim import activitysim as asim
 from activitysim import tracing
+from activitysim.tracing import print_elapsed_time
+
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
 from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
@@ -57,7 +59,10 @@ def non_mandatory_tour_frequency(set_random_seed,
     othdiscr, eatout, and social trips in various combination.
     """
 
+    t0 = print_elapsed_time()
+
     choosers = persons_merged.to_frame()
+    alts = non_mandatory_tour_frequency_alts.to_frame()
 
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
@@ -75,9 +80,9 @@ def non_mandatory_tour_frequency(set_random_seed,
 
         choices = asim.interaction_simulate(
             segment,
-            non_mandatory_tour_frequency_alts.to_frame(),
+            alts,
             # notice that we pick the column for the segment for each segment we run
-            non_mandatory_tour_frequency_spec[[name]],
+            spec=non_mandatory_tour_frequency_spec[[name]],
             locals_d=constants,
             sample_size=50,
             chunk_size=chunk_size,
@@ -86,10 +91,13 @@ def non_mandatory_tour_frequency(set_random_seed,
 
         choices_list.append(choices)
 
-    choices = pd.concat(choices_list)
+        t0 = print_elapsed_time("non_mandatory_tour_frequency.%s" % name, t0)
 
-    # FIXME - no point in printing verbose value_counts now that we have tracing?
-    # tracing.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
+        # FIXME - force garbage collection
+        # mem = asim.memory_info()
+        # logger.info('memory_info ptype %s, %s' % (name, mem))
+
+    choices = pd.concat(choices_list)
 
     # FIXME - no need to reindex?
     orca.add_column("persons", "non_mandatory_tour_frequency", choices)
@@ -115,10 +123,13 @@ associated with)
 def non_mandatory_tours(persons,
                         non_mandatory_tour_frequency_alts):
 
+    t0 = print_elapsed_time("")
     df = process_non_mandatory_tours(
         persons.non_mandatory_tour_frequency.dropna(),
         non_mandatory_tour_frequency_alts.local
     )
+    t0 = print_elapsed_time("process_non_mandatory_tours", t0)
+
     return df
 
 

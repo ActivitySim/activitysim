@@ -5,6 +5,7 @@ import os
 import sys
 import logging
 import logging.config
+import time
 
 import yaml
 
@@ -20,6 +21,16 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
 # Tracers
 tracers = {}
+
+
+def print_elapsed_time(msg=None, t0=None):
+    # FIXME - development debugging code to be removed
+    t1 = time.time()
+    if msg:
+        msg = "Time to execute %s : %s seconds" % (msg, t1 - (t0 or t1))
+        info(message=msg, log=True)
+        print "_%s" % msg
+    return t1
 
 
 def delete_csv_files(output_dir):
@@ -300,13 +311,12 @@ def register_tours(df, trace_hh_id):
     # this allows us to slice by tour_id without requiring presence of person_id column
 
     # get list of persons in traced household (should already have been registered)
-    try:
-        person_ids = orca.get_injectable("trace_person_ids")
-    except RuntimeError as err:
-        if 'trace_person_ids called before being overridden' in err.message:
-            error(message="register_tours called before register_persons")
-            err = RuntimeError('register_tours called before register_persons')
-        raise err
+    person_ids = orca.get_injectable("trace_person_ids")
+
+    # since trace_hh_id is defined, we expect some trace_person_ids
+    if not person_ids:
+        error(message="register_tours called before register_persons")
+        raise RuntimeError('register_tours called before register_persons')
 
     traced_tours_df = slice_ids(df, person_ids, column='person_id')
 
@@ -588,126 +598,6 @@ def trace_df(df, label, slicer=None, columns=None,
                   column_labels=column_labels, transpose=transpose)
 
 
-def trace_interaction_model_design(model_design, choosers, label):
-    """
-    Trace model design for interaction_simulate
-
-    Parameters
-    ----------
-    model_design: pandas.DataFrame
-        traced model_design dataframe
-    choosers: pandas.DataFrame
-        interaction_simulate choosers
-        (needed to filter the model_design dataframe by traced hh or person id)
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-
-    label = '%s.model_design' % label
-
-    # slicer column name and id targets to use for chooser id added to model_design dataframe
-    # currently we only ever slice by person_id, but that could change, so we check here...
-
-    if choosers.index.name == 'PERID' \
-            or choosers.index.name == orca.get_injectable('persons_index_name') \
-            or (choosers.index.name == 'tour_id' and 'person_id' in choosers.columns):
-        slicer_column_name = 'person_id'
-        targets = orca.get_injectable('trace_person_ids')
-    else:
-        raise RuntimeError("trace_interaction_model_design don't know how to slice index '%s'"
-                           % choosers.index.name)
-
-    # we can deduce the sample_size from the relative size of model_design and choosers
-    # (model design rows are repeated once for each alternative)
-    sample_size = len(model_design.index) / len(choosers.index)
-
-    # we need to repeat each value sample_size times
-    slicer_column_values = np.repeat(choosers.index.values, sample_size)
-    model_design[slicer_column_name] = slicer_column_values
-    model_design_index_name = model_design.index.name
-
-    if model_design_index_name is None:
-        debug(message="model_design.index.name for %s is None" % label)
-        model_design_index_name = 'index'
-        model_design.index.rename(model_design_index_name, inplace=True)
-
-    # pre-slice for runtime efficiency
-    df = slice_canonically(model_design, slicer_column_name, label)
-
-    if len(df.index) == 0:
-        return
-
-    # write out the raw dataframe
-    file_path = log_file_path('%s.raw.csv' % label)
-    df.to_csv(file_path, mode="a", index=True, header=True)
-
-    # if there are multiple targets, we want them in seperate tables for readability
-    for target in targets:
-        df_target = slice_ids(df, target, column=slicer_column_name)
-
-        if len(df_target.index) == 0:
-            continue
-
-        # we want the transposed columns in predictable order
-        df_target.sort_index(inplace=True)
-
-        # remove the slicer (person_id or hh_id) column?
-        del df_target[slicer_column_name]
-
-        target_label = '%s.%s.%s' % (label, slicer_column_name, target)
-        trace_df(df_target, target_label,
-                 slicer="NONE",
-                 transpose=True,
-                 column_labels=['expression', None],
-                 warn_if_empty=False)
-
-
-def trace_cdap_hh_utils(hh_utils, label):
-    """
-    Trace CDAP household utilities
-
-    Parameters
-    ----------
-    hh_utils: pandas.DataFrame
-        hh_utils
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    # hh_util : dict of pandas.Series
-    #     Keys will be household IDs and values will be Series
-    #     mapping alternative choices to their utility.
-    hh_id = orca.get_injectable('trace_hh_id')
-    s = hh_id and hh_utils.get(hh_id, None)
-    if s is not None:
-        trace_df(s, label, slicer='NONE', columns=['choice', 'utility'], warn_if_empty=False)
-
-
-def trace_cdap_ind_utils(ind_utils, label):
-    """
-    Trace CDAP ind utilities
-
-    Parameters
-    ----------
-    ind_utils: pandas.DataFrame
-        ind_utils
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    trace_df(ind_utils, label, slicer='PERID', warn_if_empty=False)
-
-
 def trace_nan_values(df, label):
     """
     Trace NaN values
@@ -727,3 +617,115 @@ def trace_nan_values(df, label):
     if np.isnan(df).any():
         get_tracer().warn("%s NaN values in %s" % (np.isnan(df).sum(), label))
         write_df_csv(df, "%s.nan" % label)
+
+
+def interaction_trace_rows(interaction_df, choosers):
+    """
+    Trace model design for interaction_simulate
+
+    Parameters
+    ----------
+    model_design: pandas.DataFrame
+        traced model_design dataframe
+    choosers: pandas.DataFrame
+        interaction_simulate choosers
+        (needed to filter the model_design dataframe by traced hh or person id)
+
+    Returns
+    -------
+    trace_rows : numpy.ndarray
+        array of booleans to select values in eval_interaction_utilities df to trace
+
+    trace_ids : tuple (str,  numpy.ndarray)
+        column name and array of trace_ids for use by
+
+
+    """
+
+    # slicer column name and id targets to use for chooser id added to model_design dataframe
+    # currently we only ever slice by person_id, but that could change, so we check here...
+
+    if choosers.index.name == 'PERID' \
+            or choosers.index.name == orca.get_injectable('persons_index_name'):
+        slicer_column_name = choosers.index.name
+        targets = orca.get_injectable('trace_person_ids')
+    elif (choosers.index.name == 'tour_id' and 'person_id' in choosers.columns):
+        slicer_column_name = 'person_id'
+        targets = orca.get_injectable('trace_person_ids')
+    else:
+        raise RuntimeError("trace_interaction_model_design don't know how to slice index '%s'"
+                           % choosers.index.name)
+
+    # we can deduce the sample_size from the relative size of model_design and choosers
+    # (model design rows are repeated once for each alternative)
+    sample_size = len(interaction_df.index) / len(choosers.index)
+
+    if slicer_column_name == choosers.index.name:
+        trace_rows = np.in1d(choosers.index, targets)
+        trace_ids = np.asanyarray(choosers[trace_rows].index)
+    else:
+        trace_rows = np.in1d(choosers['person_id'], targets)
+        trace_ids = np.asanyarray(choosers[trace_rows].person_id)
+
+    trace_rows = np.repeat(trace_rows, sample_size)
+    trace_ids = np.repeat(trace_ids, sample_size)
+
+    assert type(trace_rows) == np.ndarray
+    assert type(trace_ids) == np.ndarray
+
+    trace_ids = (slicer_column_name, trace_ids)
+
+    return trace_rows, trace_ids
+
+
+def trace_interaction_eval_results(trace_results, trace_ids, label):
+    """
+    Trace model design eval results for interaction_simulate
+
+    Parameters
+    ----------
+    trace_results: pandas.DataFrame
+        traced model_design dataframe
+    trace_ids: pandas.DataFrame
+    trace_ids : tuple (str,  numpy.ndarray)
+        column name and array of trace_ids from interaction_trace_rows()
+        used to filter the trace_results dataframe by traced hh or person id
+    label: str
+        tracer name
+
+    Returns
+    -------
+    Nothing
+    """
+
+    assert type(trace_ids[1]) == np.ndarray
+
+    slicer_column_name = trace_ids[0]
+    trace_results[slicer_column_name] = trace_ids[1]
+
+    targets = np.unique(trace_ids[1])
+
+    if len(trace_results.index) == 0:
+        return
+
+    # write out the raw dataframe
+    file_path = log_file_path('%s.raw.csv' % label)
+    trace_results.to_csv(file_path, mode="a", index=True, header=True)
+
+    # if there are multiple targets, we want them in seperate tables for readability
+    for target in targets:
+
+        df_target = trace_results[trace_results[slicer_column_name].isin(targets)]
+
+        # we want the transposed columns in predictable order
+        df_target.sort_index(inplace=True)
+
+        # # remove the slicer (person_id or hh_id) column?
+        # del df_target[slicer_column_name]
+
+        target_label = '%s.%s.%s' % (label, slicer_column_name, target)
+        trace_df(df_target, target_label,
+                 slicer="NONE",
+                 transpose=True,
+                 column_labels=['expression', None],
+                 warn_if_empty=False)

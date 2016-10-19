@@ -5,26 +5,37 @@ import pandas as pd
 import numpy as np
 import os
 
+from activitysim.tracing import print_elapsed_time
 
+
+def run_model(model_name):
+    t0 = print_elapsed_time()
+    orca.run([model_name])
+    t0 = print_elapsed_time(model_name, t0)
+    
 orca.add_injectable("output_dir", 'output')
 tracing.config_logger()
 
-orca.run(["compute_accessibility"])
-orca.run(["school_location_simulate"])
-orca.run(["workplace_location_simulate"])
+t0 = print_elapsed_time()
+
+run_model("compute_accessibility")
+run_model("school_location_simulate")
+run_model("workplace_location_simulate")
 print orca.get_table("persons").distance_to_work.describe()
-orca.run(["auto_ownership_simulate"])
-orca.run(["cdap_simulate"])
-orca.run(['mandatory_tour_frequency'])
+run_model("auto_ownership_simulate")
+run_model("cdap_simulate")
+run_model('mandatory_tour_frequency')
 orca.get_table("mandatory_tours").tour_type.value_counts()
-orca.run(["mandatory_scheduling"])
-orca.run(['non_mandatory_tour_frequency'])
+run_model("mandatory_scheduling")
+run_model('non_mandatory_tour_frequency')
 orca.get_table("non_mandatory_tours").tour_type.value_counts()
-orca.run(["destination_choice"])
-orca.run(["non_mandatory_scheduling"])
+run_model("destination_choice")
+run_model("non_mandatory_scheduling")
 
 # FIXME - jwd - choose more felicitous name or do this elsewhere?
-orca.run(["patch_mandatory_tour_destination"])
+run_model("patch_mandatory_tour_destination")
 
-orca.run(['tour_mode_choice_simulate'])
-orca.run(['trip_mode_choice_simulate'])
+run_model('tour_mode_choice_simulate')
+run_model('trip_mode_choice_simulate')
+
+t0 = print_elapsed_time("all models", t0)

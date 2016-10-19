@@ -91,15 +91,17 @@ def cdap_simulate(persons_merged,
                             trace_hh_id=trace_hh_id,
                             trace_label='cdap')
 
-    choices = choices.reindex(persons_merged.index)
-
     tracing.print_summary('cdap_activity', choices.cdap_activity, value_counts=True)
 
+    print pd.crosstab(persons_df.ptype, choices.cdap_activity, margins=True)
+
+    choices = choices.reindex(persons_merged.index)
     orca.add_column("persons", "cdap_activity", choices.cdap_activity)
     orca.add_column("persons", "cdap_rank", choices.cdap_rank)
 
     if trace_hh_id:
+
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),
                          label="cdap",
-                         columns=['ptype', 'age', 'cdap_rank', 'cdap_activity'],
+                         columns=['ptype', 'cdap_rank', 'cdap_activity'],
                          warn_if_empty=True)

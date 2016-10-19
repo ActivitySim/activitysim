@@ -285,11 +285,59 @@ nested_exp_utilities : pandas.DataFrame</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.activitysim.eval_interaction_utilities">
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em>spec</em>, <em>df</em>, <em>locals_d</em>, <em>trace_label</em>, <em>trace_rows</em>, <em>check_variability=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the utilities for a single-alternative spec evaluated in the context of df</p>
+<p>We could compute the utilities for interaction datasets just as we do for simple_simulate
+specs with multiple alternative columns byt calling eval_variables and then computing the
+utilities by matrix-multiplication of eval results with the utility coefficients in the
+spec alternative columns.</p>
+<p>But interaction simulate computes the utilities of each alternative in the context of a
+separate row in interaction dataset df, and so there is only one alternative in spec.
+This turns out to be quite a bit faster (in this special case) than the pandas dot function.</p>
+<p>For efficiency, we combine eval_variables and multiplication of coefficients into a single step,
+so we don&#8217;t have to create a separate column for each partial utility. Instead, we simply
+multiply the eval result by a single alternative coefficient and sum the partial utilities.</p>
+<dl class="docutils">
+<dt>spec</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span><dd>one row per spec expression and one col with utility coefficient</dd>
+<dt>df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span><dd>cross join (cartesian product) of choosers with alternatives
+combines columns of choosers and alternatives
+len(df) == len(choosers) * len(alternatives)
+index values (non-unique) are index values from alternatives df</dd>
+<dt>interaction_utilities</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span><dd>the utility of each alternative is sum of the partial utilities determined by the
+various spec expressions and their corresponding coefficients
+yielding a dataframe  with len(interaction_df) rows and one utility column
+having the same index as interaction_df (non-unique values from alternatives df)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>df</cite> and a single column of utilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.activitysim.eval_mnl">
 <code class="descclassname">activitysim.activitysim.</code><code class="descname">eval_mnl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>locals_d=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.eval_mnl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
+<p>Each row in spec computes a partial utility for each alternative,
+by providing a spec expression (often a boolean 0-1 trigger)
+and a column of utility coefficients for each alternative.</p>
+<p>We compute the utility of each alternative by matrix-multiplication of eval results
+with the utility coefficients in the spec alternative columns
+yielding one row per chooser and one column per alternative</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1187,6 +1235,39 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.tracing.interaction_trace_rows">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">interaction_trace_rows</code><span class="sig-paren">(</span><em>interaction_df</em>, <em>choosers</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.interaction_trace_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace model design for interaction_simulate</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>model_design: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>traced model_design dataframe</p>
+</div></blockquote>
+<p><strong>choosers: pandas.DataFrame</strong></p>
+<blockquote>
+<div><p>interaction_simulate choosers
+(needed to filter the model_design dataframe by traced hh or person id)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>trace_rows</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>array of booleans to select values in eval_interaction_utilities df to trace</p>
+</div></blockquote>
+<p><strong>trace_ids</strong> : tuple (str,  numpy.ndarray)</p>
+<blockquote class="last">
+<div><p>column name and array of trace_ids for use by</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.tracing.log_file_path">
 <code class="descclassname">activitysim.tracing.</code><code class="descname">log_file_path</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.log_file_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>For use in logging.yaml tag to inject log file path</p>
@@ -1381,56 +1462,6 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.tracing.trace_cdap_hh_utils">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_cdap_hh_utils</code><span class="sig-paren">(</span><em>hh_utils</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_cdap_hh_utils" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace CDAP household utilities</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hh_utils: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>hh_utils</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.tracing.trace_cdap_ind_utils">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_cdap_ind_utils</code><span class="sig-paren">(</span><em>ind_utils</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_cdap_ind_utils" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace CDAP ind utilities</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ind_utils: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>ind_utils</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.tracing.trace_df">
 <code class="descclassname">activitysim.tracing.</code><code class="descname">trace_df</code><span class="sig-paren">(</span><em>df</em>, <em>label</em>, <em>slicer=None</em>, <em>columns=None</em>, <em>index_label=None</em>, <em>column_labels=None</em>, <em>transpose=True</em>, <em>warn_if_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
@@ -1480,21 +1511,22 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.tracing.trace_interaction_model_design">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_interaction_model_design</code><span class="sig-paren">(</span><em>model_design</em>, <em>choosers</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_interaction_model_design" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trace model design for interaction_simulate</p>
+<dt id="activitysim.tracing.trace_interaction_eval_results">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">trace_interaction_eval_results</code><span class="sig-paren">(</span><em>trace_results</em>, <em>trace_ids</em>, <em>label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.trace_interaction_eval_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace model design eval results for interaction_simulate</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>model_design: pandas.DataFrame</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>trace_results: pandas.DataFrame</strong></p>
 <blockquote>
 <div><p>traced model_design dataframe</p>
 </div></blockquote>
-<p><strong>choosers: pandas.DataFrame</strong></p>
+<p><strong>trace_ids: pandas.DataFrame</strong></p>
+<p><strong>trace_ids</strong> : tuple (str,  numpy.ndarray)</p>
 <blockquote>
-<div><p>interaction_simulate choosers
-(needed to filter the model_design dataframe by traced hh or person id)</p>
+<div><p>column name and array of trace_ids from interaction_trace_rows()
+used to filter the trace_results dataframe by traced hh or person id</p>
 </div></blockquote>
 <p><strong>label: str</strong></p>
 <blockquote>

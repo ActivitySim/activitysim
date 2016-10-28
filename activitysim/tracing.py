@@ -23,6 +23,12 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 tracers = {}
 
 
+def extend_trace_label(trace_label, extension):
+    if trace_label:
+        trace_label = "%s.%s" % (trace_label, extension)
+    return trace_label
+
+
 def print_elapsed_time(msg=None, t0=None):
     # FIXME - development debugging code to be removed
     t1 = time.time()
@@ -482,8 +488,6 @@ def slice_ids(df, ids, column=None):
         ids = [ids]
     try:
         if column is None:
-            # FIXME - this returns empty rows for ids that are not found
-            # df = df.loc[ids]
             df = df[df.index.isin(ids)]
         else:
             df = df[df[column].isin(ids)]
@@ -493,6 +497,71 @@ def slice_ids(df, ids, column=None):
         raise RuntimeError("slice_ids slicer column '%s' not in dataframe" % column)
 
     return df
+
+
+def get_trace_target(df, slicer):
+    """
+    get target ids and column or index to identify target trace rows in df
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        dataframe to slice
+    slicer: str
+        name of column or index to use for slicing
+
+    Returns
+    -------
+    (target, column) tuple
+
+    target : int or list of ints
+        id or ids that identify tracer target rows
+    column : str
+        name of column to search for targets or None to search index
+    """
+
+    if slicer is None:
+        slicer = df.index.name
+
+    target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
+    column = None  # column name to slice on or None to slice on index
+
+    if len(df.index) == 0:
+        target_ids = None
+    elif slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
+        target_ids = orca.get_injectable('trace_person_ids')
+    elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
+        target_ids = orca.get_injectable('trace_hh_id')
+    elif slicer == 'person_id':
+        target_ids = orca.get_injectable('trace_person_ids')
+        column = slicer
+    elif slicer == 'hh_id':
+        target_ids = orca.get_injectable('trace_hh_id')
+        column = slicer
+    elif slicer == 'tour_id':
+        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
+            target_ids = orca.get_injectable('trace_person_ids')
+            column = 'person_id'
+        else:
+            # trace_tour_ids
+            try:
+                target_ids = orca.get_injectable('trace_tour_ids')
+            except:
+                error(message="trace_tour_ids error getting trace_tour_ids for index %s columns %s"
+                              % (df.index.name, df.columns.values))
+                raise
+    elif slicer == 'TAZ' or slicer == 'ZONE':
+        target_ids = orca.get_injectable('trace_od')
+    elif slicer == 'NONE':
+        target_ids = None
+    else:
+        error(message="slice_canonically: bad slicer '%s'" % (slicer, ))
+        raise RuntimeError("slice_canonically: bad slicer '%s'" % (slicer, ))
+
+    if target_ids and not isinstance(target_ids, (list, tuple)):
+        target_ids = [target_ids]
+
+    return target_ids, column
 
 
 def slice_canonically(df, slicer, label, warn_if_empty=False):
@@ -513,53 +582,45 @@ def slice_canonically(df, slicer, label, warn_if_empty=False):
     sliced subset of dataframe
     """
 
-    if slicer is None:
-        slicer = df.index.name
+    target_ids, column = get_trace_target(df, slicer)
 
-    target = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
-    column = None  # column name to slice on or None to slice on index
-
-    if len(df.index) == 0:
-        target = None
-    elif slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
-        target = orca.get_injectable('trace_person_ids')
-    elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
-        target = orca.get_injectable('trace_hh_id')
-    elif slicer == 'person_id':
-        target = orca.get_injectable('trace_person_ids')
-        column = slicer
-    elif slicer == 'hh_id':
-        target = orca.get_injectable('trace_hh_id')
-        column = slicer
-    elif slicer == 'tour_id':
-        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target = orca.get_injectable('trace_person_ids')
-            column = 'person_id'
-        else:
-            # trace_tour_ids
-            try:
-                target = orca.get_injectable('trace_tour_ids')
-            except:
-                error(message="trace_tour_ids error in %s index %s columns %s"
-                              % (label, df.index.name, df.columns.values))
-                raise
-    elif slicer == 'TAZ' or slicer == 'ZONE':
-        target = orca.get_injectable('trace_od')
-    elif slicer == 'NONE':
-        target = None
-    else:
-        error(message="slice_canonically: bad slicer '%s' for %s " % (slicer, label))
-        raise RuntimeError("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
-
-    if target is not None:
-        df = slice_ids(df, target, column)
+    if target_ids is not None:
+        df = slice_ids(df, target_ids, column)
 
     if warn_if_empty and len(df.index) == 0:
         column_name = column or slicer
         warn(message="slice_canonically: no rows in %s with %s == %s"
-                     % (label, column_name, target))
+                     % (label, column_name, target_ids))
 
     return df
+
+
+def has_trace_targets(df, slicer=None):
+
+    target_ids, column = get_trace_target(df, slicer)
+
+    if target_ids is None:
+        found = False
+    else:
+
+        if column is None:
+            found = df.index.isin(target_ids).any()
+        else:
+            found = df[column].isin(target_ids).any()
+
+    return found
+
+
+def hh_id_for_chooser(id, choosers):
+
+    if choosers.index.name == 'HHID' or choosers.index.name == orca.get_injectable('hh_index_name'):
+        hh_id = id
+    elif 'household_id' in choosers.columns:
+        hh_id = choosers.loc[id]['household_id']
+    else:
+        raise RuntimeError("don't grok chooser with index %s" % choosers.index.name)
+
+    return hh_id
 
 
 def trace_df(df, label, slicer=None, columns=None,
@@ -712,10 +773,10 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
     file_path = log_file_path('%s.raw.csv' % label)
     trace_results.to_csv(file_path, mode="a", index=True, header=True)
 
-    # if there are multiple targets, we want them in seperate tables for readability
+    # if there are multiple targets, we want them in separate tables for readability
     for target in targets:
 
-        df_target = trace_results[trace_results[slicer_column_name].isin(targets)]
+        df_target = trace_results[trace_results[slicer_column_name] == target]
 
         # we want the transposed columns in predictable order
         df_target.sort_index(inplace=True)

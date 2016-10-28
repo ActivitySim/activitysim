@@ -158,6 +158,8 @@ def tour_mode_choice_simulate(tours_merged,
                               omx_file,
                               trace_hh_id):
 
+    trace_label = trace_hh_id and 'tour_mode_choice'
+
     tours = tours_merged.to_frame()
 
     nest_spec = get_logit_model_settings(tour_mode_choice_settings)
@@ -171,6 +173,11 @@ def tour_mode_choice_simulate(tours_merged,
 
     tracing.print_summary('tour_mode_choice_simulate tour_type',
                           tours.tour_type, value_counts=True)
+
+    if trace_hh_id:
+        tracing.trace_df(tour_mode_choice_spec,
+                         tracing.extend_trace_label(trace_label, 'spec'),
+                         slicer='NONE', transpose=False)
 
     choices_list = []
     for tour_type, segment in tours.groupby('tour_type'):
@@ -196,18 +203,22 @@ def tour_mode_choice_simulate(tours_merged,
         # tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
         #                       segment[dest_key], value_counts=True)
 
-        trace_label = trace_hh_id and ('tour_mode_choice.%s' % tour_type)
+        spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
+
+        if trace_hh_id:
+            tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
+                             slicer='NONE', transpose=False)
 
         choices = _mode_choice_simulate(
             segment,
             skims, stacked_skims,
             orig_key=orig_key,
             dest_key=dest_key,
-            spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
+            spec=spec,
             constants=constants,
             nest_spec=nest_spec,
             omx=omx_file,
-            trace_label=trace_label,
+            trace_label=tracing.extend_trace_label(trace_label, tour_type),
             trace_choice_name='tour_mode_choice')
 
         tracing.print_summary('tour_mode_choice_simulate %s' % tour_type,
@@ -229,7 +240,7 @@ def tour_mode_choice_simulate(tours_merged,
     if trace_hh_id:
         trace_columns = ['mode']
         tracing.trace_df(orca.get_table('tours').to_frame(),
-                         label="mode",
+                         label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour',
                          columns=trace_columns,

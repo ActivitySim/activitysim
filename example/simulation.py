@@ -7,13 +7,18 @@ import os
 
 from activitysim.tracing import print_elapsed_time
 
+def set_random_seed():
+    np.random.seed(0)
 
 def run_model(model_name):
     t0 = print_elapsed_time()
     orca.run([model_name])
     t0 = print_elapsed_time(model_name, t0)
-    
-orca.add_injectable("output_dir", 'output')
+
+
+# uncomment the line below to set random seed so that run results are reproducible
+# orca.add_injectable("set_random_seed", set_random_seed)
+
 tracing.config_logger()
 
 t0 = print_elapsed_time()

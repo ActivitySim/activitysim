@@ -122,9 +122,9 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 chunk_size = 50000,
 #                 hh_chunk_size = 50000)
 
-inject_settings(config='example',
+inject_settings(config='sandbox',
                 data='example',
-                households_sample_size=10000,
+                households_sample_size=100,
                 preload_3d_skims=True,
                 chunk_size = 0,
                 hh_chunk_size=0)
@@ -155,32 +155,40 @@ log_memory_info(logger, 'after stacked_skims load')
 # print "unique hh", p.household_id.unique()
 
 
-EMPTY_NEST = {'level': 0, 'product_of_coefficients': 1}
+from activitysim.defaults.models.util.mode import _mode_choice_spec
+
+spec = pd.DataFrame({
+    "Alternative": ["One", "One,Two"],
+    "Expression": ['1', '$expr.format(var="bar")'],
+    "Work": ['ivt', 'ivt_lr']
+}).set_index(["Expression"])
+
+coeffs = pd.DataFrame({
+    "Work": ['.7', 'ivt * .7 * COST']
+}, index=['ivt', 'ivt_lr'])
+
+settings = {
+    "CONSTANTS": {
+        "COST": 2.0
+    },
+    "VARIABLE_TEMPLATES": {
+        'expr': '@foo * {var}'
+    }
+}
+
+df = _mode_choice_spec(spec, coeffs, settings)
+
+
+print df
+
+
 
 
 nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']
 
-# asim.trace_nests(nests, 'xxx')
-#
-# print "### each_nest"
-# for nest in nl.each_nest(nests):
-#
-#     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
-#
-# print "### each_nest_leaf"
-# for nest in nl.each_nest(nests, type='leaf'):
-#
-#     print "%s %s name: %s parents %s" % ( "   " * nest.level, nest.type, nest.name, nest.ancestors)
-
 t0 = print_elapsed_time()
 
 run_model('compute_accessibility')
-
-trace_hh_id = orca.get_injectable('trace_hh_id')
-if trace_hh_id:
-    tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
-                     warn_if_empty=True)
-
 
 run_model('school_location_simulate')
 run_model('workplace_location_simulate')

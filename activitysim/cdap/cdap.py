@@ -913,7 +913,7 @@ def run_cdap(
             'extra' household members activities are assigned by cdap_fixed_relative_proportions
     """
 
-    trace_label = (trace_label or 'cdap')
+    trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
     if (chunk_size == 0) or (chunk_size >= len(persons.index)):
         choices = _run_cdap(persons,
@@ -931,7 +931,7 @@ def run_cdap(
         logger.info("run_cdap running hh_chunk = %s with %d persons"
                     % (i, len(persons_chunk)))
 
-        chunk_trace_label = "%s.chunk_%s" % (trace_label, i)
+        chunk_trace_label = tracing.extend_trace_label(trace_label, '.chunk_%s' % i)
 
         choices = _run_cdap(persons_chunk,
                             cdap_indiv_spec,

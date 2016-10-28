@@ -20,8 +20,12 @@ households_sample_size: 1000
 # trace_hh_id: 372947
 
 # 4 members
-trace_hh_id: 356174
+# trace_hh_id: 356174
 
+# zero prob for school location with unfiltered alternatives
+# trace_hh_id: 862924
+
+trace_hh_id:  238516
 
 # trace origin, destination in accessibility calculation
 # trace_od: [5, 11]

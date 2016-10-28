@@ -133,7 +133,7 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
             previous_tour_by_personid,
             alts))
 
-        tour_trace_label = trace_label and "%s.tour_%s" % (trace_label, i)
+        tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % i)
 
         nth_choices = asim.interaction_simulate(
             nth_tours,

@@ -13,18 +13,55 @@ import tracing
 logger = logging.getLogger(__name__)
 
 
-EXP_UTIL_MIN = 1e-300
-EXP_UTIL_MAX = np.inf
-
-PROB_MIN = 1e-300
-PROB_MAX = np.inf
-
-MAX_DUMP = 50
-
-
-def utils_to_probs(utils, trace_label=None, exponentiated=False):
+def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None):
     """
-    Convert a table of utilities to exponentiated probabilities.
+
+    Parameters
+    ----------
+    bad_row_map
+    df : pandas.DataFrame
+        utils or probs dataframe
+    msg : str
+        message describing the type of bad choice that necessitates error being thrown
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        because we  can't deduce hh_id from the interaction_dataset which is indexed on index
+        values from alternatives df
+
+    Returns
+    -------
+    raises RuntimeError
+    """
+    MAX_DUMP = 1000
+    MAX_PRINT = 10
+
+    msg_with_count = "%s for %s rows" % (msg, bad_row_map.sum())
+    logger.critical(msg_with_count)
+
+    if trace_label:
+        logger.critical("dumping %s" % trace_label)
+        tracing.write_csv(df[bad_row_map][:MAX_DUMP],
+                          file_name=trace_label,
+                          transpose=False)
+
+    # log the indexes of the first MAX_DUMP offending rows
+    for idx in df.index[bad_row_map][:MAX_PRINT].values:
+
+        if trace_choosers is None:
+            hh_id = tracing.hh_id_for_chooser(idx, df)
+        else:
+            hh_id = tracing.hh_id_for_chooser(idx, trace_choosers)
+
+        msg = "%s : %s in: %s = %s (hh_id = %s)" % (trace_label, msg, df.index.name, idx, hh_id)
+        logger.critical(msg)
+
+    raise RuntimeError(msg_with_count)
+
+
+def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_probs=False,
+                   trace_choosers=None):
+    """
+    Convert a table of utilities to probabilities.
 
     Parameters
     ----------
@@ -33,81 +70,74 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False):
 
     trace_label : str
         label for tracing bad utility or probability values
+
+    exponentiated : bool
+        True if utilities have already been exponentiated
+
+    allow_zero_probs : bool
+        if True value rows in which all utility alts are EXP_UTIL_MIN will result
+        in rows in probs to have all zero probability (and not sum to 1.0)
+        This si for hte benefit of calculating probabilities of nested logit nests
+
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        by report_bad_choices because it can't deduce hh_id from the interaction_dataset
+        which is indexed on index values from alternatives df
+
     Returns
     -------
     probs : pandas.DataFrame
         Will have the same index and columns as `utils`.
 
     """
-
-    # avoid confusion if wrong args passed by position
-    assert isinstance(trace_label, str) or (trace_label is None)
-    assert isinstance(exponentiated, bool)
+    trace_label = tracing.extend_trace_label(trace_label, 'utils_to_probs')
 
     utils_arr = utils.as_matrix().astype('float')
     if not exponentiated:
         utils_arr = np.exp(utils_arr)
 
+    EXP_UTIL_MIN = 1e-300
+    EXP_UTIL_MAX = np.inf
     np.clip(utils_arr, EXP_UTIL_MIN, EXP_UTIL_MAX, out=utils_arr)
 
-    # FIXME - do this after the clip so utils_arr rows don't sum to zero
-    # FIXME - when all utilities are large negative numbers
+    # FIXME
+    utils_arr = np.where(utils_arr == EXP_UTIL_MIN, 0.0, utils_arr)
+
     arr_sum = utils_arr.sum(axis=1)
 
-    bad_utils = np.isinf(arr_sum)
-    if bad_utils.any():
-        msg = "%s exponentiated utility rows have infinite values" % bad_utils.sum()
+    zero_probs = (arr_sum == 0.0)
+    if zero_probs.any() and not allow_zero_probs:
 
-        logger.critical(msg)
-        # log the indexes of the first MAX_DUMP offending rows
-        for i in utils.index[bad_utils][:MAX_DUMP].values:
-            logger.critical("infinite value for exponentiated utilities of %s" % i)
+        report_bad_choices(zero_probs, utils,
+                           tracing.extend_trace_label(trace_label, 'zero_prob_utils'),
+                           msg="all probabilities are zero",
+                           trace_choosers=trace_choosers)
 
-        if trace_label:
-            label = "%s.utils_to_probs.bad_utils" % trace_label
-            logger.critical("dumping offending utilities to %s" % label)
-            tracing.write_csv(utils[bad_utils][:MAX_DUMP],
-                              file_name=label,
-                              transpose=False)
-
-        raise RuntimeError(msg)
+    inf_utils = np.isinf(arr_sum)
+    if inf_utils.any():
+        report_bad_choices(inf_utils, utils,
+                           tracing.extend_trace_label(trace_label, 'inf_exp_utils'),
+                           msg="infinite exponentiated utilities",
+                           trace_choosers=trace_choosers)
 
     np.divide(
         utils_arr, arr_sum.reshape(len(utils_arr), 1),
         out=utils_arr)
+
+    PROB_MIN = 0.0
+    PROB_MAX = 1.0
+
+    # if allow_zero_probs, this will cause EXP_UTIL_MIN util rows to have all zero probabilities
     utils_arr[np.isnan(utils_arr)] = PROB_MIN
 
     np.clip(utils_arr, PROB_MIN, PROB_MAX, out=utils_arr)
 
     probs = pd.DataFrame(utils_arr, columns=utils.columns, index=utils.index)
 
-    BAD_PROB_THRESHOLD = 0.001
-    bad_probs = \
-        probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
-        > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
-
-    if bad_probs.any():
-        msg = "utils_to_probs:  %s probabilities do not sum to 1" % bad_probs.sum()
-
-        logger.critical(msg)
-
-        # log the indexes of the first MAX_DUMP offending rows
-        for i in probs.index[bad_probs][:MAX_DUMP].values:
-            logger.critical("probabilities do not sum to 1 for %s" % i)
-
-        if trace_label:
-            label = "%s.utils_to_probs.bad_probs" % trace_label
-            logger.critical("dumping offending probabilities to %s" % label)
-            tracing.write_csv(probs[bad_probs][:MAX_DUMP],
-                              file_name=label,
-                              transpose=False)
-
-        raise RuntimeError(msg)
-
     return probs
 
 
-def make_choices(probs, trace_label=None):
+def make_choices(probs, trace_label=None, trace_choosers=None):
     """
     Make choices for each chooser from among a set of alternatives.
 
@@ -118,6 +148,11 @@ def make_choices(probs, trace_label=None):
         are choosing. Values are expected to be valid probabilities across
         each row, e.g. they should sum to 1.
 
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        by report_bad_choices because it can't deduce hh_id from the interaction_dataset
+        which is indexed on index values from alternatives df
+
     Returns
     -------
     choices : pandas.Series
@@ -125,6 +160,8 @@ def make_choices(probs, trace_label=None):
         is an index into the columns of `probs`.
 
     """
+    trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
+
     nchoosers = len(probs)
 
     # probs should sum to 1 across each row
@@ -135,22 +172,11 @@ def make_choices(probs, trace_label=None):
         > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
     if bad_probs.any():
-        msg = "make_choices: %s probabilities do not sum to 1" % bad_probs.sum()
 
-        logger.critical(msg)
-
-        # log the indexes of the first MAX_DUMP offending rows
-        for i in probs.index[bad_probs][:MAX_DUMP].values:
-            logger.critical("probabilities do not sum to 1 for %s" % i)
-
-        if trace_label:
-            label = "%s.make_choices.bad_probs" % trace_label
-            logger.critical("dumping offending probabilities to %s" % label)
-            tracing.write_csv(probs[bad_probs][:MAX_DUMP],
-                              file_name=label,
-                              transpose=False)
-
-        raise RuntimeError(msg)
+        report_bad_choices(bad_probs, probs,
+                           tracing.extend_trace_label(trace_label, 'bad_probs'),
+                           msg="probabilities do not add up to 1",
+                           trace_choosers=trace_choosers)
 
     probs_arr = (
         probs.as_matrix().cumsum(axis=1) - np.random.random((nchoosers, 1)))

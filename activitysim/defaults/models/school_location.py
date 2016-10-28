@@ -68,15 +68,19 @@ def school_location_simulate(set_random_seed,
         locals_d['segment'] = school_type
 
         choosers_segment = choosers[choosers["is_" + school_type]]
-
         tracing.info(__name__,
                      "school_type %s: %s persons" % (school_type, len(choosers_segment)))
+
+        # FIXME - no point in considering impossible alternatives
+        alternatives_segment = alternatives[alternatives[school_type] > 0]
+        tracing.info(__name__,
+                     "school_type %s: %s alternatives" % (school_type, len(alternatives_segment)))
 
         if len(choosers_segment.index) > 0:
 
             choices = asim.interaction_simulate(
                 choosers_segment,
-                alternatives,
+                alternatives_segment,
                 spec=school_location_spec[[school_type]],
                 skims=skims,
                 locals_d=locals_d,

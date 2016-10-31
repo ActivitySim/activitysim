@@ -6,6 +6,8 @@ import string
 import pandas as pd
 import numpy as np
 
+from activitysim import tracing
+
 
 """
 At this time, these utilities are mostly for transforming the mode choice
@@ -44,8 +46,36 @@ def evaluate_expression_list(expressions, constants):
     # and must be evaluated in order
     for k, v in expressions.iteritems():
         # make sure it can be converted to a float
-        d[k] = float(eval(str(v), copy.copy(d), constants))
+
+        result = float(eval(str(v), copy.copy(d), constants))
+
+        print "%s = %s = %s" % (k, v, result)
+
+        d[k] = result
+
     return pd.Series(d)
+
+
+def substitute_coefficients(expressions, constants):
+    """
+    Substitute the named coeffcients in expressions with their numeric values
+
+    Parameters
+    ----------
+    expressions : Series
+        Same as below except there is no assumed "$" at the beginning.
+        For better or worse, the expressions are assumed to evaluate to
+        floats and this is guaranteed by casting to float after eval-ing.
+    constants : dict
+        will be passed as the scope of eval - usually a separate set of
+        constants are passed in here
+
+    Returns
+    -------
+    expressions : Series
+
+    """
+    return pd.Series([float(eval(e, constants)) for e in expressions], index=expressions.index)
 
 
 def pre_process_expressions(expressions, variable_templates):
@@ -112,7 +142,7 @@ def expand_alternatives(df):
 
 
 def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
-                      mode_choice_settings):
+                      mode_choice_settings, trace_label=None):
     """
     Ok we have read in the spec - we need to do several things to reformat it
     to the same style spec that all the other models have.
@@ -145,17 +175,30 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
         A new spec DataFrame which is exactly like all of the other models.
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, '_mode_choice_spec')
+
     constants = mode_choice_settings['CONSTANTS']
     templates = mode_choice_settings['VARIABLE_TEMPLATES']
     df = mode_choice_spec_df
     index_name = df.index.name
+
+    if trace_label:
+        tracing.trace_df(df,
+                         tracing.extend_trace_label(trace_label, 'raw'),
+                         slicer='NONE', transpose=False)
 
     # the expressions themselves can be prepended with a "$" in order to use
     # model templates that are shared by several different expressions
     df.index = pre_process_expressions(df.index, templates)
     df.index.name = index_name
 
+    # set index to ['Expression', 'Alternative']
     df = df.set_index('Alternative', append=True)
+
+    if trace_label:
+        tracing.trace_df(df,
+                         tracing.extend_trace_label(trace_label, 'pre_process_expressions'),
+                         slicer='NONE', transpose=False)
 
     # for each segment - e.g. eatout vs social vs work vs ...
     for col in df.columns:
@@ -169,10 +212,20 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
         # then use the coeffs we just evaluated within the spec (they occur
         # multiple times in the spec which is why they get stored uniquely
         # in a different file
-        df[col] = evaluate_expression_list(
+        df[col] = substitute_coefficients(
             df[col],
             mode_choice_coeffs[col].to_dict())
 
+    if trace_label:
+        tracing.trace_df(df,
+                         tracing.extend_trace_label(trace_label, 'evaluate_expression_list'),
+                         slicer='NONE', transpose=False)
+
     df = expand_alternatives(df)
+
+    if trace_label:
+        tracing.trace_df(df,
+                         tracing.extend_trace_label(trace_label, 'expand_alternatives'),
+                         slicer='NONE', transpose=False)
 
     return df

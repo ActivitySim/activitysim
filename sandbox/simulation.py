@@ -157,31 +157,31 @@ log_memory_info(logger, 'after stacked_skims load')
 
 from activitysim.defaults.models.util.mode import _mode_choice_spec
 
-spec = pd.DataFrame({
-    "Alternative": ["One", "One,Two"],
-    "Expression": ['1', '$expr.format(var="bar")'],
-    "Work": ['ivt', 'ivt_lr']
-}).set_index(["Expression"])
-
-coeffs = pd.DataFrame({
-    "Work": ['.7', 'ivt * .7 * COST']
-}, index=['ivt', 'ivt_lr'])
-
-settings = {
-    "CONSTANTS": {
-        "COST": 2.0
-    },
-    "VARIABLE_TEMPLATES": {
-        'expr': '@foo * {var}'
-    }
-}
-
-df = _mode_choice_spec(spec, coeffs, settings)
-
-
-print df
-
-
+# spec = pd.DataFrame({
+#     "Alternative": ["One", "One,Two"],
+#     "Expression": ['1', '$expr.format(var="bar")'],
+#     "Work": ['ivt', 'ivt_lr']
+# }).set_index(["Expression"])
+#
+# coeffs = pd.DataFrame({
+#     "Work": ['.7', 'ivt * .7 * COST']
+# }, index=['ivt', 'ivt_lr'])
+#
+# settings = {
+#     "CONSTANTS": {
+#         "COST": 2.0
+#     },
+#     "VARIABLE_TEMPLATES": {
+#         'expr': '@foo * {var}'
+#     }
+# }
+#
+# df = _mode_choice_spec(spec, coeffs, settings)
+#
+#
+# print df
+#
+#
 
 
 nests = orca.get_injectable('tour_mode_choice_settings')['NESTS']

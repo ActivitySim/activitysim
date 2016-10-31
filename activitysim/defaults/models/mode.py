@@ -48,7 +48,8 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
                           tour_mode_choice_settings):
     return _mode_choice_spec(tour_mode_choice_spec_df,
                              tour_mode_choice_coeffs,
-                             tour_mode_choice_settings)
+                             tour_mode_choice_settings,
+                             trace_label='tour_mode_choice')
 
 
 @orca.injectable()

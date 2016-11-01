@@ -344,10 +344,12 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
+    check_for_variability = tracing.check_for_variability()
 
     model_design = eval_variables(spec.index, choosers, locals_d)
 
-    _check_for_variability(model_design, trace_label)
+    if check_for_variability:
+        _check_for_variability(model_design, trace_label)
 
     # matrix product of spec expression evals with utility coefficients of alternatives
     # sums the partial utilities (represented by each spec row) of the alternatives
@@ -407,11 +409,13 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'nl')
+    check_for_variability = tracing.check_for_variability()
 
     # column names of model_design match spec index values
     model_design = eval_variables(spec.index, choosers, locals_d)
 
-    _check_for_variability(model_design, trace_label)
+    if check_for_variability:
+        _check_for_variability(model_design, trace_label)
 
     # raw utilities of all the leaves
 
@@ -529,7 +533,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     return choices
 
 
-def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, check_variability=True):
+def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
 
@@ -587,6 +591,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, chec
     else:
         trace_eval_results = None
 
+    check_for_variability = tracing.check_for_variability()
+
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
 
@@ -601,12 +607,12 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, chec
             else:
                 v = df.eval(expr)
 
-            if check_variability and v.std() == 0:
+            if check_for_variability and v.std() == 0:
                 logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
                 no_variability += 1
 
             # FIXME - how likely is this to happen? Not sure it is really a problem?
-            if check_variability and np.count_nonzero(v.isnull().values) > 0:
+            if check_for_variability and np.count_nonzero(v.isnull().values) > 0:
                 logger.info("%s: missing values in: %s" % (trace_label, expr))
                 has_missing_vals += 1
 

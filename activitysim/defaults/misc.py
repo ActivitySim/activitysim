@@ -92,6 +92,11 @@ def hh_chunk_size(settings):
 
 
 @orca.injectable(cache=True)
+def check_for_variability(settings):
+    return bool(settings.get('check_for_variability', False))
+
+
+@orca.injectable(cache=True)
 def trace_hh_id(settings):
 
     id = settings.get('trace_hh_id', None)

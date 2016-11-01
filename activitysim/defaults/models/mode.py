@@ -135,7 +135,7 @@ def _mode_choice_simulate(tours,
     return choices
 
 
-def get_segment_and_unstack(spec, segment):
+def get_segment_and_unstack(omnibus_spec, segment):
     """
     This does what it says.  Take the spec, get the column from the spec for
     the given segment, and unstack.  It is assumed that the last column of
@@ -147,8 +147,11 @@ def get_segment_and_unstack(spec, segment):
     which original row - otherwise the unstack is incorrect (i.e. the index
     is not unique)
     """
-    return spec[segment].unstack().\
-        reset_index(level="Rowid", drop=True).fillna(0)
+    spec = omnibus_spec[segment].unstack().reset_index(level="Rowid", drop=True).fillna(0)
+
+    spec = spec.groupby(spec.index).sum()
+
+    return spec
 
 
 @orca.step()
@@ -199,10 +202,6 @@ def tour_mode_choice_simulate(tours_merged,
                      (len(segment.index), tour_type, ))
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
-
-        # FIXME - no point in printing verbose dest_taz value_counts now that we have tracing?
-        # tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
-        #                       segment[dest_key], value_counts=True)
 
         spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
 

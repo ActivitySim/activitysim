@@ -23,6 +23,10 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 tracers = {}
 
 
+def check_for_variability():
+    return orca.get_injectable('check_for_variability')
+
+
 def extend_trace_label(trace_label, extension):
     if trace_label:
         trace_label = "%s.%s" % (trace_label, extension)
@@ -33,7 +37,8 @@ def print_elapsed_time(msg=None, t0=None):
     # FIXME - development debugging code to be removed
     t1 = time.time()
     if msg:
-        msg = "Time to execute %s : %s seconds" % (msg, t1 - (t0 or t1))
+        t = t1 - (t0 or t1)
+        msg = "Time to execute %s : %s seconds (%s minutes)" % (msg, round(t, 3), round(t/60.0))
         info(message=msg, log=True)
         print "_%s" % msg
     return t1

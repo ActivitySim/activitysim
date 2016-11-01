@@ -7,6 +7,7 @@ from activitysim import activitysim as asim
 
 import numpy as np
 import pandas as pd
+import orca
 
 from activitysim import tracing
 

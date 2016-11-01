@@ -46,11 +46,7 @@ def evaluate_expression_list(expressions, constants):
     # and must be evaluated in order
     for k, v in expressions.iteritems():
         # make sure it can be converted to a float
-
         result = float(eval(str(v), copy.copy(d), constants))
-
-        print "%s = %s = %s" % (k, v, result)
-
         d[k] = result
 
     return pd.Series(d)

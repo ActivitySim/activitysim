@@ -35,6 +35,9 @@ preload_3d_skims: True
 chunk_size: 10000
 hh_chunk_size: 5000
 
+# comment out or set false to disable
+check_for_variability: False
+
 # area_types less than this are considered urban
 urban_threshold: 4
 cbd_threshold: 2

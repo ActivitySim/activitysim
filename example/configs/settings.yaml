@@ -19,6 +19,10 @@ chunk_size: 10000
 # if not specified, chunk_size setting value is used
 # hh_chunk_size: 5000
 
+# comment out or set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: True
+
+
 # area_types less than this are considered urban
 urban_threshold: 4
 cbd_threshold: 2

@@ -172,8 +172,7 @@ def tour_mode_choice_simulate(tours_merged,
     if trace_hh_id:
         tracing.register_tours(tours, trace_hh_id)
 
-    tracing.info(__name__,
-                 "Running tour_mode_choice_simulate with %d tours" % len(tours.index))
+    logger.info("Running tour_mode_choice_simulate with %d tours" % len(tours.index))
 
     tracing.print_summary('tour_mode_choice_simulate tour_type',
                           tours.tour_type, value_counts=True)
@@ -197,9 +196,8 @@ def tour_mode_choice_simulate(tours_merged,
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
 
-        tracing.info(__name__,
-                     "tour_mode_choice_simulate running %s tour_type '%s'" %
-                     (len(segment.index), tour_type, ))
+        logger.info("tour_mode_choice_simulate running %s tour_type '%s'" %
+                    (len(segment.index), tour_type, ))
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
@@ -260,20 +258,20 @@ def trip_mode_choice_simulate(tours_merged,
                               trace_hh_id):
 
     # FIXME - running the trips model on tours
-    tracing.error(__name__, 'trips not implemented running the trips model on tours')
+    logging.error('trips not implemented running the trips model on tours')
 
     trips = tours_merged.to_frame()
 
     nest_spec = get_logit_model_settings(trip_mode_choice_settings)
     constants = get_model_constants(trip_mode_choice_settings)
 
-    tracing.info(__name__, "Running trip_mode_choice_simulate with %d trips" % len(trips))
+    logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
 
     choices_list = []
 
     for tour_type, segment in trips.groupby('tour_type'):
 
-        tracing.info(__name__, "running %s tour_type '%s'" % (len(segment.index), tour_type, ))
+        logger.info("running %s tour_type '%s'" % (len(segment.index), tour_type, ))
 
         orig_key = 'TAZ'
         dest_key = 'destination'
@@ -320,7 +318,7 @@ def trip_mode_choice_simulate(tours_merged,
     orca.add_column("trips", "mode", choices)
 
     if trace_hh_id:
-        tracing.warn(__name__, "can't dump trips table because it doesn't exist")
+        logger.warn("can't dump trips table because it doesn't exist")
         # FIXME - commented out because trips table doesn't really exist
         # trace_columns = ['mode']
         # tracing.trace_df(orca.get_table('trips').to_frame(),

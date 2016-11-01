@@ -29,27 +29,6 @@ def add_canonical_dirs():
     orca.add_injectable("output_dir", output_dir)
 
 
-def test_get_tracer(capsys):
-
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
-
-    tracing.get_tracer().warn("calling get_tracer before config_logger")
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    logfile_name = os.path.join(output_dir, 'asim.log')
-    with open(logfile_name, 'r') as f:
-        log = f.read()
-
-    assert "Initialized tracer activitysim.trace fileHandler" in log
-
-    close_handlers()
-
-
 def test_bad_custom_config_file(capsys):
 
     add_canonical_dirs()
@@ -68,11 +47,6 @@ def test_bad_custom_config_file(capsys):
     logger.info('log_info')
     logger.warn('log_warn1')
 
-    tracing.debug(__name__, 'test-debug-tracing')
-    tracing.info(__name__, 'test-info-tracing')
-    tracing.warn(__name__, 'test-warn-tracing')
-    tracing.error(__name__, 'test-error-tracing')
-
     out, err = capsys.readouterr()
 
     # don't consume output
@@ -81,11 +55,6 @@ def test_bad_custom_config_file(capsys):
     assert "could not find conf file" in out
     assert 'log_warn1' in out
     assert 'log_info' not in out
-
-    assert 'test-debug-tracing' not in out
-    assert 'test-info-tracing' not in out
-    assert 'test-warn-tracing' in out
-    assert 'test-error-tracing' in out
 
     close_handlers()
 

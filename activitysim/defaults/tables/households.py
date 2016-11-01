@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
+
 import numpy as np
 import orca
 import pandas as pd
@@ -8,6 +10,9 @@ import pandas as pd
 from activitysim import activitysim as asim
 from activitysim import tracing
 from activitysim.util import reindex
+
+logger = logging.getLogger(__name__)
+
 
 # not actually used, but helpful for dumping/documenting the contents of store
 # @orca.table(cache=True)
@@ -36,8 +41,8 @@ def households(set_random_seed, store, households_sample_size, trace_hh_id):
         # if tracing and we missed trace_hh in sample, but it is in full store
         if trace_hh_id and trace_hh_id not in df.index and trace_hh_id in df_full.index:
                 # replace first hh in sample with trace_hh
-                tracing.get_tracer().warn("replacing household %s with %s in household sample" %
-                                          (df.index[0], trace_hh_id))
+                logger.warn("replacing household %s with %s in household sample" %
+                            (df.index[0], trace_hh_id))
                 df_hh = tracing.slice_ids(df_full, trace_hh_id)
                 df = pd.concat([df_hh, df[1:]])
 
@@ -46,8 +51,7 @@ def households(set_random_seed, store, households_sample_size, trace_hh_id):
 
     if trace_hh_id:
         tracing.register_households(df, trace_hh_id)
-        tracing.trace_df(df, "households",
-                         warn_if_empty=True)
+        tracing.trace_df(df, "households", warn_if_empty=True)
 
     return df
 

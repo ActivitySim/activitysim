@@ -19,13 +19,8 @@ logging:
       handlers: [console, logfile]
       propagate: false
 
-    activitysim.trace:
-      level: !!python/name:logging.DEBUG
-      handlers: [console, tracefile]
-      propagate: false
-
     orca:
-      level: !!python/name:logging.INFO
+      level: !!python/name:logging.WARN
       handlers: [console, logfile]
       propagate: false
 
@@ -39,20 +34,12 @@ logging:
       #level: !!python/name:logging.NOTSET
       level: !!python/name:logging.DEBUG
 
-    tracefile:
-      class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.tracing.log_file_path ['hhtrace.log']
-      mode: w
-      formatter: traceFormatter
-      #level: !!python/name:logging.NOTSET
-      level: !!python/name:logging.DEBUG
-
     console:
       class: logging.StreamHandler
       stream: ext://sys.stdout
       formatter: simpleFormatter
       #level: !!python/name:logging.NOTSET
-      level: !!python/name:logging.INFO
+      level: !!python/name:logging.DEBUG
 
 
   formatters:
@@ -67,7 +54,3 @@ logging:
       format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
 
-    traceFormatter:
-      class: !!python/name:logging.Formatter
-      format: '%(levelname)s - %(message)s'
-      datefmt: '%d/%m/%Y %H:%M:%S'

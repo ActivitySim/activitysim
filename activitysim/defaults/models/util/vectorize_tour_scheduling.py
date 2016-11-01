@@ -121,9 +121,8 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
         nth_tours.index.name = 'tour_id'
 
         if trace_label:
-            tracing.info(__name__,
-                         "vectorize_tour_scheduling %s running %d #%d tour choices" %
-                         (trace_label, len(nth_tours), i+1))
+            logger.info("vectorize_tour_scheduling %s running %d #%d tour choices" %
+                        (trace_label, len(nth_tours), i+1))
 
         # tour num can be set by the user, but if it isn't we set it here
         if "tour_num" not in nth_tours:

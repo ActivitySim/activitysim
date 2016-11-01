@@ -4,7 +4,6 @@
 import logging
 import itertools
 
-
 import numpy as np
 import pandas as pd
 from zbox import toolz as tz, gen
@@ -15,7 +14,6 @@ from .. import nl
 
 from .. import tracing
 from ..tracing import print_elapsed_time
-
 
 logger = logging.getLogger(__name__)
 
@@ -928,10 +926,9 @@ def run_cdap(
     # segment by person type and pick the right spec for each person type
     for i, persons_chunk in hh_chunked_choosers(persons):
 
-        logger.info("run_cdap running hh_chunk = %s with %d persons"
-                    % (i, len(persons_chunk)))
+        logger.info("Running chunk %s of with %d persons" % (i, len(persons_chunk)))
 
-        chunk_trace_label = tracing.extend_trace_label(trace_label, '.chunk_%s' % i)
+        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i)
 
         choices = _run_cdap(persons_chunk,
                             cdap_indiv_spec,

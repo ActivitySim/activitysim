@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 
 import os
+import logging
 
 import orca
 
@@ -9,6 +10,9 @@ from activitysim import activitysim as asim
 from activitysim import tracing
 from .util.misc import add_dependent_columns
 from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+
+
+logger = logging.getLogger(__name__)
 
 
 @orca.injectable()
@@ -32,8 +36,7 @@ def auto_ownership_simulate(set_random_seed, households_merged,
     with given characteristics owns
     """
 
-    tracing.info(__name__,
-                 "Running auto_ownership_simulate with %d households" % len(households_merged))
+    logger.info("Running auto_ownership_simulate with %d households" % len(households_merged))
 
     nest_spec = get_logit_model_settings(auto_ownership_settings)
     constants = get_model_constants(auto_ownership_settings)

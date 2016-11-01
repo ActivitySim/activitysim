@@ -1,9 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
+
 import numpy as np
 import pandas as pd
-import logging
 
 
 logger = logging.getLogger(__name__)

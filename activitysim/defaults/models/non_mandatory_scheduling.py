@@ -43,8 +43,7 @@ def non_mandatory_scheduling(set_random_seed,
 
     tours = non_mandatory_tours_merged.to_frame()
 
-    tracing.info(__name__,
-                 "Running non_mandatory_scheduling with %d tours" % len(tours))
+    logger.info("Running non_mandatory_scheduling with %d tours" % len(tours))
 
     constants = get_model_constants(non_mandatory_scheduling_settings)
 

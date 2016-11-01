@@ -14,6 +14,9 @@ from activitysim import tracing
 from .util.misc import read_model_settings, get_model_constants
 
 
+logger = logging.getLogger(__name__)
+
+
 class AccessibilitySkims(object):
     """
     Wrapper for skim arrays to facilitate use of skims by accessibility model
@@ -49,8 +52,7 @@ class AccessibilitySkims(object):
             data = self.skims.get_skim(key).data
         except KeyError:
             omx_key = '__'.join(key)
-            tracing.info(__name__,
-                         message="AccessibilitySkims loading %s from omx as %s" % (key, omx_key,))
+            logger.info("AccessibilitySkims loading %s from omx as %s" % (key, omx_key,))
             data = self.omx[omx_key]
 
         data = data[:self.length, :self.length]
@@ -98,8 +100,7 @@ def compute_accessibility(settings, accessibility_spec,
     steeper than automobile or transit.  The minimum accessibility is zero.
     """
 
-    tracing.info(__name__,
-                 "Running compute_accessibility")
+    logger.info("Running compute_accessibility")
 
     constants = get_model_constants(accessibility_settings)
     land_use_columns = accessibility_settings.get('land_use_columns', [])
@@ -148,8 +149,7 @@ def compute_accessibility(settings, accessibility_spec,
     if trace_od:
 
         if not trace_od_rows.any():
-            tracing.warn(__name__,
-                         "trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
+            logger.warn("trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
         else:
 
             # add OD columns to trace results

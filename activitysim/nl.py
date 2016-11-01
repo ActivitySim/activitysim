@@ -10,6 +10,7 @@ import pandas as pd
 
 import tracing
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -52,8 +53,8 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None):
         else:
             hh_id = tracing.hh_id_for_chooser(idx, trace_choosers)
 
-        msg = "%s : %s in: %s = %s (hh_id = %s)" % (trace_label, msg, df.index.name, idx, hh_id)
-        logger.critical(msg)
+        row_msg = "%s : %s in: %s = %s (hh_id = %s)" % (trace_label, msg, df.index.name, idx, hh_id)
+        logger.critical(row_msg)
 
     raise RuntimeError(msg_with_count)
 
@@ -120,9 +121,8 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
                            msg="infinite exponentiated utilities",
                            trace_choosers=trace_choosers)
 
-    np.divide(
-        utils_arr, arr_sum.reshape(len(utils_arr), 1),
-        out=utils_arr)
+    # if allow_zero_probs, this may cause a RuntimeWarning: invalid value encountered in divide
+    np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
 
     PROB_MIN = 0.0
     PROB_MAX = 1.0

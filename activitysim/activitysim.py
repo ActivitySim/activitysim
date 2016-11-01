@@ -234,6 +234,9 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
         else:
             # nest node
             # the alternative nested_utilities will already have been computed due to post_order
+            # this will RuntimeWarning: divide by zero encountered in log
+            # if all nest alternative utilities are zero
+            # but the resulting inf will become 0 when exp is applied below
             nested_utilities[name] = \
                 nest.coefficient * np.log(nested_utilities[nest.alternatives].sum(axis=1))
 
@@ -358,8 +361,8 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
 
     utilities = model_design.dot(spec)
 
-    probs = utils_to_probs(utilities, trace_label=trace_label)
-    choices = make_choices(probs, trace_label=trace_label)
+    probs = utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    choices = make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
 
     if trace_label:
 
@@ -448,7 +451,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
                            tag='bad_probs',
                            msg="base_probabilities all zero")
 
-    choices = make_choices(base_probabilities, trace_label)
+    choices = make_choices(base_probabilities, trace_label, trace_choosers=choosers)
 
     if trace_label:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
@@ -819,10 +822,11 @@ def chunked_choosers(choosers, chunk_size):
     chunk_size = int(chunk_size)
     num_choosers = len(choosers.index)
 
-    i = 0
-    while i < num_choosers:
-        yield i, choosers[i: i+chunk_size]
-        i += chunk_size
+    i = offset = 0
+    while offset < num_choosers:
+        yield i, choosers[offset: offset+chunk_size]
+        offset += chunk_size
+        i += 1
 
 
 def interaction_simulate(
@@ -897,11 +901,12 @@ def interaction_simulate(
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
 
-        logger.info("Running chunk =%s of size %d" % (i, len(chooser_chunk)))
+        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,
-                                        trace_label, trace_choice_name)
+                                        tracing.extend_trace_label(trace_label, 'chunk_%s' % i),
+                                        trace_choice_name)
 
         choices_list.append(choices)
 

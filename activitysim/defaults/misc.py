@@ -85,10 +85,8 @@ def chunk_size(settings):
 
 @orca.injectable(cache=True)
 def hh_chunk_size(settings):
-    if 'hh_chunk_size' in settings:
-        return int(settings.get('hh_chunk_size', 0))
-    else:
-        return int(settings.get('chunk_size', 0))
+    # if hh_chunk_size set nonzero, use it, otherwise fall back to chunk_size
+    return int(settings.get('hh_chunk_size', 0)) or int(settings.get('chunk_size', 0))
 
 
 @orca.injectable(cache=True)

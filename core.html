@@ -286,7 +286,7 @@ nested_exp_utilities : pandas.DataFrame</p>
 
 <dl class="function">
 <dt id="activitysim.activitysim.eval_interaction_utilities">
-<code class="descclassname">activitysim.activitysim.</code><code class="descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em>spec</em>, <em>df</em>, <em>locals_d</em>, <em>trace_label</em>, <em>trace_rows</em>, <em>check_variability=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.activitysim.</code><code class="descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em>spec</em>, <em>df</em>, <em>locals_d</em>, <em>trace_label</em>, <em>trace_rows</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the utilities for a single-alternative spec evaluated in the context of df</p>
 <p>We could compute the utilities for interaction datasets just as we do for simple_simulate
 specs with multiple alternative columns byt calling eval_variables and then computing the
@@ -1065,7 +1065,7 @@ len(alternatives) or <cite>sample_size</cite> times.</p>
 
 <dl class="function">
 <dt id="activitysim.nl.make_choices">
-<code class="descclassname">activitysim.nl.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.make_choices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.nl.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em>, <em>trace_label=None</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.make_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make choices for each chooser from among a set of alternatives.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1076,6 +1076,12 @@ len(alternatives) or <cite>sample_size</cite> times.</p>
 <div><p>Rows for choosers and columns for the alternatives from which they
 are choosing. Values are expected to be valid probabilities across
 each row, e.g. they should sum to 1.</p>
+</div></blockquote>
+<p><strong>trace_choosers</strong> : pandas.dataframe</p>
+<blockquote>
+<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+by report_bad_choices because it can&#8217;t deduce hh_id from the interaction_dataset
+which is indexed on index values from alternatives df</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1091,9 +1097,40 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.nl.report_bad_choices">
+<code class="descclassname">activitysim.nl.</code><code class="descname">report_bad_choices</code><span class="sig-paren">(</span><em>bad_row_map</em>, <em>df</em>, <em>trace_label</em>, <em>msg</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.report_bad_choices" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bad_row_map</strong></p>
+<p><strong>df</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>utils or probs dataframe</p>
+</div></blockquote>
+<p><strong>msg</strong> : str</p>
+<blockquote>
+<div><p>message describing the type of bad choice that necessitates error being thrown</p>
+</div></blockquote>
+<p><strong>trace_choosers</strong> : pandas.dataframe</p>
+<blockquote>
+<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+because we  can&#8217;t deduce hh_id from the interaction_dataset which is indexed on index
+values from alternatives df</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">raises RuntimeError</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.nl.utils_to_probs">
-<code class="descclassname">activitysim.nl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>trace_label=None</em>, <em>exponentiated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a table of utilities to exponentiated probabilities.</p>
+<code class="descclassname">activitysim.nl.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>trace_label=None</em>, <em>exponentiated=False</em>, <em>allow_zero_probs=False</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.nl.utils_to_probs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a table of utilities to probabilities.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1106,9 +1143,25 @@ is an index into the columns of <cite>probs</cite>.</p>
 <blockquote>
 <div><p>label for tracing bad utility or probability values</p>
 </div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>&#8212;&#8212;-</strong></p>
-<p><strong>probs</strong> : pandas.DataFrame</p>
+<p><strong>exponentiated</strong> : bool</p>
+<blockquote>
+<div><p>True if utilities have already been exponentiated</p>
+</div></blockquote>
+<p><strong>allow_zero_probs</strong> : bool</p>
+<blockquote>
+<div><p>if True value rows in which all utility alts are EXP_UTIL_MIN will result
+in rows in probs to have all zero probability (and not sum to 1.0)
+This si for hte benefit of calculating probabilities of nested logit nests</p>
+</div></blockquote>
+<p><strong>trace_choosers</strong> : pandas.dataframe</p>
+<blockquote>
+<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+by report_bad_choices because it can&#8217;t deduce hh_id from the interaction_dataset
+which is indexed on index values from alternatives df</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>Will have the same index and columns as <cite>utils</cite>.</p>
 </div></blockquote>
@@ -1153,12 +1206,6 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.tracing.debug">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">debug</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>same as info but debug</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.tracing.delete_csv_files">
 <code class="descclassname">activitysim.tracing.</code><code class="descname">delete_csv_files</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.delete_csv_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Delete CSV files</p>
@@ -1180,54 +1227,32 @@ is an index into the columns of <cite>probs</cite>.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.tracing.error">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">error</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.error" title="Permalink to this definition">¶</a></dt>
-<dd><p>same as info but warn</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.tracing.get_tracer">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">get_tracer</code><span class="sig-paren">(</span><em>name='activitysim.trace'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.get_tracer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get tracer</p>
+<dt id="activitysim.tracing.get_trace_target">
+<code class="descclassname">activitysim.tracing.</code><code class="descname">get_trace_target</code><span class="sig-paren">(</span><em>df</em>, <em>slicer</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.get_trace_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>get target ids and column or index to identify target trace rows in df</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name: str</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
 <blockquote>
-<div><p>tracer name</p>
+<div><p>dataframe to slice</p>
+</div></blockquote>
+<p><strong>slicer: str</strong></p>
+<blockquote>
+<div><p>name of column or index to use for slicing</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tracer: Tracer</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(target, column) tuple</p>
+<p><strong>target</strong> : int or list of ints</p>
+<blockquote>
+<div><p>id or ids that identify tracer target rows</p>
+</div></blockquote>
+<p><strong>column</strong> : str</p>
 <blockquote class="last">
-<div><p>tracer</p>
+<div><p>name of column to search for targets or None to search index</p>
 </div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.tracing.info">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">info</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.info" title="Permalink to this definition">¶</a></dt>
-<dd><p>write message to logger and/or tracer if household tracing enabled</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>logger: logger</strong></p>
-<blockquote>
-<div><p>standard logger to write to (or not if None)</p>
-</div></blockquote>
-<p><strong>message:</strong></p>
-<blockquote>
-<div><p>logging message to write to logger and/or tracer</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
 </td>
 </tr>
 </tbody>
@@ -1564,12 +1589,6 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.tracing.warn">
-<code class="descclassname">activitysim.tracing.</code><code class="descname">warn</code><span class="sig-paren">(</span><em>name='activitysim.tracing'</em>, <em>message=None</em>, <em>log=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.tracing.warn" title="Permalink to this definition">¶</a></dt>
-<dd><p>same as info but warn</p>
 </dd></dl>
 
 <dl class="function">

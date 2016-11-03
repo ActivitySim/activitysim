@@ -5,6 +5,8 @@
 import pytest
 import pandas as pd
 import numpy as np
+import orca
+
 import pandas.util.testing as pdt
 from ..vectorize_tour_scheduling import get_previous_tour_by_tourid, \
     vectorize_tour_scheduling
@@ -45,6 +47,8 @@ def test_vts():
     spec = pd.DataFrame({"Coefficient": [1.2]},
                         index=["income"])
     spec.index.name = "Expression"
+
+    orca.add_injectable("check_for_variability", True)
 
     choices = vectorize_tour_scheduling(tours, alts, spec)
 

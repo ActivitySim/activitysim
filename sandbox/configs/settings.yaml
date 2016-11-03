@@ -20,8 +20,12 @@ households_sample_size: 1000
 # trace_hh_id: 372947
 
 # 4 members
-trace_hh_id: 356174
+# trace_hh_id: 356174
 
+# zero prob for school location with unfiltered alternatives
+# trace_hh_id: 862924
+
+trace_hh_id:  238516
 
 # trace origin, destination in accessibility calculation
 # trace_od: [5, 11]
@@ -30,6 +34,9 @@ trace_hh_id: 356174
 preload_3d_skims: True
 chunk_size: 10000
 hh_chunk_size: 5000
+
+# comment out or set false to disable
+check_for_variability: False
 
 # area_types less than this are considered urban
 urban_threshold: 4

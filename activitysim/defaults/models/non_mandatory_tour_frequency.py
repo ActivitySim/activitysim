@@ -67,8 +67,7 @@ def non_mandatory_tour_frequency(set_random_seed,
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
 
-    tracing.info(__name__,
-                 "Running non_mandatory_tour_frequency with %d persons" % len(choosers))
+    logger.info("Running non_mandatory_tour_frequency with %d persons" % len(choosers))
 
     constants = get_model_constants(non_mandatory_tour_frequency_settings)
 

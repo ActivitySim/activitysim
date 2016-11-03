@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
 import os
 
 import orca
@@ -11,6 +12,9 @@ from activitysim import tracing
 
 from .util.misc import read_model_settings, get_model_constants
 from activitysim.cdap import cdap
+
+
+logger = logging.getLogger(__name__)
 
 
 @orca.injectable()
@@ -79,8 +83,7 @@ def cdap_simulate(persons_merged,
 
     constants = get_model_constants(cdap_settings)
 
-    tracing.info(__name__,
-                 "Running cdap_simulate with %d persons" % len(persons_df.index))
+    logger.info("Running cdap_simulate with %d persons" % len(persons_df.index))
 
     choices = cdap.run_cdap(persons=persons_df,
                             cdap_indiv_spec=cdap_indiv_spec,

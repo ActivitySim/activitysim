@@ -49,8 +49,7 @@ def workplace_location_simulate(set_random_seed,
 
     constants = get_model_constants(workplace_location_settings)
 
-    tracing.info(__name__,
-                 "Running workplace_location_simulate with %d persons" % len(choosers))
+    logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
 
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction

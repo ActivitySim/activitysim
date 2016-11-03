@@ -24,7 +24,7 @@ SKIP_FULL_RUN = False
 
 
 def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None,
-                    trace_hh_id=None, trace_od=None):
+                    trace_hh_id=None, trace_od=None, check_for_variability=None):
 
     with open(os.path.join(configs_dir, 'settings.yaml')) as f:
         settings = yaml.load(f)
@@ -37,6 +37,8 @@ def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, 
             settings['trace_hh_id'] = trace_hh_id
         if trace_od is not None:
             settings['trace_od'] = trace_od
+        if check_for_variability is not None:
+            settings['check_for_variability'] = check_for_variability
 
     orca.add_injectable("settings", settings)
 
@@ -112,7 +114,7 @@ def test_mini_run(random_seed):
 
 def full_run(preload_3d_skims, chunk_size=0,
              households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-             trace_hh_id=None, trace_od=None):
+             trace_hh_id=None, trace_od=None, check_for_variability=None):
 
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example', 'configs')
     orca.add_injectable("configs_dir", configs_dir)
@@ -128,7 +130,8 @@ def full_run(preload_3d_skims, chunk_size=0,
                     preload_3d_skims=preload_3d_skims,
                     chunk_size=chunk_size,
                     trace_hh_id=trace_hh_id,
-                    trace_od=trace_od)
+                    trace_od=trace_od,
+                    check_for_variability=check_for_variability)
 
     orca.add_injectable("set_random_seed", set_random_seed)
 
@@ -175,7 +178,7 @@ def test_full_run():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(preload_3d_skims=False)
+    tour_count = full_run(preload_3d_skims=False, check_for_variability=True)
     assert(tour_count == 230)
 
 

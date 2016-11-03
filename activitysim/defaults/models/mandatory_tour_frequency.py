@@ -42,8 +42,7 @@ def mandatory_tour_frequency(set_random_seed,
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'M']
-    tracing.info(__name__,
-                 "Running mandatory_tour_frequency with %d persons" % len(choosers))
+    logger.info("Running mandatory_tour_frequency with %d persons" % len(choosers))
 
     nest_spec = get_logit_model_settings(mandatory_tour_frequency_settings)
     constants = get_model_constants(mandatory_tour_frequency_settings)

@@ -1,10 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-import sys
 import logging
 import logging.config
+import os
+import sys
 import time
 
 import yaml
@@ -13,23 +13,37 @@ import numpy as np
 import pandas as pd
 import orca
 
+
 # Configurations
-TRACE_LOGGER = 'activitysim.trace'
 ASIM_LOGGER = 'activitysim'
 CSV_FILE_TYPE = 'csv'
 LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
-# Tracers
-tracers = {}
+
+logger = logging.getLogger(__name__)
+
+
+def trace_logger():
+    return logger
+
+
+def check_for_variability():
+    return orca.get_injectable('check_for_variability')
+
+
+def extend_trace_label(trace_label, extension):
+    if trace_label:
+        trace_label = "%s.%s" % (trace_label, extension)
+    return trace_label
 
 
 def print_elapsed_time(msg=None, t0=None):
     # FIXME - development debugging code to be removed
     t1 = time.time()
     if msg:
-        msg = "Time to execute %s : %s seconds" % (msg, t1 - (t0 or t1))
-        info(message=msg, log=True)
-        print "_%s" % msg
+        t = t1 - (t0 or t1)
+        msg = "Time to execute %s : %s seconds (%s minutes)" % (msg, round(t, 3), round(t/60.0))
+        logger.info(msg)
     return t1
 
 
@@ -132,95 +146,6 @@ def config_logger(custom_config_file=None, basic=False):
     delete_csv_files(output_dir)
 
 
-def get_tracer(name=TRACE_LOGGER):
-    """
-    Get tracer
-
-    Parameters
-    ----------
-    name: str
-        tracer name
-
-    Returns
-    -------
-    tracer: Tracer
-        tracer
-    """
-    tracer = logging.getLogger(name)
-
-    if (len(tracer.handlers) == 0):
-
-        tracer.propagate = False
-        tracer.setLevel(logging.INFO)
-
-        file_path = log_file_path('asim.log')
-        fileHandler = logging.FileHandler(filename=file_path, mode='w')
-        tracer.addHandler(fileHandler)
-
-        tracer.info("Initialized tracer %s fileHandler %s" % (name, file_path))
-
-        if name != ASIM_LOGGER:
-            logger = logging.getLogger(ASIM_LOGGER)
-            logger.info("Initialized tracer %s fileHandler %s" % (name, file_path))
-
-    return tracer
-
-
-def info(name=__name__, message=None, log=True):
-    """
-    write message to logger and/or tracer if household tracing enabled
-
-    Parameters
-    ----------
-    logger: logger
-        standard logger to write to (or not if None)
-    message:
-        logging message to write to logger and/or tracer
-
-    Returns
-    -------
-    Nothing
-    """
-    if log:
-        logging.getLogger(name).info(message)
-
-    if orca.get_injectable('enable_trace_log'):
-        get_tracer().info("%s - %s" % (name, message))
-
-
-def debug(name=__name__, message=None, log=True):
-    """
-    same as info but debug
-    """
-    if log:
-        logging.getLogger(name).debug(message)
-
-    if orca.get_injectable('enable_trace_log'):
-        get_tracer().debug("%s - %s" % (name, message))
-
-
-def warn(name=__name__, message=None, log=True):
-    """
-    same as info but warn
-    """
-    if log:
-        logging.getLogger(name).warn(message)
-
-    if orca.get_injectable('enable_trace_log'):
-        get_tracer().warn("%s - %s" % (name, message))
-
-
-def error(name=__name__, message=None, log=True):
-    """
-    same as info but warn
-    """
-    if log:
-        logging.getLogger(name).error(message)
-
-    if orca.get_injectable('enable_trace_log'):
-        get_tracer().error("%s - %s" % (name, message))
-
-
 def print_summary(label, df, describe=False, value_counts=False):
     """
     Print summary
@@ -242,7 +167,7 @@ def print_summary(label, df, describe=False, value_counts=False):
     """
 
     if not (value_counts or describe):
-        error(__name__, "print_summary neither value_counts nor describe")
+        logger.error("print_summary neither value_counts nor describe")
 
     if value_counts:
         print "\n%s choices value counts:\n%s\n" % (label, df.value_counts())
@@ -266,24 +191,23 @@ def register_households(df, trace_hh_id):
     -------
     Nothing
     """
-    tracer = get_tracer()
 
     if trace_hh_id is None:
-        error(message="register_households called with null trace_hh_id")
+        logger.error("register_households called with null trace_hh_id")
         return
 
-    info(message="tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
+    logger.info("tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
 
     if trace_hh_id not in df.index:
-        warn(message="trace_hh_id %s not in dataframe" % trace_hh_id)
+        logger.warn("trace_hh_id %s not in dataframe" % trace_hh_id)
 
     # inject persons_index name of person dataframe index
     if df.index.name is None:
         df.index.names = ['household_id']
-        warn(message="households table index had no name. renamed index '%s'" % df.index.name)
+        logger.warn("households table index had no name. renamed index '%s'" % df.index.name)
     orca.add_injectable("hh_index_name", df.index.name)
 
-    debug(message="register_households injected hh_index_name '%s'" % df.index.name)
+    logger.debug("register_households injected hh_index_name '%s'" % df.index.name)
 
 
 def register_tours(df, trace_hh_id):
@@ -301,10 +225,9 @@ def register_tours(df, trace_hh_id):
     -------
     Nothing
     """
-    tracer = get_tracer()
 
     if trace_hh_id is None:
-        warn(message="register_tours called with null trace_hh_id")
+        logger.warn("register_tours called with null trace_hh_id")
         return
 
     # inject list of tour_ids in household we are tracing
@@ -315,19 +238,19 @@ def register_tours(df, trace_hh_id):
 
     # since trace_hh_id is defined, we expect some trace_person_ids
     if not person_ids:
-        error(message="register_tours called before register_persons")
+        logger.error("register_tours called before register_persons")
         raise RuntimeError('register_tours called before register_persons')
 
     traced_tours_df = slice_ids(df, person_ids, column='person_id')
 
     trace_tour_ids = traced_tours_df.index.tolist()
     if len(trace_tour_ids) == 0:
-        warn(message="register_tours: person_ids %s not found." % person_ids)
+        logger.warn("register_tours: person_ids %s not found." % person_ids)
 
     orca.add_injectable("trace_tour_ids", trace_tour_ids)
-    debug(message="register_tours injected trace_tour_ids %s" % trace_tour_ids)
+    logger.debug("register_tours injected trace_tour_ids %s" % trace_tour_ids)
 
-    info(message="tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
+    logger.info("tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
 
 
 def register_persons(df, trace_hh_id):
@@ -345,31 +268,30 @@ def register_persons(df, trace_hh_id):
     -------
     Nothing
     """
-    tracer = get_tracer()
 
     if trace_hh_id is None:
-        warn(message="register_persons called with null trace_hh_id")
+        logger.warn("register_persons called with null trace_hh_id")
         return
 
     # inject persons_index name of person dataframe index
     if df.index.name is None:
         df.index.names = ['person_id']
-        warn(message="persons table index had no name. renamed index '%s'" % df.index.name)
+        logger.warn("persons table index had no name. renamed index '%s'" % df.index.name)
     orca.add_injectable("persons_index_name", df.index.name)
 
-    debug(message="register_persons injected persons_index_name '%s'" % df.index.name)
+    logger.debug("register_persons injected persons_index_name '%s'" % df.index.name)
 
     # inject list of person_ids in household we are tracing
     # this allows us to slice by person_id without requiring presence of household_id column
     traced_persons_df = df[df['household_id'] == trace_hh_id]
     trace_person_ids = traced_persons_df.index.tolist()
     if len(trace_person_ids) == 0:
-        warn(message="register_persons: trace_hh_id %s not found." % trace_hh_id)
+        logger.warn("register_persons: trace_hh_id %s not found." % trace_hh_id)
 
     orca.add_injectable("trace_person_ids", trace_person_ids)
-    debug(message="register_persons injected trace_person_ids %s" % trace_person_ids)
+    logger.debug("register_persons injected trace_person_ids %s" % trace_person_ids)
 
-    info(message="tracing person_ids %s in %s persons" % (trace_person_ids, len(df.index)))
+    logger.info("tracing person_ids %s in %s persons" % (trace_person_ids, len(df.index)))
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
@@ -447,16 +369,16 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
 
     if os.path.isfile(file_path):
-        error(message="write_csv file exists %s %s" % (type(df).__name__, file_name))
+        logger.error("write_csv file exists %s %s" % (type(df).__name__, file_name))
 
     if isinstance(df, pd.DataFrame):
-        debug(message="dumping %s dataframe to %s" % (df.shape, file_name))
+        logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
         write_df_csv(df, file_path, index_label, columns, column_labels, transpose=transpose)
     elif isinstance(df, pd.Series):
-        debug(message="dumping %s element series to %s" % (len(df.index), file_name))
+        logger.debug("dumping %s element series to %s" % (len(df.index), file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
-        error(message="write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
+        logger.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
 
 
 def slice_ids(df, ids, column=None):
@@ -482,8 +404,6 @@ def slice_ids(df, ids, column=None):
         ids = [ids]
     try:
         if column is None:
-            # FIXME - this returns empty rows for ids that are not found
-            # df = df.loc[ids]
             df = df[df.index.isin(ids)]
         else:
             df = df[df[column].isin(ids)]
@@ -493,6 +413,71 @@ def slice_ids(df, ids, column=None):
         raise RuntimeError("slice_ids slicer column '%s' not in dataframe" % column)
 
     return df
+
+
+def get_trace_target(df, slicer):
+    """
+    get target ids and column or index to identify target trace rows in df
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        dataframe to slice
+    slicer: str
+        name of column or index to use for slicing
+
+    Returns
+    -------
+    (target, column) tuple
+
+    target : int or list of ints
+        id or ids that identify tracer target rows
+    column : str
+        name of column to search for targets or None to search index
+    """
+
+    if slicer is None:
+        slicer = df.index.name
+
+    target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
+    column = None  # column name to slice on or None to slice on index
+
+    if len(df.index) == 0:
+        target_ids = None
+    elif slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
+        target_ids = orca.get_injectable('trace_person_ids')
+    elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
+        target_ids = orca.get_injectable('trace_hh_id')
+    elif slicer == 'person_id':
+        target_ids = orca.get_injectable('trace_person_ids')
+        column = slicer
+    elif slicer == 'hh_id':
+        target_ids = orca.get_injectable('trace_hh_id')
+        column = slicer
+    elif slicer == 'tour_id':
+        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
+            target_ids = orca.get_injectable('trace_person_ids')
+            column = 'person_id'
+        else:
+            # trace_tour_ids
+            try:
+                target_ids = orca.get_injectable('trace_tour_ids')
+            except:
+                logger.error("trace_tour_ids error getting trace_tour_ids for index %s columns %s"
+                             % (df.index.name, df.columns.values))
+                raise
+    elif slicer == 'TAZ' or slicer == 'ZONE':
+        target_ids = orca.get_injectable('trace_od')
+    elif slicer == 'NONE':
+        target_ids = None
+    else:
+        logger.error("slice_canonically: bad slicer '%s'" % (slicer, ))
+        raise RuntimeError("slice_canonically: bad slicer '%s'" % (slicer, ))
+
+    if target_ids and not isinstance(target_ids, (list, tuple)):
+        target_ids = [target_ids]
+
+    return target_ids, column
 
 
 def slice_canonically(df, slicer, label, warn_if_empty=False):
@@ -513,53 +498,45 @@ def slice_canonically(df, slicer, label, warn_if_empty=False):
     sliced subset of dataframe
     """
 
-    if slicer is None:
-        slicer = df.index.name
+    target_ids, column = get_trace_target(df, slicer)
 
-    target = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
-    column = None  # column name to slice on or None to slice on index
-
-    if len(df.index) == 0:
-        target = None
-    elif slicer == 'PERID' or slicer == orca.get_injectable('persons_index_name'):
-        target = orca.get_injectable('trace_person_ids')
-    elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
-        target = orca.get_injectable('trace_hh_id')
-    elif slicer == 'person_id':
-        target = orca.get_injectable('trace_person_ids')
-        column = slicer
-    elif slicer == 'hh_id':
-        target = orca.get_injectable('trace_hh_id')
-        column = slicer
-    elif slicer == 'tour_id':
-        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target = orca.get_injectable('trace_person_ids')
-            column = 'person_id'
-        else:
-            # trace_tour_ids
-            try:
-                target = orca.get_injectable('trace_tour_ids')
-            except:
-                error(message="trace_tour_ids error in %s index %s columns %s"
-                              % (label, df.index.name, df.columns.values))
-                raise
-    elif slicer == 'TAZ' or slicer == 'ZONE':
-        target = orca.get_injectable('trace_od')
-    elif slicer == 'NONE':
-        target = None
-    else:
-        error(message="slice_canonically: bad slicer '%s' for %s " % (slicer, label))
-        raise RuntimeError("slice_canonically: bad slicer '%s' for %s " % (slicer, label))
-
-    if target is not None:
-        df = slice_ids(df, target, column)
+    if target_ids is not None:
+        df = slice_ids(df, target_ids, column)
 
     if warn_if_empty and len(df.index) == 0:
         column_name = column or slicer
-        warn(message="slice_canonically: no rows in %s with %s == %s"
-                     % (label, column_name, target))
+        logger.warn("slice_canonically: no rows in %s with %s == %s"
+                    % (label, column_name, target_ids))
 
     return df
+
+
+def has_trace_targets(df, slicer=None):
+
+    target_ids, column = get_trace_target(df, slicer)
+
+    if target_ids is None:
+        found = False
+    else:
+
+        if column is None:
+            found = df.index.isin(target_ids).any()
+        else:
+            found = df[column].isin(target_ids).any()
+
+    return found
+
+
+def hh_id_for_chooser(id, choosers):
+
+    if choosers.index.name == 'HHID' or choosers.index.name == orca.get_injectable('hh_index_name'):
+        hh_id = id
+    elif 'household_id' in choosers.columns:
+        hh_id = choosers.loc[id]['household_id']
+    else:
+        raise RuntimeError("don't grok chooser with index %s" % choosers.index.name)
+
+    return hh_id
 
 
 def trace_df(df, label, slicer=None, columns=None,
@@ -615,7 +592,7 @@ def trace_nan_values(df, label):
     """
     df = slice_ids(df, orca.get_injectable('trace_person_ids'))
     if np.isnan(df).any():
-        get_tracer().warn("%s NaN values in %s" % (np.isnan(df).sum(), label))
+        logger.warn("%s NaN values in %s" % (np.isnan(df).sum(), label))
         write_df_csv(df, "%s.nan" % label)
 
 
@@ -712,10 +689,10 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
     file_path = log_file_path('%s.raw.csv' % label)
     trace_results.to_csv(file_path, mode="a", index=True, header=True)
 
-    # if there are multiple targets, we want them in seperate tables for readability
+    # if there are multiple targets, we want them in separate tables for readability
     for target in targets:
 
-        df_target = trace_results[trace_results[slicer_column_name].isin(targets)]
+        df_target = trace_results[trace_results[slicer_column_name] == target]
 
         # we want the transposed columns in predictable order
         df_target.sort_index(inplace=True)

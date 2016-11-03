@@ -5,6 +5,8 @@ import os.path
 
 import numpy as np
 import pandas as pd
+import orca
+
 import pandas.util.testing as pdt
 import pytest
 
@@ -15,6 +17,15 @@ from .. import nl
 @pytest.fixture(scope='module')
 def data_dir():
     return os.path.join(os.path.dirname(__file__), 'data')
+
+
+def add_canonical_dirs():
+
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    orca.add_injectable("configs_dir", configs_dir)
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    orca.add_injectable("output_dir", output_dir)
 
 
 # this is lifted straight from urbansim's test_mnl.py
@@ -69,9 +80,15 @@ def test_utils_to_probs(utilities, test_data):
 
 def test_utils_to_probs_raises():
 
+    add_canonical_dirs()
+
     with pytest.raises(RuntimeError) as excinfo:
         nl.utils_to_probs(pd.DataFrame([[1, 2, np.inf, 3]]), trace_label=None)
-    assert "utility rows have infinite values" in str(excinfo.value)
+    assert "infinite exponentiated utilities" in str(excinfo.value)
+
+    with pytest.raises(RuntimeError) as excinfo:
+        nl.utils_to_probs(pd.DataFrame([[-999, -999, -999, -999]]), trace_label=None)
+    assert "all probabilities are zero" in str(excinfo.value)
 
 
 def test_make_choices_only_one():

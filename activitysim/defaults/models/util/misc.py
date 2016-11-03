@@ -65,13 +65,13 @@ def get_logit_model_settings(model_settings):
         logit_type = model_settings.get('LOGIT_TYPE', 'MNL')
 
         if logit_type not in ['NL', 'MNL']:
-            tracing.error(__name__, "Unrecognized logit type '%s'" % logit_type)
+            logging.error("Unrecognized logit type '%s'" % logit_type)
             raise RuntimeError("Unrecognized logit type '%s'" % logit_type)
 
         if logit_type == 'NL':
             nests = model_settings.get('NESTS', None)
             if nests is None:
-                tracing.error(__name__, "No NEST found in model spec for NL model type")
+                logger.error("No NEST found in model spec for NL model type")
                 raise RuntimeError("No NEST found in model spec for NL model type")
 
     return nests

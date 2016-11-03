@@ -65,8 +65,7 @@ def destination_choice(set_random_seed,
     if constants is not None:
         locals_d.update(constants)
 
-    tracing.info(__name__,
-                 "Running destination_choice  with %d non_mandatory_tours" % len(choosers.index))
+    logger.info("Running destination_choice  with %d non_mandatory_tours" % len(choosers.index))
 
     choices_list = []
     # segment by trip type and pick the right spec for each person type
@@ -75,14 +74,13 @@ def destination_choice(set_random_seed,
         # FIXME - there are two options here escort with kids and without
         kludge_name = name
         if name == "escort":
-            tracing.error(__name__,
-                          "destination_choice escort not implemented - running shopping instead")
+            logging.error("destination_choice escort not implemented - running shopping instead")
             kludge_name = "shopping"
 
         # the segment is now available to switch between size terms
         locals_d['segment'] = kludge_name
 
-        tracing.info(__name__, "Running segment '%s' of size %d" % (name, len(segment)))
+        logger.info("Running segment '%s' of size %d" % (name, len(segment)))
 
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
@@ -129,7 +127,7 @@ def patch_mandatory_tour_destination(mandatory_tours_merged, trace_hh_id):
     table can use destination for any tour type.
     """
 
-    tracing.info(__name__, "Running patch_mandatory_tour_destination")
+    logger.info("Running patch_mandatory_tour_destination")
 
     mandatory_tours_merged['destination'] = \
         np.where(mandatory_tours_merged['tour_type'] == 'school',

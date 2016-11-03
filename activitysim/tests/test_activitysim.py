@@ -8,6 +8,8 @@ import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 
+import orca
+
 from .. import activitysim as asim
 
 
@@ -59,6 +61,9 @@ def test_eval_variables(spec, data):
 
 
 def test_simple_simulate(random_seed, data, spec):
+
+    orca.add_injectable("check_for_variability", False)
+
     choices = asim.simple_simulate(data, spec, None)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)

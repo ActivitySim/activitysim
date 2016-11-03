@@ -48,8 +48,7 @@ def school_location_simulate(set_random_seed,
 
     constants = get_model_constants(school_location_settings)
 
-    tracing.info(__name__,
-                 "Running school_location_simulate with %d persons" % len(choosers))
+    logger.info("Running school_location_simulate with %d persons" % len(choosers))
 
     # set the keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
@@ -69,14 +68,17 @@ def school_location_simulate(set_random_seed,
 
         choosers_segment = choosers[choosers["is_" + school_type]]
 
-        tracing.info(__name__,
-                     "school_type %s: %s persons" % (school_type, len(choosers_segment)))
+        # FIXME - no point in considering impossible alternatives
+        alternatives_segment = alternatives[alternatives[school_type] > 0]
+
+        logger.info("school_type %s:  %s persons %s alternatives" %
+                    (school_type, len(choosers_segment), len(alternatives_segment)))
 
         if len(choosers_segment.index) > 0:
 
             choices = asim.interaction_simulate(
                 choosers_segment,
-                alternatives,
+                alternatives_segment,
                 spec=school_location_spec[[school_type]],
                 skims=skims,
                 locals_d=locals_d,
@@ -89,21 +91,9 @@ def school_location_simulate(set_random_seed,
 
     choices = pd.concat(choices_list)
 
-    # this fillna is necessary to avoid a downstream crash and might be a bit
-    # wrong logically.  The issue here is that there is a small but non-zero
-    # chance to choose a school trip even if not of the school type (because
-    # of -999 rather than outright removal of alternative availability). -
-    # this fills in the location for those uncommon circumstances,
-    # so at least it runs
-    if np.isnan(choices).any():
-        if trace_hh_id:
-            tracing.trace_nan_values(choices, 'school_location.choices')
-        logger.warn("Converting %s nan school_taz choices to -1" %
-                    (np.isnan(choices).sum(), len(choices.index)))
+    # We only chose school locations for the subset of persons who go to school
+    # so we backfill the empty choices with -1 to code as no school location
     choices = choices.reindex(persons_merged.index).fillna(-1)
-
-    tracing.info(__name__, "%s school_taz choices min: %s max: %s" %
-                 (len(choices.index), choices.min(), choices.max()))
 
     tracing.print_summary('school_taz', choices, describe=True)
 

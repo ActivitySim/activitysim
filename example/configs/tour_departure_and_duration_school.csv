@@ -7,7 +7,8 @@ University student departure shift effects,(ptype == 3) * start,0.28
 University student duration shift effects,(ptype == 3) * duration,0.2907
 Student driving age duration shift effects,(ptype == 7) * duration,0.03464
 All adults work full time- duration,(workers == hhsize) * duration,0.1093
-Subsequent tour must start after previous tour ends,(tour_num > 1) & (start < end_previous),-999
+# FIXME - Subsequent tour must start after previous tour ends,(tour_num > 1) & (start < end_previous),-999
+Subsequent tour must start after previous tour ends,(tour_num > 1) & (start < end_previous),-100
 First of 2+ school/univ. tours- departure,(tour_num == 1) * start,0.3002
 First of 2+ school/univ. tours- duration,(tour_num == 1) * duration,0.1593
 Subsequent of 2+ school/univ. tours- duration,(tour_num > 1) * duration,0.2338

@@ -7,7 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger('activitysim')
+logger = logging.getLogger(__name__)
 
 
 def undupe_column_names(df, template="{} ({})"):

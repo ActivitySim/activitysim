@@ -75,8 +75,7 @@ def mandatory_scheduling(set_random_seed,
     school_spec = tdd_school_spec.to_frame()
     school_tours = tours[tours.tour_type == "school"]
 
-    tracing.info(__name__,
-                 "Running mandatory_scheduling school_tours with %d tours" % len(school_tours))
+    logger.info("Running mandatory_scheduling school_tours with %d tours" % len(school_tours))
 
     school_choices = vectorize_tour_scheduling(
         school_tours, alts, school_spec, constants, chunk_size,
@@ -85,7 +84,7 @@ def mandatory_scheduling(set_random_seed,
     work_spec = tdd_work_spec.to_frame()
     work_tours = tours[tours.tour_type == "work"]
 
-    tracing.info(__name__, "Running %d work tour scheduling choices" % len(work_tours))
+    logger.info("Running %d work tour scheduling choices" % len(work_tours))
 
     work_choices = vectorize_tour_scheduling(
         work_tours, alts, work_spec, constants, chunk_size,

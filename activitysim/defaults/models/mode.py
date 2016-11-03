@@ -48,7 +48,8 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
                           tour_mode_choice_settings):
     return _mode_choice_spec(tour_mode_choice_spec_df,
                              tour_mode_choice_coeffs,
-                             tour_mode_choice_settings)
+                             tour_mode_choice_settings,
+                             trace_label='tour_mode_choice')
 
 
 @orca.injectable()
@@ -134,7 +135,7 @@ def _mode_choice_simulate(tours,
     return choices
 
 
-def get_segment_and_unstack(spec, segment):
+def get_segment_and_unstack(omnibus_spec, segment):
     """
     This does what it says.  Take the spec, get the column from the spec for
     the given segment, and unstack.  It is assumed that the last column of
@@ -146,8 +147,11 @@ def get_segment_and_unstack(spec, segment):
     which original row - otherwise the unstack is incorrect (i.e. the index
     is not unique)
     """
-    return spec[segment].unstack().\
-        reset_index(level="Rowid", drop=True).fillna(0)
+    spec = omnibus_spec[segment].unstack().reset_index(level="Rowid", drop=True).fillna(0)
+
+    spec = spec.groupby(spec.index).sum()
+
+    return spec
 
 
 @orca.step()
@@ -158,6 +162,8 @@ def tour_mode_choice_simulate(tours_merged,
                               omx_file,
                               trace_hh_id):
 
+    trace_label = trace_hh_id and 'tour_mode_choice'
+
     tours = tours_merged.to_frame()
 
     nest_spec = get_logit_model_settings(tour_mode_choice_settings)
@@ -166,11 +172,15 @@ def tour_mode_choice_simulate(tours_merged,
     if trace_hh_id:
         tracing.register_tours(tours, trace_hh_id)
 
-    tracing.info(__name__,
-                 "Running tour_mode_choice_simulate with %d tours" % len(tours.index))
+    logger.info("Running tour_mode_choice_simulate with %d tours" % len(tours.index))
 
     tracing.print_summary('tour_mode_choice_simulate tour_type',
                           tours.tour_type, value_counts=True)
+
+    if trace_hh_id:
+        tracing.trace_df(tour_mode_choice_spec,
+                         tracing.extend_trace_label(trace_label, 'spec'),
+                         slicer='NONE', transpose=False)
 
     choices_list = []
     for tour_type, segment in tours.groupby('tour_type'):
@@ -186,28 +196,27 @@ def tour_mode_choice_simulate(tours_merged,
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
 
-        tracing.info(__name__,
-                     "tour_mode_choice_simulate running %s tour_type '%s'" %
-                     (len(segment.index), tour_type, ))
+        logger.info("tour_mode_choice_simulate running %s tour_type '%s'" %
+                    (len(segment.index), tour_type, ))
 
         # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
-        # FIXME - no point in printing verbose dest_taz value_counts now that we have tracing?
-        # tracing.print_summary('tour_mode_choice_simulate %s dest_taz' % tour_type,
-        #                       segment[dest_key], value_counts=True)
+        spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
 
-        trace_label = trace_hh_id and ('tour_mode_choice.%s' % tour_type)
+        if trace_hh_id:
+            tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
+                             slicer='NONE', transpose=False)
 
         choices = _mode_choice_simulate(
             segment,
             skims, stacked_skims,
             orig_key=orig_key,
             dest_key=dest_key,
-            spec=get_segment_and_unstack(tour_mode_choice_spec, tour_type),
+            spec=spec,
             constants=constants,
             nest_spec=nest_spec,
             omx=omx_file,
-            trace_label=trace_label,
+            trace_label=tracing.extend_trace_label(trace_label, tour_type),
             trace_choice_name='tour_mode_choice')
 
         tracing.print_summary('tour_mode_choice_simulate %s' % tour_type,
@@ -229,7 +238,7 @@ def tour_mode_choice_simulate(tours_merged,
     if trace_hh_id:
         trace_columns = ['mode']
         tracing.trace_df(orca.get_table('tours').to_frame(),
-                         label="mode",
+                         label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour',
                          columns=trace_columns,
@@ -249,20 +258,20 @@ def trip_mode_choice_simulate(tours_merged,
                               trace_hh_id):
 
     # FIXME - running the trips model on tours
-    tracing.error(__name__, 'trips not implemented running the trips model on tours')
+    logging.error('trips not implemented running the trips model on tours')
 
     trips = tours_merged.to_frame()
 
     nest_spec = get_logit_model_settings(trip_mode_choice_settings)
     constants = get_model_constants(trip_mode_choice_settings)
 
-    tracing.info(__name__, "Running trip_mode_choice_simulate with %d trips" % len(trips))
+    logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
 
     choices_list = []
 
     for tour_type, segment in trips.groupby('tour_type'):
 
-        tracing.info(__name__, "running %s tour_type '%s'" % (len(segment.index), tour_type, ))
+        logger.info("running %s tour_type '%s'" % (len(segment.index), tour_type, ))
 
         orig_key = 'TAZ'
         dest_key = 'destination'
@@ -309,7 +318,7 @@ def trip_mode_choice_simulate(tours_merged,
     orca.add_column("trips", "mode", choices)
 
     if trace_hh_id:
-        tracing.warn(__name__, "can't dump trips table because it doesn't exist")
+        logger.warn("can't dump trips table because it doesn't exist")
         # FIXME - commented out because trips table doesn't really exist
         # trace_columns = ['mode']
         # tracing.trace_df(orca.get_table('trips').to_frame(),

@@ -1,5 +1,6 @@
 Description,Expression,Coefficient
-Subsequent tour must start after previous tour ends,(start <= end_previous) & (tour_num > 1),-999
+# FIXME - Subsequent tour must start after previous tour ends,(start <= end_previous) & (tour_num > 1),-999
+Subsequent tour must start after previous tour ends,(start <= end_previous) & (tour_num > 1),-100
 Free-flow round trip auto time shift effects - duration,roundtrip_auto_time_to_work * duration,0.00474
 Shopping tour - departure shift effects,"(tour_type == ""shopping"") * start",0.06015
 Shopping tour - duration shift effects,"(tour_type == ""shopping"") * duration",0.1208

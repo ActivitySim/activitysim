@@ -10,6 +10,7 @@ from zbox import toolz as tz
 
 from .skim import Skims, Skims3D
 from .nl import utils_to_probs, make_choices, interaction_dataset
+from .nl import report_bad_choices
 from .nl import each_nest
 import tracing
 from tracing import print_elapsed_time
@@ -170,6 +171,9 @@ def _check_for_variability(model_design, trace_label):
     will have no variability.
     """
 
+    if trace_label is None:
+        trace_label = '_check_for_variability'
+
     l = min(1000, len(model_design))
 
     sample = random_rows(model_design, l)
@@ -181,7 +185,8 @@ def _check_for_variability(model_design, trace_label):
             col_name = sample.columns[i]
             logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], col_name))
             no_variability += 1
-        if v.count() < l:
+        # FIXME - how could this happen? Not sure it is really a problem?
+        if np.count_nonzero(v.isnull().values) > 0:
             col_name = sample.columns[i]
             logger.info("%s: missing values in: %s" % (trace_label, v.iloc[0], col_name))
             has_missing_vals += 1
@@ -229,6 +234,9 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
         else:
             # nest node
             # the alternative nested_utilities will already have been computed due to post_order
+            # this will RuntimeWarning: divide by zero encountered in log
+            # if all nest alternative utilities are zero
+            # but the resulting inf will become 0 when exp is applied below
             nested_utilities[name] = \
                 nest.coefficient * np.log(nested_utilities[nest.alternatives].sum(axis=1))
 
@@ -263,7 +271,8 @@ def compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label):
 
         probs = utils_to_probs(nested_exp_utilities[nest.alternatives],
                                trace_label=trace_label,
-                               exponentiated=True)
+                               exponentiated=True,
+                               allow_zero_probs=True)
 
         nested_probabilities = pd.concat([nested_probabilities, probs], axis=1)
 
@@ -337,9 +346,13 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
         of `spec`.
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'mnl')
+    check_for_variability = tracing.check_for_variability()
+
     model_design = eval_variables(spec.index, choosers, locals_d)
 
-    _check_for_variability(model_design, trace_label=trace_label or 'eval_mnl')
+    if check_for_variability:
+        _check_for_variability(model_design, trace_label)
 
     # matrix product of spec expression evals with utility coefficients of alternatives
     # sums the partial utilities (represented by each spec row) of the alternatives
@@ -348,11 +361,11 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
 
     utilities = model_design.dot(spec)
 
-    probs = utils_to_probs(utilities, trace_label=trace_label)
-    choices = make_choices(probs, trace_label=trace_label)
+    probs = utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    choices = make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
 
     if trace_label:
-        trace_label = "%s.mnl" % trace_label
+
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
@@ -398,10 +411,14 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
         of `spec`.
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'nl')
+    check_for_variability = tracing.check_for_variability()
+
     # column names of model_design match spec index values
     model_design = eval_variables(spec.index, choosers, locals_d)
 
-    _check_for_variability(model_design, trace_label=trace_label or 'eval_nl')
+    if check_for_variability:
+        _check_for_variability(model_design, trace_label)
 
     # raw utilities of all the leaves
 
@@ -421,10 +438,22 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
     # global (flattened) leaf probabilities based on relative nest coefficients
     base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec)
 
-    choices = make_choices(base_probabilities, trace_label)
+    # note base_probabilities could all be zero since we allowed all probs for nests to be zero
+    # check here to print a clear message but make_choices will raise error if probs don't sum to 1
+    BAD_PROB_THRESHOLD = 0.001
+    no_choices = \
+        base_probabilities.sum(axis=1).sub(np.ones(len(base_probabilities.index))).abs() \
+        > BAD_PROB_THRESHOLD * np.ones(len(base_probabilities.index))
+
+    if no_choices.any():
+        report_bad_choices(no_choices, base_probabilities,
+                           tracing.extend_trace_label(trace_label, 'eval_nl'),
+                           tag='bad_probs',
+                           msg="base_probabilities all zero")
+
+    choices = make_choices(base_probabilities, trace_label, trace_choosers=choosers)
 
     if trace_label:
-        trace_label = "%s.nl" % trace_label
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
@@ -497,7 +526,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     if skims:
         add_skims(choosers, skims)
 
-    trace_label = trace_label and "%s.simple_simulate" % trace_label
+    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate')
 
     if nest_spec is None:
         choices = eval_mnl(choosers, spec, locals_d, trace_label, trace_choice_name)
@@ -507,7 +536,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     return choices
 
 
-def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, check_variability=True):
+def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
 
@@ -565,10 +594,13 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, chec
     else:
         trace_eval_results = None
 
+    check_for_variability = tracing.check_for_variability()
+
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
 
     utilities = pd.DataFrame({'utility': 0.0}, index=df.index)
+    no_variability = has_missing_vals = 0
 
     for expr, coefficient in zip(spec.index, spec.iloc[:, 0]):
         try:
@@ -578,19 +610,39 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, chec
             else:
                 v = df.eval(expr)
 
-            if check_variability and v.std() == 0:
+            if check_for_variability and v.std() == 0:
                 logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
+                no_variability += 1
 
-            if trace_eval_results is not None:
-                trace_eval_results.append((expr, v[trace_rows]))
+            # FIXME - how likely is this to happen? Not sure it is really a problem?
+            if check_for_variability and np.count_nonzero(v.isnull().values) > 0:
+                logger.info("%s: missing values in: %s" % (trace_label, expr))
+                has_missing_vals += 1
 
             utilities.utility += (v * coefficient).astype('float')
+
+            if trace_eval_results is not None:
+                trace_eval_results.append((expr,
+                                           v[trace_rows]))
+                trace_eval_results.append(('partial utility (coefficient = %s)' % coefficient,
+                                           v[trace_rows]*coefficient))
+                # trace_eval_results.append(('cumulative utility',
+                #                            utilities.utility[trace_rows]))
 
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
 
+    if no_variability > 0:
+        logger.warn("%s: %s columns have no variability" % (trace_label, no_variability))
+
+    if has_missing_vals > 0:
+        logger.warn("%s: %s columns have missing values" % (trace_label, has_missing_vals))
+
     if trace_eval_results is not None:
+
+        trace_eval_results.append(('total utility',
+                                   utilities.utility[trace_rows]))
 
         trace_eval_results = pd.DataFrame.from_items(trace_eval_results)
         trace_eval_results.index = df[trace_rows].index
@@ -653,12 +705,19 @@ def _interaction_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
+    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+
+    if have_trace_targets:
+        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
+        tracing.trace_df(alternatives, tracing.extend_trace_label(trace_label, 'alternatives'),
+                         slicer='NONE', transpose=False)
+
     if len(spec.columns) > 1:
         raise RuntimeError('spec must have only one column')
 
     sample_size = sample_size or len(alternatives)
 
-    # FIXME - is this correct?
     if sample_size > len(alternatives):
         logger.warn("clipping sample size %s to len(alternatives) %s" %
                     (sample_size, len(alternatives)))
@@ -682,17 +741,25 @@ def _interaction_simulate(
     # column names of model_design match spec index values
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in model_design
-    if trace_label:
+    if have_trace_targets:
         trace_rows, trace_ids = tracing.interaction_trace_rows(interaction_df, choosers)
+
+        tracing.trace_df(interaction_df[trace_rows],
+                         tracing.extend_trace_label(trace_label, 'interaction_df'),
+                         slicer='NONE', transpose=False)
     else:
         trace_rows = trace_ids = None
 
-    # model_design = eval_variables(spec.index, interaction_df, locals_d)
-    # _check_for_variability(model_design, trace_label=trace_label or '_interaction_simulate')
-    # interaction_utilities = model_design.dot(spec)
-
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
+
+    if have_trace_targets:
+        tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
+                                               tracing.extend_trace_label(trace_label, 'eval'))
+
+        tracing.trace_df(interaction_utilities[trace_rows],
+                         tracing.extend_trace_label(trace_label, 'interaction_utilities'),
+                         slicer='NONE', transpose=False)
 
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
@@ -700,16 +767,24 @@ def _interaction_simulate(
         interaction_utilities.as_matrix().reshape(len(choosers), sample_size),
         index=choosers.index)
 
+    if have_trace_targets:
+        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
+                         column_labels=['alternative', 'utility'])
+
     # tracing.trace_df(utilities, '%s.DUMP.utilities' % trace_label, transpose=False, slicer='NONE')
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = utils_to_probs(utilities, trace_label=trace_label)
+    probs = utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+
+    if have_trace_targets:
+        tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
+                         column_labels=['alternative', 'probability'])
 
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
-    positions = make_choices(probs, trace_label=trace_label)
+    positions = make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
 
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
@@ -723,17 +798,21 @@ def _interaction_simulate(
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
 
-    if trace_eval_results is not None:
-        trace_label = "%s.interaction_simulate" % trace_label
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(utilities, '%s.utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
-        tracing.trace_df(probs, '%s.probs' % trace_label,
-                         column_labels=['alternative', 'probability'])
-        tracing.trace_df(choices, '%s.choices' % trace_label,
+    if have_trace_targets:
+        tracing.trace_df(choices, tracing.extend_trace_label(trace_label, 'choices'),
                          columns=[None, trace_choice_name])
-        tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
-                                               '%s.eval' % trace_label)
+
+    #
+    # if have_trace_targets:
+    #     tracing.trace_df(choosers, '%s.choosers' % trace_label)
+    #     tracing.trace_df(utilities, '%s.utilities' % trace_label,
+    #                      column_labels=['alternative', 'utility'])
+    #     tracing.trace_df(probs, '%s.probs' % trace_label,
+    #                      column_labels=['alternative', 'probability'])
+    #     tracing.trace_df(choices, '%s.choices' % trace_label,
+    #                      columns=[None, trace_choice_name])
+    #     tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
+    #                                            '%s.eval' % trace_label)
 
     return choices
 
@@ -743,10 +822,11 @@ def chunked_choosers(choosers, chunk_size):
     chunk_size = int(chunk_size)
     num_choosers = len(choosers.index)
 
-    i = 0
-    while i < num_choosers:
-        yield i, choosers[i: i+chunk_size]
-        i += chunk_size
+    i = offset = 0
+    while offset < num_choosers:
+        yield i, choosers[offset: offset+chunk_size]
+        offset += chunk_size
+        i += 1
 
 
 def interaction_simulate(
@@ -821,11 +901,12 @@ def interaction_simulate(
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
 
-        logger.info("Running chunk =%s of size %d" % (i, len(chooser_chunk)))
+        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,
-                                        trace_label, trace_choice_name)
+                                        tracing.extend_trace_label(trace_label, 'chunk_%s' % i),
+                                        trace_choice_name)
 
         choices_list.append(choices)
 

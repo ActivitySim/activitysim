@@ -80,13 +80,17 @@ def destination_choice(set_random_seed,
         # the segment is now available to switch between size terms
         locals_d['segment'] = kludge_name
 
-        logger.info("Running segment '%s' of size %d" % (name, len(segment)))
+        # FIXME - no point in considering impossible alternatives
+        alternatives_segment = alternatives[alternatives[kludge_name] > 0]
+
+        logger.info("Running segment '%s' of %d tours %d alternatives" %
+                    (name, len(segment), len(alternatives_segment)))
 
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
 
         choices = asim.interaction_simulate(segment,
-                                            alternatives,
+                                            alternatives_segment,
                                             spec[[kludge_name]],
                                             skims=skims,
                                             locals_d=locals_d,

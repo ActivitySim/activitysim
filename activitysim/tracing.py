@@ -23,10 +23,6 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 logger = logging.getLogger(__name__)
 
 
-def trace_logger():
-    return logger
-
-
 def check_for_variability():
     return orca.get_injectable('check_for_variability')
 
@@ -471,7 +467,6 @@ def get_trace_target(df, slicer):
     elif slicer == 'NONE':
         target_ids = None
     else:
-        logger.error("slice_canonically: bad slicer '%s'" % (slicer, ))
         raise RuntimeError("slice_canonically: bad slicer '%s'" % (slicer, ))
 
     if target_ids and not isinstance(target_ids, (list, tuple)):
@@ -573,27 +568,6 @@ def trace_df(df, label, slicer=None, columns=None,
     if len(df.index) > 0:
         write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,
                   column_labels=column_labels, transpose=transpose)
-
-
-def trace_nan_values(df, label):
-    """
-    Trace NaN values
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        data frame
-    label: str
-        tracer name
-
-    Returns
-    -------
-    Nothing
-    """
-    df = slice_ids(df, orca.get_injectable('trace_person_ids'))
-    if np.isnan(df).any():
-        logger.warn("%s NaN values in %s" % (np.isnan(df).sum(), label))
-        write_df_csv(df, "%s.nan" % label)
 
 
 def interaction_trace_rows(interaction_df, choosers):

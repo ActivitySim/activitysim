@@ -86,7 +86,7 @@ def print_table_schema(table_names):
 
 
 def log_memory_info(message):
-    tracing.trace_logger().debug("%s %s" % (message, asim.memory_info()))
+    logger.debug("%s %s" % (message, asim.memory_info()))
 
 
 def set_random_seed():
@@ -103,8 +103,7 @@ def run_model(model_name):
 orca.add_injectable("output_dir", 'output')
 tracing.config_logger(os.path.join('configs', 'logging.yaml'))
 
-logger = tracing.trace_logger()
-
+logger = logging.getLogger('activitysim')
 
 # pandas display options
 pd.options.display.max_columns = 500
@@ -124,10 +123,10 @@ orca.add_injectable("set_random_seed", set_random_seed)
 #                 hh_chunk_size = 50000)
 
 inject_settings(config='example',
-                data='full',
-                households_sample_size=300000,
+                data='example',
+                households_sample_size=3000,
                 preload_3d_skims=True,
-                chunk_size = 100000,
+                chunk_size = 0,
                 hh_chunk_size=0)
 
 print_settings()

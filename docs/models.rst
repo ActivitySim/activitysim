@@ -35,6 +35,8 @@ API
 .. automodule:: activitysim.defaults.models.auto_ownership
    :members:
 
+.. _cdap:
+
 Coordinated Daily Activity Pattern (CDAP)
 -----------------------------------------
 
@@ -44,7 +46,7 @@ registered as an orca step and is called in the example via
 ``orca.run(["cdap_simulate"])``.  There are two cdap class definitions in
 ActivitySim.  The first is at :py:func:`~activitysim.cdap.cdap` and contains the
 core cdap module.  The second is at :py:func:`~activitysim.defaults.models.cdap` and
-contains the orca wrapper for running it as part of the model pipeline.  
+contains the orca wrapper for running it as part of the model pipeline.
 
 Core Table: ``persons`` | Result Field: ``cdap_activity`` | Skims Keys: NA
 
@@ -113,6 +115,7 @@ API
 .. automodule:: activitysim.defaults.models.mandatory_tour_frequency
    :members:
 
+.. _mode_choice:
 
 Mode (Tour and Trip)
 --------------------

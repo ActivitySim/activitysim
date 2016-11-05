@@ -220,26 +220,6 @@ def preprocess_interaction_coefficients(interaction_coefficients):
     coefficient
         The coefficient to apply for all hh interactions for this activity and set of ptypes
 
-    --------------------------------------------------------
-    cdap_interaction_coefficients.csv
-    --------------------------------------------------------
-    activity,interaction_ptypes,coefficient
-    # 2-way interactions,,
-    H,11,1.626
-    H,12,0.7407
-    [...]
-    # 3-way interactions,,
-    H,124,0.9573
-    H,122,0.9573
-    # cdap_final_rules,,
-    M,5,-999
-    [...]
-    # cdap_all_people,,
-    M,***,-0.0671
-    N,***,-0.3653
-    [...]
-    --------------------------------------------------------
-
     To facilitate building the spec for a given hh ssize, we add two additional columns:
 
     cardinality

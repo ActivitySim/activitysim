@@ -202,7 +202,7 @@ with Anaconda:</p>
 <li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.8.0 *</li>
 <li><a class="reference external" href="http://pandas.pydata.org">pandas</a> &gt;= 0.18.0 *</li>
 <li><a class="reference external" href="http://pyyaml.org/wiki/PyYAML">pyyaml</a> &gt;= 3.0 *</li>
-<li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.1.0 *</li>
+<li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.1.0, &lt;3.3.0 *</li>
 <li><a class="reference external" href="http://toolz.readthedocs.org/en/latest/">toolz</a> or
 <a class="reference external" href="https://github.com/pytoolz/cytoolz">cytoolz</a> &gt;= 0.7 *</li>
 <li><a class="reference external" href="https://pypi.python.org/pypi/psutil">psutil</a> &gt;= 4.1</li>
@@ -319,13 +319,14 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 </ul>
 <p>There are some variations on this setup, but the functionality is similar.  For example,
 in the destination choice model, the size terms expressions file has market segments as rows and employment type
-coefficients as columns.  Broadly speaking, there are currently three types of model expression configurations:</p>
+coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:</p>
 <ul class="simple">
-<li>simple choice model - selects from a fixed set of choices defined in the specification file, such as the example above</li>
-<li>destination choice model - which combines the destination choice expressions and destination choice alternatives files since the alternatives are not listed in the expressions file</li>
-<li>complex choice model - an expressions file, a coefficients file, a YAML settings file.</li>
+<li>simple choice model - select from a fixed set of choices defined in the specification file, such as the example above</li>
+<li>destination choice model - combine the destination choice expressions with the destination choice alternatives files since the alternatives are not listed in the expressions file</li>
+<li>complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The mode models are examples of this and are illustrated below</li>
+<li>combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The CDAP model implements this approach as illustrated below</li>
 </ul>
-<p>The tour mode choice model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
+<p>The <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode (Tour and Trip)</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
 Each row is an expression for one alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as
 <code class="docutils literal"><span class="pre">$IN_N_OUT_EXPR.format(sk='SOV_TIME')</span></code> are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit (NL) model
 and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.</p>
@@ -372,6 +373,14 @@ and the nesting structure (including nesting coefficients) is specified in the Y
 </tr>
 </tbody>
 </table>
+<p>The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern (CDAP)</span></a> model operates as a series of vectorized table operations:</p>
+<ul class="simple">
+<li>create a person level table and rank each person in the household for inclusion in the CDAP model</li>
+<li>solve individual M/N/H utilities for each person</li>
+<li>take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another</li>
+<li>select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions</li>
+<li>repeat for households size 2, 3, 4, and 5. Each model is independent of one another.</li>
+</ul>
 <span class="target" id="index-1"></span></div>
 </div>
 <div class="section" id="example">
@@ -439,6 +448,8 @@ is the main settings file for the model run.  This file includes:</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers</p>
 </li>
+<li><p class="first"><code class="docutils literal"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p>
+</li>
 <li><p class="first">global variables that can be used in expressions tables and Python code such as:</p>
 <blockquote>
 <div><ul class="simple">
@@ -470,7 +481,7 @@ columns indicates the number of non-mandatory tours by purpose.</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">accessibility.csv,</span> <span class="pre">,</span> <span class="pre">accessibility.yaml</span></code> - accessibility model</li>
 <li><code class="docutils literal"><span class="pre">auto_ownership.csv,</span> <span class="pre">auto_ownership.yaml</span></code> - auto ownership model</li>
-<li><code class="docutils literal"><span class="pre">cdap_*.csv</span></code> - CDAP model</li>
+<li><code class="docutils literal"><span class="pre">cdap_indiv_and_hhsize1.csv,</span> <span class="pre">cdap_interaction_coefficients.csv,</span> <span class="pre">cdap_fixed_relative_proportions.csv</span></code> - CDAP model</li>
 <li><code class="docutils literal"><span class="pre">destination_choice.csv,</span> <span class="pre">destination_choice_size_terms.csv</span></code> - destination choice model</li>
 <li><code class="docutils literal"><span class="pre">mandatory_tour_frequency.csv</span></code> - mandatory tour frequency model</li>
 <li><code class="docutils literal"><span class="pre">non_mandatory_tour_frequency.csv,</span> <span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> - non mandatory tour frequency model</li>

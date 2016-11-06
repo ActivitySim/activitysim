@@ -213,20 +213,29 @@ the skims object is intended to be used.</p>
 <dd><p>compute base probabilities for nest leaves
 Base probabilities will be the nest-adjusted probabilities of all leaves
 This flattens or normalizes all the nested probabilities so that they have the proper global
-relative values (the leaf probabilities sum to 1 for each row.)
-Parameters
-&#8212;&#8212;&#8212;-
-nested_probabilities : pandas.DataFrame</p>
+relative values (the leaf probabilities sum to 1 for each row.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
 <blockquote>
-<div>dataframe with the nested probabilities for nest leafs and nodes</div></blockquote>
-<dl class="docutils">
-<dt>nest_spec</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>Nest tree dict from the model spec yaml file</dd>
-</dl>
-<dl class="docutils">
-<dt>base_probabilities</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span><dd>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</dd>
-</dl>
+<div><p>dataframe with the nested probabilities for nest leafs and nodes</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>base_probabilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -268,20 +277,29 @@ nest &lt;- exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficien
 probability for nest alternatives is simply the alternatives&#8217;s local (to nest) probability
 computed in the same way as the probability of non-nested alternatives in multinomial logit
 i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
-except in nested logit, its sib group is restricted to the nest
-Parameters
-&#8212;&#8212;&#8212;-
-nested_exp_utilities : pandas.DataFrame</p>
+except in nested logit, its sib group is restricted to the nest</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_exp_utilities</strong> : pandas.DataFrame</p>
 <blockquote>
-<div>dataframe with the exponentiated nested utilities of all leaves and nodes</div></blockquote>
-<dl class="docutils">
-<dt>nest_spec</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>Nest tree dict from the model spec yaml file</dd>
-</dl>
-<dl class="docutils">
-<dt>nested_probabilities</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span><dd>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</dd>
-</dl>
+<div><p>dataframe with the exponentiated nested utilities of all leaves and nodes</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>nested_probabilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">

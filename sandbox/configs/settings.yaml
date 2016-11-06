@@ -25,7 +25,7 @@ households_sample_size: 1000
 # zero prob for school location with unfiltered alternatives
 # trace_hh_id: 862924
 
-trace_hh_id:  238516
+trace_hh_id:  2694596234
 
 # trace origin, destination in accessibility calculation
 # trace_od: [5, 11]

@@ -166,10 +166,10 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.error("print_summary neither value_counts nor describe")
 
     if value_counts:
-        print "\n%s choices value counts:\n%s\n" % (label, df.value_counts())
+        print "\n%s value counts:\n%s\n" % (label, df.value_counts())
 
     if describe:
-        print "\n%s choices summary:\n%s\n" % (label, df.describe())
+        print "\n%s summary:\n%s\n" % (label, df.describe())
 
 
 def register_households(df, trace_hh_id):
@@ -231,22 +231,22 @@ def register_tours(df, trace_hh_id):
 
     # get list of persons in traced household (should already have been registered)
     person_ids = orca.get_injectable("trace_person_ids")
+    trace_tour_ids = []
 
-    # since trace_hh_id is defined, we expect some trace_person_ids
-    if not person_ids:
-        logger.error("register_tours called before register_persons")
-        raise RuntimeError('register_tours called before register_persons')
-
-    traced_tours_df = slice_ids(df, person_ids, column='person_id')
-
-    trace_tour_ids = traced_tours_df.index.tolist()
-    if len(trace_tour_ids) == 0:
-        logger.warn("register_tours: person_ids %s not found." % person_ids)
+    if len(person_ids) == 0:
+        # trace_hh_id not in households table or register_persons was not not called
+        logger.warn("no person ids registered for trace_hh_id %s" % trace_hh_id)
+    else:
+        # but if household_id is in households, then we expect some tours
+        traced_tours_df = slice_ids(df, person_ids, column='person_id')
+        trace_tour_ids = traced_tours_df.index.tolist()
+        if len(trace_tour_ids) == 0:
+            logger.info("register_tours: person_ids %s not found." % person_ids)
+        else:
+            logger.info("tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
 
     orca.add_injectable("trace_tour_ids", trace_tour_ids)
     logger.debug("register_tours injected trace_tour_ids %s" % trace_tour_ids)
-
-    logger.info("tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
 
 
 def register_persons(df, trace_hh_id):

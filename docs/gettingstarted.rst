@@ -38,7 +38,7 @@ with Anaconda:
 * `numpy <http://numpy.org>`__ >= 1.8.0 \*
 * `pandas <http://pandas.pydata.org>`__ >= 0.18.0 \*
 * `pyyaml <http://pyyaml.org/wiki/PyYAML>`__ >= 3.0 \*
-* `tables <http://www.pytables.org/moin>`__ >= 3.1.0 \*
+* `tables <http://www.pytables.org/moin>`__ >= 3.1.0, <3.3.0 \*
 * `toolz <http://toolz.readthedocs.org/en/latest/>`__ or
   `cytoolz <https://github.com/pytoolz/cytoolz>`__ >= 0.7 \*
 * `psutil <https://pypi.python.org/pypi/psutil>`__ >= 4.1
@@ -144,13 +144,14 @@ An expressions file has the following basic form:
 
 There are some variations on this setup, but the functionality is similar.  For example, 
 in the destination choice model, the size terms expressions file has market segments as rows and employment type 
-coefficients as columns.  Broadly speaking, there are currently three types of model expression configurations:
+coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:
 
-* simple choice model - selects from a fixed set of choices defined in the specification file, such as the example above
-* destination choice model - which combines the destination choice expressions and destination choice alternatives files since the alternatives are not listed in the expressions file
-* complex choice model - an expressions file, a coefficients file, a YAML settings file.
+* simple choice model - select from a fixed set of choices defined in the specification file, such as the example above
+* destination choice model - combine the destination choice expressions with the destination choice alternatives files since the alternatives are not listed in the expressions file
+* complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The mode models are examples of this and are illustrated below
+* combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The CDAP model implements this approach as illustrated below
 
-The tour mode choice model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
+The :ref:`mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
 Each row is an expression for one alternative and columns are for tour purposes.  The alternatives, as well as template expressions such as 
 ``$IN_N_OUT_EXPR.format(sk='SOV_TIME')`` are specified in the YAML settings file for the model.  The tour mode choice model is a nested logit (NL) model
 and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.
@@ -166,6 +167,14 @@ and the nesting structure (including nesting coefficients) is specified in the Y
 +----------------------------------------+------------------------------------------+----------------------+-----------+----------+ 
 |DAP - Unavailable for joint tours       | is_joint                                 |  DRIVEALONEPAY       | -3.2451   |  -0.9523 | 
 +----------------------------------------+------------------------------------------+----------------------+-----------+----------+ 
+
+The :ref:`cdap` model operates as a series of vectorized table operations:
+
+* create a person level table and rank each person in the household for inclusion in the CDAP model
+* solve individual M/N/H utilities for each person
+* take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
+* select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions
+* repeat for households size 2, 3, 4, and 5. Each model is independent of one another.
 
 .. index:: tutorial
 .. index:: example
@@ -229,6 +238,7 @@ is the main settings file for the model run.  This file includes:
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
 * ``preload_3d_skims`` - preload skims with index by origin, destination, time period for :ref:`Skims_3D` vectorized queries
 * ``chunk_size`` - batch size for processing choosers
+* ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * global variables that can be used in expressions tables and Python code such as:
 
     * ``urban_threshold`` - urban threshold area type max value
@@ -259,7 +269,7 @@ The current set of files are:
 
 * ``accessibility.csv, , accessibility.yaml`` - accessibility model
 * ``auto_ownership.csv, auto_ownership.yaml`` - auto ownership model
-* ``cdap_*.csv`` - CDAP model
+* ``cdap_indiv_and_hhsize1.csv, cdap_interaction_coefficients.csv, cdap_fixed_relative_proportions.csv`` - CDAP model
 * ``destination_choice.csv, destination_choice_size_terms.csv`` - destination choice model
 * ``mandatory_tour_frequency.csv`` - mandatory tour frequency model
 * ``non_mandatory_tour_frequency.csv, non_mandatory_tour_frequency_alternatives.csv`` - non mandatory tour frequency model

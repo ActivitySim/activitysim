@@ -253,6 +253,7 @@ def compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label):
     computed in the same way as the probability of non-nested alternatives in multinomial logit
     i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
     except in nested logit, its sib group is restricted to the nest
+
     Parameters
     ----------
     nested_exp_utilities : pandas.DataFrame
@@ -285,6 +286,7 @@ def compute_base_probabilities(nested_probabilities, nests):
     Base probabilities will be the nest-adjusted probabilities of all leaves
     This flattens or normalizes all the nested probabilities so that they have the proper global
     relative values (the leaf probabilities sum to 1 for each row.)
+
     Parameters
     ----------
     nested_probabilities : pandas.DataFrame

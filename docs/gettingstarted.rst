@@ -207,7 +207,8 @@ In order to run the example, you first need two input files in the ``data`` fold
     
 * skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.
 
-Both of these files can be downloaded from the `SF 25 zone example` example data folder on 
+Both of these files are used in the tests as well and are available here ``activitysim\defaults\test\data``.  Alternatively, 
+these files can be downloaded from the ``SF 25 zone example`` example data folder on 
 MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  Both files can 
 be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.
 The pandas DataFrames are stored in an efficient pandas format within the HDF5 file so they are a 

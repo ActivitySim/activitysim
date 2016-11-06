@@ -17,7 +17,8 @@ from ..tracing import print_elapsed_time
 
 logger = logging.getLogger(__name__)
 
-DUMP = False
+# FIXME - this allows us to turn some dev debug table dump code on and off - eventually remove?
+# DUMP = False
 
 _persons_index_ = 'PERID'
 _hh_index_ = 'HHID'
@@ -145,16 +146,9 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     p[_cdap_rank_] = rank
     persons[_cdap_rank_] = p[_cdap_rank_]  # assignment aligns on index values
 
-    # FIXME - as noted above, this is slow, the brute force code above is equivalent
-    # persons[_cdap_rank_] = persons\
-    #     .sort_values(by=[_hh_id_, _cdap_rank_, _age_], ascending=[True, True, True])\
-    #     .groupby(_hh_id_)[_hh_id_]\
-    #     .rank(method='first', na_option='top')\
-    #     .astype(int)
-
-    if DUMP:
-        tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
-                         transpose=False, slicer='NONE')
+    # if DUMP:
+    #     tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
+    #                      transpose=False, slicer='NONE')
 
     if trace_hh_id:
         tracing.trace_df(persons, '%s.cdap_rank' % trace_label)
@@ -193,9 +187,9 @@ def individual_utilities(
     useful_columns = [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]
     indiv_utils[useful_columns] = persons[useful_columns]
 
-    if DUMP:
-        tracing.trace_df(indiv_utils, '%s.DUMP.indiv_utils' % trace_label,
-                         transpose=False, slicer='NONE')
+    # if DUMP:
+    #     tracing.trace_df(indiv_utils, '%s.DUMP.indiv_utils' % trace_label,
+    #                      transpose=False, slicer='NONE')
 
     if trace_hh_id:
         tracing.trace_df(individual_vars, '%s.individual_vars' % trace_label,
@@ -294,11 +288,11 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     spec: pandas.DataFrame
 
     """
-    if DUMP:
-        # dump the interaction_coefficients table because it has been preprocessed
-        tracing.trace_df(interaction_coefficients,
-                         '%s.hhsize%d_interaction_coefficients' % (trace_label, hhsize),
-                         transpose=False, slicer='NONE')
+    # if DUMP:
+    #     # dump the interaction_coefficients table because it has been preprocessed
+    #     tracing.trace_df(interaction_coefficients,
+    #                      '%s.hhsize%d_interaction_coefficients' % (trace_label, hhsize),
+    #                      transpose=False, slicer='NONE')
 
     # cdap spec is same for all households of MAX_HHSIZE and greater
     hhsize = min(hhsize, MAX_HHSIZE)
@@ -396,7 +390,7 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     # eval expression goes in the index
     spec.set_index(expression_name, inplace=True)
 
-    if DUMP or trace_spec:
+    if trace_spec:
         tracing.trace_df(spec, '%s.hhsize%d_spec' % (trace_label, hhsize),
                          transpose=False, slicer='NONE')
 
@@ -406,7 +400,7 @@ def build_cdap_spec(interaction_coefficients, hhsize,
         spec[c] =\
             spec[c].map(lambda x: d.get(x, x or 0.0)).fillna(0)
 
-    if DUMP or trace_spec:
+    if trace_spec:
         tracing.trace_df(spec, '%s.hhsize%d_spec_patched' % (trace_label, hhsize),
                          transpose=False, slicer='NONE')
 
@@ -606,22 +600,22 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
 
-    if DUMP:
-
-        if hhsize > 1:
-            tracing.trace_df(choosers, '%s.DUMP.hhsize%d_choosers' % (trace_label, hhsize),
-                             transpose=False, slicer='NONE')
-            tracing.trace_df(vars, '%s.DUMP.hhsize%d_vars' % (trace_label, hhsize),
-                             transpose=False, slicer='NONE')
-
-        tracing.trace_df(utils, '%s.DUMP.hhsize%d_utils' % (trace_label, hhsize),
-                         transpose=False, slicer='NONE')
-
-        tracing.trace_df(probs, '%s.DUMP.hhsize%d_probs' % (trace_label, hhsize),
-                         transpose=False, slicer='NONE')
-
-        tracing.trace_df(choices, '%s.DUMP.hhsize%d_activity_choices' % (trace_label, hhsize),
-                         transpose=False, slicer='NONE')
+    # if DUMP:
+    #
+    #     if hhsize > 1:
+    #         tracing.trace_df(choosers, '%s.DUMP.hhsize%d_choosers' % (trace_label, hhsize),
+    #                          transpose=False, slicer='NONE')
+    #         tracing.trace_df(vars, '%s.DUMP.hhsize%d_vars' % (trace_label, hhsize),
+    #                          transpose=False, slicer='NONE')
+    #
+    #     tracing.trace_df(utils, '%s.DUMP.hhsize%d_utils' % (trace_label, hhsize),
+    #                      transpose=False, slicer='NONE')
+    #
+    #     tracing.trace_df(probs, '%s.DUMP.hhsize%d_probs' % (trace_label, hhsize),
+    #                      transpose=False, slicer='NONE')
+    #
+    #     tracing.trace_df(choices, '%s.DUMP.hhsize%d_activity_choices' % (trace_label, hhsize),
+    #                      transpose=False, slicer='NONE')
 
     if trace_hh_id:
 
@@ -681,10 +675,10 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices,
 
     cdap_indiv_activity_choices = indiv_activity['cdap_activity']
 
-    if DUMP:
-        tracing.trace_df(cdap_indiv_activity_choices,
-                         '%s.DUMP.cdap_indiv_activity_choices' % trace_label,
-                         transpose=False, slicer='NONE')
+    # if DUMP:
+    #     tracing.trace_df(cdap_indiv_activity_choices,
+    #                      '%s.DUMP.cdap_indiv_activity_choices' % trace_label,
+    #                      transpose=False, slicer='NONE')
 
     return cdap_indiv_activity_choices
 
@@ -743,14 +737,14 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     # convert choice from column index to activity name
     choices = pd.Series(probs.columns[idx_choices].values, index=probs.index)
 
-    if DUMP:
-        tracing.trace_df(proportions, '%s.DUMP.extra_proportions' % trace_label,
-                         transpose=False, slicer='NONE')
-        tracing.trace_df(probs, '%s.DUMP.extra_probs' % trace_label,
-                         transpose=False, slicer='NONE')
-        tracing.trace_df(choices, '%s.DUMP.extra_choices' % trace_label,
-                         transpose=False,
-                         slicer='NONE')
+    # if DUMP:
+    #     tracing.trace_df(proportions, '%s.DUMP.extra_proportions' % trace_label,
+    #                      transpose=False, slicer='NONE')
+    #     tracing.trace_df(probs, '%s.DUMP.extra_probs' % trace_label,
+    #                      transpose=False, slicer='NONE')
+    #     tracing.trace_df(choices, '%s.DUMP.extra_choices' % trace_label,
+    #                      transpose=False,
+    #                      slicer='NONE')
 
     if trace_hh_id:
         tracing.trace_df(proportions, '%s.extra_hh_member_choices_proportions' % trace_label,
@@ -826,11 +820,11 @@ def _run_cdap(
 
     cdap_results = persons[['cdap_rank', 'cdap_activity']]
 
-    if DUMP:
-        tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
-                         transpose=False, slicer='NONE')
-        tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
-                         transpose=False, slicer='NONE')
+    # if DUMP:
+    #     tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
+    #                      transpose=False, slicer='NONE')
+    #     tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
+    #                      transpose=False, slicer='NONE')
 
     # return dataframe with two columns
     return cdap_results

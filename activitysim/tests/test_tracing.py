@@ -224,10 +224,7 @@ def test_register_tours(capsys):
     # household id should not be None
     tracing.register_tours(df, trace_hh_id=None)
 
-    #
-    with pytest.raises(RuntimeError) as excinfo:
-        tracing.register_tours(df, trace_hh_id=5)
-    assert "register_tours called before register_persons" in str(excinfo.value)
+    tracing.register_tours(df, trace_hh_id=5)
 
     out, err = capsys.readouterr()
 
@@ -235,6 +232,7 @@ def test_register_tours(capsys):
     print out
 
     assert "register_tours called with null trace_hh_id" in out
+    assert "no person ids registered for trace_hh_id 5" in out
 
     close_handlers()
 

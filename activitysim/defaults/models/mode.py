@@ -219,7 +219,7 @@ def tour_mode_choice_simulate(tours_merged,
             trace_label=tracing.extend_trace_label(trace_label, tour_type),
             trace_choice_name='tour_mode_choice')
 
-        tracing.print_summary('tour_mode_choice_simulate %s' % tour_type,
+        tracing.print_summary('tour_mode_choice_simulate %s choices' % tour_type,
                               choices, value_counts=True)
 
         choices_list.append(choices)
@@ -230,7 +230,7 @@ def tour_mode_choice_simulate(tours_merged,
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('tour_mode_choice_simulate all tour type',
+    tracing.print_summary('tour_mode_choice_simulate all tour type choices',
                           choices, value_counts=True)
 
     orca.add_column("tours", "mode", choices)
@@ -300,7 +300,7 @@ def trip_mode_choice_simulate(tours_merged,
             trace_choice_name='trip_mode_choice')
 
         # FIXME - no point in printing verbose value_counts now that we have tracing?
-        tracing.print_summary('trip_mode_choice_simulate %s' % tour_type,
+        tracing.print_summary('trip_mode_choice_simulate %s choices' % tour_type,
                               choices, value_counts=True)
 
         choices_list.append(choices)
@@ -311,7 +311,7 @@ def trip_mode_choice_simulate(tours_merged,
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('trip_mode_choice_simulate all tour type',
+    tracing.print_summary('trip_mode_choice_simulate all tour type choices',
                           choices, value_counts=True)
 
     # FIXME - is this a NOP if trips table doesn't exist

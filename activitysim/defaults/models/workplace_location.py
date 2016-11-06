@@ -42,7 +42,7 @@ def workplace_location_simulate(set_random_seed,
 
     # for now I'm going to generate a workplace location for everyone -
     # presumably it will not get used in downstream models for everyone -
-    # it should depend on CDAP and mandatory tour generation as to whethrer
+    # it should depend on CDAP and mandatory tour generation as to whether
     # it gets used
     choosers = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()

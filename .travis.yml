@@ -21,7 +21,7 @@ install:
 - conda info -a
 # FIXME - openmatrix is broken with pytables 3.3.0
 - |
-  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz numpy pandas pip pytables=3.2.3.1 pyyaml
+  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz numpy pandas pip pytables pyyaml
 - source activate test-environment
 - pip install orca openmatrix zbox
 - pip install pytest pytest-cov coveralls pep8 pytest-xdist

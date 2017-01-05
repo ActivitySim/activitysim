@@ -2,32 +2,50 @@
 Getting Started
 ===============
 
-This page describes how to install ActivitySim and setup and run the provided example.
+This page describes how to install ActivitySim and setup and run the included example.
+
+.. note::
+   ActivitySim is under development
 
 .. index:: installation
 
 Installation
 ------------
 
-.. note::
-   In the instructions below we will direct you to run various commands.
-   On Mac and Linux these should go in your standard terminal.
-   On Windows you may use the standard command prompt, the Anaconda
-   command prompt, or Git Bash (if you have that installed).
+The following installation instructions are for Windows or Mac users.  ActivitySim is built
+to run on one machine with sufficient available RAM to fit all required data and calculations
+in memory.
 
 Anaconda
 ~~~~~~~~
 
-ActivitySim is a Python library that uses a number of packages from the
+ActivitySim is a Python 2.7 library that uses a number of packages from the
 scientific Python ecosystem, most notably `pandas <http://pandas.pydata.org>`__ 
 and pandas and `numpy <http://numpy.org>`__.  
 
-The easiest way to get your own scientific Python installation is to
+The recommended way to get your own scientific Python installation is to
 install Anaconda_, which contains many of the libraries upon which
-ActivitySim depends.
+ActivitySim depends + some handy Python installation management tools.  
 
-Once you have a Python installation, install the dependencies listed below and
-then install ActivitySim.
+Anaconda includes the ``conda`` command line tool, which does a number of useful 
+things, including creating `environments <http://conda.pydata.org/docs/using/envs.html>`__ 
+(i.e. stand-alone Python installations/instances/sandboxes) that are the recommended 
+way to work with multiple versions of Python on one machine.  Using conda 
+environments keeps multiple Python setups from conflicting with one another.
+
+After installing Anaconda, create an ActivitySim test environment 
+with the following commands:
+
+::    
+
+    conda create -n asimtest python=2.7
+    activate asimtest
+
+This will create a new conda environment named ``asimtest`` and set it as the 
+active conda environment.  You need to activate the environment each time you
+start a new command session.  You can remove an environment with 
+``conda remove -n asimtest --all`` and check the current active environment with
+``conda info -e``.
 
 Dependencies
 ~~~~~~~~~~~~
@@ -46,50 +64,55 @@ with Anaconda:
 * `orca <https://udst.github.io/orca>`__ >= 1.1
 * `openmatrix <https://pypi.python.org/pypi/OpenMatrix/0.2.3>`__ >= 0.2.2
 
+To install the dependencies with conda, first make sure to activate the correct
+conda environment and then install each package using pip_.  Pip will 
+attempt to install any dependencies that are not already installed.  
+
+::    
+    
+    #required packages for running ActivitySim
+    pip install cytoolz numpy pandas tables pyyaml psutil
+    pip install orca openmatrix zbox
+    
+    #optional required packages for testing and building documentation
+    pip install pytest pytest-cov coveralls pep8 pytest-xdist
+    pip install sphinx numpydoc sphinx_rtd_theme
+    
+If ``numexpr`` (which ``numpy`` requires) fails to install, you may need 
+the `Microsoft Visual C++ Compiler for Python <http://aka.ms/vcpython27>`__.
 
 ActivitySim
 ~~~~~~~~~~~
 
-pip
-^^^
+The current ``release`` version of ActivitySim can be installed 
+from `PyPI <https://pypi.python.org/pypi/activitysim>`__  as well using pip_.  
+The development version can be installed directly from the source.
 
-ActivitySim can be installed from `PyPI <https://pypi.python.org/pypi/activitysim>`__ 
-using pip_.  
+Release
+^^^^^^^
 
-::    
-
+::
+    
+    #new install
     pip install activitysim
-  
-Pip will attempt to install any dependencies that are not already installed.  If you
-want to install the dependencies as well, the pip commands are:
 
-::    
-    
-    pip install psutil orca openmatrix zbox
-    
-    #required packages for testing
-    pip install pytest pytest-cov coveralls pep8
-    
-    #required packages for building documentation
-    pip install sphinx numpydoc
-    
-To update to a new release of ActivitySim use the -U option with pip install:
-
-::    
-
+    #update to a new release
     pip install -U activitysim
 
 Development
 ^^^^^^^^^^^
 
-Development versions of ActivitySim can be installed as follows:
+The development version of ActivitySim can be installed as follows:
 
-* Download the source from the `GitHub repo <https://github.com/udst/activitysim>`__
-* ``cd`` into the ``activitysim`` directory 
+* Clone or fork the source from the `GitHub repository <https://github.com/udst/activitysim>`__
+* Activate the correct conda environment if needed
+* Navigate to your local activitysim git directory
 * Run the command ``python setup.py develop``
 
 The ``develop`` command is required in order to make changes to the 
-source and see the results without reinstalling.
+source and see the results without reinstalling.  You may need to first uninstall the
+the pip installed version before installing the development version from source.  This is 
+done with ``pip uninstall activitysim``.
 
 .. _Anaconda: http://docs.continuum.io/anaconda/index.html
 .. _conda: http://conda.pydata.org/
@@ -182,7 +205,8 @@ The :ref:`cdap` model operates as a series of vectorized table operations:
 Example
 -------
 
-This section describes how to setup and run the example, as well as how the example works.
+This section describes how to setup and run the example, as well as how the example works.  The example
+is a small subset of households and zones and so it requires less than 1 GB of RAM to run.
 
 Folder/File Setup
 ~~~~~~~~~~~~~~~~~
@@ -280,13 +304,13 @@ The current set of files are:
 * ``trip_mode_choice.csv, trip_mode_choice.yaml, trip_mode_choice_coeffs.csv`` - trip mode choice model
 * ``workplace_location.csv`` - work location model
 
-Running the Model
-~~~~~~~~~~~~~~~~~
+Running the Example Model
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To run the example, do the following:
 
 * Open a command line window in the ``example`` folder
-* Ensure running ``python`` will call the Anaconda Python install on your machine
+* Activate the correct conda environment if needed
 * Run ``python simulation.py``
 * ActivitySim will print some logging information and write some outputs to the ``outputs`` folder.  
 
@@ -296,8 +320,14 @@ Outputs
 ~~~~~~~
 
 ActivitySim writes log and trace files to the ``outputs`` folder.  The asim.log file, which
-is the overall log file is always produced.  There are no other outputs produced by the 
-example unless a household trace ID and/or OD pair is specified.
+is the overall log file is always produced.  If tracing is specified, then trace files are output
+as well.
+
+.. note::
+   Currently the example produces no standard outputs, such as trip lists.  The next 
+   phase of development will address creating and writing of outputs.  In the 
+   meantime, the example writes the in-memory households table to a CSV file 
+   for illustrative purposes.
 
 .. _tracing :
 

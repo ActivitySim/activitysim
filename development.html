@@ -89,12 +89,12 @@
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#creating-tests">Creating Tests</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#style">Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-git-and-github">Working with Git and GitHub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#contributions">Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#releases">Releases</a></li>
 </ul>
 </li>
 </ul>
@@ -143,7 +143,40 @@
             
   <div class="section" id="development">
 <h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
-<p>The purpose of this page is to document how to test, document, and contribute to ActivitySim.</p>
+<p>The purpose of this page is to document how to contribute to ActivitySim.</p>
+<p>In developing this software platform, we strive to adhere to a best practices approach to scientific computing,
+as summarized in <a class="reference external" href="http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745">this article.</a></p>
+<div class="section" id="style">
+<h2>Style<a class="headerlink" href="#style" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Python code should follow the <a class="reference external" href="http://legacy.python.org/dev/peps/pep-0008/">pep8 style guide</a></li>
+<li>Python docstrings should follow the <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc documentation format</a></li>
+</ul>
+</div>
+<div class="section" id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Imports should be one per line.</li>
+<li>Imports should be grouped into standard library, third-party, and intra-library imports.</li>
+<li><code class="docutils literal"><span class="pre">from</span></code> import should follow regular <code class="docutils literal"><span class="pre">imports</span></code>.</li>
+<li>Within each group the imports should be alphabetized.</li>
+<li>Imports of scientific Python libraries should follow these conventions:</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="working-with-git-and-github">
+<h2>Working with Git and GitHub<a class="headerlink" href="#working-with-git-and-github" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="https://help.github.com">GitHub Help</a></li>
+<li><a class="reference external" href="https://guides.github.com">GitHub Guides</a></li>
+<li><a class="reference external" href="https://guides.github.com/introduction/flow">Workflows</a></li>
+</ul>
+</div>
 <div class="section" id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim testing is done with three tools:</p>
@@ -162,10 +195,6 @@
 <span class="n">coveralls</span>
 </pre></div>
 </div>
-<div class="section" id="creating-tests">
-<h3>Creating Tests<a class="headerlink" href="#creating-tests" title="Permalink to this headline">¶</a></h3>
-<p>To be completed later</p>
-</div>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
@@ -175,10 +204,10 @@ to html and other document formats, these tools also read the inline Python docs
 them into html as well.  ActivitySim&#8217;s docstrings are written in <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc format</a> since it is easier to use
 than standard rst format.</p>
 <p>To build the documentation, first make sure the required packages are installed:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
 </pre></div>
 </div>
-<p>Next, build the documentation in html format with the following command:</p>
+<p>Next, build the documentation in html format with the following command run from the <code class="docutils literal"><span class="pre">docs</span></code> folder:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">html</span>
 </pre></div>
 </div>
@@ -190,11 +219,11 @@ The script does the following:</p>
 <li>runs <code class="docutils literal"><span class="pre">make</span> <span class="pre">html</span></code></li>
 <li>copies the <code class="docutils literal"><span class="pre">master</span></code> branch <code class="docutils literal"><span class="pre">../activitysim/docs/_build/html/*</span></code> pages to the <code class="docutils literal"><span class="pre">gh-pages</span></code> branch</li>
 </ul>
-<p>GitHub automagically publishes the gh-pages branch at <a class="reference external" href="https://udst.github.io/activitysim">https://udst.github.io/activitysim</a></p>
+<p>GitHub automagically publishes the gh-pages branch at <a class="reference external" href="https://udst.github.io/activitysim">https://udst.github.io/activitysim</a>.</p>
 </div>
-<div class="section" id="contributions">
-<h2>Contributions<a class="headerlink" href="#contributions" title="Permalink to this headline">¶</a></h2>
-<p>ActivitySim&#8217;s contribution guidelines are <a class="reference external" href="https://github.com/UDST/activitysim/blob/master/CONTRIBUTING.md">here</a>.</p>
+<div class="section" id="releases">
+<h2>Releases<a class="headerlink" href="#releases" title="Permalink to this headline">¶</a></h2>
+<p>ActivitySim releases are manually uploaded to the <a class="reference external" href="https://pypi.python.org/pypi/activitysim">Python Package Index</a>  (pypi).</p>
 </div>
 </div>
 

@@ -106,37 +106,37 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#destination-choice">Destination Choice</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id8">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mandatory-scheduling">Mandatory Scheduling</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id9">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mandatory-tour-frequency">Mandatory Tour Frequency</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id10">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mode-tour-and-trip">Mode (Tour and Trip)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#tour">Tour</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#trip">Trip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id11">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#non-mandatory-scheduling">Non-Mandatory Scheduling</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id12">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id13">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#school-location">School Location</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id14">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#workplace-location">Workplace Location</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id15">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">API</a></li>
 </ul>
 </li>
 </ul>
@@ -573,7 +573,7 @@ plus some &#8216;useful columns&#8217; [_hh_id_, _ptype_, _cdap_rank_, _hh_size_
 <dd>A single character activity type name (M, N, or H)</dd>
 <dt>interaction_ptypes</dt>
 <dd>List of ptypes in the interaction (in order of increasing ptype)
-Stars (<a href="#id4"><span class="problematic" id="id5">**</span></a><a href="#id6"><span class="problematic" id="id7">*</span></a>) instead of ptypes means the interaction applies to all ptypes in that size hh</dd>
+Stars (***) instead of ptypes means the interaction applies to all ptypes in that size hh</dd>
 <dt>coefficient</dt>
 <dd>The coefficient to apply for all hh interactions for this activity and set of ptypes</dd>
 </dl>
@@ -737,8 +737,8 @@ simply applies those utilities using the simulation framework.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;destination_choice&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id8">
-<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.destination"></span><dl class="function">
 <dt id="activitysim.defaults.models.destination.destination_choice">
 <code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skims</em>, <em>destination_choice_spec</em>, <em>destination_choice_settings</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
@@ -764,8 +764,8 @@ table can use destination for any tour type.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_scheduling&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
-<div class="section" id="id9">
-<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling">
 <code class="descclassname">activitysim.defaults.models.mandatory_scheduling.</code><code class="descname">mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_school_spec</em>, <em>tdd_work_spec</em>, <em>mandatory_scheduling_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_scheduling.mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
@@ -782,8 +782,8 @@ mandatory tours</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;mandatory_tour_frequency&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">mandatory_tour_frequency</span></code> | Skims Keys: NA</p>
-<div class="section" id="id10">
-<h3>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency">
 <code class="descclassname">activitysim.defaults.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em>, <em>mandatory_tour_frequency_settings</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
@@ -815,8 +815,8 @@ the example via <code class="docutils literal"><span class="pre">orca.run([&quot
 <p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code>
 Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
 </div>
-<div class="section" id="id11">
-<h3>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.mode"></span><dl class="function">
 <dt id="activitysim.defaults.models.mode.get_segment_and_unstack">
 <code class="descclassname">activitysim.defaults.models.mode.</code><code class="descname">get_segment_and_unstack</code><span class="sig-paren">(</span><em>omnibus_spec</em>, <em>segment</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.mode.get_segment_and_unstack" title="Permalink to this definition">¶</a></dt>
@@ -847,8 +847,8 @@ will be used for the tour</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_scheduling&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
-<div class="section" id="id12">
-<h3>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling">
 <code class="descclassname">activitysim.defaults.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_scheduling</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>tdd_alts</em>, <em>tdd_non_mandatory_spec</em>, <em>non_mandatory_scheduling_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_scheduling.non_mandatory_scheduling" title="Permalink to this definition">¶</a></dt>
@@ -865,8 +865,8 @@ non-mandatory tours</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;non_mandatory_tour_frequency&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">persons_nmtf</span></code> | Skims Keys: NA</p>
-<div class="section" id="id13">
-<h3>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.non_mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">
 <code class="descclassname">activitysim.defaults.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>non_mandatory_tour_frequency_alts</em>, <em>non_mandatory_tour_frequency_spec</em>, <em>non_mandatory_tour_frequency_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
@@ -885,8 +885,8 @@ othdiscr, eatout, and social trips in various combination.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;school_location_simulate&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id14">
-<h3>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id10">
+<h3>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.school_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.school_location.school_location_simulate">
 <code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>school_location_settings</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
@@ -903,8 +903,8 @@ go to school.</p>
 function.  This function is registered as an orca step and is called in the example
 via <code class="docutils literal"><span class="pre">orca.run([&quot;workplace_location_simulate&quot;])</span></code></p>
 <p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,TAZ_r</span></code></p>
-<div class="section" id="id15">
-<h3>API<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id11">
+<h3>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.workplace_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.workplace_location.workplace_location_simulate">
 <code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>workplace_location_settings</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>

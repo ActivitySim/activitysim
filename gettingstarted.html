@@ -90,7 +90,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#activitysim">ActivitySim</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#pip">pip</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#release">Release</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#development">Development</a></li>
 </ul>
 </li>
@@ -109,7 +109,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#model-specification-files">Model Specification Files</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#running-the-model">Running the Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-the-example-model">Running the Example Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a></li>
 </ul>
@@ -173,26 +173,40 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>This page describes how to install ActivitySim and setup and run the provided example.</p>
-<div class="section" id="installation">
-<span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>This page describes how to install ActivitySim and setup and run the included example.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">In the instructions below we will direct you to run various commands.
-On Mac and Linux these should go in your standard terminal.
-On Windows you may use the standard command prompt, the Anaconda
-command prompt, or Git Bash (if you have that installed).</p>
+<p class="last">ActivitySim is under development</p>
 </div>
+<div class="section" id="installation">
+<span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>The following installation instructions are for Windows or Mac users.  ActivitySim is built
+to run on one machine with sufficient available RAM to fit all required data and calculations
+in memory.</p>
 <div class="section" id="anaconda">
 <h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim is a Python library that uses a number of packages from the
+<p>ActivitySim is a Python 2.7 library that uses a number of packages from the
 scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
 and pandas and <a class="reference external" href="http://numpy.org">numpy</a>.</p>
-<p>The easiest way to get your own scientific Python installation is to
+<p>The recommended way to get your own scientific Python installation is to
 install <a class="reference external" href="http://docs.continuum.io/anaconda/index.html">Anaconda</a>, which contains many of the libraries upon which
-ActivitySim depends.</p>
-<p>Once you have a Python installation, install the dependencies listed below and
-then install ActivitySim.</p>
+ActivitySim depends + some handy Python installation management tools.</p>
+<p>Anaconda includes the <code class="docutils literal"><span class="pre">conda</span></code> command line tool, which does a number of useful
+things, including creating <a class="reference external" href="http://conda.pydata.org/docs/using/envs.html">environments</a>
+(i.e. stand-alone Python installations/instances/sandboxes) that are the recommended
+way to work with multiple versions of Python on one machine.  Using conda
+environments keeps multiple Python setups from conflicting with one another.</p>
+<p>After installing Anaconda, create an ActivitySim test environment
+with the following commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">2.7</span>
+<span class="n">activate</span> <span class="n">asimtest</span>
+</pre></div>
+</div>
+<p>This will create a new conda environment named <code class="docutils literal"><span class="pre">asimtest</span></code> and set it as the
+active conda environment.  You need to activate the environment each time you
+start a new command session.  You can remove an environment with
+<code class="docutils literal"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asimtest</span> <span class="pre">--all</span></code> and check the current active environment with
+<code class="docutils literal"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
 </div>
 <div class="section" id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
@@ -210,42 +224,49 @@ with Anaconda:</p>
 <li><a class="reference external" href="https://udst.github.io/orca">orca</a> &gt;= 1.1</li>
 <li><a class="reference external" href="https://pypi.python.org/pypi/OpenMatrix/0.2.3">openmatrix</a> &gt;= 0.2.2</li>
 </ul>
+<p>To install the dependencies with conda, first make sure to activate the correct
+conda environment and then install each package using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.  Pip will
+attempt to install any dependencies that are not already installed.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#required packages for running ActivitySim</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">tables</span> <span class="n">pyyaml</span> <span class="n">psutil</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
+
+<span class="c1">#optional required packages for testing and building documentation</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pep8</span> <span class="n">pytest</span><span class="o">-</span><span class="n">xdist</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">numexpr</span></code> (which <code class="docutils literal"><span class="pre">numpy</span></code> requires) fails to install, you may need
+the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visual C++ Compiler for Python</a>.</p>
 </div>
 <div class="section" id="activitysim">
 <h3>ActivitySim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="pip">
-<h4>pip<a class="headerlink" href="#pip" title="Permalink to this headline">¶</a></h4>
-<p>ActivitySim can be installed from <a class="reference external" href="https://pypi.python.org/pypi/activitysim">PyPI</a>
-using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
-</pre></div>
-</div>
-<p>Pip will attempt to install any dependencies that are not already installed.  If you
-want to install the dependencies as well, the pip commands are:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">psutil</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
+<p>The current <code class="docutils literal"><span class="pre">release</span></code> version of ActivitySim can be installed
+from <a class="reference external" href="https://pypi.python.org/pypi/activitysim">PyPI</a>  as well using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.
+The development version can be installed directly from the source.</p>
+<div class="section" id="release">
+<h4>Release<a class="headerlink" href="#release" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#new install</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
 
-<span class="c1">#required packages for testing</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pep8</span>
-
-<span class="c1">#required packages for building documentation</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span>
-</pre></div>
-</div>
-<p>To update to a new release of ActivitySim use the -U option with pip install:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">activitysim</span>
+<span class="c1">#update to a new release</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">activitysim</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="development">
 <h4>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h4>
-<p>Development versions of ActivitySim can be installed as follows:</p>
+<p>The development version of ActivitySim can be installed as follows:</p>
 <ul class="simple">
-<li>Download the source from the <a class="reference external" href="https://github.com/udst/activitysim">GitHub repo</a></li>
-<li><code class="docutils literal"><span class="pre">cd</span></code> into the <code class="docutils literal"><span class="pre">activitysim</span></code> directory</li>
+<li>Clone or fork the source from the <a class="reference external" href="https://github.com/udst/activitysim">GitHub repository</a></li>
+<li>Activate the correct conda environment if needed</li>
+<li>Navigate to your local activitysim git directory</li>
 <li>Run the command <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></li>
 </ul>
 <p>The <code class="docutils literal"><span class="pre">develop</span></code> command is required in order to make changes to the
-source and see the results without reinstalling.</p>
+source and see the results without reinstalling.  You may need to first uninstall the
+the pip installed version before installing the development version from source.  This is
+done with <code class="docutils literal"><span class="pre">pip</span> <span class="pre">uninstall</span> <span class="pre">activitysim</span></code>.</p>
 </div>
 </div>
 </div>
@@ -385,7 +406,8 @@ and the nesting structure (including nesting coefficients) is specified in the Y
 </div>
 <div class="section" id="example">
 <span id="index-2"></span><h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>This section describes how to setup and run the example, as well as how the example works.</p>
+<p>This section describes how to setup and run the example, as well as how the example works.  The example
+is a small subset of households and zones and so it requires less than 1 GB of RAM to run.</p>
 <div class="section" id="folder-file-setup">
 <h3>Folder/File Setup<a class="headerlink" href="#folder-file-setup" title="Permalink to this headline">¶</a></h3>
 <p>The example has the following root folder/file setup:</p>
@@ -494,12 +516,12 @@ columns indicates the number of non-mandatory tours by purpose.</p>
 </ul>
 </div>
 </div>
-<div class="section" id="running-the-model">
-<h3>Running the Model<a class="headerlink" href="#running-the-model" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="running-the-example-model">
+<h3>Running the Example Model<a class="headerlink" href="#running-the-example-model" title="Permalink to this headline">¶</a></h3>
 <p>To run the example, do the following:</p>
 <ul class="simple">
 <li>Open a command line window in the <code class="docutils literal"><span class="pre">example</span></code> folder</li>
-<li>Ensure running <code class="docutils literal"><span class="pre">python</span></code> will call the Anaconda Python install on your machine</li>
+<li>Activate the correct conda environment if needed</li>
 <li>Run <code class="docutils literal"><span class="pre">python</span> <span class="pre">simulation.py</span></code></li>
 <li>ActivitySim will print some logging information and write some outputs to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.</li>
 </ul>
@@ -508,11 +530,18 @@ columns indicates the number of non-mandatory tours by purpose.</p>
 <div class="section" id="outputs">
 <h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim writes log and trace files to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.  The asim.log file, which
-is the overall log file is always produced.  There are no other outputs produced by the
-example unless a household trace ID and/or OD pair is specified.</p>
+is the overall log file is always produced.  If tracing is specified, then trace files are output
+as well.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently the example produces no standard outputs, such as trip lists.  The next
+phase of development will address creating and writing of outputs.  In the
+meantime, the example writes the in-memory households table to a CSV file
+for illustrative purposes.</p>
+</div>
 </div>
 <div class="section" id="tracing">
-<span id="id3"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
 <p>There are two types of tracing in ActivtiySim: household and OD pair.  If a household trace ID
 is specified, then ActivitySim will output a comprehensive set of trace files for all
 calculations for all household members:</p>
@@ -530,7 +559,7 @@ help debug data and/or logic errors.</p>
 </div>
 </div>
 <div class="section" id="how-the-system-works">
-<span id="id4"></span><h2>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h2>
 <p>This section describes ActivitySim&#8217;s flow of execution.</p>
 <div class="section" id="the-basic-flow-of-execution">
 <h3>The Basic Flow of Execution<a class="headerlink" href="#the-basic-flow-of-execution" title="Permalink to this headline">¶</a></h3>

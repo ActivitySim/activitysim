@@ -14,7 +14,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 2.7',
-        'License :: OSI Approved :: BSD 3-Clause License'
+        'License :: OSI Approved :: BSD License'
     ],
     packages=find_packages(exclude=['*.tests']),
     install_requires=[

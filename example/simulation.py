@@ -43,4 +43,8 @@ run_model("patch_mandatory_tour_destination")
 run_model('tour_mode_choice_simulate')
 run_model('trip_mode_choice_simulate')
 
+#write households table to a CSV file to review results
+orca.get_table('households').to_frame().to_csv(orca.get_injectable("output_dir") + "/households_table.csv")
+
 t0 = print_elapsed_time("all models", t0)
+

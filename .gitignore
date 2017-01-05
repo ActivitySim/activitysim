@@ -1,3 +1,4 @@
+sandbox/
 example/data/*
 .idea
 .ipynb_checkpoints
@@ -60,3 +61,4 @@ docs/_build/
 # Python profiles
 *.cprof
 *.lprof
+

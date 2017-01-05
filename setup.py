@@ -8,7 +8,7 @@ setup(
     version='0.1dev',
     description='Activity-Based Travel Modeling',
     author='contributing authors',
-    author_email='',
+    author_email='ben.stabler@rsginc.com',
     license='BSD-3',
     url='https://github.com/udst/activitysim',
     classifiers=[

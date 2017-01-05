@@ -1,7 +1,39 @@
 Development
 ===========
 
-The purpose of this page is to document how to test, document, and contribute to ActivitySim.  
+The purpose of this page is to document how to contribute to ActivitySim.
+
+In developing this software platform, we strive to adhere to a best practices approach to scientific computing, 
+as summarized in `this article. <http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745>`__
+
+Style
+-----
+
+* Python code should follow the `pep8 style guide <http://legacy.python.org/dev/peps/pep-0008/>`__
+* Python docstrings should follow the `numpydoc documentation format <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`__
+
+Imports
+-------
+
+* Imports should be one per line.
+* Imports should be grouped into standard library, third-party, and intra-library imports. 
+* ``from`` import should follow regular ``imports``.
+* Within each group the imports should be alphabetized.
+* Imports of scientific Python libraries should follow these conventions:
+
+::
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
+    import scipy as sp
+
+Working with Git and GitHub
+---------------------------
+
+* `GitHub Help <https://help.github.com>`__
+* `GitHub Guides <https://guides.github.com>`__
+* `Workflows <https://guides.github.com/introduction/flow>`__
 
 Testing
 -------
@@ -26,12 +58,6 @@ Next, run the tests with the following commands:
     pep8 activitysim
     py.test --cov activitysim --cov-report term-missing
     coveralls
-
-Creating Tests
-~~~~~~~~~~~~~~
-
-To be completed later
-
     
 Documentation
 -------------
@@ -47,9 +73,9 @@ To build the documentation, first make sure the required packages are installed:
 
 ::
 
-    pip install sphinx numpydoc
+    pip install sphinx numpydoc sphinx_rtd_theme
 
-Next, build the documentation in html format with the following command:
+Next, build the documentation in html format with the following command run from the ``docs`` folder:
 
 ::
 
@@ -63,9 +89,9 @@ The script does the following:
 * runs ``make html``
 * copies the ``master`` branch ``../activitysim/docs/_build/html/*`` pages to the ``gh-pages`` branch
 
-GitHub automagically publishes the gh-pages branch at https://udst.github.io/activitysim
+GitHub automagically publishes the gh-pages branch at https://udst.github.io/activitysim.  
 
-Contributions
--------------
+Releases
+--------
 
-ActivitySim's contribution guidelines are `here <https://github.com/UDST/activitysim/blob/master/CONTRIBUTING.md>`__.
+ActivitySim releases are manually uploaded to the `Python Package Index <https://pypi.python.org/pypi/activitysim>`__  (pypi). 

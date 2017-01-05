@@ -8,7 +8,7 @@ with open('README.rst') as file:
 
 setup(
     name='activitysim',
-    version='0.2.dev',
+    version='0.2.dev1',
     description='Activity-Based Travel Modeling',
     author='contributing authors',
     author_email='ben.stabler@rsginc.com',

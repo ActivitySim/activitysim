@@ -7,8 +7,10 @@ import os
 
 from activitysim.tracing import print_elapsed_time
 
+
 def set_random_seed():
     np.random.seed(0)
+
 
 def run_model(model_name):
     t0 = print_elapsed_time()
@@ -43,8 +45,8 @@ run_model("patch_mandatory_tour_destination")
 run_model('tour_mode_choice_simulate')
 run_model('trip_mode_choice_simulate')
 
-#write households table to a CSV file to review results
-orca.get_table('households').to_frame().to_csv(orca.get_injectable("output_dir") + "/households_table.csv")
+# write households table to a CSV file to review results
+hh_outfile_name = orca.get_injectable("output_dir") + "/households_table.csv"
+orca.get_table('households').to_frame().to_csv(hh_outfile_name)
 
 t0 = print_elapsed_time("all models", t0)
-

@@ -3,6 +3,9 @@ use_setuptools()  # nopep8
 
 from setuptools import setup, find_packages
 
+with open('README.rst') as file:
+    long_description = file.read()
+
 setup(
     name='activitysim',
     version='0.2.dev',
@@ -16,6 +19,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: BSD License'
     ],
+    long_description=long_description,
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
         'numpy >= 1.8.0',

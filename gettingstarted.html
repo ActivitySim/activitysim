@@ -198,10 +198,16 @@ way to work with multiple versions of Python on one machine.  Using conda
 environments keeps multiple Python setups from conflicting with one another.</p>
 <p>After installing Anaconda, create an ActivitySim test environment
 with the following commands:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">2.7</span>
-<span class="n">activate</span> <span class="n">asimtest</span>
-</pre></div>
-</div>
+<dl class="docutils">
+<dt>::</dt>
+<dd><p class="first">#Windows
+conda create -n asimtest python=2.7
+activate asimtest</p>
+<p class="last">#Mac
+conda create -n asimtest python=2.7
+source activate asimtest</p>
+</dd>
+</dl>
 <p>This will create a new conda environment named <code class="docutils literal"><span class="pre">asimtest</span></code> and set it as the
 active conda environment.  You need to activate the environment each time you
 start a new command session.  You can remove an environment with

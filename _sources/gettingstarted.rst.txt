@@ -36,7 +36,8 @@ environments keeps multiple Python setups from conflicting with one another.
 After installing Anaconda, create an ActivitySim test environment 
 with the following commands:
 
-::    
+::
+    
     #Windows
     conda create -n asimtest python=2.7
     activate asimtest
@@ -44,7 +45,7 @@ with the following commands:
     #Mac
     conda create -n asimtest python=2.7
     source activate asimtest
-
+    
 This will create a new conda environment named ``asimtest`` and set it as the 
 active conda environment.  You need to activate the environment each time you
 start a new command session.  You can remove an environment with 

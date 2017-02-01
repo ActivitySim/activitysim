@@ -39,6 +39,8 @@ def process_mandatory_tours(persons):
 
         mtour = row.mandatory_tour_frequency
         is_worker = row.is_worker
+        work_taz = row.workplace_taz
+        school_taz = row.school_taz
 
         # this logic came from the CTRAMP model - I copied it as best as I
         # could from the previous code - basically we need to know which
@@ -47,35 +49,35 @@ def process_mandatory_tours(persons):
 
         # 1 work trip
         if mtour == "work1":
-            tours += [(key, "work", 1)]
+            tours += [(key, "work", 1, work_taz)]
         # 2 work trips
         elif mtour == "work2":
-            tours += [(key, "work", 1), (key, "work", 2)]
+            tours += [(key, "work", 1, work_taz), (key, "work", 2, work_taz)]
         # 1 school trip
         elif mtour == "school1":
-            tours += [(key, "school", 1)]
+            tours += [(key, "school", 1, school_taz)]
         # 2 school trips
         elif mtour == "school2":
-            tours += [(key, "school", 1), (key, "school", 2)]
+            tours += [(key, "school", 1, school_taz), (key, "school", 2,row.school_taz)]
         # 1 work and 1 school trip
         elif mtour == "work_and_school":
             if is_worker:
                 # is worker, work trip goes first
-                tours += [(key, "work", 1), (key, "school", 2)]
+                tours += [(key, "work", 1, work_taz), (key, "school", 2, school_taz)]
             else:
                 # is student, work trip goes second
-                tours += [(key, "school", 1), (key, "work", 2)]
+                tours += [(key, "school", 1, school_taz), (key, "work", 2, work_taz)]
         else:
             assert 0
 
     """
     Pretty basic at this point - trip table looks like this so far
-           person_id tour_type tour_num
-    0          4419    work     1
-    1          4419    school   2
-    4          4650    school   1
-    5         10001    school   1
-    6         10001    work     2
+           person_id tour_type tour_num destination
+    0          4419    work     1       <work_taz>
+    1          4419    school   2       <school_taz>
+    4          4650    school   1       <school_taz>
+    5         10001    school   1       <school_taz>
+    6         10001    work     2       <work_taz>
     """
 
-    return pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num"])
+    return pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num", "destination"])

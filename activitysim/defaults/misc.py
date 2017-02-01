@@ -31,7 +31,7 @@ def configs_dir():
 @orca.injectable()
 def data_dir():
     if not os.path.exists('data'):
-        raise RuntimeError("data: directory does not exist")
+        raise RuntimeError("data_dir: directory does not exist")
     return 'data'
 
 
@@ -40,6 +40,13 @@ def output_dir():
     if not os.path.exists('output'):
         raise RuntimeError("output_dir: directory does not exist")
     return 'output'
+
+
+@orca.injectable()
+def extensions_dir():
+    if not os.path.exists('extensions'):
+        raise extensions_dir("output_dir: directory does not exist")
+    return 'extensions'
 
 
 @orca.injectable()
@@ -145,3 +152,4 @@ def trace_od(settings):
 @orca.injectable(cache=True)
 def enable_trace_log(trace_hh_id, trace_od):
     return (trace_hh_id or trace_od)
+

@@ -164,7 +164,9 @@ def tour_mode_choice_simulate(tours_merged,
 
     trace_label = trace_hh_id and 'tour_mode_choice'
 
+    logger.info("calling tours_merged")
     tours = tours_merged.to_frame()
+    logger.info("back from tours_merged")
 
     nest_spec = get_logit_model_settings(tour_mode_choice_settings)
     constants = get_model_constants(tour_mode_choice_settings)
@@ -198,8 +200,6 @@ def tour_mode_choice_simulate(tours_merged,
 
         logger.info("tour_mode_choice_simulate running %s tour_type '%s'" %
                     (len(segment.index), tour_type, ))
-
-        # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
         spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
 
@@ -318,7 +318,9 @@ def trip_mode_choice_simulate(tours_merged,
     orca.add_column("trips", "mode", choices)
 
     if trace_hh_id:
-        logger.warn("can't dump trips table because it doesn't exist")
+
+        logger.warn("can't dump trips table because it doesn't exist"
+                    " - trip_mode_choice_simulate is not really implemented")
         # FIXME - commented out because trips table doesn't really exist
         # trace_columns = ['mode']
         # tracing.trace_df(orca.get_table('trips').to_frame(),

@@ -14,6 +14,7 @@ import openmatrix as omx
 
 from .. import __init__
 from ..tables import size_terms
+from . import extensions
 
 from ... import tracing
 
@@ -86,6 +87,7 @@ def test_mini_run(random_seed):
 
     # run the models in the expected order
     orca.run(["compute_accessibility"])
+    orca.run(["school_location_simulate"])
     orca.run(["workplace_location_simulate"])
     orca.run(["auto_ownership_simulate"])
 
@@ -154,13 +156,10 @@ def full_run(preload_3d_skims, chunk_size=0,
     orca.run(["auto_ownership_simulate"])
     orca.run(["cdap_simulate"])
     orca.run(['mandatory_tour_frequency'])
-    orca.get_table("mandatory_tours").tour_type.value_counts()
     orca.run(['non_mandatory_tour_frequency'])
-    orca.get_table("non_mandatory_tours").tour_type.value_counts()
     orca.run(["destination_choice"])
     orca.run(["mandatory_scheduling"])
     orca.run(["non_mandatory_scheduling"])
-    orca.run(["patch_mandatory_tour_destination"])
     orca.run(["tour_mode_choice_simulate"])
     orca.run(["trip_mode_choice_simulate"])
 

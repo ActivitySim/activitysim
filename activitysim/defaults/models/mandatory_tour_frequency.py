@@ -13,6 +13,7 @@ from activitysim import tracing
 from .util.mandatory_tour_frequency import process_mandatory_tours
 
 from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+from .util.misc import add_dependent_columns
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,9 @@ def mandatory_tour_frequency(set_random_seed,
     tracing.print_summary('mandatory_tour_frequency', choices, value_counts=True)
 
     orca.add_column("persons", "mandatory_tour_frequency", choices)
+    add_dependent_columns("persons", "persons_mtf")
+
+    create_mandatory_tours_table()
 
     if trace_hh_id:
         trace_columns = ['mandatory_tour_frequency']
@@ -78,14 +82,38 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
-@orca.table(cache=True)
-def mandatory_tours(persons):
+# @orca.table(cache=True)
+# def mandatory_tours(persons):
+#     persons = persons.to_frame(columns=["mandatory_tour_frequency",
+#                                         "is_worker"])
+#     persons = persons[~persons.mandatory_tour_frequency.isnull()]
+#     df = process_mandatory_tours(persons)
+#
+#     return df
+
+from activitysim import pipeline
+
+def create_mandatory_tours_table():
+
+    persons = orca.get_table('persons')
+
     persons = persons.to_frame(columns=["mandatory_tour_frequency",
-                                        "is_worker"])
+                                        "is_worker", "school_taz", "workplace_taz"])
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
     df = process_mandatory_tours(persons)
 
-    return df
+    if orca.is_table("non_mandatory_tours"):
+        index_offset = orca.get_table("non_mandatory_tours").local.index.max() + 1
+        print "\n######################## create_mandatory_tours_table - offset index by %s" % index_offset
+        logger.info("create_mandatory_tours_table offsetting index by %s" % index_offset)
+        df.index = df.index + index_offset
+
+    orca.add_table("mandatory_tours", df)
+
+    pipeline.add_table_to_pipeline("mandatory_tours")
+
+    pipeline.get_rn_generator().add_tour_channels(df)
+
 
 
 # broadcast mandatory_tours on to persons using the person_id foreign key

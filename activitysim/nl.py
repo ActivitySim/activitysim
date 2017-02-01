@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 import tracing
-
+import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -178,8 +178,14 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
                            msg="probabilities do not add up to 1",
                            trace_choosers=trace_choosers)
 
+    # FIXME - PRNG
+
+    # probs_arr = (
+    #     probs.as_matrix().cumsum(axis=1) - np.random.random((nchoosers, 1)))
+
     probs_arr = (
-        probs.as_matrix().cumsum(axis=1) - np.random.random((nchoosers, 1)))
+        probs.as_matrix().cumsum(axis=1) - pipeline.get_rn_generator().random_for_df(probs))
+
     rows, cols = np.where(probs_arr > 0)
     choices = (s.iat[0] for _, s in pd.Series(cols).groupby(rows))
     return pd.Series(choices, index=probs.index)
@@ -219,6 +225,8 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     sample_size = sample_size or numalts
 
     alts_idx = np.arange(numalts)
+
+    # FIXME - PRNG
 
     if sample_size < numalts:
         sample = np.concatenate(tuple(

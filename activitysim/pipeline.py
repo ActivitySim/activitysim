@@ -26,7 +26,7 @@ _MODELS = [
     'destination_choice',
     'non_mandatory_scheduling',
     'tour_mode_choice_simulate',
-    'trip_mode_choice_simulate'
+    #'trip_mode_choice_simulate'
 ]
 
 _TABLES = ['households', 'persons', 'land_use', 'accessibility']
@@ -35,8 +35,9 @@ _MAX_PRNG_OFFSETS = {'households': 1, 'persons': 5, 'tours' : 5}
 
 _TIMESTAMP_COL = 'timestamp'
 _CHECKPOINT_COL = 'checkpoint_name'
-_PRNG_STATE_COL = 'random_state'
-_NON_TABLE_COLUMNS = [_CHECKPOINT_COL, _TIMESTAMP_COL, _PRNG_STATE_COL]
+_GLOBAL_RANDOM_STATE_COL = 'random_state'
+_PRNG_CHANNELS_COL = 'prng_channels'
+_NON_TABLE_COLUMNS = [_CHECKPOINT_COL, _TIMESTAMP_COL, _GLOBAL_RANDOM_STATE_COL, _PRNG_CHANNELS_COL]
 
 _RUNTIME_COL = 'runtime_seconds'
 
@@ -172,6 +173,23 @@ def rewrap(table_name, df=None):
     return df
 
 
+def print_checkpoints():
+
+    print "\nprint_checkpoints"
+
+    for checkpoint in _CHECKPOINTS:
+
+        print "\n "
+        print "checkpoint_name:", checkpoint[_CHECKPOINT_COL]
+        print "timestamp:      ", checkpoint[_TIMESTAMP_COL]
+
+        print "prng channels:", cPickle.loads(checkpoint[_PRNG_CHANNELS_COL])
+
+        table_columns = list((set(checkpoint.keys()) - set(_NON_TABLE_COLUMNS)))
+        for table_name in table_columns:
+            print "table: '%s'" % table_name
+
+
 def set_checkpoint(checkpoint_name):
 
     for table_name in _TABLES:
@@ -179,6 +197,7 @@ def set_checkpoint(checkpoint_name):
         t = orca.get_table(table_name)
         if len(orca.list_columns_for_table(table_name)) == 0:
             # print "skipping table %s - no changes" % table_name
+
             continue
 
         df = rewrap(table_name)
@@ -189,7 +208,8 @@ def set_checkpoint(checkpoint_name):
 
     _LAST_CHECKPOINT[_CHECKPOINT_COL] = checkpoint_name
     _LAST_CHECKPOINT[_TIMESTAMP_COL] = dt.datetime.now()
-    _LAST_CHECKPOINT[_PRNG_STATE_COL] = cPickle.dumps(np.random.get_state())
+    _LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL] = cPickle.dumps(np.random.get_state())
+    _LAST_CHECKPOINT[_PRNG_CHANNELS_COL] = cPickle.dumps(_PRNG.get_channels())
 
     _CHECKPOINTS.append(_LAST_CHECKPOINT.copy())
 
@@ -217,9 +237,23 @@ def load_checkpoint(resume_after):
     # nonzero returns a one-item tuple containing a list of the indices of the non-zero elements
     index_of_resume_after = b.nonzero()[0][0]
 
+    # print "index_of_resume_after: %s" % index_of_resume_after
+    # print checkpoints_df.loc[:index_of_resume_after]
+
+    # truncate rows after resume_after
+    checkpoints_df = checkpoints_df.loc[:index_of_resume_after].fillna('')
+
+    # array of dicts
+    checkpoints = checkpoints_df.to_dict(orient='records')
+
+    # drop tables with empty names
+    checkpoints = [ {k: v for k, v in checkpoint.iteritems() if v} for checkpoint in checkpoints ]
+
     # patch _CHECKPOINTS array of dicts
     del _CHECKPOINTS[:]
-    _CHECKPOINTS.extend(checkpoints_df.loc[:index_of_resume_after].to_dict(orient='records'))
+    _CHECKPOINTS.extend(checkpoints)
+
+    print_checkpoints()
 
     # patch _CHECKPOINTS dict with latest checkpoint info
     _LAST_CHECKPOINT.clear()
@@ -229,7 +263,8 @@ def load_checkpoint(resume_after):
 
     # patch _TABLES array with list of all pipelined tables in checkpoint
     del _TABLES[:]
-    _TABLES.extend(list((set(_LAST_CHECKPOINT.keys()) - set(_NON_TABLE_COLUMNS))))
+    table_columns = list((set(_LAST_CHECKPOINT.keys()) - set(_NON_TABLE_COLUMNS)))
+    _TABLES.extend(table_columns)
 
     logger.info("load load_checkpoint tables %s" % (_TABLES, ))
 
@@ -238,14 +273,19 @@ def load_checkpoint(resume_after):
 
     # set random state to pickled state at end of last checkpoint
     logger.info("resetting random state")
-    np.random.set_state(cPickle.loads(_LAST_CHECKPOINT[_PRNG_STATE_COL]))
+    np.random.set_state(cPickle.loads(_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL]))
+    _PRNG.load_channels(cPickle.loads(_LAST_CHECKPOINT[_PRNG_CHANNELS_COL]))
 
 
 def run_model(model_name):
 
     t0 = time.time()
 
+    _PRNG.begin_step(model_name)
+
     orca.run([model_name])
+
+    _PRNG.end_step(model_name)
 
     runtime_seconds = time.time() - t0
 
@@ -270,9 +310,8 @@ def start_pipeline(resume_after=None):
     else:
         _open_pipeline_store(overwrite=True)
         set_checkpoint(_INITIAL_CHECKPOINT_NAME)
-
-    _PRNG.add_channel(orca.get_table('households').local, channel_name='households')
-    _PRNG.add_channel(orca.get_table('persons').local, channel_name='persons')
+        _PRNG.add_channel(orca.get_table('households').local, channel_name='households')
+        _PRNG.add_channel(orca.get_table('persons').local, channel_name='persons')
 
     logger.info("start_pipeline complete")
 

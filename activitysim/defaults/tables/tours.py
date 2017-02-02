@@ -16,7 +16,7 @@ def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
     non_mandatory_df = non_mandatory_tours.to_frame()
     mandatory_df = mandatory_tours.to_frame()
 
-    logger.info("\n######## concat mandatory_df (%s..%s) and non_mandatory_df (%s..%s)\n" % (mandatory_df.index.min(), mandatory_df.index.max(), non_mandatory_df.index.min(), non_mandatory_df.index.max()))
+    #logger.info("\n######## concat mandatory_df (%s..%s) and non_mandatory_df (%s..%s)\n" % (mandatory_df.index.min(), mandatory_df.index.max(), non_mandatory_df.index.min(), non_mandatory_df.index.max()))
 
     # don't expect indexes to overlap
     assert len(non_mandatory_df.index.intersection(mandatory_df.index)) == 0

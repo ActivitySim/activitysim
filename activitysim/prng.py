@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import orca
 
 from tracing import print_elapsed_time
 
@@ -10,16 +11,19 @@ logger = logging.getLogger(__name__)
 
 
 _MAX_ID = (1<<31)
+_NO_STEP = 'no_step'
 
 import collections
+SavedChannelState = collections.namedtuple('SavedChannelState', 'channel_name offset step_name')
 
 
 class Channel(object):
 
-    def __init__(self, offset, max_offset, prngs):
+    def __init__(self, offset, max_offset, prngs=None, step_name=None):
         self.offset = offset
         self.max_offset = max_offset
         self.prngs = prngs
+        self.step_name = step_name
 
 
 def get_df_channel_name(df):
@@ -41,10 +45,10 @@ def get_df_channel_name(df):
 def canonical_tour_sub_channels():
 
     # the problem is we don't know what the possible tour_types and their max tour_nums are
-    # FIXME - should get this form alts table
+
+    # FIXME - should get this from alts table
     # alts = orca.get_table('non_mandatory_tour_frequency_alts').local
     # non_mandatory_tour_flavors = {c : alts[alts].max() for c in alts.columns.names}
-
     non_mandatory_tour_flavors = {'escort': 2, 'shopping': 1, 'othmaint': 1, 'othdiscr': 1,
                                   'eatout': 1, 'social': 1}
 
@@ -67,34 +71,115 @@ class Prng(object):
 
         self.channels = {}
         self.max_offsets = max_offsets
+        self.current_step = _NO_STEP
 
 
-    def add_channel(self, df, channel_name):
+    def reseed_if_necessary(self, channel_name, caller):
 
-        logger.info("prng add_channel '%s' %s ids" % (channel_name, len(df.index)))
+        assert self.current_step  and self.current_step != _NO_STEP
+        assert channel_name and channel_name in self.channels
 
-        if channel_name not in self.max_offsets:
-            logger.warn("Prng.add_channel max_seed_opffset not found in self.max_offsets")
+        channel = self.channels[channel_name]
 
-        max_seed_offset = self.max_offsets.get(channel_name, 0)
+        logger.debug("reseed_if_necessary channel '%s' caller '%s'" % (channel_name, caller))
 
-        max_seed = df.index.max() * (max_seed_offset + 1)
-        if max_seed >= _MAX_ID:
-            msg = "max_seed  %s too big for unsigned int32" % (max_seed, )
-            raise RuntimeError(msg)
+        if channel.step_name == _NO_STEP:
 
-        t0 = print_elapsed_time()
+            # channel has never been used - no need to reseed
+            logger.debug("reseed_if_necessary - First use of channel '%s' step '%s' offset %s" % (channel_name, self.current_step, channel.offset))
+            channel.step_name = self.current_step
 
-        prngs = pd.DataFrame(index=df.index)
-        prngs['seed'] = prngs.index * max_seed_offset
-        prngs['generator'] = [np.random.RandomState(seed) for seed in prngs['seed']]
+        elif channel.step_name != self.current_step:
 
-        self.channels[channel_name] = Channel(offset=0, max_offset=max_seed_offset, prngs=prngs)
+            # channel was last used on a previous step - need to reseed
 
-        print_elapsed_time('Prng.add_index %s' % (channel_name), t0)
+            assert channel.offset < channel.max_offset
+
+            channel.step_name = self.current_step
+            channel.offset += 1
+
+            logger.debug("reseed_if_necessary - Reseeding channel '%s' step '%s' offset %s max_offset %s"
+                         % (channel_name, self.current_step, channel.offset, channel.max_offset))
+
+            for row in channel.prngs.itertuples():
+                row.generator.seed(row.seed + channel.offset)
+
+        else:
+            logger.debug("reseed_if_necessary - Reuse of channel '%s' step '%s' offset %s" % (channel_name, self.current_step, channel.offset))
 
 
-    def prngs_for_tour_channel(self, tours, max_seed_offset):
+    def generators_for_df(self, df):
+
+        if not self.channels:
+            return None
+
+        channel_name = get_df_channel_name(df)
+
+        if not channel_name in self.channels:
+            print "couldn't find channel '%s' in %s" % (channel_name, self.channels.keys())
+
+        assert channel_name in self.channels
+
+
+        self.reseed_if_necessary(channel_name, 'generators_for_df')
+
+        prngs = self.channels[channel_name].prngs
+        generators = prngs.ix[df.index].generator
+
+        assert not generators.isnull().any()
+
+        return generators
+
+
+    def random_for_df(self, df):
+
+        if not self.channels:
+            return np.random.random((len(df), 1))
+
+        channel_name = get_df_channel_name(df)
+
+        if channel_name in self.channels:
+
+            self.reseed_if_necessary(channel_name, 'random_for_df')
+
+            prngs = self.channels[channel_name].prngs
+            generators = prngs.ix[df.index].generator
+
+            # this will raise error if any df.index values not in prngs.index (rows all NaNs)
+            r = [prng.rand(1) for prng in generators]
+
+            # logger.info("dbgprng - random_for_df '%s' step '%s' offset %s" % (channel_name, self.current_step, self.channels[channel_name].offset))
+            # logger.info("dbgprng - random_for_df %s" % ([item for sublist in r for item in sublist],))
+
+            return r
+
+        else:
+            # if any channels have been added, then all channels should have been
+            assert not self.channels
+
+            return np.random.random((len(df), 1))
+
+    def begin_step(self, step_name):
+
+        assert self.current_step == _NO_STEP
+        assert step_name and step_name != _NO_STEP
+
+        self.current_step = step_name
+
+        print "\n##### begin_step %s" % step_name
+
+    def end_step(self, step_name):
+
+        assert self.current_step and self.current_step != _NO_STEP
+        assert self.current_step == step_name
+
+        self.current_step = _NO_STEP
+
+        print "\n##### end_step %s" % step_name
+        print self.get_channels()
+
+
+    def create_prngs_for_tour_channels(self, tours, max_seed_offset, offset=0):
 
         assert 'person_id' in tours.columns.values
         assert 'tour_type' in tours.columns.values
@@ -117,118 +202,97 @@ class Prng(object):
         # convert to numeric - shouldn't be any NaNs - this will raise error if there are
         channel_offset = pd.to_numeric(channel_offset, errors='coerce').astype(int)
 
-        prngs['seed'] = (tours.person_id*sub_channel_count)+ channel_offset
+        prngs['seed'] = (tours.person_id*sub_channel_count) + channel_offset
 
-        print "prngs['seed']", prngs['seed']
-
-        # make room for seed offsets
+        # make room for max_seed_offset offsets
         prngs.seed = (prngs.seed * max_seed_offset).astype(int)
 
-        prngs['generator'] = [np.random.RandomState(seed) for seed in prngs['seed']]
+        prngs['generator'] = [np.random.RandomState(seed + offset) for seed in prngs['seed']]
+
+        return prngs
+
+    def create_prngs_for_channel(self, df, max_seed_offset, offset=0):
+
+        max_seed = df.index.max() * (max_seed_offset + 1)
+        if max_seed >= _MAX_ID:
+            msg = "max_seed  %s too big for unsigned int32" % (max_seed, )
+            raise RuntimeError(msg)
+
+        prngs = pd.DataFrame(index=df.index)
+        prngs['seed'] = (prngs.index * max_seed_offset)
+        prngs['generator'] = [np.random.RandomState(seed + offset) for seed in prngs['seed']]
 
         return prngs
 
 
-    def add_tour_channels(self, df):
+    def add_channel(self, df, channel_name, offset=0, step_name=None):
 
-        channel_name = 'tours'
+        # only passed these if we are reloading
+        if step_name is None:
+            step_name = self.current_step
+
+        logger.info("prng add_channel '%s' %s ids" % (channel_name, len(df.index)))
+        logger.info("prng add_channel offset %s step_name '%s'" % (offset, step_name))
 
         if channel_name not in self.max_offsets:
             logger.warn("Prng.add_channel max_seed_opffset not found in self.max_offsets")
 
         max_seed_offset = self.max_offsets.get(channel_name, 0)
+        assert(offset <= max_seed_offset)
 
         t0 = print_elapsed_time()
-        prngs = self.prngs_for_tour_channel(df, max_seed_offset)
-        print_elapsed_time('Prng.add_tour_channels %s' % (channel_name), t0)
+
+        if channel_name == 'tours':
+            prngs = self.create_prngs_for_tour_channels(df, max_seed_offset, offset)
+        else:
+            prngs = self.create_prngs_for_channel(df, max_seed_offset, offset)
+
 
         if channel_name in self.channels:
-
-            logger.info("prng add_tour_channels - extending %s tours" % len(df.index))
-
+            logger.info("prng add_channel - extending %s " % len(df.index))
             channel = self.channels[channel_name]
-
             assert channel.max_offset == max_seed_offset
-
             assert len(channel.prngs.index.intersection(prngs.index)) == 0
-
             channel.prngs = pd.concat([channel.prngs, prngs])
-
         else:
-
             logger.info("prng add_tour_channels - first time")
+            self.channels[channel_name] = \
+                Channel(offset=offset, max_offset=max_seed_offset, prngs=prngs, step_name=step_name)
 
-            self.channels[channel_name] = Channel(offset=0, max_offset=max_seed_offset, prngs=prngs)
-
-
-    def reseed(self, channel_name, offset):
-
-        logger.info("prng reseed '%s' offset %s" % (channel_name, offset))
-
-        assert channel_name in self.channels
-
-        channel = self.channels[channel_name]
-        assert channel.offset < channel.max_offset
-
-        channel.offset += 1
-
-        offset = channel.offset
-        for row in channel.prngs.generators.itertuples():
-            row.generator.seed(row.seed + offset)
+        print_elapsed_time('Prng.add_channel %s' % (channel_name), t0)
 
 
-    def choice(self, df, id, a, size=None, replace=True, p=None):
+    def add_tour_channels(self, df):
 
+        # FIXME - should have a better mechanism - this is to avoid breaking when called from test
         if not self.channels:
-            return np.random.choice(a, size, replace, p)
+            return
 
-        channel_name = get_df_channel_name(df)
-
-        if channel_name in self.channels:
-
-            generator = self.channels[channel_name].prngs.loc[id].generator
-            return generator.choice(a, size, replace, p)
-
-        else:
-            return np.random.choice(a, size, replace, p)
+        self.add_channel(df, 'tours')
 
 
-    def random_for_df(self, df):
+    def get_channels(self):
 
-        if not self.channels:
-            return np.random.random((len(df), 1))
+        return [SavedChannelState(channel_name=channel_name, offset=c.offset, step_name=c.step_name)
+                for channel_name, c in self.channels.iteritems()]
 
-        channel_name = get_df_channel_name(df)
-        count = 1
-
-        if channel_name in self.channels:
-
-            print "\nFOUND random_for_df channel_name '%s'\n" % (channel_name, )
-
-            t0 = print_elapsed_time()
-
-            ids = df.index
-            prngs = self.channels[channel_name].prngs
-
-            if channel_name=='tours':
-                print prngs
-                print "type(prngs) %s" % type(prngs)
-                print prngs.ix[ids]
-
-            generators = prngs.ix[ids].generator
-
-            if channel_name=='tours':
-                print "type(generators) %s" % type(generators)
-
-            r = [prng.rand(count) for prng in generators]
-
-            print_elapsed_time('Prng.random', t0)
-
-            return r
-
-        else:
-            print "\nNOT FOUND random_for_df channel_name '%s'\n" % (channel_name, )
-
-            return np.random.random((len(df), count))
+        return { channel_name: c.offset for channel_name, c in self.channels.iteritems() }
 
 
+    def load_channels(self, saved_channels):
+
+
+        for channel_state in saved_channels:
+
+            assert channel_state.channel_name not in self.channels
+
+            if channel_state.channel_name == 'tours':
+
+                for table_name in ["non_mandatory_tours", "mandatory_tours"]:
+                    if orca.is_table(table_name):
+                        df = orca.get_table(table_name).local
+                        self.add_channel(df, channel_name=channel_state.channel_name, offset=channel_state.offset, step_name=channel_state.step_name)
+
+            else:
+                df = orca.get_table(channel_state.channel_name).local
+                self.add_channel(df, channel_name=channel_state.channel_name, offset=channel_state.offset, step_name=channel_state.step_name)

@@ -226,12 +226,19 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
 
     alts_idx = np.arange(numalts)
 
-    # FIXME - PRNG
-
     if sample_size < numalts:
-        sample = np.concatenate(tuple(
-            np.random.choice(alts_idx, sample_size, replace=False)
-            for _ in range(numchoosers)))
+
+        generators = pipeline.get_rn_generator().generators_for_df(choosers)
+
+        if generators is not None:
+            sample = np.concatenate(tuple(
+                prng.choice(alts_idx, sample_size, replace=False)
+                for prng in generators))
+        else:
+            sample = np.concatenate(tuple(
+                np.random.choice(alts_idx, sample_size, replace=False)
+                for _ in range(numchoosers)))
+
     else:
         sample = np.tile(alts_idx, numchoosers)
 

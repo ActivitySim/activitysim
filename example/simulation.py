@@ -33,11 +33,11 @@ _MODELS = [
     'destination_choice',
     'non_mandatory_scheduling',
     'tour_mode_choice_simulate',
-    'trip_mode_choice_simulate'
+    # 'trip_mode_choice_simulate'
 ]
 
 
-resume_after = 'mandatory_scheduling'
+#resume_after = 'mandatory_scheduling'
 resume_after = None
 
 pipeline.run(resume_after=resume_after)
@@ -51,14 +51,13 @@ hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_househo
 pipeline.get_table('households').to_csv(hh_outfile_name)
 
 # write initial households table to a CSV file to review results
-hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "initia_households_table.csv")
+hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "initial_households_table.csv")
 pipeline.get_table('households', checkpoint_name = 'init').to_csv(hh_outfile_name)
 
 
 # write final households table to a CSV file to review results
 hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_persons_table.csv")
 pipeline.get_table('persons').to_csv(hh_outfile_name)
-
 
 # write final households table to a CSV file to review results
 hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_mandatory_tours.csv")

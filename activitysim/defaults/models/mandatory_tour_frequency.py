@@ -68,6 +68,10 @@ def mandatory_tour_frequency(set_random_seed,
 
     create_mandatory_tours_table()
 
+    # FIXME - test prng repeatability
+    r = pipeline.get_rn_generator().random_for_df(choices)
+    orca.add_column("persons", "mtf_rand", [item for sublist in r for item in sublist])
+
     if trace_hh_id:
         trace_columns = ['mandatory_tour_frequency']
         tracing.trace_df(orca.get_table('persons_merged').to_frame(),

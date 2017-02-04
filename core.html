@@ -317,15 +317,15 @@ This turns out to be quite a bit faster (in this special case) than the pandas d
 so we don&#8217;t have to create a separate column for each partial utility. Instead, we simply
 multiply the eval result by a single alternative coefficient and sum the partial utilities.</p>
 <dl class="docutils">
-<dt>spec</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span><dd>one row per spec expression and one col with utility coefficient</dd>
-<dt>df</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span><dd>cross join (cartesian product) of choosers with alternatives
+<dt>spec <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
+<dd>one row per spec expression and one col with utility coefficient</dd>
+<dt>df <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
+<dd>cross join (cartesian product) of choosers with alternatives
 combines columns of choosers and alternatives
 len(df) == len(choosers) * len(alternatives)
 index values (non-unique) are index values from alternatives df</dd>
-<dt>interaction_utilities</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span><dd>the utility of each alternative is sum of the partial utilities determined by the
+<dt>interaction_utilities <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
+<dd>the utility of each alternative is sum of the partial utilities determined by the
 various spec expressions and their corresponding coefficients
 yielding a dataframe  with len(interaction_df) rows and one utility column
 having the same index as interaction_df (non-unique values from alternatives df)</dd>

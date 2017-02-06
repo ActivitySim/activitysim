@@ -11,6 +11,7 @@ import pandas as pd
 from activitysim import activitysim as asim
 from activitysim import tracing
 from activitysim.tracing import print_elapsed_time
+from activitysim import pipeline
 
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
@@ -120,23 +121,6 @@ associated with)
 """
 
 
-# @orca.table(cache=True)
-# def non_mandatory_tours(persons,
-#                         non_mandatory_tour_frequency_alts):
-#
-#     t0 = print_elapsed_time("")
-#     df = process_non_mandatory_tours(
-#         persons.non_mandatory_tour_frequency.dropna(),
-#         non_mandatory_tour_frequency_alts.local
-#     )
-#     t0 = print_elapsed_time("process_non_mandatory_tours", t0)
-#
-#     return df
-
-
-from activitysim import pipeline
-
-
 def create_non_mandatory_tours_table():
 
     persons = orca.get_table('persons')
@@ -149,7 +133,6 @@ def create_non_mandatory_tours_table():
 
     if orca.is_table("mandatory_tours"):
         index_offset = orca.get_table("mandatory_tours").local.index.max() + 1
-        print "\n######################## create_non_mandatory_tours_table - offset index by %s" % index_offset
         logger.info("create_non_mandatory_tours_table offseting index by %s" % index_offset)
         df.index = df.index + index_offset
 

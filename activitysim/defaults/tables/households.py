@@ -63,14 +63,10 @@ def chunk_id(households, hh_chunk_size):
     return chunk_ids
 
 
-
 @orca.column('households')
 def work_tour_auto_time_savings(households):
     # FIXME - fix this variable from auto ownership model
     return pd.Series(0, households.index)
-
-
-#########################################################################################
 
 
 # this is the placeholder for all the columns to update after the
@@ -102,6 +98,7 @@ def no_cars(households):
 def car_sufficiency(households, persons):
     return households.auto_ownership - persons.household_id.value_counts()
 
+
 # this is a common merge so might as well define it once here and use it
 @orca.table()
 def households_merged(households, land_use, accessibility):
@@ -110,16 +107,3 @@ def households_merged(households, land_use, accessibility):
 
 
 orca.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
-
-
-#########################################################################################
-
-from activitysim import pipeline
-
-
-# @orca.table(cache=True)
-# def pipeline_households(trace_hh_id):
-#
-#     df = pipeline.get_table('households', 'x_households')
-#
-#     return df

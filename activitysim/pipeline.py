@@ -26,12 +26,12 @@ _MODELS = [
     'destination_choice',
     'non_mandatory_scheduling',
     'tour_mode_choice_simulate',
-    #'trip_mode_choice_simulate'
+    # 'trip_mode_choice_simulate'
 ]
 
 _TABLES = ['households', 'persons', 'land_use', 'accessibility']
 
-_MAX_PRNG_OFFSETS = {'households': 1, 'persons': 5, 'tours' : 5}
+_MAX_PRNG_OFFSETS = {'households': 1, 'persons': 5, 'tours': 5}
 
 _TIMESTAMP_COL = 'timestamp'
 _CHECKPOINT_COL = 'checkpoint_name'
@@ -52,6 +52,7 @@ _CHECKPOINTS = []
 
 _PRNG = prng.Prng(_MAX_PRNG_OFFSETS)
 
+
 @orca.injectable(cache=True)
 def pipeline_path(output_dir, settings):
     pipeline_file_name = settings.get('pipeline', 'pipeline')
@@ -62,6 +63,7 @@ def pipeline_path(output_dir, settings):
 @orca.injectable(cache=True)
 def pipeline_store(pipeline_path):
     return None
+
 
 def get_pipeline_store():
     store = orca.get_injectable('pipeline_store')
@@ -105,18 +107,7 @@ def _open_pipeline_store(overwrite=False):
     logger.info("opened pipeline_store")
 
 
-
-# import importlib
-#
-# def register_extensions():
-#
-#     extensions_dir = orca.get_injectable('extensions_dir')
-#
-#     if extensions_dir:
-#         importlib.import_module(extensions_dir)
-
-
-def read_df(table_name, checkpoint_name = None):
+def read_df(table_name, checkpoint_name=None):
 
     if checkpoint_name:
         key = "%s/%s" % (table_name, checkpoint_name)
@@ -131,7 +122,7 @@ def read_df(table_name, checkpoint_name = None):
     return df
 
 
-def write_df(df, table_name, checkpoint_name = None):
+def write_df(df, table_name, checkpoint_name=None):
 
     if checkpoint_name:
         key = "%s/%s" % (table_name, checkpoint_name)
@@ -162,7 +153,7 @@ def rewrap(table_name, df=None):
         t.clear_cached()
 
         for column_name in orca.list_columns_for_table(table_name):
-            logger.debug("popping %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
+            # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
             orca.orca._COLUMNS.pop((table_name, column_name), None)
 
         orca.orca._TABLES.pop(table_name, None)
@@ -208,7 +199,7 @@ def set_checkpoint(checkpoint_name):
 
     _LAST_CHECKPOINT[_CHECKPOINT_COL] = checkpoint_name
     _LAST_CHECKPOINT[_TIMESTAMP_COL] = dt.datetime.now()
-    _LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL] = cPickle.dumps(np.random.get_state())
+    _LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL] = _PRNG.gprng_offset
     _LAST_CHECKPOINT[_PRNG_CHANNELS_COL] = cPickle.dumps(_PRNG.get_channels())
 
     _CHECKPOINTS.append(_LAST_CHECKPOINT.copy())
@@ -230,7 +221,7 @@ def load_checkpoint(resume_after):
     if b.sum() == 0:
         msg = "Couldn't find checkpoint '%s' in checkpoints" % (resume_after,)
         logger.error(msg)
-        raise RuntimeError(msg);
+        raise RuntimeError(msg)
 
     assert b.sum() == 1
 
@@ -247,7 +238,7 @@ def load_checkpoint(resume_after):
     checkpoints = checkpoints_df.to_dict(orient='records')
 
     # drop tables with empty names
-    checkpoints = [ {k: v for k, v in checkpoint.iteritems() if v} for checkpoint in checkpoints ]
+    checkpoints = [{k: v for k, v in checkpoint.iteritems() if v} for checkpoint in checkpoints]
 
     # patch _CHECKPOINTS array of dicts
     del _CHECKPOINTS[:]
@@ -259,21 +250,21 @@ def load_checkpoint(resume_after):
     _LAST_CHECKPOINT.clear()
     _LAST_CHECKPOINT.update(_CHECKPOINTS[-1])
 
-    logger.info("load load_checkpoint %s timestamp %s" % (resume_after, _LAST_CHECKPOINT['timestamp']))
+    logger.info("load_checkpoint %s timestamp %s" % (resume_after, _LAST_CHECKPOINT['timestamp']))
 
     # patch _TABLES array with list of all pipelined tables in checkpoint
     del _TABLES[:]
     table_columns = list((set(_LAST_CHECKPOINT.keys()) - set(_NON_TABLE_COLUMNS)))
     _TABLES.extend(table_columns)
 
-    logger.info("load load_checkpoint tables %s" % (_TABLES, ))
+    logger.debug("load_checkpoint tables %s" % (_TABLES, ))
 
     for table_name in _TABLES:
         rewrap(table_name, read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name]))
 
     # set random state to pickled state at end of last checkpoint
-    logger.info("resetting random state")
-    np.random.set_state(cPickle.loads(_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL]))
+    logger.debug("resetting random state")
+    _PRNG.reseed_global_prng(_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL])
     _PRNG.load_channels(cPickle.loads(_LAST_CHECKPOINT[_PRNG_CHANNELS_COL]))
 
 
@@ -304,7 +295,7 @@ def start_pipeline(resume_after=None):
     skims = orca.get_injectable('stacked_skims')
     logger.info("load stacked_skims")
 
-    if resume_after :
+    if resume_after:
         _open_pipeline_store(overwrite=False)
         load_checkpoint(resume_after)
     else:
@@ -322,7 +313,7 @@ def run(models=None, resume_after=None):
         models = _MODELS
 
     if resume_after and resume_after in models:
-        models = models[models.index(resume_after)+1 :]
+        models = models[models.index(resume_after) + 1:]
 
     start_pipeline(resume_after)
 
@@ -339,7 +330,7 @@ def close():
     logger.info("close_pipeline")
 
 
-def get_table(table_name, checkpoint_name = None):
+def get_table(table_name, checkpoint_name=None):
 
     if table_name not in _LAST_CHECKPOINT:
         raise RuntimeError("table '%s' not in checkpoints." % table_name)

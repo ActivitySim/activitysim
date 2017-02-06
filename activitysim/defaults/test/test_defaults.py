@@ -17,11 +17,12 @@ from ..tables import size_terms
 from . import extensions
 
 from ... import tracing
+from ... import pipeline
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
-SKIP_FULL_RUN = False
+SKIP_FULL_RUN = True
 
 
 def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None,
@@ -45,7 +46,8 @@ def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, 
 
 
 def set_random_seed():
-    np.random.seed(0)
+    pipeline.get_rn_generator().reseed_global_prng(offset=0)
+    #np.random.seed(0)
 
 
 def test_size_term():
@@ -142,9 +144,9 @@ def full_run(preload_3d_skims, chunk_size=0,
     tracing.config_logger()
 
     # grab some of the tables
-    orca.get_table("land_use").to_frame().info()
-    orca.get_table("households").to_frame().info()
-    orca.get_table("persons").to_frame().info()
+    # orca.get_table("land_use").to_frame().info()
+    # orca.get_table("households").to_frame().info()
+    # orca.get_table("persons").to_frame().info()
 
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
     assert orca.get_injectable("chunk_size") == chunk_size

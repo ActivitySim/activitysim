@@ -5,6 +5,7 @@ import orca
 
 from activitysim.util import reindex
 
+
 @orca.column("households")
 def income_in_thousands(households):
     return households.income / 1000
@@ -114,6 +115,3 @@ def home_is_urban(households, land_use, settings):
 def home_is_rural(households, land_use, settings):
     s = reindex(land_use.area_type, households.home_taz)
     return s > settings['rural_threshold']
-
-
-

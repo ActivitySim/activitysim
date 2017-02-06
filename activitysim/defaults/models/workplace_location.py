@@ -79,7 +79,7 @@ def workplace_location_simulate(set_random_seed,
         trace_choice_name='workplace_location')
 
     # FIXME - no need to reindex since we didn't slice choosers
-    #choices = choices.reindex(persons_merged.index)
+    # choices = choices.reindex(persons_merged.index)
 
     tracing.print_summary('workplace_taz', choices, describe=True)
 

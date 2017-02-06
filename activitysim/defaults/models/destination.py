@@ -120,4 +120,3 @@ def destination_choice(set_random_seed,
                          index_label='tour',
                          columns=None,
                          warn_if_empty=True)
-

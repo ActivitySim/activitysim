@@ -152,4 +152,3 @@ def trace_od(settings):
 @orca.injectable(cache=True)
 def enable_trace_log(trace_hh_id, trace_od):
     return (trace_hh_id or trace_od)
-

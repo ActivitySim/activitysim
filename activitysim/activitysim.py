@@ -1,6 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import os
+import psutil
+import gc
+
 import logging
 from operator import itemgetter
 
@@ -15,9 +19,7 @@ from .nl import each_nest
 import tracing
 from tracing import print_elapsed_time
 
-import os
-import psutil
-import gc
+import pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +38,10 @@ def random_rows(df, n):
 
     # only sample if df has more than n rows
     if len(df.index) > n:
-        return df.take(np.random.choice(len(df), size=n, replace=False))
+        #return df.take(np.random.choice(len(df), size=n, replace=False))
+        prng = pipeline.get_rn_generator().get_global_prng()
+        return df.take(prng.choice(len(df), size=n, replace=False))
+
     else:
         return df
 

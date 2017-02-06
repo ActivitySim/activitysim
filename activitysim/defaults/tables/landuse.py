@@ -18,4 +18,3 @@ def land_use(store):
 
 
 orca.broadcast('land_use', 'households', cast_index=True, onto_on='TAZ')
-

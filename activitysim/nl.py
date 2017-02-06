@@ -235,8 +235,9 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
                 prng.choice(alts_idx, sample_size, replace=False)
                 for prng in generators))
         else:
+            prng = pipeline.get_rn_generator().get_global_prng()
             sample = np.concatenate(tuple(
-                np.random.choice(alts_idx, sample_size, replace=False)
+                prng.choice(alts_idx, sample_size, replace=False)
                 for _ in range(numchoosers)))
 
     else:

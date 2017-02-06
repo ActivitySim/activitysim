@@ -58,7 +58,7 @@ def process_mandatory_tours(persons):
             tours += [(key, "school", 1, school_taz)]
         # 2 school trips
         elif mtour == "school2":
-            tours += [(key, "school", 1, school_taz), (key, "school", 2,row.school_taz)]
+            tours += [(key, "school", 1, school_taz), (key, "school", 2, school_taz)]
         # 1 work and 1 school trip
         elif mtour == "work_and_school":
             if is_worker:

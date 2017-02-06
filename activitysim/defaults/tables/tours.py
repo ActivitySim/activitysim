@@ -10,13 +10,12 @@ from activitysim.util.reindex import reindex
 
 logger = logging.getLogger(__name__)
 
+
 @orca.table()
 def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
 
     non_mandatory_df = non_mandatory_tours.to_frame()
     mandatory_df = mandatory_tours.to_frame()
-
-    #logger.info("\n######## concat mandatory_df (%s..%s) and non_mandatory_df (%s..%s)\n" % (mandatory_df.index.min(), mandatory_df.index.max(), non_mandatory_df.index.min(), non_mandatory_df.index.max()))
 
     # don't expect indexes to overlap
     assert len(non_mandatory_df.index.intersection(mandatory_df.index)) == 0
@@ -32,6 +31,7 @@ def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
     # go ahead here and add the start, end, and duration here for future use
     chosen_tours = tdd_alts.to_frame().loc[tours.tour_departure_and_duration]
     chosen_tours.index = tours.index
+
     return pd.concat([tours, chosen_tours], axis=1)
 
 

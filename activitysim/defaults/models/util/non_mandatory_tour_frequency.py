@@ -54,7 +54,6 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     # make index unique
     tours = tours.reset_index(drop=True)
 
-
     """
     Pretty basic at this point - trip table looks like this so far
            person_id tour_type tour_num

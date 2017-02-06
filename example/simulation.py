@@ -11,11 +11,8 @@ from activitysim import pipeline
 import extensions
 
 
-def set_random_seed():
-    np.random.seed(0)
-
 # uncomment the line below to set random seed so that run results are reproducible
-# orca.add_injectable("set_random_seed", set_random_seed)
+pipeline.get_rn_generator().set_base_seed(0)
 
 tracing.config_logger()
 

@@ -196,4 +196,3 @@ def has_preschool_kid_at_home(persons):
 @orca.column('persons_cdap')
 def has_school_kid_at_home(persons):
     return presence_of("school", persons, at_home=True)
-

@@ -13,8 +13,8 @@ def test_mtf():
     persons = pd.DataFrame({
         "is_worker": [True, True, False],
         "mandatory_tour_frequency": ["work1", "work_and_school", "school2"],
-        "school_taz": [1,2,3],
-        "workplace_taz": [10,20,30],
+        "school_taz": [1, 2, 3],
+        "workplace_taz": [10, 20, 30],
     }, index=[10, 20, 30])
 
     mandatory_tours = process_mandatory_tours(persons)

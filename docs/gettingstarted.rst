@@ -601,18 +601,18 @@ orca table named ``mandatory_tours``.
   
 .. _Skims_3D :
 
-Skims3D
-~~~~~~~
+Skims3dWrapper
+~~~~~~~~~~~~~~
 
-The mode choice model uses the Skims3D class in addition to the skims (2D) class.  The Skims3D class represents 
+The mode choice model uses the Skims3dWrapper class in addition to the skims (2D) class.  The Skims3dWrapper class represents
 a collection of skims with a third dimension, which in this case in time period.  Setting up the 3D index for 
-Skims3D is done as follows:
+Skims3dWrapper is done as follows:
 
 ::
 
   #setup two indexes - tour inbound skims and tour outbound skims
-  in_skims = askim.Skims3D(stack=stack, left_key=orig_key, right_key=dest_key, skim_key="in_period", offset=-1)
-  out_skims = askim.Skims3D(stack=stack, left_key=dest_key, right_key=orig_key, skim_key="out_period", offset=-1)
+  in_skims = askim.Skims3dWrapper(stack=stack, left_key=orig_key, right_key=dest_key, skim_key="in_period", offset=-1)
+  out_skims = askim.Skims3dWrapper(stack=stack, left_key=dest_key, right_key=orig_key, skim_key="out_period", offset=-1)
     
   #where:
   stack = askim.SkimStack(skims)       #build 3D skim object from 2D skims table object

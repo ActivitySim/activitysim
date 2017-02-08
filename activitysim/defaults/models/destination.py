@@ -30,7 +30,7 @@ def destination_choice_settings(configs_dir):
 @orca.step()
 def destination_choice(set_random_seed,
                        non_mandatory_tours_merged,
-                       skims,
+                       skim_dict,
                        destination_choice_spec,
                        destination_choice_settings,
                        destination_size_terms,
@@ -54,10 +54,10 @@ def destination_choice(set_random_seed,
         # register non_mandatory_tours so we can slice utilities
         tracing.register_tours(choosers, trace_hh_id)
 
-    # set the keys for this lookup - in this case there is a TAZ in the choosers
+    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
-    skims.set_keys("TAZ", "TAZ_r")
     # the skims will be available under the name "skims" for any @ expressions
+    skims = skim_dict.wrap("TAZ", "TAZ_r")
 
     locals_d = {
         'skims': skims

@@ -545,6 +545,7 @@ Skims
 
 The skims class defines orca injectables to access the skim matrices.  The skims class reads the
 skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
+The skimss are float64 matrix.
 
 Injectables
 ~~~~~~~~~~~
@@ -552,17 +553,10 @@ Injectables
 +----------------------------------------------------+-----------------+----------------------------------------------------+------------+
 |                                              Table |            Type |                                            Creator |    Virtual |
 +====================================================+=================+====================================================+============+
-|                                      distance_skim |  float64 matrix |          skims.py -> skims['DISTANCE'] -> omx_file |          T |
+|                                          skim_dict |        SkimDict |                  skims.py -> skim_dict -> omx_file |          T |
 +----------------------------------------------------+-----------------+----------------------------------------------------+------------+
-|                                         sovam_skim |  float64 matrix |   skims.py -> skims[('SOV_TIME','AM')] -> omx_file |          T |
+|                                         skim_stack |       SkimStack |    skims.py -> skim_stack -> skim_dict -> omx_file |          T |
 +----------------------------------------------------+-----------------+----------------------------------------------------+------------+
-|                                         sovmd_skim |  float64 matrix |   skims.py -> skims[('SOV_TIME','MD')] -> omx_file |          T |
-+----------------------------------------------------+-----------------+----------------------------------------------------+------------+
-|                                         sovpm_skim |  float64 matrix |   skims.py -> skims[('SOV_TIME','PM')] -> omx_file |          T |
-+----------------------------------------------------+-----------------+----------------------------------------------------+------------+
-|                                              skims |  float64 matrix |                      skims.py -> skims -> omx_file |          T |
-+----------------------------------------------------+-----------------+----------------------------------------------------+------------+
-
 
 omx_file
 ~~~~~~~~

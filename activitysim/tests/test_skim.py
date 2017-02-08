@@ -50,14 +50,15 @@ def test_skim_nans(data):
 
 def test_skims(data):
 
-    skims = skim.Skims()
-    skims.set_keys("taz_l", "taz_r")
+    skim_dict = skim.SkimDict()
 
     sk = skim.Skim(data)
     sk2 = skim.Skim(data)
 
-    skims['AM'] = sk
-    skims['PM'] = sk2
+    skim_dict.set('AM', sk)
+    skim_dict.set('PM', sk2)
+
+    skims = skim_dict.wrap("taz_l", "taz_r")
 
     df = pd.DataFrame({
         "taz_l": [1, 9, 4],
@@ -85,18 +86,17 @@ def test_skims(data):
 
 def test_3dskims(data):
 
-    skims = skim.Skims()
-    skims.set_keys("taz_l", "taz_r")
+    skim_dict = skim.SkimDict()
 
     sk = skim.Skim(data)
     sk2 = skim.Skim(data)
 
-    skims.set_3d("SOV", "AM", sk)
-    skims.set_3d("SOV", "PM", sk2)
+    skim_dict.set(("SOV", "AM"), sk)
+    skim_dict.set(("SOV", "PM"), sk2)
 
-    stack = skim.SkimStack(skims)
+    stack = skim.SkimStack(skim_dict)
 
-    skims3d = skim.Skims3D(stack=stack, left_key="taz_l", right_key="taz_r", skim_key="period")
+    skims3d = stack.wrap(left_key="taz_l", right_key="taz_r", skim_key="period")
 
     df = pd.DataFrame({
         "taz_l": [1, 9, 4],

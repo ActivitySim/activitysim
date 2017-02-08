@@ -34,8 +34,8 @@ class AccessibilitySkims(object):
         whether to transpose the matrix before flattening. (i.e. act as a D-O instead of O-D skim)
     """
 
-    def __init__(self, skims, omx, length, transpose=False):
-        self.skims = skims
+    def __init__(self, skim_dict, omx, length, transpose=False):
+        self.skim_dict = skim_dict
         self.omx = omx
         self.length = length
         self.transpose = transpose
@@ -49,7 +49,7 @@ class AccessibilitySkims(object):
         skim['DISTANCE'] or skim[('SOVTOLL_TIME', 'MD')]
         """
         try:
-            data = self.skims.get_skim(key).data
+            data = self.skim_dict.get(key).data
         except KeyError:
             omx_key = '__'.join(key)
             logger.info("AccessibilitySkims loading %s from omx as %s" % (key, omx_key,))
@@ -82,7 +82,7 @@ def accessibility_settings(configs_dir):
 @orca.step()
 def compute_accessibility(settings, accessibility_spec,
                           accessibility_settings,
-                          skims, omx_file, land_use, trace_od):
+                          skim_dict, omx_file, land_use, trace_od):
 
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
@@ -130,8 +130,8 @@ def compute_accessibility(settings, accessibility_spec,
     locals_d = {
         'log': np.log,
         'exp': np.exp,
-        'skim_od': AccessibilitySkims(skims, omx_file, zone_count),
-        'skim_do': AccessibilitySkims(skims, omx_file, zone_count, transpose=True)
+        'skim_od': AccessibilitySkims(skim_dict, omx_file, zone_count),
+        'skim_do': AccessibilitySkims(skim_dict, omx_file, zone_count, transpose=True)
     }
     if constants is not None:
         locals_d.update(constants)

@@ -66,9 +66,66 @@ class Skim(object):
         return out
 
 
-class Skims(object):
+class SkimDict(object):
     """
-    A skims object is a wrapper around multiple skim objects,
+    A SkimDict object is a wrapper around a dict of multiple skim objects,
+    where each object is identified by a key.  It operates like a
+    dictionary - i.e. use brackets to add and get skim objects.
+
+    Note that keys are either strings or tuples of two strings (to support stacking of skims.)
+    """
+
+    def __init__(self):
+        self.skims = {}
+
+    def set(self, key, value):
+        """
+        Set an available skim object
+
+        Parameters
+        ----------
+        key : hashable
+             The key (identifier) for this skim object
+        value : Skim
+             The skim object
+
+        Returns
+        -------
+        Nothing
+        """
+
+        if not isinstance(key, str):
+            assert isinstance(key, tuple) and len(key) == 2
+            assert isinstance(key[0], str) and isinstance(key[1], str)
+
+        self.skims[key] = value
+
+    def get(self, key):
+        """
+        Get an available skim object (not the lookup)
+
+        Parameters
+        ----------
+        key : hashable
+             The key (identifier) for this skim object
+
+        Returns
+        -------
+        skim: Skim
+             The skim object
+        """
+        return self.skims[key]
+
+    def wrap(self, left_key, right_key):
+        """
+        return a SkimsWrapper for self
+        """
+        return SkimsWrapper(self, left_key, right_key)
+
+
+class SkimsWrapper(object):
+    """
+    A SkimsWrapper object is an access wrapper around a SkimDict of multiple skim objects,
     where each object is identified by a key.  It operates like a
     dictionary - i.e. use brackets to add and get skim objects - but also
     has information on how to lookup against the skim objects.
@@ -86,34 +143,35 @@ class Skims(object):
     abstract away the O-D lookup and use skims by specifying which skim
     to use in the expressions.
 
-    Note that keys are any hashable object, not just strings.  So calling
-    skim[('AM', 'SOV')] is valid and useful.
+    Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
 
-    def __init__(self):
-        self.skims = {}
-        self.left_key = "TAZ"
-        self.right_key = "TAZ_r"
-        self.df = None
-
-    def set_keys(self, left_key, right_key):
-        """
-        Set the left and right keys.
-
-        Parameters
-        ----------
-        left_key : String
-            The left key (origin) column in the dataframe
-        right_key : String
-            The right key (destination) column in the dataframe
-
-        Returns
-        --------
-        Nothing
-        """
+    def __init__(self, skim_dict, left_key, right_key):
+        self.skim_dict = skim_dict
+        # self.left_key = "TAZ"
+        # self.right_key = "TAZ_r"
         self.left_key = left_key
         self.right_key = right_key
-        return self
+        self.df = None
+
+    # def set_keys(self, left_key, right_key):
+    #     """
+    #     Set the left and right keys.
+    #
+    #     Parameters
+    #     ----------
+    #     left_key : String
+    #         The left key (origin) column in the dataframe
+    #     right_key : String
+    #         The right key (destination) column in the dataframe
+    #
+    #     Returns
+    #     --------
+    #     Nothing
+    #     """
+    #     self.left_key = left_key
+    #     self.right_key = right_key
+    #     return self
 
     def set_df(self, df):
         """
@@ -130,15 +188,14 @@ class Skims(object):
         """
         self.df = df
 
-    def lookup(self, skim):
+    def lookup(self, key):
         """
         Generally not called by the user - use __getitem__ instead
 
         Parameters
         ----------
-        skim: Skim
-            The skim object to perform the lookup using df[left_key] as the
-            origin and df[right_key] as the destination
+        key : hashable
+             The key (identifier) for this skim object
 
         Returns
         -------
@@ -146,62 +203,15 @@ class Skims(object):
             A Series of impedances which are elements of the Skim object and
             with the same index as df
         """
+
+        # The skim object to perform the lookup
+        # using df[left_key] as the origin and df[right_key] as the destination
+        skim = self.skim_dict.get(key)
+
         assert self.df is not None, "Call set_df first"
         s = skim.get(self.df[self.left_key],
                      self.df[self.right_key])
         return pd.Series(s, index=self.df.index)
-
-    def set_3d(self, key, key_3d, value):
-        """
-        If you want to use the Skims3D object below, you will need to do that
-        explicitly by setting first the key which will be used by __getattr__
-        and second the key that relates to the 3rd dimension of the dataframe.
-
-        Parameters
-        ----------
-        key : String or any hashable
-            Will be accessible using __getitem__ in Skims3d
-        key_3d : String or any hashable
-            Relates to the 3rd dimension lookup column set by Skims3D
-        value : Skim
-            the skim object for these keys
-        """
-        self.skims[(key, key_3d)] = value
-
-    def get_3d(self, key, key_3d):
-        """
-        If you want
-
-        Parameters
-        ----------
-        key : String or any hashable
-            Will be accessible using __getitem__ in Skims3d
-        key_3d : String or any hashable
-            Relates to the 3rd dimension lookup column set by Skims3D
-
-        Returns
-        -------
-        skims : Skim
-            the skim object for these keys
-        """
-        return self.skims[(key, key_3d)]
-
-    def __setitem__(self, key, value):
-        """
-        Set an available skim object
-
-        Parameters
-        ----------
-        key : hashable
-             The key (identifier) for this skim object
-        value : Skim
-             The skim object
-
-        Returns
-        -------
-        Nothing
-        """
-        self.skims[key] = value
 
     def __getitem__(self, key):
         """
@@ -210,7 +220,7 @@ class Skims(object):
         Parameters
         ----------
         key : hashable
-             The key (identifier) for this skim object
+             The key (identifier) for the skim object
 
         Returns
         -------
@@ -218,26 +228,7 @@ class Skims(object):
             A Series of impedances which are elements of the Skim object and
             with the same index as df
         """
-        # FIXME - misleading and confusing that this getter is NOT symmetrical to __setitem__
-        # get_skim below is the symmetrical getter corresponding to __setitem__
-        return self.lookup(self.skims[key])
-
-    def get_skim(self, key):
-        """
-        Get an available skim object (not the lookup)
-
-        Parameters
-        ----------
-        key : hashable
-             The key (identifier) for this skim object
-
-        Returns
-        -------
-        skim: Skim
-             The skim object
-        """
-        # FIXME - misleading that this (and NOT __getitem__) is symmetrical to __setitem__ setter
-        return self.skims[key]
+        return self.lookup(key)
 
 
 class SkimStack(object):
@@ -252,7 +243,7 @@ class SkimStack(object):
         # the tuples
         for key, value in skims.skims.iteritems():
             if not isinstance(key, tuple) or not len(key) == 2:
-                logger.debug("Skims3D __init__ skipping key: %s" % key)
+                logger.debug("SkimStack __init__ skipping key: %s" % key)
                 continue
             skim_key1, skim_key2 = key
             # logger.debug("SkimStack init key: key1='%s' key2='%s'" % (skim_key1, skim_key2))
@@ -278,10 +269,18 @@ class SkimStack(object):
     def get(self, key):
         return self.skims_data[key], self.skim_keys_to_indexes[key]
 
+    def wrap(self, left_key, right_key, skim_key, offset=None, omx=None):
+        """
+        return a SkimsWrapper for self
+        """
+        return Skims3dWrapper(stack=self,
+                              left_key=left_key, right_key=right_key, skim_key=skim_key,
+                              offset=offset, omx=omx)
 
-class Skims3D(object):
+
+class Skims3dWrapper(object):
     """
-    A Skims3D object wraps a skim objects to add an additional wrinkle of
+    A Skims3dWrapper object wraps a skim objects to add an additional wrinkle of
     lookup functionality.  Upon init the separate skims objects are
     processed into a 3D matrix so that lookup of the different skims can
     be performed quickly for each row in the dataframe.  In this very
@@ -305,9 +304,7 @@ class Skims3D(object):
     every key in the Skims object that is passed in MUST be a tuple with 2
     items.  The second item in the tuple maps to the items in the dataframe
     referred to by the skim_key column and the first item in the tuple is
-    then available to pass directly to __getitem__.  This is now made
-    explicit by adding the set_3d and get_3d methods in the Skims object which
-    take the two keys independently and convert to the tuple internally.
+    then available to pass directly to __getitem__.
     The sum conclusion of this is that in the specs, you can say something
     like out_skim['SOV'] and it will automatically dereference the 3D matrix
     using origin, destination, and time of day.
@@ -325,7 +322,7 @@ class Skims3D(object):
         offsets will be ignored
     """
 
-    def __init__(self, left_key, right_key, skim_key, offset=None, stack=None):
+    def __init__(self, stack, left_key, right_key, skim_key, offset=None, omx=None):
         self.left_key = left_key
         self.right_key = right_key
         self.offset = offset
@@ -333,12 +330,12 @@ class Skims3D(object):
         self.df = None
         self.stack = None
 
-        # lazy load support - enabled via call to set_omx
-        self.lazy_load = False
-        self.omx = None
+        # lazy load support - enabled by passing omx file
+        self.lazy_load = omx is not None
+        self.omx = omx
 
         if stack is not None:
-            logger.info("Skims3D.__init__ loading %s skims from stack." % stack.key_count())
+            logger.info("Skims3dWrapper.__init__ loading %s skims from stack." % stack.key_count())
             self.stack = stack
 
     def set_df(self, df):
@@ -382,7 +379,7 @@ class Skims3D(object):
             stacked_skim_data, skim_keys_to_indexes = self.stack.get(key)
         elif self.lazy_load:
             stacked_skim_data, skim_keys_to_indexes = self._load_stacked_skim_from_disk(key)
-        assert stacked_skim_data is not None, "Skims3D key %s missing" % key
+        assert stacked_skim_data is not None, "Skims3dWrapper key %s missing" % key
 
         skim_indexes = self.df[self.skim_key].map(skim_keys_to_indexes).astype('int')
 
@@ -417,7 +414,7 @@ class Skims3D(object):
         #
         # from activitysim import skim as askim
         # from types import MethodType
-        # askim.Skims3D.get_from_omx = MethodType(get_from_omx, None, askim.Skims3D)
+        # askim.Skims3dWrapper.get_from_omx = MethodType(get_from_omx, None, askim.Skims3D)
 
         omx_key = key + '__' + v
         # print "my_get_from_omx - key: '%s' v: '%s', omx_key: '%s'" % (key, v, omx_key)
@@ -434,8 +431,3 @@ class Skims3D(object):
         skim_keys_to_indexes = {i: v for i, v in zip(uniq, range(len(uniq)))}
 
         return skims_data, skim_keys_to_indexes
-
-    def set_omx(self, omx):
-
-        self.lazy_load = omx is not None
-        self.omx = omx

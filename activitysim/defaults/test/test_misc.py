@@ -69,4 +69,3 @@ def test_misc():
     # default values if not specified in settings
     assert orca.get_injectable("hh_chunk_size") == 0
     assert orca.get_injectable("chunk_size") == 0
-    assert orca.get_injectable("preload_3d_skims") is False

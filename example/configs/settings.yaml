@@ -12,7 +12,6 @@ trace_hh_id: 961042
 trace_od: [5, 11]
 
 #internal settings 
-preload_3d_skims: True
 chunk_size: 10000
 # chunk size for models that must process all data for a household in he same chunk (e.g. cdap)
 # if not specified, chunk_size setting value is used

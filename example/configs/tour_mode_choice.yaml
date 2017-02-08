@@ -79,7 +79,7 @@ VARIABLE_TEMPLATES:
                        *costPerMile)"
     AUTO_ACCESS_RATIO_EXPR: "@(out_skims['{sk1}']/100+
                                in_skims['{sk2}']/100)/
-                               (skims['DISTANCE']*2)"
+                               (skims['DIST']*2)"
 
 
 CONSTANTS:

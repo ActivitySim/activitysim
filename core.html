@@ -180,7 +180,7 @@ models such as <a class="reference internal" href="#nl-in-detail"><span class="s
 <dl class="function">
 <dt id="activitysim.activitysim.add_skims">
 <code class="descclassname">activitysim.activitysim.</code><code class="descname">add_skims</code><span class="sig-paren">(</span><em>df</em>, <em>skims</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.activitysim.add_skims" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add the dataframe to the Skims object so that it can be dereferenced
+<dd><p>Add the dataframe to the SkimsWrapper object so that it can be dereferenced
 using the parameters of the skims object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -191,7 +191,7 @@ using the parameters of the skims object.</p>
 <div><p>Table to which to add skim data as new columns.
 <cite>df</cite> is modified in-place.</p>
 </div></blockquote>
-<p><strong>skims</strong> : Skims object</p>
+<p><strong>skims</strong> : SkimsWrapper object</p>
 <blockquote class="last">
 <div><p>The skims object is used to contain multiple matrices of
 origin-destination impedances.  Make sure to also add it to the
@@ -734,57 +734,15 @@ would turn them into 0-based array indices.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="activitysim.skim.Skims">
-<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims</code><a class="headerlink" href="#activitysim.skim.Skims" title="Permalink to this definition">¶</a></dt>
-<dd><p>A skims object is a wrapper around multiple skim objects,
+<dt id="activitysim.skim.SkimDict">
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">SkimDict</code><a class="headerlink" href="#activitysim.skim.SkimDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SkimDict object is a wrapper around a dict of multiple skim objects,
 where each object is identified by a key.  It operates like a
-dictionary - i.e. use brackets to add and get skim objects - but also
-has information on how to lookup against the skim objects.
-Specifically, this object has a dataframe, a left_key and right_key.
-It is assumed that left_key and right_key identify columns in df.  The
-parameter df is usually set by the simulation itself as it&#8217;s a result of
-interacting choosers and alternatives.</p>
-<p>When the user calls skims[key], key is an identifier for which skim
-to use, and the object automatically looks up impedances of that skim
-using the specified left_key column in df as the origin and
-the right_key column in df as the destination.  In this way, the user
-does not do the O-D lookup by hand and only specifies which skim to use
-for this lookup.  This is the only purpose of this object: to
-abstract away the O-D lookup and use skims by specifying which skim
-to use in the expressions.</p>
-<p>Note that keys are any hashable object, not just strings.  So calling
-skim[(&#8216;AM&#8217;, &#8216;SOV&#8217;)] is valid and useful.</p>
+dictionary - i.e. use brackets to add and get skim objects.</p>
+<p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
 <dl class="method">
-<dt id="activitysim.skim.Skims.get_3d">
-<code class="descname">get_3d</code><span class="sig-paren">(</span><em>key</em>, <em>key_3d</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.get_3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>If you want</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : String or any hashable</p>
-<blockquote>
-<div><p>Will be accessible using __getitem__ in Skims3d</p>
-</div></blockquote>
-<p><strong>key_3d</strong> : String or any hashable</p>
-<blockquote>
-<div><p>Relates to the 3rd dimension lookup column set by Skims3D</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>skims</strong> : Skim</p>
-<blockquote class="last">
-<div><p>the skim object for these keys</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="activitysim.skim.Skims.get_skim">
-<code class="descname">get_skim</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.get_skim" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.skim.SkimDict.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimDict.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get an available skim object (not the lookup)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -807,70 +765,20 @@ skim[(&#8216;AM&#8217;, &#8216;SOV&#8217;)] is valid and useful.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="activitysim.skim.Skims.lookup">
-<code class="descname">lookup</code><span class="sig-paren">(</span><em>skim</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.lookup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generally not called by the user - use __getitem__ instead</p>
+<dt id="activitysim.skim.SkimDict.set">
+<code class="descname">set</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimDict.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set an available skim object</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>skim: Skim</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : hashable</p>
 <blockquote>
-<div><p>The skim object to perform the lookup using df[left_key] as the
-origin and df[right_key] as the destination</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">impedances: pd.Series</p>
-<blockquote class="last">
-<div><p>A Series of impedances which are elements of the Skim object and
-with the same index as df</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="activitysim.skim.Skims.set_3d">
-<code class="descname">set_3d</code><span class="sig-paren">(</span><em>key</em>, <em>key_3d</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>If you want to use the Skims3D object below, you will need to do that
-explicitly by setting first the key which will be used by __getattr__
-and second the key that relates to the 3rd dimension of the dataframe.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : String or any hashable</p>
-<blockquote>
-<div><p>Will be accessible using __getitem__ in Skims3d</p>
-</div></blockquote>
-<p><strong>key_3d</strong> : String or any hashable</p>
-<blockquote>
-<div><p>Relates to the 3rd dimension lookup column set by Skims3D</p>
+<div><p>The key (identifier) for this skim object</p>
 </div></blockquote>
 <p><strong>value</strong> : Skim</p>
-<blockquote class="last">
-<div><p>the skim object for these keys</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="activitysim.skim.Skims.set_df">
-<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the dataframe</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : DataFrame</p>
 <blockquote>
-<div><p>The dataframe which contains the origin and destination ids</p>
+<div><p>The skim object</p>
 </div></blockquote>
 </td>
 </tr>
@@ -882,36 +790,17 @@ and second the key that relates to the 3rd dimension of the dataframe.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="activitysim.skim.Skims.set_keys">
-<code class="descname">set_keys</code><span class="sig-paren">(</span><em>left_key</em>, <em>right_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims.set_keys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the left and right keys.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>left_key</strong> : String</p>
-<blockquote>
-<div><p>The left key (origin) column in the dataframe</p>
-</div></blockquote>
-<p><strong>right_key</strong> : String</p>
-<blockquote>
-<div><p>The right key (destination) column in the dataframe</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="activitysim.skim.SkimDict.wrap">
+<code class="descname">wrap</code><span class="sig-paren">(</span><em>left_key</em>, <em>right_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimDict.wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a SkimsWrapper for self</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="activitysim.skim.Skims3D">
-<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims3D</code><span class="sig-paren">(</span><em>left_key</em>, <em>right_key</em>, <em>skim_key</em>, <em>offset=None</em>, <em>stack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Skims3D object wraps a skim objects to add an additional wrinkle of
+<dt id="activitysim.skim.Skims3dWrapper">
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">Skims3dWrapper</code><span class="sig-paren">(</span><em>stack</em>, <em>left_key</em>, <em>right_key</em>, <em>skim_key</em>, <em>offset=None</em>, <em>omx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3dWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Skims3dWrapper object wraps a skim objects to add an additional wrinkle of
 lookup functionality.  Upon init the separate skims objects are
 processed into a 3D matrix so that lookup of the different skims can
 be performed quickly for each row in the dataframe.  In this very
@@ -934,9 +823,7 @@ __getitem__ below (i.e. the one used in the specs).  By convention,
 every key in the Skims object that is passed in MUST be a tuple with 2
 items.  The second item in the tuple maps to the items in the dataframe
 referred to by the skim_key column and the first item in the tuple is
-then available to pass directly to __getitem__.  This is now made
-explicit by adding the set_3d and get_3d methods in the Skims object which
-take the two keys independently and convert to the tuple internally.
+then available to pass directly to __getitem__.
 The sum conclusion of this is that in the specs, you can say something
 like out_skim[&#8216;SOV&#8217;] and it will automatically dereference the 3D matrix
 using origin, destination, and time of day.</p>
@@ -964,8 +851,76 @@ offsets will be ignored</p>
 </tbody>
 </table>
 <dl class="method">
-<dt id="activitysim.skim.Skims3D.set_df">
-<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3D.set_df" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.skim.Skims3dWrapper.set_df">
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.Skims3dWrapper.set_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : DataFrame</p>
+<blockquote>
+<div><p>The dataframe which contains the origin and destination ids</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="activitysim.skim.SkimsWrapper">
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">SkimsWrapper</code><span class="sig-paren">(</span><em>skim_dict</em>, <em>left_key</em>, <em>right_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimsWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SkimsWrapper object is an access wrapper around a SkimDict of multiple skim objects,
+where each object is identified by a key.  It operates like a
+dictionary - i.e. use brackets to add and get skim objects - but also
+has information on how to lookup against the skim objects.
+Specifically, this object has a dataframe, a left_key and right_key.
+It is assumed that left_key and right_key identify columns in df.  The
+parameter df is usually set by the simulation itself as it&#8217;s a result of
+interacting choosers and alternatives.</p>
+<p>When the user calls skims[key], key is an identifier for which skim
+to use, and the object automatically looks up impedances of that skim
+using the specified left_key column in df as the origin and
+the right_key column in df as the destination.  In this way, the user
+does not do the O-D lookup by hand and only specifies which skim to use
+for this lookup.  This is the only purpose of this object: to
+abstract away the O-D lookup and use skims by specifying which skim
+to use in the expressions.</p>
+<p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
+<dl class="method">
+<dt id="activitysim.skim.SkimsWrapper.lookup">
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimsWrapper.lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generally not called by the user - use __getitem__ instead</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : hashable</p>
+<blockquote>
+<div><p>The key (identifier) for this skim object</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">impedances: pd.Series</p>
+<blockquote class="last">
+<div><p>A Series of impedances which are elements of the Skim object and
+with the same index as df</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.skim.SkimsWrapper.set_df">
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimsWrapper.set_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the dataframe</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

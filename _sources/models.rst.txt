@@ -132,7 +132,7 @@ function.  This function is called in the orca step ``tour_mode_choice_simulate`
 the example via ``orca.run(["tour_mode_choice_simulate"])``.
 
 Core Table: ``tours`` | Result Field: ``mode`` | Skims Keys: ``TAZ,destination`` | 
-Skims3D in_skims Keys: ``TAZ,destination,in_period`` | Skims3D out_skims Keys: ``destination,TAZ,out_period``
+Skims3dWrapper in_skims Keys: ``TAZ,destination,in_period`` | Skims3dWrapper out_skims Keys: ``destination,TAZ,out_period``
 
 Trip
 ~~~~
@@ -143,7 +143,7 @@ function.  This function is called in the orca step ``trip_mode_choice_simulate`
 the example via ``orca.run(["trip_mode_choice_simulate"])``.
 
 Core Table: ``trips`` | Result Field: ``mode`` | Skims Keys: ``TAZ,destination``
-Skims3D in_skims Keys: ``TAZ,destination,in_period`` | Skims3D out_skims Keys: ``destination,TAZ,out_period``
+Skims3dWrapper in_skims Keys: ``TAZ,destination,in_period`` | Skims3dWrapper out_skims Keys: ``destination,TAZ,out_period``
 
 
 API

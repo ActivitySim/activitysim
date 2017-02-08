@@ -1368,7 +1368,8 @@ coefficients series.</p>
 <div class="section" id="skims">
 <span id="index-10"></span><h2>Skims<a class="headerlink" href="#skims" title="Permalink to this headline">¶</a></h2>
 <p>The skims class defines orca injectables to access the skim matrices.  The skims class reads the
-skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.</p>
+skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
+The skimss are float64 matrix.</p>
 <div class="section" id="injectables">
 <h3>Injectables<a class="headerlink" href="#injectables" title="Permalink to this headline">¶</a></h3>
 <table border="1" class="docutils">
@@ -1386,29 +1387,14 @@ skims from the omx_file on disk.  The injectables and omx_file for the example a
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>distance_skim</td>
-<td>float64 matrix</td>
-<td>skims.py -&gt; skims[&#8216;DISTANCE&#8217;] -&gt; omx_file</td>
+<tr class="row-even"><td>skim_dict</td>
+<td>SkimDict</td>
+<td>skims.py -&gt; skim_dict -&gt; omx_file</td>
 <td>T</td>
 </tr>
-<tr class="row-odd"><td>sovam_skim</td>
-<td>float64 matrix</td>
-<td>skims.py -&gt; skims[(&#8216;SOV_TIME&#8217;,&#8217;AM&#8217;)] -&gt; omx_file</td>
-<td>T</td>
-</tr>
-<tr class="row-even"><td>sovmd_skim</td>
-<td>float64 matrix</td>
-<td>skims.py -&gt; skims[(&#8216;SOV_TIME&#8217;,&#8217;MD&#8217;)] -&gt; omx_file</td>
-<td>T</td>
-</tr>
-<tr class="row-odd"><td>sovpm_skim</td>
-<td>float64 matrix</td>
-<td>skims.py -&gt; skims[(&#8216;SOV_TIME&#8217;,&#8217;PM&#8217;)] -&gt; omx_file</td>
-<td>T</td>
-</tr>
-<tr class="row-even"><td>skims</td>
-<td>float64 matrix</td>
-<td>skims.py -&gt; skims -&gt; omx_file</td>
+<tr class="row-odd"><td>skim_stack</td>
+<td>SkimStack</td>
+<td>skims.py -&gt; skim_stack -&gt; skim_dict -&gt; omx_file</td>
 <td>T</td>
 </tr>
 </tbody>

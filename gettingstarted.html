@@ -117,7 +117,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#how-the-system-works">How the System Works</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#the-basic-flow-of-execution">The Basic Flow of Execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#creating-new-tables">Creating New Tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#skims3d">Skims3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#skims3dwrapper">Skims3dWrapper</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accessibilities">Accessibilities</a></li>
 </ul>
 </li>
@@ -331,7 +331,7 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 <td>0.2936</td>
 </tr>
 <tr class="row-odd"><td>Distance, from 0 to 1 miles</td>
-<td>&#64;skims[&#8216;DISTANCE&#8217;].clip(1)</td>
+<td>&#64;skims[&#8216;DIST&#8217;].clip(1)</td>
 <td>-3.2451</td>
 <td>-0.9523</td>
 </tr>
@@ -471,8 +471,6 @@ is the main settings file for the model run.  This file includes:</p>
 <li><p class="first"><code class="docutils literal"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p>
-</li>
-<li><p class="first"><code class="docutils literal"><span class="pre">preload_3d_skims</span></code> - preload skims with index by origin, destination, time period for <a class="reference internal" href="#skims-3d"><span class="std std-ref">Skims3D</span></a> vectorized queries</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers</p>
 </li>
@@ -734,22 +732,24 @@ name <code class="docutils literal"><span class="pre">persons_school</span></cod
  <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">distance_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">distance_skim</span><span class="p">):</span>
- <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">distance_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
-                                    <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">),</span>
-                  <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">distance_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">skim_dict</span><span class="p">):</span>
+    <span class="n">distance_skim</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DIST&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">distance_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
+                                       <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">),</span>
+                     <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">roundtrip_auto_time_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">sovam_skim</span><span class="p">,</span> <span class="n">sovmd_skim</span><span class="p">):</span>
- <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sovam_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
-                                 <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">)</span> <span class="o">+</span>
-                  <span class="n">sovmd_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">,</span>
-                                 <span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">),</span>
-                  <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">roundtrip_auto_time_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">skim_dict</span><span class="p">):</span>
+    <span class="n">sovmd_skim</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="s1">&#39;SOV_TIME&#39;</span><span class="p">,</span> <span class="s1">&#39;MD&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sovmd_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
+                                    <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">)</span> <span class="o">+</span>
+                     <span class="n">sovmd_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">,</span>
+                                    <span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">),</span>
+                     <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code> as a
-function of the <code class="docutils literal"><span class="pre">sovam_skim</span></code> and <code class="docutils literal"><span class="pre">sovmd_skim</span></code> orca injectables.</p>
+<p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code>
+which i turn uses skims from the skim_dict orca injectable.</p>
 <p>The rest of the microsimulation models operate in a similar fashion with a few notable additions:</p>
 <ul class="simple">
 <li>creating new tables</li>
@@ -777,14 +777,14 @@ orca table named <code class="docutils literal"><span class="pre">mandatory_tour
 </pre></div>
 </div>
 </div>
-<div class="section" id="skims3d">
-<span id="skims-3d"></span><h3>Skims3D<a class="headerlink" href="#skims3d" title="Permalink to this headline">¶</a></h3>
-<p>The mode choice model uses the Skims3D class in addition to the skims (2D) class.  The Skims3D class represents
+<div class="section" id="skims3dwrapper">
+<span id="skims-3d"></span><h3>Skims3dWrapper<a class="headerlink" href="#skims3dwrapper" title="Permalink to this headline">¶</a></h3>
+<p>The mode choice model uses the Skims3dWrapper class in addition to the skims (2D) class.  The Skims3dWrapper class represents
 a collection of skims with a third dimension, which in this case in time period.  Setting up the 3D index for
-Skims3D is done as follows:</p>
+Skims3dWrapper is done as follows:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#setup two indexes - tour inbound skims and tour outbound skims</span>
-<span class="n">in_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">stack</span><span class="o">=</span><span class="n">stack</span><span class="p">,</span> <span class="n">left_key</span><span class="o">=</span><span class="n">orig_key</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="n">dest_key</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;in_period&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">out_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3D</span><span class="p">(</span><span class="n">stack</span><span class="o">=</span><span class="n">stack</span><span class="p">,</span> <span class="n">left_key</span><span class="o">=</span><span class="n">dest_key</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="n">orig_key</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;out_period&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">in_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3dWrapper</span><span class="p">(</span><span class="n">stack</span><span class="o">=</span><span class="n">stack</span><span class="p">,</span> <span class="n">left_key</span><span class="o">=</span><span class="n">orig_key</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="n">dest_key</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;in_period&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">out_skims</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">Skims3dWrapper</span><span class="p">(</span><span class="n">stack</span><span class="o">=</span><span class="n">stack</span><span class="p">,</span> <span class="n">left_key</span><span class="o">=</span><span class="n">dest_key</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="n">orig_key</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;out_period&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1">#where:</span>
 <span class="n">stack</span> <span class="o">=</span> <span class="n">askim</span><span class="o">.</span><span class="n">SkimStack</span><span class="p">(</span><span class="n">skims</span><span class="p">)</span>       <span class="c1">#build 3D skim object from 2D skims table object</span>

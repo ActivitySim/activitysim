@@ -200,7 +200,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;compute_acc
 <span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.defaults.models.accessibility" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="activitysim.defaults.models.accessibility.AccessibilitySkims">
-<em class="property">class </em><code class="descclassname">activitysim.defaults.models.accessibility.</code><code class="descname">AccessibilitySkims</code><span class="sig-paren">(</span><em>skims</em>, <em>omx</em>, <em>length</em>, <em>transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.accessibility.AccessibilitySkims" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.defaults.models.accessibility.</code><code class="descname">AccessibilitySkims</code><span class="sig-paren">(</span><em>skim_dict</em>, <em>omx</em>, <em>length</em>, <em>transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.accessibility.AccessibilitySkims" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper for skim arrays to facilitate use of skims by accessibility model</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -229,7 +229,7 @@ array is correct shape to match (flattened) O-D tiled columns in the od datafram
 
 <dl class="function">
 <dt id="activitysim.defaults.models.accessibility.compute_accessibility">
-<code class="descclassname">activitysim.defaults.models.accessibility.</code><code class="descname">compute_accessibility</code><span class="sig-paren">(</span><em>settings</em>, <em>accessibility_spec</em>, <em>accessibility_settings</em>, <em>skims</em>, <em>omx_file</em>, <em>land_use</em>, <em>trace_od</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.accessibility.compute_accessibility" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.accessibility.</code><code class="descname">compute_accessibility</code><span class="sig-paren">(</span><em>settings</em>, <em>accessibility_spec</em>, <em>accessibility_settings</em>, <em>skim_dict</em>, <em>omx_file</em>, <em>land_use</em>, <em>trace_od</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.accessibility.compute_accessibility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute accessibility for each zone in land use file using expressions from accessibility_spec</p>
 <p>The actual results depend on the expressions in accessibility_spec, but this is initially
 intended to permit implementation of the mtc accessibility calculation as implemented by
@@ -741,7 +741,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;destination
 <h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.destination"></span><dl class="function">
 <dt id="activitysim.defaults.models.destination.destination_choice">
-<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skims</em>, <em>destination_choice_spec</em>, <em>destination_choice_settings</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>non_mandatory_tours_merged</em>, <em>skim_dict</em>, <em>destination_choice_spec</em>, <em>destination_choice_settings</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given the tour generation from the above, each tour needs to have a
 destination, so in this case tours are the choosers (with the associated
 person that&#8217;s making the tour)</p>
@@ -804,7 +804,7 @@ operation as the tour mode model, but uses the trip mode expression specificatio
 function.  This function is called in the orca step <code class="docutils literal"><span class="pre">tour_mode_choice_simulate</span></code> and in
 the example via <code class="docutils literal"><span class="pre">orca.run([&quot;tour_mode_choice_simulate&quot;])</span></code>.</p>
 <p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code> |
-Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
+Skims3dWrapper in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3dWrapper out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
 </div>
 <div class="section" id="trip">
 <h3>Trip<a class="headerlink" href="#trip" title="Permalink to this headline">¶</a></h3>
@@ -813,7 +813,7 @@ Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,dest
 function.  This function is called in the orca step <code class="docutils literal"><span class="pre">trip_mode_choice_simulate</span></code> and in
 the example via <code class="docutils literal"><span class="pre">orca.run([&quot;trip_mode_choice_simulate&quot;])</span></code>.</p>
 <p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code>
-Skims3D in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3D out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
+Skims3dWrapper in_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,in_period</span></code> | Skims3dWrapper out_skims Keys: <code class="docutils literal"><span class="pre">destination,TAZ,out_period</span></code></p>
 </div>
 <div class="section" id="id7">
 <h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
@@ -889,7 +889,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;school_loca
 <h3>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.school_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.school_location.school_location_simulate">
-<code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>school_location_settings</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>school_location_spec</em>, <em>school_location_settings</em>, <em>skim_dict</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>The school location model predicts the zones in which various people will
 go to school.</p>
 </dd></dl>
@@ -907,7 +907,7 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;workplace_l
 <h3>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.defaults.models.workplace_location"></span><dl class="function">
 <dt id="activitysim.defaults.models.workplace_location.workplace_location_simulate">
-<code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>workplace_location_settings</em>, <em>skims</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.defaults.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>set_random_seed</em>, <em>persons_merged</em>, <em>workplace_location_spec</em>, <em>workplace_location_settings</em>, <em>skim_dict</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>The workplace location model predicts the zones in which various people will
 work.</p>
 </dd></dl>

@@ -1,0 +1,21 @@
+#input data store and skims
+#store: mtc_asim.h5
+skims_file: skims.omx
+
+#number of households to simulate
+households_sample_size: 1000
+
+
+
+time_periods:
+    hours:
+        - 0
+        - 11
+        - 16
+        - 24
+    labels:
+        - AM
+        - MD
+        - PM
+
+

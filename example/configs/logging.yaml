@@ -38,7 +38,7 @@ logging:
       stream: ext://sys.stdout
       formatter: simpleFormatter
       #level: !!python/name:logging.NOTSET
-      level: !!python/name:logging.WARN
+      level: !!python/name:logging.DEBUG
 
   formatters:
 

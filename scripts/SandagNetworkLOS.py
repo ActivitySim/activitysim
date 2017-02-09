@@ -11,6 +11,8 @@ import pandas as pd, numpy as np
 
 #settings
 folder = "C:/projects/sandag-asim/toRSG/"
+folder = "/Users/jeff.doyle/work/activitysim-data/sandag_zone"
+output_folder = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output"
 outputDataStoreFileName = "NetworkData.h5"
 outputBikeLogsumMatrixFileName = "bikelogsum.omx"
 
@@ -71,12 +73,12 @@ if __name__== "__main__":
     del MAZtoTAP['tap']
 
     #write tables
-    TAP.to_hdf(folder + outputDataStoreFileName, "TAP", complib='zlib',complevel=7)
-    TAZ.to_hdf(folder + outputDataStoreFileName, "TAZ")
-    MAZ.to_hdf(folder + outputDataStoreFileName, "MAZ")
-    MAZtoMAZ.to_hdf(folder + outputDataStoreFileName, "MAZtoMAZ")
-    MAZtoTAP.to_hdf(folder + outputDataStoreFileName, "MAZtoTAP")
-    print("created " + folder + outputDataStoreFileName)
+    TAP.to_hdf(output_folder + outputDataStoreFileName, "TAP", complib='zlib',complevel=7)
+    TAZ.to_hdf(output_folder + outputDataStoreFileName, "TAZ")
+    MAZ.to_hdf(output_folder + outputDataStoreFileName, "MAZ")
+    MAZtoMAZ.to_hdf(output_folder + outputDataStoreFileName, "MAZtoMAZ")
+    MAZtoTAP.to_hdf(output_folder + outputDataStoreFileName, "MAZtoTAP")
+    print("created " + output_folder + outputDataStoreFileName)
 
     #read bikeTazLogsum as convert to OMX
     bikeTazLogsum = pd.read_csv(folder + "bikeTazLogsum.csv")
@@ -90,10 +92,9 @@ if __name__== "__main__":
     logsum[bikeTazLogsum['index_i'], bikeTazLogsum['index_j']] = bikeTazLogsum.logsum
     time[bikeTazLogsum['index_i'], bikeTazLogsum['index_j']] = bikeTazLogsum.time
     
-    omxFile = openmatrix.open_file(folder + outputBikeLogsumMatrixFileName, "w")
+    omxFile = openmatrix.open_file(output_folder + outputBikeLogsumMatrixFileName, "w")
     omxFile['logsum'] = logsum
     omxFile['time'] = time
     omxFile.createMapping('taz', taz_numbers)
     omxFile.close()
-    print("created " + folder + outputBikeLogsumMatrixFileName)
-    
+    print("created " + output_folder + outputBikeLogsumMatrixFileName)

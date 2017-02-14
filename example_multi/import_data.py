@@ -26,9 +26,21 @@ if __name__ == "__main__":
     # read CSVs and convert to NetworkLOS format
     # https://github.com/UDST/activitysim/wiki/Multiple-Zone-Systems-Design
     bikeMgraLogsum = pd.read_csv(folder + "bikeMgraLogsum.csv")
+    bikeMgraLogsum.rename(
+        columns={'i': 'OMAZ', 'j': 'DMAZ', 'logsum':'bike_logsum', 'time':'bike_time'},
+        inplace=True)
+
     walkMgraTapEquivMinutes = pd.read_csv(folder + "walkMgraTapEquivMinutes.csv")
+    walkMgraTapEquivMinutes.rename(columns={'mgra': 'MAZ', 'tap': 'TAP'}, inplace=True)
+
     walkMgraEquivMinutes = pd.read_csv(folder + "walkMgraEquivMinutes.csv")
+    walkMgraEquivMinutes.rename(
+        columns={'i': 'OMAZ', 'j': 'DMAZ', 'percieved':'walk_perceived', 'actual':'walk_actual', 'gain':'walk_gain'},
+        inplace=True)
+
     mgra13_based_input2012 = pd.read_csv(folder + "mgra13_based_input2012.csv")
+    mgra13_based_input2012.rename(columns={'mgra': 'MAZ', 'taz': 'TAZ'}, inplace=True)
+
     Accessam = pd.read_csv(folder + "Accessam.csv")
     Tap_ptype = pd.read_csv(folder + "Tap_ptype.csv")
     Zone_term = pd.read_csv(folder + "Zone_term.csv")
@@ -41,26 +53,7 @@ if __name__ == "__main__":
     with openmatrix.open_file(folder + "implocl_AM.omx") as tap_skim:
         tap_numbers = tap_skim.mapping("RCIndex").keys()  # keys() shouldn't be needed?
 
-    #
-    # taz_skim_files = ['impdan_AM.omx', 'impdat_AM.omx', 'Trip_AM.omx']
-    # tap_skim_files = ['implocl_AM.omx', 'implocl_AMo.omx', 'impprem_AM.omx', 'impprem_AMo.omx',
-    #                   'tranTotalTrips_AM.omx', ]
-    # for f in taz_skim_files+tap_skim_files:
-    #     with openmatrix.open_file(folder + f) as s:
-    #         print "%s shape %s mappings" % (f, s.shape()), s.listMappings()
-
-
-    # TAP
-    TAP = pd.DataFrame({"offset": range(len(tap_numbers)), 'TAP': tap_numbers})
-    assert len(np.intersect1d(TAP.TAP, Tap_ptype.TAP)) == len(Tap_ptype.TAP)
-    TAP = TAP.merge(Tap_ptype, how="outer")
-    TAP.set_index("TAP", drop=True, inplace=True)
-
     # TAZ
-    # TAZ = pd.DataFrame({'TAZ': taz_numbers})
-    # TAZ = TAZ.merge(Zone_term, how="outer")
-    # TAZ = TAZ.merge(Zone_park, how="outer")
-
     TAZ = pd.DataFrame({"offset": range(len(taz_numbers)), "TAZ": taz_numbers})
     assert len(np.intersect1d(TAZ.TAZ, Zone_term.TAZ)) == len(Zone_term.TAZ)
     TAZ = TAZ.merge(Zone_term, how="left")
@@ -70,26 +63,28 @@ if __name__ == "__main__":
 
     # MAZ
     MAZ = mgra13_based_input2012
-    MAZ.rename(columns={'mgra': 'MAZ', 'taz': 'TAZ'}, inplace=True)
     MAZ.set_index("MAZ", drop=True, inplace=True)
 
+    # TAP
+    TAP = pd.DataFrame({"offset": range(len(tap_numbers)), 'TAP': tap_numbers})
+    assert len(np.intersect1d(TAP.TAP, Tap_ptype.TAP)) == len(Tap_ptype.TAP)
+    TAP = TAP.merge(Tap_ptype, how="outer")
+    TAP.set_index("TAP", drop=True, inplace=True)
+
+    # nearest MAZ to TAP (index is TAP)
+    tap_nearest = walkMgraTapEquivMinutes.sort_values(by='boardingActual').groupby('TAP').first()
+    tap_nearest = tap_nearest[['MAZ',]]
+    # TAZ of that nearest MAZ
+    tap_nearest['TAZ'] = MAZ.loc[tap_nearest.MAZ].TAZ.values
+    TAP['MAZ'] = tap_nearest['MAZ']
+    TAP['TAZ'] = tap_nearest['TAZ']
+
     # MAZtoMAZ
-    bikeMgraLogsum.rename(
-        columns={'i': 'OMAZ', 'j': 'DMAZ', 'logsum':'bike_logsum', 'time':'bike_time'},
-        inplace=True)
-    walkMgraEquivMinutes.rename(
-        columns={'i': 'OMAZ', 'j': 'DMAZ', 'percieved':'walk_perceived', 'actual':'walk_actual', 'gain':'walk_gain'},
-        inplace=True)
     MAZtoMAZ = pd.merge(bikeMgraLogsum, walkMgraEquivMinutes, on=['OMAZ','DMAZ'])
     print "MAZtoMAZ columns", MAZtoMAZ.columns.values
     print "MAZtoMAZ len", len(MAZtoMAZ.index)
 
     # MAZtoTAP
-    walkMgraTapEquivMinutes.rename(columns={'mgra': 'MAZ', 'tap': 'TAP'}, inplace=True)
-    walkMgraTapEquivMinutes['MODE'] = 'WALK'
-
-    print "walkMgraTapEquivMinutes columns", walkMgraTapEquivMinutes.columns.values
-    print "walkMgraTapEquivMinutes len", len(walkMgraTapEquivMinutes.index)
 
     # expand from TAZtoTAP to MAZtoTAP
     tapsPerTaz = Accessam.groupby('TAZ').count()['TAP']
@@ -97,8 +92,12 @@ if __name__ == "__main__":
     Accessam = Accessam.loc[MAZ.TAZ]  # explode
     MAZ['TAPS'] = tapsPerTaz.loc[MAZ.TAZ].tolist()
     Accessam['MAZ'] = np.repeat(MAZ.index.tolist(), MAZ.TAPS.tolist())
+
+    # concat WALK and DRIVE
+    walkMgraTapEquivMinutes['MODE'] = 'WALK'
     Accessam['MODE'] = 'DRIVE'
     MAZtoTAP = pd.concat([walkMgraTapEquivMinutes, Accessam])
+
 
     # write tables
     TAP.to_hdf(output_folder + outputDataStoreFileName, "TAP", complib='zlib', complevel=7)

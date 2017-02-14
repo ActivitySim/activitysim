@@ -152,7 +152,6 @@ class SkimsWrapper(object):
         self.right_key = right_key
         self.df = None
 
-
     def set_df(self, df):
         """
         Set the dataframe

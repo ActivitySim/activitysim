@@ -1,6 +1,7 @@
 #input data store and skims
-#store: mtc_asim.h5
-skims_file: skims.omx
+store: NetworkData.h5
+taz_skims_file: taz_skims.omx
+tap_skims_file: tap_skims.omx
 
 #number of households to simulate
 households_sample_size: 1000

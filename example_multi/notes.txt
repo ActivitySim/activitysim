@@ -1,0 +1,310 @@
+TAZ - there are 4997 TAZs with ids 1..4996
+MAZ - there are 2302 MAZs with ids 1..2302
+TAP - there are 1754 TAPs with ids 1..2498
+
+It doesn't look like TAZ 1..12 have any data (no MAZ or TAPS in them) but they appear to be included in the skims?
+
+so the TAZ skims are 4996x4996 with offset -1
+
+the TAP skims mappings actually matter because there are 1754 TAPs with ids 1..2498 and the skims are 1754x1754
+
+the skims in tranTotalTrips_AM.omx are 1744x1744 - I am not sure what this file is.
+
+it has matrices witrh names like KNR_BRT, PNR_CMR, WLK_EXP
+
+
+taz_skim_files=['impdan_AM.omx', 'impdat_AM.omx', 'Trip_AM.omx']
+
+tap_skim_files=['implocl_AM.omx', 'implocl_AMo.omx', 'impprem_AM.omx', 'impprem_AMo.omx', 'tranTotalTrips_AM.omx']
+
+
+mystery_skim_files=['tranTotalTrips_AM.omx',]
+
+impdan_AM.omx shape (4996, 4996) mappings ['Destination', 'Origin']
+impdat_AM.omx shape (4996, 4996) mappings ['Destination', 'Origin']
+Trip_AM.omx shape (4996, 4996) mappings ['Columns', 'Rows']
+implocl_AM.omx shape (1754, 1754) mappings ['RCIndex']
+implocl_AMo.omx shape (1754, 1754) mappings ['Columns', 'Rows']
+impprem_AM.omx shape (1754, 1754) mappings ['RCIndex']
+impprem_AMo.omx shape (1754, 1754) mappings ['Columns', 'Rows']
+tranTotalTrips_AM.omx shape (1744, 1744) mappings ['Columns', 'Rows']
+
+impdan_<time period>.mtx   Impedance Drive Alone Non-Toll Skim by time period (EA = early AM, AM = AM peak, MD = Midday, PM = PM peak, EV = Evening) – impdan_<time period>.mtx
+impdat_<time period>.mtx   Impedance Drive Alone Toll Skim by time period (EA = early AM, AM = AM peak, MD = Midday, PM = PM peak, EV = Evening) – impdat_<time period>.mtx
+imps2nh_<time period>.mtx  Impedance Shared Ride 2-Person Non-Toll Skim by time period (EA = early AM, AM = AM peak, MD = Midday, PM = PM peak, EV = Evening) – imps2nh_<time period>.mtx
+implocl_<time period>.mtx  Impedance Local Bus Transit Skim by time period (EA = early AM, AM = AM peak, MD = Midday, PM = PM peak, EV = Evening) – implocl_<time period>.mtx
+implocl_<time period>o.mtx Impedance Local Bus Transit Skim (Condensed) by time period (EA = early AM, AM = AM peak, MD = Midday, PM = PM peak, EV = Evening) – implocl_<time period>o.mtx
+impprem_<time period>.mtx  Impedance Premium Bus Transit Skim by time period (EA = early AM, AM = AM peak, MD = Midday, PM = PM peak, EV = Evening) – impprem_<time period>.mtx
+impprem_<time period>o.mtx Impedance Premium Bus Transit Skim (Condensed) by time period (EA = early AM, AM = AM peak, MD = Midday, PM = PM peak, EV = Evening) – impprem_<time period>o.mtx
+
+tranTotalTrips_XX.mtx      Total transit trip tables to assign to the transit network by Time of Day – tranTotalTrips_XX.mtx,   where XX = EA, AM, MD, PM, EV
+Trip_XX.mtx                Total Trip tables to assign to the highway network by 5 time periods: (EA, AM, MD, PM, EV) (and 14 classes (SOV_GP, SOV_PAY, SR2_GP, SR2_HOV, SR2_PAY, SR3_GP ,SR3_HOV ,SR3_PAY ,lhdn, mhdn,hhdn,lhdt, mhdt, hhdt)
+
+
+skims have values of -3.40282e+38 - is this a missing value code?
+
+############################# TAZ skims
+
+##### impdan_AM.omx (4996, 4996)
+*SCST_AM
+*STM_AM (Skim)
+Length (Skim)
+
+##### impdat_AM.omx (4996, 4996)
+*SCST_AM
+*STM_AM (Skim)
+Length (Skim)
+dat_AM - itoll_AM
+datdst_AM - Length
+
+##### Trip_AM.omx (4996, 4996)
+SOV_GP
+SOV_PAY
+SR2_GP
+SR2_HOV
+SR2_PAY
+SR3_GP
+SR3_HOV
+SR3_PAY
+hhdn
+hhdt
+lhdn
+lhdt
+mhdn
+mhdt
+
+############################# TAP skims
+
+##### implocl_AM.omx (1754, 1754)
+Access Walk Time
+Dwelling Time
+Egress Walk Time
+Fare
+In-Vehicle Time
+Initial Wait Time
+Number of Transfers
+Transfer Wait Time
+Transfer Walk Time
+
+##### implocl_AMo.omx (1754, 1754)
+Fare
+Initial Wait Time
+Number of Transfers
+Total IV Time
+Transfer Wait Time
+Walk Time
+
+##### impprem_AM.omx (1754, 1754)
+*TM (Commuter Rail)
+*TM (Express)
+*TM (Light Rail)
+*TM (Limited Express)
+*TM (Local)
+*TM (Regional BRT (Red))
+*TM (Regional BRT (Yello)
+Access Walk Time
+Dwelling Time
+Egress Walk Time
+Fare
+Initial Wait Time
+Length (Commuter Rail)
+Length (Express)
+Length (Light Rail)
+Length (Limited Express)
+Length (Local)
+Length (Regional BRT (Red))
+Length (Regional BRT (Yello)
+Number of Transfers
+Transfer Wait Time
+Transfer Walk Time
+
+##### impprem_AMo.omx (1754, 1754)
+Fare
+IVT:BRT
+IVT:CR
+IVT:EXP
+IVT:LB
+IVT:LR
+IVT:Sum
+Initial Wait Time
+Length:BRT
+Length:CR
+Length:EXP
+Length:LB
+Length:LR
+Main Mode
+Number of Transfers
+Transfer Wait Time
+Walk Time
+
+############################# Mystery skim
+
+##### tranTotalTrips_AM.omx (1744, 1744)
+KNR_BRT
+KNR_CMR
+KNR_EXP
+KNR_LOC
+KNR_LRT
+PNR_BRT
+PNR_CMR
+PNR_EXP
+PNR_LOC
+PNR_LRT
+WLK_BRT
+WLK_CMR
+WLK_EXP
+WLK_LOC
+WLK_LRT
+
+
+========== /MAZ
+
+len 23002
+['MAZ' 'TAZ' 'hs' 'hs_sf' 'hs_mf' 'hs_mh' 'hh' 'hh_sf' 'hh_mf' 'hh_mh'
+ 'gq_civ' 'gq_mil' 'i1' 'i2' 'i3' 'i4' 'i5' 'i6' 'i7' 'i8' 'i9' 'i10' 'hhs'
+ 'pop' 'hhp' 'emp_ag' 'emp_const_non_bldg_prod' 'emp_const_non_bldg_office'
+ 'emp_utilities_prod' 'emp_utilities_office' 'emp_const_bldg_prod'
+ 'emp_const_bldg_office' 'emp_mfg_prod' 'emp_mfg_office' 'emp_whsle_whs'
+ 'emp_trans' 'emp_retail' 'emp_prof_bus_svcs'
+ 'emp_prof_bus_svcs_bldg_maint' 'emp_pvt_ed_k12' 'emp_pvt_ed_post_k12_oth'
+ 'emp_health' 'emp_personal_svcs_office' 'emp_amusement' 'emp_hotel'
+ 'emp_restaurant_bar' 'emp_personal_svcs_retail' 'emp_religious'
+ 'emp_pvt_hh' 'emp_state_local_gov_ent' 'emp_fed_non_mil' 'emp_fed_mil'
+ 'emp_state_local_gov_blue' 'emp_state_local_gov_white' 'emp_public_ed'
+ 'emp_own_occ_dwell_mgmt' 'emp_fed_gov_accts' 'emp_st_lcl_gov_accts'
+ 'emp_cap_accts' 'emp_total' 'enrollgradekto8' 'enrollgrade9to12'
+ 'collegeenroll' 'othercollegeenroll' 'adultschenrl' 'ech_dist' 'hch_dist'
+ 'pseudomsa' 'parkarea' 'hstallsoth' 'hstallssam' 'hparkcost' 'numfreehrs'
+ 'dstallsoth' 'dstallssam' 'dparkcost' 'mstallsoth' 'mstallssam'
+ 'mparkcost' 'totint' 'duden' 'empden' 'popden' 'retempden' 'totintbin'
+ 'empdenbin' 'dudenbin' 'zip09' 'parkactive' 'openspaceparkpreserve'
+ 'beachactive' 'budgetroom' 'economyroom' 'luxuryroom' 'midpriceroom'
+ 'upscaleroom' 'hotelroomtotal' 'luz_id' 'truckregiontype' 'district27'
+ 'milestocoast' 'TAPS']
+TAZ min: 13 max: 4996
+MAZ min: 1 max: 23002
+1425    61
+1437    55
+810     41
+168     34
+1481    32
+304     32
+115     30
+262     30
+3878    28
+1087    25
+191     25
+2217    24
+1705    24
+32      23
+1661    23
+1790    23
+3079    23
+23      22
+1739    22
+331     22
+Name: TAZ, dtype: int64
+
+========== /MAZtoMAZ
+
+len 4395270
+['OMAZ' 'DMAZ' 'bike_logsum' 'bike_time' 'walk_perceived' 'walk_actual'
+ 'walk_gain']
+OMAZ min: 1 max: 23002
+DMAZ min: 1 max: 23002
+
+========== /MAZtoTAP
+
+len 376970
+['MAZ' 'MODE' 'TAP' 'TAZ' 'alightingActual' 'alightingGain'
+ 'alightingPerceived' 'boardingActual' 'boardingGain' 'boardingPerceived'
+ 'distance' 'mode' 'time']
+TAZ min: 13.0 max: 4996.0
+TAP min: 1 max: 2498
+MAZ min: 1 max: 23002
+3523.0    460
+3317.0    405
+3342.0    405
+3123.0    399
+3301.0    375
+3314.0    375
+4095.0    352
+3698.0    350
+3878.0    336
+3445.0    322
+3569.0    322
+3502.0    312
+3520.0    312
+1425.0    305
+4250.0    304
+3398.0    300
+3597.0    299
+3272.0    297
+3397.0    286
+269.0     286
+Name: TAZ, dtype: int64
+
+========== /TAP
+
+len 1754
+['TAP' 'Lot_id' 'ptype' 'TAZ' 'capacity' 'distance' 'mode']
+TAZ min: 385.0 max: 4967.0
+TAP min: 1 max: 2498
+3365.0    4
+4099.0    4
+2091.0    3
+606.0     3
+3399.0    3
+4650.0    2
+555.0     2
+4967.0    2
+1765.0    2
+1210.0    2
+514.0     2
+4384.0    2
+1533.0    2
+3059.0    2
+515.0     2
+4098.0    2
+1066.0    2
+2801.0    2
+3087.0    2
+4773.0    2
+Name: TAZ, dtype: int64
+
+========== /TAZ
+
+len 4996
+['TAZ' 'terminal_time' 'ptype']
+TAZ min: 1 max: 4996
+2047    1
+4655    1
+549     1
+4647    1
+2600    1
+553     1
+4651    1
+2604    1
+557     1
+2608    1
+4643    1
+561     1
+4659    1
+2612    1
+565     1
+4663    1
+2616    1
+569     1
+2596    1
+545     1
+Name: TAZ, dtype: int64
+
+========== /tap_skim_offsets
+
+len 1754
+['offset' 'tap']
+
+========== /taz_skim_offsets
+
+len 4996
+['offset' 'taz']

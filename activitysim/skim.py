@@ -148,30 +148,10 @@ class SkimsWrapper(object):
 
     def __init__(self, skim_dict, left_key, right_key):
         self.skim_dict = skim_dict
-        # self.left_key = "TAZ"
-        # self.right_key = "TAZ_r"
         self.left_key = left_key
         self.right_key = right_key
         self.df = None
 
-    # def set_keys(self, left_key, right_key):
-    #     """
-    #     Set the left and right keys.
-    #
-    #     Parameters
-    #     ----------
-    #     left_key : String
-    #         The left key (origin) column in the dataframe
-    #     right_key : String
-    #         The right key (destination) column in the dataframe
-    #
-    #     Returns
-    #     --------
-    #     Nothing
-    #     """
-    #     self.left_key = left_key
-    #     self.right_key = right_key
-    #     return self
 
     def set_df(self, df):
         """
@@ -207,6 +187,13 @@ class SkimsWrapper(object):
         # The skim object to perform the lookup
         # using df[left_key] as the origin and df[right_key] as the destination
         skim = self.skim_dict.get(key)
+
+        # assert self.df is not None, "Call set_df first"
+        # origins = self.df[self.left_key].astype('int')
+        # destinations = self.df[self.right_key].astype('int')
+        # if self.offset:
+        #     origins = origins + self.offset
+        #     destinations = destinations + self.offset
 
         assert self.df is not None, "Call set_df first"
         s = skim.get(self.df[self.left_key],
@@ -245,6 +232,7 @@ class SkimStack(object):
             if not isinstance(key, tuple) or not len(key) == 2:
                 logger.debug("SkimStack __init__ skipping key: %s" % key)
                 continue
+            logger.debug("SkimStack __init__ loading key: %s" % (key,))
             skim_key1, skim_key2 = key
             # logger.debug("SkimStack init key: key1='%s' key2='%s'" % (skim_key1, skim_key2))
             # FIXME - this is just an object assignment not an actual copy?
@@ -257,8 +245,15 @@ class SkimStack(object):
             self.skims_data[skim_key1] = np.dstack(value.values())
             self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
 
-        logger.info("SkimStack.__init__ loaded and stacked %s skims for %s keys"
-                    % (len(skims.skims.keys()), len(self.skim_keys_to_indexes.keys())))
+        logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
+                    % (len(self.skim_keys_to_indexes),
+                       sum([len(d) for d in self.skim_keys_to_indexes.values()])))
+
+    def __str__(self):
+
+        return "\n".join(
+            "%s %s" % (key1, sub_dict)
+            for key1, sub_dict in self.skim_keys_to_indexes.iteritems())
 
     def key_count(self):
         return len(self.skim_keys_to_indexes.keys())

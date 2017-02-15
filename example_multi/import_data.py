@@ -59,17 +59,17 @@ if __name__ == "__main__":
     TAZ = TAZ.merge(Zone_term, how="left")
     assert len(np.intersect1d(TAZ.index, Zone_park.TAZ)) == len(Zone_park.TAZ)
     TAZ = TAZ.merge(Zone_park, how="left")
-    TAZ.set_index("TAZ", drop=True, inplace=True)
+    TAZ.set_index("TAZ", drop=True, inplace=True, verify_integrity=True)
 
     # MAZ
     MAZ = mgra13_based_input2012
-    MAZ.set_index("MAZ", drop=True, inplace=True)
+    MAZ.set_index("MAZ", drop=True, inplace=True, verify_integrity=True)
 
     # TAP
     TAP = pd.DataFrame({"offset": range(len(tap_numbers)), 'TAP': tap_numbers})
     assert len(np.intersect1d(TAP.TAP, Tap_ptype.TAP)) == len(Tap_ptype.TAP)
     TAP = TAP.merge(Tap_ptype, how="outer")
-    TAP.set_index("TAP", drop=True, inplace=True)
+    TAP.set_index("TAP", drop=True, inplace=True, verify_integrity=True)
 
     # nearest MAZ to TAP (index is TAP)
     tap_nearest = walkMgraTapEquivMinutes.sort_values(by='boardingActual').groupby('TAP').first()
@@ -81,8 +81,8 @@ if __name__ == "__main__":
 
     # MAZtoMAZ
     MAZtoMAZ = pd.merge(bikeMgraLogsum, walkMgraEquivMinutes, on=['OMAZ','DMAZ'])
-    print "MAZtoMAZ columns", MAZtoMAZ.columns.values
-    print "MAZtoMAZ len", len(MAZtoMAZ.index)
+
+    # MAZtoMAZ.set_index(['OMAZ','DMAZ'], drop=True, inplace=True, verify_integrity=True)
 
     # MAZtoTAP
 

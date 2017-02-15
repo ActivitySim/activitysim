@@ -19,7 +19,14 @@ class NetworkLOS(object):
         self.taz_df = taz
         self.maz_df = maz
         self.tap_df = tap
+
+        # synthetic i field for OD lookup
+        m = max(maz2maz.OMAZ.max(), maz2maz.DMAZ.max()) + 1
+        maz2maz['i'] = maz2maz.OMAZ * m + maz2maz.DMAZ
+        maz2maz.set_index('i', drop=True, inplace=True, verify_integrity=True)
         self.maz2maz_df = maz2maz
+        self.maz2maz_max = m
+
         self.maz2tap_df = maz2tap
 
         self.taz_skim_dict = taz_skim_dict
@@ -44,14 +51,14 @@ class NetworkLOS(object):
     def get_maz(self, maz_list, attribute):
         return self.maz_df.loc[maz_list][attribute]
 
-    def taz_skim(self, otaz, dtaz, key):
+    def get_tazpairs(self, otaz, dtaz, key):
         otaz = self.get_taz_offsets(otaz)
         dtaz = self.get_taz_offsets(dtaz)
         skim = self.taz_skim_dict.get(key)
         s = skim.get(otaz, dtaz)
         return s
 
-    def taz_skim3d(self, otaz, dtaz, dim3, key):
+    def get_tazpairs3d(self, otaz, dtaz, dim3, key):
         otaz = self.get_taz_offsets(otaz).astype('int')
         dtaz = self.get_taz_offsets(dtaz).astype('int')
         stacked_skim_data, skim_keys_to_indexes = self.taz_skim_stack.get(key)
@@ -59,20 +66,31 @@ class NetworkLOS(object):
         s = stacked_skim_data[otaz, dtaz, skim_indexes]
         return s
 
-    def tap_skim(self, otap, dtap, key):
+    def get_tappairs(self, otap, dtap, key):
         otap = self.get_tap_offsets(otap)
         dtap = self.get_tap_offsets(dtap)
         skim = self.tap_skim_dict.get(key)
         s = skim.get(otap, dtap)
         return s
 
-    def tap_skim3d(self, otap, dtap, dim3, key):
+    def get_tappairs3d(self, otap, dtap, dim3, key):
         otap = self.get_tap_offsets(otap).astype('int')
         dtap = self.get_tap_offsets(dtap).astype('int')
         stacked_skim_data, skim_keys_to_indexes = self.tap_skim_stack.get(key)
         skim_indexes = np.vectorize(skim_keys_to_indexes.get)(dim3)
         s = stacked_skim_data[otap, dtap, skim_indexes]
         return s
+
+    def get_mazpairs(self, omaz, dmaz, attribute):
+
+        # # this is slower
+        # s = pd.merge(pd.DataFrame({'OMAZ': omaz, 'DMAZ': dmaz}),
+        #              self.maz2maz_df,
+        #              how="left")[attribute]
+
+        # synthetic i method
+        i = np.asanyarray(omaz) * self.maz2maz_max + np.asanyarray(dmaz)
+        s = self.maz2maz_df[attribute].loc[i]
 
     def __str__(self):
 

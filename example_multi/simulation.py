@@ -116,5 +116,30 @@ sov_time = network_los.taz_skim3d(otaz, dtaz, tod, 'SOV_TIME')
 print "\ntaz_skim3d sov_time\n", sov_time
 print "(only expect the PM values to be the same as get_taz_skim)\m"
 
+print "\n########## TAP Skims\n"
+
+otap = [15]
+dtap = [16]
+tod = ['PM']
+
+# otap = asim.random_rows(tap_df, 10).index
+# dtap = asim.random_rows(tap_df, 10).index
+# tod = np.random.choice(['AM', 'PM'], 10)
+
+print "\notap\n", otap
+print "\notap\n", dtap
+print "\ntod\n", tod
+
+skim = network_los.tap_skim_dict.get(('LOCAL_BUS_FARE', 'PM'))
+sov_time = skim.get(network_los.get_tap_offsets(otap), network_los.get_tap_offsets(dtap))
+print "\nraw sov_time\n", sov_time
+
+sov_time = network_los.tap_skim(otap, dtap, ('LOCAL_BUS_FARE', 'PM'))
+print "\nget_taz_skim sov_time\n", sov_time
+
+sov_time = network_los.tap_skim3d(otap, dtap, tod, 'LOCAL_BUS_FARE')
+print "\ntap_skim3d sov_time\n", sov_time
+print "(only expect the PM values to be the same as get_tap_skim)\m"
+
 
 t0 = print_elapsed_time("all models", t0)

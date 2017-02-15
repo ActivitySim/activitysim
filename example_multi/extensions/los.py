@@ -44,46 +44,34 @@ class NetworkLOS(object):
     def get_maz(self, maz_list, attribute):
         return self.maz_df.loc[maz_list][attribute]
 
-    def _get(self, orig, dest, skim):
-
-        # only working with numpy in here
-        orig = np.asanyarray(orig)
-        dest = np.asanyarray(dest)
-        out_shape = orig.shape
-
-        # filter orig and dest to only the real-number pairs
-        notnan = ~(np.isnan(orig) | np.isnan(dest))
-        orig = orig[notnan].astype('int')
-        dest = dest[notnan].astype('int')
-
-        result = skim.data[orig, dest]
-
-        # add the nans back to the result
-        out = np.empty(out_shape)
-        out[notnan] = result
-        out[~notnan] = np.nan
-
-        return out
-
-
     def taz_skim(self, otaz, dtaz, key):
-
         otaz = self.get_taz_offsets(otaz)
         dtaz = self.get_taz_offsets(dtaz)
         skim = self.taz_skim_dict.get(key)
-        s = self._get(otaz, dtaz, skim)
+        s = skim.get(otaz, dtaz)
         return s
 
     def taz_skim3d(self, otaz, dtaz, dim3, key):
-
         otaz = self.get_taz_offsets(otaz).astype('int')
         dtaz = self.get_taz_offsets(dtaz).astype('int')
         stacked_skim_data, skim_keys_to_indexes = self.taz_skim_stack.get(key)
-
-        #skim_indexes = dim3.map(skim_keys_to_indexes).astype('int')
         skim_indexes = np.vectorize(skim_keys_to_indexes.get)(dim3)
-
         s = stacked_skim_data[otaz, dtaz, skim_indexes]
+        return s
+
+    def tap_skim(self, otap, dtap, key):
+        otap = self.get_tap_offsets(otap)
+        dtap = self.get_tap_offsets(dtap)
+        skim = self.tap_skim_dict.get(key)
+        s = skim.get(otap, dtap)
+        return s
+
+    def tap_skim3d(self, otap, dtap, dim3, key):
+        otap = self.get_tap_offsets(otap).astype('int')
+        dtap = self.get_tap_offsets(dtap).astype('int')
+        stacked_skim_data, skim_keys_to_indexes = self.tap_skim_stack.get(key)
+        skim_indexes = np.vectorize(skim_keys_to_indexes.get)(dim3)
+        s = stacked_skim_data[otap, dtap, skim_indexes]
         return s
 
     def __str__(self):

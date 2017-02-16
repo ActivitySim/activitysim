@@ -13,7 +13,7 @@ DATA_REPO = os.path.join(os.path.dirname(__file__), '..', '..', 'activitysim-dat
 
 @orca.injectable()
 def data_dir():
-    return os.path.join(DATA_REPO, 'multi_zone')
+    return os.path.join(DATA_REPO, 'sandag_zone/output')
 
 import extensions
 
@@ -146,7 +146,7 @@ def get_maz_pairs():
     # dmaz = [22567, 3626, 3192]
 
     # sparse array so make sure the pairs are there
-    maz2maz_df = asim.random_rows(network_los.maz2maz_df, 100000)
+    maz2maz_df = asim.random_rows(network_los.maz2maz_df, 5)
     omaz = maz2maz_df.OMAZ
     dmaz = maz2maz_df.DMAZ
     print maz2maz_df.head(5)
@@ -160,8 +160,41 @@ def get_maz_pairs():
 
 def get_maz_tap_pairs():
 
-    pass
+    maz2tap_df = asim.random_rows(network_los.maz2tap_df, 5)
+    maz = maz2tap_df.MAZ
+    tap = maz2tap_df.TAP
 
+    print maz2tap_df.head(5)
+
+    # maz = [1, 8]
+    # tap = [1764, 1598]
+
+    drive_distance = network_los.get_maztappairs(maz, tap, "drive_distance")
+    print "\nget_maz_tap_pairs drive_distance\n", drive_distance.head(5)
+
+
+def get_taps_mazs():
+
+    print ""
+
+    #maz_df = asim.random_rows(network_los.maz_df, 5)
+
+    print "\nmaz_df\n", maz_df.head(5)
+
+    maz = maz_df.index
+
+    # test that repeated vaues handled correctly
+    #maz = np.repeat(maz, 2)
+
+    print "maz", maz
+
+    attribute = 'drive_distance'
+
+    df = pd.merge(pd.DataFrame({'MAZ': maz, 'idx': range(len(maz))}),
+                  network_los.maz2tap_df[['MAZ', 'TAP', attribute]],
+                  how="inner")
+
+    print df
 
 # uncomment the line below to set random seed so that run results are reproducible
 # orca.add_injectable("set_random_seed", set_random_seed)
@@ -188,14 +221,17 @@ t0 = print_elapsed_time("load network_los", t0)
 # print "\n########## get_maz\n"
 # get_maz()
 #
-# print "\n########## TAZ Skims\n"
+# print "\n########## taz_skims\n"
 # taz_skims()
 #
-# print "\n########## TAP Skims\n"
+# print "\n########## tap_skims\n"
 # tap_skims()
 #
-# print "\n########## MAZ Skims\n"
+# print "\n########## get_maz_pairs\n"
 # get_maz_pairs()
+#
+# print "\n########## get_maz_tap_pairs\n"
+# get_maz_tap_pairs()
 
-
-get_maz_tap_pairs()
+print "\n########## get_taps_mazs\n"
+get_taps_mazs()

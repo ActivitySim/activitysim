@@ -80,7 +80,8 @@ if __name__ == "__main__":
     TAP['TAZ'] = tap_nearest['TAZ']
 
     # MAZtoMAZ
-    MAZtoMAZ = pd.merge(bikeMgraLogsum, walkMgraEquivMinutes, on=['OMAZ','DMAZ'])
+    MAZtoMAZ = pd.merge(bikeMgraLogsum, walkMgraEquivMinutes, how="outer", on=['OMAZ','DMAZ'])
+
 
     # MAZtoMAZ.set_index(['OMAZ','DMAZ'], drop=True, inplace=True, verify_integrity=True)
 
@@ -89,14 +90,25 @@ if __name__ == "__main__":
     # expand from TAZtoTAP to MAZtoTAP
     tapsPerTaz = Accessam.groupby('TAZ').count()['TAP']
     Accessam.set_index('TAZ', drop=False, inplace=True)
-    Accessam = Accessam.loc[MAZ.TAZ]  # explode
+    Accessam = Accessam.loc[
+        MAZ.TAZ]  # explode - one row per (taz,tap) pair -> one row for each maz in taz of (taz,tap)
     MAZ['TAPS'] = tapsPerTaz.loc[MAZ.TAZ].tolist()
     Accessam['MAZ'] = np.repeat(MAZ.index.tolist(), MAZ.TAPS.tolist())
+    Accessam.drop('TAZ', axis=1, inplace=True)
 
-    # concat WALK and DRIVE
-    walkMgraTapEquivMinutes['MODE'] = 'WALK'
-    Accessam['MODE'] = 'DRIVE'
-    MAZtoTAP = pd.concat([walkMgraTapEquivMinutes, Accessam])
+    # prefix column names
+    Accessam.columns = \
+        [c if c in ['MAZ', 'TAP'] else 'drive_%s' % c for c in Accessam.columns.values]
+    walkMgraTapEquivMinutes.columns = \
+        [c if c in ['MAZ', 'TAP'] else 'walk_%s' % c for c in walkMgraTapEquivMinutes.columns.values]
+
+    MAZtoTAP = pd.merge(Accessam, walkMgraTapEquivMinutes, how="outer", on=['MAZ', 'TAP'])
+
+    print "Accessam unique maz", len(Accessam.MAZ.unique())
+    print "walkMgraTapEquivMinutes unique maz", len(walkMgraTapEquivMinutes.MAZ.unique())
+    print "MAZtoTAP unique maz", len(MAZtoTAP.MAZ.unique())
+
+    print MAZtoTAP.head(10)
 
 
     # write tables

@@ -1,5 +1,5 @@
 TAZ - there are 4997 TAZs with ids 1..4996
-MAZ - there are 2302 MAZs with ids 1..2302
+MAZ - there are 23002 MAZs with ids 1..23002
 TAP - there are 1754 TAPs with ids 1..2498
 
 It doesn't look like TAZ 1..12 have any data (no MAZ or TAPS in them) but they appear to be included in the skims?
@@ -42,6 +42,15 @@ Trip_XX.mtx                Total Trip tables to assign to the highway network by
 
 
 skims have values of -3.40282e+38 - is this a missing value code?
+
+accessam mode codes
+4 = Commuter Rail
+5 = LRT
+6 = Freeway Rapid
+7 = Arterial Rapid
+8 = Premium Express
+9 = Express
+10 = Local
 
 ############################# TAZ skims
 

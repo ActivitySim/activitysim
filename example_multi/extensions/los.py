@@ -20,14 +20,26 @@ class NetworkLOS(object):
         self.maz_df = maz
         self.tap_df = tap
 
-        # synthetic i field for OD lookup
-        m = max(maz2maz.OMAZ.max(), maz2maz.DMAZ.max()) + 1
+        # print "maz_df unique maz", len(self.maz_df.index)
+
+        # maz2maz_df
+        m = maz2maz.DMAZ.max() + 1
         maz2maz['i'] = maz2maz.OMAZ * m + maz2maz.DMAZ
         maz2maz.set_index('i', drop=True, inplace=True, verify_integrity=True)
         self.maz2maz_df = maz2maz
-        self.maz2maz_max = m
+        self.maz2maz_max_omaz = m
 
+        # print "maz_df unique maz pairs", len(maz2maz.index)
+
+        # maz2tap_df
+        m = maz2tap.TAP.max() + 1
+        maz2tap['i'] = maz2tap.MAZ * m + maz2tap.TAP
+        maz2tap.set_index('i', drop=True, inplace=True, verify_integrity=True)
         self.maz2tap_df = maz2tap
+        self.maz2tap_max_tap = m
+
+        # print "maz2tap_df unique pairs", len(maz2tap.index)
+        # print "maz2tap_df unique maz", len(maz2tap.MAZ.unique())
 
         self.taz_skim_dict = taz_skim_dict
         self.taz_skim_stack = taz_skim_stack
@@ -88,9 +100,20 @@ class NetworkLOS(object):
         #              self.maz2maz_df,
         #              how="left")[attribute]
 
-        # synthetic i method
-        i = np.asanyarray(omaz) * self.maz2maz_max + np.asanyarray(dmaz)
+        # synthetic index method i : omaz_dmaz
+        i = np.asanyarray(omaz) * self.maz2maz_max_omaz + np.asanyarray(dmaz)
         s = self.maz2maz_df[attribute].loc[i]
+        return s
+
+    def get_maztappairs(self, maz, tap, attribute):
+
+        # synthetic i method : maz_tap
+        i = np.asanyarray(maz) * self.maz2tap_max_tap + np.asanyarray(tap)
+        s = self.maz2tap_df[attribute].loc[i]
+
+        print "get_maztappairs i", i
+
+        return s
 
     def __str__(self):
 

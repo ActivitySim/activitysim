@@ -9,11 +9,18 @@ import time
 
 
 # you will want to configure this with the locations of the canonical datasets
-DATA_REPO = os.path.join(os.path.dirname(__file__), '..', '..', 'activitysim-data')
+DATA_REPO = "C:/projects/sandag-asim/toRSG/output/"
+vectorTestSize = 10000
+
+@orca.injectable()
+def output_dir():
+    if not os.path.exists('output'):
+        os.makedirs('output') #make directory if needed
+    return 'output'
 
 @orca.injectable()
 def data_dir():
-    return os.path.join(DATA_REPO, 'sandag_zone/output')
+    return os.path.join(DATA_REPO)
 
 import extensions
 
@@ -32,9 +39,9 @@ def get_taz():
     # select some random rows with attributes
     taz_df = network_los.taz_df[~np.isnan(network_los.taz_df.terminal_time)]
 
-    # print "\ntaz_df\n", taz_df.head(20)
+    print "\ntaz_df\n", taz_df.head(vectorTestSize)
 
-    random_taz = asim.random_rows(taz_df, 10)
+    random_taz = taz_df.sample(vectorTestSize, replace=True)
 
     print "\nrandom_taz\n", random_taz
     print "\nnetwork_los.get_taz_offsets\n", network_los.get_taz_offsets(random_taz.index)
@@ -50,9 +57,9 @@ def get_tap():
 
     tap_df = network_los.tap_df
 
-    # print "\ntap_df\n", tap_df.head(20)
+    print "\ntap_df\n", tap_df.head(vectorTestSize)
 
-    random_tap = asim.random_rows(tap_df, 10)
+    random_tap = tap_df.sample(vectorTestSize, replace=True)
     print "\nrandom_tap\n", random_tap
     print "\nnetwork_los.get_tap_offsets\n", network_los.get_tap_offsets(random_tap.index)
     print "\nnetwork_los.get_tap(<Int64Index>, 'TAZ')\n", network_los.get_tap(random_tap.index,
@@ -61,15 +68,16 @@ def get_tap():
                                                                               'MAZ')
 
     # select some random rows with non-null attributes
-    random_tap = asim.random_rows(network_los.tap_df[~network_los.taz_df.isnull()], 10)
+    random_tap = network_los.tap_df[~network_los.taz_df.isnull()].sample(vectorTestSize, replace=True)
     print "\nnetwork_los.get_tap(<Int64Index>, 'capacity')\n", network_los.get_tap(random_tap.index,
                                                                                    'capacity')
 
 def get_maz():
     maz_df = network_los.maz_df
-    random_maz = asim.random_rows(maz_df, 10)
+    random_maz = maz_df.sample(vectorTestSize, replace=True)
 
-    print "\nmaz_df\n", maz_df.head(20)
+    print "\nmaz_df\n", maz_df.head(vectorTestSize)
+    
     print "\nnetwork_los.get_maz(<Int64Index>, 'TAZ')\n", network_los.get_maz(random_maz.index,
                                                                               'TAZ')
     print "\nnetwork_los.get_maz(<Int64Index>, 'milestocoast')\n", network_los.get_maz(
@@ -84,12 +92,12 @@ def taz_skims():
     # dtaz = [16]
     # tod = ['PM']
 
-    otaz = asim.random_rows(taz_df, 10).index
-    dtaz = asim.random_rows(taz_df, 10).index
-    tod = np.random.choice(['AM', 'PM'], 10)
+    otaz = taz_df.sample(vectorTestSize, replace=True).index
+    dtaz = taz_df.sample(vectorTestSize, replace=True).index
+    tod = np.random.choice(['AM', 'PM'], vectorTestSize)
 
     print "\notaz\n", otaz
-    print "\notaz\n", dtaz
+    print "\ndtaz\n", dtaz
     print "\ntod\n", tod
 
     skim = network_los.taz_skim_dict.get(('SOV_TIME', 'PM'))
@@ -99,9 +107,9 @@ def taz_skims():
     sov_time = network_los.get_tazpairs(otaz, dtaz, ('SOV_TIME', 'PM'))
     print "\nget_tazpairs sov_time\n", sov_time
 
+    print(len(otaz))
     sov_time = network_los.get_tazpairs3d(otaz, dtaz, tod, 'SOV_TIME')
     print "\nget_tazpairs3d sov_time\n", sov_time
-    print "(only expect the PM values to be the same as get_taz_skim)\m"
 
 
 def tap_skims():
@@ -112,12 +120,12 @@ def tap_skims():
     # dtap = [16]
     # tod = ['PM']
 
-    otap = asim.random_rows(tap_df, 10).index
-    dtap = asim.random_rows(tap_df, 10).index
-    tod = np.random.choice(['AM', 'PM'], 10)
+    otap = tap_df.sample(vectorTestSize, replace=True).index
+    dtap = tap_df.sample(vectorTestSize, replace=True).index
+    tod = np.random.choice(['AM', 'PM'], vectorTestSize)
 
     print "\notap\n", otap
-    print "\notap\n", dtap
+    print "\ndtap\n", dtap
     print "\ntod\n", tod
 
     skim = network_los.tap_skim_dict.get(('LOCAL_BUS_FARE', 'PM'))
@@ -129,7 +137,6 @@ def tap_skims():
 
     sov_time = network_los.get_tappairs3d(otap, dtap, tod, 'LOCAL_BUS_FARE')
     print "\nget_tappairs3d sov_time\n", sov_time
-    print "(only expect the PM values to be the same as get_tap_skim)\m"
 
 
 def get_maz_pairs():
@@ -146,40 +153,40 @@ def get_maz_pairs():
     # dmaz = [22567, 3626, 3192]
 
     # sparse array so make sure the pairs are there
-    maz2maz_df = asim.random_rows(network_los.maz2maz_df, 5)
+    maz2maz_df = network_los.maz2maz_df.sample(vectorTestSize, replace=True)
     omaz = maz2maz_df.OMAZ
     dmaz = maz2maz_df.DMAZ
-    print maz2maz_df.head(5)
+    print maz2maz_df.head(vectorTestSize)
 
-    print "\nomaz\n", omaz.head(5)
-    print "\ndmaz\n", dmaz.head(5)
+    print "\nomaz\n", omaz.head(vectorTestSize)
+    print "\ndmaz\n", dmaz.head(vectorTestSize)
 
     walk_actual = network_los.get_mazpairs(omaz, dmaz, 'walk_actual')
-    print "\nget_mazpairs walk_actual\n", walk_actual.head(5)
+    print "\nget_mazpairs walk_actual\n", walk_actual.head(vectorTestSize)
 
 
 def get_maz_tap_pairs():
 
-    maz2tap_df = asim.random_rows(network_los.maz2tap_df, 5)
+    maz2tap_df = network_los.maz2tap_df.sample(vectorTestSize, replace=True)
     maz = maz2tap_df.MAZ
     tap = maz2tap_df.TAP
 
-    print maz2tap_df.head(5)
+    print maz2tap_df.head(vectorTestSize)
 
     # maz = [1, 8]
     # tap = [1764, 1598]
 
     drive_distance = network_los.get_maztappairs(maz, tap, "drive_distance")
-    print "\nget_maz_tap_pairs drive_distance\n", drive_distance.head(5)
+    print "\nget_maz_tap_pairs drive_distance\n", drive_distance.head(vectorTestSize)
 
 
 def get_taps_mazs():
 
     print ""
 
-    #maz_df = asim.random_rows(network_los.maz_df, 5)
+    maz_df = network_los.maz_df.sample(vectorTestSize, replace=True)
 
-    print "\nmaz_df\n", maz_df.head(5)
+    print "\nmaz_df\n", maz_df.head(vectorTestSize)
 
     maz = maz_df.index
 
@@ -212,26 +219,26 @@ t0 = print_elapsed_time("load tap_skim_stack", t0)
 network_los = orca.get_injectable('network_los')
 t0 = print_elapsed_time("load network_los", t0)
 
-# print "\n########## get_taz\n"
-# get_taz()
-#
-# print "\n########## get_tap\n"
-# get_tap()
-#
-# print "\n########## get_maz\n"
-# get_maz()
-#
-# print "\n########## taz_skims\n"
-# taz_skims()
-#
-# print "\n########## tap_skims\n"
-# tap_skims()
-#
-# print "\n########## get_maz_pairs\n"
-# get_maz_pairs()
-#
-# print "\n########## get_maz_tap_pairs\n"
-# get_maz_tap_pairs()
+print "\n########## get_taz\n"
+get_taz()
+
+print "\n########## get_tap\n"
+get_tap()
+
+print "\n########## get_maz\n"
+get_maz()
+
+print "\n########## taz_skims\n"
+taz_skims()
+
+print "\n########## tap_skims\n"
+tap_skims()
+
+print "\n########## get_maz_pairs\n"
+get_maz_pairs()
+
+print "\n########## get_maz_tap_pairs\n"
+get_maz_tap_pairs()
 
 print "\n########## get_taps_mazs\n"
 get_taps_mazs()

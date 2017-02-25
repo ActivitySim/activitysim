@@ -9,19 +9,21 @@ import pandas as pd, numpy as np
 ############################################################
 
 # settings
-folder = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/"
-output_folder = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output/"
+folder = "C:/projects/sandag-asim/toRSG/"
+output_folder = "C:/projects/sandag-asim/toRSG/output/"
 outputDataStoreFileName = "NetworkData.h5"
 outputBikeLogsumMatrixFileName = "bikelogsum.omx"
 
 """
-    TAZ - there are 4997 TAZs with ids 1..4996
+    TAZ - there are 4996 TAZs with ids 1..4996
     MAZ - there are 2302 MAZs with ids 1..2302
     TAP - there are 1754 TAPs with ids 1..2498
 """
 if __name__ == "__main__":
 
-
+    #create output folder
+    if not os.path.exists(output_folder):
+      os.makedirs(output_folder)
 
     # read CSVs and convert to NetworkLOS format
     # https://github.com/UDST/activitysim/wiki/Multiple-Zone-Systems-Design
@@ -42,6 +44,7 @@ if __name__ == "__main__":
     mgra13_based_input2012.rename(columns={'mgra': 'MAZ', 'taz': 'TAZ'}, inplace=True)
 
     Accessam = pd.read_csv(folder + "Accessam.csv")
+    Taps = pd.read_csv(folder + "Taps.csv")
     Tap_ptype = pd.read_csv(folder + "Tap_ptype.csv")
     Zone_term = pd.read_csv(folder + "Zone_term.csv")
     Zone_park = pd.read_csv(folder + "Zone_park.csv")
@@ -69,21 +72,15 @@ if __name__ == "__main__":
     TAP = pd.DataFrame({"offset": range(len(tap_numbers)), 'TAP': tap_numbers})
     assert len(np.intersect1d(TAP.TAP, Tap_ptype.TAP)) == len(Tap_ptype.TAP)
     TAP = TAP.merge(Tap_ptype, how="outer")
+    TAP = TAP.merge(Taps, how="outer")
     TAP.set_index("TAP", drop=True, inplace=True, verify_integrity=True)
 
-    # nearest MAZ to TAP (index is TAP)
-    tap_nearest = walkMgraTapEquivMinutes.sort_values(by='boardingActual').groupby('TAP').first()
-    tap_nearest = tap_nearest[['MAZ',]]
-    # TAZ of that nearest MAZ
-    tap_nearest['TAZ'] = MAZ.loc[tap_nearest.MAZ].TAZ.values
-    TAP['MAZ'] = tap_nearest['MAZ']
-    TAP['TAZ'] = tap_nearest['TAZ']
+    # Set LOTTAZ and spatial join TAZ for each TAP
+    TAP['LOTTAZ'] = TAP['TAZ']
+    TAP['TAZ'] = MAZ.loc[TAP.MAZ].TAZ.values
 
     # MAZtoMAZ
     MAZtoMAZ = pd.merge(bikeMgraLogsum, walkMgraEquivMinutes, how="outer", on=['OMAZ','DMAZ'])
-
-
-    # MAZtoMAZ.set_index(['OMAZ','DMAZ'], drop=True, inplace=True, verify_integrity=True)
 
     # MAZtoTAP
 
@@ -127,7 +124,7 @@ if __name__ == "__main__":
 
     taz_skim_manifest = {
         'impdan_AM.omx': {'*SCST_AM': 'SOV_COST__AM', '*STM_AM (Skim)': 'SOV_TIME__AM'},
-        'impdat_AM.omx': {'*SCST_AM': 'SOVTOLL_COST__AM', '*STM_AM (Skim)': 'SOVTOLL_TIME__AM'},
+        'impdan_PM.omx': {'*SCST_PM': 'SOV_COST__PM', '*STM_PM (Skim)': 'SOV_TIME__PM'},
     }
     for f, key_map in taz_skim_manifest.iteritems():
         with openmatrix.open_file(folder + f) as input_skims:
@@ -142,21 +139,6 @@ if __name__ == "__main__":
             for in_key, out_key in key_map.iteritems():
                 print "copying %s %s to %s" % (f, in_key, out_key)
                 output_taz_skims[out_key] = input_skims[in_key]
-
-    #################################################
-    ### FIXME - Fake data for 3d skims
-    taz_skim_manifest = {
-        'impdan_AM.omx': {'*SCST_AM': 'SOV_COST__PM', '*STM_AM (Skim)': 'SOV_TIME__PM'},
-        'impdat_AM.omx': {'*SCST_AM': 'SOVTOLL_COST__PM', '*STM_AM (Skim)': 'SOVTOLL_TIME__PM'},
-    }
-    for f, key_map in taz_skim_manifest.iteritems():
-        with openmatrix.open_file(folder + f) as input_skims:
-            for in_key, out_key in key_map.iteritems():
-                print "copying %s %s to %s" % (f, in_key, out_key)
-                np_array = np.asanyarray(input_skims[in_key])
-                output_taz_skims[out_key] = np_array + 1.0
-    #################################################
-
 
     # read bikeTazLogsum as convert to OMX
     bikeTazLogsum = pd.read_csv(folder + "bikeTazLogsum.csv")
@@ -188,39 +170,33 @@ if __name__ == "__main__":
     output_tap_skim_file = 'tap_skims.omx'
     output_tap_skims = openmatrix.open_file(output_folder + output_tap_skim_file, "w")
 
-    tap_skim_files = ['implocl_AM.omx', 'implocl_AMo.omx', 'impprem_AM.omx', 'impprem_AMo.omx',
-                      'tranTotalTrips_AM.omx', ]
-
+    tap_skim_files = ['implocl_AM.omx', 'implocl_PM.omx' ]
 
     tap_skim_manifest = {
-        'implocl_AMo.omx': {
+        'implocl_AM.omx': {
             'Fare': 'LOCAL_BUS_FARE__AM',
             'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__AM',
             'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__AM',
-            'Total IV Time': 'LOCAL_BUS_IVT__AM',
+            'In-Vehicle Time': 'LOCAL_BUS_IVT__AM',
             'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__AM',
-            'Walk Time': 'LOCAL_BUS_WALK_TIME__AM'
+            'Access Walk Time': 'LOCAL_BUS_ACCESS_WAIT__AM',
+            'Transfer Walk Time': 'LOCAL_BUS_TRANSFER_WALK__AM',
+            'Egress Walk Time': 'LOCAL_BUS_EGRESS_WALK__AM',
+            'Dwelling Time': 'LOCAL_BUS_DWELL_TIME__AM',
         },
-        'impprem_AMo.omx': {
-            'Fare': 'PREM_BUS_FARE__AM',
-            'IVT:BRT': 'PREM_BUS_IVT_BRT__AM',
-            'IVT:CR': 'PREM_BUS_IVT_CR__AM',
-            'IVT:EXP': 'PREM_BUS_IVT_EXP__AM',
-            'IVT:LB': 'PREM_BUS_IVT_LB__AM',
-            'IVT:LR': 'PREM_BUS_IVT_LR__AM',
-            'IVT:Sum': 'PREM_BUS_IVT_SUM__AM',
-            'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__AM',
-            'Length:BRT': 'PREM_BUS_LENGTH_BRT__AM',
-            'Length:CR': 'PREM_BUS_LENGTH_CR__AM',
-            'Length:EXP': 'PREM_BUS_LENGTH_EXP__AM',
-            'Length:LB': 'PREM_BUS_LENGTH_LB__AM',
-            'Length:LR': 'PREM_BUS_LENGTH_LR__AM',
-            'Main Mode': 'PREM_BUS_MAIN_MODE__AM',
-            'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__AM',
-            'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__AM',
-            'Walk Time': 'PREM_BUS_WALK_TIME__AM'
+        'implocl_PM.omx': {
+            'Fare': 'LOCAL_BUS_FARE__PM',
+            'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__PM',
+            'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__PM',
+            'In-Vehicle Time': 'LOCAL_BUS_IVT__PM',
+            'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__PM',
+            'Access Walk Time': 'LOCAL_BUS_ACCESS_WAIT__PM',
+            'Transfer Walk Time': 'LOCAL_BUS_TRANSFER_WALK__PM',
+            'Egress Walk Time': 'LOCAL_BUS_EGRESS_WALK__PM',
+            'Dwelling Time': 'LOCAL_BUS_DWELL_TIME__PM',
         }
     }
+    
     for f, key_map in tap_skim_manifest.iteritems():
         with openmatrix.open_file(folder + f) as input_skims:
             print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
@@ -234,45 +210,6 @@ if __name__ == "__main__":
             for in_key, out_key in key_map.iteritems():
                 print "copying %s %s to %s" % (f, in_key, out_key)
                 output_tap_skims[out_key] = input_skims[in_key]
-
-    #################################################
-    ### FIXME - Fake data for 3d skims
-    tap_skim_manifest = {
-        'implocl_AMo.omx': {
-            'Fare': 'LOCAL_BUS_FARE__PM',
-            'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__PM',
-            'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__PM',
-            'Total IV Time': 'LOCAL_BUS_IVT__PM',
-            'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__PM',
-            'Walk Time': 'LOCAL_BUS_WALK_TIME__PM'
-        },
-        'impprem_AMo.omx': {
-            'Fare': 'PREM_BUS_FARE__PM',
-            'IVT:BRT': 'PREM_BUS_IVT_BRT__PM',
-            'IVT:CR': 'PREM_BUS_IVT_CR__PM',
-            'IVT:EXP': 'PREM_BUS_IVT_EXP__PM',
-            'IVT:LB': 'PREM_BUS_IVT_LB__PM',
-            'IVT:LR': 'PREM_BUS_IVT_LR__PM',
-            'IVT:Sum': 'PREM_BUS_IVT_SUM__PM',
-            'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__PM',
-            'Length:BRT': 'PREM_BUS_LENGTH_BRT__PM',
-            'Length:CR': 'PREM_BUS_LENGTH_CR__PM',
-            'Length:EXP': 'PREM_BUS_LENGTH_EXP__PM',
-            'Length:LB': 'PREM_BUS_LENGTH_LB__PM',
-            'Length:LR': 'PREM_BUS_LENGTH_LR__PM',
-            'Main Mode': 'PREM_BUS_MAIN_MODE__PM',
-            'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__PM',
-            'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__PM',
-            'Walk Time': 'PREM_BUS_WALK_TIME__PM'
-        }
-    }
-    for f, key_map in tap_skim_manifest.iteritems():
-        with openmatrix.open_file(folder + f) as input_skims:
-            for in_key, out_key in key_map.iteritems():
-                print "copying %s %s to %s" % (f, in_key, out_key)
-                np_array = np.asanyarray(input_skims[in_key])
-                output_tap_skims[out_key] = np_array + 1.0
-    #################################################
 
     output_tap_skims.close()
 

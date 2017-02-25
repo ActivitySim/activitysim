@@ -115,9 +115,9 @@ dump_subset(folder=output_folder,
             skim_files=[]
               )
 
-# taz_skim_files=['impdan_AM.omx', 'impdat_AM.omx', 'Trip_AM.omx']
+# taz_skim_files=['impdan_AM.omx', 'impdan_PM.omx']
 #
-# tap_skim_files=['implocl_AM.omx', 'implocl_AMo.omx', 'impprem_AM.omx', 'impprem_AMo.omx', 'tranTotalTrips_AM.omx',]
+# tap_skim_files=['implocl_AM.omx', 'implocl_PM.omx']
 #
 #
 # dump_subset(folder="/Users/jeff.doyle/work/activitysim-data/sandag_zone/",

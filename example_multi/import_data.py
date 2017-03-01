@@ -68,8 +68,8 @@ if __name__ == "__main__":
     with openmatrix.open_file(folder + "impdan_AM.omx") as taz_skim:
         taz_numbers = taz_skim.mapping("Origin").keys()  # keys() shouldn't be needed?
 
-    with openmatrix.open_file(folder + "implocl_AM.omx") as tap_skim:
-        tap_numbers = tap_skim.mapping("RCIndex").keys()  # keys() shouldn't be needed?
+    with openmatrix.open_file(folder + "implocl_AMo.omx") as tap_skim:
+        tap_numbers = tap_skim.mapping("Rows").keys()  # keys() shouldn't be needed?
 
     # TAZ
     TAZ = pd.DataFrame({"offset": range(len(taz_numbers)), "TAZ": taz_numbers})
@@ -182,72 +182,99 @@ if __name__ == "__main__":
         print skims
     print "\n#####\n"
 
-    ######### TAP skim
+    ######### TAP skims
 
-    output_tap_skim_file = 'tap_skims.omx'
-    output_tap_skims = openmatrix.open_file(output_folder + output_tap_skim_file, "w")
+    sets = ["locl","prem"]
+    for aSet in sets:
+      
+      output_tap_skim_file = 'tap_skims_' + aSet + '.omx'
+      output_tap_skims = openmatrix.open_file(output_folder + output_tap_skim_file, "w")
 
-    tap_skim_files = ['implocl_AM.omx', 'implocl_PM.omx' ]
-
-    tap_skim_manifest = {
-        'implocl_AM.omx': {
-            'Fare': 'LOCAL_BUS_FARE__AM',
-            'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__AM',
-            'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__AM',
-            'In-Vehicle Time': 'LOCAL_BUS_IVT__AM',
-            'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__AM',
-            'Access Walk Time': 'LOCAL_BUS_ACCESS_WAIT__AM',
-            'Transfer Walk Time': 'LOCAL_BUS_TRANSFER_WALK__AM',
-            'Egress Walk Time': 'LOCAL_BUS_EGRESS_WALK__AM',
-            'Dwelling Time': 'LOCAL_BUS_DWELL_TIME__AM',
-        },
-        'implocl_PM.omx': {
-            'Fare': 'LOCAL_BUS_FARE__PM',
-            'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__PM',
-            'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__PM',
-            'In-Vehicle Time': 'LOCAL_BUS_IVT__PM',
-            'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__PM',
-            'Access Walk Time': 'LOCAL_BUS_ACCESS_WAIT__PM',
-            'Transfer Walk Time': 'LOCAL_BUS_TRANSFER_WALK__PM',
-            'Egress Walk Time': 'LOCAL_BUS_EGRESS_WALK__PM',
-            'Dwelling Time': 'LOCAL_BUS_DWELL_TIME__PM',
+      tap_skim_files = ['imp' + aSet + '_AMo.omx', 'imp' + aSet + '_PMo.omx' ]
+  
+      if aSet == "locl":
+        
+        tap_skim_manifest = {
+          'implocl_AMo.omx': {
+              'Fare': 'LOCAL_BUS_FARE__AM',
+              'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__AM',
+              'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__AM',
+              'Total IV Time': 'LOCAL_BUS_IVT__AM',
+              'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__AM',
+              'Walk Time': 'LOCAL_BUS_WALK_TIME__AM'
+          },
+          'implocl_PMo.omx': {
+              'Fare': 'LOCAL_BUS_FARE__PM',
+              'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__PM',
+              'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__PM',
+              'Total IV Time': 'LOCAL_BUS_IVT__PM',
+              'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__PM',
+              'Walk Time': 'LOCAL_BUS_WALK_TIME__PM'
+          }
         }
-    }
-    
-    for f, key_map in tap_skim_manifest.iteritems():
-        with openmatrix.open_file(folder + f) as input_skims:
-            print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
+        
+      elif aSet == "prem":
+        
+        tap_skim_manifest = {
+          'impprem_AMo.omx': {
+              'Fare': 'PREM_BUS_FARE__AM',
+              'IVT:BRT': 'PREM_BUS_IVT_BRT__AM',
+              'IVT:CR': 'PREM_BUS_IVT_CR__AM',
+              'IVT:EXP': 'PREM_BUS_IVT_EXP__AM',
+              'IVT:LB': 'PREM_BUS_IVT_LB__AM',
+              'IVT:LR': 'PREM_BUS_IVT_LR__AM',
+              'IVT:Sum': 'PREM_BUS_IVT_SUM__AM',
+              'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__AM',
+              'Length:BRT': 'PREM_BUS_LENGTH_BRT__AM',
+              'Length:CR': 'PREM_BUS_LENGTH_CR__AM',
+              'Length:EXP': 'PREM_BUS_LENGTH_EXP__AM',
+              'Length:LB': 'PREM_BUS_LENGTH_LB__AM',
+              'Length:LR': 'PREM_BUS_LENGTH_LR__AM',
+              'Main Mode': 'PREM_BUS_MAIN_MODE__AM',
+              'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__AM',
+              'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__AM',
+              'Walk Time': 'PREM_BUS_WALK_TIME__AM'
+          },
+          'impprem_PMo.omx': {
+              'Fare': 'PREM_BUS_FARE__PM',
+              'IVT:BRT': 'PREM_BUS_IVT_BRT__PM',
+              'IVT:CR': 'PREM_BUS_IVT_CR__PM',
+              'IVT:EXP': 'PREM_BUS_IVT_EXP__PM',
+              'IVT:LB': 'PREM_BUS_IVT_LB__PM',
+              'IVT:LR': 'PREM_BUS_IVT_LR__PM',
+              'IVT:Sum': 'PREM_BUS_IVT_SUM__PM',
+              'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__PM',
+              'Length:BRT': 'PREM_BUS_LENGTH_BRT__PM',
+              'Length:CR': 'PREM_BUS_LENGTH_CR__PM',
+              'Length:EXP': 'PREM_BUS_LENGTH_EXP__PM',
+              'Length:LB': 'PREM_BUS_LENGTH_LB__PM',
+              'Length:LR': 'PREM_BUS_LENGTH_LR__PM',
+              'Main Mode': 'PREM_BUS_MAIN_MODE__PM',
+              'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__PM',
+              'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__PM',
+              'Walk Time': 'PREM_BUS_WALK_TIME__PM'
+          }
+        }
+        
+      for f, key_map in tap_skim_manifest.iteritems():
+          with openmatrix.open_file(folder + f) as input_skims:
+              print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
+  
+              for m in input_skims.listMappings():
+                  assert input_skims.mapping(m).keys() == tap_numbers
+  
+              # for skimName in input_skims.listMatrices():
+              #     print skimName
+  
+              for in_key, out_key in key_map.iteritems():
+                  print "copying %s %s to %s" % (f, in_key, out_key)
+                  output_tap_skims[out_key] = input_skims[in_key]
+  
+      output_tap_skims.close()
+  
+      # print summary of what we just built
+      print "\n##### Summary of %s" % output_tap_skim_file
+      with openmatrix.open_file(output_folder + output_tap_skim_file) as skims:
+          print skims
+      print "\n#####\n"
 
-            for m in input_skims.listMappings():
-                assert input_skims.mapping(m).keys() == tap_numbers
-
-            for skimName in input_skims.listMatrices():
-                print skimName
-
-            for in_key, out_key in key_map.iteritems():
-                print "copying %s %s to %s" % (f, in_key, out_key)
-                output_tap_skims[out_key] = input_skims[in_key]
-
-    output_tap_skims.close()
-
-    # print summary of what we just built
-    print "\n##### Summary of %s" % output_tap_skim_file
-    with openmatrix.open_file(output_folder + output_tap_skim_file) as skims:
-        print skims
-    print "\n#####\n"
-
-
-    for f in ['impprem_AM.omx', 'impprem_AMo.omx', 'implocl_AM.omx', 'implocl_AMo.omx']:
-        with openmatrix.open_file(folder + f) as input_skims:
-            print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
-
-            for m in input_skims.listMappings():
-                assert input_skims.mapping(m).keys() == tap_numbers
-
-            for skimName in input_skims.listMatrices():
-
-                s = np.asanyarray(input_skims[skimName])
-
-                print "%s %s nulls" % (skimName, np.sum(np.isnan(s)))
-
-                print skimName

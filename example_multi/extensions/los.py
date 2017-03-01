@@ -103,7 +103,9 @@ class NetworkLOS(object):
         # synthetic index method i : omaz_dmaz
         i = np.asanyarray(omaz) * self.maz2maz_max_omaz + np.asanyarray(dmaz)
         s = self.maz2maz_df[attribute].loc[i]
-        return s
+
+        # FIXME - no point in returning series? unless maz and tap have sme index?
+        return np.asanyarray(s)
 
     def get_maztappairs(self, maz, tap, attribute):
 
@@ -111,9 +113,61 @@ class NetworkLOS(object):
         i = np.asanyarray(maz) * self.maz2tap_max_tap + np.asanyarray(tap)
         s = self.maz2tap_df[attribute].loc[i]
 
-        print "get_maztappairs i", i
+        # FIXME - no point in returning series? unless maz and tap have sme index?
+        return np.asanyarray(s)
 
-        return s
+    def get_taps_mazs(self, omaz, attribute=None):
+
+        # idx is just the 0-based index of the omaz series so we know which rows belong together
+
+        if attribute:
+            maz2tap_df = self.maz2tap_df[ ['MAZ', 'TAP', attribute]]
+
+            # filter out null attribute rows
+            maz2tap_df = maz2tap_df[ pd.notnull(self.maz2tap_df[attribute]) ]
+        else:
+            maz2tap_df = self.maz2tap_df[['MAZ', 'TAP']]
+
+        df = pd.merge(pd.DataFrame({'MAZ': omaz, 'idx': range(len(omaz))}),
+                      maz2tap_df,
+                      how="inner")
+
+        return df
+
+
+    def get_tappairs_mazpairs(self, omaz, dmaz, tod, criteria):
+
+
+        # Step 1 - get nearby boarding TAPs to origin
+        omaz_btap_table = self.get_taps_mazs(omaz, 'drive_time')
+
+        #print "\nomaz_btap_table\n", omaz_btap_table
+
+        # Step 2 - get nearby alighting TAPs to destination
+        dmaz_atap_table = self.get_taps_mazs(dmaz, 'drive_time')
+
+        #print "\ndmaz_atap_table\n", dmaz_atap_table
+
+        atap_btap = pd.merge(omaz_btap_table, dmaz_atap_table, on='idx', how="inner")
+
+        atap_btap.rename(columns={'MAZ_x': 'omaz', 'TAP_x': 'btap', 'drive_time_x': 'omaz_btap_cost',
+                                  'MAZ_y': 'dmaz', 'TAP_y': 'atap', 'drive_time_y': 'dmaz_atap_cost'},
+                         inplace=True)
+
+        print "\ntap_df\n", self.tap_df.head(1)
+
+        atap_btap['btap_cost'] = np.asanyarray(self.get_tap(atap_btap.btap, "distance"))
+        atap_btap['atap_cost'] = np.asanyarray(self.get_tap(atap_btap.atap, "distance"))
+
+        atap_btap['btap_atap_cost'] = self.get_tappairs3d(atap_btap.atap, atap_btap.btap, tod, 'LOCAL_BUS_INITIAL_WAIT')
+
+        # drop rows if no travel between taps
+        # atap_btap = atap_btap[ atap_btap.btap_atap_cost > 0 ]
+
+        print "\natap_btap\n", atap_btap
+
+        return omaz_btap_table
+
 
     def __str__(self):
 

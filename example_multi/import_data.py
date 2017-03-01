@@ -9,17 +9,32 @@ import pandas as pd, numpy as np
 ############################################################
 
 # settings
-folder = "C:/projects/sandag-asim/toRSG/"
-output_folder = "C:/projects/sandag-asim/toRSG/output/"
+folder = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/"
+output_folder = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output/"
+# folder = "C:/projects/sandag-asim/toRSG/"
+# output_folder = "C:/projects/sandag-asim/toRSG/output/"
+
 outputDataStoreFileName = "NetworkData.h5"
 outputBikeLogsumMatrixFileName = "bikelogsum.omx"
 
 """
     TAZ - there are 4996 TAZs with ids 1..4996
-    MAZ - there are 2302 MAZs with ids 1..2302
+    MAZ - there are 23002 MAZs with ids 1..23002
     TAP - there are 1754 TAPs with ids 1..2498
 """
 if __name__ == "__main__":
+
+    # for f in ['impprem_AM.omx', 'impprem_AMo.omx', 'implocl_AM.omx', 'implocl_AMo.omx']:
+    #     with openmatrix.open_file(folder + f) as input_skims:
+    #         print "\n%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
+    #
+    #         for skimName in input_skims.listMatrices():
+    #
+    #             s = np.asanyarray(input_skims[skimName])
+    #
+    #             print "%s: %s, %s, %s" % (skimName, np.sum(s < 0), np.sum(s == 0), np.sum(s > 0))
+    #
+    # assert False
 
     #create output folder
     if not os.path.exists(output_folder):
@@ -102,6 +117,8 @@ if __name__ == "__main__":
     MAZtoTAP = pd.merge(Accessam, walkMgraTapEquivMinutes, how="outer", on=['MAZ', 'TAP'])
 
     print "Accessam unique maz", len(Accessam.MAZ.unique())
+    # print "Accessam null drive_time", Accessam.drive_time.isnull().sum()
+    # print "Accessam null drive_distance", Accessam.drive_distance.isnull().sum()
     print "walkMgraTapEquivMinutes unique maz", len(walkMgraTapEquivMinutes.MAZ.unique())
     print "MAZtoTAP unique maz", len(MAZtoTAP.MAZ.unique())
 
@@ -204,8 +221,8 @@ if __name__ == "__main__":
             for m in input_skims.listMappings():
                 assert input_skims.mapping(m).keys() == tap_numbers
 
-            # for skimName in input_skims.listMatrices():
-            #     print skimName
+            for skimName in input_skims.listMatrices():
+                print skimName
 
             for in_key, out_key in key_map.iteritems():
                 print "copying %s %s to %s" % (f, in_key, out_key)
@@ -218,3 +235,19 @@ if __name__ == "__main__":
     with openmatrix.open_file(output_folder + output_tap_skim_file) as skims:
         print skims
     print "\n#####\n"
+
+
+    for f in ['impprem_AM.omx', 'impprem_AMo.omx', 'implocl_AM.omx', 'implocl_AMo.omx']:
+        with openmatrix.open_file(folder + f) as input_skims:
+            print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
+
+            for m in input_skims.listMappings():
+                assert input_skims.mapping(m).keys() == tap_numbers
+
+            for skimName in input_skims.listMatrices():
+
+                s = np.asanyarray(input_skims[skimName])
+
+                print "%s %s nulls" % (skimName, np.sum(np.isnan(s)))
+
+                print skimName

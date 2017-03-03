@@ -50,21 +50,15 @@ def best_transit_path(set_random_seed,
     trace_od = ( od_df.omaz[0], od_df.dmaz[0])
     print "\ntrace_od\n", trace_od
 
-    #############################################
-    # FIXME - this should be a network_los primitive?
-    #############################################
+    # build exploded atap_btap_df
 
-    # get nearby boarding TAPs to origin
-    omaz_btap_df = network_los.get_taps_mazs(od_df.omaz)
+    # FIXME - pathological knowledge about mode - should be parameterized
+    # filter out rows with no drive time omaz-btap or no walk time from dmaz-atap
+    atap_btap_df = network_los.get_tappairs_mazpairs(od_df.omaz, od_df.dmaz,
+                                                     ofilter='drive_time',
+                                                     dfilter='walk_alightingActual')
 
-    # get nearby alighting TAPs to destination
-    dmaz_atap_df = network_los.get_taps_mazs(od_df.dmaz)
-
-    # expand to one row for every btab-atap pair
-    atap_btap_df = pd.merge(omaz_btap_df, dmaz_atap_df, on='idx', how="inner")
-    atap_btap_df.rename(columns={'MAZ_x': 'omaz', 'TAP_x': 'btap', 'MAZ_y': 'dmaz', 'TAP_y': 'atap'}, inplace=True)
-
-    # FIXME - add in tod column
+    # add in tod column
     atap_btap_df = atap_btap_df.merge(
         right=od_df[['tod']],
         left_on='idx',
@@ -75,12 +69,7 @@ def best_transit_path(set_random_seed,
     print "\nlen od_df", len(od_df.index)
     print "\nlen atap_btap_df", len(atap_btap_df.index)
     print "\navg explosion", len(atap_btap_df.index) / (1.0 * len(od_df.index))
-    # print "\natap_btap_df\n", atap_btap_df
 
-    # drop rows if no travel between taps
-    # atap_btap = atap_btap[ atap_btap.btap_atap_cost > 0 ]
-
-    #############################################
 
     if trace_od:
         trace_orig, trace_dest = trace_od
@@ -97,6 +86,11 @@ def best_transit_path(set_random_seed,
 
     results, trace_results = asim_eval.assign_variables(best_transit_path_spec, atap_btap_df, locals_d, trace_rows=trace_oabd_rows)
 
+    # tracing.trace_df(results,
+    #                  label='results',
+    #                  slicer='NONE',
+    #                  transpose=False)
+
     #print "\nresults\n", results
 
     # copy results
@@ -104,13 +98,15 @@ def best_transit_path(set_random_seed,
         atap_btap_df[column] = results[column]
 
     # drop rows if no utility
+    n = len(atap_btap_df.index)
     atap_btap_df = atap_btap_df.dropna(subset=['utility'])
+
+    print "\nDropped %s of %s rows with null utility" % (n - len(atap_btap_df.index), n)
 
     # choose max utility
     atap_btap_df = atap_btap_df.sort_values(by='utility').groupby('idx').tail(1)
 
     print "\natap_btap_df\n", atap_btap_df
-
 
     if trace_od:
 
@@ -123,8 +119,10 @@ def best_transit_path(set_random_seed,
                              slicer='NONE',
                              transpose=False)
 
-
-
+            tracing.trace_df(trace_results,
+                             label='trace_best_transit_path',
+                             slicer='NONE',
+                             transpose=False)
 
 
 

@@ -41,9 +41,6 @@ def get_taz():
 
     # select some random rows with attributes
     taz_df = network_los.taz_df[~np.isnan(network_los.taz_df.terminal_time)]
-
-    print "\ntaz_df\n", taz_df.head(VECTOR_TEST_SIZE)
-
     random_taz = taz_df.sample(VECTOR_TEST_SIZE, replace=True)
 
     print "\nrandom_taz\n", random_taz
@@ -64,32 +61,37 @@ def get_taz():
 def get_tap():
 
     tap_df = network_los.tap_df
-
-    print "\ntap_df\n", tap_df.head(VECTOR_TEST_SIZE)
-
     random_tap = tap_df.sample(VECTOR_TEST_SIZE, replace=True)
+
     print "\nrandom_tap\n", random_tap
-    print "\nnetwork_los.get_tap_offsets\n", network_los.get_tap_offsets(random_tap.index)
-    print "\nnetwork_los.get_tap(<Int64Index>, 'TAZ')\n", network_los.get_tap(random_tap.index,
-                                                                              'TAZ')
-    print "\nnetwork_los.get_tap(<Int64Index>, 'MAZ')\n", network_los.get_tap(random_tap.index,
-                                                                              'MAZ')
+
+    print "\nnetwork_los.get_tap_offsets\n", \
+        network_los.get_tap_offsets(random_tap.index)
+
+    print "\nnetwork_los.get_tap(<Int64Index>, 'TAZ')\n", \
+        network_los.get_tap(random_tap.index, 'TAZ')
+
+    print "\nnetwork_los.get_tap(<Int64Index>, 'MAZ')\n", \
+        network_los.get_tap(random_tap.index, 'MAZ')
 
     # select some random rows with non-null attributes
-    random_tap = network_los.tap_df[~network_los.taz_df.isnull()].sample(VECTOR_TEST_SIZE, replace=True)
-    print "\nnetwork_los.get_tap(<Int64Index>, 'capacity')\n", network_los.get_tap(random_tap.index,
-                                                                                   'capacity')
+    tap_df = network_los.tap_df[~network_los.taz_df.isnull()]
+    random_tap = tap_df.sample(VECTOR_TEST_SIZE, replace=True)
+
+    print "\nnetwork_los.get_tap(<Int64Index>, 'capacity')\n", \
+        network_los.get_tap(random_tap.index, 'capacity')
 
 def get_maz():
     maz_df = network_los.maz_df
     random_maz = maz_df.sample(VECTOR_TEST_SIZE, replace=True)
 
-    print "\nmaz_df\n", maz_df.head(VECTOR_TEST_SIZE)
+    print "\nrandom_maz\n", random_maz.head(VECTOR_TEST_SIZE)
     
-    print "\nnetwork_los.get_maz(<Int64Index>, 'TAZ')\n", network_los.get_maz(random_maz.index,
-                                                                              'TAZ')
-    print "\nnetwork_los.get_maz(<Int64Index>, 'milestocoast')\n", network_los.get_maz(
-        random_maz.index, 'milestocoast')
+    print "\nnetwork_los.get_maz(<Int64Index>, 'TAZ')\n", \
+        network_los.get_maz(random_maz.index, 'TAZ')
+
+    print "\nnetwork_los.get_maz(<Int64Index>, 'milestocoast')\n", \
+        network_los.get_maz( random_maz.index, 'milestocoast')
 
 
 def taz_skims():
@@ -195,15 +197,17 @@ def get_taps_mazs():
     print ""
 
     maz_df = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True)
-
     omaz = maz_df.index
-    attribute = 'drive_distance'
 
     print "\nomaz\n", omaz
 
-    maz_tap_distance = network_los.get_taps_mazs(omaz, attribute)
-
+    maz_tap_distance = network_los.get_taps_mazs(omaz)
     print "\nmaz_tap_distance\n", maz_tap_distance
+
+    # when called with attribute, only returns rows with non-null attributes
+    attribute = 'drive_distance'
+    maz_tap_distance = network_los.get_taps_mazs(omaz, attribute)
+    print "\nmaz_tap_distance w/ drive_distance\n", maz_tap_distance
 
 
 # uncomment the line below to set random seed so that run results are reproducible

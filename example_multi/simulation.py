@@ -47,13 +47,18 @@ def get_taz():
     random_taz = taz_df.sample(VECTOR_TEST_SIZE, replace=True)
 
     print "\nrandom_taz\n", random_taz
-    print "\nnetwork_los.get_taz_offsets\n", network_los.get_taz_offsets(random_taz.index)
-    print "\nnetwork_los.get_taz(<Int64Index>, 'terminal_time')\n", network_los.get_taz(
-        random_taz.index, 'terminal_time')
-    print "\nnetwork_los.get_taz(<array>, 'terminal_time')\n", network_los.get_taz(
-        random_taz.index.values, 'terminal_time')
-    print "\nnetwork_los.get_taz(<Series>, 'terminal_time')\n", network_los.get_taz(
-        pd.Series(data=random_taz.index.values), 'terminal_time')
+
+    print "\nnetwork_los.get_taz_offsets\n", \
+        network_los.get_taz_offsets(random_taz.index)
+
+    print "\nnetwork_los.get_taz(<Int64Index>, 'terminal_time')\n", \
+        network_los.get_taz(random_taz.index, 'terminal_time')
+
+    print "\nnetwork_los.get_taz(<array>, 'terminal_time')\n", \
+        network_los.get_taz(random_taz.index.values, 'terminal_time')
+
+    print "\nnetwork_los.get_taz(<Series>, 'terminal_time')\n", \
+        network_los.get_taz(pd.Series(data=random_taz.index.values), 'terminal_time')
 
 
 def get_tap():
@@ -164,8 +169,10 @@ def get_maz_pairs():
     print "\nomaz\n", omaz.head(VECTOR_TEST_SIZE)
     print "\ndmaz\n", dmaz.head(VECTOR_TEST_SIZE)
 
+    # FIXME
     walk_actual = network_los.get_mazpairs(omaz, dmaz, 'walk_actual')
-    print "\nget_mazpairs walk_actual\n", walk_actual.head(VECTOR_TEST_SIZE)
+
+    print "\nget_mazpairs walk_actual\n", walk_actual
 
 
 def get_maz_tap_pairs():
@@ -180,7 +187,7 @@ def get_maz_tap_pairs():
     # tap = [1764, 1598]
 
     drive_distance = network_los.get_maztappairs(maz, tap, "drive_distance")
-    print "\nget_maz_tap_pairs drive_distance\n", drive_distance.head(VECTOR_TEST_SIZE)
+    print "\nget_maz_tap_pairs drive_distance\n", drive_distance
 
 
 def get_taps_mazs():
@@ -199,18 +206,6 @@ def get_taps_mazs():
     print "\nmaz_tap_distance\n", maz_tap_distance
 
 
-def get_tappairs_mazpairs():
-
-    omaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
-    dmaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
-    tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
-
-    criteria = "BEST"
-
-    best_tap_pairs = network_los.get_tappairs_mazpairs(omaz, dmaz, tod, criteria)
-
-    #print "\nbest_tap_pairs\n", best_tap_pairs
-
 # uncomment the line below to set random seed so that run results are reproducible
 # orca.add_injectable("set_random_seed", set_random_seed)
 
@@ -218,38 +213,48 @@ tracing.config_logger()
 
 t0 = print_elapsed_time()
 
-taz_skim_stack = orca.get_injectable('taz_skim_stack')
-t0 = print_elapsed_time("load taz_skim_stack", t0)
+taz_skim_stack = orca.get_injectable('taz_skim_dict')
+t0 = print_elapsed_time("load taz_skim_dict", t0)
 
-tap_skim_stack = orca.get_injectable('tap_skim_stack')
-t0 = print_elapsed_time("load tap_skim_stack", t0)
+tap_skim_stack = orca.get_injectable('tap_skim_dict')
+t0 = print_elapsed_time("load tap_skim_dict", t0)
 
 network_los = orca.get_injectable('network_los')
 t0 = print_elapsed_time("load network_los", t0)
 
-# print "\n########## get_taz\n"
-# get_taz()
-#
-# print "\n########## get_tap\n"
-# get_tap()
-#
-# print "\n########## get_maz\n"
-# get_maz()
-#
-# print "\n########## taz_skims\n"
-# taz_skims()
-#
-# print "\n########## tap_skims\n"
-# tap_skims()
-#
-# print "\n########## get_maz_pairs\n"
-# get_maz_pairs()
-#
-# print "\n########## get_maz_tap_pairs\n"
-# get_maz_tap_pairs()
-#
-# print "\n########## get_taps_mazs\n"
-# get_taps_mazs()
+print "\n########## get_taz\n"
+get_taz()
+t0 = print_elapsed_time("get_taz", t0)
 
-print "\n########## get_tappairs_mazpairs\n"
-get_tappairs_mazpairs()
+print "\n########## get_tap\n"
+get_tap()
+t0 = print_elapsed_time("get_tap", t0)
+
+print "\n########## get_maz\n"
+get_maz()
+t0 = print_elapsed_time("get_maz", t0)
+
+print "\n########## taz_skims\n"
+taz_skims()
+t0 = print_elapsed_time("taz_skims", t0)
+
+print "\n########## tap_skims\n"
+tap_skims()
+t0 = print_elapsed_time("tap_skims", t0)
+
+print "\n########## get_maz_pairs\n"
+get_maz_pairs()
+t0 = print_elapsed_time("get_maz_pairs", t0)
+
+print "\n########## get_maz_tap_pairs\n"
+get_maz_tap_pairs()
+t0 = print_elapsed_time("get_maz_tap_pairs", t0)
+
+print "\n########## get_taps_mazs\n"
+get_taps_mazs()
+t0 = print_elapsed_time("get_taps_mazs", t0)
+
+
+t0 = print_elapsed_time()
+orca.run(["best_transit_path"])
+t0 = print_elapsed_time("best_transit_path", t0)

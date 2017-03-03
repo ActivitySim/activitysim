@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import orca
 
+from activitysim import skim as askim
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,7 +16,7 @@ class NetworkLOS(object):
 
 
     def __init__(self, taz, maz, tap, maz2maz, maz2tap,
-                 taz_skim_dict, taz_skim_stack, tap_skim_stack, tap_skim_dict):
+                 taz_skim_dict, tap_skim_dict):
 
         self.taz_df = taz
         self.maz_df = maz
@@ -42,10 +44,10 @@ class NetworkLOS(object):
         # print "maz2tap_df unique maz", len(maz2tap.MAZ.unique())
 
         self.taz_skim_dict = taz_skim_dict
-        self.taz_skim_stack = taz_skim_stack
+        self.taz_skim_stack = askim.SkimStack(taz_skim_dict)
 
         self.tap_skim_dict = tap_skim_dict
-        self.tap_skim_stack = tap_skim_stack
+        self.tap_skim_stack = askim.SkimStack(tap_skim_dict)
 
 
     def get_taz_offsets(self, taz_list):
@@ -55,10 +57,12 @@ class NetworkLOS(object):
         return self.taz_df.loc[taz_list][attribute]
 
     def get_tap_offsets(self, tap_list):
-        return self.tap_df.offset.loc[tap_list]
+        s = self.tap_df.offset.loc[tap_list]
+        return np.asanyarray(s)
 
     def get_tap(self, tap_list, attribute):
-        return self.tap_df.loc[tap_list][attribute]
+        s = self.tap_df.loc[tap_list][attribute]
+        return np.asanyarray(s)
 
     def get_maz(self, maz_list, attribute):
         return self.maz_df.loc[maz_list][attribute]
@@ -116,7 +120,26 @@ class NetworkLOS(object):
         # FIXME - no point in returning series? unless maz and tap have sme index?
         return np.asanyarray(s)
 
-    def get_taps_mazs(self, omaz, attribute=None):
+    # def get_taps_mazs(self, omaz, attribute=None):
+    #
+    #     # idx is just the 0-based index of the omaz series so we know which rows belong together
+    #
+    #     if attribute:
+    #         maz2tap_df = self.maz2tap_df[ ['MAZ', 'TAP', attribute]]
+    #
+    #         # filter out null attribute rows
+    #         #maz2tap_df = maz2tap_df[ pd.notnull(self.maz2tap_df[attribute]) ]
+    #     else:
+    #         maz2tap_df = self.maz2tap_df[['MAZ', 'TAP']]
+    #
+    #     df = pd.merge(pd.DataFrame({'MAZ': omaz, 'idx': range(len(omaz))}),
+    #                   maz2tap_df,
+    #                   how="inner")
+    #
+    #     return df
+
+
+    def get_taps_mazs(self, maz, attribute=None):
 
         # idx is just the 0-based index of the omaz series so we know which rows belong together
 
@@ -124,49 +147,18 @@ class NetworkLOS(object):
             maz2tap_df = self.maz2tap_df[ ['MAZ', 'TAP', attribute]]
 
             # filter out null attribute rows
-            maz2tap_df = maz2tap_df[ pd.notnull(self.maz2tap_df[attribute]) ]
+            #maz2tap_df = maz2tap_df[ pd.notnull(self.maz2tap_df[attribute]) ]
         else:
             maz2tap_df = self.maz2tap_df[['MAZ', 'TAP']]
 
-        df = pd.merge(pd.DataFrame({'MAZ': omaz, 'idx': range(len(omaz))}),
-                      maz2tap_df,
-                      how="inner")
+        if isinstance(maz, pd.Series):
+            maz_df = pd.DataFrame({'MAZ': maz, 'idx': maz.index})
+        else:
+            maz_df = pd.DataFrame({'MAZ': maz, 'idx': range(len(maz))})
+
+        df = pd.merge(maz_df, maz2tap_df, how="inner")
 
         return df
-
-
-    def get_tappairs_mazpairs(self, omaz, dmaz, tod, criteria):
-
-
-        # Step 1 - get nearby boarding TAPs to origin
-        omaz_btap_table = self.get_taps_mazs(omaz, 'drive_time')
-
-        #print "\nomaz_btap_table\n", omaz_btap_table
-
-        # Step 2 - get nearby alighting TAPs to destination
-        dmaz_atap_table = self.get_taps_mazs(dmaz, 'drive_time')
-
-        #print "\ndmaz_atap_table\n", dmaz_atap_table
-
-        atap_btap = pd.merge(omaz_btap_table, dmaz_atap_table, on='idx', how="inner")
-
-        atap_btap.rename(columns={'MAZ_x': 'omaz', 'TAP_x': 'btap', 'drive_time_x': 'omaz_btap_cost',
-                                  'MAZ_y': 'dmaz', 'TAP_y': 'atap', 'drive_time_y': 'dmaz_atap_cost'},
-                         inplace=True)
-
-        print "\ntap_df\n", self.tap_df.head(1)
-
-        atap_btap['btap_cost'] = np.asanyarray(self.get_tap(atap_btap.btap, "distance"))
-        atap_btap['atap_cost'] = np.asanyarray(self.get_tap(atap_btap.atap, "distance"))
-
-        atap_btap['btap_atap_cost'] = self.get_tappairs3d(atap_btap.atap, atap_btap.btap, tod, 'LOCAL_BUS_INITIAL_WAIT')
-
-        # drop rows if no travel between taps
-        # atap_btap = atap_btap[ atap_btap.btap_atap_cost > 0 ]
-
-        print "\natap_btap\n", atap_btap
-
-        return omaz_btap_table
 
 
     def __str__(self):
@@ -184,7 +176,8 @@ class NetworkLOS(object):
         ))
 
 @orca.injectable(cache=True)
-def network_los(store, taz_skim_dict, tap_skim_dict, taz_skim_stack, tap_skim_stack):
+def network_los(store, taz_skim_dict, tap_skim_dict):
+
 
     taz = store["TAZ"]
     maz = store["MAZ"]
@@ -195,12 +188,15 @@ def network_los(store, taz_skim_dict, tap_skim_dict, taz_skim_stack, tap_skim_st
 
     print "taz index %s columns %s" % (taz.index.name, taz.columns.values)
     print "tap index %s columns %s" % (tap.index.name, tap.columns.values)
+    print "maz index %s columns %s" % (maz.index.name, maz.columns.values)
+
+    print "maz2maz index %s columns %s" % (maz2maz.index.name, maz2maz.columns.values)
+    print "maz2tap index %s columns %s" % (maz2tap.index.name, maz2tap.columns.values)
 
     # print "tap index %s columns %s" % (tap.index.name, tap.columns.values)
     # print "tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name, tap_skim_offsets.columns.values)
 
-    nlos = NetworkLOS(taz, maz, tap, maz2maz, maz2tap,
-                      taz_skim_dict, taz_skim_stack, tap_skim_stack, tap_skim_dict)
+    nlos = NetworkLOS(taz, maz, tap, maz2maz, maz2tap, taz_skim_dict, tap_skim_dict)
 
     return nlos
 

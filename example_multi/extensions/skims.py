@@ -17,9 +17,8 @@ Read in the omx files and create the skim objects
 """
 
 
-def build_skim_dict(omx_file, cache_skim_key_values, offset):
+def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset):
 
-    skim_dict = askim.SkimDict()
     skims_in_omx = omx_file.listMatrices()
     for skim_name in skims_in_omx:
         key, sep, key2 = skim_name.partition('__')
@@ -33,8 +32,6 @@ def build_skim_dict(omx_file, cache_skim_key_values, offset):
             if key2 in cache_skim_key_values:
                 skim_dict.set((key, key2), askim.Skim(omx_file[skim_name], offset=offset))
 
-    return skim_dict
-
 
 
 @orca.injectable(cache=True)
@@ -45,17 +42,12 @@ def taz_skim_dict(data_dir, settings):
     skims_file = os.path.join(data_dir, settings["taz_skims_file"])
     cache_skim_key_values = settings['time_periods']['labels']
 
+    skim_dict = askim.SkimDict()
+
     with omx.open_file(skims_file) as omx_file:
-        skim_dict = build_skim_dict(omx_file, cache_skim_key_values, offset=None)
+        add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset=None)
 
     return skim_dict
-
-
-@orca.injectable(cache=True)
-def taz_skim_stack(taz_skim_dict):
-
-    logger.info("loading taz_skim_stack")
-    return askim.SkimStack(taz_skim_dict)
 
 
 @orca.injectable(cache=True)
@@ -63,17 +55,13 @@ def tap_skim_dict(data_dir, settings):
 
     logger.info("loading tap_skim_dict")
 
-    skims_file = os.path.join(data_dir, settings["tap_skims_file"])
     cache_skim_key_values = settings['time_periods']['labels']
+    skim_dict = askim.SkimDict()
 
-    with omx.open_file(skims_file) as omx_file:
-        skim_dict = build_skim_dict(omx_file, cache_skim_key_values, offset=None)
+    for skims_file in settings["tap_skims_files"]:
+        skims_file_path = os.path.join(data_dir, skims_file)
+        with omx.open_file(skims_file_path) as omx_file:
+            add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset=None)
 
     return skim_dict
 
-
-@orca.injectable(cache=True)
-def tap_skim_stack(tap_skim_dict):
-
-    logger.info("loading tap_skim_stack")
-    return askim.SkimStack(tap_skim_dict)

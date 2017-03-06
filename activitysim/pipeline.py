@@ -289,11 +289,11 @@ def start_pipeline(resume_after=None):
 
     logger.info("start_pipeline...")
 
-    skims = orca.get_injectable('skims')
-    logger.info("load skims")
+    skims = orca.get_injectable('skim_dict')
+    logger.info("load skim_dict")
 
-    skims = orca.get_injectable('stacked_skims')
-    logger.info("load stacked_skims")
+    skims = orca.get_injectable('skim_stack')
+    logger.info("load skim_stack")
 
     if resume_after:
         _open_pipeline_store(overwrite=False)

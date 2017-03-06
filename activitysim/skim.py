@@ -154,25 +154,6 @@ class SkimsWrapper(object):
         self.right_key = right_key
         self.df = None
 
-    # def set_keys(self, left_key, right_key):
-    #     """
-    #     Set the left and right keys.
-    #
-    #     Parameters
-    #     ----------
-    #     left_key : String
-    #         The left key (origin) column in the dataframe
-    #     right_key : String
-    #         The right key (destination) column in the dataframe
-    #
-    #     Returns
-    #     --------
-    #     Nothing
-    #     """
-    #     self.left_key = left_key
-    #     self.right_key = right_key
-    #     return self
-
     def set_df(self, df):
         """
         Set the dataframe

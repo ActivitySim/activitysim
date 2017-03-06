@@ -134,13 +134,13 @@ class Prng(object):
 
     def generators_for_df(self, df):
 
+        # FIXME - for tests
         if not self.channels:
-            return None
+            # just return array with copy of gprng for every channel
+            generators = [self.gprng for _ in range(len(df.index))]
+            return generators
 
         channel_name = get_df_channel_name(df)
-
-        if channel_name not in self.channels:
-            print "couldn't find channel '%s' in %s" % (channel_name, self.channels.keys())
 
         assert channel_name in self.channels
 
@@ -154,22 +154,21 @@ class Prng(object):
 
     def random_for_df(self, df):
 
+        # FIXME - for tests
         if not self.channels:
-            return np.random.random((len(df), 1))
+            r = [self.gprng.rand(1) for _ in range(len(df))]
+            return r
 
         channel_name = get_df_channel_name(df)
 
-        if channel_name in self.channels:
-            self.reseed_if_necessary(channel_name, 'random_for_df')
-            prngs = self.channels[channel_name].prngs
-            generators = prngs.ix[df.index].generator
-            # this will raise error if any df.index values not in prngs.index (rows all NaNs)
-            r = [prng.rand(1) for prng in generators]
-            return r
-        else:
-            # if any channels have been added, then all channels should have been
-            assert not self.channels
-            return self.gprng.random((len(df), 1))
+        assert channel_name in self.channels
+
+        self.reseed_if_necessary(channel_name, 'random_for_df')
+        prngs = self.channels[channel_name].prngs
+        generators = prngs.ix[df.index].generator
+        # this will raise error if any df.index values not in prngs.index (rows all NaNs)
+        r = [prng.rand(1) for prng in generators]
+        return r
 
     def begin_step(self, step_name):
 

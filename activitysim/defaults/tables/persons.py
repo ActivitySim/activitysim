@@ -146,8 +146,9 @@ def persons_school(persons):
 
 # same deal as distance_to_work but to school
 @orca.column("persons_school")
-def distance_to_school(persons, distance_skim):
+def distance_to_school(persons, skim_dict):
     logger.debug("eval computed column persons_school.roundtrip_auto_time_to_school")
+    distance_skim = skim_dict.get('DIST')
     return pd.Series(distance_skim.get(persons.home_taz,
                                        persons.school_taz),
                      index=persons.index)

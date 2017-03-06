@@ -230,15 +230,9 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
 
         generators = pipeline.get_rn_generator().generators_for_df(choosers)
 
-        if generators is not None:
-            sample = np.concatenate(tuple(
-                prng.choice(alts_idx, sample_size, replace=False)
-                for prng in generators))
-        else:
-            prng = pipeline.get_rn_generator().get_global_prng()
-            sample = np.concatenate(tuple(
-                prng.choice(alts_idx, sample_size, replace=False)
-                for _ in range(numchoosers)))
+        sample = np.concatenate(tuple(
+            prng.choice(alts_idx, sample_size, replace=False)
+            for prng in generators))
 
     else:
         sample = np.tile(alts_idx, numchoosers)

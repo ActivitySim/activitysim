@@ -22,7 +22,7 @@ from ... import pipeline
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
-SKIP_FULL_RUN = True
+SKIP_FULL_RUN = False
 
 
 def inject_settings(configs_dir, households_sample_size, chunk_size=None,

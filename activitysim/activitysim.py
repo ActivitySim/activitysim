@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from zbox import toolz as tz
 
-from .skim import Skims, Skims3D
+from .skim import SkimsWrapper, Skims3dWrapper
 from .nl import utils_to_probs, make_choices, interaction_dataset
 from .nl import report_bad_choices
 from .nl import each_nest
@@ -38,7 +38,6 @@ def random_rows(df, n):
 
     # only sample if df has more than n rows
     if len(df.index) > n:
-        #return df.take(np.random.choice(len(df), size=n, replace=False))
         prng = pipeline.get_rn_generator().get_global_prng()
         return df.take(prng.choice(len(df), size=n, replace=False))
 
@@ -139,7 +138,7 @@ def eval_variables(exprs, df, locals_d=None):
 
 def add_skims(df, skims):
     """
-    Add the dataframe to the Skims object so that it can be dereferenced
+    Add the dataframe to the SkimsWrapper object so that it can be dereferenced
     using the parameters of the skims object.
 
     Parameters
@@ -147,7 +146,7 @@ def add_skims(df, skims):
     df : pandas.DataFrame
         Table to which to add skim data as new columns.
         `df` is modified in-place.
-    skims : Skims object
+    skims : SkimsWrapper object
         The skims object is used to contain multiple matrices of
         origin-destination impedances.  Make sure to also add it to the
         locals_d below in order to access it in expressions.  The *only* job
@@ -157,11 +156,11 @@ def add_skims(df, skims):
         the skims object is intended to be used.
     """
     if not isinstance(skims, list):
-        assert isinstance(skims, Skims) or isinstance(skims, Skims3D)
+        assert isinstance(skims, SkimsWrapper) or isinstance(skims, Skims3dWrapper)
         skims.set_df(df)
     else:
         for skim in skims:
-            assert isinstance(skim, Skims) or isinstance(skim, Skims3D)
+            assert isinstance(skim, SkimsWrapper) or isinstance(skim, Skims3dWrapper)
             skim.set_df(df)
 
 

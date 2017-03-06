@@ -112,7 +112,8 @@ def persons_workplace(persons):
 
 # this use the distance skims to compute the raw distance to work from home
 @orca.column("persons_workplace")
-def distance_to_work(persons, distance_skim):
+def distance_to_work(persons, skim_dict):
+    distance_skim = skim_dict.get('DIST')
     return pd.Series(distance_skim.get(persons.home_taz,
                                        persons.workplace_taz),
                      index=persons.index)
@@ -121,7 +122,8 @@ def distance_to_work(persons, distance_skim):
 # this uses the free flow travel time in both directions
 # MTC TM1 was MD and MD since term is free flow roundtrip_auto_time_to_work
 @orca.column("persons_workplace")
-def roundtrip_auto_time_to_work(persons, sovmd_skim):
+def roundtrip_auto_time_to_work(persons, skim_dict):
+    sovmd_skim = skim_dict.get(('SOV_TIME', 'MD'))
     return pd.Series(sovmd_skim.get(persons.home_taz,
                                     persons.workplace_taz) +
                      sovmd_skim.get(persons.workplace_taz,
@@ -154,8 +156,8 @@ def distance_to_school(persons, distance_skim):
 # this uses the free flow travel time in both directions
 # MTC TM1 was MD and MD since term is free flow roundtrip_auto_time_to_school
 @orca.column("persons_school")
-def roundtrip_auto_time_to_school(persons, sovmd_skim):
-    logger.debug("eval computed column persons_school.roundtrip_auto_time_to_school")
+def roundtrip_auto_time_to_school(persons, skim_dict):
+    sovmd_skim = skim_dict.get(('SOV_TIME', 'MD'))
     return pd.Series(sovmd_skim.get(persons.home_taz,
                                     persons.school_taz) +
                      sovmd_skim.get(persons.school_taz,

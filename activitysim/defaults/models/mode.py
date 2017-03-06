@@ -11,7 +11,6 @@ import yaml
 from activitysim import activitysim as asim
 from activitysim import tracing
 
-from activitysim import skim as askim
 from .util.mode import _mode_choice_spec
 
 from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
@@ -79,8 +78,8 @@ def trip_mode_choice_spec(trip_mode_choice_spec_df,
 
 
 def _mode_choice_simulate(tours,
-                          skims,
-                          stack,
+                          skim_dict,
+                          skim_stack,
                           orig_key,
                           dest_key,
                           spec,
@@ -98,20 +97,15 @@ def _mode_choice_simulate(tours,
 
     # FIXME - check that periods are in time_periods?
 
-    in_skims = askim.Skims3D(stack=stack,
-                             left_key=orig_key, right_key=dest_key,
-                             skim_key="in_period",
-                             offset=-1)
-    out_skims = askim.Skims3D(stack=stack,
-                              left_key=dest_key, right_key=orig_key,
-                              skim_key="out_period",
-                              offset=-1)
+    in_skims = skim_stack.wrap(left_key=orig_key, right_key=dest_key, skim_key="in_period",
+                               offset=-1, omx=omx)
 
-    if omx is not None:
-        in_skims.set_omx(omx)
-        out_skims.set_omx(omx)
+    out_skims = skim_stack.wrap(left_key=dest_key, right_key=orig_key, skim_key="out_period",
+                                offset=-1, omx=omx)
 
-    skims.set_keys(orig_key, dest_key)
+    # create wrapper with keys for this lookup
+    # the skims will be available under the name "skims" for any @ expressions
+    skims = skim_dict.wrap(orig_key, dest_key)
 
     locals_d = {
         "in_skims": in_skims,
@@ -158,7 +152,7 @@ def get_segment_and_unstack(omnibus_spec, segment):
 def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
-                              skims, stacked_skims,
+                              skim_dict, skim_stack,
                               omx_file,
                               trace_hh_id):
 
@@ -209,7 +203,8 @@ def tour_mode_choice_simulate(tours_merged,
 
         choices = _mode_choice_simulate(
             segment,
-            skims, stacked_skims,
+            skim_dict=skim_dict,
+            skim_stack=skim_stack,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=spec,
@@ -252,8 +247,8 @@ def tour_mode_choice_simulate(tours_merged,
 def trip_mode_choice_simulate(tours_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
-                              skims,
-                              stacked_skims,
+                              skim_dict,
+                              skim_stack,
                               omx_file,
                               trace_hh_id):
 
@@ -289,7 +284,8 @@ def trip_mode_choice_simulate(tours_merged,
 
         choices = _mode_choice_simulate(
             segment,
-            skims, stacked_skims,
+            skim_dict=skim_dict,
+            skim_stack=skim_stack,
             orig_key=orig_key,
             dest_key=dest_key,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),

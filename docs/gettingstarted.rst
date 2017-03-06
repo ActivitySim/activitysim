@@ -162,7 +162,7 @@ An expressions file has the following basic form:
 +---------------------------------+-------------------------------+-----------+----------+
 | Number of workers, capped at 3  |  @df.workers.clip(upper=3)    |         0 |   0.2936 |
 +---------------------------------+-------------------------------+-----------+----------+
-| Distance, from 0 to 1 miles     |  @skims['DISTANCE'].clip(1)   | -3.2451   |  -0.9523 |
+| Distance, from 0 to 1 miles     |  @skims['DIST'].clip(1)       | -3.2451   |  -0.9523 |
 +---------------------------------+-------------------------------+-----------+----------+
 
 * Rows are vectorized expressions that will be calculated for every record in the current table
@@ -266,7 +266,6 @@ is the main settings file for the model run.  This file includes:
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``preload_3d_skims`` - preload skims with index by origin, destination, time period for :ref:`Skims_3D` vectorized queries
 * ``chunk_size`` - batch size for processing choosers
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * global variables that can be used in expressions tables and Python code such as:
@@ -555,21 +554,23 @@ name ``persons_school``.
     return pd.DataFrame(index=persons.index)
     
    @orca.column("persons_school")
-   def distance_to_school(persons, distance_skim):
-    return pd.Series(distance_skim.get(persons.home_taz,
-                                       persons.school_taz),
-                     index=persons.index)
+   def distance_to_school(persons, skim_dict):
+       distance_skim = skim_dict.get('DIST')
+       return pd.Series(distance_skim.get(persons.home_taz,
+                                          persons.school_taz),
+                        index=persons.index)
    
    @orca.column("persons_school")
-   def roundtrip_auto_time_to_school(persons, sovam_skim, sovmd_skim):
-    return pd.Series(sovam_skim.get(persons.home_taz,
-                                    persons.school_taz) +
-                     sovmd_skim.get(persons.school_taz,
-                                    persons.home_taz),
-                     index=persons.index)
+   def roundtrip_auto_time_to_school(persons, skim_dict):
+       sovmd_skim = skim_dict.get(('SOV_TIME', 'MD'))
+       return pd.Series(sovmd_skim.get(persons.home_taz,
+                                       persons.school_taz) +
+                        sovmd_skim.get(persons.school_taz,
+                                       persons.home_taz),
+                        index=persons.index)
 
-Any orca columns that are required are calculated-on-the-fly, such as ``roundtrip_auto_time_to_school`` as a 
-function of the ``sovam_skim`` and ``sovmd_skim`` orca injectables.
+Any orca columns that are required are calculated-on-the-fly, such as ``roundtrip_auto_time_to_school``
+which i turn uses skims from the skim_dict orca injectable.
 
 The rest of the microsimulation models operate in a similar fashion with a few notable additions:
 
@@ -601,18 +602,18 @@ orca table named ``mandatory_tours``.
   
 .. _Skims_3D :
 
-Skims3D
-~~~~~~~
+Skims3dWrapper
+~~~~~~~~~~~~~~
 
-The mode choice model uses the Skims3D class in addition to the skims (2D) class.  The Skims3D class represents 
+The mode choice model uses the Skims3dWrapper class in addition to the skims (2D) class.  The Skims3dWrapper class represents
 a collection of skims with a third dimension, which in this case in time period.  Setting up the 3D index for 
-Skims3D is done as follows:
+Skims3dWrapper is done as follows:
 
 ::
 
   #setup two indexes - tour inbound skims and tour outbound skims
-  in_skims = askim.Skims3D(stack=stack, left_key=orig_key, right_key=dest_key, skim_key="in_period", offset=-1)
-  out_skims = askim.Skims3D(stack=stack, left_key=dest_key, right_key=orig_key, skim_key="out_period", offset=-1)
+  in_skims = askim.Skims3dWrapper(stack=stack, left_key=orig_key, right_key=dest_key, skim_key="in_period", offset=-1)
+  out_skims = askim.Skims3dWrapper(stack=stack, left_key=dest_key, right_key=orig_key, skim_key="out_period", offset=-1)
     
   #where:
   stack = askim.SkimStack(skims)       #build 3D skim object from 2D skims table object

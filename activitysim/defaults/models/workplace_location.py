@@ -32,7 +32,7 @@ def workplace_location_simulate(set_random_seed,
                                 persons_merged,
                                 workplace_location_spec,
                                 workplace_location_settings,
-                                skims,
+                                skim_dict,
                                 destination_size_terms,
                                 chunk_size,
                                 trace_hh_id):
@@ -53,10 +53,10 @@ def workplace_location_simulate(set_random_seed,
 
     logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
 
-    # set the keys for this lookup - in this case there is a TAZ in the choosers
+    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    skims.set_keys("TAZ", "TAZ_r")
+    skims = skim_dict.wrap("TAZ", "TAZ_r")
 
     locals_d = {
         'skims': skims

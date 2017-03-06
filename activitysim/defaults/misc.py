@@ -68,16 +68,8 @@ def store(data_dir, settings):
 
 
 @orca.injectable(cache=True)
-def preload_3d_skims(settings):
-    return bool(settings.get('preload_3d_skims', False))
-
-
-@orca.injectable(cache=True)
-def cache_skim_key_values(settings, preload_3d_skims):
-    if preload_3d_skims:
-        return settings['time_periods']['labels']
-    else:
-        return None
+def cache_skim_key_values(settings):
+    return settings['time_periods']['labels']
 
 
 @orca.injectable(cache=True)

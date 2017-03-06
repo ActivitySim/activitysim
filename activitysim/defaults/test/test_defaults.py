@@ -25,14 +25,12 @@ HOUSEHOLDS_SAMPLE_SIZE = 100
 SKIP_FULL_RUN = True
 
 
-def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, chunk_size=None,
+def inject_settings(configs_dir, households_sample_size, chunk_size=None,
                     trace_hh_id=None, trace_od=None, check_for_variability=None):
 
     with open(os.path.join(configs_dir, 'settings.yaml')) as f:
         settings = yaml.load(f)
         settings['households_sample_size'] = households_sample_size
-        if preload_3d_skims is not None:
-            settings['preload_3d_skims'] = preload_3d_skims
         if chunk_size is not None:
             settings['chunk_size'] = chunk_size
         if trace_hh_id is not None:
@@ -47,7 +45,6 @@ def inject_settings(configs_dir, households_sample_size, preload_3d_skims=None, 
 
 def set_random_seed():
     pipeline.get_rn_generator().reseed_global_prng(offset=0)
-    #np.random.seed(0)
 
 
 def test_size_term():
@@ -116,7 +113,7 @@ def test_mini_run(random_seed):
     orca.clear_cache()
 
 
-def full_run(preload_3d_skims, chunk_size=0,
+def full_run(chunk_size=0,
              households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
              trace_hh_id=None, trace_od=None, check_for_variability=None):
 
@@ -131,7 +128,6 @@ def full_run(preload_3d_skims, chunk_size=0,
 
     inject_settings(configs_dir,
                     households_sample_size=households_sample_size,
-                    preload_3d_skims=preload_3d_skims,
                     chunk_size=chunk_size,
                     trace_hh_id=trace_hh_id,
                     trace_od=trace_od,
@@ -179,17 +175,7 @@ def test_full_run():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(preload_3d_skims=False, check_for_variability=True)
-    assert(tour_count == 230)
-
-
-def test_full_run_with_preload_skims():
-
-    if SKIP_FULL_RUN:
-        return
-
-    tour_count = full_run(preload_3d_skims=True)
-
+    tour_count = full_run(check_for_variability=True)
     assert(tour_count == 230)
 
 
@@ -198,7 +184,7 @@ def test_full_run_with_chunks():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(preload_3d_skims=True, chunk_size=10)
+    tour_count = full_run(chunk_size=10)
 
     # different sampling causes slightly different results
     assert(tour_count == 219)
@@ -223,7 +209,7 @@ def test_full_run_with_hh_trace():
     HH_ID = 961042
     OD = [5, 11]
 
-    tour_count = full_run(preload_3d_skims=True, trace_hh_id=HH_ID, trace_od=OD)
+    tour_count = full_run(trace_hh_id=HH_ID, trace_od=OD)
 
     assert(tour_count == 230)
 

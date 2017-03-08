@@ -40,13 +40,13 @@ def test_offset_int(data):
 def test_offset_list(data):
 
     offset_mapper = skim.OffsetMapper()
-    offset_mapper.set_offset_list([1,2,3,4,5,6,7,8,9,10])
+    offset_mapper.set_offset_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
     # should have figured out it could use an int offset instead of list
     assert offset_mapper.offset_int == -1
 
     offset_mapper = skim.OffsetMapper()
-    offset_mapper.set_offset_list([10,20,30,40,50,60,70,80,90,100])
+    offset_mapper.set_offset_list([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
 
     sk = skim.SkimWrapper(data, offset_mapper)
 

@@ -66,10 +66,14 @@ if __name__ == "__main__":
 
     # read taz and tap skim to get zone ids
     with openmatrix.open_file(folder + "impdan_AM.omx") as taz_skim:
-        taz_numbers = taz_skim.mapping("Origin").keys()  # keys() shouldn't be needed?
+        # FIXME - mapentries method broken in omx 0.2.4
+        #taz_numbers = taz_skim.mapentries("Origin")
+        taz_numbers = [key for key in sorted(taz_skim.mapping("Origin").iterkeys())]
 
     with openmatrix.open_file(folder + "implocl_AMo.omx") as tap_skim:
-        tap_numbers = tap_skim.mapping("Rows").keys()  # keys() shouldn't be needed?
+        # FIXME - mapentries method broken in omx 0.2.4
+        #tap_numbers = tap_skim.mapentries("Rows")
+        tap_numbers = [key for key in sorted(tap_skim.mapping("Rows").iterkeys())]
 
     # TAZ
     TAZ = pd.DataFrame({"offset": range(len(taz_numbers)), "TAZ": taz_numbers})
@@ -174,6 +178,7 @@ if __name__ == "__main__":
     time[bikeTazLogsum['index_i'], bikeTazLogsum['index_j']] = bikeTazLogsum.time
     output_taz_skims['bike_time'] = time
 
+    output_taz_skims.createMapping('default_mapping', entries=taz_numbers, overwrite=False)
     output_taz_skims.close()
 
     # print summary of what we built
@@ -269,7 +274,9 @@ if __name__ == "__main__":
               for in_key, out_key in key_map.iteritems():
                   print "copying %s %s to %s" % (f, in_key, out_key)
                   output_tap_skims[out_key] = input_skims[in_key]
-  
+
+
+      output_tap_skims.createMapping('default_mapping', entries=tap_numbers, overwrite=False)
       output_tap_skims.close()
   
       # print summary of what we just built

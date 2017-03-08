@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from zbox import toolz as tz
 
-from .skim import SkimsWrapper, Skims3dWrapper
+from .skim import SkimDictWrapper, SkimStackWrapper
 from .nl import utils_to_probs, make_choices, interaction_dataset
 from .nl import report_bad_choices
 from .nl import each_nest
@@ -134,7 +134,7 @@ def eval_variables(exprs, df, locals_d=None):
 
 def add_skims(df, skims):
     """
-    Add the dataframe to the SkimsWrapper object so that it can be dereferenced
+    Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
     using the parameters of the skims object.
 
     Parameters
@@ -142,7 +142,7 @@ def add_skims(df, skims):
     df : pandas.DataFrame
         Table to which to add skim data as new columns.
         `df` is modified in-place.
-    skims : SkimsWrapper object
+    skims : SkimDictWrapper object
         The skims object is used to contain multiple matrices of
         origin-destination impedances.  Make sure to also add it to the
         locals_d below in order to access it in expressions.  The *only* job
@@ -152,11 +152,11 @@ def add_skims(df, skims):
         the skims object is intended to be used.
     """
     if not isinstance(skims, list):
-        assert isinstance(skims, SkimsWrapper) or isinstance(skims, Skims3dWrapper)
+        assert isinstance(skims, SkimDictWrapper) or isinstance(skims, SkimStackWrapper)
         skims.set_df(df)
     else:
         for skim in skims:
-            assert isinstance(skim, SkimsWrapper) or isinstance(skim, Skims3dWrapper)
+            assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
             skim.set_df(df)
 
 

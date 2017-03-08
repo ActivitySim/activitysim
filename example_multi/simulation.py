@@ -13,7 +13,7 @@ DATA_REPO = "C:/projects/sandag-asim/toRSG/output/"
 DATA_REPO = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output/"
 
 VECTOR_TEST_SIZE = 10000
-VECTOR_TEST_SIZE = 1
+VECTOR_TEST_SIZE = 20
 
 @orca.injectable()
 def output_dir():
@@ -45,9 +45,6 @@ def get_taz():
 
     print "\nrandom_taz\n", random_taz
 
-    print "\nnetwork_los.get_taz_offsets\n", \
-        network_los.get_taz_offsets(random_taz.index)
-
     print "\nnetwork_los.get_taz(<Int64Index>, 'terminal_time')\n", \
         network_los.get_taz(random_taz.index, 'terminal_time')
 
@@ -64,9 +61,6 @@ def get_tap():
     random_tap = tap_df.sample(VECTOR_TEST_SIZE, replace=True)
 
     print "\nrandom_tap\n", random_tap
-
-    print "\nnetwork_los.get_tap_offsets\n", \
-        network_los.get_tap_offsets(random_tap.index)
 
     print "\nnetwork_los.get_tap(<Int64Index>, 'TAZ')\n", \
         network_los.get_tap(random_tap.index, 'TAZ')
@@ -111,7 +105,7 @@ def taz_skims():
     print "\ntod\n", tod
 
     skim = network_los.taz_skim_dict.get(('SOV_TIME', 'PM'))
-    sov_time = skim.get(network_los.get_taz_offsets(otaz), network_los.get_taz_offsets(dtaz))
+    sov_time = skim.get(otaz, dtaz)
     print "\nraw sov_time\n", sov_time
 
     sov_time = network_los.get_tazpairs(otaz, dtaz, ('SOV_TIME', 'PM'))
@@ -139,7 +133,7 @@ def tap_skims():
     print "\ntod\n", tod
 
     skim = network_los.tap_skim_dict.get(('LOCAL_BUS_FARE', 'PM'))
-    local_bus_fare = skim.get(network_los.get_tap_offsets(otap), network_los.get_tap_offsets(dtap))
+    local_bus_fare = skim.get(otap, dtap)
     print "\nraw local_bus_fare\n", local_bus_fare
 
     local_bus_fare = network_los.get_tappairs(otap, dtap, ('LOCAL_BUS_FARE', 'PM'))
@@ -210,8 +204,12 @@ def get_taps_mazs():
     print "\nmaz_tap_distance w/ drive_distance\n", maz_tap_distance
 
 
+def set_random_seed():
+    np.random.seed(0)
+
 # uncomment the line below to set random seed so that run results are reproducible
-# orca.add_injectable("set_random_seed", set_random_seed)
+set_random_seed()
+orca.add_injectable("set_random_seed", set_random_seed)
 
 tracing.config_logger()
 

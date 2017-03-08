@@ -46,15 +46,8 @@ class NetworkLOS(object):
         self.tap_skim_dict = tap_skim_dict
         self.tap_skim_stack = askim.SkimStack(tap_skim_dict)
 
-
-    def get_taz_offsets(self, taz_list):
-        return np.asanyarray(self.taz_df.offset.loc[taz_list])
-
     def get_taz(self, taz_list, attribute):
         return self.taz_df.loc[taz_list][attribute]
-
-    def get_tap_offsets(self, tap_list):
-        return np.asanyarray(self.tap_df.offset.loc[tap_list])
 
     def get_tap(self, tap_list, attribute):
         return np.asanyarray(self.tap_df.loc[tap_list][attribute])
@@ -63,23 +56,15 @@ class NetworkLOS(object):
         return self.maz_df.loc[maz_list][attribute]
 
     def get_tazpairs(self, otaz, dtaz, key):
-        otaz = self.get_taz_offsets(otaz)
-        dtaz = self.get_taz_offsets(dtaz)
         skim = self.taz_skim_dict.get(key)
         s = skim.get(otaz, dtaz)
         return s
 
     def get_tazpairs3d(self, otaz, dtaz, dim3, key):
-        otaz = self.get_taz_offsets(otaz).astype('int')
-        dtaz = self.get_taz_offsets(dtaz).astype('int')
-        stacked_skim_data, skim_keys_to_indexes = self.taz_skim_stack.get(key)
-        skim_indexes = np.vectorize(skim_keys_to_indexes.get)(dim3)
-        s = stacked_skim_data[otaz, dtaz, skim_indexes]
+        s = self.taz_skim_stack.lookup(otaz, dtaz, dim3, key)
         return s
 
     def get_tappairs(self, otap, dtap, key):
-        otap = self.get_tap_offsets(otap)
-        dtap = self.get_tap_offsets(dtap)
         skim = self.tap_skim_dict.get(key)
         s = skim.get(otap, dtap)
 
@@ -91,11 +76,7 @@ class NetworkLOS(object):
         return s
 
     def get_tappairs3d(self, otap, dtap, dim3, key):
-        otap = self.get_tap_offsets(otap).astype('int')
-        dtap = self.get_tap_offsets(dtap).astype('int')
-        stacked_skim_data, skim_keys_to_indexes = self.tap_skim_stack.get(key)
-        skim_indexes = np.vectorize(skim_keys_to_indexes.get)(dim3)
-        s = stacked_skim_data[otap, dtap, skim_indexes]
+        s = self.tap_skim_stack.lookup(otap, dtap, dim3, key)
         return s
 
     def get_mazpairs(self, omaz, dmaz, attribute):

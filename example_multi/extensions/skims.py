@@ -21,8 +21,11 @@ Read in the omx files and create the skim objects
 def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset_int=None):
 
     if offset_int is None:
-        # FIXME - mapentries method broken in omx 0.2.4
-        # offset_map = [key for key in sorted(omx_file.mapping('default_mapping').iterkeys())]
+
+        if 'default_mapping' not in omx_file.listMappings():
+
+            raise RuntimeError("Could not find 'default_mapping' in omx file."
+                               "\nYou might need to rerun import_data.py to rebuild the skims files.")
 
         offset_map = omx_file.mapentries('default_mapping')
         skim_dict.offset_mapper.set_offset_list(offset_map)

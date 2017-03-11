@@ -120,30 +120,3 @@ def destination_choice(set_random_seed,
                          index_label='tour',
                          columns=None,
                          warn_if_empty=True)
-
-
-@orca.step()
-def patch_mandatory_tour_destination(mandatory_tours_merged, trace_hh_id):
-
-    """
-    Patch destination column of mandatory tours with school or workplace taz
-    to conform to non-mandatory tours naming so that computed columns in the tours
-    table can use destination for any tour type.
-    """
-
-    logger.info("Running patch_mandatory_tour_destination")
-
-    mandatory_tours_merged['destination'] = \
-        np.where(mandatory_tours_merged['tour_type'] == 'school',
-                 mandatory_tours_merged['school_taz'],
-                 mandatory_tours_merged['workplace_taz'])
-
-    orca.add_column("mandatory_tours", "destination", mandatory_tours_merged.destination)
-
-    if trace_hh_id:
-        tracing.trace_df(orca.get_table('mandatory_tours').to_frame(),
-                         label="mandatory_tours.destination",
-                         slicer='person_id',
-                         index_label='tour',
-                         columns=None,
-                         warn_if_empty=True)

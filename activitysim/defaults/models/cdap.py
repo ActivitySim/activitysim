@@ -11,6 +11,8 @@ from activitysim import activitysim as asim
 from activitysim import tracing
 
 from .util.misc import read_model_settings, get_model_constants
+from .util.misc import add_dependent_columns
+
 from activitysim.cdap import cdap
 
 
@@ -101,6 +103,9 @@ def cdap_simulate(persons_merged,
     choices = choices.reindex(persons_merged.index)
     orca.add_column("persons", "cdap_activity", choices.cdap_activity)
     orca.add_column("persons", "cdap_rank", choices.cdap_rank)
+
+    add_dependent_columns("persons", "persons_cdap")
+    add_dependent_columns("households", "households_cdap")
 
     if trace_hh_id:
 

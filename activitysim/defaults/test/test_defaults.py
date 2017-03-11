@@ -14,13 +14,16 @@ import openmatrix as omx
 
 from .. import __init__
 from ..tables import size_terms
+from . import extensions
 
 from ... import tracing
+from ... import pipeline
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
-SKIP_FULL_RUN = False
+#fix
+SKIP_FULL_RUN = True
 
 
 def inject_settings(configs_dir, households_sample_size, chunk_size=None,
@@ -42,7 +45,7 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
 
 
 def set_random_seed():
-    np.random.seed(0)
+    pipeline.get_rn_generator().reseed_global_prng(offset=0)
 
 
 def test_size_term():
@@ -84,6 +87,7 @@ def test_mini_run(random_seed):
 
     # run the models in the expected order
     orca.run(["compute_accessibility"])
+    orca.run(["school_location_simulate"])
     orca.run(["workplace_location_simulate"])
     orca.run(["auto_ownership_simulate"])
 
@@ -137,9 +141,9 @@ def full_run(chunk_size=0,
     tracing.config_logger()
 
     # grab some of the tables
-    orca.get_table("land_use").to_frame().info()
-    orca.get_table("households").to_frame().info()
-    orca.get_table("persons").to_frame().info()
+    # orca.get_table("land_use").to_frame().info()
+    # orca.get_table("households").to_frame().info()
+    # orca.get_table("persons").to_frame().info()
 
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
     assert orca.get_injectable("chunk_size") == chunk_size
@@ -151,13 +155,10 @@ def full_run(chunk_size=0,
     orca.run(["auto_ownership_simulate"])
     orca.run(["cdap_simulate"])
     orca.run(['mandatory_tour_frequency'])
-    orca.get_table("mandatory_tours").tour_type.value_counts()
     orca.run(['non_mandatory_tour_frequency'])
-    orca.get_table("non_mandatory_tours").tour_type.value_counts()
     orca.run(["destination_choice"])
     orca.run(["mandatory_scheduling"])
     orca.run(["non_mandatory_scheduling"])
-    orca.run(["patch_mandatory_tour_destination"])
     orca.run(["tour_mode_choice_simulate"])
     orca.run(["trip_mode_choice_simulate"])
 

@@ -15,7 +15,7 @@ logging:
   loggers:
 
     activitysim:
-      level: !!python/name:logging.DEBUG
+      level: !!python/name:logging.WARN
       handlers: [console, logfile]
       propagate: false
 

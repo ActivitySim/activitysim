@@ -55,13 +55,11 @@ class OffsetMapper(object):
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
             offsets = np.asanyarray(self.offset_series.loc[zone_ids])
-            print "map_offsets offsets Series"
         elif self.offset_int:
             # should be some kind of integer
             assert long(self.offset_int) == self.offset_int
             assert (self.offset_series is None)
             offsets = zone_ids + self.offset_int
-            print "map_offsets offsets offset"
         else:
             offsets = zone_ids
 

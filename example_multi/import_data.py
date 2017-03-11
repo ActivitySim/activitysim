@@ -66,14 +66,10 @@ if __name__ == "__main__":
 
     # read taz and tap skim to get zone ids
     with openmatrix.open_file(folder + "impdan_AM.omx") as taz_skim:
-        # FIXME - mapentries method broken in omx 0.2.4
-        #taz_numbers = taz_skim.mapentries("Origin")
-        taz_numbers = [key for key in sorted(taz_skim.mapping("Origin").iterkeys())]
+        taz_numbers = taz_skim.mapentries("Origin")
 
     with openmatrix.open_file(folder + "implocl_AMo.omx") as tap_skim:
-        # FIXME - mapentries method broken in omx 0.2.4
-        #tap_numbers = tap_skim.mapentries("Rows")
-        tap_numbers = [key for key in sorted(tap_skim.mapping("Rows").iterkeys())]
+        tap_numbers = tap_skim.mapentries("Rows")
 
     # TAZ
     TAZ = pd.DataFrame({"offset": range(len(taz_numbers)), "TAZ": taz_numbers})

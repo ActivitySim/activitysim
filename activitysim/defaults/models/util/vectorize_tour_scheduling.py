@@ -96,7 +96,7 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
 
     if np.isnan(max_num_trips):
         s = pd.Series()
-        s.index.name = 'PERID'
+        s.index.name = 'tour_id'
         return s
 
     # because this is Python, we have to vectorize everything by doing the

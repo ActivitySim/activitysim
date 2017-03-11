@@ -11,6 +11,8 @@ from activitysim import tracing
 from .util.misc import add_dependent_columns
 from .util.misc import read_model_settings, get_model_constants
 
+from activitysim import pipeline
+
 logger = logging.getLogger(__name__)
 
 
@@ -76,17 +78,18 @@ def workplace_location_simulate(set_random_seed,
         trace_label=trace_hh_id and 'workplace_location',
         trace_choice_name='workplace_location')
 
-    # FIXME - no need to reindex?
-    choices = choices.reindex(persons_merged.index)
-
-    logger.info("%s workplace_taz choices min: %s max: %s" %
-                (len(choices.index), choices.min(), choices.max()))
+    # FIXME - no need to reindex since we didn't slice choosers
+    # choices = choices.reindex(persons_merged.index)
 
     tracing.print_summary('workplace_taz', choices, describe=True)
 
     orca.add_column("persons", "workplace_taz", choices)
 
     add_dependent_columns("persons", "persons_workplace")
+
+    # FIXME - test prng repeatability
+    r = pipeline.get_rn_generator().random_for_df(choices)
+    orca.add_column("persons", "work_location_rand", [item for sublist in r for item in sublist])
 
     if trace_hh_id:
         trace_columns = ['workplace_taz'] + orca.get_table('persons_workplace').columns

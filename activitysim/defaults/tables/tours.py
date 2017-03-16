@@ -222,13 +222,17 @@ def dest_topology(tours, land_use):
 
 @orca.column("tours")
 def out_period(tours, settings):
-    return pd.cut(tours.end,
+    cats = pd.cut(tours.end,
                   settings['time_periods']['hours'],
                   labels=settings['time_periods']['labels'])
+    # cut returns labelled categories but we convert to str
+    return cats.astype(str)
 
 
 @orca.column("tours")
 def in_period(tours, settings):
-    return pd.cut(tours.start,
+    cats = pd.cut(tours.start,
                   settings['time_periods']['hours'],
                   labels=settings['time_periods']['labels'])
+    # cut returns labelled categories but we convert to str
+    return cats.astype(str)

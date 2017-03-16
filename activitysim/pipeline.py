@@ -29,7 +29,7 @@ _MODELS = [
     # 'trip_mode_choice_simulate'
 ]
 
-_MAX_PRNG_OFFSETS = {'households': 1, 'persons': 5, 'tours': 5}
+_MAX_PRNG_OFFSETS = {'households': 2, 'persons': 5, 'tours': 5}
 
 _TIMESTAMP_COL = 'timestamp'
 _CHECKPOINT_COL = 'checkpoint_name'
@@ -41,9 +41,6 @@ _RUNTIME_COL = 'runtime_seconds'
 
 _CHECKPOINT_TABLE_NAME = 'checkpoints'
 _INITIAL_CHECKPOINT_NAME = 'init'
-
-# list of all currently pipelined tables
-_TABLES = ['households', 'persons', 'land_use', 'accessibility']
 
 # most recent checkpoint
 _LAST_CHECKPOINT = {}
@@ -70,15 +67,6 @@ def get_pipeline_store():
 
 def get_rn_generator():
     return _PRNG
-
-
-def add_table_to_pipeline(table_name):
-
-    assert table_name not in _TABLES
-
-    logger.info("add_table_to_pipeline %s" % (table_name,))
-
-    _TABLES.append(table_name)
 
 
 def _open_pipeline_store(overwrite=False):
@@ -133,6 +121,7 @@ def write_df(df, table_name, checkpoint_name=None):
 
 def rewrap(table_name, df=None):
 
+    print "rewrap", table_name
     logger.info("rewrap table %s inplace=%s" % (table_name, (df is None)))
 
     if orca.is_table(table_name):
@@ -152,6 +141,7 @@ def rewrap(table_name, df=None):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
             orca.orca._COLUMNS.pop((table_name, column_name), None)
 
+        # remove from orca's table list
         orca.orca._TABLES.pop(table_name, None)
 
     logger.info("rewrap - orca.add_table(%s)" % (table_name,))
@@ -179,19 +169,22 @@ def print_checkpoints():
 
 def set_checkpoint(checkpoint_name):
 
-    for table_name in _TABLES:
+    logger.info("set_checkpoint %s" % checkpoint_name)
 
-        t = orca.get_table(table_name)
-        if len(orca.list_columns_for_table(table_name)) == 0:
-            # print "skipping table %s - no changes" % table_name
+    for table_name in orca_dataframe_tables():
 
-            continue
+        # if we have not already checkpointed it or it has changed
+        if (table_name not in _LAST_CHECKPOINT or len(orca.list_columns_for_table(table_name))):
 
-        df = rewrap(table_name)
+            df = rewrap(table_name)
 
-        write_df(df, table_name, checkpoint_name)
+            logger.debug("set_checkpoint %s writing %s to store" % (checkpoint_name, table_name, ))
 
-        _LAST_CHECKPOINT[table_name] = checkpoint_name
+            # write it to store
+            write_df(df, table_name, checkpoint_name)
+
+            # remember which checkpoint it was last written
+            _LAST_CHECKPOINT[table_name] = checkpoint_name
 
     _LAST_CHECKPOINT[_CHECKPOINT_COL] = checkpoint_name
     _LAST_CHECKPOINT[_TIMESTAMP_COL] = dt.datetime.now()
@@ -203,25 +196,16 @@ def set_checkpoint(checkpoint_name):
     checkpoints = pd.DataFrame(_CHECKPOINTS)
     write_df(checkpoints, _CHECKPOINT_TABLE_NAME)
 
-    logger.info("set_checkpoint %s" % checkpoint_name)
 
-_ORCA_DF_TABLES = []
-def list_orca_tables(checkpoint_name):
+def orca_dataframe_tables():
 
-    print "\n\n####### tables at checkpoint %s" % checkpoint_name
+    t = []
+
     for table_name in orca.list_tables():
-
         if orca.table_type(table_name) == 'dataframe':
+            t.append(table_name)
 
-            if table_name not in _ORCA_DF_TABLES:
-                _ORCA_DF_TABLES.append(table_name)
-
-                print "NEW %s" % (table_name, )
-            else:
-                # existing table
-                print "    %s" % (table_name, )
-
-    print "#######\n"
+    return t
 
 
 def load_checkpoint(resume_after):
@@ -266,14 +250,8 @@ def load_checkpoint(resume_after):
 
     logger.info("load_checkpoint %s timestamp %s" % (resume_after, _LAST_CHECKPOINT['timestamp']))
 
-    # patch _TABLES array with list of all pipelined tables in checkpoint
-    del _TABLES[:]
-    table_columns = list((set(_LAST_CHECKPOINT.keys()) - set(_NON_TABLE_COLUMNS)))
-    _TABLES.extend(table_columns)
-
-    logger.debug("load_checkpoint tables %s" % (_TABLES, ))
-
-    for table_name in _TABLES:
+    checkpointed_tables = list((set(_LAST_CHECKPOINT.keys()) - set(_NON_TABLE_COLUMNS)))
+    for table_name in checkpointed_tables:
         rewrap(table_name, read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name]))
 
     # set random state to pickled state at end of last checkpoint
@@ -315,8 +293,6 @@ def start_pipeline(resume_after=None):
     else:
         _open_pipeline_store(overwrite=True)
         set_checkpoint(_INITIAL_CHECKPOINT_NAME)
-        _PRNG.add_channel(orca.get_table('households').local, channel_name='households')
-        _PRNG.add_channel(orca.get_table('persons').local, channel_name='persons')
 
     logger.info("start_pipeline complete")
 
@@ -329,16 +305,16 @@ def run(models=None, resume_after=None):
     if resume_after and resume_after in models:
         models = models[models.index(resume_after) + 1:]
 
-    list_orca_tables('before start_pipeline')
+    print "\n#### before start_pipeline: %s\n" % (orca_dataframe_tables(),)
 
     start_pipeline(resume_after)
 
-    list_orca_tables('after start_pipeline')
+    print "\n#### after start_pipeline: %s\n" % (orca_dataframe_tables(),)
 
     for model in models:
         run_model(model)
 
-        list_orca_tables(model)
+        print "\n#### after %s: %s\n" % (model, orca_dataframe_tables())
 
 
 def close():

@@ -47,11 +47,6 @@ print pipeline.get_table("non_mandatory_tours").tour_type.value_counts()
 hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_households_table.csv")
 pipeline.get_table('households').to_csv(hh_outfile_name)
 
-# write initial households table to a CSV file to review results
-hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "initial_households_table.csv")
-pipeline.get_table('households', checkpoint_name = 'init').to_csv(hh_outfile_name)
-
-
 # write final households table to a CSV file to review results
 hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_persons_table.csv")
 pipeline.get_table('persons').to_csv(hh_outfile_name)

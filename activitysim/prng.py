@@ -99,6 +99,10 @@ class Prng(object):
 
     def reseed_if_necessary(self, channel_name, caller):
 
+        if self.current_step == _NO_STEP:
+            print "reseed_if_necessary %s self.current_step %s" % (channel_name, self.current_step)
+            return
+
         assert self.current_step and self.current_step != _NO_STEP
         assert channel_name and channel_name in self.channels
 
@@ -117,6 +121,8 @@ class Prng(object):
 
             # channel was last used on a previous step - need to reseed
 
+            print "\n######### reseeding %s" % channel_name
+            print "channel.offset %s channel.max_offset %s" % (channel.offset, channel.max_offset)
             assert channel.offset < channel.max_offset
 
             channel.step_name = self.current_step
@@ -248,7 +254,7 @@ class Prng(object):
         logger.info("prng add_channel offset %s step_name '%s'" % (offset, step_name))
 
         if channel_name not in self.max_offsets:
-            logger.warn("Prng.add_channel max_seed_opffset not found in self.max_offsets")
+            logger.warn("Prng.add_channel max_seed_offset not found in self.max_offsets")
 
         max_seed_offset = self.max_offsets.get(channel_name, 0)
         assert(offset <= max_seed_offset)
@@ -272,14 +278,6 @@ class Prng(object):
                 Channel(offset=offset, max_offset=max_seed_offset, prngs=prngs, step_name=step_name)
 
         print_elapsed_time('Prng.add_channel %s' % (channel_name), t0)
-
-    def add_tour_channels(self, df):
-
-        # FIXME - should have a better mechanism - this is to avoid breaking when called from test
-        if not self.channels:
-            return
-
-        self.add_channel(df, 'tours')
 
     def get_channels(self):
 

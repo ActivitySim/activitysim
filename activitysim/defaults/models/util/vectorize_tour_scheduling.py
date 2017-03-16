@@ -115,8 +115,9 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
         # this reset_index / set_index stuff keeps the index as the tours
         # index rather that switching to person_id as the index which is
         # what happens when you groupby person_id
+        index_name = tours.index.name or 'index'
         nth_tours = tours.reset_index().\
-            groupby('person_id').nth(i).reset_index().set_index('index')
+            groupby('person_id').nth(i).reset_index().set_index(index_name)
 
         nth_tours.index.name = 'tour_id'
 

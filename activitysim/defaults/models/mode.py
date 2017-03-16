@@ -231,7 +231,7 @@ def tour_mode_choice_simulate(tours_merged,
     orca.add_column("tours", "mode", choices)
 
     if trace_hh_id:
-        trace_columns = ['mode']
+        trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num']
         tracing.trace_df(orca.get_table('tours').to_frame(),
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',

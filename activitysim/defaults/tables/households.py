@@ -10,6 +10,8 @@ import pandas as pd
 from activitysim import activitysim as asim
 from activitysim import tracing
 from activitysim.util import reindex
+from activitysim import pipeline
+
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +52,8 @@ def households(set_random_seed, store, households_sample_size, trace_hh_id):
 
     # replace table function with dataframe
     orca.add_table('households', df)
+
+    pipeline.get_rn_generator().add_channel(df, 'households')
 
     return df
 

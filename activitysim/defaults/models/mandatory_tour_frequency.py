@@ -106,9 +106,7 @@ def create_mandatory_tours_table():
 
     orca.add_table("mandatory_tours", df)
 
-    pipeline.add_table_to_pipeline("mandatory_tours")
-
-    pipeline.get_rn_generator().add_tour_channels(df)
+    pipeline.get_rn_generator().add_channel(df, 'tours')
 
 
 # broadcast mandatory_tours on to persons using the person_id foreign key

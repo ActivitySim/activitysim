@@ -7,6 +7,8 @@ import numpy as np
 import orca
 import pandas as pd
 
+from activitysim import pipeline
+
 from activitysim import tracing
 from activitysim.activitysim import other_than
 from activitysim.util import reindex
@@ -34,6 +36,8 @@ def persons(store, households_sample_size, households, trace_hh_id):
 
     # replace table function with dataframe
     orca.add_table('persons', df)
+
+    pipeline.get_rn_generator().add_channel(df, 'persons')
 
     return df
 

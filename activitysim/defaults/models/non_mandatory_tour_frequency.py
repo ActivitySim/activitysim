@@ -139,9 +139,7 @@ def create_non_mandatory_tours_table():
 
     orca.add_table("non_mandatory_tours", df)
 
-    pipeline.add_table_to_pipeline("non_mandatory_tours")
-
-    pipeline.get_rn_generator().add_tour_channels(df)
+    pipeline.get_rn_generator().add_channel(df, 'tours')
 
 
 """

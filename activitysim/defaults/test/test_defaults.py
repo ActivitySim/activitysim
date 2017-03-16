@@ -22,8 +22,8 @@ from ... import pipeline
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
-#fix
 SKIP_FULL_RUN = True
+SKIP_FULL_RUN = False
 
 
 def inject_settings(configs_dir, households_sample_size, chunk_size=None,
@@ -94,9 +94,11 @@ def test_mini_run(random_seed):
     # this is a regression test so that we know if these numbers change
     auto_choice = orca.get_table('households').get_column('auto_ownership')
 
+    # regression test: these are the first three households in households table
     hh_ids = [2124015, 961042, 1583271]
-    choices = [1, 1, 1]
+    choices = [0, 2, 2]
     print "auto_choice\n", auto_choice.head(3)
+
     pdt.assert_series_equal(
         auto_choice[hh_ids],
         pd.Series(choices, index=pd.Index(hh_ids, name="HHID")))
@@ -106,7 +108,7 @@ def test_mini_run(random_seed):
 
     mtf_choice = orca.get_table('persons').get_column('mandatory_tour_frequency')
     per_ids = [326914, 172781, 298898]
-    choices = ['school1', 'work_and_school', 'work2']
+    choices = ['work_and_school', 'work1', 'work1']
     print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(
         mtf_choice[per_ids],
@@ -140,11 +142,6 @@ def full_run(chunk_size=0,
 
     tracing.config_logger()
 
-    # grab some of the tables
-    # orca.get_table("land_use").to_frame().info()
-    # orca.get_table("households").to_frame().info()
-    # orca.get_table("persons").to_frame().info()
-
     assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
     assert orca.get_injectable("chunk_size") == chunk_size
 
@@ -177,7 +174,7 @@ def test_full_run():
         return
 
     tour_count = full_run(check_for_variability=True)
-    assert(tour_count == 230)
+    assert(tour_count == 214)
 
 
 def test_full_run_with_chunks():
@@ -187,8 +184,7 @@ def test_full_run_with_chunks():
 
     tour_count = full_run(chunk_size=10)
 
-    # different sampling causes slightly different results
-    assert(tour_count == 219)
+    assert(tour_count == 214)
 
 
 def test_full_run_with_hh_trace():
@@ -212,7 +208,7 @@ def test_full_run_with_hh_trace():
 
     tour_count = full_run(trace_hh_id=HH_ID, trace_od=OD)
 
-    assert(tour_count == 230)
+    assert(tour_count == 214)
 
     # should delete any csv files from output
     assert not os.path.isfile(goner_fname)
@@ -227,7 +223,7 @@ def test_full_run_with_hh_trace():
     assert h.columns[0] == 'PERID'
     assert h.columns[1] == 'workplace_location'
     assert h.iloc[0][0] == 1888694
-    assert h.iloc[0][1] == 17
+    assert h.iloc[0][1] == 18
 
     # should have created accessibility csv trace file
     a = pd.read_csv(accessibility_fname)

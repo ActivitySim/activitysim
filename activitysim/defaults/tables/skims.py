@@ -53,5 +53,5 @@ def skim_dict(omx_file, cache_skim_key_values):
 @orca.injectable(cache=True)
 def skim_stack(skim_dict):
 
-    logger.info("loading skim_stack")
+    logger.debug("loading skim_stack")
     return askim.SkimStack(skim_dict)

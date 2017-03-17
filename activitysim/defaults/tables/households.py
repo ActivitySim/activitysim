@@ -36,8 +36,8 @@ def households(set_random_seed, store, households_sample_size, trace_hh_id):
         # if tracing and we missed trace_hh in sample, but it is in full store
         if trace_hh_id and trace_hh_id not in df.index and trace_hh_id in df_full.index:
                 # replace first hh in sample with trace_hh
-                logger.warn("replacing household %s with %s in household sample" %
-                            (df.index[0], trace_hh_id))
+                logger.debug("replacing household %s with %s in household sample" %
+                             (df.index[0], trace_hh_id))
                 df_hh = tracing.slice_ids(df_full, trace_hh_id)
                 df = pd.concat([df_hh, df[1:]])
 

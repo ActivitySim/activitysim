@@ -11,6 +11,7 @@ import orca
 import logging
 
 import prng
+from tracing import print_elapsed_time
 
 logger = logging.getLogger(__name__)
 
@@ -79,16 +80,16 @@ def _open_pipeline_store(overwrite=False):
     if overwrite:
         try:
             if os.path.isfile(pipeline_file_path):
-                logger.info("removing pipeline store: %s" % pipeline_file_path)
+                logger.debug("removing pipeline store: %s" % pipeline_file_path)
                 os.unlink(pipeline_file_path)
         except Exception as e:
             print(e)
-            logger.debug("Error removing %s: %s" % (e,))
+            logger.warn("Error removing %s: %s" % (e,))
 
     store = pd.HDFStore(pipeline_file_path, mode='a')
     orca.add_injectable('pipeline_store', store)
 
-    logger.info("opened pipeline_store")
+    logger.debug("opened pipeline_store")
 
 
 def read_df(table_name, checkpoint_name=None):
@@ -98,10 +99,12 @@ def read_df(table_name, checkpoint_name=None):
     else:
         key = table_name
 
+    t0 = print_elapsed_time()
+
     store = get_pipeline_store()
     df = store[key]
 
-    logger.info("read_df %s %s" % (key, df.shape))
+    print_elapsed_time("read_df %s shape %s" % (key, df.shape,), t0, debug=True)
 
     return df
 
@@ -113,25 +116,28 @@ def write_df(df, table_name, checkpoint_name=None):
     else:
         key = table_name
 
+    t0 = print_elapsed_time()
+
     store = get_pipeline_store()
     store[key] = df
 
-    logger.info("write_df %s %s" % (key, df.shape))
+    runtime_seconds = time.time() - t0
+
+    print_elapsed_time("write_df %s shape %s" % (key, df.shape,), t0, debug=True)
 
 
 def rewrap(table_name, df=None):
 
-    print "rewrap", table_name
-    logger.info("rewrap table %s inplace=%s" % (table_name, (df is None)))
+    logger.debug("rewrap table %s inplace=%s" % (table_name, (df is None)))
 
     if orca.is_table(table_name):
 
         if df is None:
-            logger.info("rewrap - orca.get_table(%s)" % (table_name,))
+            logger.debug("rewrap - orca.get_table(%s)" % (table_name,))
             t = orca.get_table(table_name)
             df = t.to_frame()
         else:
-            logger.info("rewrap - orca.get_raw_table(%s)" % (table_name,))
+            logger.debug("rewrap - orca.get_raw_table(%s)" % (table_name,))
             # don't trigger function call of TableFuncWrapper
             t = orca.get_raw_table(table_name)
 
@@ -144,7 +150,7 @@ def rewrap(table_name, df=None):
         # remove from orca's table list
         orca.orca._TABLES.pop(table_name, None)
 
-    logger.info("rewrap - orca.add_table(%s)" % (table_name,))
+    logger.debug("rewrap - orca.add_table(%s)" % (table_name,))
     orca.add_table(table_name, df)
 
     return df
@@ -169,7 +175,9 @@ def print_checkpoints():
 
 def set_checkpoint(checkpoint_name):
 
-    logger.info("set_checkpoint %s" % checkpoint_name)
+    timestamp = dt.datetime.now()
+
+    logger.debug("set_checkpoint %s timestamp %s" % (checkpoint_name, timestamp))
 
     for table_name in orca_dataframe_tables():
 
@@ -187,7 +195,7 @@ def set_checkpoint(checkpoint_name):
             _LAST_CHECKPOINT[table_name] = checkpoint_name
 
     _LAST_CHECKPOINT[_CHECKPOINT_COL] = checkpoint_name
-    _LAST_CHECKPOINT[_TIMESTAMP_COL] = dt.datetime.now()
+    _LAST_CHECKPOINT[_TIMESTAMP_COL] = timestamp
     _LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL] = _PRNG.gprng_offset
     _LAST_CHECKPOINT[_PRNG_CHANNELS_COL] = cPickle.dumps(_PRNG.get_channels())
 
@@ -195,6 +203,10 @@ def set_checkpoint(checkpoint_name):
 
     checkpoints = pd.DataFrame(_CHECKPOINTS)
     write_df(checkpoints, _CHECKPOINT_TABLE_NAME)
+
+    logger.debug("gprng_offset: %s" % _PRNG.gprng_offset)
+    for channel_state in _PRNG.get_channels():
+        logger.debug("channel_name '%s', step_name '%s', offset: %s" % channel_state)
 
 
 def orca_dataframe_tables():
@@ -206,6 +218,11 @@ def orca_dataframe_tables():
             t.append(table_name)
 
     return t
+
+
+def checkpointed_tables():
+
+    return list((set(_LAST_CHECKPOINT.keys()) - set(_NON_TABLE_COLUMNS)))
 
 
 def load_checkpoint(resume_after):
@@ -250,8 +267,7 @@ def load_checkpoint(resume_after):
 
     logger.info("load_checkpoint %s timestamp %s" % (resume_after, _LAST_CHECKPOINT['timestamp']))
 
-    checkpointed_tables = list((set(_LAST_CHECKPOINT.keys()) - set(_NON_TABLE_COLUMNS)))
-    for table_name in checkpointed_tables:
+    for table_name in checkpointed_tables():
         rewrap(table_name, read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name]))
 
     # set random state to pickled state at end of last checkpoint
@@ -262,7 +278,7 @@ def load_checkpoint(resume_after):
 
 def run_model(model_name):
 
-    t0 = time.time()
+    t0 = print_elapsed_time()
 
     _PRNG.begin_step(model_name)
 
@@ -274,7 +290,7 @@ def run_model(model_name):
 
     set_checkpoint(model_name)
 
-    logger.info("run %s (%s seconds)" % (model_name, runtime_seconds))
+    print_elapsed_time("run_model '%s'" % model_name, t0)
 
 
 def start_pipeline(resume_after=None):
@@ -282,10 +298,10 @@ def start_pipeline(resume_after=None):
     logger.info("start_pipeline...")
 
     skims = orca.get_injectable('skim_dict')
-    logger.info("load skim_dict")
+    logger.debug("load skim_dict")
 
     skims = orca.get_injectable('skim_stack')
-    logger.info("load skim_stack")
+    logger.debug("load skim_stack")
 
     if resume_after:
         _open_pipeline_store(overwrite=False)
@@ -294,7 +310,7 @@ def start_pipeline(resume_after=None):
         _open_pipeline_store(overwrite=True)
         set_checkpoint(_INITIAL_CHECKPOINT_NAME)
 
-    logger.info("start_pipeline complete")
+    logger.debug("start_pipeline complete")
 
 
 def run(models=None, resume_after=None):
@@ -305,16 +321,10 @@ def run(models=None, resume_after=None):
     if resume_after and resume_after in models:
         models = models[models.index(resume_after) + 1:]
 
-    print "\n#### before start_pipeline: %s\n" % (orca_dataframe_tables(),)
-
     start_pipeline(resume_after)
-
-    print "\n#### after start_pipeline: %s\n" % (orca_dataframe_tables(),)
 
     for model in models:
         run_model(model)
-
-        print "\n#### after %s: %s\n" % (model, orca_dataframe_tables())
 
 
 def close():
@@ -328,6 +338,14 @@ def close():
 
 def get_table(table_name, checkpoint_name=None):
 
+    # orca table not in checkpoints (e.g. a merged table)
+    if table_name not in _LAST_CHECKPOINT and orca.is_table(table_name):
+        if checkpoint_name is not None:
+            raise RuntimeError("get_table: checkpoint_name ('%s') not supported"
+                               "for non-checkpointed table '%s'" % (checkpoint_name, table_name))
+
+        return orca.get_table(table_name).to_frame()
+
     if table_name not in _LAST_CHECKPOINT:
         raise RuntimeError("table '%s' not in checkpoints." % table_name)
 
@@ -335,6 +353,6 @@ def get_table(table_name, checkpoint_name=None):
         return orca.get_table(table_name).local
 
     if checkpoint_name not in [checkpoint[_CHECKPOINT_COL] for checkpoint in _CHECKPOINTS]:
-        raise RuntimeError("checkppint '%s' not in checkpoints." % checkpoint_name)
+        raise RuntimeError("checkpoint '%s' not in checkpoints." % checkpoint_name)
 
     return read_df(table_name, checkpoint_name)

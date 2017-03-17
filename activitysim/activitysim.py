@@ -725,8 +725,8 @@ def _interaction_simulate(
     sample_size = sample_size or len(alternatives)
 
     if sample_size > len(alternatives):
-        logger.warn("clipping sample size %s to len(alternatives) %s" %
-                    (sample_size, len(alternatives)))
+        logger.debug("clipping sample size %s to len(alternatives) %s" %
+                     (sample_size, len(alternatives)))
         sample_size = min(sample_size, len(alternatives))
 
     # if using skims, copy index into the dataframe, so it will be

@@ -158,9 +158,7 @@ def tour_mode_choice_simulate(tours_merged,
 
     trace_label = trace_hh_id and 'tour_mode_choice'
 
-    logger.info("calling tours_merged")
     tours = tours_merged.to_frame()
-    logger.info("back from tours_merged")
 
     nest_spec = get_logit_model_settings(tour_mode_choice_settings)
     constants = get_model_constants(tour_mode_choice_settings)
@@ -184,16 +182,14 @@ def tour_mode_choice_simulate(tours_merged,
         # if tour_type != 'work':
         #     continue
 
-        logger.info("running tour_type '%s'" % tour_type)
+        logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
+                    (tour_type, len(segment.index), ))
 
         orig_key = 'TAZ'
         dest_key = 'destination'
 
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
-
-        logger.info("tour_mode_choice_simulate running %s tour_type '%s'" %
-                    (len(segment.index), tour_type, ))
 
         spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
 
@@ -221,7 +217,7 @@ def tour_mode_choice_simulate(tours_merged,
 
         # FIXME - force garbage collection
         mem = asim.memory_info()
-        logger.info('memory_info tour_type %s, %s' % (tour_type, mem))
+        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
 
@@ -303,7 +299,7 @@ def trip_mode_choice_simulate(tours_merged,
 
         # FIXME - force garbage collection
         mem = asim.memory_info()
-        logger.info('memory_info tour_type %s, %s' % (tour_type, mem))
+        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
 

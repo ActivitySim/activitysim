@@ -34,35 +34,34 @@ _MODELS = [
 ]
 
 
-#resume_after = 'mandatory_scheduling'
 resume_after = None
+#resume_after = 'mandatory_tour_frequency'
 
 pipeline.run(models=_MODELS, resume_after=resume_after)
 
-print pipeline.get_table("persons").distance_to_work.describe()
-print pipeline.get_table("mandatory_tours").tour_type.value_counts()
-print pipeline.get_table("non_mandatory_tours").tour_type.value_counts()
+print "\n#### run completed"
 
-# write final households table to a CSV file to review results
-hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_households_table.csv")
-pipeline.get_table('households').to_csv(hh_outfile_name)
+# retrieve the state of a checkpointed table after a specific model was run
+df = pipeline.get_table(table_name="persons", checkpoint_name="school_location_simulate")
+print "\npersons table columns after school_location_simulate:", df.columns.values
 
-# write final households table to a CSV file to review results
-hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_persons_table.csv")
-pipeline.get_table('persons').to_csv(hh_outfile_name)
+# get_table without checkpoint_name returns the latest version of the table
+df = pipeline.get_table("tours")
+print "\ntour_type value counts\n", df.tour_type.value_counts()
 
-# write final households table to a CSV file to review results
-hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_mandatory_tours.csv")
-pipeline.get_table('mandatory_tours').to_csv(hh_outfile_name)
+# get_table for a computed (non-checkpointed, internal, orca) table
+# return the most recent value of a (non-checkpointed, internal) computed table
+df = pipeline.get_table("persons_merged")
+df = df[ ['household_id', 'age', 'auPkTotal', 'roundtrip_auto_time_to_work']]
+print "\npersons_merged selected columns\n", df.head(10)
 
-# write final households table to a CSV file to review results
-hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_non_mandatory_tours.csv")
-pipeline.get_table('non_mandatory_tours').to_csv(hh_outfile_name)
+# write final versions of all checkpointed dataframes to CSV files to review results
+for table_name in pipeline.checkpointed_tables():
+    file_name = "final_%s_table.csv" % table_name
+    file_path = os.path.join(orca.get_injectable("output_dir"), file_name)
+    pipeline.get_table('households').to_csv(file_path)
 
-# write final households table to a CSV file to review results
-hh_outfile_name = os.path.join(orca.get_injectable("output_dir"), "final_tours.csv")
-orca.get_table('tours').to_frame().to_csv(hh_outfile_name)
-
+# tables will no longer be available after pipeline is closed
 pipeline.close()
 
 t0 = print_elapsed_time("all models", t0)

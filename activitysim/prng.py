@@ -120,9 +120,6 @@ class Prng(object):
         elif channel.step_name != self.current_step:
 
             # channel was last used on a previous step - need to reseed
-
-            print "\n######### reseeding %s" % channel_name
-            print "channel.offset %s channel.max_offset %s" % (channel.offset, channel.max_offset)
             assert channel.offset < channel.max_offset
 
             channel.step_name = self.current_step
@@ -185,7 +182,7 @@ class Prng(object):
 
         self.reseed_global_prng()
 
-        print "\n##### begin_step %s" % step_name
+        logger.debug("begin_step %s" % step_name)
 
     def end_step(self, step_name):
 
@@ -194,8 +191,7 @@ class Prng(object):
 
         self.current_step = _NO_STEP
 
-        print "\n##### end_step %s" % step_name
-        print self.get_channels()
+        logger.debug("end_step %s" % step_name)
 
     def create_prngs_for_tour_channels(self, tours, max_seed_offset, offset=0):
 
@@ -250,8 +246,8 @@ class Prng(object):
         if step_name is None:
             step_name = self.current_step
 
-        logger.info("prng add_channel '%s' %s ids" % (channel_name, len(df.index)))
-        logger.info("prng add_channel offset %s step_name '%s'" % (offset, step_name))
+        logger.debug("prng add_channel '%s' %s ids" % (channel_name, len(df.index)))
+        logger.debug("prng add_channel offset %s step_name '%s'" % (offset, step_name))
 
         if channel_name not in self.max_offsets:
             logger.warn("Prng.add_channel max_seed_offset not found in self.max_offsets")
@@ -267,17 +263,17 @@ class Prng(object):
             prngs = self.create_prngs_for_channel(df, max_seed_offset, offset)
 
         if channel_name in self.channels:
-            logger.info("prng add_channel - extending %s " % len(df.index))
+            logger.debug("prng add_channel - extending %s " % len(df.index))
             channel = self.channels[channel_name]
             assert channel.max_offset == max_seed_offset
             assert len(channel.prngs.index.intersection(prngs.index)) == 0
             channel.prngs = pd.concat([channel.prngs, prngs])
         else:
-            logger.info("prng add_tour_channels - first time")
+            logger.debug("prng add_tour_channels - first time")
             self.channels[channel_name] = \
                 Channel(offset=offset, max_offset=max_seed_offset, prngs=prngs, step_name=step_name)
 
-        print_elapsed_time('Prng.add_channel %s' % (channel_name), t0)
+        print_elapsed_time('Prng.add_channel %s' % (channel_name), t0, debug=True)
 
     def get_channels(self):
 

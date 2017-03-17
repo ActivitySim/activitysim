@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -44,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -84,7 +87,10 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
@@ -154,8 +160,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">ActivitySim</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ActivitySim</a>
+        
       </nav>
 
 
@@ -164,23 +172,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Models</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Models</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
             <a href="_sources/models.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -338,7 +363,7 @@ to oldest, up to three). If the method is called for a household with less
 than 5 people, the cdapPersonArray is the same as the person array.&#8221;</p>
 <p>We diverge from the above description in that a cdap_rank is assigned to all persons,
 including &#8216;extra&#8217; householld members, whose activity is assigned subsequently.
-The pair _hh_id_, _cdap_rank_ will uniquely identify each household member.</p>
+The pair _hh_id_, cdap_rank will uniquely identify each household member.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -556,7 +581,7 @@ with same index (_hh_index_) as utils</p>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>Will have index of <cite>persons</cite> and columns for each of the alternatives.
-plus some &#8216;useful columns&#8217; [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]</p>
+plus some &#8216;useful columns&#8217; [_hh_id_, _ptype_, &#8216;cdap_rank&#8217;, _hh_size_]</p>
 </div></blockquote>
 </td>
 </tr>
@@ -663,7 +688,7 @@ in either the cdap_indiv_spec or cdap_fixed_relative_proportions expression file
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>persons</strong> : pandas.DataFrame</p>
 <blockquote>
 <div><p>Table of persons data indexed on _persons_index_
-We expect, at least, columns [_hh_id_, _cdap_rank_]</p>
+We expect, at least, columns [_hh_id_, &#8216;cdap_rank&#8217;]</p>
 </div></blockquote>
 <p><strong>hh_choices</strong> : pandas.Series</p>
 <blockquote>
@@ -745,14 +770,6 @@ via <code class="docutils literal"><span class="pre">orca.run([&quot;destination
 <dd><p>Given the tour generation from the above, each tour needs to have a
 destination, so in this case tours are the choosers (with the associated
 person that&#8217;s making the tour)</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.defaults.models.destination.patch_mandatory_tour_destination">
-<code class="descclassname">activitysim.defaults.models.destination.</code><code class="descname">patch_mandatory_tour_destination</code><span class="sig-paren">(</span><em>mandatory_tours_merged</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.models.destination.patch_mandatory_tour_destination" title="Permalink to this definition">¶</a></dt>
-<dd><p>Patch destination column of mandatory tours with school or workplace taz
-to conform to non-mandatory tours naming so that computed columns in the tours
-table can use destination for any tour type.</p>
 </dd></dl>
 
 </div>
@@ -918,15 +935,18 @@ work.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="development.html" class="btn btn-neutral float-right" title="Development" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="development.html" class="btn btn-neutral float-right" title="Development" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="core.html" class="btn btn-neutral" title="Core Utilities" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="core.html" class="btn btn-neutral" title="Core Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -960,7 +980,8 @@ work.</p>
             VERSION:'0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

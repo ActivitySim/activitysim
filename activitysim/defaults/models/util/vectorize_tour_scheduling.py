@@ -141,7 +141,6 @@ def vectorize_tour_scheduling(tours, alts, spec, sample_size,
             alts.copy(),
             spec,
             locals_d=constants,
-            #sample_size=min(len(alts), sample_size),
             sample_size=sample_size,
             chunk_size=chunk_size,
             trace_label=tour_trace_label

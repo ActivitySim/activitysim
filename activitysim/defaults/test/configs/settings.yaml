@@ -28,8 +28,8 @@ employment_map:
     4: child
 
 student_map:
-    1: high
-    2: college
+    1: grade_or_high
+    2: university
     3: not
 
 person_type_map:

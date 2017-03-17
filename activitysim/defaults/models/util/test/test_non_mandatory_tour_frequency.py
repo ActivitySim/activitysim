@@ -25,13 +25,15 @@ def test_nmtf():
     nmt = process_non_mandatory_tours(non_mandatory_tour_frequency,
                                       non_mandatory_tour_frequency_alts)
 
+    idx = pd.Index([0, 1, 2, 3], name="tour_id")
+
     pdt.assert_series_equal(
         nmt.person_id,
         pd.Series(
-            [0, 2, 3, 3], index=[0, 1, 2, 3], name='person_id'))
+            [0, 2, 3, 3], index=idx, name='person_id'))
 
     pdt.assert_series_equal(
         nmt.tour_type,
         pd.Series(
             ["shopping", "escort", "random", "random"],
-            index=[0, 1, 2, 3], name='tour_type'))
+            index=idx, name='tour_type'))

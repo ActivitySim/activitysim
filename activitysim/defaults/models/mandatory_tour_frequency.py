@@ -11,8 +11,11 @@ import yaml
 from activitysim import activitysim as asim
 from activitysim import tracing
 from .util.mandatory_tour_frequency import process_mandatory_tours
+from activitysim import pipeline
 
 from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+from .util.misc import add_dependent_columns
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +66,13 @@ def mandatory_tour_frequency(set_random_seed,
     tracing.print_summary('mandatory_tour_frequency', choices, value_counts=True)
 
     orca.add_column("persons", "mandatory_tour_frequency", choices)
+    add_dependent_columns("persons", "persons_mtf")
+
+    create_mandatory_tours_table()
+
+    # FIXME - test prng repeatability
+    r = pipeline.get_rn_generator().random_for_df(choices)
+    orca.add_column("persons", "mtf_rand", [item for sublist in r for item in sublist])
 
     if trace_hh_id:
         trace_columns = ['mandatory_tour_frequency']
@@ -71,6 +81,7 @@ def mandatory_tour_frequency(set_random_seed,
                          columns=trace_columns,
                          warn_if_empty=True)
 
+
 """
 This reprocesses the choice of index of the mandatory tour frequency
 alternatives into an actual dataframe of tours.  Ending format is
@@ -78,14 +89,24 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
-@orca.table(cache=True)
-def mandatory_tours(persons):
+def create_mandatory_tours_table():
+
+    persons = orca.get_table('persons')
+
     persons = persons.to_frame(columns=["mandatory_tour_frequency",
-                                        "is_worker"])
+                                        "is_worker", "school_taz", "workplace_taz"])
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
     df = process_mandatory_tours(persons)
 
-    return df
+    # if there is already a non_mandatory_tours table, then want compatible indexing with it
+    if orca.is_table("non_mandatory_tours"):
+        index_offset = orca.get_table("non_mandatory_tours").local.index.max() + 1
+        logger.info("create_mandatory_tours_table offsetting index by %s" % index_offset)
+        df.index = df.index + index_offset
+
+    orca.add_table("mandatory_tours", df)
+
+    pipeline.get_rn_generator().add_channel(df, 'tours')
 
 
 # broadcast mandatory_tours on to persons using the person_id foreign key

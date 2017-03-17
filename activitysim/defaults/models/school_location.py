@@ -13,6 +13,7 @@ from activitysim import tracing
 from .util.misc import add_dependent_columns
 from .util.misc import read_model_settings, get_model_constants
 
+from activitysim import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,12 @@ def school_location_simulate(set_random_seed,
     tracing.print_summary('school_taz', choices, describe=True)
 
     orca.add_column("persons", "school_taz", choices)
+
     add_dependent_columns("persons", "persons_school")
+
+    # FIXME - test prng repeatability
+    r = pipeline.get_rn_generator().random_for_df(choices)
+    orca.add_column("persons", "school_location_rand", [item for sublist in r for item in sublist])
 
     if trace_hh_id:
         trace_columns = ['school_taz'] + orca.get_table('persons_school').columns

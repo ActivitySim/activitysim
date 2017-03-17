@@ -7,59 +7,39 @@ import numpy as np
 import orca
 import pandas as pd
 
+from activitysim import pipeline
+
 from activitysim import tracing
 from activitysim.activitysim import other_than
 from activitysim.util import reindex
 
+from activitysim.tracing import print_elapsed_time
 
 logger = logging.getLogger(__name__)
 
 
-# this caches things so you don't have to read in the file from disk again
-@orca.table(cache=True)
-def persons_internal(store, households_sample_size, households):
+@orca.table()
+def persons(store, households_sample_size, households, trace_hh_id):
+
     df = store["persons"]
 
     if households_sample_size > 0:
         # keep all persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 
-    return df
-
-
-# this caches all the columns that are computed on the persons table
-@orca.table(cache=True)
-def persons(persons_internal, trace_hh_id):
-
-    df = persons_internal.to_frame()
-
     if trace_hh_id:
         tracing.register_persons(df, trace_hh_id)
         tracing.trace_df(df, "persons",
                          warn_if_empty=True)
 
+    logger.info("loaded persons %s" % (df.shape,))
+
+    # replace table function with dataframe
+    orca.add_table('persons', df)
+
+    pipeline.get_rn_generator().add_channel(df, 'persons')
+
     return df
-
-
-# this is the placeholder for all the columns to update after the
-# school location choice model
-@orca.table()
-def persons_school(persons):
-    return pd.DataFrame(index=persons.index)
-
-
-# this is the placeholder for all the columns to update after the
-# workplace location choice model
-@orca.table()
-def persons_workplace(persons):
-    return pd.DataFrame(index=persons.index)
-
-
-# this is the placeholder for all the columns to update after the
-# non-mandatory tour frequency model
-@orca.table()
-def persons_nmtf(persons):
-    return pd.DataFrame(index=persons.index)
 
 
 # another common merge for persons
@@ -69,79 +49,11 @@ def persons_merged(persons, households, land_use, accessibility):
         persons, households, land_use, accessibility])
 
 
-@orca.column("persons")
-def age_16_to_19(persons):
-    return persons.to_frame(["age"]).eval("16 <= age <= 19")
-
-
-@orca.column("persons")
-def age_16_p(persons):
-    return persons.to_frame(["age"]).eval("16 <= age")
-
-
-@orca.column("persons")
-def adult(persons):
-    return persons.to_frame(["age"]).eval("18 <= age")
-
-
-@orca.column("persons", cache=True)
-def cdap_activity(set_random_seed, persons):
-    # return a default until it gets filled in by the model
-    return pd.Series(np.random.randint(3, size=len(persons)),
-                     index=persons.index).map({0: 'M',
-                                               1: 'N',
-                                               2: 'H'})
-
-
-# FIXME - these are my "placeholder" for joint trip generation
-# number of joint shopping tours
-@orca.column("persons")
-def num_shop_j(persons):
-    return pd.Series(0, persons.index)
-
-
-# FIXME - these are my "placeholder" for joint trip generation
-# number of joint shopping tours
-@orca.column("persons")
-def num_main_j(persons):
-    return pd.Series(0, persons.index)
-
-
-# FIXME - these are my "placeholder" for joint trip generation
-# number of joint shopping tours
-@orca.column("persons")
-def num_eat_j(persons):
-    return pd.Series(0, persons.index)
-
-
-# FIXME - these are my "placeholder" for joint trip generation
-# number of joint shopping tours
-@orca.column("persons")
-def num_visi_j(persons):
-    return pd.Series(0, persons.index)
-
-
-# FIXME - these are my "placeholder" for joint trip generation
-# number of joint shopping tours
-@orca.column("persons")
-def num_disc_j(persons):
-    return pd.Series(0, persons.index)
-
-
-@orca.column("persons")
-def num_joint_tours(persons):
-    return persons.num_shop_j + persons.num_main_j + persons.num_eat_j +\
-        persons.num_visi_j + persons.num_disc_j
-
-
-@orca.column("persons")
-def male(persons):
-    return persons.sex == 1
-
-
-@orca.column("persons")
-def female(persons):
-    return persons.sex == 2
+# this is the placeholder for all the columns to update after the
+# non-mandatory tour frequency model
+@orca.table()
+def persons_nmtf(persons):
+    return pd.DataFrame(index=persons.index)
 
 
 @orca.column("persons_nmtf")
@@ -158,11 +70,16 @@ def num_non_escort_tours(persons, non_mandatory_tours):
         .reindex(persons.index).fillna(0)
 
 
+# this is the placeholder for all the columns to update after the
+# mandatory tour frequency model
+@orca.table()
+def persons_mtf(persons):
+    return pd.DataFrame(index=persons.index)
+
+
 # count the number of mandatory tours for each person
-@orca.column("persons")
+@orca.column("persons_mtf")
 def num_mand(persons):
-    if "mandatory_tour_frequency" not in persons.columns:
-        return pd.Series(0, index=persons.index)
 
     s = persons.mandatory_tour_frequency.map({
         "work1": 1,
@@ -174,10 +91,8 @@ def num_mand(persons):
     return s.fillna(0)
 
 
-@orca.column("persons")
+@orca.column("persons_mtf")
 def work_and_school_and_worker(persons):
-    if "mandatory_tour_frequency" not in persons.columns:
-        return pd.Series(0, index=persons.index)
 
     s = (persons.mandatory_tour_frequency == "work_and_school").\
         reindex(persons.index).fillna(False)
@@ -185,10 +100,8 @@ def work_and_school_and_worker(persons):
     return s & persons.is_worker
 
 
-@orca.column("persons")
+@orca.column("persons_mtf")
 def work_and_school_and_student(persons):
-    if "mandatory_tour_frequency" not in persons.columns:
-        return pd.Series(0, index=persons.index)
 
     s = (persons.mandatory_tour_frequency == "work_and_school").\
         reindex(persons.index).fillna(False)
@@ -196,80 +109,11 @@ def work_and_school_and_student(persons):
     return s & persons.is_student
 
 
-# FIXME now totally sure what this is but it's used in non mandatory tour
-# FIXME generation and probably has to do with remaining unscheduled time
-@orca.column('persons')
-def max_window(persons):
-    return pd.Series(0, persons.index)
-
-
-# convert employment categories to string descriptors
-@orca.column("persons")
-def employed_cat(persons, settings):
-    return persons.pemploy.map(settings["employment_map"])
-
-
-# convert student categories to string descriptors
-@orca.column("persons")
-def student_cat(persons, settings):
-    return persons.pstudent.map(settings["student_map"])
-
-
-# convert person type categories to string descriptors
-@orca.column("persons")
-def ptype_cat(persons, settings):
-    return persons.ptype.map(settings["person_type_map"])
-
-
-# borrowing these definitions from the original code
-@orca.column("persons")
-def student_is_employed(persons):
-    return (persons.ptype_cat.isin(['university', 'driving']) &
-            persons.employed_cat.isin(['full', 'part']))
-
-
-@orca.column("persons")
-def nonstudent_to_school(persons):
-    return (persons.ptype_cat.isin(['full', 'part', 'nonwork', 'retired']) &
-            persons.student_cat.isin(['grade_or_high', 'college']))
-
-
-@orca.column("persons")
-def under16_not_at_school(persons):
-    return (persons.ptype_cat.isin(["school", "preschool"]) &
-            persons.cdap_activity.isin(["N", "H"]))
-
-
-@orca.column("persons")
-def is_worker(persons):
-    return persons.employed_cat.isin(['full', 'part'])
-
-
-@orca.column("persons")
-def is_student(persons):
-    return persons.student_cat.isin(['grade_or_high', 'college'])
-
-
-@orca.column("persons")
-def is_gradeschool(persons, settings):
-    return (persons.student_cat == "grade_or_high") & \
-           (persons.age <= settings['grade_school_max_age'])
-
-
-@orca.column("persons")
-def is_highschool(persons, settings):
-    return (persons.student_cat == "grade_or_high") & \
-           (persons.age > settings['grade_school_max_age'])
-
-
-@orca.column("persons")
-def is_university(persons):
-    return persons.student_cat == "university"
-
-
-@orca.column("persons")
-def home_taz(households, persons):
-    return reindex(households.home_taz, persons.household_id)
+# this is the placeholder for all the columns to update after the
+# workplace location choice model
+@orca.table()
+def persons_workplace(persons):
+    return pd.DataFrame(index=persons.index)
 
 
 # this use the distance skims to compute the raw distance to work from home
@@ -278,15 +122,6 @@ def distance_to_work(persons, skim_dict):
     distance_skim = skim_dict.get('DIST')
     return pd.Series(distance_skim.get(persons.home_taz,
                                        persons.workplace_taz),
-                     index=persons.index)
-
-
-# same deal as distance_to_work but to school
-@orca.column("persons_school")
-def distance_to_school(persons, skim_dict):
-    distance_skim = skim_dict.get('DIST')
-    return pd.Series(distance_skim.get(persons.home_taz,
-                                       persons.school_taz),
                      index=persons.index)
 
 
@@ -302,6 +137,29 @@ def roundtrip_auto_time_to_work(persons, skim_dict):
                      index=persons.index)
 
 
+@orca.column('persons_workplace')
+def workplace_in_cbd(persons, land_use, settings):
+    s = reindex(land_use.area_type, persons.workplace_taz)
+    return s < settings['cbd_threshold']
+
+
+# this is the placeholder for all the columns to update after the
+# school location choice model
+@orca.table()
+def persons_school(persons):
+    return pd.DataFrame(index=persons.index)
+
+
+# same deal as distance_to_work but to school
+@orca.column("persons_school")
+def distance_to_school(persons, skim_dict):
+    logger.debug("eval computed column persons_school.roundtrip_auto_time_to_school")
+    distance_skim = skim_dict.get('DIST')
+    return pd.Series(distance_skim.get(persons.home_taz,
+                                       persons.school_taz),
+                     index=persons.index)
+
+
 # this uses the free flow travel time in both directions
 # MTC TM1 was MD and MD since term is free flow roundtrip_auto_time_to_school
 @orca.column("persons_school")
@@ -312,12 +170,6 @@ def roundtrip_auto_time_to_school(persons, skim_dict):
                      sovmd_skim.get(persons.school_taz,
                                     persons.home_taz),
                      index=persons.index)
-
-
-@orca.column('persons_workplace')
-def workplace_in_cbd(persons, land_use, settings):
-    s = reindex(land_use.area_type, persons.workplace_taz)
-    return s < settings['cbd_threshold']
 
 
 # this is an idiom to grab the person of the specified type and check to see if
@@ -332,51 +184,24 @@ def presence_of(ptype, persons, at_home=False):
     return other_than(persons.household_id, bools)
 
 
-@orca.column('persons')
-def has_non_worker(persons):
-    return presence_of("nonwork", persons)
+# this is the placeholder for all the columns to update after the
+# workplace location choice model
+@orca.table()
+def persons_cdap(persons):
+    return pd.DataFrame(index=persons.index)
 
 
-@orca.column('persons')
-def has_retiree(persons):
-    return presence_of("retired", persons)
+@orca.column("persons_cdap")
+def under16_not_at_school(persons):
+    return (persons.ptype_cat.isin(["school", "preschool"]) &
+            persons.cdap_activity.isin(["N", "H"]))
 
 
-@orca.column('persons')
-def has_preschool_kid(persons):
-    return presence_of("preschool", persons)
-
-
-@orca.column('persons')
+@orca.column('persons_cdap')
 def has_preschool_kid_at_home(persons):
     return presence_of("preschool", persons, at_home=True)
 
 
-@orca.column('persons')
-def has_driving_kid(persons):
-    return presence_of("driving", persons)
-
-
-@orca.column('persons')
-def has_school_kid(persons):
-    return presence_of("school", persons)
-
-
-@orca.column('persons')
+@orca.column('persons_cdap')
 def has_school_kid_at_home(persons):
     return presence_of("school", persons, at_home=True)
-
-
-@orca.column('persons')
-def has_full_time(persons):
-    return presence_of("full", persons)
-
-
-@orca.column('persons')
-def has_part_time(persons):
-    return presence_of("part", persons)
-
-
-@orca.column('persons')
-def has_university(persons):
-    return presence_of("university", persons)

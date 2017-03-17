@@ -1,6 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import os
+import psutil
+import gc
+
 import logging
 from operator import itemgetter
 
@@ -8,16 +12,14 @@ import numpy as np
 import pandas as pd
 from zbox import toolz as tz
 
-from .skim import SkimsWrapper, Skims3dWrapper
+from .skim import SkimDictWrapper, SkimStackWrapper
 from .nl import utils_to_probs, make_choices, interaction_dataset
 from .nl import report_bad_choices
 from .nl import each_nest
 import tracing
 from tracing import print_elapsed_time
 
-import os
-import psutil
-import gc
+import pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +38,9 @@ def random_rows(df, n):
 
     # only sample if df has more than n rows
     if len(df.index) > n:
-        return df.take(np.random.choice(len(df), size=n, replace=False))
+        prng = pipeline.get_rn_generator().get_global_prng()
+        return df.take(prng.choice(len(df), size=n, replace=False))
+
     else:
         return df
 
@@ -134,7 +138,7 @@ def eval_variables(exprs, df, locals_d=None):
 
 def add_skims(df, skims):
     """
-    Add the dataframe to the SkimsWrapper object so that it can be dereferenced
+    Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
     using the parameters of the skims object.
 
     Parameters
@@ -142,7 +146,7 @@ def add_skims(df, skims):
     df : pandas.DataFrame
         Table to which to add skim data as new columns.
         `df` is modified in-place.
-    skims : SkimsWrapper object
+    skims : SkimDictWrapper object
         The skims object is used to contain multiple matrices of
         origin-destination impedances.  Make sure to also add it to the
         locals_d below in order to access it in expressions.  The *only* job
@@ -152,11 +156,11 @@ def add_skims(df, skims):
         the skims object is intended to be used.
     """
     if not isinstance(skims, list):
-        assert isinstance(skims, SkimsWrapper) or isinstance(skims, Skims3dWrapper)
+        assert isinstance(skims, SkimDictWrapper) or isinstance(skims, SkimStackWrapper)
         skims.set_df(df)
     else:
         for skim in skims:
-            assert isinstance(skim, SkimsWrapper) or isinstance(skim, Skims3dWrapper)
+            assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
             skim.set_df(df)
 
 
@@ -721,8 +725,8 @@ def _interaction_simulate(
     sample_size = sample_size or len(alternatives)
 
     if sample_size > len(alternatives):
-        logger.warn("clipping sample size %s to len(alternatives) %s" %
-                    (sample_size, len(alternatives)))
+        logger.debug("clipping sample size %s to len(alternatives) %s" %
+                     (sample_size, len(alternatives)))
         sample_size = min(sample_size, len(alternatives))
 
     # if using skims, copy index into the dataframe, so it will be

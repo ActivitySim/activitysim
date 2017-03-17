@@ -33,13 +33,15 @@ def extend_trace_label(trace_label, extension):
     return trace_label
 
 
-def print_elapsed_time(msg=None, t0=None):
-    # FIXME - development debugging code to be removed
+def print_elapsed_time(msg=None, t0=None, debug=False):
     t1 = time.time()
     if msg:
         t = t1 - (t0 or t1)
         msg = "Time to execute %s : %s seconds (%s minutes)" % (msg, round(t, 3), round(t/60.0))
-        logger.info(msg)
+        if debug:
+            logger.debug(msg)
+        else:
+            logger.info(msg)
     return t1
 
 
@@ -138,7 +140,7 @@ def config_logger(custom_config_file=None, basic=False):
         logger.info("Configured logging using basicConfig")
 
     output_dir = orca.get_injectable('output_dir')
-    logger.info("Deleting files in output_dir %s" % output_dir)
+    logger.debug("Deleting files in output_dir %s" % output_dir)
     delete_csv_files(output_dir)
 
 

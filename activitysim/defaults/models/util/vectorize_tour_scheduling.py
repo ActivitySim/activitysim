@@ -54,7 +54,8 @@ def get_previous_tour_by_tourid(current_tour_person_ids,
     return previous_tour_by_tourid
 
 
-def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, trace_label=None):
+def vectorize_tour_scheduling(tours, alts, spec, sample_size,
+                              constants={}, chunk_size=0, trace_label=None):
     """
     The purpose of this method is fairly straightforward - it takes tours
     and schedules them into time slots.  Alternatives should be specified so
@@ -96,7 +97,7 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
 
     if np.isnan(max_num_trips):
         s = pd.Series()
-        s.index.name = 'PERID'
+        s.index.name = 'tour_id'
         return s
 
     # because this is Python, we have to vectorize everything by doing the
@@ -115,14 +116,14 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
         # this reset_index / set_index stuff keeps the index as the tours
         # index rather that switching to person_id as the index which is
         # what happens when you groupby person_id
+        index_name = tours.index.name or 'index'
         nth_tours = tours.reset_index().\
-            groupby('person_id').nth(i).reset_index().set_index('index')
+            groupby('person_id').nth(i).reset_index().set_index(index_name)
 
         nth_tours.index.name = 'tour_id'
 
         if trace_label:
-            logger.info("vectorize_tour_scheduling %s running %d #%d tour choices" %
-                        (trace_label, len(nth_tours), i+1))
+            logger.info("%s running %d #%d tour choices" % (trace_label, len(nth_tours), i+1))
 
         # tour num can be set by the user, but if it isn't we set it here
         if "tour_num" not in nth_tours:
@@ -140,7 +141,7 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={}, chunk_size=0, tra
             alts.copy(),
             spec,
             locals_d=constants,
-            sample_size=min(len(alts), 50),
+            sample_size=sample_size,
             chunk_size=chunk_size,
             trace_label=tour_trace_label
         )

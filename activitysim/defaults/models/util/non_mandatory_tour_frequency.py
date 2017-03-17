@@ -45,24 +45,26 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
 
     # reformat with the columns given below
     tours = tours.stack().reset_index()
-    tours.columns = ["person_id", "tour_type", "num_tours"]
+    tours.columns = ["person_id", "tour_type", "tour_num"]
 
     # now do a repeat and a take, so if you have two trips of given type you
     # now have two rows, and zero trips yields zero rows
-    tours = tours.take(np.repeat(tours.index.values, tours.num_tours.values))
+    tours = tours.take(np.repeat(tours.index.values, tours.tour_num.values))
 
-    # make index unique and drop num_tours since we don't need it anymore
-    tours = tours.reset_index(drop=True).drop("num_tours", axis=1)
+    # make index unique
+    tours = tours.reset_index(drop=True)
+    tours.index.name = 'tour_id'
 
     """
     Pretty basic at this point - trip table looks like this so far
-           person_id tour_type
-    0          4419    escort
-    1          4419    escort
-    2          4419  othmaint
-    3          4419    eatout
-    4          4419    social
-    5         10001    escort
-    6         10001    escort
+           person_id tour_type tour_num
+    tour_id
+    0          4419    escort   1
+    1          4419    escort   2
+    2          4419  othmaint   1
+    3          4419    eatout   1
+    4          4419    social   1
+    5         10001    escort   1
+    6         10001    escort   2
     """
     return tours

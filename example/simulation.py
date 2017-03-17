@@ -7,46 +7,61 @@ import os
 
 from activitysim.tracing import print_elapsed_time
 
-
-def set_random_seed():
-    np.random.seed(0)
-
-
-def run_model(model_name):
-    t0 = print_elapsed_time()
-    orca.run([model_name])
-    t0 = print_elapsed_time(model_name, t0)
+from activitysim import pipeline
+import extensions
 
 
 # uncomment the line below to set random seed so that run results are reproducible
-# orca.add_injectable("set_random_seed", set_random_seed)
+pipeline.get_rn_generator().set_base_seed(0)
 
 tracing.config_logger()
 
 t0 = print_elapsed_time()
 
-run_model("compute_accessibility")
-run_model("school_location_simulate")
-run_model("workplace_location_simulate")
-print orca.get_table("persons").distance_to_work.describe()
-run_model("auto_ownership_simulate")
-run_model("cdap_simulate")
-run_model('mandatory_tour_frequency')
-orca.get_table("mandatory_tours").tour_type.value_counts()
-run_model("mandatory_scheduling")
-run_model('non_mandatory_tour_frequency')
-orca.get_table("non_mandatory_tours").tour_type.value_counts()
-run_model("destination_choice")
-run_model("non_mandatory_scheduling")
+_MODELS = [
+    'compute_accessibility',
+    'school_location_simulate',
+    'workplace_location_simulate',
+    'auto_ownership_simulate',
+    'cdap_simulate',
+    'mandatory_tour_frequency',
+    'mandatory_scheduling',
+    'non_mandatory_tour_frequency',
+    'destination_choice',
+    'non_mandatory_scheduling',
+    'tour_mode_choice_simulate',
+    'trip_mode_choice_simulate'
+]
 
-# FIXME - jwd - choose more felicitous name or do this elsewhere?
-run_model("patch_mandatory_tour_destination")
 
-run_model('tour_mode_choice_simulate')
-run_model('trip_mode_choice_simulate')
+resume_after = None
+#resume_after = 'mandatory_tour_frequency'
 
-# write households table to a CSV file to review results
-hh_outfile_name = orca.get_injectable("output_dir") + "/households_table.csv"
-orca.get_table('households').to_frame().to_csv(hh_outfile_name)
+pipeline.run(models=_MODELS, resume_after=resume_after)
+
+print "\n#### run completed"
+
+# retrieve the state of a checkpointed table after a specific model was run
+df = pipeline.get_table(table_name="persons", checkpoint_name="school_location_simulate")
+print "\npersons table columns after school_location_simulate:", df.columns.values
+
+# get_table without checkpoint_name returns the latest version of the table
+df = pipeline.get_table("tours")
+print "\ntour_type value counts\n", df.tour_type.value_counts()
+
+# get_table for a computed (non-checkpointed, internal, orca) table
+# return the most recent value of a (non-checkpointed, internal) computed table
+df = pipeline.get_table("persons_merged")
+df = df[ ['household_id', 'age', 'auPkTotal', 'roundtrip_auto_time_to_work']]
+print "\npersons_merged selected columns\n", df.head(10)
+
+# write final versions of all checkpointed dataframes to CSV files to review results
+for table_name in pipeline.checkpointed_tables():
+    file_name = "final_%s_table.csv" % table_name
+    file_path = os.path.join(orca.get_injectable("output_dir"), file_name)
+    pipeline.get_table('households').to_csv(file_path)
+
+# tables will no longer be available after pipeline is closed
+pipeline.close()
 
 t0 = print_elapsed_time("all models", t0)

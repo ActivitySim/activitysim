@@ -182,18 +182,14 @@ def tour_mode_choice_simulate(tours_merged,
         # if tour_type != 'work':
         #     continue
 
-        logger.info("running tour_type '%s'" % tour_type)
+        logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
+                    (tour_type, len(segment.index), ))
 
         orig_key = 'TAZ'
         dest_key = 'destination'
 
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
-
-        logger.info("tour_mode_choice_simulate running %s tour_type '%s'" %
-                    (len(segment.index), tour_type, ))
-
-        # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
 
         spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
 
@@ -221,7 +217,7 @@ def tour_mode_choice_simulate(tours_merged,
 
         # FIXME - force garbage collection
         mem = asim.memory_info()
-        logger.info('memory_info tour_type %s, %s' % (tour_type, mem))
+        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
 
@@ -231,7 +227,7 @@ def tour_mode_choice_simulate(tours_merged,
     orca.add_column("tours", "mode", choices)
 
     if trace_hh_id:
-        trace_columns = ['mode']
+        trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num']
         tracing.trace_df(orca.get_table('tours').to_frame(),
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
@@ -303,7 +299,7 @@ def trip_mode_choice_simulate(tours_merged,
 
         # FIXME - force garbage collection
         mem = asim.memory_info()
-        logger.info('memory_info tour_type %s, %s' % (tour_type, mem))
+        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
 
@@ -314,7 +310,9 @@ def trip_mode_choice_simulate(tours_merged,
     orca.add_column("trips", "mode", choices)
 
     if trace_hh_id:
-        logger.warn("can't dump trips table because it doesn't exist")
+
+        logger.warn("can't dump trips table because it doesn't exist"
+                    " - trip_mode_choice_simulate is not really implemented")
         # FIXME - commented out because trips table doesn't really exist
         # trace_columns = ['mode']
         # tracing.trace_df(orca.get_table('trips').to_frame(),

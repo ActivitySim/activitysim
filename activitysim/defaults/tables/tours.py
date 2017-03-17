@@ -1,20 +1,44 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
+
 import orca
+import numpy as np
 import pandas as pd
 from activitysim.util.reindex import reindex
 
 
+logger = logging.getLogger(__name__)
+
+
 @orca.table()
 def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
+
+    non_mandatory_df = non_mandatory_tours.local
+    mandatory_df = mandatory_tours.local
+
+    # don't expect indexes to overlap
+    assert len(non_mandatory_df.index.intersection(mandatory_df.index)) == 0
+
+    # expect non-overlapping indexes (so the tripids dont change)
+    assert len(np.intersect1d(non_mandatory_df.index, mandatory_df.index, assume_unique=True)) == 0
+
     tours = pd.concat([non_mandatory_tours.to_frame(),
                       mandatory_tours.to_frame()],
-                      ignore_index=True)
+                      ignore_index=False)
+
     # go ahead here and add the start, end, and duration here for future use
     chosen_tours = tdd_alts.to_frame().loc[tours.tour_departure_and_duration]
     chosen_tours.index = tours.index
-    return pd.concat([tours, chosen_tours], axis=1)
+
+    df = pd.concat([tours, chosen_tours], axis=1)
+    assert df.index.name == 'tour_id'
+
+    # replace table function with dataframe
+    orca.add_table('tours', df)
+
+    return df
 
 
 @orca.table()
@@ -198,13 +222,17 @@ def dest_topology(tours, land_use):
 
 @orca.column("tours")
 def out_period(tours, settings):
-    return pd.cut(tours.end,
+    cats = pd.cut(tours.end,
                   settings['time_periods']['hours'],
                   labels=settings['time_periods']['labels'])
+    # cut returns labelled categories but we convert to str
+    return cats.astype(str)
 
 
 @orca.column("tours")
 def in_period(tours, settings):
-    return pd.cut(tours.start,
+    cats = pd.cut(tours.start,
                   settings['time_periods']['hours'],
                   labels=settings['time_periods']['labels'])
+    # cut returns labelled categories but we convert to str
+    return cats.astype(str)

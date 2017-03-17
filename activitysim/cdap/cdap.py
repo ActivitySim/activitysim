@@ -27,7 +27,6 @@ _hh_size_ = 'PERSONS'
 _hh_id_ = 'household_id'
 _ptype_ = 'ptype'
 _age_ = 'age'
-_cdap_rank_ = 'cdap_rank'
 _chunk_id_ = 'chunk_id'
 
 # For clarity, the named constant MAX_HHSIZE refers to the cdap 5 person threshold figure.
@@ -87,7 +86,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 
     We diverge from the above description in that a cdap_rank is assigned to all persons,
     including 'extra' householld members, whose activity is assigned subsequently.
-    The pair _hh_id_, _cdap_rank_ will uniquely identify each household member.
+    The pair _hh_id_, cdap_rank will uniquely identify each household member.
 
     Parameters
     ----------
@@ -100,12 +99,12 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
         integer cdap_rank of every person, indexed on _persons_index_
     """
 
-    # transient categories used to categorize persons in _cdap_rank_ before assigning final rank
+    # transient categories used to categorize persons in cdap_rank before assigning final rank
     RANK_WORKER = 1
     RANK_CHILD = 2
     RANK_BACKFILL = 3
     RANK_UNASSIGNED = 9
-    persons[_cdap_rank_] = RANK_UNASSIGNED
+    persons['cdap_rank'] = RANK_UNASSIGNED
 
     # choose up to 2 workers, preferring full over part, older over younger
     workers = \
@@ -113,7 +112,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
         .sort_values(by=[_hh_id_, _ptype_], ascending=[True, True])\
         .groupby(_hh_id_).head(2)
     # tag the selected workers
-    persons.loc[workers.index, _cdap_rank_] = RANK_WORKER
+    persons.loc[workers.index, 'cdap_rank'] = RANK_WORKER
     del workers
 
     # choose up to 3, preferring youngest
@@ -122,16 +121,16 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
         .sort_values(by=[_hh_id_, _ptype_], ascending=[True, True])\
         .groupby(_hh_id_).head(3)
     # tag the selected children
-    persons.loc[children.index, _cdap_rank_] = RANK_CHILD
+    persons.loc[children.index, 'cdap_rank'] = RANK_CHILD
     del children
 
     # choose up to MAX_HHSIZE, preferring anyone already chosen
     others = \
-        persons[[_hh_id_, _cdap_rank_]]\
-        .sort_values(by=[_hh_id_, _cdap_rank_], ascending=[True, True])\
+        persons[[_hh_id_, 'cdap_rank']]\
+        .sort_values(by=[_hh_id_, 'cdap_rank'], ascending=[True, True])\
         .groupby(_hh_id_).head(MAX_HHSIZE)
     # tag the backfilled persons
-    persons.loc[others[others.cdap_rank == RANK_UNASSIGNED].index, _cdap_rank_] \
+    persons.loc[others[others.cdap_rank == RANK_UNASSIGNED].index, 'cdap_rank'] \
         = RANK_BACKFILL
     del others
 
@@ -139,12 +138,12 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     # i.e. convert cdap_rank from category to index in order of category rank within household
     # groupby rank() is slow, so we compute rank artisanally
     # save time by sorting only the columns we need (persons is big, and sort moves data)
-    p = persons[[_hh_id_, _cdap_rank_, _age_]]\
-        .sort_values(by=[_hh_id_, _cdap_rank_, _age_], ascending=[True, True, True])
+    p = persons[[_hh_id_, 'cdap_rank', _age_]]\
+        .sort_values(by=[_hh_id_, 'cdap_rank', _age_], ascending=[True, True, True])
     rank = p.groupby(_hh_id_).size().map(range)
     rank = [item+1 for sublist in rank for item in sublist]
-    p[_cdap_rank_] = rank
-    persons[_cdap_rank_] = p[_cdap_rank_]  # assignment aligns on index values
+    p['cdap_rank'] = rank
+    persons['cdap_rank'] = p['cdap_rank']  # assignment aligns on index values
 
     # if DUMP:
     #     tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
@@ -153,7 +152,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     if trace_hh_id:
         tracing.trace_df(persons, '%s.cdap_rank' % trace_label)
 
-    return persons[_cdap_rank_]
+    return persons['cdap_rank']
 
 
 def individual_utilities(
@@ -175,7 +174,7 @@ def individual_utilities(
     -------
     utilities : pandas.DataFrame
         Will have index of `persons` and columns for each of the alternatives.
-        plus some 'useful columns' [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]
+        plus some 'useful columns' [_hh_id_, _ptype_, 'cdap_rank', _hh_size_]
 
     """
 
@@ -184,7 +183,7 @@ def individual_utilities(
     indiv_utils = individual_vars.dot(cdap_indiv_spec)
 
     # add columns from persons to facilitate building household interactions
-    useful_columns = [_hh_id_, _ptype_, _cdap_rank_, _hh_size_]
+    useful_columns = [_hh_id_, _ptype_, 'cdap_rank', _hh_size_]
     indiv_utils[useful_columns] = persons[useful_columns]
 
     # if DUMP:
@@ -509,7 +508,7 @@ def hh_choosers(indiv_utils, hhsize):
         include_households = (indiv_utils[_hh_size_] >= MAX_HHSIZE)
 
     # start with all the individuals with cdap_rank of 1 (thus there will be one row per household)
-    choosers = indiv_utils.loc[include_households & (indiv_utils[_cdap_rank_] == 1), merge_cols]
+    choosers = indiv_utils.loc[include_households & (indiv_utils['cdap_rank'] == 1), merge_cols]
     # rename columns, adding pn suffix (e.g. ptype_p1, M_p1) to all columns except hh_id
     choosers.columns = add_pn(merge_cols, 1)
 
@@ -517,7 +516,7 @@ def hh_choosers(indiv_utils, hhsize):
     for pnum in range(2, hhsize+1):
 
         # df with merge columns for indiv with cdap_rank of pnum
-        rhs = indiv_utils.loc[include_households & (indiv_utils[_cdap_rank_] == pnum), merge_cols]
+        rhs = indiv_utils.loc[include_households & (indiv_utils['cdap_rank'] == pnum), merge_cols]
         # rename columns, adding pn suffix (e.g. ptype_p1, M_p1) to all columns except hh_id
         rhs.columns = add_pn(merge_cols, pnum)
 
@@ -644,7 +643,7 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices,
     ----------
     persons : pandas.DataFrame
         Table of persons data indexed on _persons_index_
-        We expect, at least, columns [_hh_id_, _cdap_rank_]
+        We expect, at least, columns [_hh_id_, 'cdap_rank']
     hh_choices : pandas.Series
         household activity pattern is encoded as a string (of length hhsize) of activity codes
         e.g. 'MNHH' for a 4 person household with activities Mandatory, NonMandatory, Home, Home
@@ -655,23 +654,23 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices,
         series contains one activity per individual hh member, indexed on _persons_index_
     """
 
-    cdap_indivs = persons[_cdap_rank_] <= MAX_HHSIZE
+    cdap_indivs = persons['cdap_rank'] <= MAX_HHSIZE
 
     indiv_activity = pd.merge(
-        left=persons.loc[cdap_indivs, [_hh_id_, _cdap_rank_]],
+        left=persons.loc[cdap_indivs, [_hh_id_, 'cdap_rank']],
         right=hh_choices.to_frame(name='hh_choices'),
         left_on=_hh_id_,
         right_index=True
     )
 
-    # resulting dataframe has columns _hh_id_,_cdap_rank_, hh_choices indexed on _persons_index_
+    # resulting dataframe has columns _hh_id_,'cdap_rank', hh_choices indexed on _persons_index_
 
-    indiv_activity["cdap_activity"] = ''
+    indiv_activity['cdap_activity'] = ''
 
     # for each cdap_rank (1..5)
     for i in range(MAX_HHSIZE):
-        pnum_i = (indiv_activity[_cdap_rank_] == i+1)
-        indiv_activity.loc[pnum_i, ["cdap_activity"]] = indiv_activity[pnum_i]['hh_choices'].str[i]
+        pnum_i = (indiv_activity['cdap_rank'] == i+1)
+        indiv_activity.loc[pnum_i, ['cdap_activity']] = indiv_activity[pnum_i]['hh_choices'].str[i]
 
     cdap_indiv_activity_choices = indiv_activity['cdap_activity']
 
@@ -715,7 +714,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     """
 
     # extra household members have cdap_ran > MAX_HHSIZE
-    choosers = persons[persons[_cdap_rank_] > MAX_HHSIZE]
+    choosers = persons[persons['cdap_rank'] > MAX_HHSIZE]
 
     if len(choosers.index) == 0:
         return pd.Series()
@@ -832,10 +831,10 @@ def _run_cdap(
 
 def hh_chunked_choosers(choosers):
     # generator to iterate over chooses in chunk_size chunks
-    last_chooser = choosers['chunk_id'].max()
+    last_chooser = choosers[_chunk_id_].max()
     i = 0
     while i <= last_chooser:
-        yield i, choosers[choosers['chunk_id'] == i]
+        yield i, choosers[choosers[_chunk_id_] == i]
         i += 1
 
 

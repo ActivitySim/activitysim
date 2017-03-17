@@ -11,6 +11,7 @@ import pandas as pd
 from activitysim import activitysim as asim
 from activitysim import tracing
 from activitysim.tracing import print_elapsed_time
+from activitysim import pipeline
 
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
@@ -101,6 +102,8 @@ def non_mandatory_tour_frequency(set_random_seed,
     # FIXME - no need to reindex?
     orca.add_column("persons", "non_mandatory_tour_frequency", choices)
 
+    create_non_mandatory_tours_table()
+
     add_dependent_columns("persons", "persons_nmtf")
 
     if trace_hh_id:
@@ -118,18 +121,25 @@ associated with)
 """
 
 
-@orca.table(cache=True)
-def non_mandatory_tours(persons,
-                        non_mandatory_tour_frequency_alts):
+def create_non_mandatory_tours_table():
 
-    t0 = print_elapsed_time("")
+    persons = orca.get_table('persons')
+    non_mandatory_tour_frequency_alts = orca.get_table('non_mandatory_tour_frequency_alts')
+
     df = process_non_mandatory_tours(
         persons.non_mandatory_tour_frequency.dropna(),
         non_mandatory_tour_frequency_alts.local
     )
-    t0 = print_elapsed_time("process_non_mandatory_tours", t0)
 
-    return df
+    # if there is already a mandatory_tours table, then want compatible indexing with it
+    if orca.is_table("mandatory_tours"):
+        index_offset = orca.get_table("mandatory_tours").local.index.max() + 1
+        logger.info("create_non_mandatory_tours_table offseting index by %s" % index_offset)
+        df.index = df.index + index_offset
+
+    orca.add_table("non_mandatory_tours", df)
+
+    pipeline.get_rn_generator().add_channel(df, 'tours')
 
 
 """

@@ -50,7 +50,10 @@ def non_mandatory_scheduling(set_random_seed,
     spec = tdd_non_mandatory_spec.to_frame()
     alts = tdd_alts.to_frame()
 
-    choices = vectorize_tour_scheduling(tours, alts, spec, constants, chunk_size,
+    choices = vectorize_tour_scheduling(tours, alts, spec,
+                                        sample_size=50,
+                                        constants=constants,
+                                        chunk_size=chunk_size,
                                         trace_label='non_mandatory_scheduling')
 
     tracing.print_summary('non_mandatory_scheduling tour_departure_and_duration',

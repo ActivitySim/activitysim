@@ -194,7 +194,7 @@ def full_run(resume_after=None, chunk_size=0,
         'destination_choice',
         'non_mandatory_scheduling',
         'tour_mode_choice_simulate',
-        # 'trip_mode_choice_simulate'
+        'trip_mode_choice_simulate'
     ]
 
     pipeline.run(models=_MODELS, resume_after=resume_after)

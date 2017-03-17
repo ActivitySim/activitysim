@@ -30,7 +30,7 @@ _MODELS = [
     'destination_choice',
     'non_mandatory_scheduling',
     'tour_mode_choice_simulate',
-    # 'trip_mode_choice_simulate'
+    'trip_mode_choice_simulate'
 ]
 
 

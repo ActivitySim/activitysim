@@ -78,7 +78,10 @@ def mandatory_scheduling(set_random_seed,
     logger.info("Running mandatory_scheduling school_tours with %d tours" % len(school_tours))
 
     school_choices = vectorize_tour_scheduling(
-        school_tours, alts, school_spec, constants, chunk_size,
+        school_tours, alts, school_spec,
+        sample_size=50,
+        constants=constants,
+        chunk_size=chunk_size,
         trace_label='mandatory_scheduling.school')
 
     work_spec = tdd_work_spec.to_frame()
@@ -87,7 +90,10 @@ def mandatory_scheduling(set_random_seed,
     logger.info("Running %d work tour scheduling choices" % len(work_tours))
 
     work_choices = vectorize_tour_scheduling(
-        work_tours, alts, work_spec, constants, chunk_size,
+        work_tours, alts, work_spec,
+        sample_size=50,
+        constants=constants,
+        chunk_size=chunk_size,
         trace_label='mandatory_scheduling.work')
 
     choices = pd.concat([school_choices, work_choices])

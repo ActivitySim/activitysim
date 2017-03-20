@@ -8,13 +8,14 @@ import numpy as np
 import orca
 
 import pandas.util.testing as pdt
+
+from activitysim import pipeline
+
 from ..vectorize_tour_scheduling import get_previous_tour_by_tourid, \
     vectorize_tour_scheduling
 
 
 def test_vts():
-
-    np.random.seed(0)
 
     alts = pd.DataFrame({
         "start": [1, 2, 3],

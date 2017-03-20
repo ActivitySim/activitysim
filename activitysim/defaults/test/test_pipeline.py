@@ -46,8 +46,6 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
 
 def test_mini_pipeline_run():
 
-    pipeline.get_rn_generator().set_base_seed(0)
-
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     orca.add_injectable("configs_dir", configs_dir)
 
@@ -106,8 +104,6 @@ def test_mini_pipeline_run2():
     # the important thing here is that we should get
     # exactly the same results as for test_mini_pipeline_run
     # when we
-
-    pipeline.get_rn_generator().set_base_seed(0)
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     orca.add_injectable("configs_dir", configs_dir)

@@ -271,7 +271,7 @@ def load_checkpoint(resume_after):
 
     # set random state to pickled state at end of last checkpoint
     logger.debug("resetting random state")
-    _PRNG.reseed_global_prng(_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL])
+    _PRNG.set_global_prng_offset(offset=_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL])
     _PRNG.load_channels(cPickle.loads(_LAST_CHECKPOINT[_PRNG_CHANNELS_COL]))
 
 

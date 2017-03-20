@@ -35,7 +35,7 @@ _MODELS = [
 
 
 resume_after = None
-#resume_after = 'mandatory_tour_frequency'
+# resume_after = 'mandatory_tour_frequency'
 
 pipeline.run(models=_MODELS, resume_after=resume_after)
 

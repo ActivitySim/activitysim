@@ -38,6 +38,8 @@ def get_df_channel_name(df):
         channel_name = 'households'
     elif index_name == 'tour_id':
         channel_name = 'tours'
+    elif index_name == 'SEQID':
+        channel_name = 'trips'  # FIXME
     else:
         raise RuntimeError("can't determine get_df_channel_name - index is %s" % (index_name,))
 

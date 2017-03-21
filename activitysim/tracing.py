@@ -464,6 +464,18 @@ def get_trace_target(df, slicer):
                 logger.error("trace_tour_ids error getting trace_tour_ids for index %s columns %s"
                              % (df.index.name, df.columns.values))
                 raise
+    elif slicer == 'SEQID':  # FIX ME
+        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
+            target_ids = orca.get_injectable('trace_person_ids')
+            column = 'person_id'
+        else:
+            # trace_tour_ids  # FIX ME
+            try:
+                target_ids = orca.get_injectable('trace_tour_ids')
+            except:
+                logger.error("trace_tour_ids error getting trace_tour_ids for index %s columns %s"
+                             % (df.index.name, df.columns.values))
+                raise
     elif slicer == 'TAZ' or slicer == 'ZONE':
         target_ids = orca.get_injectable('trace_od')
     elif slicer == 'NONE':

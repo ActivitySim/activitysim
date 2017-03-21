@@ -30,7 +30,7 @@ _MODELS = [
     # 'trip_mode_choice_simulate'
 ]
 
-_MAX_PRNG_OFFSETS = {'households': 2, 'persons': 5, 'tours': 5}
+_MAX_PRNG_OFFSETS = {'households': 2, 'persons': 5, 'tours': 5, 'trips': 5}  # FIXME
 
 _TIMESTAMP_COL = 'timestamp'
 _CHECKPOINT_COL = 'checkpoint_name'

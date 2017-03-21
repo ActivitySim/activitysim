@@ -157,24 +157,24 @@ def rewrap(table_name, df=None):
     return df
 
 
-def print_checkpoints():
-
-    print "\nprint_checkpoints"
-
-    for checkpoint in _CHECKPOINTS:
-
-        print "\n "
-
-        print "checkpoint keys:", checkpoint.keys()
-        print "checkpoint_name:", checkpoint[_CHECKPOINT_COL]
-        print "timestamp:      ", checkpoint[_TIMESTAMP_COL]
-
-        print "gprng_offset:      ", checkpoint.get(_GLOBAL_RANDOM_STATE_COL, None)
-        print "prng channels:", cPickle.loads(checkpoint[_PRNG_CHANNELS_COL])
-
-        table_columns = list((set(checkpoint.keys()) - set(_NON_TABLE_COLUMNS)))
-        for table_name in table_columns:
-            print "table: '%s'" % table_name
+# def print_checkpoints():
+#
+#     print "\nprint_checkpoints"
+#
+#     for checkpoint in _CHECKPOINTS:
+#
+#         print "\n "
+#
+#         print "checkpoint keys:", checkpoint.keys()
+#         print "checkpoint_name:", checkpoint[_CHECKPOINT_COL]
+#         print "timestamp:      ", checkpoint[_TIMESTAMP_COL]
+#
+#         print "gprng_offset:      ", checkpoint.get(_GLOBAL_RANDOM_STATE_COL, None)
+#         print "prng channels:", cPickle.loads(checkpoint[_PRNG_CHANNELS_COL])
+#
+#         table_columns = list((set(checkpoint.keys()) - set(_NON_TABLE_COLUMNS)))
+#         for table_name in table_columns:
+#             print "table: '%s'" % table_name
 
 
 def set_checkpoint(checkpoint_name):

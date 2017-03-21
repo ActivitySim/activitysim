@@ -84,7 +84,6 @@ def non_mandatory_tour_frequency(set_random_seed,
             # notice that we pick the column for the segment for each segment we run
             spec=non_mandatory_tour_frequency_spec[[name]],
             locals_d=constants,
-            sample_size=50,
             chunk_size=chunk_size,
             trace_label=trace_hh_id and 'non_mandatory_tour_frequency.%s' % name,
             trace_choice_name='non_mandatory_tour_frequency')

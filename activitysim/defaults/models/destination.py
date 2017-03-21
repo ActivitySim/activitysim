@@ -50,6 +50,8 @@ def destination_choice(set_random_seed,
 
     constants = get_model_constants(destination_choice_settings)
 
+    sample_size = destination_choice_settings["SAMPLE_SIZE"]
+
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
@@ -90,7 +92,7 @@ def destination_choice(set_random_seed,
                                             spec[[kludge_name]],
                                             skims=skims,
                                             locals_d=locals_d,
-                                            sample_size=50,
+                                            sample_size=sample_size,
                                             chunk_size=chunk_size,
                                             trace_label='destination.%s' % name)
 

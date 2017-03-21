@@ -75,7 +75,6 @@ def mandatory_scheduling(set_random_seed,
 
     school_choices = vectorize_tour_scheduling(
         school_tours, alts, school_spec,
-        sample_size=50,
         constants=constants,
         chunk_size=chunk_size,
         trace_label='mandatory_scheduling.school')
@@ -87,7 +86,6 @@ def mandatory_scheduling(set_random_seed,
 
     work_choices = vectorize_tour_scheduling(
         work_tours, alts, work_spec,
-        sample_size=50,
         constants=constants,
         chunk_size=chunk_size,
         trace_label='mandatory_scheduling.work')

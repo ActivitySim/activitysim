@@ -36,7 +36,7 @@ _MODELS = [
 
 
 resume_after = None
-resume_after = 'non_mandatory_scheduling'
+# resume_after = 'non_mandatory_scheduling'
 
 pipeline.run(models=_MODELS, resume_after=resume_after)
 

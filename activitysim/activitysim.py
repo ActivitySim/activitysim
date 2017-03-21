@@ -17,7 +17,6 @@ from .nl import utils_to_probs, make_choices, interaction_dataset
 from .nl import report_bad_choices
 from .nl import each_nest
 import tracing
-from tracing import print_elapsed_time
 
 import pipeline
 
@@ -368,7 +367,7 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
     utilities = model_design.dot(spec)
 
     probs = utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
-    choices = make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+    choices, rands = make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
 
     if trace_label:
 
@@ -379,6 +378,8 @@ def eval_mnl(choosers, spec, locals_d=None, trace_label=None, trace_choice_name=
                          column_labels=['alternative', 'probability'])
         tracing.trace_df(choices, '%s.choices' % trace_label,
                          columns=[None, trace_choice_name])
+        tracing.trace_df(rands, '%s.rands' % trace_label,
+                         columns=[None, 'rand'])
         tracing.trace_df(model_design, '%s.model_design' % trace_label,
                          column_labels=['expression', None])
 
@@ -457,7 +458,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
                            tag='bad_probs',
                            msg="base_probabilities all zero")
 
-    choices = make_choices(base_probabilities, trace_label, trace_choosers=choosers)
+    choices, rands = make_choices(base_probabilities, trace_label, trace_choosers=choosers)
 
     if trace_label:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
@@ -471,6 +472,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
                          column_labels=['alternative', 'probability'])
         tracing.trace_df(choices, '%s.choices' % trace_label,
                          columns=[None, trace_choice_name])
+        tracing.trace_df(rands, '%s.rands' % trace_label,
+                         columns=[None, 'rand'])
         tracing.trace_df(model_design, '%s.model_design' % trace_label,
                          column_labels=['expression', None])
 
@@ -790,7 +793,7 @@ def _interaction_simulate(
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
-    positions = make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+    positions, rands = make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
 
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
@@ -807,6 +810,8 @@ def _interaction_simulate(
     if have_trace_targets:
         tracing.trace_df(choices, tracing.extend_trace_label(trace_label, 'choices'),
                          columns=[None, trace_choice_name])
+        tracing.trace_df(rands, tracing.extend_trace_label(trace_label, 'rands'),
+                         columns=[None, 'rand'])
 
     #
     # if have_trace_targets:

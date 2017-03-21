@@ -11,6 +11,7 @@ import orca
 import logging
 
 import prng
+import tracing
 from tracing import print_elapsed_time
 
 logger = logging.getLogger(__name__)
@@ -156,21 +157,24 @@ def rewrap(table_name, df=None):
     return df
 
 
-def print_checkpoints():
-
-    print "\nprint_checkpoints"
-
-    for checkpoint in _CHECKPOINTS:
-
-        print "\n "
-        print "checkpoint_name:", checkpoint[_CHECKPOINT_COL]
-        print "timestamp:      ", checkpoint[_TIMESTAMP_COL]
-
-        print "prng channels:", cPickle.loads(checkpoint[_PRNG_CHANNELS_COL])
-
-        table_columns = list((set(checkpoint.keys()) - set(_NON_TABLE_COLUMNS)))
-        for table_name in table_columns:
-            print "table: '%s'" % table_name
+# def print_checkpoints():
+#
+#     print "\nprint_checkpoints"
+#
+#     for checkpoint in _CHECKPOINTS:
+#
+#         print "\n "
+#
+#         print "checkpoint keys:", checkpoint.keys()
+#         print "checkpoint_name:", checkpoint[_CHECKPOINT_COL]
+#         print "timestamp:      ", checkpoint[_TIMESTAMP_COL]
+#
+#         print "gprng_offset:      ", checkpoint.get(_GLOBAL_RANDOM_STATE_COL, None)
+#         print "prng channels:", cPickle.loads(checkpoint[_PRNG_CHANNELS_COL])
+#
+#         table_columns = list((set(checkpoint.keys()) - set(_NON_TABLE_COLUMNS)))
+#         for table_name in table_columns:
+#             print "table: '%s'" % table_name
 
 
 def set_checkpoint(checkpoint_name):
@@ -202,6 +206,7 @@ def set_checkpoint(checkpoint_name):
     _CHECKPOINTS.append(_LAST_CHECKPOINT.copy())
 
     checkpoints = pd.DataFrame(_CHECKPOINTS)
+
     write_df(checkpoints, _CHECKPOINT_TABLE_NAME)
 
     logger.debug("gprng_offset: %s" % _PRNG.gprng_offset)
@@ -227,39 +232,34 @@ def checkpointed_tables():
 
 def load_checkpoint(resume_after):
 
-    logger.info("load load_checkpoint %s" % (resume_after))
+    logger.info("load_checkpoint %s" % (resume_after))
 
     checkpoints_df = read_df(_CHECKPOINT_TABLE_NAME)
 
-    b = checkpoints_df[_CHECKPOINT_COL] == resume_after
-
-    if b.sum() == 0:
+    index_of_resume_after = checkpoints_df[checkpoints_df[_CHECKPOINT_COL] == resume_after].index
+    if len(index_of_resume_after) == 0:
         msg = "Couldn't find checkpoint '%s' in checkpoints" % (resume_after,)
         logger.error(msg)
         raise RuntimeError(msg)
-
-    assert b.sum() == 1
-
-    # nonzero returns a one-item tuple containing a list of the indices of the non-zero elements
-    index_of_resume_after = b.nonzero()[0][0]
-
-    # print "index_of_resume_after: %s" % index_of_resume_after
-    # print checkpoints_df.loc[:index_of_resume_after]
+    index_of_resume_after = index_of_resume_after[0]
 
     # truncate rows after resume_after
-    checkpoints_df = checkpoints_df.loc[:index_of_resume_after].fillna('')
+    checkpoints_df = checkpoints_df.loc[:index_of_resume_after]
 
     # array of dicts
     checkpoints = checkpoints_df.to_dict(orient='records')
 
-    # drop tables with empty names
-    checkpoints = [{k: v for k, v in checkpoint.iteritems() if v} for checkpoint in checkpoints]
+    # drop tables with empty names (they are nans)
+    for checkpoint in checkpoints:
+        for key in checkpoint.keys():
+            if key not in _NON_TABLE_COLUMNS and type(checkpoint[key]) != str:
+                del checkpoint[key]
 
     # patch _CHECKPOINTS array of dicts
     del _CHECKPOINTS[:]
     _CHECKPOINTS.extend(checkpoints)
 
-    print_checkpoints()
+    # print_checkpoints()
 
     # patch _CHECKPOINTS dict with latest checkpoint info
     _LAST_CHECKPOINT.clear()
@@ -268,11 +268,14 @@ def load_checkpoint(resume_after):
     logger.info("load_checkpoint %s timestamp %s" % (resume_after, _LAST_CHECKPOINT['timestamp']))
 
     for table_name in checkpointed_tables():
-        rewrap(table_name, read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name]))
+        df = read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name])
+        logger.info("load_checkpoint table %s %s" % (table_name, df.shape))
+        rewrap(table_name, df)
+        tracing.register_traceable_table(table_name, df)
 
     # set random state to pickled state at end of last checkpoint
     logger.debug("resetting random state")
-    _PRNG.reseed_global_prng(_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL])
+    _PRNG.set_global_prng_offset(offset=_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL])
     _PRNG.load_channels(cPickle.loads(_LAST_CHECKPOINT[_PRNG_CHANNELS_COL]))
 
 

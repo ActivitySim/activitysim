@@ -44,16 +44,16 @@ def households(set_random_seed, store, households_sample_size, trace_hh_id):
     else:
         df = df_full
 
-    if trace_hh_id:
-        tracing.register_households(df, trace_hh_id)
-        tracing.trace_df(df, "households", warn_if_empty=True)
-
     logger.info("loaded households %s" % (df.shape,))
 
     # replace table function with dataframe
     orca.add_table('households', df)
 
     pipeline.get_rn_generator().add_channel(df, 'households')
+
+    if trace_hh_id:
+        tracing.register_traceable_table('households', df)
+        tracing.trace_df(df, "households", warn_if_empty=True)
 
     return df
 

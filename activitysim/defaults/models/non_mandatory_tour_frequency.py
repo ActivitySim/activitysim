@@ -138,7 +138,7 @@ def create_non_mandatory_tours_table():
         df.index = df.index + index_offset
 
     orca.add_table("non_mandatory_tours", df)
-
+    tracing.register_traceable_table('non_mandatory_tours', df)
     pipeline.get_rn_generator().add_channel(df, 'tours')
 
 

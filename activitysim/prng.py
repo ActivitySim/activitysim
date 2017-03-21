@@ -75,9 +75,12 @@ class Prng(object):
         self.max_offsets = max_offsets
         self.current_step = _NO_STEP
 
-        self.base_seed = 0
         self.gprng_offset = 0
+        self.base_seed = 0
         self.gprng = np.random.RandomState((self.base_seed + self.gprng_offset) % _MAX_SEED)
+
+    def reseed_global_prng(self):
+        self.gprng.seed((self.base_seed + self.gprng_offset) % _MAX_SEED)
 
     def set_base_seed(self, seed=None):
         if seed is None:
@@ -86,16 +89,14 @@ class Prng(object):
         else:
             logger.info("Set random seed base to %s" % seed)
             self.base_seed = seed
+        self.reseed_global_prng()
+
+    def set_global_prng_offset(self, offset):
+        self.gprng_offset = offset
+        self.reseed_global_prng()
 
     def get_global_prng(self):
         return self.gprng
-
-    def reseed_global_prng(self, offset=None):
-        if offset is not None:
-            self.gprng_offset = offset
-        else:
-            self.gprng_offset += 1
-        self.gprng.seed((self.base_seed + self.gprng_offset) % _MAX_SEED)
 
     def reseed_if_necessary(self, channel_name, caller):
 
@@ -129,7 +130,7 @@ class Prng(object):
                          % (channel_name, self.current_step, channel.offset, channel.max_offset))
 
             for row in channel.prngs.itertuples():
-                row.generator.seed((row.seed + channel.offset) % _MAX_SEED)
+                row.generator.seed((self.base_seed + row.seed + channel.offset) % _MAX_SEED)
 
         else:
             logger.debug("reseed_if_necessary - Reuse of '%s' step '%s' offset %s"
@@ -180,7 +181,7 @@ class Prng(object):
 
         self.current_step = step_name
 
-        self.reseed_global_prng()
+        self.set_global_prng_offset(self.gprng_offset + 1)
 
         logger.debug("begin_step %s" % step_name)
 
@@ -222,7 +223,9 @@ class Prng(object):
         # make room for max_seed_offset offsets
         prngs.seed = (prngs.seed * max_seed_offset).astype(int)
 
-        prngs['generator'] = [np.random.RandomState(seed + offset) for seed in prngs['seed']]
+        prngs['generator'] \
+            = [np.random.RandomState((self.base_seed + seed + offset) % _MAX_SEED)
+               for seed in prngs['seed']]
 
         return prngs
 
@@ -236,7 +239,8 @@ class Prng(object):
         prngs = pd.DataFrame(index=df.index)
         prngs['seed'] = (prngs.index * max_seed_offset)
         prngs['generator'] \
-            = [np.random.RandomState((seed + offset) % _MAX_SEED) for seed in prngs['seed']]
+            = [np.random.RandomState((self.base_seed + seed + offset) % _MAX_SEED)
+               for seed in prngs['seed']]
 
         return prngs
 
@@ -284,7 +288,7 @@ class Prng(object):
 
         for channel_state in saved_channels:
 
-            assert channel_state.channel_name not in self.channels
+            logger.debug("load_channels channel %s" % (channel_state.channel_name,))
 
             if channel_state.channel_name == 'tours':
                 for table_name in ["non_mandatory_tours", "mandatory_tours"]:

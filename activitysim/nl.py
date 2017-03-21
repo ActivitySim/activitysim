@@ -162,8 +162,6 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
     """
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
 
-    nchoosers = len(probs)
-
     # probs should sum to 1 across each row
 
     BAD_PROB_THRESHOLD = 0.001
@@ -178,17 +176,16 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
                            msg="probabilities do not add up to 1",
                            trace_choosers=trace_choosers)
 
-    # FIXME - PRNG
-
-    # probs_arr = (
-    #     probs.as_matrix().cumsum(axis=1) - np.random.random((nchoosers, 1)))
-
-    probs_arr = (
-        probs.as_matrix().cumsum(axis=1) - pipeline.get_rn_generator().random_for_df(probs))
+    rands = pipeline.get_rn_generator().random_for_df(probs)
+    probs_arr = probs.as_matrix().cumsum(axis=1) - rands
 
     rows, cols = np.where(probs_arr > 0)
     choices = (s.iat[0] for _, s in pd.Series(cols).groupby(rows))
-    return pd.Series(choices, index=probs.index)
+
+    choices = pd.Series(choices, index=probs.index)
+    rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
+
+    return choices, rands
 
 
 def interaction_dataset(choosers, alternatives, sample_size=None):

@@ -50,10 +50,6 @@ def destination_choice(set_random_seed,
 
     constants = get_model_constants(destination_choice_settings)
 
-    if trace_hh_id:
-        # register non_mandatory_tours so we can slice utilities
-        tracing.register_tours(choosers, trace_hh_id)
-
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions

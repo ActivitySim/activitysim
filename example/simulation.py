@@ -11,8 +11,9 @@ from activitysim import pipeline
 import extensions
 
 
-# uncomment the line below to set random seed so that run results are reproducible
-pipeline.get_rn_generator().set_base_seed(0)
+# comment out the line below to default base seed to 0 random seed so that run results are reproducible
+# pipeline.get_rn_generator().set_base_seed(seed=None)
+
 
 tracing.config_logger()
 
@@ -35,7 +36,7 @@ _MODELS = [
 
 
 resume_after = None
-#resume_after = 'mandatory_tour_frequency'
+resume_after = 'non_mandatory_scheduling'
 
 pipeline.run(models=_MODELS, resume_after=resume_after)
 
@@ -53,7 +54,7 @@ print "\ntour_type value counts\n", df.tour_type.value_counts()
 # return the most recent value of a (non-checkpointed, internal) computed table
 df = pipeline.get_table("persons_merged")
 df = df[ ['household_id', 'age', 'auPkTotal', 'roundtrip_auto_time_to_work']]
-print "\npersons_merged selected columns\n", df.head(10)
+print "\npersons_merged selected columns\n", df.head(20)
 
 # write final versions of all checkpointed dataframes to CSV files to review results
 for table_name in pipeline.checkpointed_tables():

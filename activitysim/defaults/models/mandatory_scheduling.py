@@ -66,10 +66,6 @@ def mandatory_scheduling(set_random_seed,
     tours = mandatory_tours_merged.to_frame()
     alts = tdd_alts.to_frame()
 
-    if trace_hh_id:
-        # register non_mandatory_tours so we can slice utilities
-        tracing.register_tours(tours, trace_hh_id)
-
     constants = get_model_constants(mandatory_scheduling_settings)
 
     school_spec = tdd_school_spec.to_frame()

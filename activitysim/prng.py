@@ -288,7 +288,7 @@ class Prng(object):
 
         for channel_state in saved_channels:
 
-            assert channel_state.channel_name not in self.channels
+            logger.debug("load_channels channel %s" % (channel_state.channel_name,))
 
             if channel_state.channel_name == 'tours':
                 for table_name in ["non_mandatory_tours", "mandatory_tours"]:

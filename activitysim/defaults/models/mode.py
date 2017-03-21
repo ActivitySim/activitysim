@@ -163,9 +163,6 @@ def tour_mode_choice_simulate(tours_merged,
     nest_spec = get_logit_model_settings(tour_mode_choice_settings)
     constants = get_model_constants(tour_mode_choice_settings)
 
-    if trace_hh_id:
-        tracing.register_tours(tours, trace_hh_id)
-
     logger.info("Running tour_mode_choice_simulate with %d tours" % len(tours.index))
 
     tracing.print_summary('tour_mode_choice_simulate tour_type',

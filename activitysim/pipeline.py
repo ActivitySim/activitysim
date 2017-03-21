@@ -11,6 +11,7 @@ import orca
 import logging
 
 import prng
+import tracing
 from tracing import print_elapsed_time
 
 logger = logging.getLogger(__name__)
@@ -267,7 +268,10 @@ def load_checkpoint(resume_after):
     logger.info("load_checkpoint %s timestamp %s" % (resume_after, _LAST_CHECKPOINT['timestamp']))
 
     for table_name in checkpointed_tables():
-        rewrap(table_name, read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name]))
+        df = read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name])
+        logger.info("load_checkpoint table %s %s" % (table_name, df.shape))
+        rewrap(table_name, df)
+        tracing.register_traceable_table(table_name, df)
 
     # set random state to pickled state at end of last checkpoint
     logger.debug("resetting random state")

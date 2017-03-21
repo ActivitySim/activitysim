@@ -17,7 +17,6 @@ from .nl import utils_to_probs, make_choices, interaction_dataset
 from .nl import report_bad_choices
 from .nl import each_nest
 import tracing
-from tracing import print_elapsed_time
 
 import pipeline
 

@@ -174,7 +174,7 @@ def print_summary(label, df, describe=False, value_counts=False):
         print "\n%s summary:\n%s\n" % (label, df.describe())
 
 
-def register_households(df, trace_hh_id):
+def register_households(df):
     """
     Register with orca households for tracing
 
@@ -182,16 +182,16 @@ def register_households(df, trace_hh_id):
     ----------
     df: pandas.DataFrame
         traced dataframe
-    trace_hh_id: int
-        household ID to trace
+
 
     Returns
     -------
     Nothing
     """
 
+    trace_hh_id = orca.get_injectable("trace_hh_id")
+
     if trace_hh_id is None:
-        logger.error("register_households called with null trace_hh_id")
         return
 
     logger.info("tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
@@ -208,9 +208,12 @@ def register_households(df, trace_hh_id):
     logger.debug("register_households injected hh_index_name '%s'" % df.index.name)
 
 
-def register_tours(df, trace_hh_id):
+def register_tours(df):
     """
     Register with orca persons for tracing
+
+    create an orca injectable 'trace_tour_ids' with a list of tour_ids in household we are tracing.
+    This allows us to slice by tour_id without requiring presence of person_id column
 
     Parameters
     ----------
@@ -224,34 +227,36 @@ def register_tours(df, trace_hh_id):
     Nothing
     """
 
+    # household id we are tracing
+    trace_hh_id = orca.get_injectable("trace_hh_id")
     if trace_hh_id is None:
-        logger.warn("register_tours called with null trace_hh_id")
         return
-
-    # inject list of tour_ids in household we are tracing
-    # this allows us to slice by tour_id without requiring presence of person_id column
 
     # get list of persons in traced household (should already have been registered)
     person_ids = orca.get_injectable("trace_person_ids")
-    trace_tour_ids = []
 
     if len(person_ids) == 0:
         # trace_hh_id not in households table or register_persons was not not called
         logger.warn("no person ids registered for trace_hh_id %s" % trace_hh_id)
+        return
+
+    # but if household_id is in households, then we may have some tours
+    traced_tours_df = slice_ids(df, person_ids, column='person_id')
+    trace_tour_ids = traced_tours_df.index.tolist()
+    if len(trace_tour_ids) == 0:
+        logger.info("register_tours: no tours found for person_ids %s." % person_ids)
     else:
-        # but if household_id is in households, then we expect some tours
-        traced_tours_df = slice_ids(df, person_ids, column='person_id')
-        trace_tour_ids = traced_tours_df.index.tolist()
-        if len(trace_tour_ids) == 0:
-            logger.info("register_tours: person_ids %s not found." % person_ids)
-        else:
-            logger.info("tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
+        logger.info("tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
+
+    # register_tours is called for both mandatory and non_mandatory tours
+    # so there may already be some tours registered - add the new tours to the existing list
+    trace_tour_ids = (orca.get_injectable("trace_tour_ids") or []) + trace_tour_ids
 
     orca.add_injectable("trace_tour_ids", trace_tour_ids)
     logger.debug("register_tours injected trace_tour_ids %s" % trace_tour_ids)
 
 
-def register_persons(df, trace_hh_id):
+def register_persons(df):
     """
     Register with orca persons for tracing
 
@@ -259,13 +264,13 @@ def register_persons(df, trace_hh_id):
     ----------
     df: pandas.DataFrame
         traced dataframe
-    trace_hh_id: int
-        household ID to trace
 
     Returns
     -------
     Nothing
     """
+
+    trace_hh_id = orca.get_injectable("trace_hh_id")
 
     if trace_hh_id is None:
         logger.warn("register_persons called with null trace_hh_id")
@@ -290,6 +295,33 @@ def register_persons(df, trace_hh_id):
     logger.debug("register_persons injected trace_person_ids %s" % trace_person_ids)
 
     logger.info("tracing person_ids %s in %s persons" % (trace_person_ids, len(df.index)))
+
+
+def register_traceable_table(table_name, df):
+    """
+    Register traceable table
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+
+    Returns
+    -------
+    Nothing
+    """
+
+    trace_hh_id = orca.get_injectable("trace_hh_id")
+
+    if trace_hh_id is None:
+        return
+
+    if table_name == 'households':
+        register_households(df)
+    elif table_name == 'persons':
+        register_persons(df)
+    elif table_name in ["non_mandatory_tours", "mandatory_tours"]:
+        register_tours(df)
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):

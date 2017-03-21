@@ -27,17 +27,16 @@ def persons(store, households_sample_size, households, trace_hh_id):
         # keep all persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 
-    if trace_hh_id:
-        tracing.register_persons(df, trace_hh_id)
-        tracing.trace_df(df, "persons",
-                         warn_if_empty=True)
-
     logger.info("loaded persons %s" % (df.shape,))
 
     # replace table function with dataframe
     orca.add_table('persons', df)
 
     pipeline.get_rn_generator().add_channel(df, 'persons')
+
+    if trace_hh_id:
+        tracing.register_traceable_table('persons', df)
+        tracing.trace_df(df, "persons", warn_if_empty=True)
 
     return df
 

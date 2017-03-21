@@ -192,17 +192,14 @@ def test_register_households(capsys):
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
-    # household id should not be None
-    tracing.register_households(df, trace_hh_id=None)
+    orca.add_injectable("trace_hh_id", 5)
 
-    tracing.register_households(df, trace_hh_id=5)
+    tracing.register_households(df)
 
     out, err = capsys.readouterr()
 
     # don't consume output
     print out
-
-    assert "register_households called with null trace_hh_id" in out
 
     # should warn that household id not in index
     assert 'trace_hh_id 5 not in dataframe' in out
@@ -221,17 +218,15 @@ def test_register_tours(capsys):
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
-    # household id should not be None
-    tracing.register_tours(df, trace_hh_id=None)
+    orca.add_injectable("trace_hh_id", 5)
 
-    tracing.register_tours(df, trace_hh_id=5)
+    tracing.register_tours(df)
 
     out, err = capsys.readouterr()
 
     # don't consume output
     print out
 
-    assert "register_tours called with null trace_hh_id" in out
     assert "no person ids registered for trace_hh_id 5" in out
 
     close_handlers()
@@ -245,17 +240,14 @@ def test_register_persons(capsys):
 
     df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
 
-    # household id should not be None
-    tracing.register_persons(df, trace_hh_id=None)
+    orca.add_injectable("trace_hh_id", 5)
 
-    tracing.register_persons(df, trace_hh_id=5)
+    tracing.register_persons(df)
 
     out, err = capsys.readouterr()
 
     # don't consume output
     print out
-
-    assert "register_persons called with null trace_hh_id" in out
 
     # should warn that household id not in index
     assert 'trace_hh_id 5 not found' in out

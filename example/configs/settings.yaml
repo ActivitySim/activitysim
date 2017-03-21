@@ -3,7 +3,7 @@ store: mtc_asim.h5
 skims_file: skims.omx
 
 #number of households to simulate
-households_sample_size: 10
+households_sample_size: 1000
 
 #trace household id; comment out for no trace
 trace_hh_id: 961042

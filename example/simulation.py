@@ -11,7 +11,8 @@ from activitysim import pipeline
 import extensions
 
 
-# comment out the line below to default base seed to 0 random seed so that run results are reproducible
+# comment out the line below to default base seed to 0 random seed
+# so that run results are reproducible
 # pipeline.get_rn_generator().set_base_seed(seed=None)
 
 
@@ -31,6 +32,7 @@ _MODELS = [
     'destination_choice',
     'non_mandatory_scheduling',
     'tour_mode_choice_simulate',
+    'create_simple_trips',
     'trip_mode_choice_simulate'
 ]
 
@@ -53,14 +55,14 @@ print "\ntour_type value counts\n", df.tour_type.value_counts()
 # get_table for a computed (non-checkpointed, internal, orca) table
 # return the most recent value of a (non-checkpointed, internal) computed table
 df = pipeline.get_table("persons_merged")
-df = df[ ['household_id', 'age', 'auPkTotal', 'roundtrip_auto_time_to_work']]
+df = df[['household_id', 'age', 'auPkTotal', 'roundtrip_auto_time_to_work']]
 print "\npersons_merged selected columns\n", df.head(20)
 
 # write final versions of all checkpointed dataframes to CSV files to review results
 for table_name in pipeline.checkpointed_tables():
     file_name = "final_%s_table.csv" % table_name
     file_path = os.path.join(orca.get_injectable("output_dir"), file_name)
-    pipeline.get_table('households').to_csv(file_path)
+    pipeline.get_table(table_name).to_csv(file_path)
 
 # tables will no longer be available after pipeline is closed
 pipeline.close()

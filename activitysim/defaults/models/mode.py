@@ -17,9 +17,80 @@ from .util.misc import read_model_settings, get_logit_model_settings, get_model_
 
 logger = logging.getLogger(__name__)
 
+"""
+Generic functions for both tour and trip mode choice
+"""
+
+
+def _mode_choice_simulate(records,
+                          skim_dict,
+                          skim_stack,
+                          odt_skim_stack_wrapper,
+                          dot_skim_stack_wrapper,
+                          od_skim_stack_wrapper,
+                          spec,
+                          constants,
+                          nest_spec,
+                          trace_label=None, trace_choice_name=None
+                          ):
+    """
+    This is a utility to run a mode choice model for each segment (usually
+    segments are tour/trip purposes).  Pass in the tours/trip that need a mode,
+    the Skim object, the spec to evaluate with, and any additional expressions
+    you want to use in the evaluation of variables.
+    """
+
+    locals_d = {
+        "odt_skims": odt_skim_stack_wrapper,
+        "dot_skims": dot_skim_stack_wrapper,
+        "od_skims": od_skim_stack_wrapper
+    }
+    if constants is not None:
+        locals_d.update(constants)
+
+    skims = []
+    if odt_skim_stack_wrapper is not None:
+        skims.append(odt_skim_stack_wrapper)
+    if dot_skim_stack_wrapper is not None:
+        skims.append(dot_skim_stack_wrapper)
+    if od_skim_stack_wrapper is not None:
+        skims.append(od_skim_stack_wrapper)
+
+    choices = asim.simple_simulate(records,
+                                   spec,
+                                   nest_spec,
+                                   skims=skims,
+                                   locals_d=locals_d,
+                                   trace_label=trace_label,
+                                   trace_choice_name=trace_choice_name)
+
+    alts = spec.columns
+    choices = choices.map(dict(zip(range(len(alts)), alts)))
+
+    return choices
+
+
+def get_segment_and_unstack(omnibus_spec, segment):
+    """
+    This does what it says.  Take the spec, get the column from the spec for
+    the given segment, and unstack.  It is assumed that the last column of
+    the multiindex is alternatives so when you do this unstacking,
+    each alternative is in a column (which is the format this as used for the
+    simple_simulate call.  The weird nuance here is the "Rowid" column -
+    since many expressions are repeated (e.g. many are just "1") a Rowid
+    column is necessary to identify which alternatives are actually part of
+    which original row - otherwise the unstack is incorrect (i.e. the index
+    is not unique)
+    """
+    spec = omnibus_spec[segment].unstack().reset_index(level="Rowid", drop=True).fillna(0)
+
+    spec = spec.groupby(spec.index).sum()
+
+    return spec
+
 
 """
-Mode choice is run for all tours to determine the transportation mode that
+Tour mode choice is run for all tours to determine the transportation mode that
 will be used for the tour
 """
 
@@ -51,6 +122,105 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
                              trace_label='tour_mode_choice')
 
 
+@orca.step()
+def tour_mode_choice_simulate(tours_merged,
+                              tour_mode_choice_spec,
+                              tour_mode_choice_settings,
+                              skim_dict, skim_stack,
+                              omx_file,
+                              trace_hh_id):
+
+    trace_label = trace_hh_id and 'tour_mode_choice'
+
+    tours = tours_merged.to_frame()
+
+    nest_spec = get_logit_model_settings(tour_mode_choice_settings)
+    constants = get_model_constants(tour_mode_choice_settings)
+
+    logger.info("Running tour_mode_choice_simulate with %d tours" % len(tours.index))
+
+    tracing.print_summary('tour_mode_choice_simulate tour_type',
+                          tours.tour_type, value_counts=True)
+
+    if trace_hh_id:
+        tracing.trace_df(tour_mode_choice_spec,
+                         tracing.extend_trace_label(trace_label, 'spec'),
+                         slicer='NONE', transpose=False)
+
+    # setup skim keys
+    odt_skim_stack_wrapper = skim_stack.wrap(left_key='TAZ', right_key='destination',
+                                             skim_key="out_period", offset=-1, omx=omx_file)
+    dot_skim_stack_wrapper = skim_stack.wrap(left_key='destination', right_key='TAZ',
+                                             skim_key="in_period", offset=-1, omx=omx_file)
+    od_skims = skim_dict.wrap('TAZ', 'destination')
+
+    choices_list = []
+
+    for tour_type, segment in tours.groupby('tour_type'):
+
+        # if tour_type != 'work':
+        #     continue
+
+        logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
+                    (tour_type, len(segment.index), ))
+
+        # name index so tracing knows how to slice
+        segment.index.name = 'tour_id'
+
+        spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
+
+        if trace_hh_id:
+            tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
+                             slicer='NONE', transpose=False)
+
+        choices = _mode_choice_simulate(
+            segment,
+            skim_dict=skim_dict,
+            skim_stack=skim_stack,
+            odt_skim_stack_wrapper=odt_skim_stack_wrapper,
+            dot_skim_stack_wrapper=dot_skim_stack_wrapper,
+            od_skim_stack_wrapper=od_skims,
+            spec=spec,
+            constants=constants,
+            nest_spec=nest_spec,
+            trace_label=tracing.extend_trace_label(trace_label, tour_type),
+            trace_choice_name='tour_mode_choice')
+
+        tracing.print_summary('tour_mode_choice_simulate %s choices' % tour_type,
+                              choices, value_counts=True)
+
+        choices_list.append(choices)
+
+        # FIXME - force garbage collection
+        mem = asim.memory_info()
+        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
+
+    choices = pd.concat(choices_list)
+
+    tracing.print_summary('tour_mode_choice_simulate all tour type choices',
+                          choices, value_counts=True)
+
+    orca.add_column("tours", "mode", choices)
+
+    if trace_hh_id:
+        trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num']
+        tracing.trace_df(orca.get_table('tours').to_frame(),
+                         label=tracing.extend_trace_label(trace_label, 'mode'),
+                         slicer='tour_id',
+                         index_label='tour_id',
+                         columns=trace_columns,
+                         warn_if_empty=True)
+
+    # FIXME - this forces garbage collection
+    asim.memory_info()
+
+
+"""
+Trip mode choice is run for all trips to determine the transportation mode that
+will be used for the trip
+"""
+
+
 @orca.injectable()
 def trip_mode_choice_settings(configs_dir):
     return read_model_settings(configs_dir, 'trip_mode_choice.yaml')
@@ -77,167 +247,8 @@ def trip_mode_choice_spec(trip_mode_choice_spec_df,
                              trip_mode_choice_settings)
 
 
-def _mode_choice_simulate(tours,
-                          skim_dict,
-                          skim_stack,
-                          orig_key,
-                          dest_key,
-                          spec,
-                          constants,
-                          nest_spec,
-                          omx=None,
-                          trace_label=None, trace_choice_name=None
-                          ):
-    """
-    This is a utility to run a mode choice model for each segment (usually
-    segments are trip purposes).  Pass in the tours that need a mode,
-    the Skim object, the spec to evaluate with, and any additional expressions
-    you want to use in the evaluation of variables.
-    """
-
-    # FIXME - check that periods are in time_periods?
-
-    in_skims = skim_stack.wrap(left_key=orig_key, right_key=dest_key, skim_key="in_period",
-                               offset=-1, omx=omx)
-
-    out_skims = skim_stack.wrap(left_key=dest_key, right_key=orig_key, skim_key="out_period",
-                                offset=-1, omx=omx)
-
-    # create wrapper with keys for this lookup
-    # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap(orig_key, dest_key)
-
-    locals_d = {
-        "in_skims": in_skims,
-        "out_skims": out_skims,
-        "skims": skims
-    }
-    if constants is not None:
-        locals_d.update(constants)
-
-    choices = asim.simple_simulate(tours,
-                                   spec,
-                                   nest_spec,
-                                   skims=[in_skims, out_skims, skims],
-                                   locals_d=locals_d,
-                                   trace_label=trace_label,
-                                   trace_choice_name=trace_choice_name)
-
-    alts = spec.columns
-    choices = choices.map(dict(zip(range(len(alts)), alts)))
-
-    return choices
-
-
-def get_segment_and_unstack(omnibus_spec, segment):
-    """
-    This does what it says.  Take the spec, get the column from the spec for
-    the given segment, and unstack.  It is assumed that the last column of
-    the multiindex is alternatives so when you do this unstacking,
-    each alternative is in a column (which is the format this as used for the
-    simple_simulate call.  The weird nuance here is the "Rowid" column -
-    since many expressions are repeated (e.g. many are just "1") a Rowid
-    column is necessary to identify which alternatives are actually part of
-    which original row - otherwise the unstack is incorrect (i.e. the index
-    is not unique)
-    """
-    spec = omnibus_spec[segment].unstack().reset_index(level="Rowid", drop=True).fillna(0)
-
-    spec = spec.groupby(spec.index).sum()
-
-    return spec
-
-
 @orca.step()
-def tour_mode_choice_simulate(tours_merged,
-                              tour_mode_choice_spec,
-                              tour_mode_choice_settings,
-                              skim_dict, skim_stack,
-                              omx_file,
-                              trace_hh_id):
-
-    trace_label = trace_hh_id and 'tour_mode_choice'
-
-    tours = tours_merged.to_frame()
-
-    nest_spec = get_logit_model_settings(tour_mode_choice_settings)
-    constants = get_model_constants(tour_mode_choice_settings)
-
-    logger.info("Running tour_mode_choice_simulate with %d tours" % len(tours.index))
-
-    tracing.print_summary('tour_mode_choice_simulate tour_type',
-                          tours.tour_type, value_counts=True)
-
-    if trace_hh_id:
-        tracing.trace_df(tour_mode_choice_spec,
-                         tracing.extend_trace_label(trace_label, 'spec'),
-                         slicer='NONE', transpose=False)
-
-    choices_list = []
-    for tour_type, segment in tours.groupby('tour_type'):
-
-        # if tour_type != 'work':
-        #     continue
-
-        logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
-                    (tour_type, len(segment.index), ))
-
-        orig_key = 'TAZ'
-        dest_key = 'destination'
-
-        # name index so tracing knows how to slice
-        segment.index.name = 'tour_id'
-
-        spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
-
-        if trace_hh_id:
-            tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
-                             slicer='NONE', transpose=False)
-
-        choices = _mode_choice_simulate(
-            segment,
-            skim_dict=skim_dict,
-            skim_stack=skim_stack,
-            orig_key=orig_key,
-            dest_key=dest_key,
-            spec=spec,
-            constants=constants,
-            nest_spec=nest_spec,
-            omx=omx_file,
-            trace_label=tracing.extend_trace_label(trace_label, tour_type),
-            trace_choice_name='tour_mode_choice')
-
-        tracing.print_summary('tour_mode_choice_simulate %s choices' % tour_type,
-                              choices, value_counts=True)
-
-        choices_list.append(choices)
-
-        # FIXME - force garbage collection
-        mem = asim.memory_info()
-        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
-
-    choices = pd.concat(choices_list)
-
-    tracing.print_summary('tour_mode_choice_simulate all tour type choices',
-                          choices, value_counts=True)
-
-    orca.add_column("tours", "mode", choices)
-
-    if trace_hh_id:
-        trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num']
-        tracing.trace_df(orca.get_table('tours').to_frame(),
-                         label=tracing.extend_trace_label(trace_label, 'mode'),
-                         slicer='tour_id',
-                         index_label='tour',
-                         columns=trace_columns,
-                         warn_if_empty=True)
-
-    # FIXME - this forces garbage collection
-    asim.memory_info()
-
-
-@orca.step()
-def trip_mode_choice_simulate(tours_merged,
+def trip_mode_choice_simulate(trips_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
                               skim_dict,
@@ -245,33 +256,29 @@ def trip_mode_choice_simulate(tours_merged,
                               omx_file,
                               trace_hh_id):
 
-    # FIXME - running the trips model on tours
-    logging.error('trips not implemented running the trips model on tours')
-
-    trips = tours_merged.to_frame()
+    trips = trips_merged.to_frame()
 
     nest_spec = get_logit_model_settings(trip_mode_choice_settings)
     constants = get_model_constants(trip_mode_choice_settings)
 
     logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
 
+    odt_skim_stack_wrapper = skim_stack.wrap(left_key='OTAZ', right_key='DTAZ',
+                                             skim_key="start_period", offset=-1, omx=omx_file)
+
+    od_skims = skim_dict.wrap('OTAZ', 'DTAZ')
+
     choices_list = []
 
+    # loop by tour_type in order to easily query the expression coefficient file
     for tour_type, segment in trips.groupby('tour_type'):
 
         logger.info("running %s tour_type '%s'" % (len(segment.index), tour_type, ))
 
-        orig_key = 'TAZ'
-        dest_key = 'destination'
-
         # name index so tracing knows how to slice
-        segment.index.name = 'tour_id'
+        segment.index.name = 'trip_id'
 
-        # FIXME - check that destination is not null (patch_mandatory_tour_destination not run?)
-
-        # FIXME - no point in printing verbose dest_taz value_counts now that we have tracing?
-        # tracing.print_summary('trip_mode_choice_simulate %s dest_taz' % tour_type,
-        #                       segment[dest_key], value_counts=True)
+        # FIXME - check that destination is not null
 
         trace_label = trace_hh_id and ('trip_mode_choice_%s' % tour_type)
 
@@ -279,12 +286,12 @@ def trip_mode_choice_simulate(tours_merged,
             segment,
             skim_dict=skim_dict,
             skim_stack=skim_stack,
-            orig_key=orig_key,
-            dest_key=dest_key,
+            odt_skim_stack_wrapper=odt_skim_stack_wrapper,
+            dot_skim_stack_wrapper=None,
+            od_skim_stack_wrapper=od_skims,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),
             constants=constants,
             nest_spec=nest_spec,
-            omx=omx_file,
             trace_label=trace_label,
             trace_choice_name='trip_mode_choice')
 
@@ -304,20 +311,15 @@ def trip_mode_choice_simulate(tours_merged,
                           choices, value_counts=True)
 
     # FIXME - is this a NOP if trips table doesn't exist
-    orca.add_column("trips", "mode", choices)
+    orca.add_column("trips", "trip_mode", choices)
 
     if trace_hh_id:
 
-        logger.warn("can't dump trips table because it doesn't exist"
-                    " - trip_mode_choice_simulate is not really implemented")
-        # FIXME - commented out because trips table doesn't really exist
-        # trace_columns = ['mode']
-        # tracing.trace_df(orca.get_table('trips').to_frame(),
-        #                  label = "mode",
-        #                  slicer='tour_id',
-        #                  index_label='tour_id',
-        #                  columns = trace_columns,
-        #                  warn_if_empty=True)
+        tracing.trace_df(orca.get_table('trips').to_frame(),
+                         label="trip_mode",
+                         slicer='trip_id',
+                         index_label='trip_id',
+                         warn_if_empty=True)
 
     # FIXME - this forces garbage collection
     asim.memory_info()

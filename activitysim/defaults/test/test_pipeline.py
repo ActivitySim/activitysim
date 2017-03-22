@@ -212,10 +212,10 @@ def get_trace_csv(file_name):
     df = pd.read_csv(os.path.join(output_dir, file_name))
 
     #        label    value_1    value_2    value_3    value_4
-    # 0    tour_id        209         40         41         42
-    # 1       mode  DRIVE_COM  DRIVE_LOC  DRIVE_LOC  DRIVE_LOC
-    # 2  person_id    1888696    1888694    1888695    1888696
-    # 3  tour_type     social       work       work     school
+    # 0    tour_id        38         201         39         40
+    # 1       mode  DRIVE_LOC  DRIVE_COM  DRIVE_LOC  DRIVE_LOC
+    # 2  person_id    1888694    1888695    1888695    1888696
+    # 3  tour_type       work   othmaint       work     school
     # 4   tour_num          1          1          1          1
 
     # transpose df and rename columns
@@ -226,9 +226,9 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_PERSON_IDS = ['1888694', '1888694', '1888695', '1888696', '1888696']
-EXPECT_TOUR_TYPES = ['escort', 'work', 'work', 'school', 'shopping']
-EXPECT_MODES = ['DRIVEALONEFREE', 'DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_COM']
+EXPECT_PERSON_IDS = ['1888694', '1888695', '1888695', '1888696']
+EXPECT_TOUR_TYPES = ['work', 'othmaint', 'work', 'school']
+EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_COM', 'DRIVE_LOC', 'DRIVE_LOC']
 
 
 def test_full_run1():
@@ -239,17 +239,17 @@ def test_full_run1():
     tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    assert(tour_count == 259)
+    assert(tour_count == 205)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
 
     print mode_df
     #         tour_id       mode person_id tour_type tour_num
-    # value_2      40  DRIVE_LOC   1888694      work        1
-    # value_3      41  DRIVE_LOC   1888695      work        1
-    # value_4      42  DRIVE_LOC   1888696    school        1
-    # value_1     209  DRIVE_COM   1888696    social        1
+    # value_2      38  DRIVE_LOC   1888694      work        1
+    # value_1     201  DRIVE_COM   1888695  othmaint        1
+    # value_3      39  DRIVE_LOC   1888695      work        1
+    # value_4      40  DRIVE_COM   1888696    school        1
 
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
@@ -265,7 +265,7 @@ def test_full_run2():
 
     tour_count = full_run(resume_after='non_mandatory_scheduling', trace_hh_id=HH_ID)
 
-    assert(tour_count == 259)
+    assert(tour_count == 205)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
@@ -286,7 +286,7 @@ def test_full_run_with_chunks():
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
                           chunk_size=10)
 
-    assert(tour_count == 259)
+    assert(tour_count == 205)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)

@@ -24,7 +24,7 @@ def workplace_location_spec(configs_dir):
 
 @orca.injectable()
 def workplace_location_settings(configs_dir):
-    return read_model_settings(configs_dir, 'school_location.yaml')
+    return read_model_settings(configs_dir, 'workplace_location.yaml')
 
 
 @orca.step()
@@ -51,6 +51,8 @@ def workplace_location_simulate(set_random_seed,
 
     constants = get_model_constants(workplace_location_settings)
 
+    sample_size = workplace_location_settings["SAMPLE_SIZE"]
+
     logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
@@ -73,7 +75,7 @@ def workplace_location_simulate(set_random_seed,
         spec=workplace_location_spec,
         skims=skims,
         locals_d=locals_d,
-        sample_size=50,
+        sample_size=sample_size,
         chunk_size=chunk_size,
         trace_label=trace_hh_id and 'workplace_location',
         trace_choice_name='workplace_location')

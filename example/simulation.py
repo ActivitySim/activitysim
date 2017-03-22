@@ -38,7 +38,7 @@ _MODELS = [
 
 
 resume_after = None
-resume_after = 'tour_mode_choice_simulate'
+# resume_after = 'non_mandatory_scheduling'
 
 pipeline.run(models=_MODELS, resume_after=resume_after)
 

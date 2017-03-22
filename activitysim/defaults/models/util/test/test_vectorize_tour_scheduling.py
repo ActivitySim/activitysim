@@ -51,7 +51,7 @@ def test_vts():
 
     orca.add_injectable("check_for_variability", True)
 
-    choices = vectorize_tour_scheduling(tours, alts, spec, sample_size=50)
+    choices = vectorize_tour_scheduling(tours, alts, spec)
 
     # FIXME - dead reckoning regression
     # there's no real logic here - this is just what came out of the monte carlo

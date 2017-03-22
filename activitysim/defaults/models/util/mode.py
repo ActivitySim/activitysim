@@ -183,6 +183,7 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
                          tracing.extend_trace_label(trace_label, 'raw'),
                          slicer='NONE', transpose=False)
 
+    # FIXME - this is no longer used and should probably be removed
     # the expressions themselves can be prepended with a "$" in order to use
     # model templates that are shared by several different expressions
     df.index = pre_process_expressions(df.index, templates)

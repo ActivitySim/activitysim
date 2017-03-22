@@ -192,9 +192,7 @@ def test_register_households(capsys):
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
-    orca.add_injectable("trace_hh_id", 5)
-
-    tracing.register_households(df)
+    tracing.register_households(df, 5)
 
     out, err = capsys.readouterr()
 
@@ -218,9 +216,7 @@ def test_register_tours(capsys):
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
-    orca.add_injectable("trace_hh_id", 5)
-
-    tracing.register_tours(df)
+    tracing.register_tours(df, 5)
 
     out, err = capsys.readouterr()
 
@@ -240,9 +236,7 @@ def test_register_persons(capsys):
 
     df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
 
-    orca.add_injectable("trace_hh_id", 5)
-
-    tracing.register_persons(df)
+    tracing.register_persons(df, 5)
 
     out, err = capsys.readouterr()
 

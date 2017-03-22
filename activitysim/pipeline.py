@@ -31,7 +31,7 @@ _MODELS = [
     # 'trip_mode_choice_simulate'
 ]
 
-_MAX_PRNG_OFFSETS = {'households': 2, 'persons': 5, 'tours': 5}
+_MAX_PRNG_OFFSETS = {'households': 2, 'persons': 5, 'tours': 5, 'trips': 5}  # FIXME
 
 _TIMESTAMP_COL = 'timestamp'
 _CHECKPOINT_COL = 'checkpoint_name'
@@ -267,7 +267,9 @@ def load_checkpoint(resume_after):
 
     logger.info("load_checkpoint %s timestamp %s" % (resume_after, _LAST_CHECKPOINT['timestamp']))
 
-    for table_name in checkpointed_tables():
+    tables = tracing.sort_for_registration(checkpointed_tables())
+
+    for table_name in tables:
         df = read_df(table_name, checkpoint_name=_LAST_CHECKPOINT[table_name])
         logger.info("load_checkpoint table %s %s" % (table_name, df.shape))
         rewrap(table_name, df)

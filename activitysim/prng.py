@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import orca
 
-from tracing import print_elapsed_time
+from tracing import print_elapsed_time, log_memory_info
 
 
 import logging
@@ -196,41 +196,6 @@ class Prng(object):
 
         logger.debug("end_step %s" % step_name)
 
-    def create_prngs_for_tour_channels(self, tours, max_seed_offset, offset=0):
-
-        assert 'person_id' in tours.columns.values
-        assert 'tour_type' in tours.columns.values
-        assert 'tour_num' in tours.columns.values
-
-        sub_channels = canonical_tour_sub_channels()
-        sub_channel_count = len(sub_channels)
-
-        max_seed = tours.index.max() * sub_channel_count * (max_seed_offset + 1)
-        if max_seed >= _MAX_SEED:
-            msg = "max_seed  %s too big for unsigned int32" % (max_seed, )
-            raise RuntimeError(msg)
-
-        prngs = pd.DataFrame(index=tours.index)
-
-        # concat tour_type + tour_num
-        channel_offset = tours.tour_type + tours.tour_num.map(str)
-        # map recognized strings to ints
-        channel_offset = channel_offset.replace(to_replace=sub_channels,
-                                                value=range(sub_channel_count))
-        # convert to numeric - shouldn't be any NaNs - this will raise error if there are
-        channel_offset = pd.to_numeric(channel_offset, errors='coerce').astype(int)
-
-        prngs['seed'] = (tours.person_id*sub_channel_count) + channel_offset
-
-        # make room for max_seed_offset offsets
-        prngs.seed = (prngs.seed * max_seed_offset).astype(int)
-
-        prngs['generator'] \
-            = [np.random.RandomState((self.base_seed + seed + offset) % _MAX_SEED)
-               for seed in prngs['seed']]
-
-        return prngs
-
     def create_prngs_for_channel(self, df, max_seed_offset, offset=0):
 
         max_seed = df.index.max() * (max_seed_offset + 1)
@@ -262,24 +227,23 @@ class Prng(object):
         assert(offset <= max_seed_offset)
 
         t0 = print_elapsed_time()
+        with log_memory_info(msg="channel %s len %s" % (channel_name, len(df.index))):
 
-        if channel_name == 'tours':
-            prngs = self.create_prngs_for_tour_channels(df, max_seed_offset, offset)
-        else:
             prngs = self.create_prngs_for_channel(df, max_seed_offset, offset)
 
-        if channel_name in self.channels:
-            logger.debug("prng add_channel - extending %s " % len(df.index))
-            channel = self.channels[channel_name]
-            assert channel.max_offset == max_seed_offset
-            assert len(channel.prngs.index.intersection(prngs.index)) == 0
-            channel.prngs = pd.concat([channel.prngs, prngs])
-        else:
-            logger.debug("prng add_tour_channels - first time")
-            self.channels[channel_name] = \
-                Channel(offset=offset, max_offset=max_seed_offset, prngs=prngs, step_name=step_name)
+            if channel_name in self.channels:
+                logger.debug("prng add_channel - extending %s " % len(df.index))
+                channel = self.channels[channel_name]
+                assert channel.max_offset == max_seed_offset
+                assert len(channel.prngs.index.intersection(prngs.index)) == 0
+                channel.prngs = pd.concat([channel.prngs, prngs])
+            else:
+                logger.debug("prng add_channel - first time")
+                self.channels[channel_name] = \
+                    Channel(offset=offset, max_offset=max_seed_offset,
+                            prngs=prngs, step_name=step_name)
 
-        print_elapsed_time('Prng.add_channel %s' % (channel_name), t0, debug=True)
+        print_elapsed_time('Prng.add_channel %s' % (channel_name), t0, debug=False)
 
     def get_channels(self):
 

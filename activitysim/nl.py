@@ -221,6 +221,7 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     numalts = len(alternatives)
     sample_size = sample_size or numalts
 
+    # FIXME - is this faster or just dumb?
     alts_idx = np.arange(numalts)
 
     if sample_size < numalts:

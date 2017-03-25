@@ -23,7 +23,8 @@ from ... import pipeline
 HOUSEHOLDS_SAMPLE_SIZE = 100
 HH_ID = 961042
 
-SKIP_FULL_RUN = False
+SKIP_FULL_RUN = True
+#SKIP_FULL_RUN = False
 
 
 def inject_settings(configs_dir, households_sample_size, chunk_size=None,

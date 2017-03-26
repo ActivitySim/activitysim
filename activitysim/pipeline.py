@@ -10,7 +10,7 @@ import orca
 
 import logging
 
-import prng
+import random
 import tracing
 from tracing import print_elapsed_time
 
@@ -35,9 +35,8 @@ _MAX_PRNG_OFFSETS = {'households': 2, 'persons': 5, 'tours': 5, 'trips': 5}  # F
 
 _TIMESTAMP_COL = 'timestamp'
 _CHECKPOINT_COL = 'checkpoint_name'
-_GLOBAL_RANDOM_STATE_COL = 'random_state'
 _PRNG_CHANNELS_COL = 'prng_channels'
-_NON_TABLE_COLUMNS = [_CHECKPOINT_COL, _TIMESTAMP_COL, _GLOBAL_RANDOM_STATE_COL, _PRNG_CHANNELS_COL]
+_NON_TABLE_COLUMNS = [_CHECKPOINT_COL, _TIMESTAMP_COL, _PRNG_CHANNELS_COL]
 
 _RUNTIME_COL = 'runtime_seconds'
 
@@ -50,7 +49,7 @@ _LAST_CHECKPOINT = {}
 # array of checkpoint dicts
 _CHECKPOINTS = []
 
-_PRNG = prng.Prng(_MAX_PRNG_OFFSETS)
+_PRNG = random.Random(_MAX_PRNG_OFFSETS)
 
 
 @orca.injectable(cache=True)
@@ -169,7 +168,6 @@ def rewrap(table_name, df=None):
 #         print "checkpoint_name:", checkpoint[_CHECKPOINT_COL]
 #         print "timestamp:      ", checkpoint[_TIMESTAMP_COL]
 #
-#         print "gprng_offset:      ", checkpoint.get(_GLOBAL_RANDOM_STATE_COL, None)
 #         print "prng channels:", cPickle.loads(checkpoint[_PRNG_CHANNELS_COL])
 #
 #         table_columns = list((set(checkpoint.keys()) - set(_NON_TABLE_COLUMNS)))
@@ -200,7 +198,6 @@ def set_checkpoint(checkpoint_name):
 
     _LAST_CHECKPOINT[_CHECKPOINT_COL] = checkpoint_name
     _LAST_CHECKPOINT[_TIMESTAMP_COL] = timestamp
-    _LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL] = _PRNG.gprng_offset
     _LAST_CHECKPOINT[_PRNG_CHANNELS_COL] = cPickle.dumps(_PRNG.get_channels())
 
     _CHECKPOINTS.append(_LAST_CHECKPOINT.copy())
@@ -209,7 +206,6 @@ def set_checkpoint(checkpoint_name):
 
     write_df(checkpoints, _CHECKPOINT_TABLE_NAME)
 
-    logger.debug("gprng_offset: %s" % _PRNG.gprng_offset)
     for channel_state in _PRNG.get_channels():
         logger.debug("channel_name '%s', step_name '%s', offset: %s" % channel_state)
 
@@ -277,7 +273,6 @@ def load_checkpoint(resume_after):
 
     # set random state to pickled state at end of last checkpoint
     logger.debug("resetting random state")
-    _PRNG.set_global_prng_offset(offset=_LAST_CHECKPOINT[_GLOBAL_RANDOM_STATE_COL])
     _PRNG.load_channels(cPickle.loads(_LAST_CHECKPOINT[_PRNG_CHANNELS_COL]))
 
 

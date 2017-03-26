@@ -47,10 +47,10 @@ def test_channel():
 
     rng.add_channel(persons, channel_name='persons')
 
-    r = rng.random_for_df(persons)
+    rands = rng.random_for_df(persons)
 
-    expected_rands = [0.391173,  0.5371047,  0.1972893,  0.810321, 0.5859783]
-    npt.assert_almost_equal(r, expected_rands)
+    expected_rands = [0.0206057, 0.6934178, 0.6821042, 0.4591678, 0.1561672]
+    npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
     households = pd.DataFrame({
         "data": [1, 1, 2, 2, 2],
@@ -58,7 +58,7 @@ def test_channel():
     households.index.name = 'HHID'
     rng.add_channel(households, channel_name='households', step_name='last', step_num=1)
 
-    r = rng.random_for_df(households)
+    rands = rng.random_for_df(households)
 
-    expected_rands = [0.4474032,  0.0400574,  0.2693114,  0.647046, 0.7443706]
-    npt.assert_almost_equal(r, expected_rands)
+    expected_rands = [0.8848691, 0.7472187, 0.5943395, 0.833949, 0.7222694]
+    npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)

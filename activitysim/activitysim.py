@@ -37,7 +37,7 @@ def random_rows(df, n):
 
     # only sample if df has more than n rows
     if len(df.index) > n:
-        prng = pipeline.get_rn_generator().get_global_prng()
+        prng = pipeline.get_rn_generator().get_global_rng()
         return df.take(prng.choice(len(df), size=n, replace=False))
 
     else:

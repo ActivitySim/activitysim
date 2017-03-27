@@ -177,7 +177,7 @@ def full_run(resume_after=None, chunk_size=0,
 
     tracing.config_logger()
 
-    assert orca.get_injectable("chunk_size") == chunk_size
+    # assert orca.get_injectable("chunk_size") == chunk_size
 
     _MODELS = [
         'compute_accessibility',

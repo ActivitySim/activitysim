@@ -89,7 +89,9 @@ class SimpleChannel(object):
         self.step_name = step_name
         self.step_num += 1
 
-        assert self.step_num < self.max_steps
+        if self.step_num >= self.max_steps:
+            raise RuntimeError("Too many steps (%s) maxstep %s for channel '%s'"
+                               % (self.step_num, self.max_steps, self.name))
 
         # number of rands pulled this step
         self.row_states['offset'] = 0

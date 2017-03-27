@@ -67,7 +67,34 @@ def get_pipeline_store():
 
 
 def get_rn_generator():
+
     return _PRNG
+
+
+def set_rn_generator_base_seed(seed):
+    """
+    Like seed for numpy.random.RandomState, but generalized for use with all random streams.
+
+    Provide a base seed that will be added to the seeds of all random streams.
+    The default base seed value is 0, so set_base_seed(0) is a NOP
+
+    set_rn_generator_base_seed(1) will (e.g.) provide a different set of random streams
+    than the default, but will provide repeatable results re-running or resuming the simulation
+
+    set_rn_generator_base_seed(None) will set the base seed to a random and unpredictable integer
+    and so provides "fully pseudo random" non-repeatable streams with different results every time
+
+    Must be called before start_pipeline() or pipeline.run()
+
+    Parameters
+    ----------
+    seed : int or None
+    """
+
+    if _LAST_CHECKPOINT:
+        raise RuntimeError("Can only call set_rn_generator_base_seed before the first step.")
+
+    _PRNG.set_base_seed(seed)
 
 
 def _open_pipeline_store(overwrite=False):

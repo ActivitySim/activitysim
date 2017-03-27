@@ -45,6 +45,32 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
     orca.add_injectable("settings", settings)
 
 
+def test_rng_access():
+
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    orca.add_injectable("configs_dir", configs_dir)
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    orca.add_injectable("output_dir", output_dir)
+
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    orca.add_injectable("data_dir", data_dir)
+
+    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+
+    orca.clear_cache()
+
+    pipeline.set_rn_generator_base_seed(0)
+
+    pipeline.start_pipeline()
+
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.set_rn_generator_base_seed(0)
+    assert "call set_rn_generator_base_seed before the first step" in str(excinfo.value)
+
+    rng = pipeline.get_rn_generator()
+
+
 def test_mini_pipeline_run():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')

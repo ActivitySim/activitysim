@@ -172,20 +172,6 @@ class Random(object):
 
         self.global_rng = np.random.RandomState()
 
-    def set_base_seed(self, seed=None):
-
-        if self.step_name is not None:
-            raise RuntimeError("Can only call set_base_seed before the first step.")
-
-        assert len(self.channels.keys()) == 0
-
-        if seed is None:
-            self.base_seed = np.random.RandomState().randint(_MAX_SEED)
-            logger.info("Set random seed randomly to %s" % self.base_seed)
-        else:
-            logger.info("Set random seed base to %s" % seed)
-            self.base_seed = seed
-
     # step handling
 
     def begin_step(self, step_name):
@@ -211,9 +197,49 @@ class Random(object):
 
     # channel management
 
-    def add_channel(self, domain_df, channel_name, step_name=None, step_num=None):
+    def get_channel_for_df(self, df):
+        """
+        INTERNAL
 
+        return the canonical channel name for use with this df, based on its index name
+
+        Parameters
+        ----------
+        df : pandas.dataframe
+            either a domain_df for a channel being added or extended
+            or a df for which random values are to be generated
+        """
+        channel_name = channel_name_from_index(df)
+        assert channel_name in self.channels
+        return self.channels[channel_name]
+
+    def add_channel(self, domain_df, channel_name, step_name=None, step_num=None):
+        """
+        Create or extend a channel for generating random number streams for domain_df.
+
+        We need to be prepared to extend an existing channel because mandatory and non-mandatory
+        tours are generated separately by different sub-models, but end up members of a common
+        tours channel.
+
+        Parameters
+        ----------
+        domain_df : pandas.DataFrame
+            domain dataframe with index values for which random streams are to be generated
+            and well-known index name corresponding to the channel
+
+        channel_name : str
+            expected channel name provided as a consistency check
+
+        step_name : str or None
+            for channels being loaded (resumed) we need the step_name and step_num to maintain
+            consistent step numbering
+
+        step_num : int or None
+            for channels being loaded (resumed) we need the step_name and step_num to maintain
+            consistent step numbering
+        """
         assert channel_name == channel_name_from_index(domain_df)
+        assert (step_name is None) == (step_num is None)
 
         logger.debug("Random: add_channel step_num %s step_name '%s'" % (step_num, step_name))
 
@@ -268,24 +294,135 @@ class Random(object):
                                  step_num=channel_state.step_num,
                                  step_name=channel_state.step_name)
 
-    def get_channel_for_df(self, df):
-        channel_name = channel_name_from_index(df)
-        assert channel_name in self.channels
-        return self.channels[channel_name]
-
     # random number generation
 
+    def set_base_seed(self, seed=None):
+        """
+        Like seed for numpy.random.RandomState, but generalized for use with all random streams.
+
+        Provide a base seed that will be added to the seeds of all random streams.
+        The default base seed value is 0, so set_base_seed(0) is a NOP
+
+        set_base_seed(1) will (e.g.) provide a different set of random streams than the default
+        but will provide repeatable results re-running or resuming the simulation
+
+        set_base_seed(None) will set the base seed to a random and unpredictable integer and so
+        provides "fully pseudo random" non-repeatable streams with different results every time
+
+        Must be called before first step (before any channels are added or rands are consumed)
+
+        Parameters
+        ----------
+        seed : int or None
+        """
+
+        if self.step_name is not None or self.channels:
+            raise RuntimeError("Can only call set_base_seed before the first step.")
+
+        assert len(self.channels.keys()) == 0
+
+        if seed is None:
+            self.base_seed = np.random.RandomState().randint(_MAX_SEED)
+            logger.info("Set random seed randomly to %s" % self.base_seed)
+        else:
+            logger.info("Set random seed base to %s" % seed)
+            self.base_seed = seed
+
     def get_global_rng(self):
+        """
+        Return a numpy random number generator for use within current step.
+
+        This method is designed to provide random numbers for uses that do not correspond to
+        known channel domains. e.g. to select a subset of households to use for the simulation.
+
+        global_rng is reseeded to a predictable value at the beginning of every step so that
+        it behaves repeatably when simulation is resumed or re-run.
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Returns
+        -------
+        global_rng : numpy.random.RandomState()
+            numpy random number generator for use within current step
+
+        """
         assert self.step_name is not None
         return self.global_rng
 
     def set_multi_choice_offset(self, df, offset):
+        """
+        Specify a fixed offset into the df channel's random number streams to use for all calls
+        made to choice_for_df for the duration of the current step.
+
+        A value of None means that a different set of random values should be used for each
+        subsequent call to choice_for_df (for the same df row index)
+
+        Recall that since each row in the df has its own distinct random stream,
+        this means that each random stream is offset by the specified amount.
+
+        This method has no particular utility if choice_for_df is only called once for each
+        domain_df row, other than to (potentially) make subsequent calls to random_for_df
+        faster if choice_for_df consumes a large number of random numbers, as random_for_df
+        will not need to fast-forward as much.
+
+        This method must be invoked before any random numbers are consumed in hte current step.
+        The multi_choice_offset is reset to the default (None) at the beginning of each step.
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.dataframe
+        offset : int or None
+            absolute integer offset to fast-forward to in random streams in choice_for_df
+        """
+
         channel = self.get_channel_for_df(df)
         channel.set_multi_choice_offset(offset, self.step_name)
         logging.info("set_multi_choice_offset to %s for channel %s"
                      % (channel.multi_choice_offset, channel.name))
 
     def random_for_df(self, df):
+        """
+        Return a single floating point random number in range [0, 1) for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        We assume that we can identify the channel to used based on the name of df.index
+        This channel should have already been registered by a call to add_channel (q.v.)
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        The remaining parameters are passed through as arguments to numpy.random.choice
+
+        a : 1-D array-like or int
+            If an ndarray, a random sample is generated from its elements.
+            If an int, the random sample is generated as if a was np.arange(n)
+        size : int or tuple of ints
+            Output shape
+        replace : boolean
+            Whether the sample is with or without replacement
+
+        Returns
+        -------
+        choices : 1-D ndarray of length: size * len(df.index)
+            The generated random samples for each row concatenated into a single (flat) array
+        """
 
         # FIXME - for tests
         if not self.channels:
@@ -300,6 +437,46 @@ class Random(object):
         return rands
 
     def choice_for_df(self, df, a, size, replace):
+        """
+        Apply numpy.random.choice once for each row in df
+        using the appropriate random channel for each row.
+
+        Concatenate the the choice arrays for every row into a single 1-D ndarray
+        The resulting array will be of length: size * len(df.index)
+        This method is designed to support creation of a interaction_dataset
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        Depending on the value of the multi_choice_offset setting
+        (set by calling set_multi_choice_offset method, q,v,)
+        for subsequent calls in the same step, this routine will
+        EITHER use the same rand sequence for choosing values
+        OR use fresh random values for choices.
+
+        We assume that we can identify the channel to used based on the name of df.index
+        This channel should have already been registered by a call to add_channel (q.v.)
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        The remaining parameters are passed through as arguments to numpy.random.choice
+
+        a : 1-D array-like or int
+            If an ndarray, a random sample is generated from its elements.
+            If an int, the random sample is generated as if a was np.arange(n)
+        size : int or tuple of ints
+            Output shape
+        replace : boolean
+            Whether the sample is with or without replacement
+
+        Returns
+        -------
+        choices : 1-D ndarray of length: size * len(df.index)
+            The generated random samples for each row concatenated into a single (flat) array
+        """
 
         # FIXME - for tests
         if not self.channels:

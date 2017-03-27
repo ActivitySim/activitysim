@@ -13,7 +13,7 @@ import extensions
 
 # comment out the line below to default base seed to 0 random seed
 # so that run results are reproducible
-# pipeline.get_rn_generator().set_base_seed(seed=None)
+# pipeline.set_rn_generator_base_seed(seed=None)
 
 
 tracing.config_logger()
@@ -37,8 +37,11 @@ _MODELS = [
 ]
 
 
+# If you provide a resume_after argument to pipeline.run
+# the pipeline manager will attempt to load checkpointed tables from the checkpoint store
+# and resume pipeline processing on the next submodel step after the specified checkpoint
 resume_after = None
-#resume_after = 'trip_mode_choice_simulate'
+# resume_after = 'mandatory_scheduling'
 
 pipeline.run(models=_MODELS, resume_after=resume_after)
 

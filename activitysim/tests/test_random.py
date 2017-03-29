@@ -36,7 +36,11 @@ def test_basic():
 
 def test_channel():
 
-    rng = random.Random({'households': 3, 'persons': 2})
+    channels = {
+        'households': {'max_steps': 3, 'index': 'HHID'},
+        'persons': {'max_steps': 2, 'index': 'PERID'},
+    }
+    rng = random.Random(channels)
 
     persons = pd.DataFrame({
         "household_id": [1, 1, 2, 2, 2],

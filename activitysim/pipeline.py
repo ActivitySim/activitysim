@@ -16,22 +16,6 @@ from tracing import print_elapsed_time
 
 logger = logging.getLogger(__name__)
 
-_MODELS = [
-    'compute_accessibility',
-    'school_location_simulate',
-    'workplace_location_simulate',
-    'auto_ownership_simulate',
-    'cdap_simulate',
-    'mandatory_tour_frequency',
-    'mandatory_scheduling',
-    'non_mandatory_tour_frequency',
-    'destination_choice',
-    'non_mandatory_scheduling',
-    'tour_mode_choice_simulate',
-    # 'trip_mode_choice_simulate'
-]
-
-_MAX_PRNG_OFFSETS = {'households': 2, 'persons': 5, 'tours': 5, 'trips': 5}  # FIXME
 
 _TIMESTAMP_COL = 'timestamp'
 _CHECKPOINT_COL = 'checkpoint_name'
@@ -49,7 +33,7 @@ _LAST_CHECKPOINT = {}
 # array of checkpoint dicts
 _CHECKPOINTS = []
 
-_PRNG = random.Random(_MAX_PRNG_OFFSETS)
+_PRNG = random.Random()
 
 
 @orca.injectable(cache=True)
@@ -340,10 +324,7 @@ def start_pipeline(resume_after=None):
     logger.debug("start_pipeline complete")
 
 
-def run(models=None, resume_after=None):
-
-    if models is None:
-        models = _MODELS
+def run(models, resume_after=None):
 
     if resume_after and resume_after in models:
         models = models[models.index(resume_after) + 1:]

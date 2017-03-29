@@ -17,78 +17,40 @@ _MAX_SEED = (1 << 32)
 SavedChannelState = collections.namedtuple('SavedChannelState', 'channel_name step_num step_name')
 
 
-def channel_name_from_index(df):
-    """
-    Return the channel name corresponding to the index name of df
+"""
+We expect that the random number channel can be determined by the name of the index of the
+dataframe accompanying the request. This function encapsulates the knowledge of that mapping.
 
-    We expect that the random number channel can be determined by the name of the index of the
-    dataframe accompanying the request. This function encapsulates the knowledge of that mapping.
+Generally, the channel name is just the table name used by the pipeline and orca.
+The exception is the 'tours' channel, which is messy because the mandatory and non-mandatory
+tours tables are originally created separately and later combined in to a single 'tours'
+table. But during a few model steps before they are combined, they actually exist as two
+distinct tables. We only need to know this dirty secret about tables when we reload
+checkpointed channels.
+"""
 
-    Generally, the channel name is just the table name used by the pipeline and orca.
-    The exception is the 'tours' channel, which is messy because the mandatory and non-mandatory
-    tours tables are originally created separately and later combined in to a single 'tours'
-    table. But during a few model steps before they are combined, they actually exist as two
-    distinct tables.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        domain_df or a df passed to random number/choice methods with well known index name
-
-    Returns
-    -------
-
-    """
-
-    _INDEX_CHANNEL_NAMES = {
-        'PERID': 'persons',
-        'HHID': 'households',
-        'tour_id': 'tours',
-        'trip_id': 'trips',
-    }
-    index_name = df.index.name
-
-    if index_name not in _INDEX_CHANNEL_NAMES:
-        raise RuntimeError("can't determine get_df_channel_name for index '%s'" % (index_name,))
-
-    return _INDEX_CHANNEL_NAMES[index_name]
-
-
-def channel_table_names(channel_name):
-    """
-    Return the pipeline/orca table names conatining the domain_dfs for this channel
-
-    Generally, the channel name is the same as the table name used by the pipeline and orca.
-
-    The exception is the 'tours' channel, which is messy because the mandatory and non-mandatory
-    tours tables are originally created separately and later combined in to a single 'tours'
-    table. But during a few model steps before they are combined, they actually exist as two
-    distinct tables.
-
-    We only need to know this dirty secret when we reload checkpointed channels. This function
-    exists to encapsulate that knowledge.
-
-    Parameters
-    ----------
-    channel_name
-
-    Returns
-    -------
-        table_names : str
-    """
-    # FIXME - this rigamarole is here to support the tours channel two component tables
-    _CHANNEL_TABLES = {
-        'persons': ['persons'],
-        'households': ['households'],
-        'tours': ["non_mandatory_tours", "mandatory_tours"],
-        'trips': ['trips'],
-    }
-
-    assert channel_name in _CHANNEL_TABLES
-
-    table_names = _CHANNEL_TABLES[channel_name]
-
-    return table_names
+_CHANNELS = {
+    'households': {
+        'max_steps': 2,
+        'index': 'HHID',
+        'table_names': ['households']
+    },
+    'persons': {
+        'max_steps': 5,
+        'index': 'PERID',
+        'table_names': ['persons']
+    },
+    'tours': {
+        'max_steps': 5,
+        'index': 'tour_id',
+        'table_names': ['non_mandatory_tours', 'mandatory_tours']
+    },
+    'trips': {
+        'max_steps': 5,
+        'index': 'trip_id',
+        'table_names': ['trips']
+    },
+}
 
 
 class SimpleChannel(object):
@@ -131,8 +93,6 @@ class SimpleChannel(object):
     """
 
     def __init__(self, channel_name, base_seed, domain_df, max_steps, step_name, step_num):
-
-        assert channel_name_from_index(domain_df) == channel_name
 
         self.name = channel_name
         self.base_seed = base_seed
@@ -200,8 +160,6 @@ class SimpleChannel(object):
 
         step_num : int or None
         """
-        # add additional domain_df rows to an existing channel
-        assert channel_name_from_index(domain_df) == self.name
 
         # these should be new rows, no intersection with existing row_states
         assert len(self.row_states.index.intersection(domain_df.index)) == 0
@@ -406,22 +364,76 @@ class SimpleChannel(object):
 
 class Random(object):
 
-    def __init__(self, max_channel_steps={}):
+    def __init__(self, channel_info=_CHANNELS):
 
-        self.max_channel_steps = max_channel_steps
+        self.channel_info = channel_info
+
+        # for map index name to channel name
+        self.index_map = {info['index']: channel_name
+                          for channel_name, info in self.channel_info.iteritems()}
+
         self.channels = {}
         self.step_name = None
         self.step_seed = None
-
         self.base_seed = 0
-
         self.global_rng = np.random.RandomState()
+
+    def get_channel_info(self, channel_name, property_name):
+
+        info = self.channel_info.get(channel_name, None)
+        if info is None:
+            raise RuntimeError("Unknown channel '%s'" % channel_name)
+
+        property = info.get(property_name, None)
+        if property is None:
+            raise RuntimeError("Unknown property '%s' for channel '%s'"
+                               % (property_name, channel_name))
+
+        return property
+
+    def get_channel_name_for_df(self, df):
+        """
+        Return the channel name corresponding to the index name of df
+
+        We expect that the random number channel can be determined by the name of the index of the
+        dataframe accompanying the request. This mapping was specified in channel_info
+
+        This function internally encapsulates the knowledge of that mapping.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            domain_df or a df passed to random number/choice methods with well known index name
+
+        Returns
+        -------
+            channel_name : str
+        """
+        channel_name = self.index_map.get(df.index.name, None)
+        if channel_name is None:
+            raise RuntimeError("No channel with index name '%s'" % df.index.name)
+        return channel_name
+
+    def get_channel_for_df(self, df):
+        """
+        Return the channel for this df. Channel should already have been loaded/added.
+
+        Parameters
+        ----------
+        df : pandas.dataframe
+            either a domain_df for a channel being added or extended
+            or a df for which random values are to be generated
+        """
+        channel_name = self.get_channel_name_for_df(df)
+        if channel_name not in self.channels:
+            raise RuntimeError("Channel '%s' has not yet been added." % channel_name)
+        return self.channels[channel_name]
 
     # step handling
 
     def begin_step(self, step_name):
         """
-        Register that the pipeline has entered a new staep and that global and channel streams
+        Register that the pipeline has entered a new step and that global and channel streams
         should transition to the new stream.
 
         Parameters
@@ -459,22 +471,6 @@ class Random(object):
 
     # channel management
 
-    def get_channel_for_df(self, df):
-        """
-        INTERNAL
-
-        return the canonical channel name for use with this df, based on its index name
-
-        Parameters
-        ----------
-        df : pandas.dataframe
-            either a domain_df for a channel being added or extended
-            or a df for which random values are to be generated
-        """
-        channel_name = channel_name_from_index(df)
-        assert channel_name in self.channels
-        return self.channels[channel_name]
-
     def add_channel(self, domain_df, channel_name, step_name=None, step_num=None):
         """
         Create or extend a channel for generating random number streams for domain_df.
@@ -500,13 +496,10 @@ class Random(object):
             for channels being loaded (resumed) we need the step_name and step_num to maintain
             consistent step numbering
         """
-        assert channel_name == channel_name_from_index(domain_df)
+        assert channel_name == self.get_channel_name_for_df(domain_df)
         assert (step_name is None) == (step_num is None)
 
         logger.debug("Random: add_channel step_num %s step_name '%s'" % (step_num, step_name))
-
-        if channel_name not in self.max_channel_steps:
-            logger.warn("Random.add_channel unknown channel '%s'" % channel_name)
 
         if channel_name in self.channels:
             logger.debug("extending channel '%s' %s ids" % (channel_name, len(domain_df.index)))
@@ -516,7 +509,7 @@ class Random(object):
         else:
             logger.debug("adding channel '%s' %s ids" % (channel_name, len(domain_df.index)))
 
-            max_steps = self.max_channel_steps.get(channel_name, 1)
+            max_steps = self.get_channel_info(channel_name, 'max_steps')
 
             channel = SimpleChannel(channel_name,
                                     self.base_seed,
@@ -570,8 +563,11 @@ class Random(object):
 
         for channel_state in saved_channels:
 
+            channel_name = channel_state.channel_name
+            assert channel_name in self.channel_info
+
             # FIXME - this rigamarole is here to support the tours channel two component tables
-            table_names = channel_table_names(channel_state.channel_name)
+            table_names = self.get_channel_info(channel_name, 'table_names')
 
             logger.debug("loading channel %s from %s" % (channel_state.channel_name, table_names))
 

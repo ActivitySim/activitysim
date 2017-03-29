@@ -50,8 +50,7 @@ def tdd_school_spec(configs_dir):
 # I think it's easier to do this in one model so you can merge the two
 # resulting series together right away
 @orca.step()
-def mandatory_scheduling(set_random_seed,
-                         mandatory_tours_merged,
+def mandatory_scheduling(mandatory_tours_merged,
                          tdd_alts,
                          tdd_school_spec,
                          tdd_work_spec,

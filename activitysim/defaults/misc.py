@@ -17,11 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 @orca.injectable()
-def set_random_seed():
-    pass
-
-
-@orca.injectable()
 def configs_dir():
     if not os.path.exists('configs'):
         raise RuntimeError("configs_dir: directory does not exist")

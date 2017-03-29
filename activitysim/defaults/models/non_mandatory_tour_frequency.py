@@ -45,8 +45,7 @@ def tot_tours(non_mandatory_tour_frequency_alts):
 
 
 @orca.step()
-def non_mandatory_tour_frequency(set_random_seed,
-                                 persons_merged,
+def non_mandatory_tour_frequency(persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec,
                                  non_mandatory_tour_frequency_settings,

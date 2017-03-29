@@ -28,8 +28,7 @@ def workplace_location_settings(configs_dir):
 
 
 @orca.step()
-def workplace_location_simulate(set_random_seed,
-                                persons_merged,
+def workplace_location_simulate(persons_merged,
                                 workplace_location_spec,
                                 workplace_location_settings,
                                 skim_dict,

@@ -404,7 +404,7 @@ becomes the table name in the first case, whereas the function name becomes the 
   #etc...
   
   @orca.table(cache=True)
-    def households(set_random_seed, store, settings):
+    def households(store, settings):
     
   @orca.column("households")
   def income_in_thousands(households):
@@ -419,7 +419,7 @@ the function as runnable by orca.
 
   @orca.step()
   def school_location_simulate(
-    set_random_seed, persons_merged,
+    persons_merged,
     school_location_spec, school_location_settings, 
     skims,
     destination_size_terms, 
@@ -453,7 +453,7 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
   
   #persons_internal requires store, settings, households
   @orca.table(cache=True)
-  def households(set_random_seed, store, households_sample_size, trace_hh_id):
+  def households(store, households_sample_size, trace_hh_id):
 
     df_full = store["households"]
 
@@ -481,7 +481,7 @@ destination_size_terms file, sets the persons merged table as choosers, and sets
 ::
 
   def school_location_simulate(
-    set_random_seed, persons_merged,
+    persons_merged,
     school_location_spec, school_location_settings, 
     skims,
     destination_size_terms, 

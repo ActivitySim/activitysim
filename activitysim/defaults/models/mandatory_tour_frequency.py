@@ -32,8 +32,7 @@ def mandatory_tour_frequency_settings(configs_dir):
 
 
 @orca.step()
-def mandatory_tour_frequency(set_random_seed,
-                             persons_merged,
+def mandatory_tour_frequency(persons_merged,
                              mandatory_tour_frequency_spec,
                              mandatory_tour_frequency_settings,
                              trace_hh_id):

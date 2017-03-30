@@ -851,7 +851,7 @@ with the same index as df</p>
 
 <dl class="class">
 <dt id="activitysim.skim.SkimStackWrapper">
-<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">SkimStackWrapper</code><span class="sig-paren">(</span><em>stack</em>, <em>left_key</em>, <em>right_key</em>, <em>skim_key</em>, <em>offset=None</em>, <em>omx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimStackWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.skim.</code><code class="descname">SkimStackWrapper</code><span class="sig-paren">(</span><em>stack</em>, <em>left_key</em>, <em>right_key</em>, <em>skim_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.skim.SkimStackWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SkimStackWrapper object wraps a skim objects to add an additional wrinkle of
 lookup functionality.  Upon init the separate skims objects are
 processed into a 3D matrix so that lookup of the different skims can
@@ -888,15 +888,10 @@ using origin, destination, and time of day.</p>
 <div><p>This is the Skims object to wrap</p>
 </div></blockquote>
 <p><strong>skim_key</strong> : str</p>
-<blockquote>
+<blockquote class="last">
 <div><p>This identifies the column in the dataframe which is used to
 select among Skim object using the SECOND item in each tuple (see
 above for a more complete description)</p>
-</div></blockquote>
-<p><strong>offset</strong> : int, optional</p>
-<blockquote class="last">
-<div><p>A single offset must be used for all Skim objects - previous
-offsets will be ignored</p>
 </div></blockquote>
 </td>
 </tr>

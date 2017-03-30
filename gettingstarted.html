@@ -623,7 +623,7 @@ becomes the table name in the first case, whereas the function name becomes the 
 <span class="c1">#etc...</span>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-  <span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;households&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">income_in_thousands</span><span class="p">(</span><span class="n">households</span><span class="p">):</span>
@@ -636,7 +636,7 @@ the function as runnable by orca.</p>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span>
-  <span class="n">set_random_seed</span><span class="p">,</span> <span class="n">persons_merged</span><span class="p">,</span>
+  <span class="n">persons_merged</span><span class="p">,</span>
   <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">school_location_settings</span><span class="p">,</span>
   <span class="n">skims</span><span class="p">,</span>
   <span class="n">destination_size_terms</span><span class="p">,</span>
@@ -668,7 +668,7 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
 
 <span class="c1">#persons_internal requires store, settings, households</span>
 <span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">set_random_seed</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">households_sample_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">households_sample_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
 
   <span class="n">df_full</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s2">&quot;households&quot;</span><span class="p">]</span>
 
@@ -694,7 +694,7 @@ orca goes looking for them.  This is called lazy loading (or on-demand loading).
 <p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> also reads the expressions specification file, settings yaml file,
 destination_size_terms file, sets the persons merged table as choosers, and sets the chunk size, trace id, and random seed.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span>
-  <span class="n">set_random_seed</span><span class="p">,</span> <span class="n">persons_merged</span><span class="p">,</span>
+  <span class="n">persons_merged</span><span class="p">,</span>
   <span class="n">school_location_spec</span><span class="p">,</span> <span class="n">school_location_settings</span><span class="p">,</span>
   <span class="n">skims</span><span class="p">,</span>
   <span class="n">destination_size_terms</span><span class="p">,</span>

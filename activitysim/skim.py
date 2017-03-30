@@ -347,7 +347,7 @@ class SkimStack(object):
 
         return stacked_skim_data[orig, dest, skim_indexes]
 
-    def wrap(self, left_key, right_key, skim_key, offset=None, omx=None):
+    def wrap(self, left_key, right_key, skim_key):
         """
         return a SkimStackWrapper for self
         """
@@ -394,12 +394,9 @@ class SkimStackWrapper(object):
         This identifies the column in the dataframe which is used to
         select among Skim object using the SECOND item in each tuple (see
         above for a more complete description)
-    offset : int, optional
-        A single offset must be used for all Skim objects - previous
-        offsets will be ignored
     """
 
-    def __init__(self, stack, left_key, right_key, skim_key, offset=None, omx=None):
+    def __init__(self, stack, left_key, right_key, skim_key):
 
         self.stack = stack
 

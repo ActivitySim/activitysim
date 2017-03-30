@@ -62,11 +62,6 @@ class AccessibilitySkims(object):
         else:
             return data.flatten()
 
-    def get_from_omx(self, key, v):
-        # get skim matrix from omx file if not found (because not preloaded) in skims
-        omx_key = key + '__' + v
-        return self.omx[omx_key]
-
 
 @orca.injectable()
 def accessibility_spec(configs_dir):

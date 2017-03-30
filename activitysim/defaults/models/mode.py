@@ -149,9 +149,9 @@ def tour_mode_choice_simulate(tours_merged,
 
     # setup skim keys
     odt_skim_stack_wrapper = skim_stack.wrap(left_key='TAZ', right_key='destination',
-                                             skim_key="out_period", offset=-1, omx=omx_file)
+                                             skim_key="out_period")
     dot_skim_stack_wrapper = skim_stack.wrap(left_key='destination', right_key='TAZ',
-                                             skim_key="in_period", offset=-1, omx=omx_file)
+                                             skim_key="in_period")
     od_skims = skim_dict.wrap('TAZ', 'destination')
 
     choices_list = []
@@ -264,7 +264,7 @@ def trip_mode_choice_simulate(trips_merged,
     logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key='OTAZ', right_key='DTAZ',
-                                             skim_key="start_period", offset=-1, omx=omx_file)
+                                             skim_key="start_period")
 
     od_skims = skim_dict.wrap('OTAZ', 'DTAZ')
 

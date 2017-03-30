@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import orca
 
-from tracing import print_elapsed_time, log_memory_info
+from tracing import print_elapsed_time
 
 import logging
 

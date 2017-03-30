@@ -121,6 +121,16 @@ def test_mini_pipeline_run():
     print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
 
+    # try to get a non-existant table
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.get_table("bogus")
+    assert "not in checkpointed tables" in str(excinfo.value)
+
+    # try to get an existing table from a non-existant checkpoint
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.get_table("households", checkpoint_name="bogus")
+    assert "not in checkpoints" in str(excinfo.value)
+
     pipeline.close()
 
     orca.clear_cache()
@@ -145,7 +155,10 @@ def test_mini_pipeline_run2():
 
     orca.clear_cache()
 
-    # assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+    # should be able to get this BEFORE pipeline is opened
+    checkpoints_df = pipeline.get_checkpoints()
+    prev_checkpoint_count = len(checkpoints_df.index)
+    assert prev_checkpoint_count == 7
 
     pipeline.start_pipeline('auto_ownership_simulate')
 
@@ -160,6 +173,12 @@ def test_mini_pipeline_run2():
     print "auto_choice\n", auto_choice.head(4)
     pdt.assert_series_equal(auto_choice[hh_ids], expected_auto_choice)
 
+    # try to run a model already in pipeline
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.run_model('auto_ownership_simulate')
+    assert "run model 'auto_ownership_simulate' more than once" in str(excinfo.value)
+
+    # and these new ones
     pipeline.run_model('cdap_simulate')
     pipeline.run_model('mandatory_tour_frequency')
 
@@ -174,7 +193,17 @@ def test_mini_pipeline_run2():
     print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
 
+    # should be able to get this before pipeline is closed (from existing open store)
+    assert orca.get_injectable('pipeline_store') is not None
+    checkpoints_df = pipeline.get_checkpoints()
+    assert len(checkpoints_df.index) == prev_checkpoint_count
+
     pipeline.close()
+
+    # should also be able to get this after pipeline is closed (open and close)
+    assert orca.get_injectable('pipeline_store') is None
+    checkpoints_df = pipeline.get_checkpoints()
+    assert len(checkpoints_df.index) == prev_checkpoint_count
 
     orca.clear_cache()
 

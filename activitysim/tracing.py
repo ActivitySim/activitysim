@@ -37,48 +37,6 @@ def extend_trace_label(trace_label, extension):
     return trace_label
 
 
-@contextmanager
-def log_elapsed_time(msg=None, debug=False):
-
-    t0 = time.time()
-
-    yield
-
-    t = time.time() - t0
-    msg = "Time to execute %s : %s seconds (%s minutes)" % (msg, round(t, 3), round(t / 60.0))
-    if debug:
-        logger.debug(msg)
-    else:
-        logger.info(msg)
-
-
-@contextmanager
-def log_memory_info(msg='', debug=False):
-
-    gc.collect()
-    process = psutil.Process(os.getpid())
-    bytes_before = process.memory_info().rss
-
-    yield
-
-    gc.collect()
-    bytes_after = process.memory_info().rss
-
-    bytes = bytes_after - bytes_before
-
-    # mb = (bytes / (1024 * 1024.0))
-    # gb = (bytes / (1024 * 1024 * 1024.0))
-    # msg = "memory_info: %s %s MB (%s GB)" % (msg, int(mb), round(gb, 2))
-
-    msg = "memory_info: %s before %s after %s delta %s" \
-          % (msg, bytes_before, bytes_after, bytes_after-bytes_before)
-
-    if debug:
-        logger.debug(msg)
-    else:
-        logger.info(msg)
-
-
 def print_elapsed_time(msg=None, t0=None, debug=False):
     t1 = time.time()
     if msg:

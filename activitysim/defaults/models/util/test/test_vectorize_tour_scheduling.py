@@ -57,7 +57,7 @@ def test_vts():
     # there's no real logic here - this is just what came out of the monte carlo
     # note that the result comes out ordered by the nth trips and not ordered
     # by the trip index.  shrug?
-    expected = [20, 30, 20, 20, 20]
+    expected = [20, 30, 20, 20, 30]
     pdt.assert_series_equal(
         choices,
         pd.Series(expected,

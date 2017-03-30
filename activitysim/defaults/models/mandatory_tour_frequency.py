@@ -10,7 +10,7 @@ import yaml
 
 from activitysim import activitysim as asim
 from activitysim import tracing
-from .util.mandatory_tour_frequency import process_mandatory_tours
+from .util.tour_frequency import process_mandatory_tours
 from activitysim import pipeline
 
 from .util.misc import read_model_settings, get_logit_model_settings, get_model_constants
@@ -32,8 +32,7 @@ def mandatory_tour_frequency_settings(configs_dir):
 
 
 @orca.step()
-def mandatory_tour_frequency(set_random_seed,
-                             persons_merged,
+def mandatory_tour_frequency(persons_merged,
                              mandatory_tour_frequency_spec,
                              mandatory_tour_frequency_settings,
                              trace_hh_id):
@@ -97,12 +96,6 @@ def create_mandatory_tours_table():
                                         "is_worker", "school_taz", "workplace_taz"])
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
     df = process_mandatory_tours(persons)
-
-    # if there is already a non_mandatory_tours table, then want compatible indexing with it
-    if orca.is_table("non_mandatory_tours"):
-        index_offset = orca.get_table("non_mandatory_tours").local.index.max() + 1
-        logger.info("create_mandatory_tours_table offsetting index by %s" % index_offset)
-        df.index = df.index + index_offset
 
     orca.add_table("mandatory_tours", df)
     tracing.register_traceable_table('mandatory_tours', df)

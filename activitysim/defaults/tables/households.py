@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @orca.table()
-def households(set_random_seed, store, households_sample_size, trace_hh_id):
+def households(store, households_sample_size, trace_hh_id):
 
     df_full = store["households"]
 

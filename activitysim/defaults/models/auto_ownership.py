@@ -27,7 +27,7 @@ def auto_ownership_settings(configs_dir):
 
 
 @orca.step()
-def auto_ownership_simulate(set_random_seed, households_merged,
+def auto_ownership_simulate(households_merged,
                             auto_ownership_spec,
                             auto_ownership_settings,
                             trace_hh_id):

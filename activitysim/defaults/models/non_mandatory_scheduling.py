@@ -29,8 +29,7 @@ def non_mandatory_scheduling_settings(configs_dir):
 
 
 @orca.step()
-def non_mandatory_scheduling(set_random_seed,
-                             non_mandatory_tours_merged,
+def non_mandatory_scheduling(non_mandatory_tours_merged,
                              tdd_alts,
                              tdd_non_mandatory_spec,
                              non_mandatory_scheduling_settings,

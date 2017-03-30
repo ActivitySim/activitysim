@@ -6,7 +6,7 @@ import pytest
 import os
 import pandas as pd
 import pandas.util.testing as pdt
-from ..mandatory_tour_frequency import process_mandatory_tours
+from ..tour_frequency import process_mandatory_tours
 
 
 def test_mtf():
@@ -19,7 +19,7 @@ def test_mtf():
 
     mandatory_tours = process_mandatory_tours(persons)
 
-    idx = pd.Index([0, 1, 2, 3, 4], name="tour_id")
+    idx = pd.Index([119, 229, 226, 335, 336], name="tour_id")
 
     pdt.assert_series_equal(
         mandatory_tours.person_id,

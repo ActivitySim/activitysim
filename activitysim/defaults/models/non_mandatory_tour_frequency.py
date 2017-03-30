@@ -15,7 +15,7 @@ from activitysim import pipeline
 
 from .util.misc import add_dependent_columns
 from activitysim.util import reindex
-from .util.non_mandatory_tour_frequency import process_non_mandatory_tours
+from .util.tour_frequency import process_non_mandatory_tours
 
 from .util.misc import read_model_settings, get_model_constants
 
@@ -45,8 +45,7 @@ def tot_tours(non_mandatory_tour_frequency_alts):
 
 
 @orca.step()
-def non_mandatory_tour_frequency(set_random_seed,
-                                 persons_merged,
+def non_mandatory_tour_frequency(persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec,
                                  non_mandatory_tour_frequency_settings,
@@ -129,12 +128,6 @@ def create_non_mandatory_tours_table():
         persons.non_mandatory_tour_frequency.dropna(),
         non_mandatory_tour_frequency_alts.local
     )
-
-    # if there is already a mandatory_tours table, then want compatible indexing with it
-    if orca.is_table("mandatory_tours"):
-        index_offset = orca.get_table("mandatory_tours").local.index.max() + 1
-        logger.info("create_non_mandatory_tours_table offseting index by %s" % index_offset)
-        df.index = df.index + index_offset
 
     orca.add_table("non_mandatory_tours", df)
     tracing.register_traceable_table('non_mandatory_tours', df)

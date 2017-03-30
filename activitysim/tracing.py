@@ -1,11 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import os
+import psutil
+import gc
+
 import logging
 import logging.config
-import os
 import sys
 import time
+from contextlib import contextmanager
 
 import yaml
 

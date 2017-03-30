@@ -28,8 +28,7 @@ def destination_choice_settings(configs_dir):
 
 
 @orca.step()
-def destination_choice(set_random_seed,
-                       non_mandatory_tours_merged,
+def destination_choice(non_mandatory_tours_merged,
                        skim_dict,
                        destination_choice_spec,
                        destination_choice_settings,

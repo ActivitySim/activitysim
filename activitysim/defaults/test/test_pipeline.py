@@ -23,6 +23,7 @@ from ... import pipeline
 HOUSEHOLDS_SAMPLE_SIZE = 100
 HH_ID = 961042
 
+SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
 
 
@@ -42,6 +43,32 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
             settings['check_for_variability'] = check_for_variability
 
     orca.add_injectable("settings", settings)
+
+
+def test_rng_access():
+
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    orca.add_injectable("configs_dir", configs_dir)
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    orca.add_injectable("output_dir", output_dir)
+
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    orca.add_injectable("data_dir", data_dir)
+
+    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+
+    orca.clear_cache()
+
+    pipeline.set_rn_generator_base_seed(0)
+
+    pipeline.start_pipeline()
+
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.set_rn_generator_base_seed(0)
+    assert "call set_rn_generator_base_seed before the first step" in str(excinfo.value)
+
+    rng = pipeline.get_rn_generator()
 
 
 def test_mini_pipeline_run():
@@ -72,13 +99,13 @@ def test_mini_pipeline_run():
 
     auto_choice = pipeline.get_table("households").auto_ownership
 
-    # regression test: these are the 2nd-4th households in households table
-    hh_ids = [2664549, 2122982, 1829334]
-    choices = [0, 2, 1]
+    # regression test: these are the first 3 households in households table
+    hh_ids = [26960, 857296, 93428]
+    choices = [0, 1, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
-    print "auto_choice\n", auto_choice.head(4)
+    print "auto_choice\n", auto_choice.head(10)
     pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
 
     pipeline.run_model('cdap_simulate')
@@ -86,13 +113,23 @@ def test_mini_pipeline_run():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [24995, 92148, 92872]
-    choices = ['work1', 'work_and_school', 'school2']
+    per_ids = [92363, 92681, 93428]
+    choices = ['work1', 'school1', 'school2']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
     print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
+
+    # try to get a non-existant table
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.get_table("bogus")
+    assert "not in checkpointed tables" in str(excinfo.value)
+
+    # try to get an existing table from a non-existant checkpoint
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.get_table("households", checkpoint_name="bogus")
+    assert "not in checkpoints" in str(excinfo.value)
 
     pipeline.close()
 
@@ -118,35 +155,55 @@ def test_mini_pipeline_run2():
 
     orca.clear_cache()
 
-    # assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+    # should be able to get this BEFORE pipeline is opened
+    checkpoints_df = pipeline.get_checkpoints()
+    prev_checkpoint_count = len(checkpoints_df.index)
+    assert prev_checkpoint_count == 7
 
     pipeline.start_pipeline('auto_ownership_simulate')
 
     auto_choice = pipeline.get_table("households").auto_ownership
 
     # regression test: these are the 2nd-4th households in households table
-    hh_ids = [2664549, 2122982, 1829334]
-    choices = [0, 2, 1]
+    hh_ids = [26960, 857296, 93428]
+    choices = [0, 1, 0]
     expected_auto_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                      name='auto_ownership')
 
     print "auto_choice\n", auto_choice.head(4)
     pdt.assert_series_equal(auto_choice[hh_ids], expected_auto_choice)
 
+    # try to run a model already in pipeline
+    with pytest.raises(RuntimeError) as excinfo:
+        pipeline.run_model('auto_ownership_simulate')
+    assert "run model 'auto_ownership_simulate' more than once" in str(excinfo.value)
+
+    # and these new ones
     pipeline.run_model('cdap_simulate')
     pipeline.run_model('mandatory_tour_frequency')
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [24995, 92148, 92872]
-    choices = ['work1', 'work_and_school', 'school2']
+    per_ids = [92363, 92681, 93428]
+
+    choices = ['work1', 'school1', 'school2']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
     print "mtf_choice\n", mtf_choice.head(20)
     pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
 
+    # should be able to get this before pipeline is closed (from existing open store)
+    assert orca.get_injectable('pipeline_store') is not None
+    checkpoints_df = pipeline.get_checkpoints()
+    assert len(checkpoints_df.index) == prev_checkpoint_count
+
     pipeline.close()
+
+    # should also be able to get this after pipeline is closed (open and close)
+    assert orca.get_injectable('pipeline_store') is None
+    checkpoints_df = pipeline.get_checkpoints()
+    assert len(checkpoints_df.index) == prev_checkpoint_count
 
     orca.clear_cache()
 
@@ -175,7 +232,7 @@ def full_run(resume_after=None, chunk_size=0,
 
     tracing.config_logger()
 
-    assert orca.get_injectable("chunk_size") == chunk_size
+    # assert orca.get_injectable("chunk_size") == chunk_size
 
     _MODELS = [
         'compute_accessibility',
@@ -226,9 +283,9 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_PERSON_IDS = ['1888694', '1888695', '1888695', '1888696']
-EXPECT_TOUR_TYPES = ['work', 'othmaint', 'work', 'school']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_COM', 'DRIVE_LOC', 'DRIVE_LOC']
+EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
+EXPECT_TOUR_TYPES = ['work', 'work', 'othdiscr']
+EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY']
 
 
 def test_full_run1():
@@ -239,17 +296,16 @@ def test_full_run1():
     tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    assert(tour_count == 205)
+    assert(tour_count == 160)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
 
     print mode_df
-    #         tour_id       mode person_id tour_type tour_num
-    # value_2      38  DRIVE_LOC   1888694      work        1
-    # value_1     201  DRIVE_COM   1888695  othmaint        1
-    # value_3      39  DRIVE_LOC   1888695      work        1
-    # value_4      40  DRIVE_COM   1888696    school        1
+    #           tour_id           mode person_id tour_type tour_num
+    # value_2  20775643      DRIVE_LOC   1888694      work        1
+    # value_3  20775654      DRIVE_LOC   1888695      work        1
+    # value_1  20775659  DRIVEALONEPAY   1888696  othdiscr        1
 
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
@@ -265,7 +321,7 @@ def test_full_run2():
 
     tour_count = full_run(resume_after='non_mandatory_scheduling', trace_hh_id=HH_ID)
 
-    assert(tour_count == 205)
+    assert(tour_count == 160)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
@@ -286,7 +342,7 @@ def test_full_run_with_chunks():
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
                           chunk_size=10)
 
-    assert(tour_count == 205)
+    assert(tour_count == 160)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)

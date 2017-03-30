@@ -30,8 +30,7 @@ def school_location_settings(configs_dir):
 
 
 @orca.step()
-def school_location_simulate(set_random_seed,
-                             persons_merged,
+def school_location_simulate(persons_merged,
                              school_location_spec,
                              school_location_settings,
                              skim_dict,

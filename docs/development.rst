@@ -45,11 +45,11 @@ Working Together in the Repository
 
 We use `GitHub Flow <https://guides.github.com/introduction/flow>`__.  The key points to 
 our GitHub workflow are:
+
 * The master branch contains the latest working/release version of the ActivitySim resources
 * The master branch is not directly written to
-* Work is done in a develop branch or an issue/feature branch off of develop
-* When an issue/feature is complete, it is merged into the develop branch
-* When deemed appropriate, a pull request is created to merge develop into master
+* Work is done in an issue/feature branch
+* When deemed appropriate, a pull request is created to merge the issue/feature branch into master
 * The repository administrator handles the pull request and makes sure to also update related resources such as the wiki, documentation, issues, etc.
 
 Testing

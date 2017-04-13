@@ -50,7 +50,7 @@ our GitHub workflow are:
 * The master branch is not directly written to
 * Work is done in an issue/feature branch
 * When deemed appropriate, a pull request is created to merge the issue/feature branch into master
-* The repository administrator handles the pull request and makes sure to also update related resources such as the wiki, documentation, issues, etc.
+* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
 
 Testing
 -------

@@ -48,8 +48,8 @@ our GitHub workflow are:
 
 * The master branch contains the latest working/release version of the ActivitySim resources
 * The master branch is not directly written to
-* Work is done in an issue/feature branch
-* When deemed appropriate, a pull request is created to merge the issue/feature branch into master
+* Work is done in an issue/feature branch (or a fork)
+* When deemed appropriate, a pull request is created to merge the issue/feature branch (or a fork) into master
 * The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
 
 Testing

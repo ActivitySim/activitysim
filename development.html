@@ -95,9 +95,10 @@
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#software-design">Software Design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#style">Style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#imports">Imports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#working-with-git-and-github">Working with Git and GitHub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-together-in-the-repository">Working Together in the Repository</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#releases">Releases</a></li>
@@ -171,6 +172,18 @@
 <p>The purpose of this page is to document how to contribute to ActivitySim.</p>
 <p>In developing this software platform, we strive to adhere to a best practices approach to scientific computing,
 as summarized in <a class="reference external" href="http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745">this article.</a></p>
+<div class="section" id="software-design">
+<h2>Software Design<a class="headerlink" href="#software-design" title="Permalink to this headline">¶</a></h2>
+<p>ActivitySim is implemented in Python, and makes heavy use of the vectorized backend
+C/C++ libraries in pandas and numpy. The core design principle of the system is
+vectorization of for loops, and this principle is woven into the system wherever
+reasonable. As a result, the Python portions of the software can be thought of as
+more of an orchestrator, data processor, etc. that integrates a series of C/C++
+vectorized data table and matrix operations. The model system formulates each
+simulation as a series of vectorized table operations and the Python layer is
+responsible for setting up and providing expressions to operate on these large
+data tables.</p>
+</div>
 <div class="section" id="style">
 <h2>Style<a class="headerlink" href="#style" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -194,12 +207,16 @@ as summarized in <a class="reference external" href="http://www.plosbiology.org/
 </pre></div>
 </div>
 </div>
-<div class="section" id="working-with-git-and-github">
-<h2>Working with Git and GitHub<a class="headerlink" href="#working-with-git-and-github" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="working-together-in-the-repository">
+<h2>Working Together in the Repository<a class="headerlink" href="#working-together-in-the-repository" title="Permalink to this headline">¶</a></h2>
+<p>We use <a class="reference external" href="https://guides.github.com/introduction/flow">GitHub Flow</a>.  The key points to
+our GitHub workflow are:</p>
 <ul class="simple">
-<li><a class="reference external" href="https://help.github.com">GitHub Help</a></li>
-<li><a class="reference external" href="https://guides.github.com">GitHub Guides</a></li>
-<li><a class="reference external" href="https://guides.github.com/introduction/flow">Workflows</a></li>
+<li>The master branch contains the latest working/release version of the ActivitySim resources</li>
+<li>The master branch is not directly written to</li>
+<li>Work is done in an issue/feature branch (or a fork)</li>
+<li>When deemed appropriate, a pull request is created to merge the issue/feature branch (or a fork) into master</li>
+<li>The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated</li>
 </ul>
 </div>
 <div class="section" id="testing">
@@ -220,6 +237,13 @@ as summarized in <a class="reference external" href="http://www.plosbiology.org/
 <span class="n">coveralls</span>
 </pre></div>
 </div>
+<p>In some cases, test targets need to be updated to match the new results produced by the code since these
+are now the correct results.  In order to update the test targets, first determine which tests are
+failing and then review the failing lines in the source files.  These are easy to identify since each
+test ultimately comes down to one of Python&#8217;s various types of <cite>assert</cite> statements.  Once you identify
+which <cite>assert</cite> is failing, you can work your way back through the code that creates the test targets in
+order to update it.  After updating the test targets, re-run the tests to confirm the new code passes all
+the tests.</p>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
@@ -304,7 +328,7 @@ The script does the following:</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

@@ -6,6 +6,18 @@ The purpose of this page is to document how to contribute to ActivitySim.
 In developing this software platform, we strive to adhere to a best practices approach to scientific computing, 
 as summarized in `this article. <http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745>`__
 
+Software Design
+---------------
+ActivitySim is implemented in Python, and makes heavy use of the vectorized backend 
+C/C++ libraries in pandas and numpy. The core design principle of the system is 
+vectorization of for loops, and this principle is woven into the system wherever 
+reasonable. As a result, the Python portions of the software can be thought of as 
+more of an orchestrator, data processor, etc. that integrates a series of C/C++ 
+vectorized data table and matrix operations. The model system formulates each 
+simulation as a series of vectorized table operations and the Python layer is 
+responsible for setting up and providing expressions to operate on these large 
+data tables.
+
 Style
 -----
 
@@ -28,12 +40,17 @@ Imports
     import pandas as pd
     import scipy as sp
 
-Working with Git and GitHub
----------------------------
+Working Together in the Repository
+----------------------------------
 
-* `GitHub Help <https://help.github.com>`__
-* `GitHub Guides <https://guides.github.com>`__
-* `Workflows <https://guides.github.com/introduction/flow>`__
+We use `GitHub Flow <https://guides.github.com/introduction/flow>`__.  The key points to 
+our GitHub workflow are:
+
+* The master branch contains the latest working/release version of the ActivitySim resources
+* The master branch is not directly written to
+* Work is done in an issue/feature branch (or a fork)
+* When deemed appropriate, a pull request is created to merge the issue/feature branch (or a fork) into master
+* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
 
 Testing
 -------
@@ -58,7 +75,15 @@ Next, run the tests with the following commands:
     pep8 activitysim
     py.test --cov activitysim --cov-report term-missing
     coveralls
-    
+
+In some cases, test targets need to be updated to match the new results produced by the code since these 
+are now the correct results.  In order to update the test targets, first determine which tests are 
+failing and then review the failing lines in the source files.  These are easy to identify since each 
+test ultimately comes down to one of Python's various types of `assert` statements.  Once you identify 
+which `assert` is failing, you can work your way back through the code that creates the test targets in 
+order to update it.  After updating the test targets, re-run the tests to confirm the new code passes all 
+the tests.
+
 Documentation
 -------------
 

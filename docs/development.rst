@@ -49,8 +49,8 @@ our GitHub workflow are:
 * The master branch contains the latest working/release version of the ActivitySim resources
 * The master branch is protected and therefore can only be written to by the `Travis <https://travis-ci.org/>`__ CI system
 * Work is done in an issue/feature branch (or a fork) and then pushed to a new brach in the repo
-* A pull request to merge the issue/feature branch into master is automatically created when a new branch is created
-* The test system automatically runs the tests on the new branch.  If the tests pass, then the pull request can be approved
+* The test system automatically runs the tests on the new branch
+* If the tests pass, then a pull request can be approved to merge into master
 * The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
 
 Testing

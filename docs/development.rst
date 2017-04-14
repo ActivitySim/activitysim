@@ -47,9 +47,10 @@ We use `GitHub Flow <https://guides.github.com/introduction/flow>`__.  The key p
 our GitHub workflow are:
 
 * The master branch contains the latest working/release version of the ActivitySim resources
-* The master branch is not directly written to
-* Work is done in an issue/feature branch (or a fork)
-* When deemed appropriate, a pull request is created to merge the issue/feature branch (or a fork) into master
+* The master branch is protected and therefore can only be written to by the `Travis <https://travis-ci.org/>`__ CI system
+* Work is done in an issue/feature branch (or a fork) and then pushed to a new brach in the repo
+* The test system automatically runs the tests on the new branch
+* If the tests pass, then a pull request can be approved to merge into master
 * The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
 
 Testing
@@ -61,7 +62,7 @@ ActivitySim testing is done with three tools:
 * `pytest <http://pytest.org/latest/>`__, a Python testing tool
 * `coveralls <https://github.com/coagulant/coveralls-python>`__, a tool for measuring code coverage and publishing code coverage stats online
 
-To run the test, first make sure the required packages are installed:
+To run the tests locally, first make sure the required packages are installed:
 
 ::
 
@@ -75,6 +76,9 @@ Next, run the tests with the following commands:
     pep8 activitysim
     py.test --cov activitysim --cov-report term-missing
     coveralls
+
+These same tests are run by Travis with each push to the repository.  These tests need to pass in order
+to merge the revisions into master.
 
 In some cases, test targets need to be updated to match the new results produced by the code since these 
 are now the correct results.  In order to update the test targets, first determine which tests are 

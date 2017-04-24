@@ -15,12 +15,12 @@ logging:
   loggers:
 
     activitysim:
-      level: !!python/name:logging.INFO
+      level: !!python/name:logging.DEBUG
       handlers: [console, logfile]
       propagate: false
 
     orca:
-      level: !!python/name:logging.WARN
+      level: !!python/name:logging.INFO
       handlers: [console, logfile]
       propagate: false
 
@@ -28,9 +28,9 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.tracing.log_file_path ['asim.log']
+      filename: !!python/object/apply:activitysim.core.tracing.log_file_path ['xasim.log']
       mode: w
-      formatter: fileFormatter
+      formatter: simpleFormatter
       level: !!python/name:logging.NOTSET
 
     console:
@@ -38,14 +38,13 @@ logging:
       stream: ext://sys.stdout
       formatter: simpleFormatter
       #level: !!python/name:logging.NOTSET
-      level: !!python/name:logging.DEBUG
+      level: !!python/name:logging.WARN
 
   formatters:
 
     simpleFormatter:
       class: !!python/name:logging.Formatter
-      # format: '%(levelname)s - %(name)s - %(message)s'
-      format: '%(levelname)s - %(message)s'
+      format: '%(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
 
     fileFormatter:

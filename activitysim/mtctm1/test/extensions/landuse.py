@@ -1,3 +1,6 @@
+import numpy as np
+import pandas as pd
+
 import orca
 
 @orca.column("land_use")

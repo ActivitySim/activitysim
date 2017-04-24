@@ -119,6 +119,7 @@ def has_part_time(persons):
 def has_university(persons):
     return presence_of("university", persons)
 
+
 # convert employment categories to string descriptors
 @orca.column("persons")
 def employed_cat(persons, settings):
@@ -148,6 +149,7 @@ def student_is_employed(persons):
 def nonstudent_to_school(persons):
     return (persons.ptype_cat.isin(['full', 'part', 'nonwork', 'retired']) &
             persons.student_cat.isin(['grade_or_high', 'college']))
+
 
 @orca.column("persons")
 def is_worker(persons):

@@ -6,6 +6,18 @@ The purpose of this page is to document how to contribute to ActivitySim.
 In developing this software platform, we strive to adhere to a best practices approach to scientific computing, 
 as summarized in `this article. <http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745>`__
 
+Software Design
+---------------
+ActivitySim is implemented in Python, and makes heavy use of the vectorized backend 
+C/C++ libraries in pandas and numpy. The core design principle of the system is 
+vectorization of for loops, and this principle is woven into the system wherever 
+reasonable. As a result, the Python portions of the software can be thought of as 
+more of an orchestrator, data processor, etc. that integrates a series of C/C++ 
+vectorized data table and matrix operations. The model system formulates each 
+simulation as a series of vectorized table operations and the Python layer is 
+responsible for setting up and providing expressions to operate on these large 
+data tables.
+
 Style
 -----
 
@@ -28,12 +40,18 @@ Imports
     import pandas as pd
     import scipy as sp
 
-Working with Git and GitHub
----------------------------
+Working Together in the Repository
+----------------------------------
 
-* `GitHub Help <https://help.github.com>`__
-* `GitHub Guides <https://guides.github.com>`__
-* `Workflows <https://guides.github.com/introduction/flow>`__
+We use `GitHub Flow <https://guides.github.com/introduction/flow>`__.  The key points to 
+our GitHub workflow are:
+
+* The master branch contains the latest working/release version of the ActivitySim resources
+* The master branch is protected and therefore can only be written to by the `Travis <https://travis-ci.org/>`__ CI system
+* Work is done in an issue/feature branch (or a fork) and then pushed to a new brach in the repo
+* The test system automatically runs the tests on the new branch
+* If the tests pass, then a pull request can be approved to merge into master
+* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
 
 Testing
 -------
@@ -44,7 +62,7 @@ ActivitySim testing is done with three tools:
 * `pytest <http://pytest.org/latest/>`__, a Python testing tool
 * `coveralls <https://github.com/coagulant/coveralls-python>`__, a tool for measuring code coverage and publishing code coverage stats online
 
-To run the test, first make sure the required packages are installed:
+To run the tests locally, first make sure the required packages are installed:
 
 ::
 
@@ -58,7 +76,18 @@ Next, run the tests with the following commands:
     pep8 activitysim
     py.test --cov activitysim --cov-report term-missing
     coveralls
-    
+
+These same tests are run by Travis with each push to the repository.  These tests need to pass in order
+to merge the revisions into master.
+
+In some cases, test targets need to be updated to match the new results produced by the code since these 
+are now the correct results.  In order to update the test targets, first determine which tests are 
+failing and then review the failing lines in the source files.  These are easy to identify since each 
+test ultimately comes down to one of Python's various types of `assert` statements.  Once you identify 
+which `assert` is failing, you can work your way back through the code that creates the test targets in 
+order to update it.  After updating the test targets, re-run the tests to confirm the new code passes all 
+the tests.
+
 Documentation
 -------------
 

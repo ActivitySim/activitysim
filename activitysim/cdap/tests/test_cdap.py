@@ -9,7 +9,7 @@ import pandas.util.testing as pdt
 import pytest
 
 from .. import cdap
-from ...activitysim import read_model_spec
+from ...core.simulate import read_model_spec
 
 
 @pytest.fixture(scope='module')

@@ -8,12 +8,10 @@ import numpy as np
 import pandas as pd
 from zbox import toolz as tz, gen
 
-from ..activitysim import eval_variables
+from ..core.simulate import eval_variables
 
-from .. import nl
-
-from .. import tracing
-from ..tracing import print_elapsed_time
+from ..core import logit
+from ..core import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -590,11 +588,11 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
     if len(utils.index) == 0:
         return pd.Series()
 
-    probs = nl.utils_to_probs(utils, trace_label=trace_label)
+    probs = logit.utils_to_probs(utils, trace_label=trace_label)
 
     # select an activity pattern alternative for each household based on probability
     # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
-    idx_choices, rands = nl.make_choices(probs, trace_label=trace_label)
+    idx_choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
@@ -733,7 +731,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     # select an activity pattern alternative for each person based on probability
     # idx_choices is a series (indexed on _persons_index_ ) with the chosen alternative represented
     # as the integer (0 based) index of the chosen column from probs
-    idx_choices, rands = nl.make_choices(probs, trace_label=trace_label)
+    idx_choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
     # convert choice from column index to activity name
     choices = pd.Series(probs.columns[idx_choices].values, index=probs.index)

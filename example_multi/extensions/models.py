@@ -9,12 +9,12 @@ import pandas as pd
 
 import orca
 
-from activitysim import activitysim as asim
+from activitysim.core import simulate as asim
 
-from activitysim import asim_eval as asim_eval
+from activitysim.core import asim_eval as asim_eval
 
-from activitysim import tracing
-from activitysim.defaults.models.util.misc import read_model_settings, get_logit_model_settings, get_model_constants
+from activitysim.core import tracing
+from activitysim.core import config
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def best_transit_path_spec(configs_dir):
 
 @orca.injectable()
 def best_transit_path_settings(configs_dir):
-    return read_model_settings(configs_dir, 'best_transit_path.yaml')
+    return config.read_model_settings(configs_dir, 'best_transit_path.yaml')
 
 
 VECTOR_TEST_SIZE = 10000
@@ -77,7 +77,7 @@ def best_transit_path(set_random_seed,
     else:
         trace_oabd_rows = None
 
-    constants = get_model_constants(best_transit_path_settings)
+    constants = config.get_model_constants(best_transit_path_settings)
     locals_d = {
         'network_los': network_los
     }

@@ -7,6 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -93,7 +94,18 @@ def read_assignment_spec(fname,
     return cfg
 
 
-def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
+class NumpyLogger(object):
+    def __init__(self, logger):
+        self.logger = logger
+        self.target = ''
+        self.expression = ''
+
+    def write(self, msg):
+        self.logger.error("numpy warning: %s" % (msg.rstrip()))
+        self.logger.error("expression: %s = %s" % (str(self.target), str(self.expression)))
+
+
+def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, trace_rows=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -103,8 +115,12 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
     accessible as variable df.) They also have access to previously assigned
     targets as the assigned target name.
 
-    variables starting with underscore are considered temps variables and returned seperately
-    (and only if return_temp_variables is true)
+    lowercase variables starting with underscore are temp variables (e.g. _local_var)
+    and not returned except in trace_restults
+
+    uppercase variables starting with underscore are temp variables (e.g. _LOCAL_SCALAR)
+    and not returned except in trace_assigned_locals
+    This is useful for defining general purpose local constants in expression file
 
     Users should take care that expressions should result in
     a Pandas Series (scalars will be automatically promoted to series.)
@@ -129,24 +145,36 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
         a dataframe containing the eval result values for each assignment expression
     """
 
+    np_logger = NumpyLogger(logger)
+
+    def is_local(target):
+        return target.startswith('_') and target.isupper()
+
+    def is_temp(target):
+        return target.startswith('_')
+
     def to_series(x, target=None):
         if x is None or np.isscalar(x):
             if target:
-                logger.warning("WARNING: assign_variables promoting scalar %s to series" % target)
+                logger.warn("WARNING: assign_variables promoting scalar %s to series" % target)
             return pd.Series([x] * len(df.index), index=df.index)
         return x
 
-    trace_results = None
+    trace_assigned_locals = trace_results = None
     if trace_rows is not None:
         # convert to numpy array so we can slice ndarrays as well as series
         trace_rows = np.asanyarray(trace_rows)
         if trace_rows.any():
             trace_results = []
+            trace_assigned_locals = {}
 
     # avoid touching caller's passed-in locals_d parameter (they may be looping)
-    locals_d = locals_d.copy() if locals_d is not None else {}
-    locals_d['df'] = df
-    local_keys = locals_d.keys()
+    locals_dict = locals_dict.copy() if locals_dict is not None else {}
+    if df_alias:
+        locals_dict[df_alias] = df
+    else:
+        locals_dict['df'] = df
+    local_keys = locals_dict.keys()
 
     l = []
     # need to be able to identify which variables causes an error, which keeps
@@ -157,12 +185,33 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
         if target in local_keys:
             logger.warn("assign_variables target obscures local_d name '%s'" % str(target))
 
+        if is_local(target):
+            x = eval(expression, globals(), locals_dict)
+            locals_dict[target] = x
+            if trace_assigned_locals is not None:
+                trace_assigned_locals[target] = x
+            continue
+
         try:
-            values = to_series(eval(expression, globals(), locals_d), target=target)
+
+            # FIXME - log any numpy warnings/errors but don't raise
+            np_logger.target = str(target)
+            np_logger.expression = str(expression)
+            saved_handler = np.seterrcall(np_logger)
+            save_err = np.seterr(all='log')
+
+            values = to_series(eval(expression, globals(), locals_dict), target=target)
+
+            np.seterr(**save_err)
+            np.seterrcall(saved_handler)
+
         except Exception as err:
-            logger.error("assign_variables failed target: %s expression: %s"
+            logger.error("assign_variables error: %s: %s" % (type(err).__name__, str(err)))
+
+            logger.error("assign_variables expression: %s = %s"
                          % (str(target), str(expression)))
-            # raise err
+
+            # values = to_series(None, target=target)
             raise err
 
         l.append((target, values))
@@ -171,7 +220,7 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
             trace_results.append((target, values[trace_rows]))
 
         # update locals to allows us to ref previously assigned targets
-        locals_d[target] = values
+        locals_dict[target] = values
 
     # build a dataframe of eval results for non-temp targets
     # since we allow targets to be recycled, we want to only keep the last usage
@@ -182,7 +231,7 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
     for statement in reversed(l):
         # statement is a tuple (<target_name>, <eval results in pandas.Series>)
         target_name = statement[0]
-        if not target_name.startswith('_') and target_name not in seen:
+        if not is_temp(target_name) and target_name not in seen:
             variables.insert(0, statement)
             seen.add(target_name)
 
@@ -190,6 +239,13 @@ def assign_variables(assignment_expressions, df, locals_d, trace_rows=None):
     variables = pd.DataFrame.from_items(variables)
 
     if trace_results is not None:
-        trace_results = undupe_column_names(pd.DataFrame.from_items(trace_results))
 
-    return variables, trace_results
+        trace_results = pd.DataFrame.from_items(trace_results)
+        trace_results.index = df[trace_rows].index
+
+        trace_results = undupe_column_names(trace_results)
+
+        # add df columns to trace_results
+        trace_results = pd.concat([df[trace_rows], trace_results], axis=1)
+
+    return variables, trace_results, trace_assigned_locals

@@ -11,7 +11,7 @@ import orca
 
 from activitysim.core import simulate as asim
 
-from activitysim.core import asim_eval as asim_eval
+from activitysim.core import assign
 
 from activitysim.core import tracing
 from activitysim.core import config
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 @orca.injectable()
 def best_transit_path_spec(configs_dir):
     f = os.path.join(configs_dir, 'best_transit_path.csv')
-    return asim_eval.read_assignment_spec(f)
+    return assign.read_assignment_spec(f)
 
 
 @orca.injectable()
@@ -84,7 +84,8 @@ def best_transit_path(set_random_seed,
     if constants is not None:
         locals_d.update(constants)
 
-    results, trace_results = asim_eval.assign_variables(best_transit_path_spec, atap_btap_df, locals_d, trace_rows=trace_oabd_rows)
+    results, trace_results, trace_assigned_locals \
+        = assign.assign_variables(best_transit_path_spec, atap_btap_df, locals_d, trace_rows=trace_oabd_rows)
 
     # tracing.trace_df(results,
     #                  label='results',
@@ -124,7 +125,10 @@ def best_transit_path(set_random_seed,
                              slicer='NONE',
                              transpose=False)
 
+            if trace_assigned_locals is not None:
 
+                tracing.write_locals(trace_assigned_locals,
+                                     file_name="trace_best_transit_path_locals")
 
 
 

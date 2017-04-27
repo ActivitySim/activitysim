@@ -9,6 +9,7 @@ import orca
 
 from activitysim.core import skim as askim
 from activitysim.core import tracing
+from activitysim.core import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,12 @@ Read in the omx files and create the skim objects
 def omx_file(data_dir, settings):
     logger.debug("opening omx file")
 
-    return omx.open_file(os.path.join(data_dir, settings["skims_file"]))
+    fname = os.path.join(data_dir, settings["skims_file"])
+    file = omx.open_file(fname)
+
+    pipeline.close_on_exit(file, fname)
+
+    return file
 
 
 @orca.injectable(cache=True)

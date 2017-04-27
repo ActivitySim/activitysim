@@ -39,26 +39,26 @@ _CHECKPOINTS = []
 _PRNG = random.Random()
 
 
+_OPEN_FILES = {}
+
+
+def close_on_exit(file, name):
+    assert name not in _OPEN_FILES
+    _OPEN_FILES[name] = file
+
+
+def close_open_files():
+    for name, file in _OPEN_FILES.iteritems():
+        print "Closing %s" % name
+        file.close()
+    _OPEN_FILES.clear()
+
+
 def add_dependent_columns(base_dfname, new_dfname):
     tbl = orca.get_table(new_dfname)
     for col in tbl.columns:
         logger.debug("Adding dependent column %s" % col)
         orca.add_column(base_dfname, col, tbl[col])
-
-
-@orca.injectable(cache=True)
-def pipeline_path(output_dir, settings):
-    """
-    Orca injectable to return the path to the pipeline hdf5 file based on output_dir and settings
-    """
-    pipeline_file_name = settings.get('pipeline', 'pipeline.h5')
-    pipeline_file_path = os.path.join(output_dir, pipeline_file_name)
-    return pipeline_file_path
-
-
-@orca.injectable(cache=True)
-def pipeline_store():
-    return None
 
 
 def open_pipeline_store(overwrite=False):
@@ -71,7 +71,7 @@ def open_pipeline_store(overwrite=False):
         delete file before opening (unless resuming)
     """
 
-    if orca.get_injectable('pipeline_store'):
+    if orca.is_injectable('pipeline_store'):
         raise RuntimeError("Pipeline store is already open!")
 
     pipeline_file_path = orca.get_injectable('pipeline_path')
@@ -96,7 +96,10 @@ def get_pipeline_store():
     """
     Return the open pipeline hdf5 checkpoint store or return False if it not been opened
     """
-    return orca.get_injectable('pipeline_store')
+    if orca.is_injectable('pipeline_store'):
+        return orca.get_injectable('pipeline_store')
+    else:
+        return None
 
 
 def get_rn_generator():
@@ -305,6 +308,10 @@ def add_checkpoint(checkpoint_name):
     # create a pandas dataframe of the checkpoint history, one row per checkpoint
     checkpoints = pd.DataFrame(_CHECKPOINTS)
 
+    # convert empty values to str so PyTables doesn't pickle object types
+    for c in checkpoints.columns:
+        checkpoints[c] = checkpoints[c].fillna('')
+
     # write it to the store, overwriting any previous version (no way to simply extend)
     write_df(checkpoints, _CHECKPOINT_TABLE_NAME)
 
@@ -354,10 +361,10 @@ def load_checkpoint(checkpoint_name):
     # convert pandas dataframe back to array of checkpoint dicts
     checkpoints = checkpoints.to_dict(orient='records')
 
-    # drop tables with empty names (they are nans)
+    # drop tables with empty names
     for checkpoint in checkpoints:
         for key in checkpoint.keys():
-            if key not in _NON_TABLE_COLUMNS and type(checkpoint[key]) != str:
+            if key not in _NON_TABLE_COLUMNS and not checkpoint[key]:
                 del checkpoint[key]
 
     # patch _CHECKPOINTS array of dicts
@@ -433,11 +440,15 @@ def start_pipeline(resume_after=None):
 
     t0 = print_elapsed_time()
 
-    skims = orca.get_injectable('skim_dict')
-    t0 = print_elapsed_time("load skim_dict", t0)
+    # preload skim_dict
+    if orca.is_injectable('skim_dict'):
+        orca.get_injectable('skim_dict')
+        t0 = print_elapsed_time("load skim_dict", t0)
 
-    skims = orca.get_injectable('skim_stack')
-    t0 = print_elapsed_time("load skim_stack", t0)
+    # load skim_stack
+    if orca.is_injectable('skim_stack'):
+        orca.get_injectable('skim_stack')
+        t0 = print_elapsed_time("load skim_stack", t0)
 
     if resume_after:
         # open existing pipeline
@@ -488,8 +499,7 @@ def close():
     Close any known open files
     """
 
-    orca.get_injectable('store').close()
-    orca.get_injectable('omx_file').close()
+    close_open_files()
 
     orca.get_injectable('pipeline_store').close()
     orca.add_injectable('pipeline_store', None)

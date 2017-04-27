@@ -21,7 +21,6 @@ import yaml
 from .. import __init__
 
 
-
 def test_misc():
 
     orca.clear_cache()

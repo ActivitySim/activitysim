@@ -35,7 +35,7 @@ def output_dir():
 @orca.injectable()
 def extensions_dir():
     if not os.path.exists('extensions'):
-        raise extensions_dir("output_dir: directory does not exist")
+        raise RuntimeError("output_dir: directory does not exist")
     return 'extensions'
 
 
@@ -46,12 +46,10 @@ def settings(configs_dir):
 
 
 @orca.injectable(cache=True)
-def store(data_dir, settings):
-    if 'store' not in settings:
-        logger.error("store file name not specified in settings")
-        raise RuntimeError("store file name not specified in settings")
-    fname = os.path.join(data_dir, settings["store"])
-    if not os.path.exists(fname):
-        logger.error("store file not found: %s" % fname)
-        raise RuntimeError("store file not found: %s" % fname)
-    return pd.HDFStore(fname, mode='r')
+def pipeline_path(output_dir, settings):
+    """
+    Orca injectable to return the path to the pipeline hdf5 file based on output_dir and settings
+    """
+    pipeline_file_name = settings.get('pipeline', 'pipeline.h5')
+    pipeline_file_path = os.path.join(output_dir, pipeline_file_name)
+    return pipeline_file_path

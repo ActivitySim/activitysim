@@ -10,44 +10,12 @@ import orca
 import pandas as pd
 import yaml
 
+from activitysim.core import pipeline
+
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
 logger = logging.getLogger(__name__)
-
-
-@orca.injectable()
-def configs_dir():
-    if not os.path.exists('configs'):
-        raise RuntimeError("configs_dir: directory does not exist")
-    return 'configs'
-
-
-@orca.injectable()
-def data_dir():
-    if not os.path.exists('data'):
-        raise RuntimeError("data_dir: directory does not exist")
-    return 'data'
-
-
-@orca.injectable()
-def output_dir():
-    if not os.path.exists('output'):
-        raise RuntimeError("output_dir: directory does not exist")
-    return 'output'
-
-
-@orca.injectable()
-def extensions_dir():
-    if not os.path.exists('extensions'):
-        raise extensions_dir("output_dir: directory does not exist")
-    return 'extensions'
-
-
-@orca.injectable()
-def settings(configs_dir):
-    with open(os.path.join(configs_dir, 'settings.yaml')) as f:
-        return yaml.load(f)
 
 
 @orca.injectable(cache=True)
@@ -59,7 +27,11 @@ def store(data_dir, settings):
     if not os.path.exists(fname):
         logger.error("store file not found: %s" % fname)
         raise RuntimeError("store file not found: %s" % fname)
-    return pd.HDFStore(fname, mode='r')
+
+    file = pd.HDFStore(fname, mode='r')
+    pipeline.close_on_exit(file, fname)
+
+    return file
 
 
 @orca.injectable(cache=True)

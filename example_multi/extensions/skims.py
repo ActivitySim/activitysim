@@ -8,8 +8,8 @@ import numpy as np
 import openmatrix as omx
 import orca
 
-from activitysim import skim as askim
-from activitysim import tracing
+from activitysim.core import skim as askim
+from activitysim.core import tracing
 
 logger = logging.getLogger(__name__)
 

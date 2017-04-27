@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import orca
 
-from activitysim import skim as askim
+from activitysim.core import skim as askim
 
 logger = logging.getLogger(__name__)
 

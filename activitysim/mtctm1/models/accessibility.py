@@ -8,7 +8,7 @@ import orca
 import pandas as pd
 import numpy as np
 
-from activitysim.core import asim_eval
+from activitysim.core import assign
 from activitysim.core import tracing
 from activitysim.core import config
 
@@ -42,7 +42,7 @@ class AccessibilitySkims(object):
     def __getitem__(self, key):
         """
         accessor to return flattened skim array with specified key
-        flattened array will have length length*length and will match tiled OD df used by asim_eval
+        flattened array will have length length*length and will match tiled OD df used by assign
 
         this allows the skim array to be accessed from expressions as
         skim['DISTANCE'] or skim[('SOVTOLL_TIME', 'MD')]
@@ -65,7 +65,7 @@ class AccessibilitySkims(object):
 @orca.injectable()
 def accessibility_spec(configs_dir):
     f = os.path.join(configs_dir, 'accessibility.csv')
-    return asim_eval.read_assignment_spec(f)
+    return assign.read_assignment_spec(f)
 
 
 @orca.injectable()
@@ -130,8 +130,8 @@ def compute_accessibility(settings, accessibility_spec,
     if constants is not None:
         locals_d.update(constants)
 
-    results, trace_results = asim_eval.assign_variables(accessibility_spec, od_df, locals_d,
-                                                        trace_rows=trace_od_rows)
+    results, trace_results, trace_assigned_locals \
+        = assign.assign_variables(accessibility_spec, od_df, locals_d, trace_rows=trace_od_rows)
     accessibility_df = pd.DataFrame(index=land_use.index)
     for column in results.columns:
         data = np.asanyarray(results[column])
@@ -157,6 +157,9 @@ def compute_accessibility(settings, accessibility_spec,
                              index_label='skim_offset',
                              slicer='NONE',
                              warn_if_empty=True)
+
+            if trace_assigned_locals:
+                tracing.write_locals(df, file_name="accessibility_locals")
 
         tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
                          warn_if_empty=True)

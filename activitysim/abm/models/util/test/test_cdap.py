@@ -9,7 +9,8 @@ import pandas.util.testing as pdt
 import pytest
 
 from .. import cdap
-from ...core.simulate import read_model_spec
+
+from activitysim.core.simulate import read_model_spec
 
 
 @pytest.fixture(scope='module')
@@ -28,7 +29,6 @@ def people(data_dir):
 def cdap_indiv_and_hhsize1(data_dir):
     return read_model_spec(
         os.path.join(data_dir, 'cdap_indiv_and_hhsize1.csv'))
-
 
 @pytest.fixture(scope='module')
 def cdap_interaction_coefficients(data_dir):

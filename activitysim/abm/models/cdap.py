@@ -13,8 +13,7 @@ from activitysim.core import pipeline
 from activitysim.core import config
 
 
-from activitysim.cdap import cdap
-
+from .util.cdap import run_cdap
 
 logger = logging.getLogger(__name__)
 
@@ -87,14 +86,14 @@ def cdap_simulate(persons_merged,
 
     logger.info("Running cdap_simulate with %d persons" % len(persons_df.index))
 
-    choices = cdap.run_cdap(persons=persons_df,
-                            cdap_indiv_spec=cdap_indiv_spec,
-                            cdap_interaction_coefficients=cdap_interaction_coefficients,
-                            cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
-                            locals_d=constants,
-                            chunk_size=hh_chunk_size,
-                            trace_hh_id=trace_hh_id,
-                            trace_label='cdap')
+    choices = run_cdap(persons=persons_df,
+                       cdap_indiv_spec=cdap_indiv_spec,
+                       cdap_interaction_coefficients=cdap_interaction_coefficients,
+                       cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
+                       locals_d=constants,
+                       chunk_size=hh_chunk_size,
+                       trace_hh_id=trace_hh_id,
+                       trace_label='cdap')
 
     tracing.print_summary('cdap_activity', choices.cdap_activity, value_counts=True)
 

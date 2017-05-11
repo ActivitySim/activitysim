@@ -8,10 +8,10 @@ import numpy as np
 import pandas as pd
 from zbox import toolz as tz, gen
 
-from ..core.simulate import eval_variables
+from activitysim.core.simulate import eval_variables
 
-from ..core import logit
-from ..core import tracing
+from activitysim.core import logit
+from activitysim.core import tracing
 
 logger = logging.getLogger(__name__)
 

@@ -488,8 +488,10 @@ def run(models, resume_after=None):
 
     start_pipeline(resume_after)
 
+    t0 = print_elapsed_time()
     for model in models:
         run_model(model)
+    t0 = print_elapsed_time("run (%s models)" % len(models), t0)
 
     # don't close the pipeline, as the user may want to read intermediate results from the store
 

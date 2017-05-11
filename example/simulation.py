@@ -1,13 +1,13 @@
 import orca
-from activitysim import defaults
-from activitysim import tracing
+from activitysim import abm
+from activitysim.core import tracing
 import pandas as pd
 import numpy as np
 import os
 
-from activitysim.tracing import print_elapsed_time
+from activitysim.core.tracing import print_elapsed_time
 
-from activitysim import pipeline
+from activitysim.core import pipeline
 import extensions
 
 

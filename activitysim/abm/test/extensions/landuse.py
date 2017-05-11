@@ -1,4 +1,8 @@
+import numpy as np
+import pandas as pd
+
 import orca
+
 
 @orca.column("land_use")
 def total_households(land_use):

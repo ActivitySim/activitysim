@@ -1,7 +1,7 @@
 import orca
-from activitysim import defaults
-from activitysim import tracing
-from activitysim import activitysim as asim
+from activitysim import abm
+from activitysim.core import tracing
+from activitysim.core import simulate as asim
 import pandas as pd
 import numpy as np
 import os

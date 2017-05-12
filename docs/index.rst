@@ -46,28 +46,39 @@ Three key data structures in ActivitySim are:
 Model Orchestrator
 ~~~~~~~~~~~~~~~~~~
 
-`ORCA <https://github.com/udst/orca>`__ is an orchestration/pipeline tool that defines 
-dynamic data sources and connects them to processing functions.  ORCA is used for running 
-the overall model system and for defining dynamic data tables (based on pandas DataFrames), 
-columns ((based on pandas Series), and injectables (functions).  Model steps are executed 
-as steps registered with ORCA.
+An ActivitySim model is a sequence of model / data processing steps, commonly known as a data pipeline.
+A well defined data pipeline has the ability to resume jobs at a known point, which facilitates 
+debugging of problems with data and/or calculations.  It also allows for checkpointing model
+resources, such as the state of each person at a point in the model simulation.  Checkpointing also
+allows for regression testing of results at specified points in overall model run.
+
+`ORCA <https://github.com/udst/orca>`__ is an orchestration/pipeline tool that defines model steps, 
+dynamic data sources, and connects them to processing functions. ORCA defines dynamic data tables 
+based on pandas DataFrames, columns based on pandas Series, and injectables (functions).  Model steps 
+are executed as steps registered with the ORCA engine.  ActivitySim extends ORCA's functionality by
+adding a :ref:`pipeline_in_detail`, that runs a series of ORCA model steps, manages the state of the data 
+tables throughout the model run, allows for restarting at any model step, and integrates with the 
+random number generation procedures (see :ref:`random_in_detail`).
 
 Expressions
 ~~~~~~~~~~~
 
-ActivitySim exposes most of its model expressions in CSV files that contain Python 
-expressions, mainly pandas/numpy expression that operate on the input data tables and skims. 
-This helps to avoid having to modify Python code when making changes to the model calculations. 
-An example of model expressions is found in the example auto ownership model specification file - 
+ActivitySim exposes most of its model expressions in CSV files.  These model expression CSV files
+contain Python expressions, mainly pandas/numpy expression, and reference various input data tables 
+and network skim matrices.  With this design, the Python code, which can be thought of as a generic expression 
+engine, and the specific model calculations, such as the utilities, are separate.  This helps to avoid 
+modifying the actual Python code when making changes to the models, such as during model calibration. An 
+example of model expressions is found in the example auto ownership model specification file - 
 `auto_ownership.csv <https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv>`__. 
 Refer to the :ref:`expressions_in_detail` section for more detail.
 
 Choice Models
 ~~~~~~~~~~~~~
 
-ActivitySim supports multinomial (MNL) and nested logit (NL) choice models. Refer to :ref:`nl_in_detail` for more information.
-It also supports custom expressions as noted above, which can often be used to code additional types of choice models.  In addition,
-developers can write their own choice models in Python and expose these through the framework.  
+ActivitySim currently supports multinomial (MNL) and nested logit (NL) choice models. Refer to :ref:`logit_in_detail` 
+for more information.  It also supports custom expressions as noted above, which can often be used to 
+code additional types of choice models.  In addition, developers can write their own choice models 
+in Python and expose these through the framework.  
 
 Contents
 --------
@@ -76,6 +87,7 @@ Contents
    :maxdepth: 2
 
    gettingstarted
+   howitworks
    dataschema
    core
    models

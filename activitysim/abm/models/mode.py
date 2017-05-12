@@ -128,6 +128,9 @@ def tour_mode_choice_simulate(tours_merged,
                               skim_dict, skim_stack,
                               omx_file,
                               trace_hh_id):
+    """
+    Tour mode choice simulate
+    """
 
     trace_label = trace_hh_id and 'tour_mode_choice'
 
@@ -254,6 +257,9 @@ def trip_mode_choice_simulate(trips_merged,
                               skim_stack,
                               omx_file,
                               trace_hh_id):
+    """
+    Trip mode choice simulate
+    """
 
     trips = trips_merged.to_frame()
 

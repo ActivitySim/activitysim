@@ -1,7 +1,7 @@
 Development
 ===========
 
-The purpose of this page is to document how to contribute to ActivitySim.
+This page documents how to contribute to ActivitySim.
 
 In developing this software platform, we strive to adhere to a best practices approach to scientific computing, 
 as summarized in `this article. <http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745>`__

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ActivitySim &mdash; ActivitySim 0.1 documentation</title>
+  <title>ActivitySim &mdash; ActivitySim 0.3dev1 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.1 documentation" href="#"/>
+    <link rel="top" title="ActivitySim 0.3dev1 documentation" href="#"/>
         <link rel="next" title="Getting Started" href="gettingstarted.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.1
+                0.3dev1
               </div>
             
           
@@ -91,8 +91,9 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
 </ul>
@@ -194,26 +195,36 @@ OMX, which is based on HDF5 as well, is used for managing network skims.</p>
 </div>
 <div class="section" id="model-orchestrator">
 <h3>Model Orchestrator<a class="headerlink" href="#model-orchestrator" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference external" href="https://github.com/udst/orca">ORCA</a> is an orchestration/pipeline tool that defines
-dynamic data sources and connects them to processing functions.  ORCA is used for running
-the overall model system and for defining dynamic data tables (based on pandas DataFrames),
-columns ((based on pandas Series), and injectables (functions).  Model steps are executed
-as steps registered with ORCA.</p>
+<p>An ActivitySim model is a sequence of model / data processing steps, commonly known as a data pipeline.
+A well defined data pipeline has the ability to resume jobs at a known point, which facilitates
+debugging of problems with data and/or calculations.  It also allows for checkpointing model
+resources, such as the state of each person at a point in the model simulation.  Checkpointing also
+allows for regression testing of results at specified points in overall model run.</p>
+<p><a class="reference external" href="https://github.com/udst/orca">ORCA</a> is an orchestration/pipeline tool that defines model steps,
+dynamic data sources, and connects them to processing functions. ORCA defines dynamic data tables
+based on pandas DataFrames, columns based on pandas Series, and injectables (functions).  Model steps
+are executed as steps registered with the ORCA engine.  ActivitySim extends ORCA&#8217;s functionality by
+adding a <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a>, that runs a series of ORCA model steps, manages the state of the data
+tables throughout the model run, allows for restarting at any model step, and integrates with the
+random number generation procedures (see <a class="reference internal" href="core.html#random-in-detail"><span class="std std-ref">Random</span></a>).</p>
 </div>
 <div class="section" id="expressions">
 <h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim exposes most of its model expressions in CSV files that contain Python
-expressions, mainly pandas/numpy expression that operate on the input data tables and skims.
-This helps to avoid having to modify Python code when making changes to the model calculations.
-An example of model expressions is found in the example auto ownership model specification file -
+<p>ActivitySim exposes most of its model expressions in CSV files.  These model expression CSV files
+contain Python expressions, mainly pandas/numpy expression, and reference various input data tables
+and network skim matrices.  With this design, the Python code, which can be thought of as a generic expression
+engine, and the specific model calculations, such as the utilities, are separate.  This helps to avoid
+modifying the actual Python code when making changes to the models, such as during model calibration. An
+example of model expressions is found in the example auto ownership model specification file -
 <a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv">auto_ownership.csv</a>.
 Refer to the <a class="reference internal" href="gettingstarted.html#expressions-in-detail"><span class="std std-ref">Expressions</span></a> section for more detail.</p>
 </div>
 <div class="section" id="choice-models">
 <h3>Choice Models<a class="headerlink" href="#choice-models" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim supports multinomial (MNL) and nested logit (NL) choice models. Refer to <a class="reference internal" href="core.html#nl-in-detail"><span class="std std-ref">Nested Logit</span></a> for more information.
-It also supports custom expressions as noted above, which can often be used to code additional types of choice models.  In addition,
-developers can write their own choice models in Python and expose these through the framework.</p>
+<p>ActivitySim currently supports multinomial (MNL) and nested logit (NL) choice models. Refer to <a class="reference internal" href="core.html#logit-in-detail"><span class="std std-ref">Logit</span></a>
+for more information.  It also supports custom expressions as noted above, which can often be used to
+code additional types of choice models.  In addition, developers can write their own choice models
+in Python and expose these through the framework.</p>
 </div>
 </div>
 <div class="section" id="contents">
@@ -224,7 +235,13 @@ developers can write their own choice models in Python and expose these through 
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#expressions">Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#example">Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#how-the-system-works">How the System Works</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="howitworks.html#execution-flow">Execution Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="howitworks.html#creating-new-tables">Creating New Tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="howitworks.html#vectorized-3d-skim-indexing">Vectorized 3D Skim Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="howitworks.html#accessibilities-model-step">Accessibilities Model Step</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a><ul>
@@ -238,13 +255,18 @@ developers can write their own choice models in Python and expose these through 
 <li class="toctree-l2"><a class="reference internal" href="dataschema.html#trips">Trips</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Core Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core.html#activitysim">Activitysim</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#simulate">Simulate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#skim">Skim</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#nested-logit">Nested Logit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#logit">Logit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#pipeline">Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#random">Random</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#tracing">Tracing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#asim-eval">Asim_Eval</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#assign">Assign</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#config">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#inject-defaults">Inject_Defaults</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#tests">Tests</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
@@ -254,11 +276,14 @@ developers can write their own choice models in Python and expose these through 
 <li class="toctree-l2"><a class="reference internal" href="models.html#destination-choice">Destination Choice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-scheduling">Mandatory Scheduling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-tour-frequency">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#create-trips">Create Trips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#mode-tour-and-trip">Mode (Tour and Trip)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-scheduling">Non-Mandatory Scheduling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#school-location">School Location</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#workplace-location">Workplace Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#util">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#tests">Tests</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a><ul>
@@ -326,7 +351,7 @@ developers can write their own choice models in Python and expose these through 
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1',
+            VERSION:'0.3dev1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

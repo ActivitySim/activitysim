@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>How the System Works &mdash; ActivitySim 0.3dev1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="ActivitySim 0.3dev1 documentation" href="index.html"/>
+        <link rel="next" title="Data Schema" href="dataschema.html"/>
+        <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ActivitySim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.3dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How the System Works</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#execution-flow">Execution Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-new-tables">Creating New Tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#vectorized-3d-skim-indexing">Vectorized 3D Skim Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accessibilities-model-step">Accessibilities Model Step</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ActivitySim</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>How the System Works</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/howitworks.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="how-the-system-works">
+<h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h1>
+<p>This page describes describes how the ActivitySim software works.</p>
+<div class="section" id="execution-flow">
+<span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this headline">¶</a></h2>
+<p>The example model run starts by running <code class="docutils literal"><span class="pre">simulation.py</span></code>, which calls:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">orca</span>
+<span class="kn">from</span> <span class="nn">activitysim</span> <span class="k">import</span> <span class="n">abm</span>
+</pre></div>
+</div>
+<p>which starts orca, which will now take over running the system and defines the orca/pandas tables and their data
+sources but does not load the data.  The second statement loads <code class="xref py py-mod docutils literal"><span class="pre">activitysim.abm.__init__</span></code>, which calls:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">misc</span>
+<span class="kn">import</span> <span class="nn">tables</span>
+<span class="kn">import</span> <span class="nn">models</span>
+</pre></div>
+</div>
+<p>which then loads the misc, tables, and models class definitions.  Loading <code class="xref py py-mod docutils literal"><span class="pre">activitysim.abm.misc</span></code> defines orca injectables
+(functions) for the <code class="docutils literal"><span class="pre">settings</span></code> object based on the setting.yaml file and the <code class="docutils literal"><span class="pre">store</span></code> based on the HDF5 input
+file.  The Python decorator <code class="docutils literal"><span class="pre">&#64;orca.injectable</span></code> overrides the function definition <code class="docutils literal"><span class="pre">store</span></code> to execute this
+function whenever <code class="docutils literal"><span class="pre">store</span></code> is called by orca.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@orca</span><span class="o">.</span><span class="n">injectable</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">store</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;store&quot;</span><span class="p">]),</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, the tables module executes the following import statements to define the dynamic orca tables households,
+persons, skims, etc., but does not load them. It also defines the core dynamic orca table columns (calculated fields)
+and injectables (functions) defined in the classes.  The Python decorator <code class="docutils literal"><span class="pre">&#64;orca.table</span></code> and
+<code class="docutils literal"><span class="pre">&#64;orca.column(&quot;households&quot;)</span></code> override the function definitions so the function name
+becomes the table name in the first case, whereas the function name becomes the column name in the second case.  The
+argument to <code class="docutils literal"><span class="pre">households</span></code> in <code class="docutils literal"><span class="pre">&#64;orca.column(&quot;households&quot;)</span></code> is the table (either real or virtual) that the
+column is added to.  The columns defined in these classes are thought to be generic across AB model implementations.
+Additional implementation specific columns can be defined in an extensions folder, as discussed later.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">households</span>
+<span class="kn">import</span> <span class="nn">persons</span>
+<span class="c1">#etc...</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">households_sample_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;households&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">income_in_thousands</span><span class="p">(</span><span class="n">households</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">households</span><span class="o">.</span><span class="n">income</span> <span class="o">/</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+<p>The models module then loads all the sub-models, which are registered as orca model steps with
+the <code class="docutils literal"><span class="pre">&#64;orca.step()</span></code> decorator.  These steps will eventually be run by the pipeline manager.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">accessibility</span>
+<span class="kn">import</span> <span class="nn">auto_ownership</span>
+<span class="c1">#etc...</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">compute_accessibility</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">accessibility_spec</span><span class="p">,</span>
+                        <span class="n">accessibility_settings</span><span class="p">,</span>
+                        <span class="n">skim_dict</span><span class="p">,</span> <span class="n">omx_file</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">trace_od</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>Back in the main <code class="docutils literal"><span class="pre">simulation.py</span></code> script, the next steps are to load the pipeline manager and import the example
+extensions.  The example extensions are additional orca computed columns that are specific to the example.  This
+includes columns such as person age bins, which are not included in the core person table since they often vary
+by implementation.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="k">import</span> <span class="n">pipeline</span>
+<span class="kn">import</span> <span class="nn">extensions</span>
+</pre></div>
+</div>
+<p>The next step in the example is to define and run the pipeline.  The <code class="docutils literal"><span class="pre">resume_after</span></code> argument is set to None
+in order to start the pipeline from the beginning.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">_MODELS</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="s1">&#39;compute_accessibility&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;school_location_simulate&#39;</span><span class="p">,</span>
+<span class="c1">#etc...</span>
+
+<span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method loops through the list of models, calls <code class="docutils literal"><span class="pre">orca.run(model_step)</span></code>,
+and manages the data pipeline.  The first microsimulation model run is school location, which is called via:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_simulate&quot;</span><span class="p">])</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
+                           <span class="n">school_location_spec</span><span class="p">,</span>
+                           <span class="n">school_location_settings</span><span class="p">,</span>
+                           <span class="n">skim_dict</span><span class="p">,</span>
+                           <span class="n">destination_size_terms</span><span class="p">,</span>
+                           <span class="n">chunk_size</span><span class="p">,</span>
+                           <span class="n">trace_hh_id</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition
+above.  Since they are not yet loaded, orca goes looking for them.  This is called lazy
+loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#persons_merged is in the step function signature</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">persons_merged</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">accessibility</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">orca</span><span class="o">.</span><span class="n">merge_tables</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tables</span><span class="o">=</span><span class="p">[</span>
+      <span class="n">persons</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">accessibility</span><span class="p">])</span>
+
+<span class="c1">#it required persons, households, land_use, accessibility</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">persons</span><span class="p">(</span><span class="n">persons_internal</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">persons_internal</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+
+<span class="c1">#persons requires store, households_sample_size, households, trace_hh_id</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">persons</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">households_sample_size</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+
+  <span class="n">df</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s2">&quot;persons&quot;</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="n">households_sample_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="c1"># keep all persons in the sampled households</span>
+      <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">household_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">households</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+
+  <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;loaded persons </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+
+  <span class="c1"># replace table function with dataframe</span>
+  <span class="n">orca</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;persons&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+  <span class="n">pipeline</span><span class="o">.</span><span class="n">get_rn_generator</span><span class="p">()</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;persons&#39;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">trace_hh_id</span><span class="p">:</span>
+      <span class="n">tracing</span><span class="o">.</span><span class="n">register_traceable_table</span><span class="p">(</span><span class="s1">&#39;persons&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+      <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="n">warn_if_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">df</span>
+
+<span class="c1">#households requires store, households_sample_size, trace_hh_id</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">households</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">households_sample_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">):</span>
+
+  <span class="n">df_full</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s2">&quot;households&quot;</span><span class="p">]</span>
+
+  <span class="c1"># if we are tracing hh exclusively</span>
+  <span class="k">if</span> <span class="n">trace_hh_id</span> <span class="ow">and</span> <span class="n">households_sample_size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
+      <span class="c1"># df contains only trace_hh (or empty if not in full store)</span>
+      <span class="n">df</span> <span class="o">=</span> <span class="n">tracing</span><span class="o">.</span><span class="n">slice_ids</span><span class="p">(</span><span class="n">df_full</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">)</span>
+
+  <span class="c1"># if we need sample a subset of full store</span>
+  <span class="k">elif</span> <span class="n">households_sample_size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_full</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">households_sample_size</span><span class="p">:</span>
+
+      <span class="c1"># take the requested random sample</span>
+      <span class="n">df</span> <span class="o">=</span> <span class="n">asim</span><span class="o">.</span><span class="n">random_rows</span><span class="p">(</span><span class="n">df_full</span><span class="p">,</span> <span class="n">households_sample_size</span><span class="p">)</span>
+
+      <span class="c1"># if tracing and we missed trace_hh in sample, but it is in full store</span>
+      <span class="k">if</span> <span class="n">trace_hh_id</span> <span class="ow">and</span> <span class="n">trace_hh_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="ow">and</span> <span class="n">trace_hh_id</span> <span class="ow">in</span> <span class="n">df_full</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+              <span class="c1"># replace first hh in sample with trace_hh</span>
+              <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;replacing household </span><span class="si">%s</span><span class="s2"> with </span><span class="si">%s</span><span class="s2"> in household sample&quot;</span> <span class="o">%</span>
+                           <span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trace_hh_id</span><span class="p">))</span>
+              <span class="n">df_hh</span> <span class="o">=</span> <span class="n">tracing</span><span class="o">.</span><span class="n">slice_ids</span><span class="p">(</span><span class="n">df_full</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">)</span>
+              <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_hh</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
+
+  <span class="k">else</span><span class="p">:</span>
+      <span class="n">df</span> <span class="o">=</span> <span class="n">df_full</span>
+
+  <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;loaded households </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+
+  <span class="c1"># replace table function with dataframe</span>
+  <span class="n">orca</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;households&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+  <span class="n">pipeline</span><span class="o">.</span><span class="n">get_rn_generator</span><span class="p">()</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;households&#39;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">trace_hh_id</span><span class="p">:</span>
+      <span class="n">tracing</span><span class="o">.</span><span class="n">register_traceable_table</span><span class="p">(</span><span class="s1">&#39;households&#39;</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+      <span class="n">tracing</span><span class="o">.</span><span class="n">trace_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;households&quot;</span><span class="p">,</span> <span class="n">warn_if_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">df</span>
+
+<span class="c1">#etc.... until all the required dependencies are resolved</span>
+</pre></div>
+</div>
+<p>The various calls are also setting up the logging, the tracing, and the random number generators.</p>
+<p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> also sets the persons merged table as choosers, reads the expressions
+specification file, settings yaml file, and destination_size_terms file, and also sets the chunk
+size and trace id if specified.  The skims dictionary is also passed in, as explained next.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
+                           <span class="n">school_location_spec</span><span class="p">,</span>
+                           <span class="n">school_location_settings</span><span class="p">,</span>
+                           <span class="n">skim_dict</span><span class="p">,</span>
+                           <span class="n">destination_size_terms</span><span class="p">,</span>
+                           <span class="n">chunk_size</span><span class="p">,</span>
+                           <span class="n">trace_hh_id</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>Inside the method, the skim lookups required for this model are configured. The following code
+set the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal"><span class="pre">TAZ</span></code> column
+in the choosers, which was in the <code class="docutils literal"><span class="pre">households</span></code> table that was joined with <code class="docutils literal"><span class="pre">persons</span></code> to make
+<code class="docutils literal"><span class="pre">persons_merged</span></code> and a <code class="docutils literal"><span class="pre">TAZ</span></code> in the alternatives generation code which get merged during
+interaction as renamed <code class="docutils literal"><span class="pre">TAZ_r</span></code>.  The skims are lazy loaded under the name &#8220;skims&#8221; and are
+available in the expressions using <code class="docutils literal"><span class="pre">&#64;skims</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;TAZ&quot;</span><span class="p">,</span> <span class="s2">&quot;TAZ_r&quot;</span><span class="p">)</span>
+<span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;skims&quot;</span><span class="p">:</span> <span class="n">skims</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The next step is to call the <a class="reference internal" href="core.html#activitysim.core.simulate.interaction_simulate" title="activitysim.core.simulate.interaction_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.interaction_simulate()</span></code></a> function which run a MNL choice model simulation
+in which alternatives must be merged with choosers because there are interaction terms or because
+alternatives are sampled.  The choosers table, the alternatives table, the model specification
+expressions file, the skims, the skims lookups, the sample size, the chunk size, and trace labels are passed in.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">choices</span> <span class="o">=</span> <span class="n">asim</span><span class="o">.</span><span class="n">interaction_simulate</span><span class="p">(</span>
+    <span class="n">choosers_segment</span><span class="p">,</span>
+    <span class="n">alternatives_segment</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">school_location_spec</span><span class="p">[[</span><span class="n">school_type</span><span class="p">]],</span>
+    <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span>
+    <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span>
+    <span class="n">sample_size</span><span class="o">=</span><span class="n">sample_size</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+    <span class="n">trace_label</span><span class="o">=</span><span class="s1">&#39;school_location.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">school_type</span><span class="p">,</span>
+    <span class="n">trace_choice_name</span><span class="o">=</span><span class="s1">&#39;school_location&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
+This is done in a for loop of chunks of chooser records in order to avoid running out of RAM when building the often large data tables.
+This method does a lot, and eventually calls <a class="reference internal" href="core.html#activitysim.core.simulate.eval_interaction_utilities" title="activitysim.core.simulate.eval_interaction_utilities"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.eval_interaction_utilities()</span></code></a>, which loops through each expression
+in the expression file and solves it at once for all records in the chunked chooser table using either pandas&#8217; eval() or Python&#8217;s eval().</p>
+<p>The <a class="reference internal" href="core.html#activitysim.core.simulate.interaction_simulate" title="activitysim.core.simulate.interaction_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.interaction_simulate()</span></code></a> method is currently only a multinomial logit choice model.  The
+<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a> method supports both MNL and NL as specified by
+the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal"><span class="pre">auto_ownership.yaml</span></code> file for example specifies
+the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> as <code class="docutils literal"><span class="pre">MNL.</span></code></p>
+<p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
+in one vectorized step.  The <code class="docutils literal"><span class="pre">orig</span></code> and <code class="docutils literal"><span class="pre">dest</span></code> objects in <code class="docutils literal"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <a class="reference internal" href="core.html#module-activitysim.core.skim" title="activitysim.core.skim"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.skim</span></code></a> are vectors
+and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured (not shown below).</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># evaluate expressions from the spec multiply by coefficients and sum</span>
+<span class="n">interaction_utilities</span><span class="p">,</span> <span class="n">trace_eval_results</span> \
+    <span class="o">=</span> <span class="n">eval_interaction_utilities</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">interaction_df</span><span class="p">,</span> <span class="n">locals_d</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">,</span> <span class="n">trace_rows</span><span class="p">)</span>
+
+<span class="c1"># reshape utilities (one utility column and one row per row in model_design)</span>
+<span class="c1"># to a dataframe with one row per chooser and one column per alternative</span>
+<span class="n">utilities</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="n">interaction_utilities</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">),</span> <span class="n">sample_size</span><span class="p">),</span>
+    <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="c1"># convert to probabilities (utilities exponentiated and normalized to probs)</span>
+<span class="c1"># probs is same shape as utilities, one row per chooser and one column for alternative</span>
+<span class="n">probs</span> <span class="o">=</span> <span class="n">logit</span><span class="o">.</span><span class="n">utils_to_probs</span><span class="p">(</span><span class="n">utilities</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="n">trace_label</span><span class="p">,</span> <span class="n">trace_choosers</span><span class="o">=</span><span class="n">choosers</span><span class="p">)</span>
+
+<span class="c1"># make choices</span>
+<span class="c1"># positions is series with the chosen alternative represented as a column index in probs</span>
+<span class="c1"># which is an integer between zero and num alternatives in the alternative sample</span>
+<span class="n">positions</span><span class="p">,</span> <span class="n">rands</span> <span class="o">=</span> <span class="n">logit</span><span class="o">.</span><span class="n">make_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="n">trace_label</span><span class="p">,</span> <span class="n">trace_choosers</span><span class="o">=</span><span class="n">choosers</span><span class="p">)</span>
+
+<span class="c1"># offsets is the offset into model_design df of first row of chooser alternatives</span>
+<span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span> <span class="o">*</span> <span class="n">sample_size</span>
+<span class="c1"># resulting pandas Int64Index has one element per chooser row and is in same order as choosers</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">interaction_utilities</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">positions</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">)</span>
+
+<span class="c1"># create a series with index from choosers and the index of the chosen alternative</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, the model adds the choices as a column to the applicable table - <code class="docutils literal"><span class="pre">persons</span></code> - and adds
+additional dependent columns.  The dependent columns are those orca columns with the virtual table
+name <code class="docutils literal"><span class="pre">persons_school</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;school_taz&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
+
+<span class="n">pipeline</span><span class="o">.</span><span class="n">add_dependent_columns</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
+
+<span class="c1"># columns to update after the school location choice model</span>
+<span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">persons_school</span><span class="p">(</span><span class="n">persons</span><span class="p">):</span>
+ <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">distance_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">skim_dict</span><span class="p">):</span>
+    <span class="n">distance_skim</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DIST&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">distance_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
+                                       <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">),</span>
+                     <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">roundtrip_auto_time_to_school</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">skim_dict</span><span class="p">):</span>
+    <span class="n">sovmd_skim</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="s1">&#39;SOV_TIME&#39;</span><span class="p">,</span> <span class="s1">&#39;MD&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sovmd_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">,</span>
+                                    <span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">)</span> <span class="o">+</span>
+                     <span class="n">sovmd_skim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">persons</span><span class="o">.</span><span class="n">school_taz</span><span class="p">,</span>
+                                    <span class="n">persons</span><span class="o">.</span><span class="n">home_taz</span><span class="p">),</span>
+                     <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code>
+which in turn uses skims from the skim_dict orca injectable.</p>
+<p>The rest of the microsimulation models operate in a similar fashion with a few notable additions:</p>
+<ul class="simple">
+<li>creating new tables</li>
+<li>vectorized 3D skims indexing</li>
+<li>the accessibilities model step</li>
+</ul>
+</div>
+<div class="section" id="creating-new-tables">
+<h2>Creating New Tables<a class="headerlink" href="#creating-new-tables" title="Permalink to this headline">¶</a></h2>
+<p>The mandatory tour frequency model sets the <code class="docutils literal"><span class="pre">persons.mandatory_tour_frequency</span></code> column.  Once the number of tours
+is known, then the next step is to create tours records for subsequent models.  This is done with the following code,
+which requires the <code class="docutils literal"><span class="pre">persons</span></code> table and returns a new pandas DataFrame which is registered as an
+orca table named <code class="docutils literal"><span class="pre">mandatory_tours</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@orca</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">mandatory_tours</span><span class="p">(</span><span class="n">persons</span><span class="p">):</span>
+  <span class="n">persons</span> <span class="o">=</span> <span class="n">persons</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mandatory_tour_frequency&quot;</span><span class="p">,</span><span class="s2">&quot;is_worker&quot;</span><span class="p">])</span>
+  <span class="n">persons</span> <span class="o">=</span> <span class="n">persons</span><span class="p">[</span><span class="o">~</span><span class="n">persons</span><span class="o">.</span><span class="n">mandatory_tour_frequency</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span>
+  <span class="k">return</span> <span class="n">process_mandatory_tours</span><span class="p">(</span><span class="n">persons</span><span class="p">)</span>
+
+<span class="c1">#processes the mandatory_tour_frequency column that comes out of the model</span>
+<span class="c1">#and turns into a DataFrame that represents the mandatory tours that were generated</span>
+<span class="k">def</span> <span class="nf">process_mandatory_tours</span><span class="p">(</span><span class="n">persons</span><span class="p">):</span>
+  <span class="c1">#...</span>
+  <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tours</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;person_id&quot;</span><span class="p">,</span> <span class="s2">&quot;tour_type&quot;</span><span class="p">,</span> <span class="s2">&quot;tour_num&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="vectorized-3d-skim-indexing">
+<h2>Vectorized 3D Skim Indexing<a class="headerlink" href="#vectorized-3d-skim-indexing" title="Permalink to this headline">¶</a></h2>
+<p>The mode choice model uses the <a class="reference internal" href="core.html#activitysim.core.skim.SkimStackWrapper" title="activitysim.core.skim.SkimStackWrapper"><code class="xref py py-class docutils literal"><span class="pre">activitysim.core.skim.SkimStackWrapper</span></code></a> class in addition to the skims (2D)
+class.  The SkimStackWrapper class represents a collection of skims with a third dimension, which in this case
+is time period.  Setting up the 3D index for SkimStackWrapper is done as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># setup three skim keys based on columns in the chooser table</span>
+<span class="c1"># origin, destination, time period; destination, origin, time period; origin, destination</span>
+<span class="n">odt_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_stack</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">left_key</span><span class="o">=</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;out_period&quot;</span><span class="p">)</span>
+<span class="n">dot_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_stack</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">left_key</span><span class="o">=</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;in_period&quot;</span><span class="p">)</span>
+<span class="n">od_skims</span>               <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="s1">&#39;destination&#39;</span><span class="p">)</span>
+
+<span class="c1">#pass these into simple_simulate so they can be used in expressions</span>
+<span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;odt_skims&quot;</span><span class="p">:</span> <span class="n">odt_skim_stack_wrapper</span><span class="p">,</span>
+  <span class="s2">&quot;dot_skims&quot;</span><span class="p">:</span> <span class="n">dot_skim_stack_wrapper</span><span class="p">,</span>
+  <span class="s2">&quot;od_skims&quot;</span><span class="p">:</span> <span class="n">od_skim_stack_wrapper</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When model expressions such as <code class="docutils literal"><span class="pre">&#64;odt_skims['WLK_LOC_WLK_TOTIVT']</span></code> are solved,
+the <code class="docutils literal"><span class="pre">WLK_LOC_WLK_TOTIVT</span></code> skim matrix values for all chooser table origins, destinations, and
+out_periods can be retrieved in one vectorized request.</p>
+<p>All the skims are preloaded (cached) by the pipeline manager at the beginning of the model
+run in order to avoid repeatedly reading the skims from the OMX files on disk.  This saves
+significant model runtime.</p>
+<p>See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information on skim handling.</p>
+</div>
+<div class="section" id="accessibilities-model-step">
+<h2>Accessibilities Model Step<a class="headerlink" href="#accessibilities-model-step" title="Permalink to this headline">¶</a></h2>
+<p>Unlike the microsimulation models, which operate on a table of choosers, the accessibilities model is
+an aggregate model that calculates accessibility measures by origin zone to all destination zones.  This
+model could be implemented with a matrix library such as numpy since it involves a series of matrix
+and vector operations.  However, all the other ActivitySim AB models - the
+microsimulation models - are implemented with pandas.DataFrame tables, and so this would be a
+different approach for just this model.  The benefits of keeping with the same table approach to
+data setup, expression management, and solving means ActivitySim has one expression syntax, is
+easier to understand and document, and is more efficiently implemented.</p>
+<p>As illustrated below, in order to convert the
+accessibility calculation into a table operation, a table of OD pairs is first built using numpy
+<code class="docutils literal"><span class="pre">repeat</span></code> and <code class="docutils literal"><span class="pre">tile</span></code> functions.  Once constructed, the additional data columns are added to the
+table in order to solve the accessibility calculations.  The skim data is also added in column form.
+After solving the expressions for each OD pair row, the accessibility module aggregates the results
+to origin zone and write them to the datastore.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create OD dataframe</span>
+  <span class="n">od_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+      <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+          <span class="s1">&#39;orig&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">land_use_df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">zone_count</span><span class="p">),</span>
+          <span class="s1">&#39;dest&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">land_use_df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">zone_count</span><span class="p">)</span>
+      <span class="p">}</span>
+  <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dataschema.html" class="btn btn-neutral float-right" title="Data Schema" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gettingstarted.html" class="btn btn-neutral" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright contributing authors.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.3dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

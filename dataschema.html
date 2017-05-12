@@ -94,7 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data Schema</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#accessibilities">Accessibilities</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.defaults.tables.accessibility">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#api">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#households">Households</a><ul>
@@ -282,8 +282,8 @@ virtual is also noted.</p>
 </tr>
 </tbody>
 </table>
-<div class="section" id="module-activitysim.defaults.tables.accessibility">
-<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.defaults.tables.accessibility" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="api">
+<h3>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 <div class="section" id="households">
@@ -645,7 +645,7 @@ household being simulated.</p>
 </table>
 <div class="section" id="id1">
 <h3>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.defaults.tables.households"></span></div>
+</div>
 </div>
 <div class="section" id="land-use">
 <span id="index-5"></span><h2>Land use<a class="headerlink" href="#land-use" title="Permalink to this headline">¶</a></h2>
@@ -865,7 +865,7 @@ household being simulated.</p>
 </table>
 <div class="section" id="id2">
 <h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.defaults.tables.landuse"></span></div>
+</div>
 </div>
 <div class="section" id="persons">
 <span id="index-6"></span><h2>Persons<a class="headerlink" href="#persons" title="Permalink to this headline">¶</a></h2>
@@ -1268,7 +1268,7 @@ household being simulated.</p>
 </ul>
 <div class="section" id="id3">
 <h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.defaults.tables.persons"></span></div>
+</div>
 </div>
 <div class="section" id="size-terms">
 <span id="index-7"></span><h2>Size terms<a class="headerlink" href="#size-terms" title="Permalink to this headline">¶</a></h2>
@@ -1353,41 +1353,6 @@ household being simulated.</p>
 </table>
 <div class="section" id="id4">
 <h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.defaults.tables.size_terms"></span><dl class="function">
-<dt id="activitysim.defaults.tables.size_terms.size_term">
-<code class="descclassname">activitysim.defaults.tables.size_terms.</code><code class="descname">size_term</code><span class="sig-paren">(</span><em>land_use</em>, <em>destination_choice_coeffs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.defaults.tables.size_terms.size_term" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method takes the land use data and multiplies various columns of the
-land use data by coefficients from the spec table in order
-to yield a size term (a linear combination of land use variables).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>land_use</strong> : DataFrame</p>
-<blockquote>
-<div><p>A dataframe of land use attributes - the column names should match
-the index of destination_choice_coeffs</p>
-</div></blockquote>
-<p><strong>destination_choice_coeffs</strong> : Series</p>
-<blockquote>
-<div><p>A series of coefficients for the land use attributes - the index
-describes the link to the land use table, and the values are floating
-points numbers used to do the linear combination</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>values</strong> : Series</p>
-<blockquote class="last">
-<div><p>The index will be the same as land use, and the values will the
-linear combination of the land use table columns specified by the
-coefficients series.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <span class="target" id="index-8"></span><span class="target" id="index-9"></span></div>
 </div>
 <div class="section" id="skims">
@@ -5577,12 +5542,6 @@ The skimss are float64 matrix.</p>
 </div>
 <div class="section" id="id5">
 <h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.defaults.tables.skims"></span><dl class="data">
-<dt id="activitysim.defaults.tables.skims.logger">
-<code class="descclassname">activitysim.defaults.tables.skims.</code><code class="descname">logger</code><em class="property"> = &lt;logging.Logger object&gt;</em><a class="headerlink" href="#activitysim.defaults.tables.skims.logger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read in the omx files and create the skim objects</p>
-</dd></dl>
-
 </div>
 </div>
 <div class="section" id="tours">
@@ -5673,7 +5632,7 @@ table is created during the simulation as follows:</p>
 </table>
 <div class="section" id="id6">
 <h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.defaults.tables.tours"></span></div>
+</div>
 </div>
 <div class="section" id="trips">
 <span id="index-12"></span><h2>Trips<a class="headerlink" href="#trips" title="Permalink to this headline">¶</a></h2>

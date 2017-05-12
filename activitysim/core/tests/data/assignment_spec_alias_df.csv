@@ -1,0 +1,12 @@
+Description,Target,Expression
+# a comment line
+# _temp = 8, 9, 9
+a temp variable,_temp,CONSTANT+aliased_df.thing1
+a scalar temp,_scalar,42
+# assignments
+assign to target,target1,aliased_df.thing1 == _shadow
+overwrites locals_d,_shadow,1
+assign to target,target1,aliased_df.thing1 == _shadow
+# 3,2,4 + 8,9,9 + 42 = 53, 52, 55
+assign temp to target,target2,aliased_df.thing2 + _temp + _scalar - aliased_df.thing1
+this should fail,target3,target2 * 10

@@ -493,7 +493,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d=None, trace_label=None, trace_ch
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     trace_label=None, trace_choice_name=None):
     """
-    Run a MNL simulation for when the model spec does not involve alternative
+    Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
     properties and no need to sample from alternatives.
 

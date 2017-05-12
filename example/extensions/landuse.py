@@ -1,5 +1,6 @@
 import orca
 
+
 @orca.column("land_use")
 def total_households(land_use):
     return land_use.local.TOTHH

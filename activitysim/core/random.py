@@ -61,11 +61,6 @@ class SimpleChannel(object):
     that is based on the domain_df index (which implies that generated tables like tours
     and trips are also created with stable, predictable, repeatable row indexes.
 
-    We need to ensure that we generate the same random streams (when re-run or even across
-    different simulations.) We do this by generating a random seed for each domain_df row
-    that is based on the domain_df index (which implies that generated tables like tours
-    and trips are also created with stable, predictable, repeatable row indexes.
-
     Because we need to generate a distinct stream for each step, we can't just use the
     domain_df index - we need a strategy for handling multiple steps without generating
     collisions between streams (i.e. choosing the same seed for more than one stream.)
@@ -318,7 +313,7 @@ class SimpleChannel(object):
 
         We pass the multi_choice_offset to _generators_for_df as override_offset so that,
         if multi_choice_offset has been set (by a call to set_multi_choice_offset method, q,v,)
-         _generators_for_df will EITHER use the same rand sequence for choosing values
+        _generators_for_df will EITHER use the same rand sequence for choosing values
         OR use fresh random values for choices.
 
         Parameters

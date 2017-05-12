@@ -128,9 +128,9 @@ def expand_alternatives(df):
     # now concat all the lists
     new_alts = sum(alts, [])
 
-    df.reset_index("Alternative", inplace=True)
+    df.reset_index(["Alternative"], inplace=True)
     df["Alternative"] = new_alts
-    # rowid needs to bet set here - we're going to unstack this and we need
+    # rowid needs to be set here - we're going to unstack this and we need
     # a unique identifier to keep track of the rows during the unstack
     df = df.set_index(['Rowid', 'Alternative'], append=True)
 

@@ -357,7 +357,7 @@ class SkimStack(object):
 
 class SkimStackWrapper(object):
     """
-    A SkimStackWrapper object wraps a skim objects to add an additional wrinkle of
+    A SkimStackWrapper object wraps a skims object to add an additional wrinkle of
     lookup functionality.  Upon init the separate skims objects are
     processed into a 3D matrix so that lookup of the different skims can
     be performed quickly for each row in the dataframe.  In this very
@@ -382,6 +382,7 @@ class SkimStackWrapper(object):
     items.  The second item in the tuple maps to the items in the dataframe
     referred to by the skim_key column and the first item in the tuple is
     then available to pass directly to __getitem__.
+
     The sum conclusion of this is that in the specs, you can say something
     like out_skim['SOV'] and it will automatically dereference the 3D matrix
     using origin, destination, and time of day.

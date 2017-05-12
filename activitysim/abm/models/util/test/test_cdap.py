@@ -30,6 +30,7 @@ def cdap_indiv_and_hhsize1(data_dir):
     return read_model_spec(
         os.path.join(data_dir, 'cdap_indiv_and_hhsize1.csv'))
 
+
 @pytest.fixture(scope='module')
 def cdap_interaction_coefficients(data_dir):
     f = os.path.join(data_dir, 'cdap_interaction_coefficients.csv')

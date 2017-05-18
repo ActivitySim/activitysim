@@ -205,7 +205,7 @@
             
   <div class="section" id="core-components">
 <h1>Core Components<a class="headerlink" href="#core-components" title="Permalink to this headline">¶</a></h1>
-<p>ActivitySim&#8217;s core components include the model specification reader and expression
+<p>ActivitySim’s core components include the model specification reader and expression
 evaluator, the skim matrix manager, the simulate methods for solving
 models (i.e. calculating utilities, probabilties, and making choices),  the choice
 models, the data pipeline manager, the random number generator, and the tracer.</p>
@@ -264,7 +264,7 @@ relative values (the leaf probabilities sum to 1 for each row.)</p>
 <div><p>Nest tree dict from the model spec yaml file</p>
 </div></blockquote>
 <p><strong>Returns</strong></p>
-<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>——-</strong></p>
 <p><strong>base_probabilities</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
@@ -311,7 +311,7 @@ nest &lt;- exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficien
 <dt id="activitysim.core.simulate.compute_nested_probabilities">
 <code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_nested_probabilities</code><span class="sig-paren">(</span><em>nested_exp_utilities</em>, <em>nest_spec</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_nested_probabilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>compute nested probabilities for nest leafs and nodes
-probability for nest alternatives is simply the alternatives&#8217;s local (to nest) probability
+probability for nest alternatives is simply the alternatives’s local (to nest) probability
 computed in the same way as the probability of non-nested alternatives in multinomial logit
 i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
 except in nested logit, its sib group is restricted to the nest</p>
@@ -328,7 +328,7 @@ except in nested logit, its sib group is restricted to the nest</p>
 <div><p>Nest tree dict from the model spec yaml file</p>
 </div></blockquote>
 <p><strong>Returns</strong></p>
-<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>——-</strong></p>
 <p><strong>nested_probabilities</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
@@ -351,7 +351,7 @@ spec alternative columns.</p>
 separate row in interaction dataset df, and so there is only one alternative in spec.
 This turns out to be quite a bit faster (in this special case) than the pandas dot function.</p>
 <p>For efficiency, we combine eval_variables and multiplication of coefficients into a single step,
-so we don&#8217;t have to create a separate column for each partial utility. Instead, we simply
+so we don’t have to create a separate column for each partial utility. Instead, we simply
 multiply the eval result by a single alternative coefficient and sum the partial utilities.</p>
 <dl class="docutils">
 <dt>spec <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
@@ -485,11 +485,11 @@ of <cite>spec</cite>.</p>
 <code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_variables</code><span class="sig-paren">(</span><em>exprs</em>, <em>df</em>, <em>locals_d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate a set of variable expressions from a spec in the context
 of a given data table.</p>
-<p>There are two kinds of supported expressions: &#8220;simple&#8221; expressions are
+<p>There are two kinds of supported expressions: “simple” expressions are
 evaluated in the context of the DataFrame using DataFrame.eval.
 This is the default type of expression.</p>
 <p>Python expressions are evaluated in the context of this function using
-Python&#8217;s eval function. Because we use Python&#8217;s eval this type of
+Python’s eval function. Because we use Python’s eval this type of
 expression supports more complex operations than a simple expression.
 Python expressions are denoted by beginning with the &#64; character.
 Users should take care that these expressions must result in
@@ -593,7 +593,7 @@ choices are simulated in the standard Monte Carlo fashion</p>
 
 <dl class="function">
 <dt id="activitysim.core.simulate.read_model_spec">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">read_model_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name='Description'</em>, <em>expression_name='Expression'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">read_model_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name=’Description’</em>, <em>expression_name=’Expression’</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
 <p>The CSV is expected to have columns for component descriptions
 and expressions, plus one or more alternatives.</p>
@@ -768,7 +768,7 @@ dictionary - i.e. use brackets to add and get skim objects - but also
 has information on how to lookup against the skim objects.
 Specifically, this object has a dataframe, a left_key and right_key.
 It is assumed that left_key and right_key identify columns in df.  The
-parameter df is usually set by the simulation itself as it&#8217;s a result of
+parameter df is usually set by the simulation itself as it’s a result of
 interacting choosers and alternatives.</p>
 <p>When the user calls skims[key], key is an identifier for which skim
 to use, and the object automatically looks up impedances of that skim
@@ -839,8 +839,8 @@ elements - the second element of which will be taken from the
 different rows in the dataframe.  The first element can then be
 dereferenced like an array.  This is useful, for instance, to have a
 certain skim vary by time of day - the skims are set with keys of
-(&#8216;SOV&#8217;, &#8216;AM&#8221;), (&#8216;SOV&#8217;, &#8216;PM&#8217;) etc.  The time of day is then taken to
-be different for every row in the tours table, and the &#8216;SOV&#8217; portion
+(‘SOV’, ‘AM”), (‘SOV’, ‘PM’) etc.  The time of day is then taken to
+be different for every row in the tours table, and the ‘SOV’ portion
 of the key can be used in __getitem__.</p>
 <p>To be more explicit, the input is a dictionary of Skims objects, each of
 which contains a 2D matrix.  These are stacked into a 3D matrix with a
@@ -855,7 +855,7 @@ items.  The second item in the tuple maps to the items in the dataframe
 referred to by the skim_key column and the first item in the tuple is
 then available to pass directly to __getitem__.</p>
 <p>The sum conclusion of this is that in the specs, you can say something
-like out_skim[&#8216;SOV&#8217;] and it will automatically dereference the 3D matrix
+like out_skim[‘SOV’] and it will automatically dereference the 3D matrix
 using origin, destination, and time of day.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -985,8 +985,8 @@ yaml configuration file - example/configs/tour_mode_choice.yaml.</p>
 <blockquote>
 <div><p>Nest class type to yield
 None yields all nests
-&#8216;leaf&#8217; yields only leaf nodes
-&#8216;branch&#8217; yields only branch nodes</p>
+‘leaf’ yields only leaf nodes
+‘branch’ yields only branch nodes</p>
 </div></blockquote>
 <p><strong>post_order</strong> : Bool</p>
 <blockquote>
@@ -1051,7 +1051,7 @@ each row, e.g. they should sum to 1.</p>
 <p><strong>trace_choosers</strong> : pandas.dataframe</p>
 <blockquote>
 <div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
-by report_bad_choices because it can&#8217;t deduce hh_id from the interaction_dataset
+by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
 which is indexed on index values from alternatives df</p>
 </div></blockquote>
 </td>
@@ -1086,7 +1086,7 @@ is an index into the columns of <cite>probs</cite>.</p>
 <p><strong>trace_choosers</strong> : pandas.dataframe</p>
 <blockquote>
 <div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
-because we  can&#8217;t deduce hh_id from the interaction_dataset which is indexed on index
+because we  can’t deduce hh_id from the interaction_dataset which is indexed on index
 values from alternatives df</p>
 </div></blockquote>
 </td>
@@ -1127,7 +1127,7 @@ This si for hte benefit of calculating probabilities of nested logit nests</p>
 <p><strong>trace_choosers</strong> : pandas.dataframe</p>
 <blockquote>
 <div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
-by report_bad_choices because it can&#8217;t deduce hh_id from the interaction_dataset
+by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
 which is indexed on index values from alternatives df</p>
 </div></blockquote>
 </td>
@@ -1387,7 +1387,7 @@ The default base seed value is 0, so set_base_seed(0) is a NOP</p>
 <p>set_rn_generator_base_seed(1) will (e.g.) provide a different set of random streams
 than the default, but will provide repeatable results re-running or resuming the simulation</p>
 <p>set_rn_generator_base_seed(None) will set the base seed to a random and unpredictable integer
-and so provides &#8220;fully pseudo random&#8221; non-repeatable streams with different results every time</p>
+and so provides “fully pseudo random” non-repeatable streams with different results every time</p>
 <p>Must be called before start_pipeline() or pipeline.run()</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1452,7 +1452,7 @@ so we need to know both the table_name and the checkpoint_name to label the save
 </div>
 <div class="section" id="random">
 <span id="random-in-detail"></span><h2>Random<a class="headerlink" href="#random" title="Permalink to this headline">¶</a></h2>
-<p>ActivitySim&#8217;s random number generation has a number of important features unique to AB modeling:</p>
+<p>ActivitySim’s random number generation has a number of important features unique to AB modeling:</p>
 <ul class="simple">
 <li>Regression testing, debugging - run the exact model with the same inputs and get exactly the same results.</li>
 <li>Debugging models - run the exact model with the same inputs but with changes to expression files and get the same results except where the equations differ.</li>
@@ -1489,8 +1489,8 @@ possible across alternative scenarios.  This is done for trips as well, by direc
 <dd><p>We expect that the random number channel can be determined by the name of the index of the
 dataframe accompanying the request. This function encapsulates the knowledge of that mapping.</p>
 <p>Generally, the channel name is just the table name used by the pipeline and orca.
-The exception is the &#8216;tours&#8217; channel, which is messy because the mandatory and non-mandatory
-tours tables are originally created separately and later combined in to a single &#8216;tours&#8217;
+The exception is the ‘tours’ channel, which is messy because the mandatory and non-mandatory
+tours tables are originally created separately and later combined in to a single ‘tours’
 table. But during a few model steps before they are combined, they actually exist as two
 distinct tables. We only need to know this dirty secret about tables when we reload
 checkpointed channels.</p>
@@ -1521,7 +1521,7 @@ checkpointed channels.</p>
 different simulations.) We do this by generating a random seed for each domain_df row
 that is based on the domain_df index (which implies that generated tables like tours
 and trips are also created with stable, predictable, repeatable row indexes.</p>
-<p>Because we need to generate a distinct stream for each step, we can&#8217;t just use the
+<p>Because we need to generate a distinct stream for each step, we can’t just use the
 domain_df index - we need a strategy for handling multiple steps without generating
 collisions between streams (i.e. choosing the same seed for more than one stream.)</p>
 <p>The easiest way to do this would be to use an array of integers to seed the generator,
@@ -1670,7 +1670,7 @@ using the appropriate random channel for each row.</p>
 This method is designed to support alternative selection from a probability array</p>
 <p>The columns in df are ignored; the index name and values are used to determine
 which random number sequence to to use.</p>
-<p>If &#8220;true pseudo random&#8221; behavior is desired (i.e. NOT repeatable) the set_base_seed
+<p>If “true pseudo random” behavior is desired (i.e. NOT repeatable) the set_base_seed
 method (q.v.) may be used to globally reseed all random streams.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1709,7 +1709,7 @@ OR use fresh random values for choices.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>offset</strong> : int</p>
 <blockquote>
-<div><p>the offset into the current step&#8217;s random number stream at which to begin taking
+<div><p>the offset into the current step’s random number stream at which to begin taking
 rands for each choice_for_df row_state row</p>
 </div></blockquote>
 <p><strong>step_name</strong> : str</p>
@@ -1734,7 +1734,7 @@ comprehensive set of trace files for all calculations for all household members:
 <li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
 <li><code class="docutils literal"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
 </ul>
-<p>With the set of output CSV files, the user can trace ActivitySim&#8217;s calculations in order to ensure they are correct and/or to
+<p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
 <div class="section" id="id5">
 <h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
@@ -1856,7 +1856,7 @@ help debug data and/or logic errors.</p>
 <dt id="activitysim.core.tracing.log_file_path">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">log_file_path</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.log_file_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>For use in logging.yaml tag to inject log file path</p>
-<p>filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path [&#8216;asim.log&#8217;]</p>
+<p>filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path [‘asim.log’]</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1964,7 +1964,7 @@ help debug data and/or logic errors.</p>
 <dt id="activitysim.core.tracing.register_tours">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_tours</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_tours" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register with orca persons for tracing</p>
-<p>create an orca injectable &#8216;trace_tour_ids&#8217; with a list of tour_ids in household we are tracing.
+<p>create an orca injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
 This allows us to slice by tour_id without requiring presence of person_id column</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2012,7 +2012,7 @@ This allows us to slice by tour_id without requiring presence of person_id colum
 <dt id="activitysim.core.tracing.register_trips">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_trips</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_trips" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register with orca persons for tracing</p>
-<p>create an orca injectable &#8216;trace_tour_ids&#8217; with a list of tour_ids in household we are tracing.
+<p>create an orca injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
 This allows us to slice by tour_id without requiring presence of person_id column</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2205,7 +2205,7 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 <div><p>whether to transpose dataframe (ignored for series)</p>
 </div></blockquote>
 <p><strong>Returns</strong></p>
-<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>——-</strong></p>
 <p class="last"><strong>Nothing</strong></p>
 </td>
 </tr>
@@ -2226,7 +2226,7 @@ This is used by the <a class="reference internal" href="models.html#activitysim.
 <code class="descclassname">activitysim.core.assign.</code><code class="descname">assign_variables</code><span class="sig-paren">(</span><em>assignment_expressions</em>, <em>df</em>, <em>locals_dict</em>, <em>df_alias=None</em>, <em>trace_rows=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.assign_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate a set of variable expressions from a spec in the context
 of a given data table.</p>
-<p>Expressions are evaluated using Python&#8217;s eval function.
+<p>Expressions are evaluated using Python’s eval function.
 Python expressions have access to variables in locals_d (and df being
 accessible as variable df.) They also have access to previously assigned
 targets as the assigned target name.</p>
@@ -2250,7 +2250,7 @@ expression: pandas or python expression to evaluate</p>
 <p><strong>locals_d</strong> : Dict</p>
 <blockquote>
 <div><p>This is a dictionary of local variables that will be the environment
-for an evaluation of &#8220;python&#8221; expression.</p>
+for an evaluation of “python” expression.</p>
 </div></blockquote>
 <p><strong>trace_rows: series or array of bools to use as mask to select target rows to trace</strong></p>
 </td>
@@ -2272,7 +2272,7 @@ the result of evaluating expression</p>
 
 <dl class="function">
 <dt id="activitysim.core.assign.read_assignment_spec">
-<code class="descclassname">activitysim.core.assign.</code><code class="descname">read_assignment_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name='Description'</em>, <em>target_name='Target'</em>, <em>expression_name='Expression'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.read_assignment_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.assign.</code><code class="descname">read_assignment_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name=’Description’</em>, <em>target_name=’Target’</em>, <em>expression_name=’Expression’</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.read_assignment_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
 <p>The CSV is expected to have columns for component descriptions
 targets, and expressions,</p>
@@ -2303,7 +2303,7 @@ targets, and expressions,</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
 <blockquote class="last">
-<div><p>dataframe with three columns: [&#8216;description&#8217; &#8216;target&#8217; &#8216;expression&#8217;]</p>
+<div><p>dataframe with three columns: [‘description’ ‘target’ ‘expression’]</p>
 </div></blockquote>
 </td>
 </tr>
@@ -2313,9 +2313,9 @@ targets, and expressions,</p>
 
 <dl class="function">
 <dt id="activitysim.core.assign.undupe_column_names">
-<code class="descclassname">activitysim.core.assign.</code><code class="descname">undupe_column_names</code><span class="sig-paren">(</span><em>df</em>, <em>template='{} ({})'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.undupe_column_names" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.assign.</code><code class="descname">undupe_column_names</code><span class="sig-paren">(</span><em>df</em>, <em>template=’{} ({})’</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.undupe_column_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>rename df column names so there are no duplicates (in place)</p>
-<p>e.g. if there are two columns named &#8220;dog&#8221;, the second column will be reformatted to &#8220;dog (2)&#8221;</p>
+<p>e.g. if there are two columns named “dog”, the second column will be reformatted to “dog (2)”</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2386,8 +2386,8 @@ common operation that does not appear to  be in Pandas at this time.
 If anyone knows of an easier way to do this in Pandas, please inform the
 UrbanSim developers.</p>
 <p>The canonical example would be a parcel series which has an index which is
-parcel_ids and a value which you want to fetch, let&#8217;s say it&#8217;s land_area.
-Another dataset, let&#8217;s say of buildings has a series which indicate the
+parcel_ids and a value which you want to fetch, let’s say it’s land_area.
+Another dataset, let’s say of buildings has a series which indicate the
 parcel_ids that the buildings are located on, but which does not have
 land_area.  If you pass parcels.land_area as the first series and
 buildings.parcel_id as the second series, this function returns a series
@@ -2396,7 +2396,7 @@ added to the buildings dataset.</p>
 <p>In short, this is a join on to a different table using a foreign key
 stored in the current table, but with only one attribute rather than
 for a full dataset.</p>
-<p>This is very similar to the pandas &#8220;loc&#8221; function or &#8220;reindex&#8221; function,
+<p>This is very similar to the pandas “loc” function or “reindex” function,
 but neither of those functions return the series indexed on the current
 table.  In both of those cases, the series would be indexed on the foreign
 table and would require a second step to change the index.</p>

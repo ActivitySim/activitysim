@@ -345,7 +345,7 @@ cdap_indiv_spec and cdap_fixed_relative_proportions</p>
 <code class="descclassname">activitysim.abm.models.cdap.</code><code class="descname">cdap_simulate</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>cdap_settings</em>, <em>cdap_indiv_spec</em>, <em>cdap_interaction_coefficients</em>, <em>cdap_fixed_relative_proportions</em>, <em>hh_chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.cdap.cdap_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
 high-level activity pattern for each person, in a coordinated way with other
-members of a person&#8217;s household.</p>
+members of a person’s household.</p>
 <p>Because Python requires vectorization of computation, there are some specialized
 routines in the cdap directory of activitysim for this purpose.  This module
 simply applies those utilities using the simulation framework.</p>
@@ -360,13 +360,13 @@ simply applies those utilities using the simulation framework.</p>
 <dd><p>Add an interaction column in place to choosers, listing the ptypes of the persons in p_tup</p>
 <p>The name of the interaction column will be determined by the cdap_ranks from p_tup,
 and the rows in the column contain the ptypes of those persons in that household row.</p>
-<p>For instance, for p_tup = (1,3) choosers interaction column name will be &#8216;p1_p3&#8217;</p>
+<p>For instance, for p_tup = (1,3) choosers interaction column name will be ‘p1_p3’</p>
 <p>For a household where person 1 is part-time worker (ptype=2) and person 3 is infant (ptype 8)
 the corresponding row value interaction code will be 28</p>
 <p>We take advantage of the fact that interactions are symmetrical to simplify spec expressions:
 We name the interaction_column in increasing pnum (cdap_rank) order (p1_p2 and not p3_p1)
 And we format row values in increasing ptype order (28 and not 82)
-This simplifies the spec expressions as we don&#8217;t have to test for p1_p3 == 28 | p1_p3 == 82</p>
+This simplifies the spec expressions as we don’t have to test for p1_p3 == 28 | p1_p3 == 82</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -407,14 +407,14 @@ MAX_HHSIZE persons in each household.</p>
 it follows the convention of 1-based pnums in expression files.</p>
 <p>According to the documentation of reOrderPersonsForCdap in mtctm2.abm.ctramp
 HouseholdCoordinatedDailyActivityPatternModel:</p>
-<p>&#8220;Method reorders the persons in the household for use with the CDAP model,
+<p>“Method reorders the persons in the household for use with the CDAP model,
 which only explicitly models the interaction of five persons in a HH. Priority
 in the reordering is first given to full time workers (up to two), then to
 part time workers (up to two workers, of any type), then to children (youngest
 to oldest, up to three). If the method is called for a household with less
-than 5 people, the cdapPersonArray is the same as the person array.&#8221;</p>
+than 5 people, the cdapPersonArray is the same as the person array.”</p>
 <p>We diverge from the above description in that a cdap_rank is assigned to all persons,
-including &#8216;extra&#8217; householld members, whose activity is assigned subsequently.
+including ‘extra’ householld members, whose activity is assigned subsequently.
 The pair _hh_id_, cdap_rank will uniquely identify each household member.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -464,7 +464,7 @@ this slug is replaced with the numerical coefficient value after we dump the tra
 </dd>
 </dl>
 <p>The generated spec will have the eval expression in the index, and a utility column for each
-alternative (e.g. [&#8216;HH&#8217;, &#8216;HM&#8217;, &#8216;HN&#8217;, &#8216;MH&#8217;, &#8216;MM&#8217;, &#8216;MN&#8217;, &#8216;NH&#8217;, &#8216;NM&#8217;, &#8216;NN&#8217;] for hhsize 2)</p>
+alternative (e.g. [‘HH’, ‘HM’, ‘HN’, ‘MH’, ‘MM’, ‘MN’, ‘NH’, ‘NM’, ‘NN’] for hhsize 2)</p>
 <p>In order to be able to dump the spec in a human-friendly fashion to facilitate debugging the
 cdap_interaction_coefficients table, we first populate utility columns in the spec file
 with the coefficient slugs, dump the spec file, and then replace the slugs with coefficients.</p>
@@ -492,9 +492,9 @@ with the coefficient slugs, dump the spec file, and then replace the slugs with 
 <dl class="function">
 <dt id="activitysim.abm.models.util.cdap.extra_hh_member_choices">
 <code class="descclassname">activitysim.abm.models.util.cdap.</code><code class="descname">extra_hh_member_choices</code><span class="sig-paren">(</span><em>persons</em>, <em>cdap_fixed_relative_proportions</em>, <em>locals_d</em>, <em>trace_hh_id</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.extra_hh_member_choices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate the activity choices for the &#8216;extra&#8217; household members who weren&#8217;t handled by cdap</p>
-<p>Following the CTRAMP HouseholdCoordinatedDailyActivityPatternModel, &#8220;a separate,
-simple cross-sectional distribution is looked up for the remaining household members&#8221;</p>
+<dd><p>Generate the activity choices for the ‘extra’ household members who weren’t handled by cdap</p>
+<p>Following the CTRAMP HouseholdCoordinatedDailyActivityPatternModel, “a separate,
+simple cross-sectional distribution is looked up for the remaining household members”</p>
 <p>The cdap_fixed_relative_proportions spec is handled like an activitysim logit utility spec,
 EXCEPT that the values computed are relative proportions, not utilities
 (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)</p>
@@ -544,7 +544,7 @@ individual. e.g. the utilities of person with cdap_rank 1 will be included as M_
 from 2 to 3 persons (actually MAX_INTERACTION_CARDINALITY, which is currently 3).</p>
 <p>The interaction columns list the ptypes of the persons in the interaction set, sorted by ptype.
 For instance the interaction between persons with cdap_rank 1 and three and ptypes will
-be listed in a column named &#8216;p1_p3&#8217; and for a household where persons p1 and p3 are 2 and 4
+be listed in a column named ‘p1_p3’ and for a household where persons p1 and p3 are 2 and 4
 will a row value of 24 in the p1_p3 column.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -554,7 +554,7 @@ will a row value of 24 in the p1_p3 column.</p>
 <blockquote>
 <div><p>CDAP utilities for each individual, ignoring interactions.
 ind_utils has index of _persons_index_ and a column for each alternative
-i.e. three columns &#8216;M&#8217; (Mandatory), &#8216;N&#8217; (NonMandatory), &#8216;H&#8217; (Home)</p>
+i.e. three columns ‘M’ (Mandatory), ‘N’ (NonMandatory), ‘H’ (Home)</p>
 </div></blockquote>
 <p><strong>hhsize</strong> : int</p>
 <blockquote>
@@ -580,7 +580,7 @@ for all (non-extra) household members</p>
 <code class="descclassname">activitysim.abm.models.util.cdap.</code><code class="descname">household_activity_choices</code><span class="sig-paren">(</span><em>indiv_utils</em>, <em>interaction_coefficients</em>, <em>hhsize</em>, <em>trace_hh_id=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.household_activity_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate household utilities for each activity pattern alternative for households of hhsize
 The resulting activity pattern for each household will be coded as a string of activity codes.
-e.g. &#8216;MNHH&#8217; for a 4 person household with activities Mandatory, NonMandatory, Home, Home</p>
+e.g. ‘MNHH’ for a 4 person household with activities Mandatory, NonMandatory, Home, Home</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -589,7 +589,7 @@ e.g. &#8216;MNHH&#8217; for a 4 person household with activities Mandatory, NonM
 <blockquote>
 <div><p>CDAP utilities for each individual, ignoring interactions
 ind_utils has index of _persons_index_ and a column for each alternative
-i.e. three columns &#8216;M&#8217; (Mandatory), &#8216;N&#8217; (NonMandatory), &#8216;H&#8217; (Home)</p>
+i.e. three columns ‘M’ (Mandatory), ‘N’ (NonMandatory), ‘H’ (Home)</p>
 </div></blockquote>
 <p><strong>interaction_coefficients</strong> : pandas.DataFrame</p>
 <blockquote>
@@ -603,7 +603,7 @@ i.e. three columns &#8216;M&#8217; (Mandatory), &#8216;N&#8217; (NonMandatory), 
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
 <blockquote class="last">
-<div><p>the chosen cdap activity pattern for each household represented as a string (e.g. &#8216;MNH&#8217;)
+<div><p>the chosen cdap activity pattern for each household represented as a string (e.g. ‘MNH’)
 with same index (_hh_index_) as utils</p>
 </div></blockquote>
 </td>
@@ -633,7 +633,7 @@ with same index (_hh_index_) as utils</p>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
 <blockquote class="last">
 <div><p>Will have index of <cite>persons</cite> and columns for each of the alternatives.
-plus some &#8216;useful columns&#8217; [_hh_id_, _ptype_, &#8216;cdap_rank&#8217;, _hh_size_]</p>
+plus some ‘useful columns’ [_hh_id_, _ptype_, ‘cdap_rank’, _hh_size_]</p>
 </div></blockquote>
 </td>
 </tr>
@@ -715,11 +715,11 @@ in either the cdap_indiv_spec or cdap_fixed_relative_proportions expression file
 <div><p>dataframe is indexed on _persons_index_ and has two columns:</p>
 <dl class="docutils">
 <dt>cdap_activity <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">activity for that person expressed as &#8216;M&#8217;, &#8216;N&#8217;, &#8216;H&#8217;</p>
+<dd><p class="first last">activity for that person expressed as ‘M’, ‘N’, ‘H’</p>
 </dd>
 <dt>cdap_rank <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
 <dd><p class="first last">activities for persons with cdap_rank &lt;= MAX_HHSIZE are determined by cdap
-&#8216;extra&#8217; household members activities are assigned by cdap_fixed_relative_proportions</p>
+‘extra’ household members activities are assigned by cdap_fixed_relative_proportions</p>
 </dd>
 </dl>
 </div></blockquote>
@@ -740,12 +740,12 @@ in either the cdap_indiv_spec or cdap_fixed_relative_proportions expression file
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>persons</strong> : pandas.DataFrame</p>
 <blockquote>
 <div><p>Table of persons data indexed on _persons_index_
-We expect, at least, columns [_hh_id_, &#8216;cdap_rank&#8217;]</p>
+We expect, at least, columns [_hh_id_, ‘cdap_rank’]</p>
 </div></blockquote>
 <p><strong>hh_choices</strong> : pandas.Series</p>
 <blockquote>
 <div><p>household activity pattern is encoded as a string (of length hhsize) of activity codes
-e.g. &#8216;MNHH&#8217; for a 4 person household with activities Mandatory, NonMandatory, Home, Home</p>
+e.g. ‘MNHH’ for a 4 person household with activities Mandatory, NonMandatory, Home, Home</p>
 </div></blockquote>
 </td>
 </tr>
@@ -775,7 +775,7 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <code class="descclassname">activitysim.abm.models.destination.</code><code class="descname">destination_choice</code><span class="sig-paren">(</span><em>non_mandatory_tours_merged</em>, <em>skim_dict</em>, <em>destination_choice_spec</em>, <em>destination_choice_settings</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.destination.destination_choice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given the tour generation from the above, each tour needs to have a
 destination, so in this case tours are the choosers (with the associated
-person that&#8217;s making the tour)</p>
+person that’s making the tour)</p>
 </dd></dl>
 
 </div>
@@ -860,8 +860,8 @@ SkimStackWrapper odt_skims Keys: <code class="docutils literal"><span class="pre
 the given segment, and unstack.  It is assumed that the last column of
 the multiindex is alternatives so when you do this unstacking,
 each alternative is in a column (which is the format this as used for the
-simple_simulate call.  The weird nuance here is the &#8220;Rowid&#8221; column -
-since many expressions are repeated (e.g. many are just &#8220;1&#8221;) a Rowid
+simple_simulate call.  The weird nuance here is the “Rowid” column -
+since many expressions are repeated (e.g. many are just “1”) a Rowid
 column is necessary to identify which alternatives are actually part of
 which original row - otherwise the unstack is incorrect (i.e. the index
 is not unique)</p>
@@ -898,7 +898,7 @@ to each other.  So ivt=.7 and then ivt_lr=ivt*.9.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>expressions</strong> : Series</p>
 <blockquote>
 <div><p>Same as below except the values are accumulated from expression to
-expression and there is no assumed &#8220;$&#8221; at the beginning.  This is a
+expression and there is no assumed “$” at the beginning.  This is a
 Series because the index are the names of the expressions which are
 used in subsequent evals - thus naming the expressions is required.
 For better or worse, the expressions are assumed to evaluate to
@@ -944,13 +944,13 @@ Strings will only be evaluated which are prepended with $.</p>
 <blockquote>
 <div><p>These are the expressions that will be evaluated - generally these
 contain templates that get passed below.  So will be something like
-[&#8216;$SKIM_TEMPLATE.format(sk=&#8221;AMPEAK&#8221;)&#8217;]</p>
+[‘$SKIM_TEMPLATE.format(sk=”AMPEAK”)’]</p>
 </div></blockquote>
 <p><strong>variable_templates</strong> : dict of templates</p>
 <blockquote>
 <div><p>Will be passed as the scope of eval.  Keys are usually template names
 and values are strings.  The dict could be something like
-{&#8216;SKIM_TEMPLATE&#8217;: &#8216;skims[{sk}]&#8217;}</p>
+{‘SKIM_TEMPLATE’: ‘skims[{sk}]’}</p>
 </div></blockquote>
 </td>
 </tr>
@@ -975,7 +975,7 @@ the result is returned.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>expressions</strong> : Series</p>
 <blockquote>
-<div><p>Same as below except there is no assumed &#8220;$&#8221; at the beginning.
+<div><p>Same as below except there is no assumed “$” at the beginning.
 For better or worse, the expressions are assumed to evaluate to
 floats and this is guaranteed by casting to float after eval-ing.</p>
 </div></blockquote>
@@ -1099,10 +1099,10 @@ mandatory tours that were generated</p>
 <blockquote>
 <div><p>Persons is a DataFrame which has a column call
 mandatory_tour_frequency (which came out of the mandatory tour
-frequency model) and a column is_worker which indicates the person&#8217;s
+frequency model) and a column is_worker which indicates the person’s
 worker status.  The only valid values of the mandatory_tour_frequency
-column to take are &#8220;work1&#8221;, &#8220;work2&#8221;, &#8220;school1&#8221;, &#8220;school2&#8221; and
-&#8220;work_and_school&#8221;</p>
+column to take are “work1”, “work2”, “school1”, “school2” and
+“work_and_school”</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1110,10 +1110,10 @@ column to take are &#8220;work1&#8221;, &#8220;work2&#8221;, &#8220;school1&#822
 <blockquote class="last">
 <div><p>An example of a tours DataFrame is supplied as a comment in the
 source code - it has an index which is a tour identifier, a person_id
-column, a tour_type column which is &#8220;work&#8221; or &#8220;school&#8221; and a tour_num
+column, a tour_type column which is “work” or “school” and a tour_num
 column which is set to 1 or 2 depending whether it is the first or
 second mandatory tour made by the person.  The logic for whether the
-work or school tour comes first given a &#8220;work_and_school&#8221; choice
+work or school tour comes first given a “work_and_school” choice
 depends on the is_worker column and was copied from the original
 implementation.</p>
 </div></blockquote>
@@ -1195,7 +1195,7 @@ person.  See the return value below for more information.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>current_tour_person_ids</strong> : Series</p>
 <blockquote>
-<div><p>A Series of person ids for the tours we&#8217;re about make the choice for
+<div><p>A Series of person ids for the tours we’re about make the choice for
 - index should match the tours DataFrame.</p>
 </div></blockquote>
 <p><strong>previous_tour_by_personid</strong> : Series</p>
@@ -1211,10 +1211,10 @@ of the alternatives of the scheduling.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>prev_alts</strong> : DataFrame</p>
 <blockquote class="last">
-<div><p>A DataFrame with an index matching the CURRENT tours we&#8217;re making a
+<div><p>A DataFrame with an index matching the CURRENT tours we’re making a
 decision for, but with columns from the PREVIOUS tour of the person
 associated with each of the CURRENT tours.  Every column of the
-alternatives will have &#8220;_previous&#8221; added as a suffix to keep
+alternatives will have “_previous” added as a suffix to keep
 differentiated from the current alternatives that will be part of the
 interaction.</p>
 </div></blockquote>
@@ -1232,11 +1232,11 @@ and schedules them into time slots.  Alternatives should be specified so
 as to define those time slots (usually with start and end times).</p>
 <p>The difficulty of doing this in Python is that subsequent tours are
 dependent on certain characteristics of previous tours for the same
-person.  This is a problem with Python&#8217;s vectorization requirement,
+person.  This is a problem with Python’s vectorization requirement,
 so this method does all the 1st tours, then all the 2nd tours, and so forth.</p>
 <p>This method also adds variables that can be used in the spec which have
 to do with the previous tours per person.  Every column in the
-alternatives table is appended with the suffix &#8220;_previous&#8221; and made
+alternatives table is appended with the suffix “_previous” and made
 available.  So if your alternatives table has columns for start and end,
 then start_previous and end_previous will be set to the start and end of
 the most recent tour for a person.  The first time through,

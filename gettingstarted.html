@@ -207,11 +207,7 @@ in memory.</p>
 <h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim is a 64bit Python 2.7 library that uses a number of packages from the
 scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
-and <a class="reference external" href="http://numpy.org">numpy</a>.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">ActivitySim does not currently support Python 3</p>
-</div>
+and <a class="reference external" href="http://numpy.org">numpy</a>. ActivitySim does not currently support Python 3.</p>
 <p>The recommended way to get your own scientific Python installation is to
 install <a class="reference external" href="http://docs.continuum.io/anaconda/index.html">Anaconda</a>, which contains many of the libraries upon which
 ActivitySim depends + some handy Python installation management tools.</p>
@@ -229,6 +225,14 @@ with the following commands:</p>
 <span class="c1">#Mac</span>
 <span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">2.7</span>
 <span class="n">source</span> <span class="n">activate</span> <span class="n">asimtest</span>
+</pre></div>
+</div>
+<p>If you access the internet from behind a firewall, then you will need to configure your proxy
+server. To do so, create a <code class="docutils literal"><span class="pre">.condarc</span></code> file in your Anaconda installation folder, such as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
+  <span class="n">http</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">proxynew</span><span class="o">.</span><span class="n">odot</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="ow">or</span><span class="o">.</span><span class="n">us</span><span class="p">:</span><span class="mi">8080</span>
+  <span class="n">https</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">proxynew</span><span class="o">.</span><span class="n">odot</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="ow">or</span><span class="o">.</span><span class="n">us</span><span class="p">:</span><span class="mi">8080</span>
+<span class="n">ssl_verify</span><span class="p">:</span> <span class="n">false</span>
 </pre></div>
 </div>
 <p>This will create a new conda environment named <code class="docutils literal"><span class="pre">asimtest</span></code> and set it as the
@@ -267,6 +271,11 @@ attempt to install any dependencies that are not already installed.</p>
 </div>
 <p>If numexpr (which numpy requires) fails to install, you may need
 the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visual C++ Compiler for Python</a>.</p>
+<p>If you access the internet from behind a firewall, then you will need to configure
+your proxy server when downloading packages.  For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">trusted</span><span class="o">-</span><span class="n">host</span> <span class="n">pypi</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">org</span> <span class="o">--</span><span class="n">proxy</span><span class="o">=</span><span class="n">proxynew</span><span class="o">.</span><span class="n">odot</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="ow">or</span><span class="o">.</span><span class="n">us</span><span class="p">:</span><span class="mi">8080</span>  <span class="n">cytoolz</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="activitysim">
 <h3>ActivitySim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h3>
@@ -305,8 +314,8 @@ done with <code class="docutils literal"><span class="pre">pip</span> <span clas
 numpy expressions for calculations. Refer to the pandas help for a general
 introduction to expressions.  ActivitySim provides two ways to evaluate expressions:</p>
 <ul class="simple">
-<li>Simple table expressions are evaluated using <code class="docutils literal"><span class="pre">DataFrame.eval()</span></code>.  <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html">pandas&#8217; eval</a> operates on the current table.</li>
-<li>Python expressions, denoted by beginning with <code class="docutils literal"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python&#8217;s eval()</a>.</li>
+<li>Simple table expressions are evaluated using <code class="docutils literal"><span class="pre">DataFrame.eval()</span></code>.  <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html">pandas’ eval</a> operates on the current table.</li>
+<li>Python expressions, denoted by beginning with <code class="docutils literal"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python’s eval()</a>.</li>
 </ul>
 <p>Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer
 to any Python objects currently in memory.</p>
@@ -320,7 +329,7 @@ to any Python objects currently in memory.</p>
 <li>comments are specified with <code class="docutils literal"><span class="pre">#</span></code></li>
 <li>you can refer to the current table being operated on as <code class="docutils literal"><span class="pre">df</span></code></li>
 <li>often an object called <code class="docutils literal"><span class="pre">skims</span></code>, <code class="docutils literal"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information.</li>
-<li>when editing the CSV files in Excel, use single quote &#8216; or space at the start of a cell to get Excel to accept the expression</li>
+<li>when editing the CSV files in Excel, use single quote ‘ or space at the start of a cell to get Excel to accept the expression</li>
 </ul>
 </div>
 <div class="section" id="example-expressions-file">
@@ -357,7 +366,7 @@ to any Python objects currently in memory.</p>
 <td>0.2936</td>
 </tr>
 <tr class="row-odd"><td>Distance, from 0 to 1 miles</td>
-<td>&#64;skims[&#8216;DIST&#8217;].clip(1)</td>
+<td>&#64;skims[‘DIST’].clip(1)</td>
 <td>-3.2451</td>
 <td>-0.9523</td>
 </tr>
@@ -407,7 +416,7 @@ The tour mode choice model is a nested logit (NL) model and the nesting structur
 <td>3.0773</td>
 </tr>
 <tr class="row-odd"><td>DA - In-vehicle time</td>
-<td>&#64;odt_skims[&#8216;SOV_TIME&#8217;] + dot_skims[&#8216;SOV_TIME&#8217;]</td>
+<td>&#64;odt_skims[‘SOV_TIME’] + dot_skims[‘SOV_TIME’]</td>
 <td>DRIVEALONEFREE</td>
 <td>0</td>
 <td>-0.4849</td>
@@ -470,7 +479,7 @@ is limited to a small sample of households and zones so that it can be run quick
 </ul>
 <p>Both of these files are used in the tests as well and are available here <code class="docutils literal"><span class="pre">activitysim\defaults\test\data</span></code>.  Alternatively,
 these files can be downloaded from the SF 25 zone example example data folder on
-MTC&#8217;s <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  Both files can
+MTC’s <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  Both files can
 be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.
 The pandas DataFrames are stored in an efficient pandas format within the HDF5 file so they are a
 bit cumbersome to inspect.</p>
@@ -713,7 +722,7 @@ file:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</li>
 </ul>
-<p>With the set of output CSV files, the user can trace ActivitySim&#8217;s calculations in order to ensure they are correct and/or to
+<p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
 </div>
 </div>

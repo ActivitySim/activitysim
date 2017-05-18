@@ -356,7 +356,7 @@ size and trace id if specified.  The skims dictionary is also passed in, as expl
 set the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal"><span class="pre">TAZ</span></code> column
 in the choosers, which was in the <code class="docutils literal"><span class="pre">households</span></code> table that was joined with <code class="docutils literal"><span class="pre">persons</span></code> to make
 <code class="docutils literal"><span class="pre">persons_merged</span></code> and a <code class="docutils literal"><span class="pre">TAZ</span></code> in the alternatives generation code which get merged during
-interaction as renamed <code class="docutils literal"><span class="pre">TAZ_r</span></code>.  The skims are lazy loaded under the name &#8220;skims&#8221; and are
+interaction as renamed <code class="docutils literal"><span class="pre">TAZ_r</span></code>.  The skims are lazy loaded under the name “skims” and are
 available in the expressions using <code class="docutils literal"><span class="pre">&#64;skims</span></code>.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;TAZ&quot;</span><span class="p">,</span> <span class="s2">&quot;TAZ_r&quot;</span><span class="p">)</span>
 <span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;skims&quot;</span><span class="p">:</span> <span class="n">skims</span><span class="p">}</span>
@@ -381,7 +381,7 @@ expressions file, the skims, the skims lookups, the sample size, the chunk size,
 <p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
 This is done in a for loop of chunks of chooser records in order to avoid running out of RAM when building the often large data tables.
 This method does a lot, and eventually calls <a class="reference internal" href="core.html#activitysim.core.simulate.eval_interaction_utilities" title="activitysim.core.simulate.eval_interaction_utilities"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.eval_interaction_utilities()</span></code></a>, which loops through each expression
-in the expression file and solves it at once for all records in the chunked chooser table using either pandas&#8217; eval() or Python&#8217;s eval().</p>
+in the expression file and solves it at once for all records in the chunked chooser table using either pandas’ eval() or Python’s eval().</p>
 <p>The <a class="reference internal" href="core.html#activitysim.core.simulate.interaction_simulate" title="activitysim.core.simulate.interaction_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.interaction_simulate()</span></code></a> method is currently only a multinomial logit choice model.  The
 <a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a> method supports both MNL and NL as specified by
 the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal"><span class="pre">auto_ownership.yaml</span></code> file for example specifies

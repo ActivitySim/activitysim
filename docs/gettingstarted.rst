@@ -21,10 +21,7 @@ Anaconda
 
 ActivitySim is a 64bit Python 2.7 library that uses a number of packages from the
 scientific Python ecosystem, most notably `pandas <http://pandas.pydata.org>`__ 
-and `numpy <http://numpy.org>`__.  
-
-.. note::
-   ActivitySim does not currently support Python 3
+and `numpy <http://numpy.org>`__. ActivitySim does not currently support Python 3.
    
 The recommended way to get your own scientific Python installation is to
 install Anaconda_, which contains many of the libraries upon which
@@ -48,7 +45,15 @@ with the following commands:
     #Mac
     conda create -n asimtest python=2.7
     source activate asimtest
-    
+
+If you access the internet from behind a firewall, then you will need to configure your proxy 
+server. To do so, create a ``.condarc`` file in your Anaconda installation folder, such as:
+::
+   proxy_servers:
+     http: http://proxynew.odot.state.or.us:8080
+     https: https://proxynew.odot.state.or.us:8080
+   ssl_verify: false
+
 This will create a new conda environment named ``asimtest`` and set it as the 
 active conda environment.  You need to activate the environment each time you
 start a new command session.  You can remove an environment with 
@@ -85,9 +90,14 @@ attempt to install any dependencies that are not already installed.
     #optional required packages for testing and building documentation
     pip install pytest pytest-cov coveralls pep8 pytest-xdist
     pip install sphinx numpydoc sphinx_rtd_theme
-    
+
 If numexpr (which numpy requires) fails to install, you may need 
-the `Microsoft Visual C++ Compiler for Python <http://aka.ms/vcpython27>`__.
+the `Microsoft Visual C++ Compiler for Python <http://aka.ms/vcpython27>`__. 
+
+If you access the internet from behind a firewall, then you will need to configure 
+your proxy server when downloading packages.  For example:
+::
+   pip install --trusted-host pypi.python.org --proxy=proxynew.odot.state.or.us:8080  cytoolz
 
 ActivitySim
 ~~~~~~~~~~~

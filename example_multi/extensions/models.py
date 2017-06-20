@@ -125,10 +125,8 @@ def best_transit_path(set_random_seed,
                              slicer='NONE',
                              transpose=False)
 
-            if trace_assigned_locals is not None:
-
-                tracing.write_locals(trace_assigned_locals,
-                                     file_name="trace_best_transit_path_locals")
+            if trace_assigned_locals:
+                tracing.write_csv(trace_assigned_locals, file_name="trace_best_transit_path_locals")
 
 
 

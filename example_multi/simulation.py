@@ -69,11 +69,12 @@ def get_tap():
         network_los.get_tap(random_tap.index, 'MAZ')
 
     # select some random rows with non-null attributes
-    tap_df = network_los.tap_df[~network_los.taz_df.isnull()]
+    tap_df = network_los.tap_df.dropna(axis=0, how='any')
     random_tap = tap_df.sample(VECTOR_TEST_SIZE, replace=True)
 
     print "\nnetwork_los.get_tap(<Int64Index>, 'capacity')\n", \
         network_los.get_tap(random_tap.index, 'capacity')
+
 
 def get_maz():
     maz_df = network_los.maz_df

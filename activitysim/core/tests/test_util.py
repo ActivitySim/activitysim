@@ -39,7 +39,7 @@ def test_reindex():
 
 def test_quick_loc_df():
 
-    df = pd.DataFrame({'attrib': ['1', '2', '3', '4', '5']}, index = [1, 2, 3, 4, 5])
+    df = pd.DataFrame({'attrib': ['1', '2', '3', '4', '5']}, index=[1, 2, 3, 4, 5])
 
     loc_list = np.asanyarray([2, 1, 3, 4, 4, 5, 1])
     attrib_list = [str(i) for i in loc_list]
@@ -50,7 +50,7 @@ def test_quick_loc_df():
 
 def test_quick_loc_series():
 
-    series = pd.Series(['1', '2', '3', '4', '5'], index = [1, 2, 3, 4, 5])
+    series = pd.Series(['1', '2', '3', '4', '5'], index=[1, 2, 3, 4, 5])
 
     loc_list = np.asanyarray([2, 1, 3, 4, 4, 5, 1])
     attrib_list = [str(i) for i in loc_list]

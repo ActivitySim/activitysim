@@ -471,6 +471,10 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     elif isinstance(df, pd.Series):
         logger.debug("dumping %s element series to %s" % (len(df.index), file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
+    elif isinstance(df, dict):
+        df = pd.Series(data=df)
+        logger.debug("dumping %s element dict to %s" % (len(df.index), file_name))
+        write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
         logger.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
 

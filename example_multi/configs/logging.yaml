@@ -9,8 +9,8 @@ logging:
 
   # Configuring the default (root) logger is highly recommended
   root:
-    level: !!python/name:logging.NOTSET
-    handlers: [console]
+    level: !!python/name:logging.DEBUG
+    handlers: [console, logfile]
 
   loggers:
 

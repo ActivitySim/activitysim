@@ -2379,6 +2379,47 @@ a group with some property (as indicated by <cite>bools</cite>).</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="activitysim.core.util.quick_loc_df">
+<code class="descclassname">activitysim.core.util.</code><code class="descname">quick_loc_df</code><span class="sig-paren">(</span><em>loc_list</em>, <em>target_df</em>, <em>attribute</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.quick_loc_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>faster replacement for target_df.loc[loc_list][attribute]</p>
+<p>pandas DataFrame.loc[] indexing doesn’t scale for large arrays (e.g. &gt; 1,000,000 elements)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>loc_list</strong> : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)</p>
+<p><strong>target_df</strong> : pandas.DataFrame containing column named attribute</p>
+<p><strong>attribute</strong> : name of column from loc_list to return</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas.Series</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.util.quick_loc_series">
+<code class="descclassname">activitysim.core.util.</code><code class="descname">quick_loc_series</code><span class="sig-paren">(</span><em>loc_list</em>, <em>target_series</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.quick_loc_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>faster replacement for target_series.loc[loc_list]</p>
+<p>pandas Series.loc[] indexing doesn’t scale for large arrays (e.g. &gt; 1,000,000 elements)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>loc_list</strong> : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)</p>
+<p><strong>target_series</strong> : pandas.Series</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas.Series</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.util.reindex">
 <code class="descclassname">activitysim.core.util.</code><code class="descname">reindex</code><span class="sig-paren">(</span><em>series1</em>, <em>series2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.reindex" title="Permalink to this definition">¶</a></dt>
 <dd><p>This reindexes the first series by the second series.  This is an extremely

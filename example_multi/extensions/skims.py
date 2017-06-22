@@ -11,7 +11,7 @@ import orca
 from activitysim.core import skim as askim
 from activitysim.core import tracing
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('activitysim')
 
 """
 Read in the omx files and create the skim objects

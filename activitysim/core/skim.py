@@ -6,6 +6,8 @@ import logging
 import numpy as np
 import pandas as pd
 
+from activitysim.core.util import quick_loc_series
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +56,9 @@ class OffsetMapper(object):
         if self.offset_series is not None:
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
-            offsets = np.asanyarray(self.offset_series.loc[zone_ids])
+
+            offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series))
+
         elif self.offset_int:
             # should be some kind of integer
             assert long(self.offset_int) == self.offset_int

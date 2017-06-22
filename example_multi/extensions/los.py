@@ -8,8 +8,9 @@ import pandas as pd
 import orca
 
 from activitysim.core import skim as askim
+from activitysim.core.util import quick_loc_df
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('activitysim')
 
 
 class NetworkLOS(object):
@@ -47,13 +48,13 @@ class NetworkLOS(object):
         self.tap_skim_stack = askim.SkimStack(tap_skim_dict)
 
     def get_taz(self, taz_list, attribute):
-        return self.taz_df.loc[taz_list][attribute]
+        return quick_loc_df(taz_list, self.taz_df, attribute)
 
     def get_tap(self, tap_list, attribute):
-        return np.asanyarray(self.tap_df.loc[tap_list][attribute])
+        return quick_loc_df(tap_list, self.tap_df, attribute)
 
     def get_maz(self, maz_list, attribute):
-        return self.maz_df.loc[maz_list][attribute]
+        return quick_loc_df(maz_list, self.maz_df, attribute)
 
     def get_tazpairs(self, otaz, dtaz, key):
         skim = self.taz_skim_dict.get(key)
@@ -88,23 +89,23 @@ class NetworkLOS(object):
 
         # synthetic index method i : omaz_dmaz
         i = np.asanyarray(omaz) * self.maz2maz_cardinality + np.asanyarray(dmaz)
-        s = self.maz2maz_df[attribute].loc[i]
+        s = quick_loc_df(i, self.maz2maz_df, attribute)
 
-        # FIXME - no point in returning series? unless maz and tap have sme index?
+        # FIXME - no point in returning series? unless maz and tap have same index?
         return np.asanyarray(s)
 
     def get_maztappairs(self, maz, tap, attribute):
 
         # synthetic i method : maz_tap
         i = np.asanyarray(maz) * self.maz2tap_cardinality + np.asanyarray(tap)
-        s = self.maz2tap_df[attribute].loc[i]
+        s = quick_loc_df(i, self.maz2tap_df, attribute)
 
         # FIXME - no point in returning series? unless maz and tap have sme index?
         return np.asanyarray(s)
 
     def get_taps_mazs(self, maz, attribute=None, filter=None):
 
-        # we return multiple tap rows for each maz, se we add an 'idx' row to tell caller
+        # we return multiple tap rows for each maz, so we add an 'idx' row to tell caller
         # which maz-taz rows belong to which row in the original maz list
         # i.e. idx contains the index of the original maz series so we know which rows belong together
         # if maz is a series, then idx has the original maz series index values

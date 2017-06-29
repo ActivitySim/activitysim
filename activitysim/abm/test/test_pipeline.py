@@ -330,9 +330,10 @@ def test_full_run2():
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
     assert (mode_df['mode'].values == EXPECT_MODES).all()
 
+
 def test_full_run3():
 
-    # resume_after should successfully load tours table and replicate results
+    # resume_after should successfully load unused but initialized random channels
 
     if SKIP_FULL_RUN:
         return
@@ -347,6 +348,7 @@ def test_full_run3():
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
     assert (mode_df['mode'].values == EXPECT_MODES).all()
+
 
 def test_full_run_with_chunks():
 

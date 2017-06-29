@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 # one more than 0xFFFFFFFF so we can wrap using: int64 % _MAX_SEED
 _MAX_SEED = (1 << 32)
 
+# not arbitrary, as we count on incrementing step_num from NULL_STEP_NUM to 0
+NULL_STEP_NUM = -1
 
 SavedChannelState = collections.namedtuple('SavedChannelState', 'channel_name step_num step_name')
 
@@ -96,7 +98,10 @@ class SimpleChannel(object):
         self.unique_channel_seed = hash(self.name) % _MAX_SEED
 
         self.step_name = step_name
-        self.step_num = step_num if step_num is not None else -1
+
+        assert (step_num == NULL_STEP_NUM) or step_num >= 0
+        self.step_num = step_num
+
         self.max_steps = max_steps
 
         assert (self.step_num < self.max_steps)
@@ -136,9 +141,9 @@ class SimpleChannel(object):
 
         return row_states
 
-    def extend_domain(self, domain_df, step_name=None, step_num=None):
+    def extend_domain(self, domain_df, step_name, step_num):
         """
-        Extend existing row_state df by addiing seed info for each row in domain_df
+        Extend existing row_state df by adding seed info for each row in domain_df
 
         This is only needed if the channel is composed of more than one underlying table.
         It is assumed that the index values of the component tables are disjoint and
@@ -160,7 +165,8 @@ class SimpleChannel(object):
         assert len(self.row_states.index.intersection(domain_df.index)) == 0
 
         self.step_name = step_name
-        if step_num:
+
+        if step_num >= 0:
             assert step_num >= self.step_num
             self.step_num = step_num
 
@@ -466,7 +472,7 @@ class Random(object):
 
     # channel management
 
-    def add_channel(self, domain_df, channel_name, step_name=None, step_num=None):
+    def add_channel(self, domain_df, channel_name, step_name=None, step_num=NULL_STEP_NUM):
         """
         Create or extend a channel for generating random number streams for domain_df.
 
@@ -492,7 +498,7 @@ class Random(object):
             consistent step numbering
         """
         assert channel_name == self.get_channel_name_for_df(domain_df)
-        assert (step_name is None) == (step_num is None)
+        assert (step_name is None) == (step_num == NULL_STEP_NUM)
 
         logger.debug("Random: add_channel step_num %s step_name '%s'" % (step_num, step_name))
 
@@ -565,6 +571,8 @@ class Random(object):
             table_names = self.get_channel_info(channel_name, 'table_names')
 
             logger.debug("loading channel %s from %s" % (channel_state.channel_name, table_names))
+
+            logger.debug("channel_state %s" % (channel_state, ))
 
             for table_name in table_names:
                 if orca.is_table(table_name):

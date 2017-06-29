@@ -1635,8 +1635,8 @@ with stable, predictable, repeatable row_seeds for that domain_df index value</p
 
 <dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.extend_domain">
-<code class="descname">extend_domain</code><span class="sig-paren">(</span><em>domain_df</em>, <em>step_name=None</em>, <em>step_num=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.extend_domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extend existing row_state df by addiing seed info for each row in domain_df</p>
+<code class="descname">extend_domain</code><span class="sig-paren">(</span><em>domain_df</em>, <em>step_name</em>, <em>step_num</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.extend_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend existing row_state df by adding seed info for each row in domain_df</p>
 <p>This is only needed if the channel is composed of more than one underlying table.
 It is assumed that the index values of the component tables are disjoint and
 there will be no ambiguity/collisions between them</p>

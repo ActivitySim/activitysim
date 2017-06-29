@@ -1,4 +1,5 @@
 sandbox/
+sandbox.py
 example/data/*
 .idea
 .ipynb_checkpoints

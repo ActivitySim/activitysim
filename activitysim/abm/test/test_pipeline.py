@@ -330,6 +330,23 @@ def test_full_run2():
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
     assert (mode_df['mode'].values == EXPECT_MODES).all()
 
+def test_full_run3():
+
+    # resume_after should successfully load tours table and replicate results
+
+    if SKIP_FULL_RUN:
+        return
+
+    tour_count = full_run(resume_after='compute_accessibility', trace_hh_id=HH_ID)
+
+    assert(tour_count == 160)
+
+    mode_df = get_trace_csv('tour_mode_choice.mode.csv')
+    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
+
+    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
+    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
+    assert (mode_df['mode'].values == EXPECT_MODES).all()
 
 def test_full_run_with_chunks():
 

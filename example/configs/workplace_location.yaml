@@ -1,1 +1,25 @@
 SAMPLE_SIZE: 30
+
+ALT_COL_NAME: dest_TAZ
+
+SIMULATE_CHOOSER_COLUMNS:
+  - income_segment
+  - TAZ
+
+LOGSUM_CHOOSER_COLUMNS:
+  - TAZ
+  - hhsize
+  - age
+  - age_16_p
+  - age_16_to_19
+  - density_index
+# dont know auto_ownership since model has not been run yet
+#  - auto_ownership
+
+#SIMULATE_CHOOSER_COLUMNS:
+#  - income_segment
+#  - TAZ
+#  - mode_choice_logsums
+
+IN_PERIOD: 8
+OUT_PERIOD: 17

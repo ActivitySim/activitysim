@@ -1,14 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
 import logging
 
 import orca
 import pandas as pd
 import numpy as np
 
-from activitysim.core import simulate as asim
+from activitysim.core.simulate import read_model_spec
+from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
@@ -18,8 +18,7 @@ logger = logging.getLogger(__name__)
 
 @orca.injectable()
 def school_location_spec(configs_dir):
-    f = os.path.join(configs_dir, 'school_location.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return read_model_spec(configs_dir, 'school_location.csv')
 
 
 @orca.injectable()
@@ -76,7 +75,7 @@ def school_location_simulate(persons_merged,
 
         if len(choosers_segment.index) > 0:
 
-            choices = asim.interaction_simulate(
+            choices = interaction_simulate(
                 choosers_segment,
                 alternatives_segment,
                 spec=school_location_spec[[school_type]],

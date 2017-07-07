@@ -1,3 +1,6 @@
+import os
+import psutil
+import gc
 
 from operator import itemgetter
 
@@ -5,6 +8,15 @@ import numpy as np
 import pandas as pd
 
 from zbox import toolz as tz
+
+
+def memory_info():
+    gc.collect()
+    process = psutil.Process(os.getpid())
+    bytes = process.memory_info().rss
+    mb = (bytes / (1024 * 1024.0))
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return "memory_info: %s MB (%s GB)" % (int(mb), round(gb, 2))
 
 
 def reindex(series1, series2):

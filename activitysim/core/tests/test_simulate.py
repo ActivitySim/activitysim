@@ -20,12 +20,12 @@ def data_dir():
 
 @pytest.fixture(scope='module')
 def spec_name(data_dir):
-    return os.path.join(data_dir, 'sample_spec.csv')
+    return 'sample_spec.csv'
 
 
 @pytest.fixture(scope='module')
-def spec(spec_name):
-    return asim.read_model_spec(spec_name,
+def spec(data_dir, spec_name):
+    return asim.read_model_spec(data_dir, spec_name,
                                 description_name='description',
                                 expression_name='expression')
 
@@ -35,9 +35,11 @@ def data(data_dir):
     return pd.read_csv(os.path.join(data_dir, 'data.csv'))
 
 
-def test_read_model_spec(spec_name):
+def test_read_model_spec(data_dir, spec_name):
+
     spec = asim.read_model_spec(
-        spec_name, description_name='description', expression_name='expression')
+        data_dir, spec_name,
+        description_name='description', expression_name='expression')
 
     assert len(spec) == 4
     assert spec.index.name == 'expression'

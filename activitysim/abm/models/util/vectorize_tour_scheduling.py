@@ -6,7 +6,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import simulate as asim
+from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core import tracing
 
 logger = logging.getLogger(__name__)
@@ -134,7 +134,7 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={},
 
         tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % i)
 
-        nth_choices = asim.interaction_simulate(
+        nth_choices = interaction_simulate(
             nth_tours,
             alts.copy(),
             spec,

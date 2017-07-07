@@ -159,6 +159,9 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
         Maps chooser IDs (from `probs` index) to a choice, where the choice
         is an index into the columns of `probs`.
 
+    rands : pandas.Series
+        The random numbers used to make the choices (for debugging, tracing)
+
     """
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
 
@@ -203,7 +206,7 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
 
     Returns
     -------
-    interacted : pandas.DataFrame
+    alts_sample : pandas.DataFrame
         Merged choosers and alternatives with data repeated either
         len(alternatives) or `sample_size` times.
 

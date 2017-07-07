@@ -38,7 +38,7 @@ _CHANNELS = {
         'table_names': ['households']
     },
     'persons': {
-        'max_steps': 5,
+        'max_steps': 6,
         'index': 'PERID',
         'table_names': ['persons']
     },
@@ -199,7 +199,8 @@ class SimpleChannel(object):
         # standard constant to use for choice_for_df instead of fast-forwarding rand stream
         self.multi_choice_offset = None
 
-        logger.info("begin_step '%s' for channel '%s'" % (step_name, self.name, ))
+        logger.info("begin_step '%s' step_num %s for channel '%s'"
+                    % (step_name, self.step_num, self.name, ))
 
     def _generators_for_df(self, df, override_offset=None):
         """

@@ -23,6 +23,8 @@ t0 = print_elapsed_time()
 _MODELS = [
     'compute_accessibility',
     'school_location_simulate',
+    'workplace_location_sample',
+    'workplace_location_logsums',
     'workplace_location_simulate',
     'auto_ownership_simulate',
     'cdap_simulate',

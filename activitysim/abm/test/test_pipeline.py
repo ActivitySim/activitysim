@@ -91,6 +91,8 @@ def test_mini_pipeline_run():
     _MODELS = [
         'compute_accessibility',
         'school_location_simulate',
+        'workplace_location_sample',
+        'workplace_location_logsums',
         'workplace_location_simulate',
         'auto_ownership_simulate'
     ]
@@ -114,7 +116,7 @@ def test_mini_pipeline_run():
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
     per_ids = [92363, 92681, 93428]
-    choices = ['work1', 'school1', 'school2']
+    choices = ['school2', 'work_and_school', 'school1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
@@ -158,7 +160,7 @@ def test_mini_pipeline_run2():
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
     prev_checkpoint_count = len(checkpoints_df.index)
-    assert prev_checkpoint_count == 7
+    assert prev_checkpoint_count == 9
 
     pipeline.start_pipeline('auto_ownership_simulate')
 
@@ -186,7 +188,7 @@ def test_mini_pipeline_run2():
 
     per_ids = [92363, 92681, 93428]
 
-    choices = ['work1', 'school1', 'school2']
+    choices = ['school2', 'work_and_school', 'school1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
@@ -237,6 +239,8 @@ def full_run(resume_after=None, chunk_size=0,
     _MODELS = [
         'compute_accessibility',
         'school_location_simulate',
+        'workplace_location_sample',
+        'workplace_location_logsums',
         'workplace_location_simulate',
         'auto_ownership_simulate',
         'cdap_simulate',
@@ -283,9 +287,9 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
-EXPECT_TOUR_TYPES = ['work', 'work', 'othdiscr']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY']
+EXPECT_PERSON_IDS = ['1888694', '1888694', '1888695', '1888695', '1888696']
+EXPECT_TOUR_TYPES = ['work', 'work', 'school', 'school', 'othmaint']
+EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY']
 
 
 def test_full_run1():
@@ -296,7 +300,7 @@ def test_full_run1():
     tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    assert(tour_count == 160)
+    assert(tour_count == 157)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
@@ -304,8 +308,10 @@ def test_full_run1():
     print mode_df
     #           tour_id           mode person_id tour_type tour_num
     # value_2  20775643      DRIVE_LOC   1888694      work        1
-    # value_3  20775654      DRIVE_LOC   1888695      work        1
-    # value_1  20775659  DRIVEALONEPAY   1888696  othdiscr        1
+    # value_3  20775644      DRIVE_LOC   1888694      work        2
+    # value_4  20775650      DRIVE_LOC   1888695    school        1
+    # value_5  20775651      DRIVE_LOC   1888695    school        2
+    # value_1  20775660  DRIVEALONEPAY   1888696  othmaint        1
 
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
@@ -321,26 +327,7 @@ def test_full_run2():
 
     tour_count = full_run(resume_after='non_mandatory_scheduling', trace_hh_id=HH_ID)
 
-    assert(tour_count == 160)
-
-    mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
-
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_MODES).all()
-
-
-def test_full_run3():
-
-    # resume_after should successfully load unused but initialized random channels
-
-    if SKIP_FULL_RUN:
-        return
-
-    tour_count = full_run(resume_after='compute_accessibility', trace_hh_id=HH_ID)
-
-    assert(tour_count == 160)
+    assert(tour_count == 157)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
@@ -361,7 +348,7 @@ def test_full_run_with_chunks():
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
                           chunk_size=10)
 
-    assert(tour_count == 160)
+    assert(tour_count == 157)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)

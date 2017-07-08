@@ -16,6 +16,71 @@ from . import pipeline
 logger = logging.getLogger(__name__)
 
 
+def adjust_chunk_size(chunk_size, choosers, alternatives=None):
+
+    # FIXME - chunk size should take number of chooser and alternative columns into account
+    # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
+
+    row_size = len(choosers.columns)
+
+    if alternatives is not None:
+        alt_row_size = len(alternatives.columns)
+        logger.debug('adjust_chunk_size row_size %s alt_row_size %s' % (row_size, alt_row_size,))
+
+        row_size = row_size * alt_row_size
+
+    logger.info('adjust_chunk_size row_size %s' % (row_size,))
+
+    adjusted_chunk_size = int(chunk_size) or len(choosers.index)
+    logger.info('adjust_chunk_size %s adjusted to %s' % (chunk_size, adjusted_chunk_size, ))
+
+    return adjusted_chunk_size
+
+
+def chunked_choosers(choosers, chunk_size):
+    # generator to iterate over chooses in chunk_size chunks
+    chunk_size = int(chunk_size)
+    num_choosers = len(choosers.index)
+
+    i = offset = 0
+    while offset < num_choosers:
+        yield i, choosers[offset: offset+chunk_size]
+        offset += chunk_size
+        i += 1
+
+
+def chunked_choosers_and_alternatives(choosers, alternatives, chunk_size, sample_size):
+
+    assert len(alternatives) % len(choosers) == 0
+    assert sample_size == len(alternatives) / len(choosers)
+
+    # generator to iterate over choosers and alternatives in chunk_size chunks
+    num_choosers = len(choosers.index)
+    chunk_size = int(chunk_size)
+    alt_chunk_size = chunk_size * sample_size
+
+    i = offset = alt_offset = 0
+    while offset < num_choosers:
+        yield \
+            i, \
+            choosers[offset: offset+chunk_size], \
+            alternatives[alt_offset: alt_offset+alt_chunk_size]
+        i += 1
+        offset += chunk_size
+        alt_offset += alt_chunk_size
+
+
+def hh_chunked_choosers(choosers):
+    # generator to iterate over chooses in chunk_size chunks
+    # FIXME - we pathologically know name of chunk_id col in households table
+    _chunk_id_ = 'chunk_id'
+    last_chooser = choosers[_chunk_id_].max()
+    i = 0
+    while i <= last_chooser:
+        yield i, choosers[choosers[_chunk_id_] == i]
+        i += 1
+
+
 def random_rows(df, n):
 
     # only sample if df has more than n rows
@@ -473,8 +538,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
     return choices
 
 
-def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
-                    trace_label=None, trace_choice_name=None):
+def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
+                     trace_label=None, trace_choice_name=None):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -524,6 +589,38 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     else:
         choices = eval_nl(choosers, spec, nest_spec, locals_d,
                           trace_label=trace_label, trace_choice_name=trace_choice_name)
+
+    return choices
+
+
+def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_size=0,
+                    trace_label=None, trace_choice_name=None):
+
+    assert len(choosers) > 0
+
+    chunk_size = adjust_chunk_size(chunk_size, choosers)
+
+    logger.info("simple_simulate chunk_size %s num_choosers %s" %
+                (chunk_size, len(choosers.index)))
+
+    result_list = []
+    # segment by person type and pick the right spec for each person type
+    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+
+        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
+
+        choices = _simple_simulate(
+            chooser_chunk, spec, nest_spec,
+            skims, locals_d,
+            tracing.extend_trace_label(trace_label, 'chunk_%s' % i),
+            trace_choice_name)
+
+        result_list.append(choices)
+
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
+
+    assert len(choices.index == len(choosers.index))
 
     return choices
 
@@ -620,7 +717,8 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     return logsums
 
 
-def simple_simulate_logsums(choosers, spec, nest_spec, skims=None, locals_d=None, trace_label=None):
+def _simple_simulate_logsums(choosers, spec, nest_spec,
+                             skims=None, locals_d=None, trace_label=None):
     """
     like simple_simulate except return logsums instead of making choices
 
@@ -638,5 +736,37 @@ def simple_simulate_logsums(choosers, spec, nest_spec, skims=None, locals_d=None
         logsums = eval_mnl_logsums(choosers, spec, locals_d, trace_label=trace_label)
     else:
         logsums = eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=trace_label)
+
+    return logsums
+
+
+def simple_simulate_logsums(choosers, spec, nest_spec,
+                            skims=None, locals_d=None, chunk_size=0,
+                            trace_label=None):
+
+    assert len(choosers) > 0
+
+    chunk_size = adjust_chunk_size(chunk_size, choosers)
+
+    logger.info("simple_simulate_logsums chunk_size %s num_choosers %s" %
+                (chunk_size, len(choosers.index)))
+
+    result_list = []
+    # segment by person type and pick the right spec for each person type
+    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+
+        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
+
+        logsums = _simple_simulate_logsums(
+            chooser_chunk, spec, nest_spec,
+            skims, locals_d,
+            tracing.extend_trace_label(trace_label, 'chunk_%s' % i))
+
+        result_list.append(logsums)
+
+    if len(result_list) > 1:
+        logsums = pd.concat(result_list)
+
+    assert len(logsums.index == len(choosers.index))
 
     return logsums

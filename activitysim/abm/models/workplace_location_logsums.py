@@ -33,7 +33,8 @@ def time_period_label(hour):
 
 
 def compute_logsums(choosers, logsum_spec, logsum_settings,
-                    skim_dict, skim_stack, alt_col_name, trace_hh_id):
+                    skim_dict, skim_stack, alt_col_name,
+                    chunk_size, trace_hh_id):
 
     trace_label = trace_hh_id and 'compute_logsums'
 
@@ -70,6 +71,7 @@ def compute_logsums(choosers, logsum_spec, logsum_settings,
         nest_spec,
         skims=skims,
         locals_d=locals_d,
+        chunk_size=chunk_size,
         trace_label=trace_label)
 
     return logsums
@@ -116,7 +118,8 @@ def workplace_location_logsums(persons_merged,
     tracing.dump_df(DUMP, choosers, 'workplace_location_logsums', 'choosers')
 
     logsums = compute_logsums(
-        choosers, logsums_spec, logsum_settings, skim_dict, skim_stack, alt_col_name, trace_hh_id)
+        choosers, logsums_spec, logsum_settings,
+        skim_dict, skim_stack, alt_col_name, chunk_size, trace_hh_id)
 
     choosers['logsum'] = logsums
     orca.add_table('workplace_location_choosers', choosers)

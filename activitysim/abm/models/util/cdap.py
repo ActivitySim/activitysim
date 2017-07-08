@@ -9,6 +9,7 @@ import pandas as pd
 from zbox import toolz as tz, gen
 
 from activitysim.core.simulate import eval_variables
+from activitysim.core.simulate import hh_chunked_choosers
 
 from activitysim.core import logit
 from activitysim.core import tracing
@@ -25,7 +26,6 @@ _hh_size_ = 'PERSONS'
 _hh_id_ = 'household_id'
 _ptype_ = 'ptype'
 _age_ = 'age'
-_chunk_id_ = 'chunk_id'
 
 # For clarity, the named constant MAX_HHSIZE refers to the cdap 5 person threshold figure.
 MAX_HHSIZE = 5
@@ -829,15 +829,6 @@ def _run_cdap(
 
     # return dataframe with two columns
     return cdap_results
-
-
-def hh_chunked_choosers(choosers):
-    # generator to iterate over chooses in chunk_size chunks
-    last_chooser = choosers[_chunk_id_].max()
-    i = 0
-    while i <= last_chooser:
-        yield i, choosers[choosers[_chunk_id_] == i]
-        i += 1
 
 
 def run_cdap(

@@ -61,6 +61,8 @@ def households(store, households_sample_size, trace_hh_id):
 @orca.column("households", cache=True)
 def chunk_id(households, hh_chunk_size):
 
+    # FIXME - pathological knowledge of name of chunk_id column used by hh_chunked_choosers
+
     chunk_ids = pd.Series(range(len(households)), households.index)
 
     if hh_chunk_size > 0:

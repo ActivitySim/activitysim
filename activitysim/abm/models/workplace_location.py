@@ -8,7 +8,7 @@ import pandas as pd
 import orca
 
 from activitysim.core import simulate as asim
-from activitysim.core.interaction_sample_simulate import interaction_simulate
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core import tracing
 from activitysim.core import config
 
@@ -86,7 +86,7 @@ def workplace_location_simulate(persons_merged,
 
     tracing.dump_df(DUMP, choosers, 'workplace_location_simulate', 'choosers')
 
-    choices = interaction_simulate(
+    choices = interaction_sample_simulate(
         choosers,
         alternatives,
         spec=workplace_location_spec,

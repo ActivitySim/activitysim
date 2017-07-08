@@ -66,6 +66,15 @@ def test_simple_simulate(data, spec):
 
     orca.add_injectable("check_for_variability", False)
 
-    choices = asim.simple_simulate(data, spec, None)
+    choices = asim.simple_simulate(data, spec, nest_spec=None)
+    expected = pd.Series([1, 1, 1], index=data.index)
+    pdt.assert_series_equal(choices, expected)
+
+
+def test_simple_simulate_chunked(data, spec):
+
+    orca.add_injectable("check_for_variability", False)
+
+    choices = asim.simple_simulate(data, spec, nest_spec=None, chunk_size=2)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)

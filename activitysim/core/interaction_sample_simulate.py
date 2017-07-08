@@ -13,6 +13,9 @@ import pandas as pd
 from . import logit
 from . import tracing
 from .simulate import add_skims
+from .simulate import chunked_choosers_and_alternatives
+from .simulate import adjust_chunk_size
+
 from .interaction_simulate import eval_interaction_utilities
 
 logger = logging.getLogger(__name__)
@@ -20,7 +23,7 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-def _interaction_simulate(
+def _interaction_sample_simulate(
         choosers, alternatives, spec, choice_column,
         skims, locals_d, sample_size,
         trace_label=None, trace_choice_name=None):
@@ -178,43 +181,10 @@ def _interaction_simulate(
         tracing.trace_df(rands, tracing.extend_trace_label(trace_label, 'rands'),
                          columns=[None, 'rand'])
 
-    #
-    # if have_trace_targets:
-    #     tracing.trace_df(choosers, '%s.choosers' % trace_label)
-    #     tracing.trace_df(utilities, '%s.utilities' % trace_label,
-    #                      column_labels=['alternative', 'utility'])
-    #     tracing.trace_df(probs, '%s.probs' % trace_label,
-    #                      column_labels=['alternative', 'probability'])
-    #     tracing.trace_df(choices, '%s.choices' % trace_label,
-    #                      columns=[None, trace_choice_name])
-    #     tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
-    #                                            '%s.eval' % trace_label)
-
     return choices
 
 
-def chunked_choosers(choosers, alternatives, chunk_size, sample_size):
-
-    assert len(alternatives) % len(choosers) == 0
-    assert sample_size == len(alternatives) / len(choosers)
-
-    # generator to iterate over choosers and alternatives in chunk_size chunks
-    num_choosers = len(choosers.index)
-    chunk_size = int(chunk_size)
-    alt_chunk_size = chunk_size * sample_size
-
-    i = offset = alt_offset = 0
-    while offset < num_choosers:
-        yield \
-            i, \
-            choosers[offset: offset+chunk_size], \
-            alternatives[alt_offset: alt_offset+alt_chunk_size]
-        i += 1
-        offset += chunk_size
-        alt_offset += alt_chunk_size
-
-
-def interaction_simulate(
+def interaction_sample_simulate(
         choosers, alternatives, spec, choice_column=None,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None):
@@ -267,47 +237,35 @@ def interaction_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    # FIXME - chunk size should take number of chooser and alternative columns into account
-    # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
-    chunk_size = int(chunk_size)
+    chunk_size = adjust_chunk_size(chunk_size, choosers, alternatives)
 
     assert len(alternatives) % len(choosers) == 0
     assert sample_size == len(alternatives) / len(choosers)
 
-    if (chunk_size == 0) or (chunk_size >= len(choosers.index)):
-
-        logger.info("interaction_simulate no chunk num_choosers %s" % len(choosers.index))
-
-        choices = _interaction_simulate(
-            choosers, alternatives, spec, choice_column,
-            skims, locals_d, sample_size,
-            trace_label, trace_choice_name)
-
-        return choices
-
     logger.info("interaction_simulate chunk_size %s num_choosers %s"
                 % (chunk_size, len(choosers.index)))
 
-    choices_list = []
+    result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, alternative_chunk \
-            in chunked_choosers(choosers, alternatives, chunk_size, sample_size):
+            in chunked_choosers_and_alternatives(choosers, alternatives, chunk_size, sample_size):
 
         assert sample_size == len(alternative_chunk) / len(chooser_chunk)
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 
-        choices = _interaction_simulate(
+        choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
             skims, locals_d, sample_size,
             tracing.extend_trace_label(trace_label, 'chunk_%s' % i), trace_choice_name)
 
-        choices_list.append(choices)
+        result_list.append(choices)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
-    choices = pd.concat(choices_list)
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
 
     assert len(choices.index == len(choosers.index))
 

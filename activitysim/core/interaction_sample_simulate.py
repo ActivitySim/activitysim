@@ -14,7 +14,7 @@ from . import logit
 from . import tracing
 from .simulate import add_skims
 from .simulate import chunked_choosers_and_alternatives
-from .simulate import adjust_chunk_size
+from .simulate import num_chunk_rows_for_chunk_size
 
 from .interaction_simulate import eval_interaction_utilities
 
@@ -237,7 +237,7 @@ def interaction_sample_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    chunk_size = adjust_chunk_size(chunk_size, choosers, alternatives)
+    chunk_size = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
     assert len(alternatives) % len(choosers) == 0
     assert sample_size == len(alternatives) / len(choosers)

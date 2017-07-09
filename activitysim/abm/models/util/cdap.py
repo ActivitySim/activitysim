@@ -10,6 +10,7 @@ from zbox import toolz as tz, gen
 
 from activitysim.core.simulate import eval_variables
 from activitysim.core.simulate import hh_chunked_choosers
+from activitysim.core.simulate import num_chunk_rows_for_chunk_size
 
 from activitysim.core import logit
 from activitysim.core import tracing
@@ -879,18 +880,12 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
-    if (chunk_size == 0) or (chunk_size >= len(persons.index)):
-        choices = _run_cdap(persons,
-                            cdap_indiv_spec,
-                            cdap_interaction_coefficients,
-                            cdap_fixed_relative_proportions,
-                            locals_d,
-                            trace_hh_id, trace_label)
-        return choices
+    # FIXME - what is the actual size/cardinality of the chooser
+    num_chunk_rows = num_chunk_rows_for_chunk_size(chunk_size, persons, by_chunk_id=True)
 
-    choices_list = []
+    result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, persons_chunk in hh_chunked_choosers(persons):
+    for i, persons_chunk in hh_chunked_choosers(persons, num_chunk_rows):
 
         logger.info("Running chunk %s of with %d persons" % (i, len(persons_chunk)))
 
@@ -903,11 +898,12 @@ def run_cdap(
                             locals_d,
                             trace_hh_id, chunk_trace_label)
 
-        choices_list.append(choices)
+        result_list.append(choices)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
-    choices = pd.concat(choices_list)
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
 
     return choices

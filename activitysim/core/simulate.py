@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from math import ceil
 import os
 import logging
 
@@ -16,68 +17,94 @@ from . import pipeline
 logger = logging.getLogger(__name__)
 
 
-def adjust_chunk_size(chunk_size, choosers, alternatives=None):
+def num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives=None, by_chunk_id=False):
 
     # FIXME - chunk size should take number of chooser and alternative columns into account
     # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
+
+    if by_chunk_id:
+        num_choosers = choosers['chunk_id'].max() + 1
+    else:
+        num_choosers = len(choosers.index)
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
 
     row_size = len(choosers.columns)
 
     if alternatives is not None:
         alt_row_size = len(alternatives.columns)
-        logger.debug('adjust_chunk_size row_size %s alt_row_size %s' % (row_size, alt_row_size,))
-
+        # logger.debug('num_chunk_rows_for_chunk_size row_size %s alt_row_size %s'
+        #              % (row_size, alt_row_size,))
         row_size = row_size * alt_row_size
 
-    logger.info('adjust_chunk_size row_size %s' % (row_size,))
+    if by_chunk_id:
+        # scale row_size by average number of chooser rows per chunk_id
+        rows_per_chunk_id = len(choosers.index) / float(num_choosers)
+        row_size = int(rows_per_chunk_id * row_size)
+        # logger.debug('num_chunk_rows_for_chunk_size by_chunk_id rows_per_chunk_id %s'
+        #              % (rows_per_chunk_id,))
 
-    adjusted_chunk_size = int(chunk_size) or len(choosers.index)
-    logger.info('adjust_chunk_size %s adjusted to %s' % (chunk_size, adjusted_chunk_size, ))
+    # closest number of chooser rows to achieve chunk_size
+    chunk_row_count = int(round(chunk_size / float(row_size)))
+    chunk_row_count = max(chunk_row_count, 1)
 
-    return adjusted_chunk_size
+    logger.info("num_chunk_rows_for_chunk_size %s row_size %s chunk_row_count %s "
+                "num_choosers %s chunks %s"
+                % (chunk_size, row_size, chunk_row_count,
+                   num_choosers, int(ceil(num_choosers / float(chunk_row_count)))))
+
+    # FIXME - no adjust for now
+    chunk_row_count = chunk_size
+
+    return chunk_row_count
 
 
-def chunked_choosers(choosers, chunk_size):
+def chunked_choosers(choosers, num_chunk_rows):
     # generator to iterate over chooses in chunk_size chunks
-    chunk_size = int(chunk_size)
     num_choosers = len(choosers.index)
 
     i = offset = 0
     while offset < num_choosers:
-        yield i, choosers[offset: offset+chunk_size]
-        offset += chunk_size
+        yield i, choosers[offset: offset+num_chunk_rows]
+        offset += num_chunk_rows
         i += 1
 
 
-def chunked_choosers_and_alternatives(choosers, alternatives, chunk_size, sample_size):
+def chunked_choosers_and_alternatives(choosers, alternatives, num_chunk_rows, sample_size):
 
     assert len(alternatives) % len(choosers) == 0
     assert sample_size == len(alternatives) / len(choosers)
 
     # generator to iterate over choosers and alternatives in chunk_size chunks
     num_choosers = len(choosers.index)
-    chunk_size = int(chunk_size)
-    alt_chunk_size = chunk_size * sample_size
+    alt_chunk_size = num_chunk_rows * sample_size
 
     i = offset = alt_offset = 0
     while offset < num_choosers:
         yield \
             i, \
-            choosers[offset: offset+chunk_size], \
+            choosers[offset: offset+num_chunk_rows], \
             alternatives[alt_offset: alt_offset+alt_chunk_size]
         i += 1
-        offset += chunk_size
+        offset += num_chunk_rows
         alt_offset += alt_chunk_size
 
 
-def hh_chunked_choosers(choosers):
-    # generator to iterate over chooses in chunk_size chunks
+def hh_chunked_choosers(choosers, num_chunk_rows):
+    # generator to iterate over choosers in chunk_size chunks
+    # like chunked_choosers but based on chunk_id field rather than dataframe length
+    # (the presumption is that choosers has multiple rows with the same chunk_id that
+    # all have to be included in the same chunk)
     # FIXME - we pathologically know name of chunk_id col in households table
-    _chunk_id_ = 'chunk_id'
-    last_chooser = choosers[_chunk_id_].max()
-    i = 0
-    while i <= last_chooser:
-        yield i, choosers[choosers[_chunk_id_] == i]
+
+    num_choosers = choosers['chunk_id'].max() + 1
+
+    i = offset = 0
+    while offset < num_choosers:
+        yield i, choosers[choosers['chunk_id'].between(offset, offset + num_chunk_rows - 1)]
+        offset += num_chunk_rows
         i += 1
 
 
@@ -598,14 +625,14 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
 
     assert len(choosers) > 0
 
-    chunk_size = adjust_chunk_size(chunk_size, choosers)
+    num_chunk_rows = num_chunk_rows_for_chunk_size(chunk_size, choosers)
 
-    logger.info("simple_simulate chunk_size %s num_choosers %s" %
-                (chunk_size, len(choosers.index)))
+    logger.info("simple_simulate num_chunk_rows %s num_choosers %s" %
+                (num_chunk_rows, len(choosers.index)))
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+    for i, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 
@@ -746,14 +773,14 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     assert len(choosers) > 0
 
-    chunk_size = adjust_chunk_size(chunk_size, choosers)
+    num_chunk_rows = num_chunk_rows_for_chunk_size(chunk_size, choosers)
 
     logger.info("simple_simulate_logsums chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+    for i, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 

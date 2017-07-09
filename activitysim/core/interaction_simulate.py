@@ -14,7 +14,7 @@ from . import logit
 from . import tracing
 from .simulate import add_skims
 from .simulate import chunked_choosers
-from .simulate import adjust_chunk_size
+from .simulate import num_chunk_rows_for_chunk_size
 
 logger = logging.getLogger(__name__)
 
@@ -348,7 +348,7 @@ def interaction_simulate(
 
     assert len(choosers) > 0
 
-    chunk_size = adjust_chunk_size(chunk_size, choosers, alternatives)
+    chunk_size = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))

@@ -65,7 +65,7 @@ def cdap_simulate(persons_merged,
                   cdap_indiv_spec,
                   cdap_interaction_coefficients,
                   cdap_fixed_relative_proportions,
-                  hh_chunk_size, trace_hh_id):
+                  chunk_size, trace_hh_id):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
     high-level activity pattern for each person, in a coordinated way with other
@@ -87,7 +87,7 @@ def cdap_simulate(persons_merged,
                        cdap_interaction_coefficients=cdap_interaction_coefficients,
                        cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
                        locals_d=constants,
-                       chunk_size=hh_chunk_size,
+                       chunk_size=chunk_size,
                        trace_hh_id=trace_hh_id,
                        trace_label='cdap')
 

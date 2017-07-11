@@ -13,7 +13,7 @@ import pandas as pd
 from . import logit
 from . import tracing
 from .simulate import add_skims
-from .simulate import chunked_choosers_and_alternatives
+from .simulate import chunked_choosers_and_alts
 from .simulate import num_chunk_rows_for_chunk_size
 
 from .interaction_simulate import eval_interaction_utilities
@@ -237,7 +237,7 @@ def interaction_sample_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    chunk_size = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
+    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
     assert len(alternatives) % len(choosers) == 0
     assert sample_size == len(alternatives) / len(choosers)
@@ -248,7 +248,7 @@ def interaction_sample_simulate(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, alternative_chunk \
-            in chunked_choosers_and_alternatives(choosers, alternatives, chunk_size, sample_size):
+            in chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_size):
 
         assert sample_size == len(alternative_chunk) / len(chooser_chunk)
 

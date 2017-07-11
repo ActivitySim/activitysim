@@ -881,11 +881,11 @@ def run_cdap(
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
     # FIXME - what is the actual size/cardinality of the chooser
-    num_chunk_rows = num_chunk_rows_for_chunk_size(chunk_size, persons, by_chunk_id=True)
+    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, persons, by_chunk_id=True)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, persons_chunk in hh_chunked_choosers(persons, num_chunk_rows):
+    for i, persons_chunk in hh_chunked_choosers(persons, rows_per_chunk):
 
         logger.info("Running chunk %s of with %d persons" % (i, len(persons_chunk)))
 

@@ -52,7 +52,7 @@ def workplace_location_sample(persons_merged,
     sample_size = workplace_location_settings["SAMPLE_SIZE"]
     alt_col_name = workplace_location_settings["ALT_COL_NAME"]
 
-    logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
+    logger.info("Running workplace_location_sample with %d persons" % len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction

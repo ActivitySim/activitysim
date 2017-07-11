@@ -47,52 +47,49 @@ def num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives=None, by_ch
         #              % (rows_per_chunk_id,))
 
     # closest number of chooser rows to achieve chunk_size
-    chunk_row_count = int(round(chunk_size / float(row_size)))
-    chunk_row_count = max(chunk_row_count, 1)
+    rows_per_chunk = int(round(chunk_size / float(row_size)))
+    rows_per_chunk = max(rows_per_chunk, 1)
 
-    logger.info("num_chunk_rows_for_chunk_size %s row_size %s chunk_row_count %s "
+    logger.info("num_chunk_rows_for_chunk_size %s row_size %s rows_per_chunk %s "
                 "num_choosers %s chunks %s"
-                % (chunk_size, row_size, chunk_row_count,
-                   num_choosers, int(ceil(num_choosers / float(chunk_row_count)))))
+                % (chunk_size, row_size, rows_per_chunk,
+                   num_choosers, int(ceil(num_choosers / float(rows_per_chunk)))))
 
-    # FIXME - no adjust for now
-    chunk_row_count = chunk_size
-
-    return chunk_row_count
+    return rows_per_chunk
 
 
-def chunked_choosers(choosers, num_chunk_rows):
+def chunked_choosers(choosers, rows_per_chunk):
     # generator to iterate over chooses in chunk_size chunks
     num_choosers = len(choosers.index)
 
     i = offset = 0
     while offset < num_choosers:
-        yield i, choosers[offset: offset+num_chunk_rows]
-        offset += num_chunk_rows
+        yield i, choosers[offset: offset+rows_per_chunk]
+        offset += rows_per_chunk
         i += 1
 
 
-def chunked_choosers_and_alternatives(choosers, alternatives, num_chunk_rows, sample_size):
+def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_size):
 
     assert len(alternatives) % len(choosers) == 0
     assert sample_size == len(alternatives) / len(choosers)
 
     # generator to iterate over choosers and alternatives in chunk_size chunks
     num_choosers = len(choosers.index)
-    alt_chunk_size = num_chunk_rows * sample_size
+    alt_chunk_size = rows_per_chunk * sample_size
 
     i = offset = alt_offset = 0
     while offset < num_choosers:
         yield \
             i, \
-            choosers[offset: offset+num_chunk_rows], \
+            choosers[offset: offset + rows_per_chunk], \
             alternatives[alt_offset: alt_offset+alt_chunk_size]
         i += 1
-        offset += num_chunk_rows
+        offset += rows_per_chunk
         alt_offset += alt_chunk_size
 
 
-def hh_chunked_choosers(choosers, num_chunk_rows):
+def hh_chunked_choosers(choosers, rows_per_chunk):
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
     # (the presumption is that choosers has multiple rows with the same chunk_id that
@@ -103,8 +100,8 @@ def hh_chunked_choosers(choosers, num_chunk_rows):
 
     i = offset = 0
     while offset < num_choosers:
-        yield i, choosers[choosers['chunk_id'].between(offset, offset + num_chunk_rows - 1)]
-        offset += num_chunk_rows
+        yield i, choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
+        offset += rows_per_chunk
         i += 1
 
 

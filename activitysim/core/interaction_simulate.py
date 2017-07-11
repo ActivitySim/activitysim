@@ -348,14 +348,14 @@ def interaction_simulate(
 
     assert len(choosers) > 0
 
-    chunk_size = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
+    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+    for i, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 

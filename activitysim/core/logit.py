@@ -180,12 +180,15 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
                            trace_choosers=trace_choosers)
 
     rands = pipeline.get_rn_generator().random_for_df(probs)
+
     probs_arr = probs.as_matrix().cumsum(axis=1) - rands
 
-    rows, cols = np.where(probs_arr > 0)
-    choices = (s.iat[0] for _, s in pd.Series(cols).groupby(rows))
+    # rows, cols = np.where(probs_arr > 0)
+    # choices = [s.iat[0] for _, s in pd.Series(cols).groupby(rows)]
+    choices = np.argmax(probs_arr > 0.0, axis=1)
 
     choices = pd.Series(choices, index=probs.index)
+
     rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
 
     return choices, rands

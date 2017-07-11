@@ -19,10 +19,130 @@ from .simulate import chunked_choosers
 from .simulate import num_chunk_rows_for_chunk_size
 
 from .interaction_simulate import eval_interaction_utilities
+import pipeline
 
 logger = logging.getLogger(__name__)
 
 DUMP = False
+
+
+def make_choices(probs, trace_label=None):
+    """
+    Make choices for each chooser from among a set of alternatives.
+
+    Parameters
+    ----------
+    probs : pandas.DataFrame
+        Rows for choosers and columns for the alternatives from which they
+        are choosing. Values are expected to be valid probabilities across
+        each row, e.g. they should sum to 1.
+
+    Returns
+    -------
+    choices : pandas.Series
+        Maps chooser IDs (from `probs` index) to a choice, where the choice
+        is an index into the columns of `probs`.
+
+    rands : pandas.Series
+        The random numbers used to make the choices (for debugging, tracing)
+
+    """
+    trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
+
+    t0 = tracing.print_elapsed_time()
+
+    rands = pipeline.get_rn_generator().random_for_df(probs)
+    t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
+
+    probs_arr = probs.as_matrix().cumsum(axis=1) - rands
+    t0 = tracing.print_elapsed_time("make_choices probs_arr", t0, debug=True)
+
+    # index of first occurrence of positive value
+    choices = np.argmax(probs_arr > 0, axis=1)
+    t0 = tracing.print_elapsed_time("make_choices argmax", t0, debug=True)
+
+    choices = pd.Series(choices, index=probs.index)
+    rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
+    t0 = tracing.print_elapsed_time("make_choices Series", t0, debug=True)
+
+    return choices, rands
+
+
+def make_sample_choices(
+        choosers, probs, interaction_utilities,
+        sample_size, alternative_count, alt_col_name,
+        trace_label):
+
+    t0 = tracing.print_elapsed_time()
+
+    # probs should sum to 1 across each row
+    BAD_PROB_THRESHOLD = 0.001
+    bad_probs = \
+        probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
+        > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
+
+    if bad_probs.any():
+        logit.report_bad_choices.report_bad_choices(
+            bad_probs, probs,
+            tracing.extend_trace_label(trace_label, 'bad_probs'),
+            msg="probabilities do not add up to 1",
+            trace_choosers=choosers)
+
+    t0 = tracing.print_elapsed_time("make_choices bad_probs", t0, debug=True)
+
+    probs_arr = probs.as_matrix().cumsum(axis=1)
+    t0 = tracing.print_elapsed_time("make_choices probs_arr", t0, debug=True)
+
+    choices_array = np.empty([sample_size, len(choosers)]).astype(int)
+    rands_array = np.empty([sample_size, len(choosers)]).astype(float)
+
+    # FIXME - do this all at once rather than iterate?
+    for i in range(sample_size):
+
+        t0 = tracing.print_elapsed_time()
+
+        # FIXME - do this in numpy, not pandas?
+
+        rands = pipeline.get_rn_generator().random_for_df(probs)
+        t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
+
+        # position of first occurrence of positive value
+        positions = np.argmax(probs_arr > rands, axis=1)
+        t0 = tracing.print_elapsed_time("make_choices argmax", t0, debug=True)
+
+        # positions is series with the chosen alternative represented as a column index in probs
+        # which is an integer between zero and num alternatives in the alternative sample
+        positions = pd.Series(positions, index=probs.index)
+        rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
+        t0 = tracing.print_elapsed_time("make_choices Series", t0, debug=True)
+
+        # need to get from an integer offset into the alternative sample to the alternative index
+        # that is, we want the index value of the row that is offset by <position> rows into the
+        # tranche of this choosers alternatives created by cross join of alternatives and choosers
+
+        # offsets is the offset into model_design df of first row of chooser alternatives
+        offsets = np.arange(len(positions)) * alternative_count
+
+        # resulting pandas Int64Index has one element per chooser and is in same order as choosers
+        choices = interaction_utilities.index.take(positions + offsets)
+
+        choices_array[i] = choices
+        rands_array[i] = rands
+
+        t0 = tracing.print_elapsed_time("choices_array", t0, debug=True)
+
+    t0 = tracing.print_elapsed_time()
+
+    # explode to one row per chooser.index, alt_TAZ
+    choices_df = pd.DataFrame(
+        {alt_col_name: choices_array.flatten(order='F'),
+         'rand': rands_array.flatten(order='F'),
+         choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
+         })
+
+    t0 = tracing.print_elapsed_time("choices_df", t0, debug=True)
+
+    return choices_df
 
 
 def _interaction_sample(
@@ -77,8 +197,13 @@ def _interaction_sample(
         choices are simulated in the standard Monte Carlo fashion
     """
 
+    t0 = tracing.print_elapsed_time()
+
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+
+    if alt_col_name is None:
+        alt_col_name = 'alt_%s' % alternatives.index.name
 
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
@@ -96,6 +221,8 @@ def _interaction_sample(
                      (alternative_count, len(alternatives)))
         alternative_count = min(alternative_count, len(alternatives))
 
+    t0 = tracing.print_elapsed_time("preamble", t0, debug=True)
+
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
     if skims:
@@ -106,8 +233,12 @@ def _interaction_sample(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, alternative_count)
 
+    t0 = tracing.print_elapsed_time("interaction_dataset", t0, debug=True)
+
     if skims:
         add_skims(interaction_df, skims)
+
+    t0 = tracing.print_elapsed_time("add_skims", t0, debug=True)
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
@@ -123,8 +254,12 @@ def _interaction_sample(
     else:
         trace_rows = trace_ids = None
 
+    t0 = tracing.print_elapsed_time("tracing", t0, debug=True)
+
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
+
+    t0 = tracing.print_elapsed_time("eval_interaction_utilities", t0, debug=True)
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
@@ -141,6 +276,8 @@ def _interaction_sample(
         interaction_utilities.as_matrix().reshape(len(choosers), alternative_count),
         index=choosers.index)
 
+    t0 = tracing.print_elapsed_time("utilities", t0, debug=True)
+
     if have_trace_targets:
         tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
                          column_labels=['alternative', 'utility'])
@@ -152,69 +289,27 @@ def _interaction_sample(
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
 
+    t0 = tracing.print_elapsed_time("probs", t0, debug=True)
+
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
 
     tracing.dump_df(DUMP, probs, trace_label, 'probs')
 
-    if have_trace_targets:
-        # FIXME - this is wasteful of memory
-        choices_df = pd.DataFrame()
-        rands_df = pd.DataFrame()
+    choices_df = make_sample_choices(
+        choosers, probs, interaction_utilities,
+        sample_size, alternative_count, alt_col_name, trace_label)
 
-    choices_array = np.empty([sample_size, len(choosers)]).astype(int)
-
-    # FIXME - do this all at once rather than iterate?
-    for i in range(sample_size):
-
-        # FIXME - do this in numpy, not pandas?
-        # make choices
-        # positions is series with the chosen alternative represented as a column index in probs
-        # which is an integer between zero and num alternatives in the alternative sample
-        positions, rands = logit.make_choices(probs, trace_label=trace_label,
-                                              trace_choosers=choosers)
-
-        # need to get from an integer offset into the alternative sample to the alternative index
-        # that is, we want the index value of the row that is offset by <position> rows into the
-        # tranche of this choosers alternatives created by cross join of alternatives and choosers
-
-        # offsets is the offset into model_design df of first row of chooser alternatives
-        offsets = np.arange(len(positions)) * alternative_count
-        # resulting pandas Int64Index has one element per chooser and is in same order as choosers
-        choices = interaction_utilities.index.take(positions + offsets)
-
-        choices_array[i] = choices
-
-        if have_trace_targets:
-            # FIXME - this is wasteful of memory
-            choices_df[i] = pd.Series(choices, index=choosers.index)
-            rands_df[i] = rands
-
-    if have_trace_targets:
-        # FIXME - this is wasteful of memory
-        tracing.trace_df(choices_df,
-                         tracing.extend_trace_label(trace_label, 'sampled_alternatives'),
-                         column_labels=['sample_alt', 'alternative'])
-
-        tracing.trace_df(rands_df, tracing.extend_trace_label(trace_label, 'sample_rands'),
-                         column_labels=['sample_alt', 'rand'])
-        del choices_df
-        del rands_df
-
-    # explode to one row per chooser.index, alt_TAZ
-    if alt_col_name is None:
-        alt_col_name = 'alt_%s' % alternatives.index.name
-    choices_df = pd.DataFrame(
-        {alt_col_name: choices_array.flatten(order='F'),
-         choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
-         })
-
+    # FIXME - do this in make_sample_choices?
+    t0 = tracing.print_elapsed_time()
     # dataframe with one column of pick_counts for each chooser,alt with duplicate rows conflated
     # (couldn't think of any good way to get pick_counts without grouping)
     pick_counts = choices_df\
         .groupby([choosers.index.name, alt_col_name])\
         .size().to_frame('pick_count')
+
+    t0 = tracing.print_elapsed_time("pick_count", t0, debug=True)
 
     # annotate with pick_count
     choices_df = \
@@ -223,7 +318,15 @@ def _interaction_sample(
                  right_index=True,
                  how="left").set_index(choosers.index.name)
 
+    t0 = tracing.print_elapsed_time("choices_df merge", t0, debug=True)
+
     tracing.dump_df(DUMP, choices_df, trace_label, 'choices_df')
+
+    if have_trace_targets:
+        tracing.trace_df(choices_df,
+                         tracing.extend_trace_label(trace_label, 'sampled_alternatives'),
+                         transpose=False,
+                         column_labels=['sample_alt', 'alternative'])
 
     return choices_df
 
@@ -286,14 +389,14 @@ def interaction_sample(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    chunk_size = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
+    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk in chunked_choosers(choosers, chunk_size):
+    for i, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 

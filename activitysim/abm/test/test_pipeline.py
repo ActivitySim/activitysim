@@ -346,7 +346,7 @@ def test_full_run_with_chunks():
 
     tour_count = full_run(trace_hh_id=HH_ID,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                          chunk_size=10)
+                          chunk_size=10000)
 
     assert(tour_count == 157)
 

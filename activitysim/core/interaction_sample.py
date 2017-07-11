@@ -25,47 +25,47 @@ logger = logging.getLogger(__name__)
 
 DUMP = False
 
-
-def make_choices(probs, trace_label=None):
-    """
-    Make choices for each chooser from among a set of alternatives.
-
-    Parameters
-    ----------
-    probs : pandas.DataFrame
-        Rows for choosers and columns for the alternatives from which they
-        are choosing. Values are expected to be valid probabilities across
-        each row, e.g. they should sum to 1.
-
-    Returns
-    -------
-    choices : pandas.Series
-        Maps chooser IDs (from `probs` index) to a choice, where the choice
-        is an index into the columns of `probs`.
-
-    rands : pandas.Series
-        The random numbers used to make the choices (for debugging, tracing)
-
-    """
-    trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
-
-    t0 = tracing.print_elapsed_time()
-
-    rands = pipeline.get_rn_generator().random_for_df(probs)
-    t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
-
-    probs_arr = probs.as_matrix().cumsum(axis=1) - rands
-    t0 = tracing.print_elapsed_time("make_choices probs_arr", t0, debug=True)
-
-    # index of first occurrence of positive value
-    choices = np.argmax(probs_arr > 0, axis=1)
-    t0 = tracing.print_elapsed_time("make_choices argmax", t0, debug=True)
-
-    choices = pd.Series(choices, index=probs.index)
-    rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
-    t0 = tracing.print_elapsed_time("make_choices Series", t0, debug=True)
-
-    return choices, rands
+#
+# def make_choices(probs, trace_label=None):
+#     """
+#     Make choices for each chooser from among a set of alternatives.
+#
+#     Parameters
+#     ----------
+#     probs : pandas.DataFrame
+#         Rows for choosers and columns for the alternatives from which they
+#         are choosing. Values are expected to be valid probabilities across
+#         each row, e.g. they should sum to 1.
+#
+#     Returns
+#     -------
+#     choices : pandas.Series
+#         Maps chooser IDs (from `probs` index) to a choice, where the choice
+#         is an index into the columns of `probs`.
+#
+#     rands : pandas.Series
+#         The random numbers used to make the choices (for debugging, tracing)
+#
+#     """
+#     trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
+#
+#     t0 = tracing.print_elapsed_time()
+#
+#     rands = pipeline.get_rn_generator().random_for_df(probs)
+#     t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
+#
+#     probs_arr = probs.as_matrix().cumsum(axis=1) - rands
+#     t0 = tracing.print_elapsed_time("make_choices probs_arr", t0, debug=True)
+#
+#     # index of first occurrence of positive value
+#     choices = np.argmax(probs_arr > 0, axis=1)
+#     t0 = tracing.print_elapsed_time("make_choices argmax", t0, debug=True)
+#
+#     choices = pd.Series(choices, index=probs.index)
+#     rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
+#     t0 = tracing.print_elapsed_time("make_choices Series", t0, debug=True)
+#
+#     return choices, rands
 
 
 def make_sample_choices(
@@ -93,8 +93,15 @@ def make_sample_choices(
     probs_arr = probs.as_matrix().cumsum(axis=1)
     t0 = tracing.print_elapsed_time("make_choices probs_arr", t0, debug=True)
 
+    # get sample_size rands for each chooser
+    # transform as we iterate over alternatives
+    # reshape so rands[i] is in broadcastable (2-D) shape for probs_arr
+    # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
+    rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
+    rands = rands.T.reshape(sample_size, -1, 1)
+    t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
+
     choices_array = np.empty([sample_size, len(choosers)]).astype(int)
-    rands_array = np.empty([sample_size, len(choosers)]).astype(float)
 
     # FIXME - do this all at once rather than iterate?
     for i in range(sample_size):
@@ -103,17 +110,16 @@ def make_sample_choices(
 
         # FIXME - do this in numpy, not pandas?
 
-        rands = pipeline.get_rn_generator().random_for_df(probs)
-        t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
+        # rands for this alt in broadcastable shape
+        r = rands[i]
 
         # position of first occurrence of positive value
-        positions = np.argmax(probs_arr > rands, axis=1)
+        positions = np.argmax(probs_arr > r, axis=1)
         t0 = tracing.print_elapsed_time("make_choices argmax", t0, debug=True)
 
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
         positions = pd.Series(positions, index=probs.index)
-        rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
         t0 = tracing.print_elapsed_time("make_choices Series", t0, debug=True)
 
         # need to get from an integer offset into the alternative sample to the alternative index
@@ -127,7 +133,6 @@ def make_sample_choices(
         choices = interaction_utilities.index.take(positions + offsets)
 
         choices_array[i] = choices
-        rands_array[i] = rands
 
         t0 = tracing.print_elapsed_time("choices_array", t0, debug=True)
 
@@ -136,7 +141,7 @@ def make_sample_choices(
     # explode to one row per chooser.index, alt_TAZ
     choices_df = pd.DataFrame(
         {alt_col_name: choices_array.flatten(order='F'),
-         'rand': rands_array.flatten(order='F'),
+         'rand': rands.flatten(order='F'),
          choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
          })
 

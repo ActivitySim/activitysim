@@ -17,7 +17,7 @@ from activitysim.core import pipeline
 logger = logging.getLogger(__name__)
 
 
-DUMP = True
+DUMP = False
 
 
 @orca.injectable()

@@ -20,7 +20,8 @@ from .mode import get_segment_and_unstack
 
 
 logger = logging.getLogger(__name__)
-DUMP = True
+
+DUMP = False
 
 
 def time_period_label(hour):

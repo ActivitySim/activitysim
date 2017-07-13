@@ -161,7 +161,7 @@ def read_model_spec(fpath, fname,
     return spec
 
 
-def eval_variables(exprs, df, locals_d=None):
+def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -184,11 +184,13 @@ def eval_variables(exprs, df, locals_d=None):
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    target_type: dtype or None
+        type to coerce results or None if no coercion desired
 
     Returns
     -------
     variables : pandas.DataFrame
-        Will have the index of `df` and columns of `exprs`.
+        Will have the index of `df` and columns of eval results of `exprs`.
     """
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
@@ -203,15 +205,44 @@ def eval_variables(exprs, df, locals_d=None):
     l = []
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
-    for e in exprs:
+    for expr in exprs:
         try:
-            l.append((e, to_series(eval(e[1:], globals(), locals_d))
-                     if e.startswith('@') else df.eval(e)))
+            if expr.startswith('@'):
+                expr_values = to_series(eval(expr[1:], globals(), locals_d))
+            else:
+                expr_values = df.eval(expr)
+            l.append((expr, expr_values))
         except Exception as err:
-            logger.exception("Variable evaluation failed for: %s" % str(e))
+            logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
 
-    return pd.DataFrame.from_items(l)
+    values = pd.DataFrame.from_items(l)
+
+    # FIXME - for performance, it is essential that spec and expression_values
+    # FIXME - not contain booleans when dotted with spec values
+    # FIXME - or the arrays will be converted to dtype=object within dot()
+    if target_type is not None:
+        values = values.astype(target_type)
+
+    return values
+
+
+def compute_utilities(expression_values, spec):
+
+    # matrix product of spec expression_values with utility coefficients of alternatives
+    # sums the partial utilities (represented by each spec row) of the alternatives
+    # resulting in a dataframe with one row per chooser and one column per alternative
+    # pandas.dot depends on column names of expression_values matching spec index values
+
+    # FIXME - for performance, it is essential that spec and expression_values
+    # FIXME - not contain booleans when dotted with spec values
+    # FIXME - or the arrays will be converted to dtype=object within dot()
+
+    spec = spec.astype(np.float64)
+
+    utilities = expression_values.dot(spec)
+
+    return utilities
 
 
 def add_skims(df, skims):
@@ -434,7 +465,10 @@ def eval_mnl(choosers, spec, locals_d,
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
     check_for_variability = tracing.check_for_variability()
 
+    t0 = tracing.print_elapsed_time()
+
     expression_values = eval_variables(spec.index, choosers, locals_d)
+    t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
 
     if check_for_variability:
         _check_for_variability(expression_values, trace_label)
@@ -444,10 +478,14 @@ def eval_mnl(choosers, spec, locals_d,
     # resulting in a dataframe with one row per chooser and one column per alternative
     # pandas.dot depends on column names of expression_values matching spec index values
 
-    utilities = expression_values.dot(spec)
+    utilities = compute_utilities(expression_values, spec)
+    t0 = tracing.print_elapsed_time("expression_values.dot", t0, debug=True)
 
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    t0 = tracing.print_elapsed_time("logit.utils_to_probs", t0, debug=True)
+
     choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+    t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
     if trace_label:
 
@@ -502,29 +540,32 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
     trace_label = tracing.extend_trace_label(trace_label, 'nl')
     check_for_variability = tracing.check_for_variability()
 
+    t0 = tracing.print_elapsed_time()
+
     # column names of expression_values match spec index values
     expression_values = eval_variables(spec.index, choosers, locals_d)
+    t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
 
     if check_for_variability:
         _check_for_variability(expression_values, trace_label)
+    t0 = tracing.print_elapsed_time("_check_for_variability", t0, debug=True)
 
     # raw utilities of all the leaves
-
-    # matrix product of spec expression evals with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-        # pandas.dot depends on column names of expression_values matching spec index values
-    raw_utilities = expression_values.dot(spec)
+    raw_utilities = compute_utilities(expression_values, spec)
+    t0 = tracing.print_elapsed_time("expression_values.dot", t0, debug=True)
 
     # exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+    t0 = tracing.print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
 
     # probabilities of alternatives relative to siblings sharing the same nest
     nested_probabilities = compute_nested_probabilities(nested_exp_utilities, nest_spec,
                                                         trace_label=trace_label)
+    t0 = tracing.print_elapsed_time("compute_nested_probabilities", t0, debug=True)
 
     # global (flattened) leaf probabilities based on relative nest coefficients
     base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec)
+    t0 = tracing.print_elapsed_time("compute_base_probabilities", t0, debug=True)
 
     # note base_probabilities could all be zero since we allowed all probs for nests to be zero
     # check here to print a clear message but make_choices will raise error if probs don't sum to 1
@@ -540,7 +581,10 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
             tag='bad_probs',
             msg="base_probabilities all zero")
 
+    t0 = tracing.print_elapsed_time("report_bad_choices", t0, debug=True)
+
     choices, rands = logit.make_choices(base_probabilities, trace_label, trace_choosers=choosers)
+    t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
     if trace_label:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
@@ -662,16 +706,15 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
     check_for_variability = tracing.check_for_variability()
 
+    logger.debug("running eval_mnl_logsums")
+
     expression_values = eval_variables(spec.index, choosers, locals_d)
 
     if check_for_variability:
         _check_for_variability(expression_values, trace_label)
 
-    # matrix product of spec expression evals with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-    # pandas dot() depends on column names of expression_values matching spec index values
-    utilities = expression_values.dot(spec)
+    # utility values
+    utilities = compute_utilities(expression_values, spec)
 
     # logsum is log of exponentiated utilities summed across columns of each chooser row
     utils_arr = utilities.as_matrix().astype('float')
@@ -706,25 +749,28 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     trace_label = tracing.extend_trace_label(trace_label, 'nl_logsums')
     check_for_variability = tracing.check_for_variability()
 
+    logger.debug("running eval_nl_logsums")
+    t0 = tracing.print_elapsed_time()
+
     # column names of expression_values match spec index values
     expression_values = eval_variables(spec.index, choosers, locals_d)
+    t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
 
     if check_for_variability:
         _check_for_variability(expression_values, trace_label)
+        t0 = tracing.print_elapsed_time("_check_for_variability", t0, debug=True)
 
     # raw utilities of all the leaves
-
-    # matrix product of spec expression evals with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-    # pandas dot() depends on column names of expression_values matching spec index values
-    raw_utilities = expression_values.dot(spec)
+    raw_utilities = compute_utilities(expression_values, spec)
+    t0 = tracing.print_elapsed_time("expression_values.dot", t0, debug=True)
 
     # exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+    t0 = tracing.print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
 
     logsums = np.log(nested_exp_utilities.root)
     logsums = pd.Series(logsums, index=choosers.index)
+    t0 = tracing.print_elapsed_time("logsums", t0, debug=True)
 
     if trace_label:
         # add logsum to nested_exp_utilities for tracing
@@ -772,8 +818,8 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     num_chunk_rows = num_chunk_rows_for_chunk_size(chunk_size, choosers)
 
-    logger.info("simple_simulate_logsums chunk_size %s num_choosers %s" %
-                (chunk_size, len(choosers.index)))
+    logger.info("simple_simulate_logsums chunk_size %s num_choosers %s, num_chunk_rows %s" %
+                (chunk_size, len(choosers.index), num_chunk_rows))
 
     result_list = []
     # segment by person type and pick the right spec for each person type

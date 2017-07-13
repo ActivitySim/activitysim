@@ -11,6 +11,7 @@ import pytest
 from .. import cdap
 
 from activitysim.core.simulate import read_model_spec
+from activitysim.core.simulate import compute_utilities
 
 
 @pytest.fixture(scope='module')
@@ -126,7 +127,7 @@ def test_build_cdap_spec_hhsize2(people, cdap_indiv_and_hhsize1, cdap_interactio
 
     vars = cdap.eval_variables(spec.index, choosers)
 
-    utils = vars.dot(spec).astype('float')
+    utils = compute_utilities(vars, spec)
 
     expected = pd.DataFrame([
         [0, 3, 0, 3, 7, 3, 0, 3, 0],  # household 3

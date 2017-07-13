@@ -9,6 +9,7 @@ import pandas as pd
 from zbox import toolz as tz, gen
 
 from activitysim.core.simulate import eval_variables
+from activitysim.core.simulate import compute_utilities
 from activitysim.core.simulate import hh_chunked_choosers
 from activitysim.core.simulate import num_chunk_rows_for_chunk_size
 
@@ -179,7 +180,7 @@ def individual_utilities(
 
     # calculate single person utilities
     individual_vars = eval_variables(cdap_indiv_spec.index, persons, locals_d)
-    indiv_utils = individual_vars.dot(cdap_indiv_spec)
+    indiv_utils = compute_utilities(individual_vars, cdap_indiv_spec)
 
     # add columns from persons to facilitate building household interactions
     useful_columns = [_hh_id_, _ptype_, 'cdap_rank', _hh_size_]
@@ -584,7 +585,7 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
 
         vars = eval_variables(spec.index, choosers)
 
-        utils = vars.dot(spec).astype('float')
+        utils = compute_utilities(vars, spec)
 
     if len(utils.index) == 0:
         return pd.Series()

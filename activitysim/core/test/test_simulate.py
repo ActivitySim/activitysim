@@ -50,16 +50,26 @@ def test_read_model_spec(data_dir, spec_name):
 
 
 def test_eval_variables(spec, data):
-    result = asim.eval_variables(spec.index, data)
 
-    pdt.assert_frame_equal(
-        result,
-        pd.DataFrame([
+    result = asim.eval_variables(spec.index, data, target_type=None)
+
+    expected_result = pd.DataFrame([
             [True, False, 4, 1],
             [False, True, 4, 1],
             [False, True, 5, 1]],
-            index=data.index, columns=spec.index),
-        check_names=False)
+            index=data.index, columns=spec.index)
+
+    pdt.assert_frame_equal(result, expected_result, check_names=False)
+
+    result = asim.eval_variables(spec.index, data, target_type=float)
+
+    expected_result = pd.DataFrame([
+            [1.0, 0.0, 4.0, 1.0],
+            [0.0, 1.0, 4.0, 1.0],
+            [0.0, 1.0, 5.0, 1.0]],
+            index=data.index, columns=spec.index)
+
+    pdt.assert_frame_equal(result, expected_result, check_names=False)
 
 
 def test_simple_simulate(data, spec):

@@ -9,8 +9,6 @@ import non_mandatory_tour_frequency
 import mandatory_scheduling
 import non_mandatory_scheduling
 import school_location
-import workplace_location_sample
-import workplace_location_logsums
 import workplace_location
 import mode
 import cdap

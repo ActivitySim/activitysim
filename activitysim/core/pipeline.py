@@ -418,9 +418,9 @@ def run_model(model_name):
     _PRNG.begin_step(model_name)
     orca.run([model_name])
     _PRNG.end_step(model_name)
-    print_elapsed_time("run_model '%s'" % model_name, t0)
+    t0 = print_elapsed_time("run_model '%s'" % model_name, t0)
     add_checkpoint(model_name)
-    print_elapsed_time("add_checkpoint '%s'" % model_name, t0)
+    t0 = print_elapsed_time("add_checkpoint '%s'" % model_name, t0)
 
 
 def start_pipeline(resume_after=None):

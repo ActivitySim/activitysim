@@ -23,13 +23,38 @@ import pipeline
 
 logger = logging.getLogger(__name__)
 
-DUMP = False
+DUMP = True
 
 
 def make_sample_choices(
         choosers, probs, interaction_utilities,
         sample_size, alternative_count, alt_col_name,
         trace_label):
+    """
+
+    Parameters
+    ----------
+    choosers
+    probs : pandas DataFrame
+        one row per chooser and one column per alternative
+    interaction_utilities
+        dataframe  with len(interaction_df) rows and one utility column
+    sample_size : int
+        number of samples/choices to make
+    alternative_count
+    alt_col_name
+    trace_label
+
+    Returns
+    -------
+
+    """
+
+    assert isinstance(probs, pd.DataFrame)
+    assert probs.shape == (len(choosers), alternative_count)
+
+    assert isinstance(interaction_utilities, pd.DataFrame)
+    assert interaction_utilities.shape == (len(choosers)*alternative_count, 1)
 
     t0 = tracing.print_elapsed_time()
 
@@ -48,18 +73,26 @@ def make_sample_choices(
 
     t0 = tracing.print_elapsed_time("make_choices bad_probs", t0, debug=True)
 
-    probs_arr = probs.as_matrix().cumsum(axis=1)
-    t0 = tracing.print_elapsed_time("make_choices probs_arr", t0, debug=True)
+    cum_probs_arr = probs.as_matrix().cumsum(axis=1)
+    t0 = tracing.print_elapsed_time("make_choices cum_probs_arr", t0, debug=True)
+
+    # alt probs in convenient layout to return prob of chose alternative
+    # (same layout as cum_probs_arr and interaction_utilities)
+    alt_probs_array = probs.as_matrix().flatten()
 
     # get sample_size rands for each chooser
     # transform as we iterate over alternatives
-    # reshape so rands[i] is in broadcastable (2-D) shape for probs_arr
+    # reshape so rands[i] is in broadcastable (2-D) shape for cum_probs_arr
     # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
     rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
     rands = rands.T.reshape(sample_size, -1, 1)
     t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
 
+    # the alternative value chosen
     choices_array = np.empty([sample_size, len(choosers)]).astype(int)
+
+    # the probability of the chosen alternative
+    choice_probs_array = np.empty([sample_size, len(choosers)])
 
     # FIXME - do this all at once rather than iterate?
     for i in range(sample_size):
@@ -70,7 +103,7 @@ def make_sample_choices(
         r = rands[i]
 
         # position of first occurrence of positive value
-        positions = np.argmax(probs_arr > r, axis=1)
+        positions = np.argmax(cum_probs_arr > r, axis=1)
 
         # FIXME - leave positions as numpy array, not pandas series?
 
@@ -86,14 +119,15 @@ def make_sample_choices(
         offsets = np.arange(len(positions)) * alternative_count
 
         # resulting pandas Int64Index has one element per chooser and is in same order as choosers
-        choices = interaction_utilities.index.take(positions + offsets)
+        choices_array[i] = interaction_utilities.index.take(positions + offsets)
 
-        choices_array[i] = choices
+        choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
 
     # explode to one row per chooser.index, alt_TAZ
     choices_df = pd.DataFrame(
         {alt_col_name: choices_array.flatten(order='F'),
          'rand': rands.flatten(order='F'),
+         'prob': choice_probs_array.flatten(order='F'),
          choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
          })
 
@@ -133,7 +167,7 @@ def _interaction_sample(
 
     probs : dataframe
         utilities exponentiated and converted to probabilities
-        same shape as utilities, one row per chooser and one column for alternative
+        same shape as utilities, one row per chooser and one column per alternative
 
     positions : series
         choices among alternatives with the chosen alternative represented
@@ -146,10 +180,20 @@ def _interaction_sample(
 
     Returns
     -------
-    ret : pandas.Series
-        A series where index should match the index of the choosers DataFrame
-        and values will match the index of the alternatives DataFrame -
-        choices are simulated in the standard Monte Carlo fashion
+    choices_df : pandas.DataFrame
+
+        A DataFrame where index should match the index of the choosers DataFrame
+        and columns alt_col_name, prob, rand, pick_count, pick_dup
+
+        prob: float
+            the probability of the chosen alternative
+        rand: float
+            the rand that did the choosing
+        pick_count : int
+            number of duplicate picks for chooser, alt
+        pick_dup: bool
+            True for all but first of duplicates (e.g. so we can drop them from alts)
+
     """
 
     t0 = tracing.print_elapsed_time()
@@ -224,6 +268,8 @@ def _interaction_sample(
                          tracing.extend_trace_label(trace_label, 'interaction_utilities'),
                          slicer='NONE', transpose=False)
 
+    tracing.dump_df(DUMP, interaction_utilities, trace_label, 'interaction_utilities')
+
     # FIXME - do this in numpy, not pandas?
     # reshape utilities (one utility column and one row per row in interaction_utilities)
     # to a dataframe with one row per chooser and one column per alternative
@@ -256,24 +302,19 @@ def _interaction_sample(
         choosers, probs, interaction_utilities,
         sample_size, alternative_count, alt_col_name, trace_label)
 
-    # FIXME - do this in make_sample_choices?
-    t0 = tracing.print_elapsed_time()
-    # dataframe with one column of pick_counts for each chooser,alt with duplicate rows conflated
-    # (couldn't think of any good way to get pick_counts without grouping)
-    pick_counts = choices_df\
-        .groupby([choosers.index.name, alt_col_name])\
-        .size().to_frame('pick_count')
+    choices_df.set_index(choosers.index.name, inplace=True)
 
-    t0 = tracing.print_elapsed_time("pick_count", t0, debug=True)
-
-    # annotate with pick_count
-    choices_df = \
-        pd.merge(choices_df, pick_counts,
-                 left_on=[choosers.index.name, alt_col_name],
-                 right_index=True,
-                 how="left").set_index(choosers.index.name)
-
-    t0 = tracing.print_elapsed_time("choices_df merge", t0, debug=True)
+    # pick_count and pick_dup
+    # pick_count is number of duplicate picks
+    # pick_dup flag is True for all but first of duplicates
+    pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
+    # number each item in each group from 0 to the length of that group - 1.
+    choices_df['pick_count'] = pick_group.cumcount(ascending=True)
+    # flag duplicate rows after first
+    choices_df['pick_dup'] = choices_df['pick_count'] > 0
+    # add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)
+    choices_df['pick_count'] += pick_group.cumcount(ascending=False) + 1
+    t0 = tracing.print_elapsed_time("choices_df pick_count", t0, debug=True)
 
     tracing.dump_df(DUMP, choices_df, trace_label, 'choices_df')
 

@@ -111,8 +111,6 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
                                            v[trace_rows]))
                 trace_eval_results.append(('partial utility (coefficient = %s)' % coefficient,
                                            v[trace_rows]*coefficient))
-                # trace_eval_results.append(('cumulative utility',
-                #                            utilities.utility[trace_rows]))
 
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))

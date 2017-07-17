@@ -20,11 +20,11 @@ from .interaction_simulate import eval_interaction_utilities
 
 logger = logging.getLogger(__name__)
 
-DUMP = False
+DUMP = True
 
 
 def _interaction_sample_simulate(
-        choosers, alternatives, spec, choice_column,
+        choosers, alternatives, spec, choice_column, drop_dup_sample_col,
         skims, locals_d, sample_size,
         trace_label=None, trace_choice_name=None):
     """
@@ -125,6 +125,10 @@ def _interaction_sample_simulate(
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
 
+    # set the utilities of dup alts low so they get zero probs are never chosen
+    if drop_dup_sample_col:
+        interaction_utilities.loc[interaction_df[drop_dup_sample_col], 'utility'] = -999
+
     tracing.dump_df(DUMP, interaction_utilities, trace_label, 'interaction_utilities')
 
     if have_trace_targets:
@@ -154,6 +158,8 @@ def _interaction_sample_simulate(
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
+
+    tracing.dump_df(DUMP, probs, trace_label, 'probs')
 
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
@@ -185,7 +191,7 @@ def _interaction_sample_simulate(
 
 
 def interaction_sample_simulate(
-        choosers, alternatives, spec, choice_column=None,
+        choosers, alternatives, spec, choice_column=None, drop_dup_sample_col=None,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None):
 
@@ -255,7 +261,7 @@ def interaction_sample_simulate(
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 
         choices = _interaction_sample_simulate(
-            chooser_chunk, alternative_chunk, spec, choice_column,
+            chooser_chunk, alternative_chunk, spec, choice_column, drop_dup_sample_col,
             skims, locals_d, sample_size,
             tracing.extend_trace_label(trace_label, 'chunk_%s' % i), trace_choice_name)
 

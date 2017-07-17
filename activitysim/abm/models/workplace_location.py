@@ -61,6 +61,13 @@ def workplace_location_sample(persons_merged,
                               trace_hh_id):
     """
     build a table of workers * all zones in order to select a sample of alternative work locations.
+
+    PERID,  dest_TAZ, rand,            pick_count
+    23750,  14,       0.565502716034,  4
+    23750,  16,       0.711135838871,  6
+    ...
+    23751,  12,       0.408038878552,  1
+    23751,  14,       0.972732479292,  2
     """
 
     choosers = persons_merged.to_frame()
@@ -112,10 +119,19 @@ def workplace_location_logsums(persons_merged,
                                chunk_size,
                                trace_hh_id):
     """
-    add logsum column to workplace_location_sample
+    add logsum column to existing workplace_location_sample able
 
     logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
     in workplace_location_sample, and computing the logsum of all the utilities
+
+                                                   <added>
+    PERID,  dest_TAZ, rand,            pick_count, logsum
+    23750,  14,       0.565502716034,  4           1.85659498857
+    23750,  16,       0.711135838871,  6           1.92315598631
+    ...
+    23751,  12,       0.408038878552,  1           2.40612135416
+    23751,  14,       0.972732479292,  2           1.44009018355
+
     """
 
     logsums_spec = simulate.read_model_spec(configs_dir, 'workplace_location_logsums.csv')
@@ -188,6 +204,8 @@ def workplace_location_simulate(persons_merged,
 
     alt_col_name = workplace_location_settings["ALT_COL_NAME"]
 
+    drop_dup_sample_col = workplace_location_settings.get('DROP_DUPE_SAMPLES', None) and 'pick_dup'
+
     # for now I'm going to generate a workplace location for everyone -
     # presumably it will not get used in downstream models for everyone -
     # it should depend on CDAP and mandatory tour generation as to whether
@@ -208,6 +226,8 @@ def workplace_location_simulate(persons_merged,
 
     sample_size = workplace_location_settings["SAMPLE_SIZE"]
 
+    sample_pool_size = len(destination_size_terms.index)
+
     logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
@@ -216,7 +236,8 @@ def workplace_location_simulate(persons_merged,
     skims = skim_dict.wrap("TAZ", alt_col_name)
 
     locals_d = {
-        'skims': skims
+        'skims': skims,
+        'sample_pool_size': float(sample_pool_size)
     }
     if constants is not None:
         locals_d.update(constants)
@@ -232,6 +253,7 @@ def workplace_location_simulate(persons_merged,
         alternatives,
         spec=workplace_location_spec,
         choice_column=alt_col_name,
+        drop_dup_sample_col=drop_dup_sample_col,
         skims=skims,
         locals_d=locals_d,
         sample_size=sample_size,

@@ -137,7 +137,7 @@ def make_sample_choices(
 def _interaction_sample(
         choosers, alternatives, spec, sample_size, alt_col_name,
         skims=None, locals_d=None,
-        trace_label=None, trace_choice_name=None):
+        trace_label=None):
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -331,7 +331,7 @@ def interaction_sample(
         choosers, alternatives, spec, sample_size,
         alt_col_name=None,
         skims=None, locals_d=None, chunk_size=0,
-        trace_label=None, trace_choice_name=None):
+        trace_label=None):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -398,8 +398,7 @@ def interaction_sample(
 
         choices = _interaction_sample(chooser_chunk, alternatives, spec, sample_size, alt_col_name,
                                       skims, locals_d,
-                                      tracing.extend_trace_label(trace_label, 'chunk_%s' % i),
-                                      trace_choice_name)
+                                      tracing.extend_trace_label(trace_label, 'chunk_%s' % i))
 
         result_list.append(choices)
 

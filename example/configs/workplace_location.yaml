@@ -19,10 +19,5 @@ LOGSUM_CHOOSER_COLUMNS:
 # dont know auto_ownership since model has not been run yet
 #  - auto_ownership
 
-#SIMULATE_CHOOSER_COLUMNS:
-#  - income_segment
-#  - TAZ
-#  - mode_choice_logsums
-
 IN_PERIOD: 8
 OUT_PERIOD: 17

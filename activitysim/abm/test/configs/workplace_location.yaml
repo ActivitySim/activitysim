@@ -2,6 +2,9 @@ SAMPLE_SIZE: 30
 
 ALT_COL_NAME: dest_TAZ
 
+# remove duplicate samples from
+DROP_DUPE_SAMPLES: True
+
 SIMULATE_CHOOSER_COLUMNS:
   - income_segment
   - TAZ
@@ -15,11 +18,6 @@ LOGSUM_CHOOSER_COLUMNS:
   - density_index
 # dont know auto_ownership since model has not been run yet
 #  - auto_ownership
-
-#SIMULATE_CHOOSER_COLUMNS:
-#  - income_segment
-#  - TAZ
-#  - mode_choice_logsums
 
 IN_PERIOD: 8
 OUT_PERIOD: 17

@@ -18,11 +18,8 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.core.util import reindex
 from .util.logsums import compute_logsums
-
-logger = logging.getLogger(__name__)
-
-
-DUMP = False
+from .util.logsums import time_period_label
+from .util.logsums import mode_choice_logsums_spec
 
 """
 The workplace location model predicts the zones in which various people will
@@ -34,11 +31,8 @@ it should depend on CDAP and mandatory tour generation as to whether
 it gets used
 """
 
-
-def time_period_label(hour):
-    time_periods = config.setting('time_periods')
-    bin = np.digitize([hour % 24], time_periods['hours'])[0] - 1
-    return time_periods['labels'][bin]
+logger = logging.getLogger(__name__)
+DUMP = False
 
 
 @orca.injectable()
@@ -104,8 +98,7 @@ def workplace_location_sample(persons_merged,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
-        trace_label=trace_hh_id and 'workplace_location_sample',
-        trace_choice_name='workplace_location')
+        trace_label=trace_hh_id and 'workplace_location_sample')
 
     orca.add_table('workplace_location_sample', choices)
 
@@ -134,7 +127,10 @@ def workplace_location_logsums(persons_merged,
 
     """
 
-    logsums_spec = simulate.read_model_spec(configs_dir, 'workplace_location_logsums.csv')
+    trace_label = 'workplace_location_logsums'
+
+    logsums_spec = mode_choice_logsums_spec(configs_dir, 'work')
+
     workplace_location_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
 
     alt_col_name = workplace_location_settings["ALT_COL_NAME"]
@@ -162,19 +158,16 @@ def workplace_location_logsums(persons_merged,
     choosers['dest_topology'] = reindex(land_use.TOPOLOGY, choosers[alt_col_name])
     choosers['dest_density_index'] = reindex(land_use.density_index, choosers[alt_col_name])
 
-    tracing.dump_df(DUMP, persons_merged, 'workplace_location_logsums', 'persons_merged')
-    tracing.dump_df(DUMP, choosers, 'workplace_location_logsums', 'choosers')
+    tracing.dump_df(DUMP, persons_merged, trace_label, 'persons_merged')
+    tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
 
     logsums = compute_logsums(
         choosers, logsums_spec, logsum_settings,
-        skim_dict, skim_stack, alt_col_name, chunk_size, trace_hh_id)
-
-    # workplace_location_sample['logsum'] = np.asanyarray(logsums)
-    # orca.add_table('workplace_location_logsums', workplace_location_sample)
+        skim_dict, skim_stack, alt_col_name, chunk_size, trace_hh_id, trace_label)
 
     # add_column series should have an index matching the table to which it is being added
     # logsums does, since workplace_location_sample was on left side of merge creating choosers
-    orca.add_column("workplace_location_sample", "logsum", logsums)
+    orca.add_column("workplace_location_sample", "mode_choice_logsum", logsums)
 
 
 @orca.injectable()
@@ -202,15 +195,14 @@ def workplace_location_simulate(persons_merged,
     to select a work_taz from sample alternatives
     """
 
-    alt_col_name = workplace_location_settings["ALT_COL_NAME"]
-
-    drop_dup_sample_col = workplace_location_settings.get('DROP_DUPE_SAMPLES', None) and 'pick_dup'
-
     # for now I'm going to generate a workplace location for everyone -
     # presumably it will not get used in downstream models for everyone -
     # it should depend on CDAP and mandatory tour generation as to whether
     # it gets used
     choosers = persons_merged.to_frame()
+
+    alt_col_name = workplace_location_settings["ALT_COL_NAME"]
+    drop_dup_sample_col = workplace_location_settings.get('DROP_DUPE_SAMPLES', None) and 'pick_dup'
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge additional alt columns into alt sample list

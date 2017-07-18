@@ -90,6 +90,8 @@ def test_mini_pipeline_run():
 
     _MODELS = [
         'compute_accessibility',
+        'school_location_sample',
+        'school_location_logsums',
         'school_location_simulate',
         'workplace_location_sample',
         'workplace_location_logsums',

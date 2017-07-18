@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 
@@ -15,11 +15,30 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 
+# FIXME - needs a better home?
+def time_period_label(hour):
+    time_periods = config.setting('time_periods')
+    bin = np.digitize([hour % 24], time_periods['hours'])[0] - 1
+    return time_periods['labels'][bin]
+
+
+def mode_choice_logsums_spec(configs_dir, dest_type):
+    DEST_TO_TOUR_TYPE = \
+        {'university': 'university',
+         'highschool': 'school',
+         'gradeschool': 'school',
+         'work': 'work'}
+
+    tour_type = DEST_TO_TOUR_TYPE.get(dest_type)
+    spec = simulate.read_model_spec(configs_dir, 'logsums_spec_%s.csv' % tour_type)
+    return spec
+
+
 def compute_logsums(choosers, logsum_spec, logsum_settings,
                     skim_dict, skim_stack, alt_col_name,
-                    chunk_size, trace_hh_id):
+                    chunk_size, trace_hh_id, trace_label):
 
-    trace_label = trace_hh_id and 'compute_logsums'
+    trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
     constants = config.get_model_constants(logsum_settings)
@@ -48,7 +67,7 @@ def compute_logsums(choosers, logsum_spec, logsum_settings,
     if constants is not None:
         locals_d.update(constants)
 
-    logsums = asim.simple_simulate_logsums(
+    logsums = simulate.simple_simulate_logsums(
         choosers,
         logsum_spec,
         nest_spec,

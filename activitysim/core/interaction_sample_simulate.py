@@ -20,7 +20,7 @@ from .interaction_simulate import eval_interaction_utilities
 
 logger = logging.getLogger(__name__)
 
-DUMP = True
+DUMP = False
 
 
 def _interaction_sample_simulate(

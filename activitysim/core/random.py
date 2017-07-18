@@ -38,7 +38,7 @@ _CHANNELS = {
         'table_names': ['households']
     },
     'persons': {
-        'max_steps': 6,
+        'max_steps': 7,
         'index': 'PERID',
         'table_names': ['persons']
     },

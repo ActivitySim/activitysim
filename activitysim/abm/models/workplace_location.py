@@ -64,6 +64,8 @@ def workplace_location_sample(persons_merged,
     23751,  14,       0.972732479292,  2
     """
 
+    trace_label = 'workplace_location_sample'
+
     choosers = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
 
@@ -98,7 +100,7 @@ def workplace_location_sample(persons_merged,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
-        trace_label=trace_hh_id and 'workplace_location_sample')
+        trace_label=trace_label)
 
     orca.add_table('workplace_location_sample', choices)
 
@@ -141,11 +143,18 @@ def workplace_location_logsums(persons_merged,
     persons_merged = persons_merged.to_frame()
     workplace_location_sample = workplace_location_sample.to_frame()
 
+    # FIXME - drop duplicate rows since they will yield same logsums
+    unique_workplace_location_sample = \
+        workplace_location_sample[~workplace_location_sample.pick_dup]
+
+    logger.info("Running workplace_location_sample with %s unique rows out of %s" %
+                (len(unique_workplace_location_sample), len(workplace_location_sample)))
+
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = workplace_location_settings['LOGSUM_CHOOSER_COLUMNS']
     persons_merged = persons_merged[chooser_columns]
 
-    choosers = pd.merge(workplace_location_sample,
+    choosers = pd.merge(unique_workplace_location_sample,
                         persons_merged,
                         left_index=True,
                         right_index=True,
@@ -165,8 +174,24 @@ def workplace_location_logsums(persons_merged,
         choosers, logsums_spec, logsum_settings,
         skim_dict, skim_stack, alt_col_name, chunk_size, trace_hh_id, trace_label)
 
-    # add_column series should have an index matching the table to which it is being added
-    # logsums does, since workplace_location_sample was on left side of merge creating choosers
+    # we dropped duplicate rows - so we have to join them back in afterwards...
+    # logsums are aligned with choosers, so we can simply assign values
+    unique_workplace_location_sample['logsums'] = logsums.values
+
+    # now we need to merge logsums into duplicate workplace_location_sample rows
+    idx_col_name = unique_workplace_location_sample.index.name
+    unique_workplace_location_sample.reset_index()
+    logsums = \
+        pd.merge(
+            workplace_location_sample[[alt_col_name]].reset_index(),
+            unique_workplace_location_sample[[alt_col_name, 'logsums']].reset_index(),
+            on=[idx_col_name, alt_col_name],
+            how="left")['logsums'].values
+
+    # "add_column series should have an index matching the table to which it is being added"
+    # when teh index has duplicates, however, in the special case that the series index exactly
+    # matches the table index, then the series value order is preserved
+    # logsums now does, since workplace_location_sample was on left side of merge de-dup merge
     orca.add_column("workplace_location_sample", "mode_choice_logsum", logsums)
 
 

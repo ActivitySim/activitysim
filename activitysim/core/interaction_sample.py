@@ -408,6 +408,6 @@ def interaction_sample(
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 
-    assert len(choices.index == len(choosers.index))
+    assert len(choices.index) == len(choosers.index)*sample_size
 
     return choices

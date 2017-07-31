@@ -37,6 +37,25 @@ def mode_choice_logsums_spec(configs_dir, dest_type):
 def compute_logsums(choosers, logsum_spec, logsum_settings,
                     skim_dict, skim_stack, alt_col_name,
                     chunk_size, trace_hh_id, trace_label):
+    """
+
+    Parameters
+    ----------
+    choosers
+    logsum_spec
+    logsum_settings
+    skim_dict
+    skim_stack
+    alt_col_name
+    chunk_size
+    trace_hh_id
+    trace_label
+
+    Returns
+    -------
+    logsums: pandas series
+        computed logsums with same index as choosers
+    """
 
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
 

@@ -125,7 +125,7 @@ def _interaction_sample_simulate(
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
 
-    # set the utilities of dup alts low so they get zero probs are never chosen
+    # set the utilities of dup alts low so they get zero probs and are never chosen
     if drop_dup_sample_col:
         interaction_utilities.loc[interaction_df[drop_dup_sample_col], 'utility'] = -999
 

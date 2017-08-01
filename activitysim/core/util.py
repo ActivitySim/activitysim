@@ -19,6 +19,48 @@ def memory_info():
     return "memory_info: %s MB (%s GB)" % (int(mb), round(gb, 2))
 
 
+def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):
+    """
+    like pandas left merge, but join on both index and a specified join_col
+
+    FIXME - for now return a series of ov values from specified right_df target_col
+
+    Parameters
+    ----------
+    left_df : pandas DataFrame
+        index name assumed to be same as that of right_df
+    right_df : pandas DataFrame
+        index name assumed to be same as that of left_df
+    join_col : str
+        name of column to join on (in addition to index values)
+        should have same name in both dataframes
+    target_col : str
+        name of column from right_df whose joined values should be returned as series
+
+    Returns
+    -------
+    target_series : pandas Series
+        series of target_col values with same index as left_df
+        i.e. values joined to left_df from right_df with index of left_df
+    """
+    assert left_df.index.name == right_df.index.name
+
+    # want to know name previous index column will have after reset_index
+    idx_col = right_df.index.name
+
+    # SELECT target_col FROM full_sample LEFT JOIN unique_sample on idx_col, join_col
+    merged = \
+        pd.merge(
+            left_df[[join_col]].reset_index(),
+            right_df[[join_col, target_col]].reset_index(),
+            on=[idx_col, join_col],
+            how="left")
+
+    merged.set_index(idx_col, inplace=True)
+
+    return merged[target_col]
+
+
 def reindex(series1, series2):
     """
     This reindexes the first series by the second series.  This is an extremely

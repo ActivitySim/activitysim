@@ -2,9 +2,6 @@ SAMPLE_SIZE: 30
 
 ALT_COL_NAME: dest_TAZ
 
-# remove duplicate samples from
-DROP_DUPE_SAMPLES: True
-
 SIMULATE_CHOOSER_COLUMNS:
   - TAZ
   - is_university

@@ -20,11 +20,11 @@ from .interaction_simulate import eval_interaction_utilities
 
 logger = logging.getLogger(__name__)
 
-DUMP = False
+DUMP = True
 
 
 def _interaction_sample_simulate(
-        choosers, alternatives, spec, choice_column, drop_dup_sample_col,
+        choosers, alternatives, spec, choice_column,
         skims, locals_d, sample_size,
         trace_label=None, trace_choice_name=None):
     """
@@ -76,6 +76,8 @@ def _interaction_sample_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
+
+    # FIXME - tracing broken
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
@@ -86,8 +88,6 @@ def _interaction_sample_simulate(
     if len(spec.columns) > 1:
         raise RuntimeError('spec must have only one column')
 
-    assert sample_size == len(alternatives) / len(choosers)
-
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
     if skims:
@@ -95,12 +95,14 @@ def _interaction_sample_simulate(
 
     # in vanilla interaction_simulate interaction_df is cross join of choosers and alternatives
     # interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
-    # here, alternatives is already repeated sample_size times
+    # here, alternatives is sparsely repeated once for each (non-dup) sample
+    # we expect alternatives to have same index of choosers (but with duplicate index values)
     # so we just need to left join alternatives with choosers
-    alternatives['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
+    assert alternatives.index.name == choosers.index.name
+
     interaction_df = pd.merge(
         alternatives, choosers,
-        left_on='chooser_idx', right_index=True,
+        left_index=True, right_index=True,
         suffixes=('', '_r'))
 
     tracing.dump_df(DUMP, interaction_df, trace_label, 'interaction_df')
@@ -110,24 +112,20 @@ def _interaction_sample_simulate(
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
-    # column names of model_design match spec index values
+    # column names of choosers match spec index values
     # utilities has utility value for element in the cross product of choosers and alternatives
-    # interaction_utilities is a df with one utility column and one row per row in model_design
+    # interaction_utilities is a df with one utility column and one row per row in alternative
     if have_trace_targets:
         trace_rows, trace_ids = tracing.interaction_trace_rows(interaction_df, choosers)
 
-        tracing.trace_df(interaction_df[trace_rows],
+        tracing.trace_df(interaction_df,
                          tracing.extend_trace_label(trace_label, 'interaction_df'),
-                         slicer='NONE', transpose=False)
+                         transpose=False)
     else:
         trace_rows = trace_ids = None
 
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
-
-    # set the utilities of dup alts low so they get zero probs and are never chosen
-    if drop_dup_sample_col:
-        interaction_utilities.loc[interaction_df[drop_dup_sample_col], 'utility'] = -999
 
     tracing.dump_df(DUMP, interaction_utilities, trace_label, 'interaction_utilities')
 
@@ -135,25 +133,56 @@ def _interaction_sample_simulate(
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
                                                tracing.extend_trace_label(trace_label, 'eval'))
 
-        tracing.trace_df(interaction_utilities[trace_rows],
+        tracing.trace_df(interaction_utilities,
                          tracing.extend_trace_label(trace_label, 'interaction_utilities'),
-                         slicer='NONE', transpose=False)
+                         transpose=False)
 
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
-    utilities = pd.DataFrame(
-        interaction_utilities.as_matrix().reshape(len(choosers), sample_size),
+    # interaction_utilities is sparse because duplicate sampled alternatives were dropped
+    # so we need to pad with dummy utilities so low that they are never chosen
+
+    # number of samples per chooser
+    sample_counts = interaction_utilities.groupby(interaction_utilities.index).size().values
+
+    # max number of alternatvies for any chooser
+    max_sample_count = sample_counts.max()
+
+    # offset of the last row of each chooser in sparse interaction_utilities
+    row_offsets = np.insert(sample_counts.cumsum(), 0, 0)
+
+    # repeat the row offsets once for each dummy utility to insert
+    # (we want to insert dummy utilities at the END of the list of alternative utilities)
+    inserts = np.repeat(row_offsets[1:], max_sample_count - sample_counts)
+
+    # insert the zero-prob utilities to pad each alternative set to same size
+    padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
+
+    # reshape to array with one row per chooser, on column per alternative
+    padded_utilities = padded_utilities.reshape(-1, max_sample_count)
+
+    # convert to a dataframe with one row per chooser and one column per alternative
+    utilities_df = pd.DataFrame(
+        padded_utilities,
         index=choosers.index)
 
-    if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
-                         column_labels=['alternative', 'utility'])
+    # print "\nsample_counts\n", sample_counts
+    # print "\nmax_sample_count\n", max_sample_count
+    # print "\nlast_row_offsets\n", last_row_offsets
+    # print "\ninserts\n", inserts
+    # print "\nsparse utilities\n", interaction_utilities.utility.values
+    # print "\npadded_utilities\n", padded_utilities
+    # print "\nreshaped padded_utilities\n", padded_utilities
 
-    tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
+    tracing.dump_df(DUMP, utilities_df, trace_label, 'utilities_df')
+
+    if have_trace_targets:
+        tracing.trace_df(utilities_df, tracing.extend_trace_label(trace_label, 'utilities'),
+                         column_labels=['alternative', 'utility'])
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    probs = logit.utils_to_probs(utilities_df, trace_label=trace_label, trace_choosers=choosers)
 
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
@@ -166,20 +195,23 @@ def _interaction_sample_simulate(
     # which is an integer between zero and num alternatives in the alternative sample
     positions, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
 
+    # shouldn't have chosen any of the dummy pad utilities
+    assert positions.max() < max_sample_count
+
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
     # tranche of this choosers alternatives created by cross join of alternatives and choosers
 
-    # offsets is the offset into model_design df of first row of chooser alternatives
-    offsets = np.arange(len(positions)) * sample_size
+    # first_row_offsets is the offset into interaction_df df of first row of chooser alternatives
+    first_row_offsets = row_offsets[:-1]
+
     # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
-    if choice_column is None:
-        choices = interaction_df.index.take(positions + offsets)
-    else:
-        choices = interaction_df[choice_column].take(positions + offsets)
+    choices = interaction_df[choice_column].take(positions + first_row_offsets)
 
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
+
+    tracing.dump_df(DUMP, choices, trace_label, 'choices')
 
     if have_trace_targets:
         tracing.trace_df(choices, tracing.extend_trace_label(trace_label, 'choices'),
@@ -191,7 +223,7 @@ def _interaction_sample_simulate(
 
 
 def interaction_sample_simulate(
-        choosers, alternatives, spec, choice_column=None, drop_dup_sample_col=None,
+        choosers, alternatives, spec, choice_column=None,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None):
 
@@ -245,23 +277,17 @@ def interaction_sample_simulate(
 
     rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
-    assert len(alternatives) % len(choosers) == 0
-    assert sample_size == len(alternatives) / len(choosers)
-
     logger.info("interaction_simulate chunk_size %s num_choosers %s"
                 % (chunk_size, len(choosers.index)))
 
     result_list = []
-    # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, alternative_chunk \
             in chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_size):
-
-        assert sample_size == len(alternative_chunk) / len(chooser_chunk)
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
 
         choices = _interaction_sample_simulate(
-            chooser_chunk, alternative_chunk, spec, choice_column, drop_dup_sample_col,
+            chooser_chunk, alternative_chunk, spec, choice_column,
             skims, locals_d, sample_size,
             tracing.extend_trace_label(trace_label, 'chunk_%s' % i), trace_choice_name)
 

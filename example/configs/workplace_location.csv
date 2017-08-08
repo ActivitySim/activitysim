@@ -16,5 +16,4 @@ Description,Expression,Alt
 "No attractions full-time worker, very high income","@(df.income_segment==4)&(df['work, veryhigh']==0)",-999
 "Mode choice logsum",mode_choice_logsum,0.3
 "Sample of alternatives correction factor","@np.minimum(np.log(df.pick_count/df.prob), 60)",1
-# not necessary if we set DROP_DUPE_SAMPLES to True in workplace_location_settings
-#"Eliminate duplicates","@df.pick_dup",-999
+

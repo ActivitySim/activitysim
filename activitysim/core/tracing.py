@@ -638,7 +638,7 @@ def hh_id_for_chooser(id, choosers):
 
 def dump_df(dump_switch, df, trace_label, fname):
     if dump_switch:
-        trace_label = extend_trace_label(trace_label, '.DUMP.%s' % fname)
+        trace_label = extend_trace_label(trace_label, 'DUMP.%s' % fname)
         trace_df(df, trace_label, slicer='NONE', transpose=False)
 
 
@@ -678,27 +678,28 @@ def trace_df(df, label, slicer=None, columns=None,
                   column_labels=column_labels, transpose=transpose)
 
 
-def interaction_trace_rows(interaction_df, choosers):
+def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     """
     Trace model design for interaction_simulate
 
     Parameters
     ----------
-    model_design: pandas.DataFrame
+    interaction_df: pandas.DataFrame
         traced model_design dataframe
     choosers: pandas.DataFrame
         interaction_simulate choosers
         (needed to filter the model_design dataframe by traced hh or person id)
-
+    sample_size int or None
+        int for constant sample size, or None if choosers have different numbers of alternatives
     Returns
     -------
     trace_rows : numpy.ndarray
-        array of booleans to select values in eval_interaction_utilities df to trace
+        array of booleans to flag which rows in interaction_df to trace
 
     trace_ids : tuple (str,  numpy.ndarray)
-        column name and array of trace_ids for use by
-
-
+        column name and array of trace_ids mapping trace_rows to their target_id
+        for use by trace_interaction_eval_results which needs to know target_id
+        so it can create separate tables for each distinct target for readability
     """
 
     # slicer column name and id targets to use for chooser id added to model_design dataframe
@@ -712,22 +713,27 @@ def interaction_trace_rows(interaction_df, choosers):
         slicer_column_name = 'person_id'
         targets = get_injectable('trace_person_ids', [])
     else:
-        raise RuntimeError("trace_interaction_model_design don't know how to slice index '%s'"
+        raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
                            % choosers.index.name)
 
-    # we can deduce the sample_size from the relative size of model_design and choosers
-    # (model design rows are repeated once for each alternative)
-    sample_size = len(interaction_df.index) / len(choosers.index)
-
-    if slicer_column_name == choosers.index.name:
-        trace_rows = np.in1d(choosers.index, targets)
-        trace_ids = np.asanyarray(choosers[trace_rows].index)
+    if sample_size is None:
+        # if sample size not constant, we count on index of interaction_df being same as choosers
+        assert interaction_df.index.name == choosers.index.name
+        trace_rows = np.in1d(interaction_df.index, targets)
+        trace_ids = interaction_df[trace_rows].index.values
     else:
-        trace_rows = np.in1d(choosers['person_id'], targets)
-        trace_ids = np.asanyarray(choosers[trace_rows].person_id)
 
-    trace_rows = np.repeat(trace_rows, sample_size)
-    trace_ids = np.repeat(trace_ids, sample_size)
+        if slicer_column_name == choosers.index.name:
+            trace_rows = np.in1d(choosers.index, targets)
+            trace_ids = np.asanyarray(choosers[trace_rows].index)
+        else:
+            trace_rows = np.in1d(choosers['person_id'], targets)
+            trace_ids = np.asanyarray(choosers[trace_rows].person_id)
+
+        # simply repeat if sample size is constant across choosers
+        assert sample_size == len(interaction_df.index) / len(choosers.index)
+        trace_rows = np.repeat(trace_rows, sample_size)
+        trace_ids = np.repeat(trace_ids, sample_size)
 
     assert type(trace_rows) == np.ndarray
     assert type(trace_ids) == np.ndarray
@@ -745,7 +751,6 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
     ----------
     trace_results: pandas.DataFrame
         traced model_design dataframe
-    trace_ids: pandas.DataFrame
     trace_ids : tuple (str,  numpy.ndarray)
         column name and array of trace_ids from interaction_trace_rows()
         used to filter the trace_results dataframe by traced hh or person id

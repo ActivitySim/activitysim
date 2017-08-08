@@ -23,7 +23,7 @@ import pipeline
 
 logger = logging.getLogger(__name__)
 
-DUMP = False
+DUMP = True
 
 
 def make_sample_choices(
@@ -183,7 +183,7 @@ def _interaction_sample(
     choices_df : pandas.DataFrame
 
         A DataFrame where index should match the index of the choosers DataFrame
-        and columns alt_col_name, prob, rand, pick_count, pick_dup
+        and columns alt_col_name, prob, rand, pick_count
 
         prob: float
             the probability of the chosen alternative
@@ -191,9 +191,6 @@ def _interaction_sample(
             the rand that did the choosing
         pick_count : int
             number of duplicate picks for chooser, alt
-        pick_dup: bool
-            True for all but first of duplicates (e.g. so we can drop them from alts)
-
     """
 
     t0 = tracing.print_elapsed_time()
@@ -215,11 +212,6 @@ def _interaction_sample(
     alternative_count = len(alternatives)
     logger.debug("_interaction_sample alternative_count %s" % alternative_count)
 
-    if alternative_count > len(alternatives):
-        logger.debug("clipping alternative_count %s to len(alternatives) %s" %
-                     (alternative_count, len(alternatives)))
-        alternative_count = min(alternative_count, len(alternatives))
-
     t0 = tracing.print_elapsed_time("preamble", t0, debug=True)
 
     # if using skims, copy index into the dataframe, so it will be
@@ -231,6 +223,8 @@ def _interaction_sample(
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, alternative_count)
+
+    assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
     t0 = tracing.print_elapsed_time("interaction_dataset", t0, debug=True)
 
@@ -245,7 +239,8 @@ def _interaction_sample(
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in interaction_df
     if have_trace_targets:
-        trace_rows, trace_ids = tracing.interaction_trace_rows(interaction_df, choosers)
+        trace_rows, trace_ids \
+            = tracing.interaction_trace_rows(interaction_df, choosers, alternative_count)
 
         tracing.trace_df(interaction_df[trace_rows],
                          tracing.extend_trace_label(trace_label, 'interaction_df'),
@@ -314,6 +309,11 @@ def _interaction_sample(
     choices_df['pick_dup'] = choices_df['pick_count'] > 0
     # add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)
     choices_df['pick_count'] += pick_group.cumcount(ascending=False) + 1
+
+    # drop the duplicates
+    choices_df = choices_df[~choices_df['pick_dup']]
+    del choices_df['pick_dup']
+
     t0 = tracing.print_elapsed_time("choices_df pick_count", t0, debug=True)
 
     tracing.dump_df(DUMP, choices_df, trace_label, 'choices_df')
@@ -351,8 +351,9 @@ def interaction_sample(
         compute and the coefficients for each variable.
         Variable specifications must be in the table index and the
         table should have only one column of coefficients.
-    sample_size : int
-        desired number of alternatives per chooser
+    sample_size : int, optional
+        Sample alternatives with sample of given size.  By default is None,
+        which does not sample alternatives.
     alt_col_name: str or None
         name to give the sampled_alternative column
     skims : Skims object
@@ -366,16 +367,12 @@ def interaction_sample(
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    sample_size : int, optional
-        Sample alternatives with sample of given size.  By default is None,
-        which does not sample alternatives.
     chunk_size : int
         if chunk_size > 0 iterates over choosers in chunk_size chunks
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
-    trace_choice_name: str
-        This is the column label to be used in trace file csv dump of choices
+
 
     Returns
     -------
@@ -385,13 +382,15 @@ def interaction_sample(
         choices are simulated in the standard Monte Carlo fashion
     """
 
+    assert sample_size > 0
+    sample_size = min(sample_size, len(alternatives.index))
+
     rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))
 
     result_list = []
-    # segment by person type and pick the right spec for each person type
     for i, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
@@ -407,7 +406,5 @@ def interaction_sample(
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
     if len(result_list) > 1:
         choices = pd.concat(result_list)
-
-    assert len(choices.index) == len(choosers.index)*sample_size
 
     return choices

@@ -225,7 +225,8 @@ def _interaction_simulate(
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in model_design
     if have_trace_targets:
-        trace_rows, trace_ids = tracing.interaction_trace_rows(interaction_df, choosers)
+        trace_rows, trace_ids \
+            = tracing.interaction_trace_rows(interaction_df, choosers, sample_size)
 
         tracing.trace_df(interaction_df[trace_rows],
                          tracing.extend_trace_label(trace_label, 'interaction_df'),
@@ -352,7 +353,6 @@ def interaction_simulate(
                 (chunk_size, len(choosers.index)))
 
     result_list = []
-    # segment by person type and pick the right spec for each person type
     for i, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))

@@ -145,18 +145,13 @@ def workplace_location_logsums(persons_merged,
     persons_merged = persons_merged.to_frame()
     workplace_location_sample = workplace_location_sample.to_frame()
 
-    # FIXME - drop duplicate rows since they will yield same logsums
-    unique_sample = \
-        workplace_location_sample[~workplace_location_sample.pick_dup]
-
-    logger.info("Running workplace_location_sample with %s unique rows out of %s" %
-                (len(unique_sample), len(workplace_location_sample)))
+    logger.info("Running workplace_location_sample with %s rows" % len(workplace_location_sample))
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = workplace_location_settings['LOGSUM_CHOOSER_COLUMNS']
     persons_merged = persons_merged[chooser_columns]
 
-    choosers = pd.merge(unique_sample,
+    choosers = pd.merge(workplace_location_sample,
                         persons_merged,
                         left_index=True,
                         right_index=True,
@@ -175,13 +170,6 @@ def workplace_location_logsums(persons_merged,
     logsums = compute_logsums(
         choosers, logsums_spec, logsum_settings,
         skim_dict, skim_stack, alt_col_name, chunk_size, trace_hh_id, trace_label)
-
-    # logsums are aligned with choosers (and unique_sample), so we can simply assign values
-    unique_sample['logsums'] = logsums.values
-
-    # we dropped duplicate rows - so we have to join them back in afterwards...
-    logsums = left_merge_on_index_and_col(
-        workplace_location_sample, unique_sample, join_col=alt_col_name, target_col='logsums')
 
     # "add_column series should have an index matching the table to which it is being added"
     # when the index has duplicates, however, in the special case that the series index exactly
@@ -222,7 +210,6 @@ def workplace_location_simulate(persons_merged,
     choosers = persons_merged.to_frame()
 
     alt_col_name = workplace_location_settings["ALT_COL_NAME"]
-    drop_dup_sample_col = workplace_location_settings.get('DROP_DUPE_SAMPLES', None) and 'pick_dup'
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge additional alt columns into alt sample list
@@ -265,7 +252,6 @@ def workplace_location_simulate(persons_merged,
         alternatives,
         spec=workplace_location_spec,
         choice_column=alt_col_name,
-        drop_dup_sample_col=drop_dup_sample_col,
         skims=skims,
         locals_d=locals_d,
         sample_size=sample_size,

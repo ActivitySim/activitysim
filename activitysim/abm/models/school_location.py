@@ -166,12 +166,7 @@ def school_location_logsums(
     persons_merged = persons_merged.to_frame()
     school_location_sample = school_location_sample.to_frame()
 
-    # FIXME - drop duplicate rows since they will yield same logsums
-    unique_sample = \
-        school_location_sample[~school_location_sample.pick_dup]
-
-    logger.info("Running school_location_sample with %s unique rows out of %s" %
-                (len(unique_sample), len(school_location_sample)))
+    logger.info("Running school_location_sample with %s rows" % len(school_location_sample))
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = school_location_settings['LOGSUM_CHOOSER_COLUMNS']
@@ -184,7 +179,7 @@ def school_location_logsums(
 
         logsums_spec = mode_choice_logsums_spec(configs_dir, school_type)
 
-        choosers = unique_sample[unique_sample['school_type'] == school_type]
+        choosers = school_location_sample[school_location_sample['school_type'] == school_type]
 
         choosers = pd.merge(
             choosers,
@@ -210,13 +205,6 @@ def school_location_logsums(
         logsums_list.append(logsums)
 
     logsums = pd.concat(logsums_list)
-
-    # logsums are aligned with choosers (and unique_sample), so we can simply assign values
-    unique_sample['logsums'] = logsums.values
-
-    # we dropped duplicate rows - so we have to join them back in afterwards...
-    logsums = left_merge_on_index_and_col(
-        school_location_sample, unique_sample, join_col=alt_col_name, target_col='logsums')
 
     # add_column series should have an index matching the table to which it is being added
     # logsums does, since workplace_location_sample was on left side of merge creating choosers
@@ -252,7 +240,6 @@ def school_location_simulate(persons_merged,
 
     trace_label = 'school_location_simulate'
     alt_col_name = school_location_settings["ALT_COL_NAME"]
-    drop_dup_sample_col = school_location_settings.get('DROP_DUPE_SAMPLES', None) and 'pick_dup'
 
     constants = config.get_model_constants(school_location_settings)
 
@@ -297,7 +284,6 @@ def school_location_simulate(persons_merged,
             alts_segment,
             spec=school_location_spec[[school_type]],
             choice_column=alt_col_name,
-            drop_dup_sample_col=drop_dup_sample_col,
             skims=skims,
             locals_d=locals_d,
             sample_size=sample_size,

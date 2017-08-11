@@ -20,7 +20,7 @@ from .interaction_simulate import eval_interaction_utilities
 
 logger = logging.getLogger(__name__)
 
-DUMP = True
+DUMP = False
 
 
 def _interaction_sample_simulate(
@@ -75,9 +75,10 @@ def _interaction_sample_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
+    assert len(choosers.index) == len(np.unique(alternatives.index.values))
+
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
 
-    # FIXME - tracing broken
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
     if have_trace_targets:

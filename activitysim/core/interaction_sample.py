@@ -23,7 +23,7 @@ import pipeline
 
 logger = logging.getLogger(__name__)
 
-DUMP = True
+DUMP = False
 
 
 def make_sample_choices(
@@ -193,8 +193,6 @@ def _interaction_sample(
             number of duplicate picks for chooser, alt
     """
 
-    t0 = tracing.print_elapsed_time()
-
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
@@ -212,8 +210,6 @@ def _interaction_sample(
     alternative_count = len(alternatives)
     logger.debug("_interaction_sample alternative_count %s" % alternative_count)
 
-    t0 = tracing.print_elapsed_time("preamble", t0, debug=True)
-
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
     if skims:
@@ -226,12 +222,8 @@ def _interaction_sample(
 
     assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
-    t0 = tracing.print_elapsed_time("interaction_dataset", t0, debug=True)
-
     if skims:
         add_skims(interaction_df, skims)
-
-    t0 = tracing.print_elapsed_time("add_skims", t0, debug=True)
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
@@ -248,12 +240,8 @@ def _interaction_sample(
     else:
         trace_rows = trace_ids = None
 
-    t0 = tracing.print_elapsed_time("tracing", t0, debug=True)
-
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
-
-    t0 = tracing.print_elapsed_time("eval_interaction_utilities", t0, debug=True)
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
@@ -272,8 +260,6 @@ def _interaction_sample(
         interaction_utilities.as_matrix().reshape(len(choosers), alternative_count),
         index=choosers.index)
 
-    t0 = tracing.print_elapsed_time("utilities", t0, debug=True)
-
     if have_trace_targets:
         tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
                          column_labels=['alternative', 'utility'])
@@ -285,13 +271,9 @@ def _interaction_sample(
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
 
-    t0 = tracing.print_elapsed_time("probs", t0, debug=True)
-
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
-
-    tracing.dump_df(DUMP, probs, trace_label, 'probs')
 
     choices_df = make_sample_choices(
         choosers, probs, interaction_utilities,
@@ -313,8 +295,6 @@ def _interaction_sample(
     # drop the duplicates
     choices_df = choices_df[~choices_df['pick_dup']]
     del choices_df['pick_dup']
-
-    t0 = tracing.print_elapsed_time("choices_df pick_count", t0, debug=True)
 
     tracing.dump_df(DUMP, choices_df, trace_label, 'choices_df')
 
@@ -406,5 +386,7 @@ def interaction_sample(
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
     if len(result_list) > 1:
         choices = pd.concat(result_list)
+
+    assert len(choosers.index) == len(np.unique(choices.index.values))
 
     return choices

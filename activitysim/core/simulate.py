@@ -104,7 +104,7 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_siz
     Yields
     -------
     i : int
-        zero-based iteration count
+
     choosers : pandas DataFrame slice
         chunk of choosers
     alternatives : pandas DataFrame slice
@@ -118,22 +118,23 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_siz
     num_choosers = len(choosers.index)
     alt_chunk_size = rows_per_chunk * sample_size
 
-    # array of indices of ends of alt chunks
-    alt_chunk_end = np.where(alternatives['cum_pick_count'] % alt_chunk_size == 0)[0]
-    if len(alt_chunk_end) == 0:
-        alt_chunk_end = [len(alternatives.index)]
+    # array of indices of starts of alt chunks
+    alt_chunk_end = np.where(alternatives['cum_pick_count'] % alt_chunk_size == 0)[0] + 1
+    # plus index of end of array for any final partial chunk
+    alt_chunk_end = np.append(alt_chunk_end, [len(alternatives.index)])
 
     i = offset = alt_offset = 0
     while offset < num_choosers:
 
         alt_end = alt_chunk_end[i]
 
-        print alt_offset, alt_end
+        chooser_chunk = choosers[offset: offset + rows_per_chunk]
+        alternative_chunk = alternatives[alt_offset: alt_end]
 
-        yield \
-            i, \
-            choosers[offset: offset + rows_per_chunk], \
-            alternatives[alt_offset: alt_end]
+        assert len(chooser_chunk.index) == len(np.unique(alternative_chunk.index.values))
+
+        yield i, chooser_chunk, alternative_chunk
+
         i += 1
         offset += rows_per_chunk
         alt_offset = alt_end
@@ -722,6 +723,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
                 (num_chunk_rows, len(choosers.index)))
 
     result_list = []
+    # segment by person type and pick the right spec for each person type
     for i, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
@@ -871,6 +873,7 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
                 (chunk_size, len(choosers.index), num_chunk_rows))
 
     result_list = []
+    # segment by person type and pick the right spec for each person type
     for i, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
 
         logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))

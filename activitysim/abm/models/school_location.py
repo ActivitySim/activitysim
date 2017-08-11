@@ -113,7 +113,7 @@ def school_location_sample(
                 skims=skims,
                 locals_d=locals_d,
                 chunk_size=chunk_size,
-                trace_label=trace_hh_id and 'school_location.%s' % school_type)
+                trace_label=trace_hh_id and 'school_location_sample.%s' % school_type)
 
             choices['school_type'] = school_type
             choices_list.append(choices)
@@ -288,7 +288,7 @@ def school_location_simulate(persons_merged,
             locals_d=locals_d,
             sample_size=sample_size,
             chunk_size=chunk_size,
-            trace_label=trace_hh_id and 'school_location',
+            trace_label=trace_hh_id and 'school_location_simulate',
             trace_choice_name='school_location')
 
         choices_list.append(choices)

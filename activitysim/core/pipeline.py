@@ -197,6 +197,9 @@ def write_df(df, table_name, checkpoint_name=None):
         the checkpoint at which the table was created/modified
     """
 
+    # coerce column names to str as unicode names will cause PyTables to pickle them
+    df.columns = df.columns.astype(str)
+
     if checkpoint_name:
         key = "%s/%s" % (table_name, checkpoint_name)
     else:

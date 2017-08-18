@@ -25,7 +25,7 @@ DUMP = False
 
 def _interaction_sample_simulate(
         choosers, alternatives, spec, choice_column,
-        skims, locals_d, sample_size,
+        skims, locals_d,
         trace_label=None, trace_choice_name=None):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -225,7 +225,7 @@ def _interaction_sample_simulate(
 
 def interaction_sample_simulate(
         choosers, alternatives, spec, choice_column=None,
-        skims=None, locals_d=None, sample_size=None, chunk_size=0,
+        skims=None, locals_d=None, chunk_size=0,
         trace_label=None, trace_choice_name=None):
 
     """
@@ -257,9 +257,6 @@ def interaction_sample_simulate(
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    sample_size : int, optional
-        Sample alternatives with sample of given size.  By default is None,
-        which does not sample alternatives.
     chunk_size : int
         if chunk_size > 0 iterates over choosers in chunk_size chunks
     trace_label: str
@@ -282,14 +279,14 @@ def interaction_sample_simulate(
                 % (chunk_size, len(choosers.index)))
 
     result_list = []
-    for i, chooser_chunk, alternative_chunk \
-            in chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_size):
+    for i, num_chunks, chooser_chunk, alternative_chunk \
+            in chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
 
-        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
-            skims, locals_d, sample_size,
+            skims, locals_d,
             tracing.extend_trace_label(trace_label, 'chunk_%s' % i), trace_choice_name)
 
         result_list.append(choices)

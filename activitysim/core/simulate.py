@@ -61,50 +61,41 @@ def num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives=None, by_ch
 def chunked_choosers(choosers, rows_per_chunk):
     # generator to iterate over chooses in chunk_size chunks
     num_choosers = len(choosers.index)
+    num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
 
     i = offset = 0
     while offset < num_choosers:
-        yield i, choosers[offset: offset+rows_per_chunk]
+        yield i+1, num_chunks, choosers[offset: offset+rows_per_chunk]
         offset += rows_per_chunk
         i += 1
 
 
-# def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_size):
-#
-#     assert len(alternatives) % len(choosers) == 0
-#     assert sample_size == len(alternatives) / len(choosers)
-#
-#     # generator to iterate over choosers and alternatives in chunk_size chunks
-#     num_choosers = len(choosers.index)
-#     alt_chunk_size = rows_per_chunk * sample_size
-#
-#     i = offset = alt_offset = 0
-#     while offset < num_choosers:
-#         yield \
-#             i, \
-#             choosers[offset: offset + rows_per_chunk], \
-#             alternatives[alt_offset: alt_offset+alt_chunk_size]
-#         i += 1
-#         offset += rows_per_chunk
-#         alt_offset += alt_chunk_size
-
-def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_size):
+def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
     """
     like chunked_choosers, but also chunks alternatives
     for use with sampled alternatives which will have different alternatives (and numbers of alts)
+
+    There may be up to sample_size (or as few as one) alternatives for each chooser
+    because alternatives may have been sampled more than once,  but pick_count for those
+    alternatives will always sum to sample_size.
+
+    When we chunk the choosers, we need to take care chunking the alternatives as there are
+    varying numbers of them for each chooser. Since alternatives appear in the same order
+    as choosers, we can use cumulative pick_counts to identify boundaries of sets of alternatives
 
     Parameters
     ----------
     choosers
     alternatives : pandas DataFrame
-        sample alteternatives pick_count column
-    rows_per_chunk
-    sample_size
+        sample alternatives including pick_count column in same order as choosers
+    rows_per_chunk : int
 
     Yields
     -------
     i : int
-
+        one-based index of current chunk
+    num_chunks : int
+        total number of chunks that will be yielded
     choosers : pandas DataFrame slice
         chunk of choosers
     alternatives : pandas DataFrame slice
@@ -114,8 +105,15 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_siz
     assert 'cum_pick_count' not in alternatives.columns
     alternatives['cum_pick_count'] = alternatives['pick_count'].cumsum()
 
+    # currently no convenient way to remember sample_size across steps
+    pick_count = alternatives.cum_pick_count.iat[-1]
+    sample_size = pick_count / len(choosers.index)
+    assert pick_count % sample_size == 0
+
     # generator to iterate over choosers and alternatives in chunk_size chunks
     num_choosers = len(choosers.index)
+    num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
+
     alt_chunk_size = rows_per_chunk * sample_size
 
     # array of indices of starts of alt chunks
@@ -133,7 +131,7 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk, sample_siz
 
         assert len(chooser_chunk.index) == len(np.unique(alternative_chunk.index.values))
 
-        yield i, chooser_chunk, alternative_chunk
+        yield i+1, num_chunks, chooser_chunk, alternative_chunk
 
         i += 1
         offset += rows_per_chunk
@@ -148,10 +146,12 @@ def hh_chunked_choosers(choosers, rows_per_chunk):
     # FIXME - we pathologically know name of chunk_id col in households table
 
     num_choosers = choosers['chunk_id'].max() + 1
+    num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
 
     i = offset = 0
     while offset < num_choosers:
-        yield i, choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
+        chooser_chunk = choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
+        yield i+1, num_chunks, chooser_chunk
         offset += rows_per_chunk
         i += 1
 
@@ -724,9 +724,9 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
+    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
 
-        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
@@ -874,9 +874,9 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
+    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
 
-        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,

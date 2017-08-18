@@ -353,9 +353,9 @@ def interaction_simulate(
                 (chunk_size, len(choosers.index)))
 
     result_list = []
-    for i, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
+    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
 
-        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,

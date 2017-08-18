@@ -223,8 +223,6 @@ def workplace_location_simulate(persons_merged,
 
     constants = config.get_model_constants(workplace_location_settings)
 
-    sample_size = workplace_location_settings["SAMPLE_SIZE"]
-
     sample_pool_size = len(destination_size_terms.index)
 
     logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
@@ -254,7 +252,6 @@ def workplace_location_simulate(persons_merged,
         choice_column=alt_col_name,
         skims=skims,
         locals_d=locals_d,
-        sample_size=sample_size,
         chunk_size=chunk_size,
         trace_label=trace_hh_id and 'workplace_location',
         trace_choice_name='workplace_location')

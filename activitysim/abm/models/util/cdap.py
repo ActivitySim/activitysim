@@ -886,9 +886,9 @@ def run_cdap(
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, persons_chunk in hh_chunked_choosers(persons, rows_per_chunk):
+    for i, num_chunks, persons_chunk in hh_chunked_choosers(persons, rows_per_chunk):
 
-        logger.info("Running chunk %s of with %d persons" % (i, len(persons_chunk)))
+        logger.info("Running chunk %s of %s with %d persons" % (i, num_chunks, len(persons_chunk)))
 
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i)
 

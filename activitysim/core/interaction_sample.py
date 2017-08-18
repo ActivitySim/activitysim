@@ -279,12 +279,14 @@ def _interaction_sample(
         choosers, probs, interaction_utilities,
         sample_size, alternative_count, alt_col_name, trace_label)
 
-    choices_df.set_index(choosers.index.name, inplace=True)
+    # make_sample_choices should return choosers index as choices_df column
+    assert choosers.index.name in choices_df.columns
 
     # pick_count and pick_dup
     # pick_count is number of duplicate picks
     # pick_dup flag is True for all but first of duplicates
     pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
+
     # number each item in each group from 0 to the length of that group - 1.
     choices_df['pick_count'] = pick_group.cumcount(ascending=True)
     # flag duplicate rows after first
@@ -295,6 +297,9 @@ def _interaction_sample(
     # drop the duplicates
     choices_df = choices_df[~choices_df['pick_dup']]
     del choices_df['pick_dup']
+
+    # set index after groupby so we can trace on it
+    choices_df.set_index(choosers.index.name, inplace=True)
 
     tracing.dump_df(DUMP, choices_df, trace_label, 'choices_df')
 
@@ -371,9 +376,9 @@ def interaction_sample(
                 (chunk_size, len(choosers.index)))
 
     result_list = []
-    for i, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
+    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
 
-        logger.info("Running chunk %s of size %d" % (i, len(chooser_chunk)))
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
         choices = _interaction_sample(chooser_chunk, alternatives, spec, sample_size, alt_col_name,
                                       skims, locals_d,

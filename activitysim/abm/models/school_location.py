@@ -243,9 +243,6 @@ def school_location_simulate(persons_merged,
 
     constants = config.get_model_constants(school_location_settings)
 
-    sample_size = school_location_settings["SAMPLE_SIZE"]
-    sample_pool_size = len(destination_size_terms.index)
-
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
@@ -253,7 +250,6 @@ def school_location_simulate(persons_merged,
 
     locals_d = {
         'skims': skims,
-        'sample_pool_size': float(sample_pool_size)
     }
     if constants is not None:
         locals_d.update(constants)
@@ -286,7 +282,6 @@ def school_location_simulate(persons_merged,
             choice_column=alt_col_name,
             skims=skims,
             locals_d=locals_d,
-            sample_size=sample_size,
             chunk_size=chunk_size,
             trace_label=trace_hh_id and 'school_location_simulate',
             trace_choice_name='school_location')

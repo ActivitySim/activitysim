@@ -8,14 +8,15 @@ import numpy as np
 import orca
 import pandas as pd
 
-from activitysim.core import simulate as asim
+from activitysim.core.simulate import read_model_spec
+from activitysim.core.interaction_simulate import interaction_simulate
+
 from activitysim.core import tracing
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core import pipeline
 from activitysim.core import config
 
 from activitysim.core.util import reindex
-
 
 from .util.tour_frequency import process_non_mandatory_tours
 
@@ -29,8 +30,7 @@ def non_mandatory_tour_frequency_settings(configs_dir):
 
 @orca.injectable()
 def non_mandatory_tour_frequency_spec(configs_dir):
-    f = os.path.join(configs_dir, 'non_mandatory_tour_frequency.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return read_model_spec(configs_dir, 'non_mandatory_tour_frequency.csv')
 
 
 @orca.table()
@@ -77,7 +77,7 @@ def non_mandatory_tour_frequency(persons_merged,
 
         logger.info("Running segment '%s' of size %d" % (name, len(segment)))
 
-        choices = asim.interaction_simulate(
+        choices = interaction_simulate(
             segment,
             alts,
             # notice that we pick the column for the segment for each segment we run
@@ -92,7 +92,7 @@ def non_mandatory_tour_frequency(persons_merged,
         t0 = print_elapsed_time("non_mandatory_tour_frequency.%s" % name, t0)
 
         # FIXME - force garbage collection
-        # mem = asim.memory_info()
+        # mem = memory_info()
         # logger.info('memory_info ptype %s, %s' % (name, mem))
 
     choices = pd.concat(choices_list)

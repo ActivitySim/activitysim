@@ -3,6 +3,7 @@ sandbox.py
 example/data/*
 .idea
 .ipynb_checkpoints
+.coverage*
 
 
 # Byte-compiled / optimized / DLL files

@@ -24,7 +24,6 @@ def cdap_settings(configs_dir):
     canonical model settings file to permit definition of local constants for by
     cdap_indiv_spec and cdap_fixed_relative_proportions
     """
-
     return config.read_model_settings(configs_dir, 'cdap.yaml')
 
 
@@ -34,9 +33,7 @@ def cdap_indiv_spec(configs_dir):
     spec to compute the activity utilities for each individual hh member
     with no interactions with other household members taken into account
     """
-
-    f = os.path.join(configs_dir, 'cdap_indiv_and_hhsize1.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return asim.read_model_spec(configs_dir, 'cdap_indiv_and_hhsize1.csv')
 
 
 @orca.injectable()
@@ -59,8 +56,7 @@ def cdap_fixed_relative_proportions(configs_dir):
     EXCEPT that the values computed are relative proportions, not utilities
     (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
     """
-    f = os.path.join(configs_dir, 'cdap_fixed_relative_proportions.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return asim.read_model_spec(configs_dir, 'cdap_fixed_relative_proportions.csv')
 
 
 @orca.step()
@@ -69,7 +65,7 @@ def cdap_simulate(persons_merged,
                   cdap_indiv_spec,
                   cdap_interaction_coefficients,
                   cdap_fixed_relative_proportions,
-                  hh_chunk_size, trace_hh_id):
+                  chunk_size, trace_hh_id):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
     high-level activity pattern for each person, in a coordinated way with other
@@ -91,7 +87,7 @@ def cdap_simulate(persons_merged,
                        cdap_interaction_coefficients=cdap_interaction_coefficients,
                        cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
                        locals_d=constants,
-                       chunk_size=hh_chunk_size,
+                       chunk_size=chunk_size,
                        trace_hh_id=trace_hh_id,
                        trace_label='cdap')
 

@@ -38,7 +38,7 @@ _CHANNELS = {
         'table_names': ['households']
     },
     'persons': {
-        'max_steps': 5,
+        'max_steps': 7,
         'index': 'PERID',
         'table_names': ['persons']
     },
@@ -199,7 +199,8 @@ class SimpleChannel(object):
         # standard constant to use for choice_for_df instead of fast-forwarding rand stream
         self.multi_choice_offset = None
 
-        logger.info("begin_step '%s' for channel '%s'" % (step_name, self.name, ))
+        logger.info("begin_step '%s' step_num %s for channel '%s'"
+                    % (step_name, self.step_num, self.name, ))
 
     def _generators_for_df(self, df, override_offset=None):
         """
@@ -272,9 +273,9 @@ class SimpleChannel(object):
         self.begin_step(step_name)
         self.multi_choice_offset = offset
 
-    def random_for_df(self, df, step_name):
+    def random_for_df(self, df, step_name, n=1):
         """
-        Return a single floating point random number in range [0, 1) for each row in df
+        Return n floating point random numbers in range [0, 1) for each row in df
         using the appropriate random channel for each row.
 
         Subsequent calls (in the same step) will return the next rand for each df row
@@ -293,17 +294,20 @@ class SimpleChannel(object):
         df : pandas.DataFrame
             df with index name and values corresponding to a registered channel
 
+        n : int
+            number of rands desired per df row
+
         Returns
         -------
-        choices : 1-D ndarray the same length as df
-            a single float in range [0, 1) for each row in df
+        rands : 2-D ndarray
+            array the same length as df, with n floats in range [0, 1) for each df row
         """
         self.begin_step(step_name)
         generators = self._generators_for_df(df)
-        r = [prng.rand(1) for prng in generators]
+        rands = np.asanyarray([prng.rand(n) for prng in generators])
         # update offset for rows we handled
-        self.row_states.loc[df.index, 'offset'] += 1
-        return r
+        self.row_states.loc[df.index, 'offset'] += n
+        return rands
 
     def choice_for_df(self, df, step_name, a, size, replace):
         """
@@ -672,7 +676,7 @@ class Random(object):
         logging.info("set_multi_choice_offset to %s for channel %s"
                      % (channel.multi_choice_offset, channel.name))
 
-    def random_for_df(self, df):
+    def random_for_df(self, df, n=1):
         """
         Return a single floating point random number in range [0, 1) for each row in df
         using the appropriate random channel for each row.
@@ -696,6 +700,9 @@ class Random(object):
         df : pandas.DataFrame
             df with index name and values corresponding to a registered channel
 
+        n : int
+            number of rands desired (default 1)
+
         Returns
         -------
         choices : 1-D ndarray the same length as df
@@ -705,12 +712,12 @@ class Random(object):
         # FIXME - for tests
         if not self.channels:
             rng = np.random.RandomState(0)
-            rands = [rng.rand(1) for _ in range(len(df))]
+            rands = np.asanyarray([rng.rand(n) for _ in range(len(df))])
             return rands
 
         t0 = print_elapsed_time()
         channel = self.get_channel_for_df(df)
-        rands = channel.random_for_df(df, self.step_name)
+        rands = channel.random_for_df(df, self.step_name, n)
         t0 = print_elapsed_time("random_for_df for %s rows" % len(df.index), t0, debug=True)
         return rands
 

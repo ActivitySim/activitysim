@@ -65,5 +65,4 @@ def test_misc():
     assert orca.get_injectable("persons_index_name") is None
 
     # default values if not specified in settings
-    assert orca.get_injectable("hh_chunk_size") == 0
     assert orca.get_injectable("chunk_size") == 0

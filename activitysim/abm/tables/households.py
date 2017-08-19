@@ -57,15 +57,13 @@ def households(store, households_sample_size, trace_hh_id):
     return df
 
 
-# this assigns a chunk_id to each household based on the chunk_size setting
+# this assigns a chunk_id to each household so we can iterate over persons by whole households
 @orca.column("households", cache=True)
-def chunk_id(households, hh_chunk_size):
+def chunk_id(households):
+
+    # FIXME - pathological knowledge of name of chunk_id column used by hh_chunked_choosers
 
     chunk_ids = pd.Series(range(len(households)), households.index)
-
-    if hh_chunk_size > 0:
-        chunk_ids = np.floor(chunk_ids.div(hh_chunk_size)).astype(int)
-
     return chunk_ids
 
 

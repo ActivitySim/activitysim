@@ -11,6 +11,13 @@ import orca
 logger = logging.getLogger(__name__)
 
 
+def setting(key, default=None):
+
+    settings = orca.get_injectable('settings')
+
+    return settings.get(key, default)
+
+
 def read_model_settings(configs_dir, file_name):
     settings = None
     file_path = os.path.join(configs_dir,  file_name)

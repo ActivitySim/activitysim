@@ -1,14 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
 import logging
 
 import orca
 import pandas as pd
 import numpy as np
 
-from activitysim.core import simulate as asim
+from activitysim.core.simulate import read_model_spec
+from activitysim.core.interaction_simulate import interaction_simulate
+
 from activitysim.core import tracing
 from activitysim.core import config
 
@@ -18,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 @orca.table()
 def destination_choice_spec(configs_dir):
-    f = os.path.join(configs_dir, 'destination_choice.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return read_model_spec(configs_dir, 'destination_choice.csv')
 
 
 @orca.injectable()
@@ -86,14 +86,15 @@ def destination_choice(non_mandatory_tours_merged,
         # name index so tracing knows how to slice
         segment.index.name = 'tour_id'
 
-        choices = asim.interaction_simulate(segment,
-                                            alternatives_segment,
-                                            spec[[kludge_name]],
-                                            skims=skims,
-                                            locals_d=locals_d,
-                                            sample_size=sample_size,
-                                            chunk_size=chunk_size,
-                                            trace_label='destination.%s' % name)
+        choices = interaction_simulate(
+            segment,
+            alternatives_segment,
+            spec[[kludge_name]],
+            skims=skims,
+            locals_d=locals_d,
+            sample_size=sample_size,
+            chunk_size=chunk_size,
+            trace_label='destination.%s' % name)
 
         choices_list.append(choices)
 

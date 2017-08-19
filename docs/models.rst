@@ -66,7 +66,7 @@ Destination Choice
 ------------------
 
 The main interface to the destination choice model is the 
-:py:func:`~activitysim.abm.models.destination_choice.destination_choice` 
+:py:func:`~activitysim.abm.models.destination.destination_choice` 
 function.  This function is registered as an orca step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``destination`` | Skims Keys: ``TAZ, TAZ_r``
@@ -196,9 +196,16 @@ API
 School Location
 ---------------
 
-The main interface to the school location model is the 
-:py:func:`~activitysim.abm.models.school_location.school_location_simulate` 
-function.  This function is registered as an orca step in the example Pipeline.
+The school location model is made up of three model steps:
+  * school_location_sample - selects a sample of alternative school locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
+  * school_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative school location.
+  * school_location_simulate - starts with the table created above and chooses a final school location, this time with the mode choice logsum included.
+
+The interfaces to the model steps are 
+:py:func:`~activitysim.abm.models.school_location.school_location_sample`,
+:py:func:`~activitysim.abm.models.school_location.school_location_logsums`,
+:py:func:`~activitysim.abm.models.school_location.school_location_simulate`.  
+These functions are registered as orca steps in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``school_taz`` | Skims Keys: ``TAZ, TAZ_r``
 
@@ -212,9 +219,16 @@ API
 Workplace Location
 ------------------
  
-The main interface to the workplace location model is the 
-:py:func:`~activitysim.abm.models.workplace_location.workplace_location_simulate` 
-function.  This function is registered as an orca step in the example Pipeline.
+The work location model is made up of three model steps:
+  * workplace_location_sample - selects a sample of alternative work locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
+  * workplace_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative work location.
+  * workplace_location_simulate - starts with the table created above and chooses a final work location, this time with the mode choice logsum included.
+
+The interfaces to the model steps are 
+:py:func:`~activitysim.abm.models.workplace_location.workplace_location_sample`,
+:py:func:`~activitysim.abm.models.workplace_location.workplace_location_logsums`,
+:py:func:`~activitysim.abm.models.workplace_location.workplace_location_simulate`.  
+These functions are registered as orca steps in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``workplace_taz`` | Skims Keys: ``TAZ, TAZ_r``
 
@@ -232,6 +246,15 @@ Helper classes
 API
 ~~~
 
+.. automodule:: activitysim.abm.models.util.cdap
+   :members:
+   
+.. automodule:: activitysim.abm.models.util.logsums
+   :members:
+   
+.. automodule:: activitysim.abm.models.util.mode
+   :members:
+   
 .. automodule:: activitysim.abm.models.util.tour_frequency
    :members:
 

@@ -37,14 +37,12 @@ def duration(tdd_alts):
 
 @orca.table()
 def tdd_work_spec(configs_dir):
-    f = os.path.join(configs_dir, 'tour_departure_and_duration_work.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_work.csv')
 
 
 @orca.table()
 def tdd_school_spec(configs_dir):
-    f = os.path.join(configs_dir, 'tour_departure_and_duration_school.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_school.csv')
 
 
 # I think it's easier to do this in one model so you can merge the two

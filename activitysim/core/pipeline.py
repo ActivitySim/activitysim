@@ -197,6 +197,9 @@ def write_df(df, table_name, checkpoint_name=None):
         the checkpoint at which the table was created/modified
     """
 
+    # coerce column names to str as unicode names will cause PyTables to pickle them
+    df.columns = df.columns.astype(str)
+
     if checkpoint_name:
         key = "%s/%s" % (table_name, checkpoint_name)
     else:
@@ -418,9 +421,9 @@ def run_model(model_name):
     _PRNG.begin_step(model_name)
     orca.run([model_name])
     _PRNG.end_step(model_name)
-    print_elapsed_time("run_model '%s'" % model_name, t0)
+    t0 = print_elapsed_time("run_model '%s'" % model_name, t0)
     add_checkpoint(model_name)
-    print_elapsed_time("add_checkpoint '%s'" % model_name, t0)
+    t0 = print_elapsed_time("add_checkpoint '%s'" % model_name, t0)
 
 
 def start_pipeline(resume_after=None):

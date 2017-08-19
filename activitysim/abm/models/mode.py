@@ -11,6 +11,7 @@ import yaml
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core.util import memory_info
 
 from .util.mode import _mode_choice_spec
 
@@ -22,8 +23,6 @@ Generic functions for both tour and trip mode choice
 
 
 def _mode_choice_simulate(records,
-                          skim_dict,
-                          skim_stack,
                           odt_skim_stack_wrapper,
                           dot_skim_stack_wrapper,
                           od_skim_stack_wrapper,
@@ -101,8 +100,7 @@ def tour_mode_choice_settings(configs_dir):
 
 @orca.injectable()
 def tour_mode_choice_spec_df(configs_dir):
-    with open(os.path.join(configs_dir, 'tour_mode_choice.csv')) as f:
-        return asim.read_model_spec(f)
+    return asim.read_model_spec(configs_dir, 'tour_mode_choice.csv')
 
 
 @orca.injectable()
@@ -126,7 +124,6 @@ def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
                               skim_dict, skim_stack,
-                              omx_file,
                               trace_hh_id):
     """
     Tour mode choice simulate
@@ -177,8 +174,6 @@ def tour_mode_choice_simulate(tours_merged,
 
         choices = _mode_choice_simulate(
             segment,
-            skim_dict=skim_dict,
-            skim_stack=skim_stack,
             odt_skim_stack_wrapper=odt_skim_stack_wrapper,
             dot_skim_stack_wrapper=dot_skim_stack_wrapper,
             od_skim_stack_wrapper=od_skims,
@@ -194,7 +189,7 @@ def tour_mode_choice_simulate(tours_merged,
         choices_list.append(choices)
 
         # FIXME - force garbage collection
-        mem = asim.memory_info()
+        mem = memory_info()
         logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
@@ -214,7 +209,7 @@ def tour_mode_choice_simulate(tours_merged,
                          warn_if_empty=True)
 
     # FIXME - this forces garbage collection
-    asim.memory_info()
+    memory_info()
 
 
 """
@@ -230,8 +225,7 @@ def trip_mode_choice_settings(configs_dir):
 
 @orca.injectable()
 def trip_mode_choice_spec_df(configs_dir):
-    with open(os.path.join(configs_dir, 'trip_mode_choice.csv')) as f:
-        return asim.read_model_spec(f)
+    return asim.read_model_spec(configs_dir, 'trip_mode_choice.csv')
 
 
 @orca.injectable()
@@ -255,7 +249,6 @@ def trip_mode_choice_simulate(trips_merged,
                               trip_mode_choice_settings,
                               skim_dict,
                               skim_stack,
-                              omx_file,
                               trace_hh_id):
     """
     Trip mode choice simulate
@@ -289,8 +282,6 @@ def trip_mode_choice_simulate(trips_merged,
 
         choices = _mode_choice_simulate(
             segment,
-            skim_dict=skim_dict,
-            skim_stack=skim_stack,
             odt_skim_stack_wrapper=odt_skim_stack_wrapper,
             dot_skim_stack_wrapper=None,
             od_skim_stack_wrapper=od_skims,
@@ -307,7 +298,7 @@ def trip_mode_choice_simulate(trips_merged,
         choices_list.append(choices)
 
         # FIXME - force garbage collection
-        mem = asim.memory_info()
+        mem = memory_info()
         logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
 
     choices = pd.concat(choices_list)
@@ -327,4 +318,4 @@ def trip_mode_choice_simulate(trips_merged,
                          warn_if_empty=True)
 
     # FIXME - this forces garbage collection
-    asim.memory_info()
+    memory_info()

@@ -20,8 +20,7 @@ logger = logging.getLogger(__name__)
 
 @orca.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
-    f = os.path.join(configs_dir, 'mandatory_tour_frequency.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return asim.read_model_spec(configs_dir, 'mandatory_tour_frequency.csv')
 
 
 @orca.injectable()

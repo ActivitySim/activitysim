@@ -31,11 +31,12 @@ is responsible for setting up and providing expressions to operate on these larg
 Data Handling
 ~~~~~~~~~~~~~
 
-ActivitySim operates on two data formats, `HDF5 <https://www.hdfgroup.org/HDF5/>`__ 
-and `Open Matrix (OMX) <https://github.com/osPlanning/omx>`__. 
-The HDF5 binary data container is used for managing flat files, including land use 
-inputs, synthetic population files, and accessibility files. 
-OMX, which is based on HDF5 as well, is used for managing network skims. 
+ActivitySim works with three open data formats, `HDF5 <https://www.hdfgroup.org/HDF5/>`__ 
+, `Open Matrix (OMX) <https://github.com/osPlanning/omx>`__, and `CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__ . 
+The HDF5 binary data container is used for input tables such as land use inputs, synthetic 
+population files, and accessibility files. HDF5 is also used for the :ref:`pipeline_in_detail` data store.
+OMX, which is based on HDF5, is used for input and output matrices (skims and demand matrices).  CSV files 
+are used for various inputs and outputs as well.
 
 Three key data structures in ActivitySim are:
 
@@ -87,6 +88,7 @@ Contents
    :maxdepth: 2
 
    gettingstarted
+   abmexample
    howitworks
    dataschema
    core

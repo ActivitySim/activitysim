@@ -90,7 +90,11 @@ def test_mini_pipeline_run():
 
     _MODELS = [
         'compute_accessibility',
+        'school_location_sample',
+        'school_location_logsums',
         'school_location_simulate',
+        'workplace_location_sample',
+        'workplace_location_logsums',
         'workplace_location_simulate',
         'auto_ownership_simulate'
     ]
@@ -99,9 +103,9 @@ def test_mini_pipeline_run():
 
     auto_choice = pipeline.get_table("households").auto_ownership
 
-    # regression test: these are the first 3 households in households table
-    hh_ids = [26960, 857296, 93428]
-    choices = [0, 1, 0]
+    # regression test: these are among the first 10 households in households table
+    hh_ids = [582398, 93277, 2601277]
+    choices = [0, 1, 2]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
@@ -113,8 +117,8 @@ def test_mini_pipeline_run():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [92363, 92681, 93428]
-    choices = ['work1', 'school1', 'school2']
+    per_ids = [23712, 93277, 328095]
+    choices = ['work1', 'work_and_school', 'school1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
@@ -158,20 +162,20 @@ def test_mini_pipeline_run2():
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
     prev_checkpoint_count = len(checkpoints_df.index)
-    assert prev_checkpoint_count == 7
+    assert prev_checkpoint_count == 11
 
     pipeline.start_pipeline('auto_ownership_simulate')
 
     auto_choice = pipeline.get_table("households").auto_ownership
 
-    # regression test: these are the 2nd-4th households in households table
-    hh_ids = [26960, 857296, 93428]
-    choices = [0, 1, 0]
-    expected_auto_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
-                                     name='auto_ownership')
+    # regression test: these are the same as in test_mini_pipeline_run1
+    hh_ids = [582398, 93277, 2601277]
+    choices = [0, 1, 2]
+    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
+                                name='auto_ownership')
 
     print "auto_choice\n", auto_choice.head(4)
-    pdt.assert_series_equal(auto_choice[hh_ids], expected_auto_choice)
+    pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
 
     # try to run a model already in pipeline
     with pytest.raises(RuntimeError) as excinfo:
@@ -184,9 +188,8 @@ def test_mini_pipeline_run2():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [92363, 92681, 93428]
-
-    choices = ['work1', 'school1', 'school2']
+    per_ids = [23712, 93277, 328095]
+    choices = ['work1', 'work_and_school', 'school1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
@@ -236,7 +239,11 @@ def full_run(resume_after=None, chunk_size=0,
 
     _MODELS = [
         'compute_accessibility',
+        'school_location_sample',
+        'school_location_logsums',
         'school_location_simulate',
+        'workplace_location_sample',
+        'workplace_location_logsums',
         'workplace_location_simulate',
         'auto_ownership_simulate',
         'cdap_simulate',
@@ -283,9 +290,10 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
-EXPECT_TOUR_TYPES = ['work', 'work', 'othdiscr']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY']
+EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696', '1888696']
+EXPECT_TOUR_TYPES = ['work', 'work', 'othdiscr', 'social']
+EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY', 'DRIVEALONEPAY']
+EXPECT_TOUR_COUNT = 155
 
 
 def test_full_run1():
@@ -296,7 +304,7 @@ def test_full_run1():
     tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    assert(tour_count == 160)
+    assert(tour_count == EXPECT_TOUR_COUNT)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
@@ -304,8 +312,10 @@ def test_full_run1():
     print mode_df
     #           tour_id           mode person_id tour_type tour_num
     # value_2  20775643      DRIVE_LOC   1888694      work        1
-    # value_3  20775654      DRIVE_LOC   1888695      work        1
-    # value_1  20775659  DRIVEALONEPAY   1888696  othdiscr        1
+    # value_3  20775644      DRIVE_LOC   1888694      work        2
+    # value_4  20775650      DRIVE_LOC   1888695    school        1
+    # value_5  20775651      DRIVE_LOC   1888695    school        2
+    # value_1  20775660  DRIVEALONEPAY   1888696  othmaint        1
 
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
@@ -321,7 +331,7 @@ def test_full_run2():
 
     tour_count = full_run(resume_after='non_mandatory_scheduling', trace_hh_id=HH_ID)
 
-    assert(tour_count == 160)
+    assert(tour_count == EXPECT_TOUR_COUNT)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
@@ -340,9 +350,9 @@ def test_full_run_with_chunks():
 
     tour_count = full_run(trace_hh_id=HH_ID,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                          chunk_size=10)
+                          chunk_size=10000)
 
-    assert(tour_count == 160)
+    assert(tour_count == EXPECT_TOUR_COUNT)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)

@@ -1,7 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
 import logging
 
 import orca
@@ -17,8 +16,7 @@ logger = logging.getLogger(__name__)
 
 @orca.injectable()
 def auto_ownership_spec(configs_dir):
-    f = os.path.join(configs_dir, 'auto_ownership.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return asim.read_model_spec(configs_dir, 'auto_ownership.csv')
 
 
 @orca.injectable()

@@ -1,9 +1,64 @@
+import os
+import psutil
+import gc
 
 from operator import itemgetter
 
+import numpy as np
 import pandas as pd
 
 from zbox import toolz as tz
+
+
+def memory_info():
+    gc.collect()
+    process = psutil.Process(os.getpid())
+    bytes = process.memory_info().rss
+    mb = (bytes / (1024 * 1024.0))
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return "memory_info: %s MB (%s GB)" % (int(mb), round(gb, 2))
+
+
+def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):
+    """
+    like pandas left merge, but join on both index and a specified join_col
+
+    FIXME - for now return a series of ov values from specified right_df target_col
+
+    Parameters
+    ----------
+    left_df : pandas DataFrame
+        index name assumed to be same as that of right_df
+    right_df : pandas DataFrame
+        index name assumed to be same as that of left_df
+    join_col : str
+        name of column to join on (in addition to index values)
+        should have same name in both dataframes
+    target_col : str
+        name of column from right_df whose joined values should be returned as series
+
+    Returns
+    -------
+    target_series : pandas Series
+        series of target_col values with same index as left_df
+        i.e. values joined to left_df from right_df with index of left_df
+    """
+    assert left_df.index.name == right_df.index.name
+
+    # want to know name previous index column will have after reset_index
+    idx_col = right_df.index.name
+
+    # SELECT target_col FROM full_sample LEFT JOIN unique_sample on idx_col, join_col
+    merged = \
+        pd.merge(
+            left_df[[join_col]].reset_index(),
+            right_df[[join_col, target_col]].reset_index(),
+            on=[idx_col, join_col],
+            how="left")
+
+    merged.set_index(idx_col, inplace=True)
+
+    return merged[target_col]
 
 
 def reindex(series1, series2):
@@ -88,3 +143,82 @@ def other_than(groups, bools):
     gt1 = pipeline(counts > 1)
 
     return gt1.where(bools, other=gt0)
+
+
+def quick_loc_df(loc_list, target_df, attribute):
+    """
+    faster replacement for target_df.loc[loc_list][attribute]
+
+    pandas DataFrame.loc[] indexing doesn't scale for large arrays (e.g. > 1,000,000 elements)
+
+    Parameters
+    ----------
+    loc_list : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)
+    target_df : pandas.DataFrame containing column named attribute
+    attribute : name of column from loc_list to return
+
+    Returns
+    -------
+        pandas.Series
+    """
+
+    left_on = "left"
+
+    if isinstance(loc_list, pd.Int64Index):
+        left_df = pd.DataFrame({left_on: loc_list.values})
+    elif isinstance(loc_list, pd.Series):
+        left_df = loc_list.to_frame(name=left_on)
+    elif isinstance(loc_list, np.ndarray):
+        left_df = pd.DataFrame({left_on: loc_list})
+    else:
+        raise RuntimeError("quick_loc_df loc_list of unexpected type %s" % type(loc_list))
+
+    df = pd.merge(left_df,
+                  target_df[[attribute]],
+                  left_on=left_on,
+                  right_index=True,
+                  how="left")
+
+    # regression test
+    # assert list(df[attribute]) == list(target_df.loc[loc_list][attribute])
+
+    return df[attribute]
+
+
+def quick_loc_series(loc_list, target_series):
+    """
+    faster replacement for target_series.loc[loc_list]
+
+    pandas Series.loc[] indexing doesn't scale for large arrays (e.g. > 1,000,000 elements)
+
+    Parameters
+    ----------
+    loc_list : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)
+    target_series : pandas.Series
+
+    Returns
+    -------
+        pandas.Series
+    """
+
+    left_on = "left"
+
+    if isinstance(loc_list, pd.Int64Index):
+        left_df = pd.DataFrame({left_on: loc_list.values})
+    elif isinstance(loc_list, pd.Series):
+        left_df = loc_list.to_frame(name=left_on)
+    elif isinstance(loc_list, np.ndarray):
+        left_df = pd.DataFrame({left_on: loc_list})
+    else:
+        raise RuntimeError("quick_loc_series loc_list of unexpected type %s" % type(loc_list))
+
+    df = pd.merge(left_df,
+                  target_series.to_frame(name='right'),
+                  left_on=left_on,
+                  right_index=True,
+                  how="left")
+
+    # regression test
+    # assert list(df.right) == list(target_series.loc[loc_list])
+
+    return df.right

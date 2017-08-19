@@ -159,7 +159,7 @@ def compute_accessibility(settings, accessibility_spec,
                              warn_if_empty=True)
 
             if trace_assigned_locals:
-                tracing.write_locals(df, file_name="accessibility_locals")
+                tracing.write_csv(trace_assigned_locals, file_name="accessibility_locals")
 
         tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
                          warn_if_empty=True)

@@ -92,50 +92,75 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Core Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#simulate">Simulate</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.core.simulate">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-management">Data Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#skim">Skim</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-activitysim.core.skim">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#skim">Skim</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#logit">Logit</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#random">Random</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id3">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#random">Random</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#tracing">Tracing</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id5">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utility-expressions">Utility Expressions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sampling-with-interaction">Sampling with Interaction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#assign">Assign</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id6">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simulate">Simulate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id5">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id7">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simulate-with-interaction">Simulate with Interaction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id6">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#config">Config</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id8">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simulate-with-sampling-and-interaction">Simulate with Sampling and Interaction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id7">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#inject-defaults">Inject_Defaults</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id9">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assign">Assign</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id8">API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#tests">Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#choice-models">Choice Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#logit">Logit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id9">API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#helpers">Helpers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id10">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id11">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#inject-defaults">Inject_Defaults</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id12">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
@@ -205,497 +230,19 @@
             
   <div class="section" id="core-components">
 <h1>Core Components<a class="headerlink" href="#core-components" title="Permalink to this headline">¶</a></h1>
-<p>ActivitySim’s core components include the model specification reader and expression
-evaluator, the skim matrix manager, the simulate methods for solving
-models (i.e. calculating utilities, probabilties, and making choices),  the choice
-models, the data pipeline manager, the random number generator, and the tracer.</p>
-<div class="section" id="simulate">
-<h2>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h2>
-<p>Methods for expression handling, solving, choosing (i.e. making choices), and for identifying chunks</p>
-<div class="section" id="module-activitysim.core.simulate">
-<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.core.simulate" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
-<dt id="activitysim.core.simulate.add_skims">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">add_skims</code><span class="sig-paren">(</span><em>df</em>, <em>skims</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.add_skims" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
-using the parameters of the skims object.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Table to which to add skim data as new columns.
-<cite>df</cite> is modified in-place.</p>
-</div></blockquote>
-<p><strong>skims</strong> : SkimDictWrapper object</p>
-<blockquote class="last">
-<div><p>The skims object is used to contain multiple matrices of
-origin-destination impedances.  Make sure to also add it to the
-locals_d below in order to access it in expressions.  The <em>only</em> job
-of this method in regards to skims is to call set_df with the
-dataframe that comes back from interacting choosers with
-alternatives.  See the skims module for more documentation on how
-the skims object is intended to be used.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.compute_base_probabilities">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>compute base probabilities for nest leaves
-Base probabilities will be the nest-adjusted probabilities of all leaves
-This flattens or normalizes all the nested probabilities so that they have the proper global
-relative values (the leaf probabilities sum to 1 for each row.)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe with the nested probabilities for nest leafs and nodes</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>——-</strong></p>
-<p><strong>base_probabilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.compute_nested_exp_utilities">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_nested_exp_utilities</code><span class="sig-paren">(</span><em>raw_utilities</em>, <em>nest_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_nested_exp_utilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>compute exponentiated nest utilities based on nesting coefficients</p>
-<p>For nest nodes this is the exponentiated logsum of alternatives adjusted by nesting coefficient</p>
-<p>leaf &lt;- exp( raw_utility )
-nest &lt;- exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>raw_utilities</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe with the raw alternative utilities of all leaves
-(what in non-nested logit would be the utilities of all the alternatives)</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nested_utilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>raw_utilities</cite> and columns for exponentiated leaf and node utilities</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.compute_nested_probabilities">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_nested_probabilities</code><span class="sig-paren">(</span><em>nested_exp_utilities</em>, <em>nest_spec</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_nested_probabilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>compute nested probabilities for nest leafs and nodes
-probability for nest alternatives is simply the alternatives’s local (to nest) probability
-computed in the same way as the probability of non-nested alternatives in multinomial logit
-i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
-except in nested logit, its sib group is restricted to the nest</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_exp_utilities</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe with the exponentiated nested utilities of all leaves and nodes</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>——-</strong></p>
-<p><strong>nested_probabilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.eval_interaction_utilities">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em>spec</em>, <em>df</em>, <em>locals_d</em>, <em>trace_label</em>, <em>trace_rows</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the utilities for a single-alternative spec evaluated in the context of df</p>
-<p>We could compute the utilities for interaction datasets just as we do for simple_simulate
-specs with multiple alternative columns byt calling eval_variables and then computing the
-utilities by matrix-multiplication of eval results with the utility coefficients in the
-spec alternative columns.</p>
-<p>But interaction simulate computes the utilities of each alternative in the context of a
-separate row in interaction dataset df, and so there is only one alternative in spec.
-This turns out to be quite a bit faster (in this special case) than the pandas dot function.</p>
-<p>For efficiency, we combine eval_variables and multiplication of coefficients into a single step,
-so we don’t have to create a separate column for each partial utility. Instead, we simply
-multiply the eval result by a single alternative coefficient and sum the partial utilities.</p>
-<dl class="docutils">
-<dt>spec <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
-<dd>one row per spec expression and one col with utility coefficient</dd>
-<dt>df <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
-<dd>cross join (cartesian product) of choosers with alternatives
-combines columns of choosers and alternatives
-len(df) == len(choosers) * len(alternatives)
-index values (non-unique) are index values from alternatives df</dd>
-<dt>interaction_utilities <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
-<dd>the utility of each alternative is sum of the partial utilities determined by the
-various spec expressions and their corresponding coefficients
-yielding a dataframe  with len(interaction_df) rows and one utility column
-having the same index as interaction_df (non-unique values from alternatives df)</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>df</cite> and a single column of utilities</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.eval_mnl">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_mnl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>locals_d=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a simulation for when the model spec does not involve alternative
-specific data, e.g. there are no interactions with alternative
-properties and no need to sample from alternatives.</p>
-<p>Each row in spec computes a partial utility for each alternative,
-by providing a spec expression (often a boolean 0-1 trigger)
-and a column of utility coefficients for each alternative.</p>
-<p>We compute the utility of each alternative by matrix-multiplication of eval results
-with the utility coefficients in the spec alternative columns
-yielding one row per chooser and one column per alternative</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A table of variable specifications and coefficient values.
-Variable expressions should be in the table index and the table
-should have a column for each alternative.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
-for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
-when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
-of <cite>spec</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.eval_nl">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_nl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>locals_d=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a nested-logit simulation for when the model spec does not involve alternative
-specific data, e.g. there are no interactions with alternative
-properties and no need to sample from alternatives.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A table of variable specifications and coefficient values.
-Variable expressions should be in the table index and the table
-should have a column for each alternative.</p>
-</div></blockquote>
-<p><strong>nest_spec:</strong></p>
-<blockquote>
-<div><p>dictionary specifying nesting structure and nesting coefficients
-(from the model spec yaml file)</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
-for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
-when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
-of <cite>spec</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.eval_variables">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_variables</code><span class="sig-paren">(</span><em>exprs</em>, <em>df</em>, <em>locals_d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_variables" title="Permalink to this definition">¶</a></dt>
-<dd><p>Evaluate a set of variable expressions from a spec in the context
-of a given data table.</p>
-<p>There are two kinds of supported expressions: “simple” expressions are
-evaluated in the context of the DataFrame using DataFrame.eval.
-This is the default type of expression.</p>
-<p>Python expressions are evaluated in the context of this function using
-Python’s eval function. Because we use Python’s eval this type of
-expression supports more complex operations than a simple expression.
-Python expressions are denoted by beginning with the &#64; character.
-Users should take care that these expressions must result in
-a Pandas Series.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>exprs</strong> : sequence of str</p>
-<p><strong>df</strong> : pandas.DataFrame</p>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
-for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>df</cite> and columns of <cite>exprs</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.interaction_simulate">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">interaction_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>sample_size=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.interaction_simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a simulation in the situation in which alternatives must
-be merged with choosers because there are interaction terms or
-because alternatives are being sampled.</p>
-<p>optionally (if chunk_size &gt; 0) iterates over choosers in chunk_size chunks</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of choosers</p>
-</div></blockquote>
-<p><strong>alternatives</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of alternatives - will be merged with choosers, currently
-without sampling</p>
-</div></blockquote>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A Pandas DataFrame that gives the specification of the variables to
-compute and the coefficients for each variable.
-Variable specifications must be in the table index and the
-table should have only one column of coefficients.</p>
-</div></blockquote>
-<p><strong>skims</strong> : Skims object</p>
-<blockquote>
-<div><p>The skims object is used to contain multiple matrices of
-origin-destination impedances.  Make sure to also add it to the
-locals_d below in order to access it in expressions.  The <em>only</em> job
-of this method in regards to skims is to call set_df with the
-dataframe that comes back from interacting choosers with
-alternatives.  See the skims module for more documentation on how
-the skims object is intended to be used.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
-for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>sample_size</strong> : int, optional</p>
-<blockquote>
-<div><p>Sample alternatives with sample of given size.  By default is None,
-which does not sample alternatives.</p>
-</div></blockquote>
-<p><strong>chunk_size</strong> : int</p>
-<blockquote>
-<div><p>if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
-when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ret</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>A series where index should match the index of the choosers DataFrame
-and values will match the index of the alternatives DataFrame -
-choices are simulated in the standard Monte Carlo fashion</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.read_model_spec">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">read_model_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name=’Description’</em>, <em>expression_name=’Expression’</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
-<p>The CSV is expected to have columns for component descriptions
-and expressions, plus one or more alternatives.</p>
-<p>The CSV is required to have a header with column names. For example:</p>
-<blockquote>
-<div>Description,Expression,alt0,alt1,alt2</div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fname</strong> : str</p>
-<blockquote>
-<div><p>Name of a CSV spec file.</p>
-</div></blockquote>
-<p><strong>description_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
-</div></blockquote>
-<p><strong>expression_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Name of the column in <cite>fname</cite> that contains the component expression.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>The description column is dropped from the returned data and the
-expression values are set as the table index.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.simple_simulate">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run an MNL or NL simulation for when the model spec does not involve alternative
-specific data, e.g. there are no interactions with alternative
-properties and no need to sample from alternatives.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A table of variable specifications and coefficient values.
-Variable expressions should be in the table index and the table
-should have a column for each alternative.</p>
-</div></blockquote>
-<p><strong>nest_spec:</strong></p>
-<blockquote>
-<div><p>for nested logit (nl): dictionary specifying nesting structure and nesting coefficients
-for multinomial logit (mnl): None</p>
-</div></blockquote>
-<p><strong>skims</strong> : Skims object</p>
-<blockquote>
-<div><p>The skims object is used to contain multiple matrices of
-origin-destination impedances.  Make sure to also add it to the
-locals_d below in order to access it in expressions.  The <em>only</em> job
-of this method in regards to skims is to call set_df with the
-dataframe that comes back from interacting choosers with
-alternatives.  See the skims module for more documentation on how
-the skims object is intended to be used.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
-for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
-when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
-of <cite>spec</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-</div>
+<p>ActivitySim’s core components include features for data management,
+utility expressions, choice models, and helper functions.  These core
+components include the skim matrix manager, the data pipeline manager, the
+random number manager, the tracer, sampling methods, simulation methods, model
+specification readers and expression evaluators, choice models, and helper functions.</p>
+<div class="section" id="data-management">
+<h2>Data Management<a class="headerlink" href="#data-management" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="skim">
-<span id="skims-in-detail"></span><h2>Skim<a class="headerlink" href="#skim" title="Permalink to this headline">¶</a></h2>
+<span id="skims-in-detail"></span><h3>Skim<a class="headerlink" href="#skim" title="Permalink to this headline">¶</a></h3>
 <p>Skim matrix data access</p>
-<div class="section" id="id1">
-<h3>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.core.skim"></span><dl class="class">
+<div class="section" id="module-activitysim.core.skim">
+<span id="api"></span><h4>API<a class="headerlink" href="#module-activitysim.core.skim" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
 <dt id="activitysim.core.skim.SkimDict">
 <em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">SkimDict</code><a class="headerlink" href="#activitysim.core.skim.SkimDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SkimDict object is a wrapper around a dict of multiple skim objects,
@@ -941,216 +488,13 @@ would turn them into 0-based array indices.</p>
 
 </div>
 </div>
-<div class="section" id="logit">
-<span id="logit-in-detail"></span><h2>Logit<a class="headerlink" href="#logit" title="Permalink to this headline">¶</a></h2>
-<p>Multinomial logit (MNL) or Nested logit (NL) choice model.  These choice models depend on the foundational components of ActivitySim, such
-as the expressions and data handling described in the <a class="reference internal" href="howitworks.html#id1"><span class="std std-ref">Execution Flow</span></a> section.</p>
-<p>To specify and solve an MNL model:</p>
-<ul class="simple">
-<li>either specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">MNL</span></code> in the model configuration YAML file or omit the setting</li>
-<li>call either <code class="docutils literal"><span class="pre">simulate.simple_simulate()</span></code> or <code class="docutils literal"><span class="pre">simulate.interaction_simulate()</span></code> depending if the alternatives are interacted with the choosers or because alternatives are sampled</li>
-</ul>
-<p>To specify and solve an NL model:</p>
-<ul class="simple">
-<li>specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">NL</span></code> in the model configuration YAML file</li>
-<li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></li>
-<li>call <code class="docutils literal"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</li>
-</ul>
-<div class="section" id="id2">
-<h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-activitysim.core.logit"></span><dl class="class">
-<dt id="activitysim.core.logit.Nest">
-<em class="property">class </em><code class="descclassname">activitysim.core.logit.</code><code class="descname">Nest</code><span class="sig-paren">(</span><em>name=None</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Data for a nest-logit node or leaf</p>
-<p>This object is passed on yield when iterate over nest nodes (branch or leaf)
-The nested logit design is stored in a yaml file as a tree of dict objects,
-but using an object to pass the nest data makes the code a little more readable</p>
-<p>An example nest specification is in the example tour mode choice model
-yaml configuration file - example/configs/tour_mode_choice.yaml.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.logit.each_nest">
-<code class="descclassname">activitysim.core.logit.</code><code class="descname">each_nest</code><span class="sig-paren">(</span><em>nest_spec</em>, <em>type=None</em>, <em>post_order=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.each_nest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over each nest or leaf node in the tree (of subtree)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-<p><strong>type</strong> : str</p>
-<blockquote>
-<div><p>Nest class type to yield
-None yields all nests
-‘leaf’ yields only leaf nodes
-‘branch’ yields only branch nodes</p>
-</div></blockquote>
-<p><strong>post_order</strong> : Bool</p>
-<blockquote>
-<div><p>Should we iterate over the nodes of the tree in post-order or pre-order?
-(post-order means we yield the alternatives sub-tree before current node.)</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>nest</strong> : Nest</p>
-<blockquote class="last">
-<div><p>Nest object with info about the current node (nest or leaf)</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.logit.interaction_dataset">
-<code class="descclassname">activitysim.core.logit.</code><code class="descname">interaction_dataset</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.interaction_dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine choosers and alternatives into one table for the purposes
-of creating interaction variables and/or sampling alternatives.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<p><strong>alternatives</strong> : pandas.DataFrame</p>
-<p><strong>sample_size</strong> : int, optional</p>
-<blockquote>
-<div><p>If sampling from alternatives for each chooser, this is
-how many to sample.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>interacted</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Merged choosers and alternatives with data repeated either
-len(alternatives) or <cite>sample_size</cite> times.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.logit.make_choices">
-<code class="descclassname">activitysim.core.logit.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em>, <em>trace_label=None</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.make_choices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make choices for each chooser from among a set of alternatives.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Rows for choosers and columns for the alternatives from which they
-are choosing. Values are expected to be valid probabilities across
-each row, e.g. they should sum to 1.</p>
-</div></blockquote>
-<p><strong>trace_choosers</strong> : pandas.dataframe</p>
-<blockquote>
-<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
-by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
-which is indexed on index values from alternatives df</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Maps chooser IDs (from <cite>probs</cite> index) to a choice, where the choice
-is an index into the columns of <cite>probs</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.logit.report_bad_choices">
-<code class="descclassname">activitysim.core.logit.</code><code class="descname">report_bad_choices</code><span class="sig-paren">(</span><em>bad_row_map</em>, <em>df</em>, <em>trace_label</em>, <em>msg</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.report_bad_choices" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bad_row_map</strong></p>
-<p><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>utils or probs dataframe</p>
-</div></blockquote>
-<p><strong>msg</strong> : str</p>
-<blockquote>
-<div><p>message describing the type of bad choice that necessitates error being thrown</p>
-</div></blockquote>
-<p><strong>trace_choosers</strong> : pandas.dataframe</p>
-<blockquote>
-<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
-because we  can’t deduce hh_id from the interaction_dataset which is indexed on index
-values from alternatives df</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">raises RuntimeError</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.logit.utils_to_probs">
-<code class="descclassname">activitysim.core.logit.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>trace_label=None</em>, <em>exponentiated=False</em>, <em>allow_zero_probs=False</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.utils_to_probs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a table of utilities to probabilities.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>utils</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Rows should be choosers and columns should be alternatives.</p>
-</div></blockquote>
-<p><strong>trace_label</strong> : str</p>
-<blockquote>
-<div><p>label for tracing bad utility or probability values</p>
-</div></blockquote>
-<p><strong>exponentiated</strong> : bool</p>
-<blockquote>
-<div><p>True if utilities have already been exponentiated</p>
-</div></blockquote>
-<p><strong>allow_zero_probs</strong> : bool</p>
-<blockquote>
-<div><p>if True value rows in which all utility alts are EXP_UTIL_MIN will result
-in rows in probs to have all zero probability (and not sum to 1.0)
-This si for hte benefit of calculating probabilities of nested logit nests</p>
-</div></blockquote>
-<p><strong>trace_choosers</strong> : pandas.dataframe</p>
-<blockquote>
-<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
-by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
-which is indexed on index values from alternatives df</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the same index and columns as <cite>utils</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-</div>
 <div class="section" id="pipeline">
-<span id="pipeline-in-detail"></span><h2>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h2>
+<span id="pipeline-in-detail"></span><h3>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h3>
 <p>Data pipeline manager, which manages the list of model steps, runs them via orca, reads
 and writes data tables from/to the pipeline datastore, and supports restarting of the pipeline
 at any model step.</p>
-<div class="section" id="id3">
-<h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id1">
+<h4>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.pipeline"></span><dl class="function">
 <dt id="activitysim.core.pipeline.add_checkpoint">
 <code class="descclassname">activitysim.core.pipeline.</code><code class="descname">add_checkpoint</code><span class="sig-paren">(</span><em>checkpoint_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.add_checkpoint" title="Permalink to this definition">¶</a></dt>
@@ -1451,7 +795,7 @@ so we need to know both the table_name and the checkpoint_name to label the save
 </div>
 </div>
 <div class="section" id="random">
-<span id="random-in-detail"></span><h2>Random<a class="headerlink" href="#random" title="Permalink to this headline">¶</a></h2>
+<span id="random-in-detail"></span><h3>Random<a class="headerlink" href="#random" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim’s random number generation has a number of important features unique to AB modeling:</p>
 <ul class="simple">
 <li>Regression testing, debugging - run the exact model with the same inputs and get exactly the same results.</li>
@@ -1463,7 +807,7 @@ so we need to know both the table_name and the checkpoint_name to label the save
 </ul>
 <p>Random number generation is done using the <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.RandomState.html">numpy Mersenne Twister PNRG</a>.
 ActivitySim seeds on-the-fly and uses a stream of random numbers seeded by the household id, person id, tour id, trip id, the model step offset, and the global seed.
-The equation for calculating the seed looks something along the lines of:</p>
+The logic for calculating the seed is something along the lines of:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chooser_table</span><span class="o">.</span><span class="n">index</span> <span class="o">*</span> <span class="n">number_of_models_for_chooser</span> <span class="o">+</span> <span class="n">chooser_model_offset</span> <span class="o">+</span> <span class="n">global_seed_offset</span>
 
 <span class="k">for</span> <span class="n">example</span>
@@ -1481,8 +825,8 @@ possible across alternative scenarios.  This is done for trips as well, by direc
 <p class="first admonition-title">Note</p>
 <p class="last">The Random module contains max model steps constants by chooser type - household, person, tour, trip - needs to be equal to the number of chooser sub-models.</p>
 </div>
-<div class="section" id="id4">
-<h3>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h4>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.random"></span><dl class="class">
 <dt id="activitysim.core.random.SavedChannelState">
 <em class="property">class </em><code class="descclassname">activitysim.core.random.</code><code class="descname">SavedChannelState</code><a class="headerlink" href="#activitysim.core.random.SavedChannelState" title="Permalink to this definition">¶</a></dt>
@@ -1662,8 +1006,8 @@ and well-known index name corresponding to the channel</p>
 
 <dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.random_for_df">
-<code class="descname">random_for_df</code><span class="sig-paren">(</span><em>df</em>, <em>step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.random_for_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a single floating point random number in range [0, 1) for each row in df
+<code class="descname">random_for_df</code><span class="sig-paren">(</span><em>df</em>, <em>step_name</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.random_for_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return n floating point random numbers in range [0, 1) for each row in df
 using the appropriate random channel for each row.</p>
 <p>Subsequent calls (in the same step) will return the next rand for each df row</p>
 <p>The resulting array will be the same length (and order) as df
@@ -1680,11 +1024,15 @@ method (q.v.) may be used to globally reseed all random streams.</p>
 <blockquote>
 <div><p>df with index name and values corresponding to a registered channel</p>
 </div></blockquote>
+<p><strong>n</strong> : int</p>
+<blockquote>
+<div><p>number of rands desired per df row</p>
+</div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : 1-D ndarray the same length as df</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>rands</strong> : 2-D ndarray</p>
 <blockquote class="last">
-<div><p>a single float in range [0, 1) for each row in df</p>
+<div><p>array the same length as df, with n floats in range [0, 1) for each df row</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1727,7 +1075,7 @@ rands for each choice_for_df row_state row</p>
 </div>
 </div>
 <div class="section" id="tracing">
-<h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h2>
+<h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
 <p>Household tracer.  If a household trace ID is specified, then ActivitySim will output a
 comprehensive set of trace files for all calculations for all household members:</p>
 <ul class="simple">
@@ -1736,8 +1084,8 @@ comprehensive set of trace files for all calculations for all household members:
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
-<div class="section" id="id5">
-<h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.tracing"></span><dl class="function">
 <dt id="activitysim.core.tracing.config_logger">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">config_logger</code><span class="sig-paren">(</span><em>custom_config_file=None</em>, <em>basic=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.config_logger" title="Permalink to this definition">¶</a></dt>
@@ -1821,13 +1169,13 @@ help debug data and/or logic errors.</p>
 
 <dl class="function">
 <dt id="activitysim.core.tracing.interaction_trace_rows">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">interaction_trace_rows</code><span class="sig-paren">(</span><em>interaction_df</em>, <em>choosers</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.interaction_trace_rows" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.tracing.</code><code class="descname">interaction_trace_rows</code><span class="sig-paren">(</span><em>interaction_df</em>, <em>choosers</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.interaction_trace_rows" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trace model design for interaction_simulate</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>model_design: pandas.DataFrame</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>interaction_df: pandas.DataFrame</strong></p>
 <blockquote>
 <div><p>traced model_design dataframe</p>
 </div></blockquote>
@@ -1836,15 +1184,21 @@ help debug data and/or logic errors.</p>
 <div><p>interaction_simulate choosers
 (needed to filter the model_design dataframe by traced hh or person id)</p>
 </div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>trace_rows</strong> : numpy.ndarray</p>
+<p><strong>sample_size int or None</strong></p>
 <blockquote>
-<div><p>array of booleans to select values in eval_interaction_utilities df to trace</p>
+<div><p>int for constant sample size, or None if choosers have different numbers of alternatives</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>——-</strong></p>
+<p><strong>trace_rows</strong> : numpy.ndarray</p>
+<blockquote>
+<div><p>array of booleans to flag which rows in interaction_df to trace</p>
 </div></blockquote>
 <p><strong>trace_ids</strong> : tuple (str,  numpy.ndarray)</p>
 <blockquote class="last">
-<div><p>column name and array of trace_ids for use by</p>
+<div><p>column name and array of trace_ids mapping trace_rows to their target_id
+for use by trace_interaction_eval_results which needs to know target_id
+so it can create separate tables for each distinct target for readability</p>
 </div></blockquote>
 </td>
 </tr>
@@ -2157,7 +1511,6 @@ This allows us to slice by tour_id without requiring presence of person_id colum
 <blockquote>
 <div><p>traced model_design dataframe</p>
 </div></blockquote>
-<p><strong>trace_ids: pandas.DataFrame</strong></p>
 <p><strong>trace_ids</strong> : tuple (str,  numpy.ndarray)</p>
 <blockquote>
 <div><p>column name and array of trace_ids from interaction_trace_rows()
@@ -2215,12 +1568,764 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 
 </div>
 </div>
-<div class="section" id="assign">
-<h2>Assign<a class="headerlink" href="#assign" title="Permalink to this headline">¶</a></h2>
-<p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
-This is used by the <a class="reference internal" href="models.html#activitysim.abm.models.accessibility.compute_accessibility" title="activitysim.abm.models.accessibility.compute_accessibility"><code class="xref py py-func docutils literal"><span class="pre">compute_accessibility()</span></code></a>  module.</p>
+</div>
+<div class="section" id="utility-expressions">
+<h2>Utility Expressions<a class="headerlink" href="#utility-expressions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="sampling-with-interaction">
+<h3>Sampling with Interaction<a class="headerlink" href="#sampling-with-interaction" title="Permalink to this headline">¶</a></h3>
+<p>Methods for expression handling, solving, and sampling (i.e. making multiple choices),
+with interaction with the chooser table.</p>
+<p>Sampling is done with replacement and a sample correction factor is calculated.  The factor is
+calculated as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">freq</span> <span class="o">=</span> <span class="n">how</span> <span class="n">often</span> <span class="n">an</span> <span class="n">alternative</span> <span class="ow">is</span> <span class="n">sampled</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">the</span> <span class="n">pick_count</span><span class="p">)</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">alternative</span>
+<span class="n">correction_factor</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">freq</span><span class="o">/</span><span class="n">prob</span><span class="p">)</span>
+
+<span class="c1">#for example:</span>
+
+<span class="n">freq</span>              <span class="mf">1.00</span>        <span class="mf">2.00</span>    <span class="mf">3.00</span>    <span class="mf">4.00</span>    <span class="mf">5.00</span>
+<span class="n">prob</span>              <span class="mf">0.30</span>        <span class="mf">0.30</span>    <span class="mf">0.30</span>    <span class="mf">0.30</span>    <span class="mf">0.30</span>
+<span class="n">correction</span> <span class="n">factor</span> <span class="mf">1.20</span>        <span class="mf">1.90</span>    <span class="mf">2.30</span>    <span class="mf">2.59</span>    <span class="mf">2.81</span>
+</pre></div>
+</div>
+<p>As the alternative is oversampled, its utility goes up for final selection.  The unique set
+of alternatives is passed to the final choice model and the correction factor is
+included in the utility.</p>
+<div class="section" id="id4">
+<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.interaction_sample"></span><dl class="function">
+<dt id="activitysim.core.interaction_sample.interaction_sample">
+<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">interaction_sample</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>sample_size</em>, <em>alt_col_name=None</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a simulation in the situation in which alternatives must
+be merged with choosers because there are interaction terms or
+because alternatives are being sampled.</p>
+<p>optionally (if chunk_size &gt; 0) iterates over choosers in chunk_size chunks</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of choosers</p>
+</div></blockquote>
+<p><strong>alternatives</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of alternatives - will be merged with choosers and sampled</p>
+</div></blockquote>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A Pandas DataFrame that gives the specification of the variables to
+compute and the coefficients for each variable.
+Variable specifications must be in the table index and the
+table should have only one column of coefficients.</p>
+</div></blockquote>
+<p><strong>sample_size</strong> : int, optional</p>
+<blockquote>
+<div><p>Sample alternatives with sample of given size.  By default is None,
+which does not sample alternatives.</p>
+</div></blockquote>
+<p><strong>alt_col_name: str or None</strong></p>
+<blockquote>
+<div><p>name to give the sampled_alternative column</p>
+</div></blockquote>
+<p><strong>skims</strong> : Skims object</p>
+<blockquote>
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>chunk_size</strong> : int</p>
+<blockquote>
+<div><p>if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
+</div></blockquote>
+<p><strong>trace_label: str</strong></p>
+<blockquote>
+<div><p>This is the label to be used  for trace log file entries and dump file names
+when household tracing enabled. No tracing occurs if label is empty or None.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ret</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>A series where index should match the index of the choosers DataFrame
+and values will match the index of the alternatives DataFrame -
+choices are simulated in the standard Monte Carlo fashion</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.interaction_sample.make_sample_choices">
+<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">make_sample_choices</code><span class="sig-paren">(</span><em>choosers</em>, <em>probs</em>, <em>interaction_utilities</em>, <em>sample_size</em>, <em>alternative_count</em>, <em>alt_col_name</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.make_sample_choices" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong></p>
+<p><strong>probs</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>one row per chooser and one column per alternative</p>
+</div></blockquote>
+<p><strong>interaction_utilities</strong></p>
+<blockquote>
+<div><p>dataframe  with len(interaction_df) rows and one utility column</p>
+</div></blockquote>
+<p><strong>sample_size</strong> : int</p>
+<blockquote>
+<div><p>number of samples/choices to make</p>
+</div></blockquote>
+<p><strong>alternative_count</strong></p>
+<p><strong>alt_col_name</strong></p>
+<p class="last"><strong>trace_label</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="simulate">
+<h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
+<p>Methods for expression handling, solving, choosing (i.e. making choices)</p>
+<div class="section" id="id5">
+<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.simulate"></span><dl class="function">
+<dt id="activitysim.core.simulate.add_skims">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">add_skims</code><span class="sig-paren">(</span><em>df</em>, <em>skims</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.add_skims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
+using the parameters of the skims object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Table to which to add skim data as new columns.
+<cite>df</cite> is modified in-place.</p>
+</div></blockquote>
+<p><strong>skims</strong> : SkimDictWrapper object</p>
+<blockquote class="last">
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.chunked_choosers_and_alts">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">chunked_choosers_and_alts</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>rows_per_chunk</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.chunked_choosers_and_alts" title="Permalink to this definition">¶</a></dt>
+<dd><p>like chunked_choosers, but also chunks alternatives
+for use with sampled alternatives which will have different alternatives (and numbers of alts)</p>
+<p>There may be up to sample_size (or as few as one) alternatives for each chooser
+because alternatives may have been sampled more than once,  but pick_count for those
+alternatives will always sum to sample_size.</p>
+<p>When we chunk the choosers, we need to take care chunking the alternatives as there are
+varying numbers of them for each chooser. Since alternatives appear in the same order
+as choosers, we can use cumulative pick_counts to identify boundaries of sets of alternatives</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong></p>
+<p><strong>alternatives</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>sample alternatives including pick_count column in same order as choosers</p>
+</div></blockquote>
+<p><strong>rows_per_chunk</strong> : int</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>i</strong> : int</p>
+<blockquote>
+<div><p>one-based index of current chunk</p>
+</div></blockquote>
+<p><strong>num_chunks</strong> : int</p>
+<blockquote>
+<div><p>total number of chunks that will be yielded</p>
+</div></blockquote>
+<p><strong>choosers</strong> : pandas DataFrame slice</p>
+<blockquote>
+<div><p>chunk of choosers</p>
+</div></blockquote>
+<p><strong>alternatives</strong> : pandas DataFrame slice</p>
+<blockquote class="last">
+<div><p>chunk of alternatives for chooser chunk</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.compute_base_probabilities">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute base probabilities for nest leaves
+Base probabilities will be the nest-adjusted probabilities of all leaves
+This flattens or normalizes all the nested probabilities so that they have the proper global
+relative values (the leaf probabilities sum to 1 for each row.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>dataframe with the nested probabilities for nest leafs and nodes</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>——-</strong></p>
+<p><strong>base_probabilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.compute_nested_exp_utilities">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_nested_exp_utilities</code><span class="sig-paren">(</span><em>raw_utilities</em>, <em>nest_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_nested_exp_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute exponentiated nest utilities based on nesting coefficients</p>
+<p>For nest nodes this is the exponentiated logsum of alternatives adjusted by nesting coefficient</p>
+<p>leaf &lt;- exp( raw_utility )
+nest &lt;- exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>raw_utilities</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>dataframe with the raw alternative utilities of all leaves
+(what in non-nested logit would be the utilities of all the alternatives)</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nested_utilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>raw_utilities</cite> and columns for exponentiated leaf and node utilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.compute_nested_probabilities">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_nested_probabilities</code><span class="sig-paren">(</span><em>nested_exp_utilities</em>, <em>nest_spec</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_nested_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute nested probabilities for nest leafs and nodes
+probability for nest alternatives is simply the alternatives’s local (to nest) probability
+computed in the same way as the probability of non-nested alternatives in multinomial logit
+i.e. the fractional share of the sum of the exponentiated utility of itself and its siblings
+except in nested logit, its sib group is restricted to the nest</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_exp_utilities</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>dataframe with the exponentiated nested utilities of all leaves and nodes</p>
+</div></blockquote>
+<p><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>——-</strong></p>
+<p><strong>nested_probabilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.eval_mnl">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_mnl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>locals_d</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a simulation for when the model spec does not involve alternative
+specific data, e.g. there are no interactions with alternative
+properties and no need to sample from alternatives.</p>
+<p>Each row in spec computes a partial utility for each alternative,
+by providing a spec expression (often a boolean 0-1 trigger)
+and a column of utility coefficients for each alternative.</p>
+<p>We compute the utility of each alternative by matrix-multiplication of eval results
+with the utility coefficients in the spec alternative columns
+yielding one row per chooser and one column per alternative</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A table of variable specifications and coefficient values.
+Variable expressions should be in the table index and the table
+should have a column for each alternative.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict or None</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>trace_label: str</strong></p>
+<blockquote>
+<div><p>This is the label to be used  for trace log file entries and dump file names
+when household tracing enabled. No tracing occurs if label is empty or None.</p>
+</div></blockquote>
+<p><strong>trace_choice_name: str</strong></p>
+<blockquote>
+<div><p>This is the column label to be used in trace file csv dump of choices</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
+of <cite>spec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.eval_mnl_logsums">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_mnl_logsums</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>locals_d</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl_logsums" title="Permalink to this definition">¶</a></dt>
+<dd><p>like eval_nl except return logsums instead of making choices</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logsums</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Index will be that of <cite>choosers</cite>, values will be logsum across spec column values</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.eval_nl">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_nl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>locals_d</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a nested-logit simulation for when the model spec does not involve alternative
+specific data, e.g. there are no interactions with alternative
+properties and no need to sample from alternatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A table of variable specifications and coefficient values.
+Variable expressions should be in the table index and the table
+should have a column for each alternative.</p>
+</div></blockquote>
+<p><strong>nest_spec:</strong></p>
+<blockquote>
+<div><p>dictionary specifying nesting structure and nesting coefficients
+(from the model spec yaml file)</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict or None</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>trace_label: str</strong></p>
+<blockquote>
+<div><p>This is the label to be used  for trace log file entries and dump file names
+when household tracing enabled. No tracing occurs if label is empty or None.</p>
+</div></blockquote>
+<p><strong>trace_choice_name: str</strong></p>
+<blockquote>
+<div><p>This is the column label to be used in trace file csv dump of choices</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
+of <cite>spec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.eval_nl_logsums">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_nl_logsums</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>locals_d</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl_logsums" title="Permalink to this definition">¶</a></dt>
+<dd><p>like eval_nl except return logsums instead of making choices</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logsums</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Index will be that of <cite>choosers</cite>, values will be nest logsum based on spec column values</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.eval_variables">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_variables</code><span class="sig-paren">(</span><em>exprs</em>, <em>df</em>, <em>locals_d=None</em>, <em>target_type=&lt;type 'numpy.float64'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a set of variable expressions from a spec in the context
+of a given data table.</p>
+<p>There are two kinds of supported expressions: “simple” expressions are
+evaluated in the context of the DataFrame using DataFrame.eval.
+This is the default type of expression.</p>
+<p>Python expressions are evaluated in the context of this function using
+Python’s eval function. Because we use Python’s eval this type of
+expression supports more complex operations than a simple expression.
+Python expressions are denoted by beginning with the &#64; character.
+Users should take care that these expressions must result in
+a Pandas Series.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>exprs</strong> : sequence of str</p>
+<p><strong>df</strong> : pandas.DataFrame</p>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>target_type: dtype or None</strong></p>
+<blockquote>
+<div><p>type to coerce results or None if no coercion desired</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>df</cite> and columns of eval results of <cite>exprs</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.read_model_spec">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">read_model_spec</code><span class="sig-paren">(</span><em>fpath</em>, <em>fname</em>, <em>description_name='Description'</em>, <em>expression_name='Expression'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
+<p>The CSV is expected to have columns for component descriptions
+and expressions, plus one or more alternatives.</p>
+<p>The CSV is required to have a header with column names. For example:</p>
+<blockquote>
+<div>Description,Expression,alt0,alt1,alt2</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fpath</strong> : str</p>
+<blockquote>
+<div><p>path to directory containing file.</p>
+</div></blockquote>
+<p><strong>fname</strong> : str</p>
+<blockquote>
+<div><p>Name of a CSV spec file</p>
+</div></blockquote>
+<p><strong>description_name</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
+</div></blockquote>
+<p><strong>expression_name</strong> : str, optional</p>
+<blockquote>
+<div><p>Name of the column in <cite>fname</cite> that contains the component expression.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>The description column is dropped from the returned data and the
+expression values are set as the table index.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.simple_simulate">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run an MNL or NL simulation for when the model spec does not involve alternative
+specific data, e.g. there are no interactions with alternative
+properties and no need to sample from alternatives.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.simple_simulate_logsums">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">simple_simulate_logsums</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_logsums" title="Permalink to this definition">¶</a></dt>
+<dd><p>like simple_simulate except return logsums instead of making choices</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logsums</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>Index will be that of <cite>choosers</cite>, values will be nest logsum based on spec column values</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="simulate-with-interaction">
+<h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
+<p>Methods for expression handling, solving, choosing (i.e. making choices),
+with interaction with the chooser table.</p>
 <div class="section" id="id6">
-<h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.interaction_simulate"></span><dl class="function">
+<dt id="activitysim.core.interaction_simulate.eval_interaction_utilities">
+<code class="descclassname">activitysim.core.interaction_simulate.</code><code class="descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em>spec</em>, <em>df</em>, <em>locals_d</em>, <em>trace_label</em>, <em>trace_rows</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_simulate.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the utilities for a single-alternative spec evaluated in the context of df</p>
+<p>We could compute the utilities for interaction datasets just as we do for simple_simulate
+specs with multiple alternative columns byt calling eval_variables and then computing the
+utilities by matrix-multiplication of eval results with the utility coefficients in the
+spec alternative columns.</p>
+<p>But interaction simulate computes the utilities of each alternative in the context of a
+separate row in interaction dataset df, and so there is only one alternative in spec.
+This turns out to be quite a bit faster (in this special case) than the pandas dot function.</p>
+<p>For efficiency, we combine eval_variables and multiplication of coefficients into a single step,
+so we don’t have to create a separate column for each partial utility. Instead, we simply
+multiply the eval result by a single alternative coefficient and sum the partial utilities.</p>
+<dl class="docutils">
+<dt>spec <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
+<dd>one row per spec expression and one col with utility coefficient</dd>
+<dt>df <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
+<dd>cross join (cartesian product) of choosers with alternatives
+combines columns of choosers and alternatives
+len(df) == len(choosers) * len(alternatives)
+index values (non-unique) are index values from alternatives df</dd>
+<dt>interaction_utilities <span class="classifier-delimiter">:</span> <span class="classifier">dataframe</span></dt>
+<dd>the utility of each alternative is sum of the partial utilities determined by the
+various spec expressions and their corresponding coefficients
+yielding a dataframe  with len(interaction_df) rows and one utility column
+having the same index as interaction_df (non-unique values from alternatives df)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the index of <cite>df</cite> and a single column of utilities</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.interaction_simulate.interaction_simulate">
+<code class="descclassname">activitysim.core.interaction_simulate.</code><code class="descname">interaction_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>sample_size=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_simulate.interaction_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a simulation in the situation in which alternatives must
+be merged with choosers because there are interaction terms or
+because alternatives are being sampled.</p>
+<p>optionally (if chunk_size &gt; 0) iterates over choosers in chunk_size chunks</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of choosers</p>
+</div></blockquote>
+<p><strong>alternatives</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of alternatives - will be merged with choosers, currently
+without sampling</p>
+</div></blockquote>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A Pandas DataFrame that gives the specification of the variables to
+compute and the coefficients for each variable.
+Variable specifications must be in the table index and the
+table should have only one column of coefficients.</p>
+</div></blockquote>
+<p><strong>skims</strong> : Skims object</p>
+<blockquote>
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>sample_size</strong> : int, optional</p>
+<blockquote>
+<div><p>Sample alternatives with sample of given size.  By default is None,
+which does not sample alternatives.</p>
+</div></blockquote>
+<p><strong>chunk_size</strong> : int</p>
+<blockquote>
+<div><p>if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
+</div></blockquote>
+<p><strong>trace_label: str</strong></p>
+<blockquote>
+<div><p>This is the label to be used  for trace log file entries and dump file names
+when household tracing enabled. No tracing occurs if label is empty or None.</p>
+</div></blockquote>
+<p><strong>trace_choice_name: str</strong></p>
+<blockquote>
+<div><p>This is the column label to be used in trace file csv dump of choices</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>A series where index should match the index of the choosers DataFrame
+and values will match the index of the alternatives DataFrame -
+choices are simulated in the standard Monte Carlo fashion</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="simulate-with-sampling-and-interaction">
+<h3>Simulate with Sampling and Interaction<a class="headerlink" href="#simulate-with-sampling-and-interaction" title="Permalink to this headline">¶</a></h3>
+<p>Methods for expression handling, solving, sampling (i.e. making multiple choices),
+and choosing (i.e. making choices), with interaction with the chooser table.</p>
+<div class="section" id="id7">
+<h4>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.interaction_sample_simulate"></span><dl class="function">
+<dt id="activitysim.core.interaction_sample_simulate.interaction_sample_simulate">
+<code class="descclassname">activitysim.core.interaction_sample_simulate.</code><code class="descname">interaction_sample_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>choice_column=None</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a simulation in the situation in which alternatives must
+be merged with choosers because there are interaction terms or
+because alternatives are being sampled.</p>
+<p>optionally (if chunk_size &gt; 0) iterates over choosers in chunk_size chunks</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of choosers</p>
+</div></blockquote>
+<p><strong>alternatives</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>DataFrame of alternatives - will be merged with choosers</p>
+</div></blockquote>
+<p><strong>spec</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>A Pandas DataFrame that gives the specification of the variables to
+compute and the coefficients for each variable.
+Variable specifications must be in the table index and the
+table should have only one column of coefficients.</p>
+</div></blockquote>
+<p><strong>skims</strong> : Skims object</p>
+<blockquote>
+<div><p>The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
+</div></blockquote>
+<p><strong>locals_d</strong> : Dict</p>
+<blockquote>
+<div><p>This is a dictionary of local variables that will be the environment
+for an evaluation of an expression that begins with &#64;</p>
+</div></blockquote>
+<p><strong>chunk_size</strong> : int</p>
+<blockquote>
+<div><p>if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
+</div></blockquote>
+<p><strong>trace_label: str</strong></p>
+<blockquote>
+<div><p>This is the label to be used  for trace log file entries and dump file names
+when household tracing enabled. No tracing occurs if label is empty or None.</p>
+</div></blockquote>
+<p><strong>trace_choice_name: str</strong></p>
+<blockquote>
+<div><p>This is the column label to be used in trace file csv dump of choices</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>A series where index should match the index of the choosers DataFrame
+and values will match the index of the alternatives DataFrame -
+choices are simulated in the standard Monte Carlo fashion</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="assign">
+<h3>Assign<a class="headerlink" href="#assign" title="Permalink to this headline">¶</a></h3>
+<p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
+Temporary variables are identified in the expressions as starting with “_”, such as “_hh_density_bin”.  These
+fields are not saved to the data pipeline store.  This feature is used by the
+<a class="reference internal" href="models.html#activitysim.abm.models.accessibility.compute_accessibility" title="activitysim.abm.models.accessibility.compute_accessibility"><code class="xref py py-func docutils literal"><span class="pre">compute_accessibility()</span></code></a> module.</p>
+<div class="section" id="id8">
+<h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.assign"></span><dl class="function">
 <dt id="activitysim.core.assign.assign_variables">
 <code class="descclassname">activitysim.core.assign.</code><code class="descname">assign_variables</code><span class="sig-paren">(</span><em>assignment_expressions</em>, <em>df</em>, <em>locals_dict</em>, <em>df_alias=None</em>, <em>trace_rows=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.assign_variables" title="Permalink to this definition">¶</a></dt>
@@ -2272,7 +2377,7 @@ the result of evaluating expression</p>
 
 <dl class="function">
 <dt id="activitysim.core.assign.read_assignment_spec">
-<code class="descclassname">activitysim.core.assign.</code><code class="descname">read_assignment_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name=’Description’</em>, <em>target_name=’Target’</em>, <em>expression_name=’Expression’</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.read_assignment_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.assign.</code><code class="descname">read_assignment_spec</code><span class="sig-paren">(</span><em>fname</em>, <em>description_name='Description'</em>, <em>target_name='Target'</em>, <em>expression_name='Expression'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.read_assignment_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
 <p>The CSV is expected to have columns for component descriptions
 targets, and expressions,</p>
@@ -2313,7 +2418,7 @@ targets, and expressions,</p>
 
 <dl class="function">
 <dt id="activitysim.core.assign.undupe_column_names">
-<code class="descclassname">activitysim.core.assign.</code><code class="descname">undupe_column_names</code><span class="sig-paren">(</span><em>df</em>, <em>template=’{} ({})’</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.undupe_column_names" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.assign.</code><code class="descname">undupe_column_names</code><span class="sig-paren">(</span><em>df</em>, <em>template='{} ({})'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.undupe_column_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>rename df column names so there are no duplicates (in place)</p>
 <p>e.g. if there are two columns named “dog”, the second column will be reformatted to “dog (2)”</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2339,12 +2444,264 @@ targets, and expressions,</p>
 
 </div>
 </div>
+</div>
+<div class="section" id="choice-models">
+<h2>Choice Models<a class="headerlink" href="#choice-models" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="logit">
+<span id="logit-in-detail"></span><h3>Logit<a class="headerlink" href="#logit" title="Permalink to this headline">¶</a></h3>
+<p>Multinomial logit (MNL) or Nested logit (NL) choice model.  These choice models depend on the foundational components of ActivitySim, such
+as the expressions and data handling described in the <a class="reference internal" href="howitworks.html#id1"><span class="std std-ref">Execution Flow</span></a> section.</p>
+<p>To specify and solve an MNL model:</p>
+<ul class="simple">
+<li>either specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">MNL</span></code> in the model configuration YAML file or omit the setting</li>
+<li>call either <code class="docutils literal"><span class="pre">simulate.simple_simulate()</span></code> or <code class="docutils literal"><span class="pre">simulate.interaction_simulate()</span></code> depending if the alternatives are interacted with the choosers or because alternatives are sampled</li>
+</ul>
+<p>To specify and solve an NL model:</p>
+<ul class="simple">
+<li>specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">NL</span></code> in the model configuration YAML file</li>
+<li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></li>
+<li>call <code class="docutils literal"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</li>
+</ul>
+<div class="section" id="id9">
+<h4>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.logit"></span><dl class="class">
+<dt id="activitysim.core.logit.Nest">
+<em class="property">class </em><code class="descclassname">activitysim.core.logit.</code><code class="descname">Nest</code><span class="sig-paren">(</span><em>name=None</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Data for a nest-logit node or leaf</p>
+<p>This object is passed on yield when iterate over nest nodes (branch or leaf)
+The nested logit design is stored in a yaml file as a tree of dict objects,
+but using an object to pass the nest data makes the code a little more readable</p>
+<p>An example nest specification is in the example tour mode choice model
+yaml configuration file - example/configs/tour_mode_choice.yaml.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.logit.each_nest">
+<code class="descclassname">activitysim.core.logit.</code><code class="descname">each_nest</code><span class="sig-paren">(</span><em>nest_spec</em>, <em>type=None</em>, <em>post_order=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.each_nest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over each nest or leaf node in the tree (of subtree)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nest_spec</strong> : dict</p>
+<blockquote>
+<div><p>Nest tree dict from the model spec yaml file</p>
+</div></blockquote>
+<p><strong>type</strong> : str</p>
+<blockquote>
+<div><p>Nest class type to yield
+None yields all nests
+‘leaf’ yields only leaf nodes
+‘branch’ yields only branch nodes</p>
+</div></blockquote>
+<p><strong>post_order</strong> : Bool</p>
+<blockquote>
+<div><p>Should we iterate over the nodes of the tree in post-order or pre-order?
+(post-order means we yield the alternatives sub-tree before current node.)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>nest</strong> : Nest</p>
+<blockquote class="last">
+<div><p>Nest object with info about the current node (nest or leaf)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.logit.interaction_dataset">
+<code class="descclassname">activitysim.core.logit.</code><code class="descname">interaction_dataset</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.interaction_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine choosers and alternatives into one table for the purposes
+of creating interaction variables and/or sampling alternatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
+<p><strong>alternatives</strong> : pandas.DataFrame</p>
+<p><strong>sample_size</strong> : int, optional</p>
+<blockquote>
+<div><p>If sampling from alternatives for each chooser, this is
+how many to sample.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>alts_sample</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Merged choosers and alternatives with data repeated either
+len(alternatives) or <cite>sample_size</cite> times.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.logit.make_choices">
+<code class="descclassname">activitysim.core.logit.</code><code class="descname">make_choices</code><span class="sig-paren">(</span><em>probs</em>, <em>trace_label=None</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.make_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make choices for each chooser from among a set of alternatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Rows for choosers and columns for the alternatives from which they
+are choosing. Values are expected to be valid probabilities across
+each row, e.g. they should sum to 1.</p>
+</div></blockquote>
+<p><strong>trace_choosers</strong> : pandas.dataframe</p>
+<blockquote>
+<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
+which is indexed on index values from alternatives df</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
+<blockquote>
+<div><p>Maps chooser IDs (from <cite>probs</cite> index) to a choice, where the choice
+is an index into the columns of <cite>probs</cite>.</p>
+</div></blockquote>
+<p><strong>rands</strong> : pandas.Series</p>
+<blockquote class="last">
+<div><p>The random numbers used to make the choices (for debugging, tracing)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.logit.report_bad_choices">
+<code class="descclassname">activitysim.core.logit.</code><code class="descname">report_bad_choices</code><span class="sig-paren">(</span><em>bad_row_map</em>, <em>df</em>, <em>trace_label</em>, <em>msg</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.report_bad_choices" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bad_row_map</strong></p>
+<p><strong>df</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>utils or probs dataframe</p>
+</div></blockquote>
+<p><strong>msg</strong> : str</p>
+<blockquote>
+<div><p>message describing the type of bad choice that necessitates error being thrown</p>
+</div></blockquote>
+<p><strong>trace_choosers</strong> : pandas.dataframe</p>
+<blockquote>
+<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+because we  can’t deduce hh_id from the interaction_dataset which is indexed on index
+values from alternatives df</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">raises RuntimeError</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.logit.utils_to_probs">
+<code class="descclassname">activitysim.core.logit.</code><code class="descname">utils_to_probs</code><span class="sig-paren">(</span><em>utils</em>, <em>trace_label=None</em>, <em>exponentiated=False</em>, <em>allow_zero_probs=False</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.utils_to_probs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a table of utilities to probabilities.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>utils</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Rows should be choosers and columns should be alternatives.</p>
+</div></blockquote>
+<p><strong>trace_label</strong> : str</p>
+<blockquote>
+<div><p>label for tracing bad utility or probability values</p>
+</div></blockquote>
+<p><strong>exponentiated</strong> : bool</p>
+<blockquote>
+<div><p>True if utilities have already been exponentiated</p>
+</div></blockquote>
+<p><strong>allow_zero_probs</strong> : bool</p>
+<blockquote>
+<div><p>if True value rows in which all utility alts are EXP_UTIL_MIN will result
+in rows in probs to have all zero probability (and not sum to 1.0)
+This si for hte benefit of calculating probabilities of nested logit nests</p>
+</div></blockquote>
+<p><strong>trace_choosers</strong> : pandas.dataframe</p>
+<blockquote>
+<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
+which is indexed on index values from alternatives df</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
+<blockquote class="last">
+<div><p>Will have the same index and columns as <cite>utils</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="helpers">
+<h2>Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="utilities">
-<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <p>Vectorized helper functions</p>
-<div class="section" id="id7">
-<h3>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id10">
+<h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="function">
+<dt id="activitysim.core.util.left_merge_on_index_and_col">
+<code class="descclassname">activitysim.core.util.</code><code class="descname">left_merge_on_index_and_col</code><span class="sig-paren">(</span><em>left_df</em>, <em>right_df</em>, <em>join_col</em>, <em>target_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.left_merge_on_index_and_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>like pandas left merge, but join on both index and a specified join_col</p>
+<p>FIXME - for now return a series of ov values from specified right_df target_col</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>left_df</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>index name assumed to be same as that of right_df</p>
+</div></blockquote>
+<p><strong>right_df</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>index name assumed to be same as that of left_df</p>
+</div></blockquote>
+<p><strong>join_col</strong> : str</p>
+<blockquote>
+<div><p>name of column to join on (in addition to index values)
+should have same name in both dataframes</p>
+</div></blockquote>
+<p><strong>target_col</strong> : str</p>
+<blockquote>
+<div><p>name of column from right_df whose joined values should be returned as series</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>target_series</strong> : pandas Series</p>
+<blockquote class="last">
+<div><p>series of target_col values with same index as left_df
+i.e. values joined to left_df from right_df with index of left_df</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.util.other_than">
 <code class="descclassname">activitysim.core.util.</code><code class="descname">other_than</code><span class="sig-paren">(</span><em>groups</em>, <em>bools</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.other_than" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a Series that has booleans indicating the presence of
@@ -2456,10 +2813,10 @@ table and would require a second step to change the index.</p>
 </div>
 </div>
 <div class="section" id="config">
-<h2>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h2>
+<h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for configuring a model run</p>
-<div class="section" id="id8">
-<h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id11">
+<h4>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.config"></span><dl class="function">
 <dt id="activitysim.core.config.get_logit_model_settings">
 <code class="descclassname">activitysim.core.config.</code><code class="descname">get_logit_model_settings</code><span class="sig-paren">(</span><em>model_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.get_logit_model_settings" title="Permalink to this definition">¶</a></dt>
@@ -2503,10 +2860,10 @@ table and would require a second step to change the index.</p>
 </div>
 </div>
 <div class="section" id="inject-defaults">
-<h2>Inject_Defaults<a class="headerlink" href="#inject-defaults" title="Permalink to this headline">¶</a></h2>
+<h3>Inject_Defaults<a class="headerlink" href="#inject-defaults" title="Permalink to this headline">¶</a></h3>
 <p>Default file and folder settings</p>
-<div class="section" id="id9">
-<h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id12">
+<h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject_defaults"></span><dl class="function">
 <dt id="activitysim.core.inject_defaults.pipeline_path">
 <code class="descclassname">activitysim.core.inject_defaults.</code><code class="descname">pipeline_path</code><span class="sig-paren">(</span><em>output_dir</em>, <em>settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject_defaults.pipeline_path" title="Permalink to this definition">¶</a></dt>
@@ -2516,8 +2873,9 @@ table and would require a second step to change the index.</p>
 </div>
 </div>
 <div class="section" id="tests">
-<h2>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h2>
+<h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
 <p>See activitysim.core.tests</p>
+</div>
 </div>
 </div>
 
@@ -2575,7 +2933,7 @@ table and would require a second step to change the index.</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

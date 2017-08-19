@@ -91,6 +91,7 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
@@ -181,11 +182,12 @@ each simulation as a series of vectorized table operations and the Python layer
 is responsible for setting up and providing expressions to operate on these large data tables.</p>
 <div class="section" id="data-handling">
 <h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim operates on two data formats, <a class="reference external" href="https://www.hdfgroup.org/HDF5/">HDF5</a>
-and <a class="reference external" href="https://github.com/osPlanning/omx">Open Matrix (OMX)</a>.
-The HDF5 binary data container is used for managing flat files, including land use
-inputs, synthetic population files, and accessibility files.
-OMX, which is based on HDF5 as well, is used for managing network skims.</p>
+<p>ActivitySim works with three open data formats, <a class="reference external" href="https://www.hdfgroup.org/HDF5/">HDF5</a>
+, <a class="reference external" href="https://github.com/osPlanning/omx">Open Matrix (OMX)</a>, and <a class="reference external" href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a> .
+The HDF5 binary data container is used for input tables such as land use inputs, synthetic
+population files, and accessibility files. HDF5 is also used for the <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a> data store.
+OMX, which is based on HDF5, is used for input and output matrices (skims and demand matrices).  CSV files
+are used for various inputs and outputs as well.</p>
 <p>Three key data structures in ActivitySim are:</p>
 <ul class="simple">
 <li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html">pandas.DataFrame</a> - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table</li>
@@ -237,11 +239,21 @@ in Python and expose these through the framework.</p>
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#example">Example</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abmexample.html#folder-file-setup">Folder/File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abmexample.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abmexample.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abmexample.html#running-the-example-model">Running the Example Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abmexample.html#pipeline">Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abmexample.html#outputs">Outputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abmexample.html#tracing">Tracing</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="howitworks.html#execution-flow">Execution Flow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="howitworks.html#creating-new-tables">Creating New Tables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="howitworks.html#vectorized-3d-skim-indexing">Vectorized 3D Skim Indexing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="howitworks.html#accessibilities-model-step">Accessibilities Model Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="howitworks.html#accessibilities-model">Accessibilities Model</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a><ul>
@@ -256,17 +268,10 @@ in Python and expose these through the framework.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core.html#simulate">Simulate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#skim">Skim</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#logit">Logit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#pipeline">Pipeline</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#random">Random</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#tracing">Tracing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#assign">Assign</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#utilities">Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#config">Config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#inject-defaults">Inject_Defaults</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#tests">Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#data-management">Data Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#utility-expressions">Utility Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#choice-models">Choice Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#helpers">Helpers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
@@ -361,7 +366,7 @@ in Python and expose these through the framework.</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

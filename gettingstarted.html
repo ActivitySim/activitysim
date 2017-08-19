@@ -36,7 +36,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="ActivitySim 0.3dev1 documentation" href="index.html"/>
-        <link rel="next" title="How the System Works" href="howitworks.html"/>
+        <link rel="next" title="Example" href="abmexample.html"/>
         <link rel="prev" title="ActivitySim" href="index.html"/> 
 
   
@@ -107,22 +107,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#example-expressions-file">Example Expressions File</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#example">Example</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#folder-file-setup">Folder/File Setup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#inputs">Inputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#logging-files">Logging Files</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#model-specification-files">Model Specification Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#running-the-example-model">Running the Example Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
@@ -193,7 +181,7 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>This page describes how to install ActivitySim and setup and run the included example AB model.</p>
+<p>This page describes how to get started with ActivitySim.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">ActivitySim is under development</p>
@@ -246,8 +234,8 @@ start a new command session.  You can remove an environment with
 <p>ActivitySim depends on the following libraries, some of which* are pre-installed
 with Anaconda:</p>
 <ul class="simple">
-<li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.8.0 *</li>
-<li><a class="reference external" href="http://pandas.pydata.org">pandas</a> &gt;= 0.18.0 *</li>
+<li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.12.0 *</li>
+<li><a class="reference external" href="http://pandas.pydata.org">pandas</a> &gt;= 0.20.3 *</li>
 <li><a class="reference external" href="http://pyyaml.org/wiki/PyYAML">pyyaml</a> &gt;= 3.0 *</li>
 <li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.3.0 *</li>
 <li><a class="reference external" href="http://toolz.readthedocs.org/en/latest/">toolz</a> or
@@ -443,288 +431,11 @@ The tour mode choice model is a nested logit (NL) model and the nesting structur
 <li>select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions</li>
 <li>repeat for households size 2, 3, 4, and 5. Each model is independent of one another.</li>
 </ul>
-<span class="target" id="index-1"></span></div>
+</div>
 </div>
 <div class="section" id="example">
-<span id="index-2"></span><h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>This section describes how to setup and run the example AB model, as well as how it works.  The example
-is limited to a small sample of households and zones so that it can be run quickly and require less than 1 GB of RAM.</p>
-<div class="section" id="folder-file-setup">
-<h3>Folder/File Setup<a class="headerlink" href="#folder-file-setup" title="Permalink to this headline">¶</a></h3>
-<p>The example has the following root folder/file setup:</p>
-<blockquote>
-<div><ul class="simple">
-<li>configs - settings, expressions files, etc.</li>
-<li>data - input data such as land use, synthetic population files, and skims</li>
-<li>simulation.py - main script to run the model</li>
-</ul>
-</div></blockquote>
-</div>
-<div class="section" id="inputs">
-<h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
-<p>In order to run the example, you first need two input files in the <code class="docutils literal"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal"><span class="pre">configs\settings.yaml</span></code> file:</p>
-<ul>
-<li><p class="first">store: mtc_asim.h5 - an HDF5 file containing the following MTC travel model one tables as pandas DataFrames for a subset of zones:</p>
-<blockquote>
-<div><ul class="simple">
-<li>skims/accessibility - Zone-based accessibility measures</li>
-<li>land_use/taz_data - Zone-based land use data (population and employment for example)</li>
-<li>persons - Synthetic population person records</li>
-<li>households - Synthetic population household records</li>
-</ul>
-</div></blockquote>
-</li>
-<li><p class="first">skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.</p>
-</li>
-</ul>
-<p>Both of these files are used in the tests as well and are available here <code class="docutils literal"><span class="pre">activitysim\defaults\test\data</span></code>.  Alternatively,
-these files can be downloaded from the SF 25 zone example example data folder on
-MTC’s <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  Both files can
-be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.
-The pandas DataFrames are stored in an efficient pandas format within the HDF5 file so they are a
-bit cumbersome to inspect.</p>
-<p>The <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
-This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5
-file.</p>
-<p>The full set of MTC travel model one OMX skims are also on the box account. The <code class="docutils literal"><span class="pre">scripts\build_omx.py</span></code> script
-will build one OMX file containing all the skims. The original MTC travel model one skims were converted from
-Cube to OMX using the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter">Cube to OMX converter</a>.</p>
-<p>Finally, the example inputs were created by the <code class="docutils literal"><span class="pre">scripts\create_sf_example.py</span></code> script,
-which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.</p>
-</div>
-<div class="section" id="configuration">
-<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">configs</span></code> folder contains settings, expressions files, and other files required for specifying
-model utilities and form.  The first place to start in the <code class="docutils literal"><span class="pre">configs</span></code> folder is <code class="docutils literal"><span class="pre">settings.yaml</span></code>, which
-is the main settings file for the model run.  This file includes:</p>
-<ul>
-<li><p class="first"><code class="docutils literal"><span class="pre">store</span></code> - HDF5 input file and also output file</p>
-</li>
-<li><p class="first"><code class="docutils literal"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p>
-</li>
-<li><p class="first"><code class="docutils literal"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p>
-</li>
-<li><p class="first"><code class="docutils literal"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p>
-</li>
-<li><p class="first"><code class="docutils literal"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p>
-</li>
-<li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers</p>
-</li>
-<li><p class="first"><code class="docutils literal"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p>
-</li>
-<li><p class="first">global variables that can be used in expressions tables and Python code such as:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</li>
-<li><code class="docutils literal"><span class="pre">county_map</span></code> - mapping of county codes to county names</li>
-<li><code class="docutils literal"><span class="pre">time_periods</span></code> - time period upper bound values and labels</li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-<div class="section" id="logging-files">
-<h4>Logging Files<a class="headerlink" href="#logging-files" title="Permalink to this headline">¶</a></h4>
-<p>Included in the <code class="docutils literal"><span class="pre">configs</span></code> folder is the <code class="docutils literal"><span class="pre">logging.yaml</span></code>, which configures Python logging
-library and defines two key log files:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">asim.log</span></code> - overall system log file</li>
-<li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing is on</li>
-</ul>
-<p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
-</div>
-<div class="section" id="model-specification-files">
-<h4>Model Specification Files<a class="headerlink" href="#model-specification-files" title="Permalink to this headline">¶</a></h4>
-<p>Included in the <code class="docutils literal"><span class="pre">configs</span></code> folder are the model specification files that store the
-Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
-alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
-of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each
-columns indicates the number of non-mandatory tours by purpose.</p>
-<p>The current set of files are:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">accessibility.csv,</span> <span class="pre">,</span> <span class="pre">accessibility.yaml</span></code> - accessibility model</li>
-<li><code class="docutils literal"><span class="pre">auto_ownership.csv,</span> <span class="pre">auto_ownership.yaml</span></code> - auto ownership model</li>
-<li><code class="docutils literal"><span class="pre">cdap_indiv_and_hhsize1.csv,</span> <span class="pre">cdap_interaction_coefficients.csv,</span> <span class="pre">cdap_fixed_relative_proportions.csv</span></code> - CDAP model</li>
-<li><code class="docutils literal"><span class="pre">destination_choice.csv,</span> <span class="pre">destination_choice_size_terms.csv</span></code> - destination choice model</li>
-<li><code class="docutils literal"><span class="pre">mandatory_tour_frequency.csv</span></code> - mandatory tour frequency model</li>
-<li><code class="docutils literal"><span class="pre">non_mandatory_tour_frequency.csv,</span> <span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> - non mandatory tour frequency model</li>
-<li><code class="docutils literal"><span class="pre">school_location.csv</span></code> - school location model</li>
-<li><code class="docutils literal"><span class="pre">tour_departure_and_duration_alternatives.csv,</span> <span class="pre">tour_departure_and_duration_nonmandatory.csv,</span> <span class="pre">tour_departure_and_duration_school.csv,</span> <span class="pre">tour_departure_and_duration_work.csv</span></code> - tour departure and duration model</li>
-<li><code class="docutils literal"><span class="pre">tour_mode_choice.csv,</span> <span class="pre">tour_mode_choice.yaml,</span> <span class="pre">tour_mode_choice_coeffs.csv</span></code> - tour mode choice model</li>
-<li><code class="docutils literal"><span class="pre">trip_mode_choice.csv,</span> <span class="pre">trip_mode_choice.yaml,</span> <span class="pre">trip_mode_choice_coeffs.csv</span></code> - trip mode choice model</li>
-<li><code class="docutils literal"><span class="pre">workplace_location.csv</span></code> - work location model</li>
-</ul>
-</div>
-</div>
-<div class="section" id="running-the-example-model">
-<h3>Running the Example Model<a class="headerlink" href="#running-the-example-model" title="Permalink to this headline">¶</a></h3>
-<p>To run the example, do the following:</p>
-<ul class="simple">
-<li>Open a command line window in the <code class="docutils literal"><span class="pre">example</span></code> folder</li>
-<li>Activate the correct conda environment if needed</li>
-<li>Run <code class="docutils literal"><span class="pre">python</span> <span class="pre">simulation.py</span></code> to the run data pipeline (i.e. model steps)</li>
-<li>ActivitySim should log some information and write outputs to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.</li>
-</ul>
-<p>The example should complete within a couple minutes since it is running a small sample of households.</p>
-</div>
-<div class="section" id="pipeline">
-<h3>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">simulation.py</span></code> script contains the specification of the data pipeline model steps, as shown below:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">_MODELS</span> <span class="o">=</span> <span class="p">[</span>
-  <span class="s1">&#39;compute_accessibility&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;school_location_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;workplace_location_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;auto_ownership_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;cdap_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;mandatory_tour_frequency&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;mandatory_scheduling&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;non_mandatory_tour_frequency&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;destination_choice&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;non_mandatory_scheduling&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;tour_mode_choice_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;create_simple_trips&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;trip_mode_choice_simulate&#39;</span>
-<span class="p">]</span>
-</pre></div>
-</div>
-<p>These model steps must be registered orca steps, as noted below.  If you provide a <code class="docutils literal"><span class="pre">resume_after</span></code>
-argument to <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> the pipeliner will load checkpointed tables from the checkpoint store
-and resume pipeline processing on the next model step after the specified checkpoint.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">resume_after</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="c1">#resume_after = &#39;mandatory_scheduling&#39;</span>
-</pre></div>
-</div>
-<p>The model is run by calling the <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="n">resume_after</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="outputs">
-<h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h3>
-<p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal"><span class="pre">outputs\pipeline.h5</span></code>.  This file contains the
-state of the key data tables after each model step in which the table was modified.  The
-<code class="docutils literal"><span class="pre">pd.io.pytables.HDFStore('output\pipeline.h5')</span></code> command returns the following information about
-the datastore.  You can see that the number of columns changes as each model step is run.  The checkpoints
-table stores the crosswalk between model steps and table states in order to reload tables for restarting
-the pipeline at any step.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="66%" />
-<col width="9%" />
-<col width="25%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Table</th>
-<th class="head">Type</th>
-<th class="head">[Rows, Columns]</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>/checkpoints</td>
-<td>frame</td>
-<td>(shape-&gt;[14,11])</td>
-</tr>
-<tr class="row-odd"><td>/accessibility/compute_accessibility</td>
-<td>frame</td>
-<td>(shape-&gt;[25,21])</td>
-</tr>
-<tr class="row-even"><td>/households/compute_accessibility</td>
-<td>frame</td>
-<td>(shape-&gt;[100,64])</td>
-</tr>
-<tr class="row-odd"><td>/households/auto_ownership_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[100,67])</td>
-</tr>
-<tr class="row-even"><td>/households/cdap_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[100,68])</td>
-</tr>
-<tr class="row-odd"><td>/land_use/compute_accessibility</td>
-<td>frame</td>
-<td>(shape-&gt;[25,49])</td>
-</tr>
-<tr class="row-even"><td>/mandatory_tours/mandatory_tour_frequency</td>
-<td>frame</td>
-<td>(shape-&gt;[77,4])</td>
-</tr>
-<tr class="row-odd"><td>/mandatory_tours/mandatory_scheduling</td>
-<td>frame</td>
-<td>(shape-&gt;[77,5])</td>
-</tr>
-<tr class="row-even"><td>/non_mandatory_tours/non_mandatory_tour_frequency</td>
-<td>frame</td>
-<td>(shape-&gt;[83,5])</td>
-</tr>
-<tr class="row-odd"><td>/non_mandatory_tours/destination_choice</td>
-<td>frame</td>
-<td>(shape-&gt;[83,6])</td>
-</tr>
-<tr class="row-even"><td>/non_mandatory_tours/non_mandatory_scheduling</td>
-<td>frame</td>
-<td>(shape-&gt;[83,7])</td>
-</tr>
-<tr class="row-odd"><td>/persons/compute_accessibility</td>
-<td>frame</td>
-<td>(shape-&gt;[156,50])</td>
-</tr>
-<tr class="row-even"><td>/persons/school_location_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[156,54])</td>
-</tr>
-<tr class="row-odd"><td>/persons/workplace_location_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[156,59])</td>
-</tr>
-<tr class="row-even"><td>/persons/cdap_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[156,64])</td>
-</tr>
-<tr class="row-odd"><td>/persons/mandatory_tour_frequency</td>
-<td>frame</td>
-<td>(shape-&gt;[156,69])</td>
-</tr>
-<tr class="row-even"><td>/persons/non_mandatory_tour_frequency</td>
-<td>frame</td>
-<td>(shape-&gt;[156,72])</td>
-</tr>
-<tr class="row-odd"><td>/tours/tour_mode_choice_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[160,38])</td>
-</tr>
-<tr class="row-even"><td>/trips/create_simple_trips</td>
-<td>frame</td>
-<td>(shape-&gt;[320,8])</td>
-</tr>
-<tr class="row-odd"><td>/trips/trip_mode_choice_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[320,9])</td>
-</tr>
-</tbody>
-</table>
-<p>The example <code class="docutils literal"><span class="pre">simulation.py</span></code> run model script also writes the final table to a CSV file
-for illustrative purposes by using the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method.  This method
-returns a pandas DataFrame, which can then be written to a CSV with the <code class="docutils literal"><span class="pre">to_csv(file_path)</span></code> method.</p>
-<p>ActivitySim also writes log and trace files to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.  The asim.log file, which
-is the overall log file is always produced.  If tracing is specified, then trace files are output
-as well.</p>
-</div>
-<div class="section" id="tracing">
-<span id="id2"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
-<p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
-is specified, then ActivitySim will output a comprehensive set of trace files for all
-calculations for all household members:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
-<li><code class="docutils literal"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
-</ul>
-<p>If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace
-file:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</li>
-</ul>
-<p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
-help debug data and/or logic errors.</p>
-</div>
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>The next logical step in getting started is to run the <a class="reference internal" href="abmexample.html#example"><span class="std std-ref">Example</span></a>.</p>
 </div>
 </div>
 
@@ -738,7 +449,7 @@ help debug data and/or logic errors.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="howitworks.html" class="btn btn-neutral float-right" title="How the System Works" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="abmexample.html" class="btn btn-neutral float-right" title="Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="ActivitySim" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -782,7 +493,7 @@ help debug data and/or logic errors.</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

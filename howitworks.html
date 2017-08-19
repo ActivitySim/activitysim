@@ -37,7 +37,7 @@
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="ActivitySim 0.3dev1 documentation" href="index.html"/>
         <link rel="next" title="Data Schema" href="dataschema.html"/>
-        <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
+        <link rel="prev" title="Example" href="abmexample.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -92,11 +92,17 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">How the System Works</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#execution-flow">Execution Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#execution-flow">Execution Flow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#school-location-sample">School Location Sample</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#school-location-logsums">School Location Logsums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#school-location-final-choice">School Location Final Choice</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-new-tables">Creating New Tables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#vectorized-3d-skim-indexing">Vectorized 3D Skim Indexing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#accessibilities-model-step">Accessibilities Model Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accessibilities-model">Accessibilities Model</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
@@ -236,19 +242,30 @@ by implementation.</p>
 in order to start the pipeline from the beginning.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">_MODELS</span> <span class="o">=</span> <span class="p">[</span>
   <span class="s1">&#39;compute_accessibility&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;school_location_simulate&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;school_location_sample&#39;</span><span class="p">,</span>
 <span class="c1">#etc...</span>
 
 <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method loops through the list of models, calls <code class="docutils literal"><span class="pre">orca.run(model_step)</span></code>,
-and manages the data pipeline.  The first microsimulation model run is school location, which is called via:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_simulate&quot;</span><span class="p">])</span>
+and manages the data pipeline.  The first microsimulation model run is school location.  The school location
+model is broken into three steps:</p>
+<blockquote>
+<div><ul class="simple">
+<li>school_location_sample - selects a sample of alternative school locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
+<li>school_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative school location.</li>
+<li>school_location_simulate - starts with the table created above and chooses a final school location, this time with the mode choice logsum included.</li>
+</ul>
+</div></blockquote>
+<div class="section" id="school-location-sample">
+<h3>School Location Sample<a class="headerlink" href="#school-location-sample" title="Permalink to this headline">¶</a></h3>
+<p>The school location sample model is called via:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_sample&quot;</span><span class="p">])</span>
 
 <span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
-                           <span class="n">school_location_spec</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">school_location_sample</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
+                           <span class="n">school_location_sample_spec</span><span class="p">,</span>
                            <span class="n">school_location_settings</span><span class="p">,</span>
                            <span class="n">skim_dict</span><span class="p">,</span>
                            <span class="n">destination_size_terms</span><span class="p">,</span>
@@ -256,7 +273,7 @@ and manages the data pipeline.  The first microsimulation model run is school lo
                            <span class="n">trace_hh_id</span><span class="p">):</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition
+<p>The <code class="docutils literal"><span class="pre">school_location_sample</span></code> step requires the objects defined in the function definition
 above.  Since they are not yet loaded, orca goes looking for them.  This is called lazy
 loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#persons_merged is in the step function signature</span>
@@ -340,11 +357,11 @@ loading (or on-demand loading).  The steps to get the persons data loaded is ill
 </pre></div>
 </div>
 <p>The various calls are also setting up the logging, the tracing, and the random number generators.</p>
-<p><code class="docutils literal"><span class="pre">school_location_simulate</span></code> also sets the persons merged table as choosers, reads the expressions
+<p><code class="docutils literal"><span class="pre">school_location_sample</span></code> also sets the persons merged table as choosers, reads the expressions
 specification file, settings yaml file, and destination_size_terms file, and also sets the chunk
 size and trace id if specified.  The skims dictionary is also passed in, as explained next.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
-                           <span class="n">school_location_spec</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">school_location_sample</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
+                           <span class="n">school_location_sample_spec</span><span class="p">,</span>
                            <span class="n">school_location_settings</span><span class="p">,</span>
                            <span class="n">skim_dict</span><span class="p">,</span>
                            <span class="n">destination_size_terms</span><span class="p">,</span>
@@ -362,28 +379,31 @@ available in the expressions using <code class="docutils literal"><span class="p
 <span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;skims&quot;</span><span class="p">:</span> <span class="n">skims</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>The next step is to call the <a class="reference internal" href="core.html#activitysim.core.simulate.interaction_simulate" title="activitysim.core.simulate.interaction_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.interaction_simulate()</span></code></a> function which run a MNL choice model simulation
-in which alternatives must be merged with choosers because there are interaction terms or because
-alternatives are sampled.  The choosers table, the alternatives table, the model specification
-expressions file, the skims, the skims lookups, the sample size, the chunk size, and trace labels are passed in.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">choices</span> <span class="o">=</span> <span class="n">asim</span><span class="o">.</span><span class="n">interaction_simulate</span><span class="p">(</span>
-    <span class="n">choosers_segment</span><span class="p">,</span>
-    <span class="n">alternatives_segment</span><span class="p">,</span>
-    <span class="n">spec</span><span class="o">=</span><span class="n">school_location_spec</span><span class="p">[[</span><span class="n">school_type</span><span class="p">]],</span>
-    <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span>
-    <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span>
-    <span class="n">sample_size</span><span class="o">=</span><span class="n">sample_size</span><span class="p">,</span>
-    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
-    <span class="n">trace_label</span><span class="o">=</span><span class="s1">&#39;school_location.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">school_type</span><span class="p">,</span>
-    <span class="n">trace_choice_name</span><span class="o">=</span><span class="s1">&#39;school_location&#39;</span><span class="p">)</span>
+<p>The next step is to call the <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> function which
+selects a sample of alternatives by running a MNL choice model simulation in which alternatives must be
+merged with choosers because there are interaction terms.  The choosers table, the alternatives table, the
+sample size, the model specification expressions file, the skims, the skims lookups, the chunk size, and the
+trace labels are passed in.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">choices</span> <span class="o">=</span> <span class="n">interaction_sample</span><span class="p">(</span>
+              <span class="n">choosers_segment</span><span class="p">,</span>
+              <span class="n">alternatives_segment</span><span class="p">,</span>
+              <span class="n">sample_size</span><span class="o">=</span><span class="n">sample_size</span><span class="p">,</span>
+              <span class="n">alt_col_name</span><span class="o">=</span><span class="n">alt_col_name</span><span class="p">,</span>
+              <span class="n">spec</span><span class="o">=</span><span class="n">school_location_sample_spec</span><span class="p">[[</span><span class="n">school_type</span><span class="p">]],</span>
+              <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span>
+              <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span>
+              <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+              <span class="n">trace_label</span><span class="o">=</span><span class="n">trace_hh_id</span> <span class="ow">and</span> <span class="s1">&#39;school_location_sample.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">school_type</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices, and returns a column of choices.
-This is done in a for loop of chunks of chooser records in order to avoid running out of RAM when building the often large data tables.
-This method does a lot, and eventually calls <a class="reference internal" href="core.html#activitysim.core.simulate.eval_interaction_utilities" title="activitysim.core.simulate.eval_interaction_utilities"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.eval_interaction_utilities()</span></code></a>, which loops through each expression
-in the expression file and solves it at once for all records in the chunked chooser table using either pandas’ eval() or Python’s eval().</p>
-<p>The <a class="reference internal" href="core.html#activitysim.core.simulate.interaction_simulate" title="activitysim.core.simulate.interaction_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.interaction_simulate()</span></code></a> method is currently only a multinomial logit choice model.  The
-<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a> method supports both MNL and NL as specified by
+<p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices with
+replacement, and returns the choices. This is done in a for loop of chunks of chooser records in order to avoid
+running out of RAM when building the often large data tables. This method does a lot, and eventually
+calls <a class="reference internal" href="core.html#activitysim.core.interaction_simulate.eval_interaction_utilities" title="activitysim.core.interaction_simulate.eval_interaction_utilities"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_simulate.eval_interaction_utilities()</span></code></a>, which loops through each
+expression in  the expression file and solves it at once for all records in the chunked chooser
+table using either pandas’ eval() or Python’s eval().</p>
+<p>The <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> method is currently only a multinomial
+logit choice model.  The <a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a> method supports both MNL and NL as specified by
 the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal"><span class="pre">auto_ownership.yaml</span></code> file for example specifies
 the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> as <code class="docutils literal"><span class="pre">MNL.</span></code></p>
 <p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
@@ -396,30 +416,117 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
 <span class="c1"># reshape utilities (one utility column and one row per row in model_design)</span>
 <span class="c1"># to a dataframe with one row per chooser and one column per alternative</span>
 <span class="n">utilities</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-    <span class="n">interaction_utilities</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">),</span> <span class="n">sample_size</span><span class="p">),</span>
+    <span class="n">interaction_utilities</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">),</span> <span class="n">alternative_count</span><span class="p">),</span>
     <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
 <span class="c1"># convert to probabilities (utilities exponentiated and normalized to probs)</span>
 <span class="c1"># probs is same shape as utilities, one row per chooser and one column for alternative</span>
 <span class="n">probs</span> <span class="o">=</span> <span class="n">logit</span><span class="o">.</span><span class="n">utils_to_probs</span><span class="p">(</span><span class="n">utilities</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="n">trace_label</span><span class="p">,</span> <span class="n">trace_choosers</span><span class="o">=</span><span class="n">choosers</span><span class="p">)</span>
 
-<span class="c1"># make choices</span>
-<span class="c1"># positions is series with the chosen alternative represented as a column index in probs</span>
-<span class="c1"># which is an integer between zero and num alternatives in the alternative sample</span>
-<span class="n">positions</span><span class="p">,</span> <span class="n">rands</span> <span class="o">=</span> <span class="n">logit</span><span class="o">.</span><span class="n">make_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">trace_label</span><span class="o">=</span><span class="n">trace_label</span><span class="p">,</span> <span class="n">trace_choosers</span><span class="o">=</span><span class="n">choosers</span><span class="p">)</span>
+<span class="n">choices_df</span> <span class="o">=</span> <span class="n">make_sample_choices</span><span class="p">(</span>
+    <span class="n">choosers</span><span class="p">,</span> <span class="n">probs</span><span class="p">,</span> <span class="n">interaction_utilities</span><span class="p">,</span>
+    <span class="n">sample_size</span><span class="p">,</span> <span class="n">alternative_count</span><span class="p">,</span> <span class="n">alt_col_name</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
 
-<span class="c1"># offsets is the offset into model_design df of first row of chooser alternatives</span>
-<span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span> <span class="o">*</span> <span class="n">sample_size</span>
-<span class="c1"># resulting pandas Int64Index has one element per chooser row and is in same order as choosers</span>
-<span class="n">choices</span> <span class="o">=</span> <span class="n">interaction_utilities</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">positions</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">)</span>
+<span class="c1"># pick_count is number of duplicate picks</span>
+<span class="n">pick_group</span> <span class="o">=</span> <span class="n">choices_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">alt_col_name</span><span class="p">])</span>
 
-<span class="c1"># create a series with index from choosers and the index of the chosen alternative</span>
-<span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="c1"># number each item in each group from 0 to the length of that group - 1.</span>
+<span class="n">choices_df</span><span class="p">[</span><span class="s1">&#39;pick_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pick_group</span><span class="o">.</span><span class="n">cumcount</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># flag duplicate rows after first</span>
+<span class="n">choices_df</span><span class="p">[</span><span class="s1">&#39;pick_dup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">choices_df</span><span class="p">[</span><span class="s1">&#39;pick_count&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="c1"># add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)</span>
+<span class="n">choices_df</span><span class="p">[</span><span class="s1">&#39;pick_count&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">pick_group</span><span class="o">.</span><span class="n">cumcount</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="c1"># drop the duplicates</span>
+<span class="n">choices_df</span> <span class="o">=</span> <span class="n">choices_df</span><span class="p">[</span><span class="o">~</span><span class="n">choices_df</span><span class="p">[</span><span class="s1">&#39;pick_dup&#39;</span><span class="p">]]</span>
+<span class="k">del</span> <span class="n">choices_df</span><span class="p">[</span><span class="s1">&#39;pick_dup&#39;</span><span class="p">]</span>
+
+<span class="k">return</span> <span class="n">choices_df</span>
 </pre></div>
 </div>
-<p>Finally, the model adds the choices as a column to the applicable table - <code class="docutils literal"><span class="pre">persons</span></code> - and adds
-additional dependent columns.  The dependent columns are those orca columns with the virtual table
-name <code class="docutils literal"><span class="pre">persons_school</span></code>.</p>
+<p>The model creates the <code class="docutils literal"><span class="pre">school_location_sample</span></code> table using the choices above.  This table is
+then used for the next model step - solving the logsums for the sample.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;school_location_sample&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="school-location-logsums">
+<h3>School Location Logsums<a class="headerlink" href="#school-location-logsums" title="Permalink to this headline">¶</a></h3>
+<p>The school location logsums model is called via:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_logsums&quot;</span><span class="p">])</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">school_location_logsums</span><span class="p">(</span>
+      <span class="n">persons_merged</span><span class="p">,</span>
+      <span class="n">land_use</span><span class="p">,</span>
+      <span class="n">skim_dict</span><span class="p">,</span> <span class="n">skim_stack</span><span class="p">,</span>
+      <span class="n">school_location_sample</span><span class="p">,</span>
+      <span class="n">configs_dir</span><span class="p">,</span>
+      <span class="n">chunk_size</span><span class="p">,</span>
+      <span class="n">trace_hh_id</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">school_location_logsums</span></code> step requires the objects defined in the function definition
+above.  Some of these are not yet loaded, so orca goes looking for them.  The next steps are
+similar to what the sampling model does, except this time the sampled locations table is the choosers
+and the model is calculating and adding the mode choice logsums using the logsums expression files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">school_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;university&#39;</span><span class="p">,</span> <span class="s1">&#39;highschool&#39;</span><span class="p">,</span> <span class="s1">&#39;gradeschool&#39;</span><span class="p">]:</span>
+
+    <span class="n">logsums_spec</span> <span class="o">=</span> <span class="n">mode_choice_logsums_spec</span><span class="p">(</span><span class="n">configs_dir</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span>
+    <span class="n">choosers</span> <span class="o">=</span> <span class="n">school_location_sample</span><span class="p">[</span><span class="n">school_location_sample</span><span class="p">[</span><span class="s1">&#39;school_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">school_type</span><span class="p">]</span>
+
+    <span class="n">choosers</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">choosers</span><span class="p">,</span>
+        <span class="n">persons_merged</span><span class="p">,</span>
+        <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+
+    <span class="c1"># setup skim key fields</span>
+    <span class="n">choosers</span><span class="p">[</span><span class="s1">&#39;in_period&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_period_label</span><span class="p">(</span><span class="n">school_location_settings</span><span class="p">[</span><span class="s1">&#39;IN_PERIOD&#39;</span><span class="p">])</span>
+    <span class="n">choosers</span><span class="p">[</span><span class="s1">&#39;out_period&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_period_label</span><span class="p">(</span><span class="n">school_location_settings</span><span class="p">[</span><span class="s1">&#39;OUT_PERIOD&#39;</span><span class="p">])</span>
+
+    <span class="n">logsums</span> <span class="o">=</span> <span class="n">compute_logsums</span><span class="p">(</span>
+        <span class="n">choosers</span><span class="p">,</span> <span class="n">logsums_spec</span><span class="p">,</span> <span class="n">logsum_settings</span><span class="p">,</span>
+        <span class="n">skim_dict</span><span class="p">,</span> <span class="n">skim_stack</span><span class="p">,</span> <span class="n">alt_col_name</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span>
+        <span class="n">trace_hh_id</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">)</span>
+
+<span class="n">orca</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;school_location_sample&quot;</span><span class="p">,</span> <span class="s2">&quot;mode_choice_logsum&quot;</span><span class="p">,</span> <span class="n">logsums</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="models.html#activitysim.abm.models.util.logsums.compute_logsums" title="activitysim.abm.models.util.logsums.compute_logsums"><code class="xref py py-func docutils literal"><span class="pre">activitysim.abm.models.util.logsums.compute_logsums()</span></code></a> method goes through a similar series
+of steps as the interaction_sample function but ends up calling
+<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate_logsums" title="activitysim.core.simulate.simple_simulate_logsums"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate_logsums()</span></code></a> since it supports nested logit models, which
+are required for the mode choice logsum calculation.  The
+<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate_logsums" title="activitysim.core.simulate.simple_simulate_logsums"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate_logsums()</span></code></a> returns a vector of logsums (instead of a vector
+choices). The resulting logsums are added to the <code class="docutils literal"><span class="pre">school_location_sample</span></code> table as the
+<code class="docutils literal"><span class="pre">mode_choice_logsum</span></code> column.</p>
+</div>
+<div class="section" id="school-location-final-choice">
+<h3>School Location Final Choice<a class="headerlink" href="#school-location-final-choice" title="Permalink to this headline">¶</a></h3>
+<p>The final school location choice model operates on the <code class="docutils literal"><span class="pre">school_location_sample</span></code> table created
+above and is called as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_simulate&quot;</span><span class="p">])</span>
+
+<span class="nd">@orca</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">school_location_simulate</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
+                           <span class="n">school_location_sample</span><span class="p">,</span>
+                           <span class="n">school_location_spec</span><span class="p">,</span>
+                           <span class="n">school_location_settings</span><span class="p">,</span>
+                           <span class="n">skim_dict</span><span class="p">,</span>
+                           <span class="n">destination_size_terms</span><span class="p">,</span>
+                           <span class="n">chunk_size</span><span class="p">,</span>
+                           <span class="n">trace_hh_id</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition
+above.  The operations executed by this model are very similar to the earlier models, except
+this time the sampled locations table is the choosers and the model selects one alternative for
+each chooser using the school location simulate expression files and the
+<a class="reference internal" href="core.html#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="activitysim.core.interaction_sample_simulate.interaction_sample_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_sample_simulate.interaction_sample_simulate()</span></code></a> function.
+The model adds the choices as a column to the applicable table - <code class="docutils literal"><span class="pre">persons</span></code> - and adds
+additional dependent columns.  The dependent columns are those orca columns with the virtual
+table name <code class="docutils literal"><span class="pre">persons_school</span></code>.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">orca</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;school_taz&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
 
 <span class="n">pipeline</span><span class="o">.</span><span class="n">add_dependent_columns</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
@@ -452,8 +559,9 @@ which in turn uses skims from the skim_dict orca injectable.</p>
 <ul class="simple">
 <li>creating new tables</li>
 <li>vectorized 3D skims indexing</li>
-<li>the accessibilities model step</li>
+<li>the accessibilities model</li>
 </ul>
+</div>
 </div>
 <div class="section" id="creating-new-tables">
 <h2>Creating New Tables<a class="headerlink" href="#creating-new-tables" title="Permalink to this headline">¶</a></h2>
@@ -502,8 +610,8 @@ run in order to avoid repeatedly reading the skims from the OMX files on disk.  
 significant model runtime.</p>
 <p>See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information on skim handling.</p>
 </div>
-<div class="section" id="accessibilities-model-step">
-<h2>Accessibilities Model Step<a class="headerlink" href="#accessibilities-model-step" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="accessibilities-model">
+<h2>Accessibilities Model<a class="headerlink" href="#accessibilities-model" title="Permalink to this headline">¶</a></h2>
 <p>Unlike the microsimulation models, which operate on a table of choosers, the accessibilities model is
 an aggregate model that calculates accessibility measures by origin zone to all destination zones.  This
 model could be implemented with a matrix library such as numpy since it involves a series of matrix
@@ -543,7 +651,7 @@ to origin zone and write them to the datastore.</p>
         <a href="dataschema.html" class="btn btn-neutral float-right" title="Data Schema" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gettingstarted.html" class="btn btn-neutral" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="abmexample.html" class="btn btn-neutral" title="Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -584,7 +692,7 @@ to origin zone and write them to the datastore.</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

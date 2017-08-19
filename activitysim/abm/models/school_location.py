@@ -207,7 +207,7 @@ def school_location_logsums(
     logsums = pd.concat(logsums_list)
 
     # add_column series should have an index matching the table to which it is being added
-    # logsums does, since workplace_location_sample was on left side of merge creating choosers
+    # logsums does, since school_location_sample was on left side of merge creating choosers
     orca.add_column("school_location_sample", "mode_choice_logsum", logsums)
 
 
@@ -225,13 +225,14 @@ def school_location_settings(configs_dir):
 def school_location_simulate(persons_merged,
                              school_location_sample,
                              school_location_spec,
-                             school_location_settings,                             skim_dict,
+                             school_location_settings,
+                             skim_dict,
                              destination_size_terms,
                              chunk_size,
                              trace_hh_id):
     """
-    Workplace location model on workplace_location_sample annotated with mode_choice logsum
-    to select a work_taz from sample alternatives
+    School location model on school_location_sample annotated with mode_choice logsum
+    to select a school_taz from sample alternatives
     """
 
     choosers = persons_merged.to_frame()
@@ -257,7 +258,7 @@ def school_location_simulate(persons_merged,
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = school_location_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
-    tracing.dump_df(DUMP, choosers, 'workplace_location_simulate', 'choosers')
+    tracing.dump_df(DUMP, choosers, 'school_location_simulate', 'choosers')
 
     choices_list = []
     for school_type in ['university', 'highschool', 'gradeschool']:
@@ -296,7 +297,7 @@ def school_location_simulate(persons_merged,
 
     tracing.dump_df(DUMP, choices, trace_label, 'choices')
 
-    tracing.print_summary('workplace_taz', choices, describe=True)
+    tracing.print_summary('school_taz', choices, describe=True)
 
     orca.add_column("persons", "school_taz", choices)
 

@@ -197,7 +197,6 @@ def workplace_location_simulate(persons_merged,
                                 destination_size_terms,
                                 chunk_size,
                                 trace_hh_id):
-
     """
     Workplace location model on workplace_location_sample annotated with mode_choice logsum
     to select a work_taz from sample alternatives

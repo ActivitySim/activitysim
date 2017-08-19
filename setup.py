@@ -22,10 +22,10 @@ setup(
     long_description=long_description,
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
-        'numpy >= 1.8.0',
+        'numpy >= 1.12.0',
         'openmatrix >= 0.2.4',
         'orca >= 1.1',
-        'pandas >= 0.18.0',
+        'pandas >= 0.20.3',
         'pyyaml >= 3.0',
         'tables >= 3.3.0',
         'toolz >= 0.7',

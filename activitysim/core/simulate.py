@@ -714,6 +714,11 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_size=0,
                     trace_label=None, trace_choice_name=None):
+    """
+    Run an MNL or NL simulation for when the model spec does not involve alternative
+    specific data, e.g. there are no interactions with alternative
+    properties and no need to sample from alternatives.
+    """
 
     assert len(choosers) > 0
 
@@ -864,6 +869,14 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
 def simple_simulate_logsums(choosers, spec, nest_spec,
                             skims=None, locals_d=None, chunk_size=0,
                             trace_label=None):
+    """
+    like simple_simulate except return logsums instead of making choices
+
+    Returns
+    -------
+    logsums : pandas.Series
+        Index will be that of `choosers`, values will be nest logsum based on spec column values
+    """
 
     assert len(choosers) > 0
 

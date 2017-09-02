@@ -64,7 +64,7 @@ is the main settings file for the model run.  This file includes:
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_size`` - batch size for processing choosers, see note below.
+* ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * global variables that can be used in expressions tables and Python code such as:
 
@@ -73,6 +73,7 @@ is the main settings file for the model run.  This file includes:
     * ``time_periods`` - time period upper bound values and labels
 
 .. index:: chunk_size
+.. _chunk_size:
 
 Chunk size
 ~~~~~~~~~~
@@ -103,23 +104,57 @@ Model Specification Files
 Included in the ``configs`` folder are the model specification files that store the 
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an 
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
-of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each 
-columns indicates the number of non-mandatory tours by purpose.
+of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each 
+columns indicates the number of non-mandatory tours by purpose.  The current set of files are below.
 
-The current set of files are:
-
-* ``accessibility.csv, , accessibility.yaml`` - accessibility model
-* ``auto_ownership.csv, auto_ownership.yaml`` - auto ownership model
-* ``cdap_indiv_and_hhsize1.csv, cdap_interaction_coefficients.csv, cdap_fixed_relative_proportions.csv`` - CDAP model
-* ``destination_choice.csv, destination_choice_size_terms.csv`` - destination choice model
-* ``logsums_spec_school.csv, logsums_spec_university.csv, logsums_spec_work.csv`` - mandatory location choice logsums model
-* ``mandatory_tour_frequency.csv`` - mandatory tour frequency model
-* ``non_mandatory_tour_frequency.csv, non_mandatory_tour_frequency_alternatives.csv`` - non mandatory tour frequency model
-* ``school_location.csv, school_location_sample.csv`` - school location final choice model and sample model
-* ``tour_departure_and_duration_alternatives.csv, tour_departure_and_duration_nonmandatory.csv, tour_departure_and_duration_school.csv, tour_departure_and_duration_work.csv`` - tour departure and duration model
-* ``tour_mode_choice.csv, tour_mode_choice.yaml, tour_mode_choice_coeffs.csv`` - tour mode choice model
-* ``trip_mode_choice.csv, trip_mode_choice.yaml, trip_mode_choice_coeffs.csv`` - trip mode choice model
-* ``workplace_location.csv, workplace_location_sample.csv`` - work location final choice model and sample model
++------------------------------------------------+----------------------------------------------------+
+|            Model                               |    Specification Files                             |
++================================================+====================================================+
+|  :ref:`accessibility`                          |  - accessibility.yaml                              |
+|                                                |  - accessibility.csv                               |
++------------------------------------------------+----------------------------------------------------+
+| :ref:`auto_ownership`                          |  - auto_ownership.yaml                             |
+|                                                |  - auto_ownership.csv                              |
++------------------------------------------------+----------------------------------------------------+
+|        :ref:`cdap`                             |  - cdap.yaml                                       |
+|                                                |  - cdap_indiv_and_hhsize1.csv                      |
+|                                                |  - cdap_interaction_coefficients.csv               |
+|                                                |  - cdap_fixed_relative_proportions.csv             |
++------------------------------------------------+----------------------------------------------------+
+|  :ref:`mandatory_tour_frequency`               |  - mandatory_tour_frequency.csv                    |
++------------------------------------------------+----------------------------------------------------+
+| :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.csv                |
+|                                                |  - non_mandatory_tour_frequency_alternatives.csv   |
++------------------------------------------------+----------------------------------------------------+
+| Non-Mandatory Tour :ref:`destination_choice`   |  - non_mandatory_tour_destination_choice.yaml      |
+|                                                |  - non_mandatory_tour_destination_choice.csv       |
++------------------------------------------------+----------------------------------------------------+
+|   :ref:`school_location`                       |  - school_location.yaml                            |
+|                                                |  - school_location_sample.csv                      |
+|                                                |  - logsums_spec_school.csv                         |
+|                                                |  - logsums_spec_university.csv                     |
+|                                                |  - school_location.csv                             |
++------------------------------------------------+----------------------------------------------------+
+| :ref:`mandatory_tour_scheduling`               |  - tour_departure_and_duration_alternatives.csv    |
+|                                                |  - tour_departure_and_duration_school.csv          |
+|                                                |  - tour_departure_and_duration_work.csv            |
++------------------------------------------------+----------------------------------------------------+
+| :ref:`non_mandatory_tour_scheduling`           |  - tour_departure_and_duration_alternatives.csv    |
+|                                                |  - tour_departure_and_duration_nonmandatory.csv    |
++------------------------------------------------+----------------------------------------------------+
+|        Tour :ref:`mode_choice`                 |  - tour_mode_choice.yaml                           |
+|                                                |  - tour_mode_choice.csv                            |
+|                                                |  - tour_mode_choice_coeffs.csv                     |
++------------------------------------------------+----------------------------------------------------+
+|      Trip :ref:`mode_choice`                   |  - trip_mode_choice.yaml                           |
+|                                                |  - trip_mode_choice.csv                            |
+|                                                |  - trip_mode_choice_coeffs.csv                     |
++------------------------------------------------+----------------------------------------------------+
+|    :ref:`work_location`                        |  - workplace_location.yaml                         |
+|                                                |  - workplace_location_sample.csv                   |
+|                                                |  - logsums_spec_work.csv                           |
+|                                                |  - workplace_location.csv                          |
++------------------------------------------------+----------------------------------------------------+
 
 Running the Example Model
 -------------------------
@@ -151,10 +186,10 @@ The ``simulation.py`` script contains the specification of the data pipeline mod
     'auto_ownership_simulate',
     'cdap_simulate',
     'mandatory_tour_frequency',
-    'mandatory_scheduling',
+    'mandatory_tour_scheduling',
     'non_mandatory_tour_frequency',
-    'destination_choice',
-    'non_mandatory_scheduling',
+    'non_mandatory_tour_destination_choice',
+    'non_mandatory_tour_scheduling',
     'tour_mode_choice_simulate',
     'create_simple_trips',
     'trip_mode_choice_simulate'
@@ -167,7 +202,7 @@ and resume pipeline processing on the next model step after the specified checkp
 ::
 
   resume_after = None
-  #resume_after = 'mandatory_scheduling'
+  #resume_after = 'school_location_logsums'
 
 The model is run by calling the :func:`activitysim.core.pipeline.run` method.
 
@@ -185,49 +220,49 @@ the datastore.  You can see that the number of columns changes as each model ste
 table stores the crosswalk between model steps and table states in order to reload tables for restarting
 the pipeline at any step.
 
-+---------------------------------------------------+-------+-------------------+
-| Table                                             | Type  | [Rows, Columns]   |
-+===================================================+=======+===================+ 
-| /checkpoints                                      | frame | (shape->[14,11])  |
-+---------------------------------------------------+-------+-------------------+
-| /accessibility/compute_accessibility              | frame | (shape->[25,21])  |
-+---------------------------------------------------+-------+-------------------+
-| /households/compute_accessibility                 | frame | (shape->[100,64]) |
-+---------------------------------------------------+-------+-------------------+
-| /households/auto_ownership_simulate               | frame | (shape->[100,67]) |
-+---------------------------------------------------+-------+-------------------+
-| /households/cdap_simulate                         | frame | (shape->[100,68]) |
-+---------------------------------------------------+-------+-------------------+
-| /land_use/compute_accessibility                   | frame | (shape->[25,49])  |
-+---------------------------------------------------+-------+-------------------+
-| /mandatory_tours/mandatory_tour_frequency         | frame | (shape->[77,4])   |
-+---------------------------------------------------+-------+-------------------+
-| /mandatory_tours/mandatory_scheduling             | frame | (shape->[77,5])   |
-+---------------------------------------------------+-------+-------------------+
-| /non_mandatory_tours/non_mandatory_tour_frequency | frame | (shape->[83,5])   |
-+---------------------------------------------------+-------+-------------------+
-| /non_mandatory_tours/destination_choice           | frame | (shape->[83,6])   |
-+---------------------------------------------------+-------+-------------------+
-| /non_mandatory_tours/non_mandatory_scheduling     | frame | (shape->[83,7])   |
-+---------------------------------------------------+-------+-------------------+
-| /persons/compute_accessibility                    | frame | (shape->[156,50]) |
-+---------------------------------------------------+-------+-------------------+
-| /persons/school_location_simulate                 | frame | (shape->[156,54]) |
-+---------------------------------------------------+-------+-------------------+
-| /persons/workplace_location_simulate              | frame | (shape->[156,59]) |
-+---------------------------------------------------+-------+-------------------+
-| /persons/cdap_simulate                            | frame | (shape->[156,64]) |
-+---------------------------------------------------+-------+-------------------+
-| /persons/mandatory_tour_frequency                 | frame | (shape->[156,69]) |
-+---------------------------------------------------+-------+-------------------+
-| /persons/non_mandatory_tour_frequency             | frame | (shape->[156,72]) |
-+---------------------------------------------------+-------+-------------------+
-| /tours/tour_mode_choice_simulate                  | frame | (shape->[160,38]) |
-+---------------------------------------------------+-------+-------------------+
-| /trips/create_simple_trips                        | frame | (shape->[320,8])  |
-+---------------------------------------------------+-------+-------------------+
-| /trips/trip_mode_choice_simulate                  | frame | (shape->[320,9])  |
-+---------------------------------------------------+-------+-------------------+
++----------------------------------------------------------------------+-------+-------------------+
+| Table                                                                | Type  | [Rows, Columns]   |
++======================================================================+=======+===================+ 
+| /checkpoints                                                         | frame | (shape->[14,11])  |
++----------------------------------------------------------------------+-------+-------------------+
+| /accessibility/compute_accessibility                                 | frame | (shape->[25,21])  |
++----------------------------------------------------------------------+-------+-------------------+
+| /households/compute_accessibility                                    | frame | (shape->[100,64]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /households/auto_ownership_simulate                                  | frame | (shape->[100,67]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /households/cdap_simulate                                            | frame | (shape->[100,68]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /land_use/compute_accessibility                                      | frame | (shape->[25,49])  |
++----------------------------------------------------------------------+-------+-------------------+
+| /mandatory_tours/mandatory_tour_frequency                            | frame | (shape->[77,4])   |
++----------------------------------------------------------------------+-------+-------------------+
+| /mandatory_tours/mandatory_tour_scheduling                           | frame | (shape->[77,5])   |
++----------------------------------------------------------------------+-------+-------------------+
+| /non_mandatory_tours/non_mandatory_tour_frequency                    | frame | (shape->[83,5])   |
++----------------------------------------------------------------------+-------+-------------------+
+| /non_mandatory_tours/non_mandatory_tour_destination_choice           | frame | (shape->[83,6])   |
++----------------------------------------------------------------------+-------+-------------------+
+| /non_mandatory_tours/non_mandatory_tour_scheduling                   | frame | (shape->[83,7])   |
++----------------------------------------------------------------------+-------+-------------------+
+| /persons/compute_accessibility                                       | frame | (shape->[156,50]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /persons/school_location_simulate                                    | frame | (shape->[156,54]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /persons/workplace_location_simulate                                 | frame | (shape->[156,59]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /persons/cdap_simulate                                               | frame | (shape->[156,64]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /persons/mandatory_tour_frequency                                    | frame | (shape->[156,69]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /persons/non_mandatory_tour_frequency                                | frame | (shape->[156,72]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /tours/tour_mode_choice_simulate                                     | frame | (shape->[160,38]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /trips/create_simple_trips                                           | frame | (shape->[320,8])  |
++----------------------------------------------------------------------+-------+-------------------+
+| /trips/trip_mode_choice_simulate                                     | frame | (shape->[320,9])  |
++----------------------------------------------------------------------+-------+-------------------+
 
 The example ``simulation.py`` run model script also writes the final table to a CSV file
 for illustrative purposes by using the :func:`activitysim.core.pipeline.get_table` method.  This method

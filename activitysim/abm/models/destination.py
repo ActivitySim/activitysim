@@ -18,23 +18,28 @@ logger = logging.getLogger(__name__)
 
 
 @orca.table()
-def destination_choice_spec(configs_dir):
-    return read_model_spec(configs_dir, 'destination_choice.csv')
+def atwork_subtour_destination_choice_spec(configs_dir):
+    return read_model_spec(configs_dir, 'atwork_subtour_destination_choice.csv')
+
+
+@orca.table()
+def non_mandatory_tour_destination_choice_spec(configs_dir):
+    return read_model_spec(configs_dir, 'non_mandatory_tour_destination_choice.csv')
 
 
 @orca.injectable()
-def destination_choice_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'destination_choice.yaml')
+def non_mandatory_tour_destination_choice_settings(configs_dir):
+    return config.read_model_settings(configs_dir, 'non_mandatory_tour_destination_choice.yaml')
 
 
 @orca.step()
-def destination_choice(non_mandatory_tours_merged,
-                       skim_dict,
-                       destination_choice_spec,
-                       destination_choice_settings,
-                       destination_size_terms,
-                       chunk_size,
-                       trace_hh_id):
+def non_mandatory_tour_destination_choice(non_mandatory_tours_merged,
+                                          skim_dict,
+                                          non_mandatory_tour_destination_choice_spec,
+                                          non_mandatory_tour_destination_choice_settings,
+                                          destination_size_terms,
+                                          chunk_size,
+                                          trace_hh_id):
 
     """
     Given the tour generation from the above, each tour needs to have a
@@ -45,11 +50,11 @@ def destination_choice(non_mandatory_tours_merged,
     # choosers are tours - in a sense tours are choosing their destination
     choosers = non_mandatory_tours_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
-    spec = destination_choice_spec.to_frame()
+    spec = non_mandatory_tour_destination_choice_spec.to_frame()
 
-    constants = config.get_model_constants(destination_choice_settings)
+    constants = config.get_model_constants(non_mandatory_tour_destination_choice_settings)
 
-    sample_size = destination_choice_settings["SAMPLE_SIZE"]
+    sample_size = non_mandatory_tour_destination_choice_settings["SAMPLE_SIZE"]
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
@@ -62,7 +67,8 @@ def destination_choice(non_mandatory_tours_merged,
     if constants is not None:
         locals_d.update(constants)
 
-    logger.info("Running destination_choice  with %d non_mandatory_tours" % len(choosers.index))
+    logger.info("Running non_mandatory_tour_destination_choice with %d non_mandatory_tours" %
+                len(choosers.index))
 
     choices_list = []
     # segment by trip type and pick the right spec for each person type
@@ -94,7 +100,7 @@ def destination_choice(non_mandatory_tours_merged,
             locals_d=locals_d,
             sample_size=sample_size,
             chunk_size=chunk_size,
-            trace_label='destination.%s' % name)
+            trace_label='non_mandatory_tour_destination.%s' % name)
 
         choices_list.append(choices)
 
@@ -102,7 +108,8 @@ def destination_choice(non_mandatory_tours_merged,
 
     # FIXME - can there be null destinations?
     if choices.isnull().any():
-        logger.error("destination_choice had %s null destinations" % choices.isnull().sum())
+        logger.error("non_mandatory_tour_destination_choice had %s null destinations" %
+                     choices.isnull().sum())
         assert choices.isnull().sum() == 0
 
     tracing.print_summary('destination', choices, describe=True)
@@ -113,7 +120,7 @@ def destination_choice(non_mandatory_tours_merged,
 
     if trace_hh_id:
         tracing.trace_df(orca.get_table('non_mandatory_tours').to_frame(),
-                         label="destination",
+                         label="non_mandatory_tour_destination",
                          slicer='person_id',
                          index_label='tour',
                          columns=None,

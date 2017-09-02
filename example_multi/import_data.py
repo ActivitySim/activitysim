@@ -1,8 +1,11 @@
 # Convert SANDAG network los files to ActivitySim NetworkLOS format
 # Ben Stabler, ben.stabler@rsginc.com, 02/03/17
 
-import sys, os.path, openmatrix
-import pandas as pd, numpy as np
+import sys
+import os.path
+import openmatrix
+import pandas as pd
+import numpy as np
 
 ############################################################
 # paramaters
@@ -36,15 +39,15 @@ if __name__ == "__main__":
     #
     # assert False
 
-    #create output folder
+    # create output folder
     if not os.path.exists(output_folder):
-      os.makedirs(output_folder)
+        os.makedirs(output_folder)
 
     # read CSVs and convert to NetworkLOS format
     # https://github.com/UDST/activitysim/wiki/Multiple-Zone-Systems-Design
     bikeMgraLogsum = pd.read_csv(folder + "bikeMgraLogsum.csv")
     bikeMgraLogsum.rename(
-        columns={'i': 'OMAZ', 'j': 'DMAZ', 'logsum':'bike_logsum', 'time':'bike_time'},
+        columns={'i': 'OMAZ', 'j': 'DMAZ', 'logsum': 'bike_logsum', 'time': 'bike_time'},
         inplace=True)
 
     walkMgraTapEquivMinutes = pd.read_csv(folder + "walkMgraTapEquivMinutes.csv")
@@ -52,7 +55,8 @@ if __name__ == "__main__":
 
     walkMgraEquivMinutes = pd.read_csv(folder + "walkMgraEquivMinutes.csv")
     walkMgraEquivMinutes.rename(
-        columns={'i': 'OMAZ', 'j': 'DMAZ', 'percieved':'walk_perceived', 'actual':'walk_actual', 'gain':'walk_gain'},
+        columns={'i': 'OMAZ', 'j': 'DMAZ', 'percieved': 'walk_perceived',
+                 'actual': 'walk_actual', 'gain': 'walk_gain'},
         inplace=True)
 
     mgra13_based_input2012 = pd.read_csv(folder + "mgra13_based_input2012.csv")
@@ -95,7 +99,7 @@ if __name__ == "__main__":
     TAP['TAZ'] = MAZ.loc[TAP.MAZ].TAZ.values
 
     # MAZtoMAZ
-    MAZtoMAZ = pd.merge(bikeMgraLogsum, walkMgraEquivMinutes, how="outer", on=['OMAZ','DMAZ'])
+    MAZtoMAZ = pd.merge(bikeMgraLogsum, walkMgraEquivMinutes, how="outer", on=['OMAZ', 'DMAZ'])
 
     # MAZtoTAP
 
@@ -111,8 +115,9 @@ if __name__ == "__main__":
     # prefix column names
     Accessam.columns = \
         [c if c in ['MAZ', 'TAP'] else 'drive_%s' % c for c in Accessam.columns.values]
-    walkMgraTapEquivMinutes.columns = \
-        [c if c in ['MAZ', 'TAP'] else 'walk_%s' % c for c in walkMgraTapEquivMinutes.columns.values]
+    walkMgraTapEquivMinutes.columns = [c if c in ['MAZ', 'TAP'] else
+                                       'walk_%s' % c for c in
+                                       walkMgraTapEquivMinutes.columns.values]
 
     MAZtoTAP = pd.merge(Accessam, walkMgraTapEquivMinutes, how="outer", on=['MAZ', 'TAP'])
 
@@ -124,7 +129,6 @@ if __name__ == "__main__":
 
     print MAZtoTAP.head(10)
 
-
     # write tables
     TAP.to_hdf(output_folder + outputDataStoreFileName, "TAP", complib='zlib', complevel=7)
     TAZ.to_hdf(output_folder + outputDataStoreFileName, "TAZ")
@@ -134,7 +138,7 @@ if __name__ == "__main__":
 
     print("created " + output_folder + outputDataStoreFileName)
 
-    ######### TAZ skim
+    # TAZ skim
 
     output_taz_skim_file = 'taz_skims.omx'
     output_taz_skims = openmatrix.open_file(output_folder + output_taz_skim_file, "w")
@@ -183,101 +187,99 @@ if __name__ == "__main__":
         print skims
     print "\n#####\n"
 
-    ######### TAP skims
+    # TAP skims
 
-    sets = ["locl","prem"]
+    sets = ["locl", "prem"]
     for aSet in sets:
-      
-      output_tap_skim_file = 'tap_skims_' + aSet + '.omx'
-      output_tap_skims = openmatrix.open_file(output_folder + output_tap_skim_file, "w")
 
-      tap_skim_files = ['imp' + aSet + '_AMo.omx', 'imp' + aSet + '_PMo.omx' ]
-  
-      if aSet == "locl":
-        
-        tap_skim_manifest = {
-          'implocl_AMo.omx': {
-              'Fare': 'LOCAL_BUS_FARE__AM',
-              'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__AM',
-              'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__AM',
-              'Total IV Time': 'LOCAL_BUS_IVT__AM',
-              'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__AM',
-              'Walk Time': 'LOCAL_BUS_WALK_TIME__AM'
-          },
-          'implocl_PMo.omx': {
-              'Fare': 'LOCAL_BUS_FARE__PM',
-              'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__PM',
-              'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__PM',
-              'Total IV Time': 'LOCAL_BUS_IVT__PM',
-              'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__PM',
-              'Walk Time': 'LOCAL_BUS_WALK_TIME__PM'
-          }
-        }
-        
-      elif aSet == "prem":
-        
-        tap_skim_manifest = {
-          'impprem_AMo.omx': {
-              'Fare': 'PREM_BUS_FARE__AM',
-              'IVT:BRT': 'PREM_BUS_IVT_BRT__AM',
-              'IVT:CR': 'PREM_BUS_IVT_CR__AM',
-              'IVT:EXP': 'PREM_BUS_IVT_EXP__AM',
-              'IVT:LB': 'PREM_BUS_IVT_LB__AM',
-              'IVT:LR': 'PREM_BUS_IVT_LR__AM',
-              'IVT:Sum': 'PREM_BUS_IVT_SUM__AM',
-              'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__AM',
-              'Length:BRT': 'PREM_BUS_LENGTH_BRT__AM',
-              'Length:CR': 'PREM_BUS_LENGTH_CR__AM',
-              'Length:EXP': 'PREM_BUS_LENGTH_EXP__AM',
-              'Length:LB': 'PREM_BUS_LENGTH_LB__AM',
-              'Length:LR': 'PREM_BUS_LENGTH_LR__AM',
-              'Main Mode': 'PREM_BUS_MAIN_MODE__AM',
-              'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__AM',
-              'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__AM',
-              'Walk Time': 'PREM_BUS_WALK_TIME__AM'
-          },
-          'impprem_PMo.omx': {
-              'Fare': 'PREM_BUS_FARE__PM',
-              'IVT:BRT': 'PREM_BUS_IVT_BRT__PM',
-              'IVT:CR': 'PREM_BUS_IVT_CR__PM',
-              'IVT:EXP': 'PREM_BUS_IVT_EXP__PM',
-              'IVT:LB': 'PREM_BUS_IVT_LB__PM',
-              'IVT:LR': 'PREM_BUS_IVT_LR__PM',
-              'IVT:Sum': 'PREM_BUS_IVT_SUM__PM',
-              'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__PM',
-              'Length:BRT': 'PREM_BUS_LENGTH_BRT__PM',
-              'Length:CR': 'PREM_BUS_LENGTH_CR__PM',
-              'Length:EXP': 'PREM_BUS_LENGTH_EXP__PM',
-              'Length:LB': 'PREM_BUS_LENGTH_LB__PM',
-              'Length:LR': 'PREM_BUS_LENGTH_LR__PM',
-              'Main Mode': 'PREM_BUS_MAIN_MODE__PM',
-              'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__PM',
-              'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__PM',
-              'Walk Time': 'PREM_BUS_WALK_TIME__PM'
-          }
-        }
-        
-      for f, key_map in tap_skim_manifest.iteritems():
-          with openmatrix.open_file(folder + f) as input_skims:
-              print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
-  
-              for m in input_skims.listMappings():
-                  assert input_skims.mapping(m).keys() == tap_numbers
-  
-              # for skimName in input_skims.listMatrices():
-              #     print skimName
-  
-              for in_key, out_key in key_map.iteritems():
-                  print "copying %s %s to %s" % (f, in_key, out_key)
-                  output_tap_skims[out_key] = input_skims[in_key]
+        output_tap_skim_file = 'tap_skims_' + aSet + '.omx'
+        output_tap_skims = openmatrix.open_file(output_folder + output_tap_skim_file, "w")
 
+        tap_skim_files = ['imp' + aSet + '_AMo.omx', 'imp' + aSet + '_PMo.omx']
 
-      output_tap_skims.createMapping('default_mapping', entries=tap_numbers, overwrite=False)
-      output_tap_skims.close()
-  
-      # print summary of what we just built
-      print "\n##### Summary of %s" % output_tap_skim_file
-      with openmatrix.open_file(output_folder + output_tap_skim_file) as skims:
-          print skims
-      print "\n#####\n"
+        if aSet == "locl":
 
+            tap_skim_manifest = {
+                'implocl_AMo.omx': {
+                    'Fare': 'LOCAL_BUS_FARE__AM',
+                    'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__AM',
+                    'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__AM',
+                    'Total IV Time': 'LOCAL_BUS_IVT__AM',
+                    'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__AM',
+                    'Walk Time': 'LOCAL_BUS_WALK_TIME__AM'
+                },
+                'implocl_PMo.omx': {
+                    'Fare': 'LOCAL_BUS_FARE__PM',
+                    'Initial Wait Time': 'LOCAL_BUS_INITIAL_WAIT__PM',
+                    'Number of Transfers': 'LOCAL_BUS_NUM_TRANSFERS__PM',
+                    'Total IV Time': 'LOCAL_BUS_IVT__PM',
+                    'Transfer Wait Time': 'LOCAL_BUS_TRANSFER_WAIT__PM',
+                    'Walk Time': 'LOCAL_BUS_WALK_TIME__PM'
+                }
+            }
+
+        elif aSet == "prem":
+
+            tap_skim_manifest = {
+                'impprem_AMo.omx': {
+                    'Fare': 'PREM_BUS_FARE__AM',
+                    'IVT:BRT': 'PREM_BUS_IVT_BRT__AM',
+                    'IVT:CR': 'PREM_BUS_IVT_CR__AM',
+                    'IVT:EXP': 'PREM_BUS_IVT_EXP__AM',
+                    'IVT:LB': 'PREM_BUS_IVT_LB__AM',
+                    'IVT:LR': 'PREM_BUS_IVT_LR__AM',
+                    'IVT:Sum': 'PREM_BUS_IVT_SUM__AM',
+                    'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__AM',
+                    'Length:BRT': 'PREM_BUS_LENGTH_BRT__AM',
+                    'Length:CR': 'PREM_BUS_LENGTH_CR__AM',
+                    'Length:EXP': 'PREM_BUS_LENGTH_EXP__AM',
+                    'Length:LB': 'PREM_BUS_LENGTH_LB__AM',
+                    'Length:LR': 'PREM_BUS_LENGTH_LR__AM',
+                    'Main Mode': 'PREM_BUS_MAIN_MODE__AM',
+                    'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__AM',
+                    'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__AM',
+                    'Walk Time': 'PREM_BUS_WALK_TIME__AM'
+                },
+                'impprem_PMo.omx': {
+                    'Fare': 'PREM_BUS_FARE__PM',
+                    'IVT:BRT': 'PREM_BUS_IVT_BRT__PM',
+                    'IVT:CR': 'PREM_BUS_IVT_CR__PM',
+                    'IVT:EXP': 'PREM_BUS_IVT_EXP__PM',
+                    'IVT:LB': 'PREM_BUS_IVT_LB__PM',
+                    'IVT:LR': 'PREM_BUS_IVT_LR__PM',
+                    'IVT:Sum': 'PREM_BUS_IVT_SUM__PM',
+                    'Initial Wait Time': 'PREM_BUS_INITIAL_WAIT__PM',
+                    'Length:BRT': 'PREM_BUS_LENGTH_BRT__PM',
+                    'Length:CR': 'PREM_BUS_LENGTH_CR__PM',
+                    'Length:EXP': 'PREM_BUS_LENGTH_EXP__PM',
+                    'Length:LB': 'PREM_BUS_LENGTH_LB__PM',
+                    'Length:LR': 'PREM_BUS_LENGTH_LR__PM',
+                    'Main Mode': 'PREM_BUS_MAIN_MODE__PM',
+                    'Number of Transfers': 'PREM_BUS_NUM_TRANSFERS__PM',
+                    'Transfer Wait Time': 'PREM_BUS_TRANSFER_WAIT__PM',
+                    'Walk Time': 'PREM_BUS_WALK_TIME__PM'
+                }
+            }
+
+        for f, key_map in tap_skim_manifest.iteritems():
+            with openmatrix.open_file(folder + f) as input_skims:
+                print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
+
+                for m in input_skims.listMappings():
+                    assert input_skims.mapping(m).keys() == tap_numbers
+
+                # for skimName in input_skims.listMatrices():
+                #     print skimName
+
+                for in_key, out_key in key_map.iteritems():
+                    print "copying %s %s to %s" % (f, in_key, out_key)
+                    output_tap_skims[out_key] = input_skims[in_key]
+
+        output_tap_skims.createMapping('default_mapping', entries=tap_numbers, overwrite=False)
+        output_tap_skims.close()
+
+        # print summary of what we just built
+        print "\n##### Summary of %s" % output_tap_skim_file
+        with openmatrix.open_file(output_folder + output_tap_skim_file) as skims:
+            print skims
+        print "\n#####\n"

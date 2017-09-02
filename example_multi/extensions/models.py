@@ -48,7 +48,7 @@ def best_transit_path(set_random_seed,
     tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
     od_df = pd.DataFrame({'omaz': omaz, 'dmaz': dmaz, 'tod': tod})
 
-    trace_od = ( od_df.omaz[0], od_df.dmaz[0])
+    trace_od = (od_df.omaz[0], od_df.dmaz[0])
     logger.info("trace_od omaz %s dmaz %s" % trace_od)
 
     # build exploded atap_btap_df
@@ -71,7 +71,6 @@ def best_transit_path(set_random_seed,
     logger.info("len atap_btap_df %s" % len(atap_btap_df.index))
     logger.info("avg explosion %s" % (len(atap_btap_df.index) / (1.0 * len(od_df.index))))
 
-
     if trace_od:
         trace_orig, trace_dest = trace_od
         trace_oabd_rows = (atap_btap_df.omaz == trace_orig) & (atap_btap_df.dmaz == trace_dest)
@@ -86,8 +85,8 @@ def best_transit_path(set_random_seed,
         locals_d.update(constants)
 
     results, trace_results, trace_assigned_locals \
-        = assign.assign_variables(best_transit_path_spec, atap_btap_df, locals_d, trace_rows=trace_oabd_rows)
-
+        = assign.assign_variables(best_transit_path_spec, atap_btap_df, locals_d,
+                                  trace_rows=trace_oabd_rows)
 
     # copy results
     for column in results.columns:
@@ -101,7 +100,6 @@ def best_transit_path(set_random_seed,
 
     # choose max utility
     atap_btap_df = atap_btap_df.sort_values(by='utility').groupby('idx').tail(1)
-
 
     if trace_od:
 
@@ -121,7 +119,3 @@ def best_transit_path(set_random_seed,
 
             if trace_assigned_locals:
                 tracing.write_csv(trace_assigned_locals, file_name="trace_best_transit_path_locals")
-
-
-
-

@@ -15,7 +15,6 @@ logger = logging.getLogger('activitysim')
 
 class NetworkLOS(object):
 
-
     def __init__(self, taz, maz, tap, maz2maz, maz2tap,
                  taz_skim_dict, tap_skim_dict):
 
@@ -107,20 +106,21 @@ class NetworkLOS(object):
 
         # we return multiple tap rows for each maz, so we add an 'idx' row to tell caller
         # which maz-taz rows belong to which row in the original maz list
-        # i.e. idx contains the index of the original maz series so we know which rows belong together
+        # i.e. idx contains the index of the original maz series so we know which
+        # rows belong together
         # if maz is a series, then idx has the original maz series index values
         # otherwise it has the 0-based integer offset of the original maz
 
         if filter:
-            maz2tap_df = self.maz2tap_df[ pd.notnull(self.maz2tap_df[filter]) ]
+            maz2tap_df = self.maz2tap_df[pd.notnull(self.maz2tap_df[filter])]
         else:
             maz2tap_df = self.maz2tap_df
 
         if attribute:
             # FIXME - not sure anyone needs this feature
-            maz2tap_df = maz2tap_df[ ['MAZ', 'TAP', attribute]]
+            maz2tap_df = maz2tap_df[['MAZ', 'TAP', attribute]]
             # filter out null attribute rows
-            maz2tap_df = maz2tap_df[ pd.notnull(self.maz2tap_df[attribute]) ]
+            maz2tap_df = maz2tap_df[pd.notnull(self.maz2tap_df[attribute])]
         else:
             maz2tap_df = maz2tap_df[['MAZ', 'TAP']]
 
@@ -134,7 +134,6 @@ class NetworkLOS(object):
         df = pd.merge(maz_df, maz2tap_df, how="inner")
 
         return df
-
 
     def get_tappairs_mazpairs(network_los, omaz, dmaz, ofilter=None, dfilter=None):
 
@@ -152,7 +151,6 @@ class NetworkLOS(object):
 
         return atap_btap_df
 
-
     def __str__(self):
 
         return "\n".join((
@@ -167,16 +165,15 @@ class NetworkLOS(object):
             "tap_skim_stack (%s keys)" % self.tap_skim_stack.key_count(),
         ))
 
+
 @orca.injectable(cache=True)
 def network_los(store, taz_skim_dict, tap_skim_dict):
-
 
     taz = store["TAZ"]
     maz = store["MAZ"]
     tap = store["TAP"]
     maz2maz = store["MAZtoMAZ"]
     maz2tap = store["MAZtoTAP"]
-
 
     print "taz index %s columns %s" % (taz.index.name, taz.columns.values)
     print "tap index %s columns %s" % (tap.index.name, tap.columns.values)
@@ -186,9 +183,9 @@ def network_los(store, taz_skim_dict, tap_skim_dict):
     print "maz2tap index %s columns %s" % (maz2tap.index.name, maz2tap.columns.values)
 
     # print "tap index %s columns %s" % (tap.index.name, tap.columns.values)
-    # print "tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name, tap_skim_offsets.columns.values)
+    # print "tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name,
+    #                                                 tap_skim_offsets.columns.values)
 
     nlos = NetworkLOS(taz, maz, tap, maz2maz, maz2tap, taz_skim_dict, tap_skim_dict)
 
     return nlos
-

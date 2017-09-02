@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import os
 import time
-
+import extensions
 
 # you will want to configure this with the locations of the canonical datasets
 DATA_REPO = "C:/projects/sandag-asim/toRSG/output/"
@@ -35,9 +35,6 @@ def data_dir():
     return os.path.join(DATA_REPO)
 
 
-import extensions
-
-
 def print_elapsed_time(msg=None, t0=None):
     # FIXME - development debugging code to be removed
     t1 = time.time()
@@ -47,13 +44,15 @@ def print_elapsed_time(msg=None, t0=None):
         logger.info(msg)
     return time.time()
 
+
 def print_elapsed_time_per_unit(msg, t0, divisor):
     unit = 1000.
     t1 = time.time()
     if msg:
         t = t1 - (t0 or t1)
         per_unit = unit * t / divisor
-        msg = "Time to execute %s : %s seconds (%s per unit)" % (msg, round(t, 3), round(per_unit, 4))
+        msg = "Time to execute %s : %s seconds (%s per unit)" % (msg, round(t, 3),
+                                                                 round(per_unit, 4))
         logger.info(msg)
     return time.time()
 
@@ -179,7 +178,7 @@ t0 = print_elapsed_time("load network_los", t0)
 # test sizes for all implemented methods
 VECTOR_TEST_SIZEs = (10000, 100000, 1000000, 5000000, 10000000, 20000000)
 
-#VECTOR_TEST_SIZEs = []
+# VECTOR_TEST_SIZEs = []
 
 for size in VECTOR_TEST_SIZEs:
 

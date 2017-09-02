@@ -3,8 +3,11 @@ Models
 
 The currently implemented example ActivitySim AB models are described below.
 
+.. _accessibility:
+
+
 Accessibility
---------------
+-------------
 
 The main interface to the accessibility model is the 
 :py:func:`~activitysim.abm.models.accessibility.compute_accessibility` 
@@ -17,7 +20,9 @@ API
 
 .. automodule:: activitysim.abm.models.accessibility
    :members:
-   
+
+.. _auto_ownership:
+
 Auto Ownership
 --------------
 
@@ -35,8 +40,16 @@ API
 
 .. _cdap:
 
-Coordinated Daily Activity Pattern (CDAP)
------------------------------------------
+Coordinated Daily Activity Pattern
+----------------------------------
+
+The Coordinated Daily Activity Pattern (CDAP) model is a sequence of vectorized table operations:
+
+* create a person level table and rank each person in the household for inclusion in the CDAP model
+* solve individual M/N/H utilities for each person
+* take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
+* select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions
+* repeat for households size 2, 3, 4, and 5. Each model is independent of one another.
 
 The main interface to the CDAP model is the :py:func:`~activitysim.abm.models.util.cdap.run_cdap` 
 function.  This function is called by the orca step ``cdap_simulate`` which is 
@@ -62,11 +75,16 @@ util.cdap
 .. automodule:: activitysim.abm.models.util.cdap
    :members:
 
+.. _destination_choice:
+
 Destination Choice
 ------------------
 
-The main interface to the destination choice model is the 
-:py:func:`~activitysim.abm.models.destination.destination_choice` 
+Non-Mandatory Tour Destination Choice
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The main interface to the non-mandatory tour destination choice model is the 
+:py:func:`~activitysim.abm.models.destination.non_mandatory_tour_destination_choice` 
 function.  This function is registered as an orca step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``destination`` | Skims Keys: ``TAZ, TAZ_r``
@@ -77,21 +95,8 @@ API
 .. automodule:: activitysim.abm.models.destination
    :members:
 
-
-Mandatory Scheduling
---------------------
-
-The main interface to the mandatory tour purpose scheduling model is the 
-:py:func:`~activitysim.abm.models.mandatory_scheduling.mandatory_scheduling` 
-function.  This function is registered as an orca step in the example Pipeline.
-
-Core Table: ``tours`` | Result Field: ``tour_departure_and_duration`` | Skims Keys: NA
-
-API
-~~~
-
-.. automodule:: activitysim.abm.models.mandatory_scheduling
-   :members:
+   
+.. _mandatory_tour_frequency:
 
 Mandatory Tour Frequency
 ------------------------
@@ -108,8 +113,24 @@ API
 .. automodule:: activitysim.abm.models.mandatory_tour_frequency
    :members:
 
+.. _mandatory_tour_scheduling:
+
+Mandatory Tour Scheduling
+-------------------------
+
+The main interface to the mandatory tour purpose scheduling model is the 
+:py:func:`~activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling` 
+function.  This function is registered as an orca step in the example Pipeline.
+
+Core Table: ``tours`` | Result Field: ``tour_departure_and_duration`` | Skims Keys: NA
+
+API
+~~~
+
+.. automodule:: activitysim.abm.models.mandatory_scheduling
+   :members:
 Create Trips
---------------
+------------
 
 The main interface to the create trips model is the 
 :py:func:`~activitysim.abm.models.create_trips.create_simple_trips` 
@@ -125,8 +146,8 @@ API
 
 .. _mode_choice:
 
-Mode (Tour and Trip)
---------------------
+Mode
+----
 
 Tour
 ~~~~
@@ -161,21 +182,7 @@ API
 .. automodule:: activitysim.abm.models.util.mode
    :members:
 
-Non-Mandatory Scheduling
-------------------------
-
-The main interface to the non-mandatory scheduling model is the 
-:py:func:`~activitysim.abm.models.non_mandatory_scheduling.non_mandatory_scheduling` 
-function.  This function is registered as an orca step in the example Pipeline.
-
-Core Table: ``tours`` | Result Field: ``tour_departure_and_duration`` | Skims Keys: NA
-
-API
-~~~
-
-.. automodule:: activitysim.abm.models.non_mandatory_scheduling
-   :members:
-
+.. _non_mandatory_tour_frequency:
 
 Non-Mandatory Tour Frequency
 ----------------------------
@@ -192,6 +199,24 @@ API
 .. automodule:: activitysim.abm.models.non_mandatory_tour_frequency
    :members:
 
+.. _non_mandatory_tour_scheduling:
+
+Non-Mandatory Tour Scheduling
+-----------------------------
+
+The main interface to the non-mandatory tour scheduling model is the 
+:py:func:`~activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling` 
+function.  This function is registered as an orca step in the example Pipeline.
+
+Core Table: ``tours`` | Result Field: ``tour_departure_and_duration`` | Skims Keys: NA
+
+API
+~~~
+
+.. automodule:: activitysim.abm.models.non_mandatory_scheduling
+   :members:
+   
+.. _school_location:
 
 School Location
 ---------------
@@ -215,6 +240,7 @@ API
 .. automodule:: activitysim.abm.models.school_location
    :members:
 
+.. _work_location:
 
 Workplace Location
 ------------------

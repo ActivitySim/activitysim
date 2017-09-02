@@ -99,10 +99,82 @@ API
 .. automodule:: activitysim.core.tracing
    :members:
 
-
+.. _expressions:
 
 Utility Expressions
 -------------------
+
+Much of the power of ActivitySim comes from being able to specify Python, pandas, and 
+numpy expressions for calculations. Refer to the pandas help for a general 
+introduction to expressions.  ActivitySim provides two ways to evaluate expressions:
+
+* Simple table expressions are evaluated using ``DataFrame.eval()``.  `pandas' eval <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html>`__ operates on the current table.
+* Python expressions, denoted by beginning with ``@``, are evaluated with `Python's eval() <https://docs.python.org/2/library/functions.html#eval>`__.
+
+Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects 
+urrently in memory.
+
+Conventions
+~~~~~~~~~~~
+
+There are a few conventions for writing expressions in ActivitySim:
+
+* each expression is applied to all rows in the table being operated on
+* expressions must be vectorized expressions and can use most numpy and pandas expressions
+* global constants are specified in the settings file
+* comments are specified with ``#``
+* you can refer to the current table being operated on as ``df``
+* often an object called ``skims``, ``skims_od``, or similar is available and is used to lookup the relevant skim information.  See :ref:`skims_in_detail` for more information.
+* when editing the CSV files in Excel, use single quote ' or space at the start of a cell to get Excel to accept the expression
+
+Example Expressions File
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+An expressions file has the following basic form:
+
++---------------------------------+-------------------------------+-----------+----------+
+| Description                     |  Expression                   |     cars0 |    cars1 |
++=================================+===============================+===========+==========+
+| 2 Adults (age 16+)              |  drivers==2                   |         0 |   3.0773 |
++---------------------------------+-------------------------------+-----------+----------+
+| Persons age 35-34               |  num_young_adults             |         0 |  -0.4849 |
++---------------------------------+-------------------------------+-----------+----------+
+| Number of workers, capped at 3  |  @df.workers.clip(upper=3)    |         0 |   0.2936 |
++---------------------------------+-------------------------------+-----------+----------+
+| Distance, from 0 to 1 miles     |  @skims['DIST'].clip(1)       |   -3.2451 |  -0.9523 |
++---------------------------------+-------------------------------+-----------+----------+
+
+* Rows are vectorized expressions that will be calculated for every record in the current table being operated on
+* The Description column describes the expression
+* The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, ``drivers`` is a column in the current table.  Use ``@`` to refer to data outside the current table
+* There is a column for each alternative and its relevant coefficient
+
+There are some variations on this setup, but the functionality is similar.  For example, 
+in the example destination choice model, the size terms expressions file has market segments as rows and employment type 
+coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:
+
+* Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
+* :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The non-mandatory tour :ref:`destination_choice` model implements this approach.
+* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`mode_choice` models are examples of this and are illustrated below.
+* Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
+
+The :ref:`mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
+Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.  
+In the example below, the ``@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']`` expression is travel time for the tour origin to desination at the tour start time plus the tour
+destination to tour origin at the tour end time.  The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.
+The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.
+
++----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+
+| Description                            |  Expression                                     |     Alternative      |   school  | shopping |
++========================================+=================================================+======================+===========+==========+ 
+|DA - Unavailable                        | sov_available == False                          |  DRIVEALONEFREE      |         0 |   3.0773 | 
++----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
+|DA - In-vehicle time                    | @odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']  |  DRIVEALONEFREE      |         0 |  -0.4849 | 
++----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
+|DAP - Unavailable for age less than 16  | age < 16                                        |  DRIVEALONEPAY       |         0 |   0.2936 | 
++----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
+|DAP - Unavailable for joint tours       | is_joint                                        |  DRIVEALONEPAY       | -3.2451   |  -0.9523 | 
++----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
 
 Sampling with Interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,17 +207,22 @@ API
 .. automodule:: activitysim.core.interaction_sample
    :members:
 
+.. _simulate:
+
 Simulate
 ~~~~~~~~
 
-Methods for expression handling, solving, choosing (i.e. making choices)
+Methods for expression handling, solving, choosing (i.e. making choices) from a fixed set of choices 
+defined in the specification file.
 
 API
 ^^^
 
 .. automodule:: activitysim.core.simulate
    :members:
-   
+
+.. _simulate_with_interaction:
+
 Simulate with Interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -175,8 +252,7 @@ Assign
 
 Alternative version of the expression evaluators in :mod:`activitysim.core.simulate` that supports temporary variable assignment.  
 Temporary variables are identified in the expressions as starting with "_", such as "_hh_density_bin".  These
-fields are not saved to the data pipeline store.  This feature is used by the 
-:py:func:`~activitysim.abm.models.accessibility.compute_accessibility` module.
+fields are not saved to the data pipeline store.  This feature is used by the :ref:`accessibility` model.
 
 API
 ^^^

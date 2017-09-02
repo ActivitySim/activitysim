@@ -31,10 +31,10 @@ _MODELS = [
     'auto_ownership_simulate',
     'cdap_simulate',
     'mandatory_tour_frequency',
-    'mandatory_scheduling',
+    'mandatory_tour_scheduling',
     'non_mandatory_tour_frequency',
-    'destination_choice',
-    'non_mandatory_scheduling',
+    'non_mandatory_tour_destination_choice',
+    'non_mandatory_tour_scheduling',
     'tour_mode_choice_simulate',
     'create_simple_trips',
     'trip_mode_choice_simulate'
@@ -45,7 +45,7 @@ _MODELS = [
 # the pipeline manager will attempt to load checkpointed tables from the checkpoint store
 # and resume pipeline processing on the next submodel step after the specified checkpoint
 resume_after = None
-#resume_after = 'school_location_logsums'
+# resume_after = 'school_location_logsums'
 
 pipeline.run(models=_MODELS, resume_after=resume_after)
 

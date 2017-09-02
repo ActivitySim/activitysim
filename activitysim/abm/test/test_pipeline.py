@@ -248,10 +248,10 @@ def full_run(resume_after=None, chunk_size=0,
         'auto_ownership_simulate',
         'cdap_simulate',
         'mandatory_tour_frequency',
-        'mandatory_scheduling',
+        'mandatory_tour_scheduling',
         'non_mandatory_tour_frequency',
         'destination_choice',
-        'non_mandatory_scheduling',
+        'non_mandatory_tour_scheduling',
         'tour_mode_choice_simulate',
         'create_simple_trips',
         'trip_mode_choice_simulate'
@@ -329,7 +329,7 @@ def test_full_run2():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(resume_after='non_mandatory_scheduling', trace_hh_id=HH_ID)
+    tour_count = full_run(resume_after='non_mandatory_tour_scheduling', trace_hh_id=HH_ID)
 
     assert(tour_count == EXPECT_TOUR_COUNT)
 

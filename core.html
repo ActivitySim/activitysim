@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core Components &mdash; ActivitySim 0.3dev1 documentation</title>
+  <title>Core Components &mdash; ActivitySim 0.4 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.3dev1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.4 documentation" href="index.html"/>
         <link rel="next" title="Models" href="models.html"/>
         <link rel="prev" title="Data Schema" href="dataschema.html"/> 
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.3dev1
+                0.4
               </div>
             
           
@@ -116,46 +116,48 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#utility-expressions">Utility Expressions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conventions">Conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-expressions-file">Example Expressions File</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sampling-with-interaction">Sampling with Interaction</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#simulate">Simulate</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id5">API</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#simulate-with-interaction">Simulate with Interaction</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id6">API</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#simulate-with-interaction">Simulate with Interaction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id8">API</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#simulate-with-sampling-and-interaction">Simulate with Sampling and Interaction</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id7">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#assign">Assign</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id8">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10">API</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#choice-models">Choice Models</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#logit">Logit</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id9">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11">API</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#helpers">Helpers</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id10">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id11">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#inject-defaults">Inject_Defaults</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id12">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
@@ -1570,7 +1572,133 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 </div>
 </div>
 <div class="section" id="utility-expressions">
-<h2>Utility Expressions<a class="headerlink" href="#utility-expressions" title="Permalink to this headline">¶</a></h2>
+<span id="expressions"></span><h2>Utility Expressions<a class="headerlink" href="#utility-expressions" title="Permalink to this headline">¶</a></h2>
+<p>Much of the power of ActivitySim comes from being able to specify Python, pandas, and
+numpy expressions for calculations. Refer to the pandas help for a general
+introduction to expressions.  ActivitySim provides two ways to evaluate expressions:</p>
+<ul class="simple">
+<li>Simple table expressions are evaluated using <code class="docutils literal"><span class="pre">DataFrame.eval()</span></code>.  <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html">pandas’ eval</a> operates on the current table.</li>
+<li>Python expressions, denoted by beginning with <code class="docutils literal"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python’s eval()</a>.</li>
+</ul>
+<p>Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects
+urrently in memory.</p>
+<div class="section" id="conventions">
+<h3>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h3>
+<p>There are a few conventions for writing expressions in ActivitySim:</p>
+<ul class="simple">
+<li>each expression is applied to all rows in the table being operated on</li>
+<li>expressions must be vectorized expressions and can use most numpy and pandas expressions</li>
+<li>global constants are specified in the settings file</li>
+<li>comments are specified with <code class="docutils literal"><span class="pre">#</span></code></li>
+<li>you can refer to the current table being operated on as <code class="docutils literal"><span class="pre">df</span></code></li>
+<li>often an object called <code class="docutils literal"><span class="pre">skims</span></code>, <code class="docutils literal"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information.</li>
+<li>when editing the CSV files in Excel, use single quote ‘ or space at the start of a cell to get Excel to accept the expression</li>
+</ul>
+</div>
+<div class="section" id="example-expressions-file">
+<h3>Example Expressions File<a class="headerlink" href="#example-expressions-file" title="Permalink to this headline">¶</a></h3>
+<p>An expressions file has the following basic form:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="36%" />
+<col width="13%" />
+<col width="12%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Description</th>
+<th class="head">Expression</th>
+<th class="head">cars0</th>
+<th class="head">cars1</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>2 Adults (age 16+)</td>
+<td>drivers==2</td>
+<td>0</td>
+<td>3.0773</td>
+</tr>
+<tr class="row-odd"><td>Persons age 35-34</td>
+<td>num_young_adults</td>
+<td>0</td>
+<td>-0.4849</td>
+</tr>
+<tr class="row-even"><td>Number of workers, capped at 3</td>
+<td>&#64;df.workers.clip(upper=3)</td>
+<td>0</td>
+<td>0.2936</td>
+</tr>
+<tr class="row-odd"><td>Distance, from 0 to 1 miles</td>
+<td>&#64;skims[‘DIST’].clip(1)</td>
+<td>-3.2451</td>
+<td>-0.9523</td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li>Rows are vectorized expressions that will be calculated for every record in the current table being operated on</li>
+<li>The Description column describes the expression</li>
+<li>The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, <code class="docutils literal"><span class="pre">drivers</span></code> is a column in the current table.  Use <code class="docutils literal"><span class="pre">&#64;</span></code> to refer to data outside the current table</li>
+<li>There is a column for each alternative and its relevant coefficient</li>
+</ul>
+<p>There are some variations on this setup, but the functionality is similar.  For example,
+in the example destination choice model, the size terms expressions file has market segments as rows and employment type
+coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:</p>
+<ul class="simple">
+<li>Simple <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> choice model - select from a fixed set of choices defined in the specification file, such as the example above.</li>
+<li><a class="reference internal" href="#simulate-with-interaction"><span class="std std-ref">Simulate with Interaction</span></a> choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The non-mandatory tour <a class="reference internal" href="models.html#destination-choice"><span class="std std-ref">Destination Choice</span></a> model implements this approach.</li>
+<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a> models are examples of this and are illustrated below.</li>
+<li>Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a> model implements this approach.</li>
+</ul>
+<p>The <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
+Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.
+In the example below, the <code class="docutils literal"><span class="pre">&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME']</span></code> expression is travel time for the tour origin to desination at the tour start time plus the tour
+destination to tour origin at the tour end time.  The <code class="docutils literal"><span class="pre">odt_skims</span></code> and <code class="docutils literal"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.
+The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="37%" />
+<col width="17%" />
+<col width="8%" />
+<col width="8%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Description</th>
+<th class="head">Expression</th>
+<th class="head">Alternative</th>
+<th class="head">school</th>
+<th class="head">shopping</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>DA - Unavailable</td>
+<td>sov_available == False</td>
+<td>DRIVEALONEFREE</td>
+<td>0</td>
+<td>3.0773</td>
+</tr>
+<tr class="row-odd"><td>DA - In-vehicle time</td>
+<td>&#64;odt_skims[‘SOV_TIME’] + dot_skims[‘SOV_TIME’]</td>
+<td>DRIVEALONEFREE</td>
+<td>0</td>
+<td>-0.4849</td>
+</tr>
+<tr class="row-even"><td>DAP - Unavailable for age less than 16</td>
+<td>age &lt; 16</td>
+<td>DRIVEALONEPAY</td>
+<td>0</td>
+<td>0.2936</td>
+</tr>
+<tr class="row-odd"><td>DAP - Unavailable for joint tours</td>
+<td>is_joint</td>
+<td>DRIVEALONEPAY</td>
+<td>-3.2451</td>
+<td>-0.9523</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="section" id="sampling-with-interaction">
 <h3>Sampling with Interaction<a class="headerlink" href="#sampling-with-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, and sampling (i.e. making multiple choices),
@@ -1698,10 +1826,11 @@ choices are simulated in the standard Monte Carlo fashion</p>
 </div>
 </div>
 <div class="section" id="simulate">
-<h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
-<p>Methods for expression handling, solving, choosing (i.e. making choices)</p>
-<div class="section" id="id5">
-<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<span id="id5"></span><h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
+<p>Methods for expression handling, solving, choosing (i.e. making choices) from a fixed set of choices
+defined in the specification file.</p>
+<div class="section" id="id6">
+<h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.simulate"></span><dl class="function">
 <dt id="activitysim.core.simulate.add_skims">
 <code class="descclassname">activitysim.core.simulate.</code><code class="descname">add_skims</code><span class="sig-paren">(</span><em>df</em>, <em>skims</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.add_skims" title="Permalink to this definition">¶</a></dt>
@@ -2119,11 +2248,11 @@ properties and no need to sample from alternatives.</p>
 </div>
 </div>
 <div class="section" id="simulate-with-interaction">
-<h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
+<span id="id7"></span><h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, choosing (i.e. making choices),
 with interaction with the chooser table.</p>
-<div class="section" id="id6">
-<h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id8">
+<h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_simulate"></span><dl class="function">
 <dt id="activitysim.core.interaction_simulate.eval_interaction_utilities">
 <code class="descclassname">activitysim.core.interaction_simulate.</code><code class="descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em>spec</em>, <em>df</em>, <em>locals_d</em>, <em>trace_label</em>, <em>trace_rows</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_simulate.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
@@ -2246,8 +2375,8 @@ choices are simulated in the standard Monte Carlo fashion</p>
 <h3>Simulate with Sampling and Interaction<a class="headerlink" href="#simulate-with-sampling-and-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, sampling (i.e. making multiple choices),
 and choosing (i.e. making choices), with interaction with the chooser table.</p>
-<div class="section" id="id7">
-<h4>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id9">
+<h4>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample_simulate"></span><dl class="function">
 <dt id="activitysim.core.interaction_sample_simulate.interaction_sample_simulate">
 <code class="descclassname">activitysim.core.interaction_sample_simulate.</code><code class="descname">interaction_sample_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>choice_column=None</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">¶</a></dt>
@@ -2322,10 +2451,9 @@ choices are simulated in the standard Monte Carlo fashion</p>
 <h3>Assign<a class="headerlink" href="#assign" title="Permalink to this headline">¶</a></h3>
 <p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
 Temporary variables are identified in the expressions as starting with “_”, such as “_hh_density_bin”.  These
-fields are not saved to the data pipeline store.  This feature is used by the
-<a class="reference internal" href="models.html#activitysim.abm.models.accessibility.compute_accessibility" title="activitysim.abm.models.accessibility.compute_accessibility"><code class="xref py py-func docutils literal"><span class="pre">compute_accessibility()</span></code></a> module.</p>
-<div class="section" id="id8">
-<h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
+fields are not saved to the data pipeline store.  This feature is used by the <a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a> model.</p>
+<div class="section" id="id10">
+<h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.assign"></span><dl class="function">
 <dt id="activitysim.core.assign.assign_variables">
 <code class="descclassname">activitysim.core.assign.</code><code class="descname">assign_variables</code><span class="sig-paren">(</span><em>assignment_expressions</em>, <em>df</em>, <em>locals_dict</em>, <em>df_alias=None</em>, <em>trace_rows=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.assign_variables" title="Permalink to this definition">¶</a></dt>
@@ -2462,8 +2590,8 @@ as the expressions and data handling described in the <a class="reference intern
 <li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></li>
 <li>call <code class="docutils literal"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</li>
 </ul>
-<div class="section" id="id9">
-<h4>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id11">
+<h4>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.logit"></span><dl class="class">
 <dt id="activitysim.core.logit.Nest">
 <em class="property">class </em><code class="descclassname">activitysim.core.logit.</code><code class="descname">Nest</code><span class="sig-paren">(</span><em>name=None</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">¶</a></dt>
@@ -2660,8 +2788,8 @@ which is indexed on index values from alternatives df</p>
 <div class="section" id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <p>Vectorized helper functions</p>
-<div class="section" id="id10">
-<h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id12">
+<h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="function">
 <dt id="activitysim.core.util.left_merge_on_index_and_col">
 <code class="descclassname">activitysim.core.util.</code><code class="descname">left_merge_on_index_and_col</code><span class="sig-paren">(</span><em>left_df</em>, <em>right_df</em>, <em>join_col</em>, <em>target_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.left_merge_on_index_and_col" title="Permalink to this definition">¶</a></dt>
@@ -2815,8 +2943,8 @@ table and would require a second step to change the index.</p>
 <div class="section" id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for configuring a model run</p>
-<div class="section" id="id11">
-<h4>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id13">
+<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.config"></span><dl class="function">
 <dt id="activitysim.core.config.get_logit_model_settings">
 <code class="descclassname">activitysim.core.config.</code><code class="descname">get_logit_model_settings</code><span class="sig-paren">(</span><em>model_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.get_logit_model_settings" title="Permalink to this definition">¶</a></dt>
@@ -2862,8 +2990,8 @@ table and would require a second step to change the index.</p>
 <div class="section" id="inject-defaults">
 <h3>Inject_Defaults<a class="headerlink" href="#inject-defaults" title="Permalink to this headline">¶</a></h3>
 <p>Default file and folder settings</p>
-<div class="section" id="id12">
-<h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id14">
+<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject_defaults"></span><dl class="function">
 <dt id="activitysim.core.inject_defaults.pipeline_path">
 <code class="descclassname">activitysim.core.inject_defaults.</code><code class="descname">pipeline_path</code><span class="sig-paren">(</span><em>output_dir</em>, <em>settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject_defaults.pipeline_path" title="Permalink to this definition">¶</a></dt>
@@ -2923,7 +3051,7 @@ table and would require a second step to change the index.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.3dev1',
+            VERSION:'0.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

@@ -49,10 +49,10 @@ with the following commands:
 If you access the internet from behind a firewall, then you will need to configure your proxy 
 server. To do so, create a ``.condarc`` file in your Anaconda installation folder, such as:
 ::
-   proxy_servers:
-     http: http://proxynew.odot.state.or.us:8080
-     https: https://proxynew.odot.state.or.us:8080
-   ssl_verify: false
+    proxy_servers:
+      http: http://proxynew.odot.state.or.us:8080
+      https: https://proxynew.odot.state.or.us:8080
+    ssl_verify: false
 
 This will create a new conda environment named ``asimtest`` and set it as the 
 active conda environment.  You need to activate the environment each time you
@@ -81,7 +81,7 @@ To install the dependencies with conda, first make sure to activate the correct
 conda environment and then install each package using pip_.  Pip will 
 attempt to install any dependencies that are not already installed.  
 
-::    
+::
     
     #required packages for running ActivitySim
     pip install cytoolz numpy pandas tables pyyaml psutil
@@ -97,7 +97,7 @@ the `Microsoft Visual C++ Compiler for Python <http://aka.ms/vcpython27>`__.
 If you access the internet from behind a firewall, then you will need to configure 
 your proxy server when downloading packages.  For example:
 ::
-   pip install --trusted-host pypi.python.org --proxy=proxynew.odot.state.or.us:8080  cytoolz
+    pip install --trusted-host pypi.python.org --proxy=proxynew.odot.state.or.us:8080  cytoolz
 
 ActivitySim
 ~~~~~~~~~~~
@@ -148,8 +148,8 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 * Simple table expressions are evaluated using ``DataFrame.eval()``.  `pandas' eval <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html>`__ operates on the current table.
 * Python expressions, denoted by beginning with ``@``, are evaluated with `Python's eval() <https://docs.python.org/2/library/functions.html#eval>`__.
 
-Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer
-to any Python objects currently in memory.  
+Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects 
+urrently in memory.
 
 Conventions
 ~~~~~~~~~~~
@@ -190,10 +190,10 @@ There are some variations on this setup, but the functionality is similar.  For 
 in the example destination choice model, the size terms expressions file has market segments as rows and employment type 
 coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:
 
-* simple choice model - select from a fixed set of choices defined in the specification file, such as the example above
-* destination choice model - combine the destination choice expressions with the destination choice alternatives files since the alternatives are not listed in the expressions file
-* complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The mode models are examples of this and are illustrated below
-* combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The CDAP model implements this approach as illustrated below
+* Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
+* :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The non-mandatory tour :ref:`destination_choice` model implements this approach.
+* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`mode_choice` models are examples of this and are illustrated below.
+* Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
 
 The :ref:`mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
 Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.  
@@ -213,15 +213,4 @@ The tour mode choice model is a nested logit (NL) model and the nesting structur
 |DAP - Unavailable for joint tours       | is_joint                                        |  DRIVEALONEPAY       | -3.2451   |  -0.9523 | 
 +----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
 
-In ActivitySim, all models are implemented as a series of table operations.  The :ref:`cdap` model sequence of vectorized table operations is:
-
-* create a person level table and rank each person in the household for inclusion in the CDAP model
-* solve individual M/N/H utilities for each person
-* take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
-* select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions
-* repeat for households size 2, 3, 4, and 5. Each model is independent of one another.
-
-Example
--------
-
-The next logical step in getting started is to run the :ref:`example`.
+See :ref:`expressions` for more information.

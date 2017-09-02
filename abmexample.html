@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example &mdash; ActivitySim 0.3dev1 documentation</title>
+  <title>Example &mdash; ActivitySim 0.4 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.3dev1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.4 documentation" href="index.html"/>
         <link rel="next" title="How the System Works" href="howitworks.html"/>
         <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.3dev1
+                0.4
               </div>
             
           
@@ -239,7 +239,7 @@ is the main settings file for the model run.  This file includes:</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see note below.</p>
+<li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a></p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p>
 </li>
@@ -254,7 +254,7 @@ is the main settings file for the model run.  This file includes:</p>
 </li>
 </ul>
 <div class="section" id="chunk-size">
-<span id="index-2"></span><h3>Chunk size<a class="headerlink" href="#chunk-size" title="Permalink to this headline">¶</a></h3>
+<span id="index-2"></span><span id="id2"></span><h3>Chunk size<a class="headerlink" href="#chunk-size" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal"><span class="pre">chunk_size</span></code> is the number of doubles in a chunk of the choosers table.  It is the number of rows
 times the number of columns and it needs to be set to a value that efficiently processes the table with
 the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 households with 10 attribute
@@ -279,23 +279,114 @@ library and defines two key log files:</p>
 <p>Included in the <code class="docutils literal"><span class="pre">configs</span></code> folder are the model specification files that store the
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
-of this is the non_mandatory_tour_frequency_alternatives.csv file, which lists each alternative as a row and each
-columns indicates the number of non-mandatory tours by purpose.</p>
-<p>The current set of files are:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">accessibility.csv,</span> <span class="pre">,</span> <span class="pre">accessibility.yaml</span></code> - accessibility model</li>
-<li><code class="docutils literal"><span class="pre">auto_ownership.csv,</span> <span class="pre">auto_ownership.yaml</span></code> - auto ownership model</li>
-<li><code class="docutils literal"><span class="pre">cdap_indiv_and_hhsize1.csv,</span> <span class="pre">cdap_interaction_coefficients.csv,</span> <span class="pre">cdap_fixed_relative_proportions.csv</span></code> - CDAP model</li>
-<li><code class="docutils literal"><span class="pre">destination_choice.csv,</span> <span class="pre">destination_choice_size_terms.csv</span></code> - destination choice model</li>
-<li><code class="docutils literal"><span class="pre">logsums_spec_school.csv,</span> <span class="pre">logsums_spec_university.csv,</span> <span class="pre">logsums_spec_work.csv</span></code> - mandatory location choice logsums model</li>
-<li><code class="docutils literal"><span class="pre">mandatory_tour_frequency.csv</span></code> - mandatory tour frequency model</li>
-<li><code class="docutils literal"><span class="pre">non_mandatory_tour_frequency.csv,</span> <span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> - non mandatory tour frequency model</li>
-<li><code class="docutils literal"><span class="pre">school_location.csv,</span> <span class="pre">school_location_sample.csv</span></code> - school location final choice model and sample model</li>
-<li><code class="docutils literal"><span class="pre">tour_departure_and_duration_alternatives.csv,</span> <span class="pre">tour_departure_and_duration_nonmandatory.csv,</span> <span class="pre">tour_departure_and_duration_school.csv,</span> <span class="pre">tour_departure_and_duration_work.csv</span></code> - tour departure and duration model</li>
-<li><code class="docutils literal"><span class="pre">tour_mode_choice.csv,</span> <span class="pre">tour_mode_choice.yaml,</span> <span class="pre">tour_mode_choice_coeffs.csv</span></code> - tour mode choice model</li>
-<li><code class="docutils literal"><span class="pre">trip_mode_choice.csv,</span> <span class="pre">trip_mode_choice.yaml,</span> <span class="pre">trip_mode_choice_coeffs.csv</span></code> - trip mode choice model</li>
-<li><code class="docutils literal"><span class="pre">workplace_location.csv,</span> <span class="pre">workplace_location_sample.csv</span></code> - work location final choice model and sample model</li>
+of this is the <code class="docutils literal"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
+columns indicates the number of non-mandatory tours by purpose.  The current set of files are below.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="48%" />
+<col width="52%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Model</th>
+<th class="head">Specification Files</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a></td>
+<td><ul class="first last simple">
+<li>accessibility.yaml</li>
+<li>accessibility.csv</li>
 </ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#auto-ownership"><span class="std std-ref">Auto Ownership</span></a></td>
+<td><ul class="first last simple">
+<li>auto_ownership.yaml</li>
+<li>auto_ownership.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a></td>
+<td><ul class="first last simple">
+<li>cdap.yaml</li>
+<li>cdap_indiv_and_hhsize1.csv</li>
+<li>cdap_interaction_coefficients.csv</li>
+<li>cdap_fixed_relative_proportions.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#mandatory-tour-frequency"><span class="std std-ref">Mandatory Tour Frequency</span></a></td>
+<td><ul class="first last simple">
+<li>mandatory_tour_frequency.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></td>
+<td><ul class="first last simple">
+<li>non_mandatory_tour_frequency.csv</li>
+<li>non_mandatory_tour_frequency_alternatives.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>Non-Mandatory Tour <a class="reference internal" href="models.html#destination-choice"><span class="std std-ref">Destination Choice</span></a></td>
+<td><ul class="first last simple">
+<li>non_mandatory_tour_destination_choice.yaml</li>
+<li>non_mandatory_tour_destination_choice.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#school-location"><span class="std std-ref">School Location</span></a></td>
+<td><ul class="first last simple">
+<li>school_location.yaml</li>
+<li>school_location_sample.csv</li>
+<li>logsums_spec_school.csv</li>
+<li>logsums_spec_university.csv</li>
+<li>school_location.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#mandatory-tour-scheduling"><span class="std std-ref">Mandatory Tour Scheduling</span></a></td>
+<td><ul class="first last simple">
+<li>tour_departure_and_duration_alternatives.csv</li>
+<li>tour_departure_and_duration_school.csv</li>
+<li>tour_departure_and_duration_work.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></td>
+<td><ul class="first last simple">
+<li>tour_departure_and_duration_alternatives.csv</li>
+<li>tour_departure_and_duration_nonmandatory.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>Tour <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a></td>
+<td><ul class="first last simple">
+<li>tour_mode_choice.yaml</li>
+<li>tour_mode_choice.csv</li>
+<li>tour_mode_choice_coeffs.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td>Trip <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a></td>
+<td><ul class="first last simple">
+<li>trip_mode_choice.yaml</li>
+<li>trip_mode_choice.csv</li>
+<li>trip_mode_choice_coeffs.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#work-location"><span class="std std-ref">Workplace Location</span></a></td>
+<td><ul class="first last simple">
+<li>workplace_location.yaml</li>
+<li>workplace_location_sample.csv</li>
+<li>logsums_spec_work.csv</li>
+<li>workplace_location.csv</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section" id="running-the-example-model">
@@ -323,10 +414,10 @@ columns indicates the number of non-mandatory tours by purpose.</p>
   <span class="s1">&#39;auto_ownership_simulate&#39;</span><span class="p">,</span>
   <span class="s1">&#39;cdap_simulate&#39;</span><span class="p">,</span>
   <span class="s1">&#39;mandatory_tour_frequency&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;mandatory_scheduling&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;mandatory_tour_scheduling&#39;</span><span class="p">,</span>
   <span class="s1">&#39;non_mandatory_tour_frequency&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;destination_choice&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;non_mandatory_scheduling&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;non_mandatory_tour_destination_choice&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;non_mandatory_tour_scheduling&#39;</span><span class="p">,</span>
   <span class="s1">&#39;tour_mode_choice_simulate&#39;</span><span class="p">,</span>
   <span class="s1">&#39;create_simple_trips&#39;</span><span class="p">,</span>
   <span class="s1">&#39;trip_mode_choice_simulate&#39;</span>
@@ -337,7 +428,7 @@ columns indicates the number of non-mandatory tours by purpose.</p>
 argument to <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> the pipeliner will load checkpointed tables from the checkpoint store
 and resume pipeline processing on the next model step after the specified checkpoint.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">resume_after</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="c1">#resume_after = &#39;mandatory_scheduling&#39;</span>
+<span class="c1">#resume_after = &#39;school_location_logsums&#39;</span>
 </pre></div>
 </div>
 <p>The model is run by calling the <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method.</p>
@@ -355,9 +446,9 @@ table stores the crosswalk between model steps and table states in order to relo
 the pipeline at any step.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="66%" />
-<col width="9%" />
-<col width="25%" />
+<col width="73%" />
+<col width="7%" />
+<col width="20%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Table</th>
@@ -394,7 +485,7 @@ the pipeline at any step.</p>
 <td>frame</td>
 <td>(shape-&gt;[77,4])</td>
 </tr>
-<tr class="row-odd"><td>/mandatory_tours/mandatory_scheduling</td>
+<tr class="row-odd"><td>/mandatory_tours/mandatory_tour_scheduling</td>
 <td>frame</td>
 <td>(shape-&gt;[77,5])</td>
 </tr>
@@ -402,11 +493,11 @@ the pipeline at any step.</p>
 <td>frame</td>
 <td>(shape-&gt;[83,5])</td>
 </tr>
-<tr class="row-odd"><td>/non_mandatory_tours/destination_choice</td>
+<tr class="row-odd"><td>/non_mandatory_tours/non_mandatory_tour_destination_choice</td>
 <td>frame</td>
 <td>(shape-&gt;[83,6])</td>
 </tr>
-<tr class="row-even"><td>/non_mandatory_tours/non_mandatory_scheduling</td>
+<tr class="row-even"><td>/non_mandatory_tours/non_mandatory_tour_scheduling</td>
 <td>frame</td>
 <td>(shape-&gt;[83,7])</td>
 </tr>
@@ -456,7 +547,7 @@ is the overall log file is always produced.  If tracing is specified, then trace
 as well.</p>
 </div>
 <div class="section" id="tracing">
-<span id="id2"></span><h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h2>
 <p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
 is specified, then ActivitySim will output a comprehensive set of trace files for all
 calculations for all household members:</p>
@@ -518,7 +609,7 @@ help debug data and/or logic errors.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.3dev1',
+            VERSION:'0.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

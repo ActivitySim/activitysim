@@ -11,7 +11,7 @@ import orca
 from activitysim.core import skim as askim
 from activitysim.core import tracing
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('activitysim')
 
 """
 Read in the omx files and create the skim objects
@@ -25,7 +25,7 @@ def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset_int=None
         if 'default_mapping' not in omx_file.listMappings():
 
             raise RuntimeError("Could not find 'default_mapping' in omx file."
-                               "\nYou might need to rerun import_data.py to rebuild the skims files.")
+                               "\nMaybe rerun import_data.py to rebuild the skims files.")
 
         offset_map = omx_file.mapentries('default_mapping')
         skim_dict.offset_mapper.set_offset_list(offset_map)
@@ -46,7 +46,6 @@ def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset_int=None
             # FIXME - assumes that the only types of key2 are time_periods
             if key2 in cache_skim_key_values:
                 skim_dict.set((key, key2), skim_data)
-
 
 
 @orca.injectable(cache=True)
@@ -79,4 +78,3 @@ def tap_skim_dict(data_dir, settings):
             add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values)
 
     return skim_dict
-

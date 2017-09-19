@@ -6,12 +6,11 @@ import pandas as pd
 import openmatrix as omx
 
 
-
 input_folder = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output/"
 output_folder = "./output/"
 
-data_file='NetworkData.h5'
-skim_files=['taz_skims.omx', 'tap_skims_locl.omx', 'tap_skims_prem.omx']
+data_file = 'NetworkData.h5'
+skim_files = ['taz_skims.omx', 'tap_skims_locl.omx', 'tap_skims_prem.omx']
 
 
 if __name__ == "__main__":
@@ -39,13 +38,12 @@ if __name__ == "__main__":
 
                 if 'TAZ'in df.columns:
                     print df.TAZ.value_counts().head(20)
-                #print df
-
+                # print df
 
     # process all skims
     for skim_file in skim_files:
         with omx.open_file(input_folder+skim_file) as skims:
-            #skims = omx.open_file(folder+skim_file)
+            # skims = omx.open_file(folder+skim_file)
 
             print "\n##### %s %s" % (skim_file, skims.shape())
 
@@ -54,7 +52,4 @@ if __name__ == "__main__":
             skimsToProcess = skims.listMatrices()
             for skimName in skimsToProcess:
                 print skimName
-            #skims.close()
-
-
-
+            # skims.close()

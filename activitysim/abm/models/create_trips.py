@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 @orca.step()
 def create_simple_trips(tours, households, persons, trace_hh_id):
     """
-    Create a simple trip table
+    Create a simple trip table from the tours table.  Two trips are created
+    for each tour: from tour origin to tour destination (outbound) and from tour
+    destination to tour origin (inbound).
     """
 
     logger.info("Running simple trips table creation with %d tours" % len(tours.index))

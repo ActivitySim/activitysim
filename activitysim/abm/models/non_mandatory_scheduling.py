@@ -19,22 +19,21 @@ logger = logging.getLogger(__name__)
 
 @orca.table()
 def tdd_non_mandatory_spec(configs_dir):
-    f = os.path.join(configs_dir, 'tour_departure_and_duration_nonmandatory.csv')
-    return asim.read_model_spec(f).fillna(0)
+    return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_nonmandatory.csv')
 
 
 @orca.injectable()
-def non_mandatory_scheduling_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'non_mandatory_scheduling.yaml')
+def non_mandatory_tour_scheduling_settings(configs_dir):
+    return config.read_model_settings(configs_dir, 'non_mandatory_tour_scheduling.yaml')
 
 
 @orca.step()
-def non_mandatory_scheduling(non_mandatory_tours_merged,
-                             tdd_alts,
-                             tdd_non_mandatory_spec,
-                             non_mandatory_scheduling_settings,
-                             chunk_size,
-                             trace_hh_id):
+def non_mandatory_tour_scheduling(non_mandatory_tours_merged,
+                                  tdd_alts,
+                                  tdd_non_mandatory_spec,
+                                  non_mandatory_tour_scheduling_settings,
+                                  chunk_size,
+                                  trace_hh_id):
     """
     This model predicts the departure time and duration of each activity for
     non-mandatory tours
@@ -42,9 +41,9 @@ def non_mandatory_scheduling(non_mandatory_tours_merged,
 
     tours = non_mandatory_tours_merged.to_frame()
 
-    logger.info("Running non_mandatory_scheduling with %d tours" % len(tours))
+    logger.info("Running non_mandatory_tour_scheduling with %d tours" % len(tours))
 
-    constants = config.get_model_constants(non_mandatory_scheduling_settings)
+    constants = config.get_model_constants(non_mandatory_tour_scheduling_settings)
 
     spec = tdd_non_mandatory_spec.to_frame()
     alts = tdd_alts.to_frame()
@@ -52,9 +51,9 @@ def non_mandatory_scheduling(non_mandatory_tours_merged,
     choices = vectorize_tour_scheduling(tours, alts, spec,
                                         constants=constants,
                                         chunk_size=chunk_size,
-                                        trace_label='non_mandatory_scheduling')
+                                        trace_label='non_mandatory_tour_scheduling')
 
-    tracing.print_summary('non_mandatory_scheduling tour_departure_and_duration',
+    tracing.print_summary('non_mandatory_tour_scheduling tour_departure_and_duration',
                           choices, describe=True)
 
     orca.add_column(

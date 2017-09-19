@@ -1,0 +1,152 @@
+Expression,BIKE,DRIVEALONEFREE,DRIVEALONEPAY,DRIVE_COM,DRIVE_EXP,DRIVE_HVY,DRIVE_LOC,DRIVE_LRF,SHARED2FREE,SHARED2PAY,SHARED3FREE,SHARED3PAY,WALK,WALK_COM,WALK_EXP,WALK_HVY,WALK_LOC,WALK_LRF
+1,-13.634143659,0.0,0.0,-9.093993485,-9.802644697,-9.165610298,-10.192700289,-6.42598212,-3.551661688,-3.551661688,-13.244381617,-13.244381617,6.566910039,-8.704027306,-9.412678518,-8.775644119,-9.80273411,-6.036015941
+#2 * destination_walk_time,0.0,0.0,0.0,-0.0448,-0.0448,-0.0448,-0.0448,-0.0448,0.0,0.0,0.0,0.0,0.0,-0.0448,-0.0448,-0.0448,-0.0448,-0.0448
+#2 * origin_walk_time,0.0,0.0,0.0,-0.0448,-0.0448,-0.0448,-0.0448,-0.0448,0.0,0.0,0.0,0.0,0.0,-0.0448,-0.0448,-0.0448,-0.0448,-0.0448
+#2 * terminal_time,0.0,-0.0448,-0.0448,0.0,0.0,0.0,0.0,0.0,-0.0448,-0.0448,-0.0448,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0
+@(od_skims['DISTBIKE']-bikeThresh).clip(lower=0)*2*60/bikeSpeed,-0.448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(od_skims['DISTWALK'] - walkThresh).clip(lower=0)*2*60/walkSpeed,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.224,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_COM_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_COM_DRV_BOARDS']-1).clip(0),0.0,0.0,0.0,-0.224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_COM_WLK_DDIST']/100+ dot_skims['WLK_COM_DRV_DDIST']/100)/ (od_skims['DIST']*2),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_COM_WLK_FAR']+dot_skims['WLK_COM_DRV_FAR'])+ ((odt_skims['DRV_COM_WLK_FAR']/100+dot_skims['WLK_COM_DRV_FAR']/100) *costPerMile),0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_COM_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_COM_DRV_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_COM_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_COM_DRV_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_EXP_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_EXP_DRV_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,-0.224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_EXP_WLK_DDIST']/100+ dot_skims['WLK_EXP_DRV_DDIST']/100)/ (od_skims['DIST']*2),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_EXP_WLK_FAR']+dot_skims['WLK_EXP_DRV_FAR'])+ ((odt_skims['DRV_EXP_WLK_FAR']/100+dot_skims['WLK_EXP_DRV_FAR']/100) *costPerMile),0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_EXP_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_EXP_DRV_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_EXP_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_EXP_DRV_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_HVY_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_HVY_DRV_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,-0.224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_HVY_WLK_DDIST']/100+ dot_skims['WLK_HVY_DRV_DDIST']/100)/ (od_skims['DIST']*2),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_HVY_WLK_FAR']+dot_skims['WLK_HVY_DRV_FAR'])+ ((odt_skims['DRV_HVY_WLK_FAR']/100+dot_skims['WLK_HVY_DRV_FAR']/100) *costPerMile),0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_HVY_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_HVY_DRV_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_HVY_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_HVY_DRV_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LOC_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_LOC_DRV_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,-0.224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LOC_WLK_DDIST']/100+ dot_skims['WLK_LOC_DRV_DDIST']/100)/ (od_skims['DIST']*2),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LOC_WLK_FAR']+dot_skims['WLK_LOC_DRV_FAR'])+ ((odt_skims['DRV_LOC_WLK_FAR']/100+dot_skims['WLK_LOC_DRV_FAR']/100) *costPerMile),0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LOC_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_LOC_DRV_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LOC_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_LOC_DRV_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LRF_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_LRF_DRV_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LRF_WLK_DDIST']/100+ dot_skims['WLK_LRF_DRV_DDIST']/100)/ (od_skims['DIST']*2),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LRF_WLK_FAR']+dot_skims['WLK_LRF_DRV_FAR'])+ ((odt_skims['DRV_LRF_WLK_FAR']/100+dot_skims['WLK_LRF_DRV_FAR']/100) *costPerMile),0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LRF_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_LRF_DRV_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['DRV_LRF_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_LRF_DRV_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['HOV2TOLL_BTOLL'] + dot_skims['HOV2TOLL_BTOLL']) / costShareSr2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['HOV2TOLL_VTOLL'] + dot_skims['HOV2TOLL_VTOLL']) / costShareSr2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['HOV2_BTOLL'] + dot_skims['HOV2_BTOLL']) / costShareSr2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['HOV3TOLL_BTOLL'] + dot_skims['HOV3TOLL_BTOLL']) / costShareSr3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['HOV3TOLL_VTOLL'] + dot_skims['HOV3TOLL_VTOLL']) / costShareSr3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['HOV3_BTOLL'] + dot_skims['HOV3_BTOLL']) / costShareSr3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@(odt_skims['WLK_COM_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_COM_WLK_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.224,0.0,0.0,0.0,0.0
+@(odt_skims['WLK_COM_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_COM_WLK_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0
+@(odt_skims['WLK_COM_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_COM_WLK_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0
+@(odt_skims['WLK_EXP_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_EXP_WLK_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.224,0.0,0.0,0.0
+@(odt_skims['WLK_EXP_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_EXP_WLK_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0
+@(odt_skims['WLK_EXP_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_EXP_WLK_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0
+@(odt_skims['WLK_HVY_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_HVY_WLK_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.224,0.0,0.0
+@(odt_skims['WLK_HVY_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_HVY_WLK_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0
+@(odt_skims['WLK_HVY_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_HVY_WLK_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0
+@(odt_skims['WLK_LOC_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_LOC_WLK_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.224,0.0
+@(odt_skims['WLK_LOC_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_LOC_WLK_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0
+@(odt_skims['WLK_LOC_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_LOC_WLK_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0
+@(odt_skims['WLK_LRF_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_LRF_WLK_BOARDS']-1).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.224
+@(odt_skims['WLK_LRF_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_LRF_WLK_IWAIT']/100).clip(upper=waitThresh),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448
+@(odt_skims['WLK_LRF_WLK_IWAIT']/100-waitThresh).clip(0)+ (dot_skims['WLK_LRF_WLK_IWAIT']/100-waitThresh).clip(0),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224
+@costPerMile * (odt_skims['HOV2TOLL_DIST'] + dot_skims['HOV2TOLL_DIST']),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@costPerMile * (odt_skims['HOV2_DIST'] + dot_skims['HOV2_DIST']),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@costPerMile * (odt_skims['HOV3TOLL_DIST'] + dot_skims['HOV3TOLL_DIST']),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0
+@costPerMile * (odt_skims['HOV3_DIST'] + dot_skims['HOV3_DIST']),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@costPerMile * (odt_skims['SOVTOLL_DIST'] + dot_skims['SOVTOLL_DIST']),0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@costPerMile * (odt_skims['SOV_DIST'] + dot_skims['SOV_DIST']),0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#@df.daily_parking_cost / costShareSr2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#@df.daily_parking_cost / costShareSr3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0
+@od_skims['DISTBIKE'].clip(upper=bikeThresh)*2*60/bikeSpeed,-0.0896,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@od_skims['DISTWALK'].clip(upper=walkThresh)*2*60/walkSpeed,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_COM_WLK_DTIM']/100 + dot_skims['WLK_COM_DRV_DTIM']/100,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_COM_WLK_KEYIVT']/100 + dot_skims['WLK_COM_DRV_KEYIVT']/100,0.0,0.0,0.0,0.00672,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_COM_WLK_TOTIVT']/100 + dot_skims['WLK_COM_DRV_TOTIVT']/100,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_COM_WLK_WAUX']/100 + dot_skims['WLK_COM_DRV_WAUX']/100,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_COM_WLK_XWAIT']/100 + dot_skims['WLK_COM_DRV_XWAIT']/100,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_EXP_WLK_DTIM']/100 + dot_skims['WLK_EXP_DRV_DTIM']/100,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_EXP_WLK_KEYIVT']/100 + dot_skims['WLK_EXP_DRV_KEYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_EXP_WLK_TOTIVT']/100 + dot_skims['WLK_EXP_DRV_TOTIVT']/100,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_EXP_WLK_WAUX']/100 + dot_skims['WLK_EXP_DRV_WAUX']/100,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_EXP_WLK_XWAIT']/100 + dot_skims['WLK_EXP_DRV_XWAIT']/100,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_HVY_WLK_DTIM']/100 + dot_skims['WLK_HVY_DRV_DTIM']/100,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_HVY_WLK_KEYIVT']/100 + dot_skims['WLK_HVY_DRV_KEYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_HVY_WLK_TOTIVT']/100 + dot_skims['WLK_HVY_DRV_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_HVY_WLK_WAUX']/100 + dot_skims['WLK_HVY_DRV_WAUX']/100,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_HVY_WLK_XWAIT']/100 + dot_skims['WLK_HVY_DRV_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LOC_WLK_DTIM']/100 + dot_skims['WLK_LOC_DRV_DTIM']/100,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LOC_WLK_TOTIVT']/100 + dot_skims['WLK_LOC_DRV_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LOC_WLK_WAUX']/100 + dot_skims['WLK_LOC_DRV_WAUX']/100,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LOC_WLK_XWAIT']/100 + dot_skims['WLK_LOC_DRV_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LRF_WLK_DTIM']/100 + dot_skims['WLK_LRF_DRV_DTIM']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LRF_WLK_FERRYIVT']/100 + dot_skims['WLK_LRF_DRV_FERRYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.00224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LRF_WLK_KEYIVT']/100 + dot_skims['WLK_LRF_DRV_KEYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.00224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LRF_WLK_TOTIVT']/100 + dot_skims['WLK_LRF_DRV_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LRF_WLK_WAUX']/100 + dot_skims['WLK_LRF_DRV_WAUX']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['DRV_LRF_WLK_XWAIT']/100 + dot_skims['WLK_LRF_DRV_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['HOV2_TIME'] + dot_skims['HOV2_TIME'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['HOV3TOLL_TIME'] + dot_skims['HOV3TOLL_TIME'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['HOV3_TIME'] + dot_skims['HOV3_TIME'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['SOVTOLL_BTOLL'] + dot_skims['SOVTOLL_BTOLL'],0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['SOVTOLL_TIME'] + dot_skims['SOVTOLL_TIME'],0.0,0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['SOVTOLL_VTOLL'] + dot_skims['SOVTOLL_VTOLL'],0.0,0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['SOV_BTOLL'] + dot_skims['SOV_BTOLL'],0.0,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'],0.0,-0.0224,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['WLK_COM_WLK_FAR'] + dot_skims['WLK_COM_WLK_FAR'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0,0.0
+@odt_skims['WLK_COM_WLK_KEYIVT']/100 + dot_skims['WLK_COM_WLK_KEYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.00672,0.0,0.0,0.0,0.0
+@odt_skims['WLK_COM_WLK_TOTIVT']/100 + dot_skims['WLK_COM_WLK_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0,0.0
+@odt_skims['WLK_COM_WLK_WAUX']/100 + dot_skims['WLK_COM_WLK_WAUX']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0
+@odt_skims['WLK_COM_WLK_XWAIT']/100 + dot_skims['WLK_COM_WLK_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0,0.0
+@odt_skims['WLK_EXP_WLK_FAR'] + dot_skims['WLK_EXP_WLK_FAR'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0,0.0
+@odt_skims['WLK_EXP_WLK_KEYIVT']/100 + dot_skims['WLK_EXP_WLK_KEYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+@odt_skims['WLK_EXP_WLK_TOTIVT']/100 + dot_skims['WLK_EXP_WLK_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0,0.0
+@odt_skims['WLK_EXP_WLK_WAUX']/100 + dot_skims['WLK_EXP_WLK_WAUX']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0
+@odt_skims['WLK_EXP_WLK_XWAIT']/100 + dot_skims['WLK_EXP_WLK_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0,0.0
+@odt_skims['WLK_HVY_WLK_FAR'] + dot_skims['WLK_HVY_WLK_FAR'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0,0.0
+@odt_skims['WLK_HVY_WLK_KEYIVT']/100 + dot_skims['WLK_HVY_WLK_KEYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.00448,0.0,0.0
+@odt_skims['WLK_HVY_WLK_TOTIVT']/100 + dot_skims['WLK_HVY_WLK_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0,0.0
+@odt_skims['WLK_HVY_WLK_WAUX']/100 + dot_skims['WLK_HVY_WLK_WAUX']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0
+@odt_skims['WLK_HVY_WLK_XWAIT']/100 + dot_skims['WLK_HVY_WLK_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0,0.0
+@odt_skims['WLK_LOC_WLK_FAR'] + dot_skims['WLK_LOC_WLK_FAR'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168,0.0
+@odt_skims['WLK_LOC_WLK_TOTIVT']/100 + dot_skims['WLK_LOC_WLK_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224,0.0
+@odt_skims['WLK_LOC_WLK_WAUX']/100 + dot_skims['WLK_LOC_WLK_WAUX']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0
+@odt_skims['WLK_LOC_WLK_XWAIT']/100 + dot_skims['WLK_LOC_WLK_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448,0.0
+@odt_skims['WLK_LRF_WLK_FAR'] + dot_skims['WLK_LRF_WLK_FAR'],0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.00168
+@odt_skims['WLK_LRF_WLK_FERRYIVT']/100 + dot_skims['WLK_LRF_WLK_FERRYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.00224
+@odt_skims['WLK_LRF_WLK_KEYIVT']/100 + dot_skims['WLK_LRF_WLK_KEYIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.00224
+@odt_skims['WLK_LRF_WLK_TOTIVT']/100 + dot_skims['WLK_LRF_WLK_TOTIVT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0224
+@odt_skims['WLK_LRF_WLK_WAUX']/100 + dot_skims['WLK_LRF_WLK_WAUX']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448
+@odt_skims['WLK_LRF_WLK_XWAIT']/100 + dot_skims['WLK_LRF_WLK_XWAIT']/100,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0448
+age <  16,0.0,0.0,0.0,-999.0,-999.0,-999.0,-999.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+age < 10,0.0,0.0,0.0,-1.5548000001,-1.5548000001,-1.5548000001,-1.5548000001,-1.5548000001,0.0,0.0,0.0,0.0,0.0,-1.5548000001,-1.5548000001,-1.5548000001,-1.5548000001,-1.5548000001
+age < 16,0.0,-999.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+age_16_p,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+age_16_to_19,0.0,-1.38129999997,-1.38129999997,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#auto_ownership == 0,0.0,-999.0,-999.0,-999.0,-999.0,-999.0,-999.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#daily_parking_cost,0.0,-0.00168,-0.00168,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+density_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+dest_density_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+dest_topology,-0.448,0.0,0.0,-0.04928,-0.04928,-0.04928,-0.04928,-0.04928,0.0,0.0,0.0,0.0,-0.336,-0.04928,-0.04928,-0.04928,-0.04928,-0.04928
+#drive_commuter_available == False,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#drive_express_available == False,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#drive_heavyrail_available == False,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#drive_local_available == False,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#drive_lrf_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+hhsize == 1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+hhsize == 2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.635900000064,-0.635900000064,-0.635900000064,-0.635900000064,0.0,0.0,0.0,0.0,0.0,0.0
+#hov2_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#hov2toll_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#hov3_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0
+#is_joint,0.0,-999.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#is_joint & (number_of_participants > 2),0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#sov_available == False,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#sovtoll_available == False,0.0,0.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+#walk_commuter_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0,0.0
+#walk_express_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0,0.0
+#walk_heavyrail_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0,0.0
+#walk_local_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0,0.0
+#walk_lrf_available == False,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-999.0
+#work_tour_is_drive,0.0,-999.0,-999.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0

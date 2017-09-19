@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 # one more than 0xFFFFFFFF so we can wrap using: int64 % _MAX_SEED
 _MAX_SEED = (1 << 32)
 
+# not arbitrary, as we count on incrementing step_num from NULL_STEP_NUM to 0
+NULL_STEP_NUM = -1
 
 SavedChannelState = collections.namedtuple('SavedChannelState', 'channel_name step_num step_name')
 
@@ -36,7 +38,7 @@ _CHANNELS = {
         'table_names': ['households']
     },
     'persons': {
-        'max_steps': 5,
+        'max_steps': 7,
         'index': 'PERID',
         'table_names': ['persons']
     },
@@ -55,11 +57,6 @@ _CHANNELS = {
 
 class SimpleChannel(object):
     """
-
-    We need to ensure that we generate the same random streams (when re-run or even across
-    different simulations.) We do this by generating a random seed for each domain_df row
-    that is based on the domain_df index (which implies that generated tables like tours
-    and trips are also created with stable, predictable, repeatable row indexes.
 
     We need to ensure that we generate the same random streams (when re-run or even across
     different simulations.) We do this by generating a random seed for each domain_df row
@@ -101,7 +98,10 @@ class SimpleChannel(object):
         self.unique_channel_seed = hash(self.name) % _MAX_SEED
 
         self.step_name = step_name
-        self.step_num = step_num if step_num is not None else -1
+
+        assert (step_num == NULL_STEP_NUM) or step_num >= 0
+        self.step_num = step_num
+
         self.max_steps = max_steps
 
         assert (self.step_num < self.max_steps)
@@ -141,9 +141,9 @@ class SimpleChannel(object):
 
         return row_states
 
-    def extend_domain(self, domain_df, step_name=None, step_num=None):
+    def extend_domain(self, domain_df, step_name, step_num):
         """
-        Extend existing row_state df by addiing seed info for each row in domain_df
+        Extend existing row_state df by adding seed info for each row in domain_df
 
         This is only needed if the channel is composed of more than one underlying table.
         It is assumed that the index values of the component tables are disjoint and
@@ -165,7 +165,8 @@ class SimpleChannel(object):
         assert len(self.row_states.index.intersection(domain_df.index)) == 0
 
         self.step_name = step_name
-        if step_num:
+
+        if step_num >= 0:
             assert step_num >= self.step_num
             self.step_num = step_num
 
@@ -198,7 +199,8 @@ class SimpleChannel(object):
         # standard constant to use for choice_for_df instead of fast-forwarding rand stream
         self.multi_choice_offset = None
 
-        logger.info("begin_step '%s' for channel '%s'" % (step_name, self.name, ))
+        logger.info("begin_step '%s' step_num %s for channel '%s'"
+                    % (step_name, self.step_num, self.name, ))
 
     def _generators_for_df(self, df, override_offset=None):
         """
@@ -271,9 +273,9 @@ class SimpleChannel(object):
         self.begin_step(step_name)
         self.multi_choice_offset = offset
 
-    def random_for_df(self, df, step_name):
+    def random_for_df(self, df, step_name, n=1):
         """
-        Return a single floating point random number in range [0, 1) for each row in df
+        Return n floating point random numbers in range [0, 1) for each row in df
         using the appropriate random channel for each row.
 
         Subsequent calls (in the same step) will return the next rand for each df row
@@ -292,17 +294,20 @@ class SimpleChannel(object):
         df : pandas.DataFrame
             df with index name and values corresponding to a registered channel
 
+        n : int
+            number of rands desired per df row
+
         Returns
         -------
-        choices : 1-D ndarray the same length as df
-            a single float in range [0, 1) for each row in df
+        rands : 2-D ndarray
+            array the same length as df, with n floats in range [0, 1) for each df row
         """
         self.begin_step(step_name)
         generators = self._generators_for_df(df)
-        r = [prng.rand(1) for prng in generators]
+        rands = np.asanyarray([prng.rand(n) for prng in generators])
         # update offset for rows we handled
-        self.row_states.loc[df.index, 'offset'] += 1
-        return r
+        self.row_states.loc[df.index, 'offset'] += n
+        return rands
 
     def choice_for_df(self, df, step_name, a, size, replace):
         """
@@ -318,7 +323,7 @@ class SimpleChannel(object):
 
         We pass the multi_choice_offset to _generators_for_df as override_offset so that,
         if multi_choice_offset has been set (by a call to set_multi_choice_offset method, q,v,)
-         _generators_for_df will EITHER use the same rand sequence for choosing values
+        _generators_for_df will EITHER use the same rand sequence for choosing values
         OR use fresh random values for choices.
 
         Parameters
@@ -471,7 +476,7 @@ class Random(object):
 
     # channel management
 
-    def add_channel(self, domain_df, channel_name, step_name=None, step_num=None):
+    def add_channel(self, domain_df, channel_name, step_name=None, step_num=NULL_STEP_NUM):
         """
         Create or extend a channel for generating random number streams for domain_df.
 
@@ -497,7 +502,7 @@ class Random(object):
             consistent step numbering
         """
         assert channel_name == self.get_channel_name_for_df(domain_df)
-        assert (step_name is None) == (step_num is None)
+        assert (step_name is None) == (step_num == NULL_STEP_NUM)
 
         logger.debug("Random: add_channel step_num %s step_name '%s'" % (step_num, step_name))
 
@@ -570,6 +575,8 @@ class Random(object):
             table_names = self.get_channel_info(channel_name, 'table_names')
 
             logger.debug("loading channel %s from %s" % (channel_state.channel_name, table_names))
+
+            logger.debug("channel_state %s" % (channel_state, ))
 
             for table_name in table_names:
                 if orca.is_table(table_name):
@@ -669,7 +676,7 @@ class Random(object):
         logging.info("set_multi_choice_offset to %s for channel %s"
                      % (channel.multi_choice_offset, channel.name))
 
-    def random_for_df(self, df):
+    def random_for_df(self, df, n=1):
         """
         Return a single floating point random number in range [0, 1) for each row in df
         using the appropriate random channel for each row.
@@ -693,6 +700,9 @@ class Random(object):
         df : pandas.DataFrame
             df with index name and values corresponding to a registered channel
 
+        n : int
+            number of rands desired (default 1)
+
         Returns
         -------
         choices : 1-D ndarray the same length as df
@@ -702,12 +712,12 @@ class Random(object):
         # FIXME - for tests
         if not self.channels:
             rng = np.random.RandomState(0)
-            rands = [rng.rand(1) for _ in range(len(df))]
+            rands = np.asanyarray([rng.rand(n) for _ in range(len(df))])
             return rands
 
         t0 = print_elapsed_time()
         channel = self.get_channel_for_df(df)
-        rands = channel.random_for_df(df, self.step_name)
+        rands = channel.random_for_df(df, self.step_name, n)
         t0 = print_elapsed_time("random_for_df for %s rows" % len(df.index), t0, debug=True)
         return rands
 

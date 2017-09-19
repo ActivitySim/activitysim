@@ -12,10 +12,7 @@ trace_hh_id: 961042
 trace_od: [5, 11]
 
 #internal settings 
-chunk_size: 10000
-# chunk size for models that must process all data for a household in he same chunk (e.g. cdap)
-# if not specified, chunk_size setting value is used
-# hh_chunk_size: 5000
+chunk_size: 1000000
 
 # comment out or set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False

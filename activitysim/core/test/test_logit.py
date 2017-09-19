@@ -61,13 +61,9 @@ def spec(test_data):
 
 
 @pytest.fixture
-def choosers_dm(choosers, spec):
-    return eval_variables(spec.index, choosers)
-
-
-@pytest.fixture
-def utilities(choosers_dm, spec, test_data):
-    utils = choosers_dm.dot(spec).astype('float')
+def utilities(choosers, spec, test_data):
+    vars = eval_variables(spec.index, choosers)
+    utils = vars.dot(spec).astype('float')
     return pd.DataFrame(
         utils.as_matrix().reshape(test_data['probabilities'].shape),
         columns=test_data['probabilities'].columns)

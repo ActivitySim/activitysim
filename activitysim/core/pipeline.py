@@ -35,6 +35,8 @@ _LAST_CHECKPOINT = {}
 # array of checkpoint dicts
 _CHECKPOINTS = []
 
+_REPLACED_TABLES = {}
+
 # the one and only instantiated random number generator object (effetively a singleton)
 _PRNG = random.Random()
 
@@ -197,6 +199,9 @@ def write_df(df, table_name, checkpoint_name=None):
         the checkpoint at which the table was created/modified
     """
 
+    # coerce column names to str as unicode names will cause PyTables to pickle them
+    df.columns = df.columns.astype(str)
+
     if checkpoint_name:
         key = "%s/%s" % (table_name, checkpoint_name)
     else:
@@ -283,18 +288,23 @@ def add_checkpoint(checkpoint_name):
 
         # if we have not already checkpointed it or it has changed
         # FIXME - this won't detect if the orca table was modified
-        if (table_name not in _LAST_CHECKPOINT or len(orca.list_columns_for_table(table_name))):
-
+        if len(orca.list_columns_for_table(table_name)):
             # rewrap the changed orca table as a unitary DataFrame-backed DataFrameWrapper table
             df = rewrap(table_name)
+        elif table_name not in _LAST_CHECKPOINT or table_name in _REPLACED_TABLES:
+            df = orca.get_table(table_name).to_frame()
+        else:
+            continue
 
-            logger.debug("set_checkpoint %s writing %s to store" % (checkpoint_name, table_name, ))
+        logger.debug("set_checkpoint %s writing %s to store" % (checkpoint_name, table_name, ))
 
-            # write it to store
-            write_df(df, table_name, checkpoint_name)
+        # write it to store
+        write_df(df, table_name, checkpoint_name)
 
-            # remember which checkpoint it was last written
-            _LAST_CHECKPOINT[table_name] = checkpoint_name
+        # remember which checkpoint it was last written
+        _LAST_CHECKPOINT[table_name] = checkpoint_name
+
+    _REPLACED_TABLES.clear()
 
     _LAST_CHECKPOINT[_CHECKPOINT_NAME] = checkpoint_name
     _LAST_CHECKPOINT[_TIMESTAMP] = timestamp
@@ -416,11 +426,34 @@ def run_model(model_name):
 
     t0 = print_elapsed_time()
     _PRNG.begin_step(model_name)
-    orca.run([model_name])
+
+    # check for args
+    if '.' in model_name:
+        step_name, arg_string = model_name.split('.', 1)
+        assert '=' in arg_string, "Expected '=' in model argument '%s'" % model_name
+        args = dict((k.strip(), v.strip())
+                    for k, v in (item.split("=") for item in arg_string.split(";")))
+    else:
+        step_name = model_name
+        args = {}
+
+    # add the args
+    for key, value in args.iteritems():
+        assert not orca.is_injectable(key), "%s arg '%s' already in use" % (model_name, key)
+
+        logger.debug("run_model %s arg '%s' = '%s'" % (model_name, key, value))
+        orca.add_injectable(key, value)
+
+    orca.run([step_name])
+
+    # delete args to avoid conflicting with later steps
+    for key in args:
+        orca.orca._INJECTABLES.pop(key, None)
+
     _PRNG.end_step(model_name)
-    print_elapsed_time("run_model '%s'" % model_name, t0)
+    t0 = print_elapsed_time("run_model '%s'" % model_name, t0)
     add_checkpoint(model_name)
-    print_elapsed_time("add_checkpoint '%s'" % model_name, t0)
+    t0 = print_elapsed_time("add_checkpoint '%s'" % model_name, t0)
 
 
 def start_pipeline(resume_after=None):
@@ -509,6 +542,31 @@ def close():
     logger.info("close_pipeline")
 
 
+def replace_table(table_name, df):
+    """
+    Add or replace a orca table, removing any existing added orca columns
+
+    The use case for this function is a method that calls to_frame on an orca table, modifies
+    it and then saves the modified.
+
+    orca.to_frame returns a copy, so no changes are saved, and adding multiple column with
+    add_column adds them in an indeterminate order.
+
+    Simply replacing an existing the table "behind the pipeline's back" by calling orca.add_table
+    risks pipeline to failing to detect that it has changed, and thus not checkpoint the changes.
+
+    Parameters
+    ----------
+    table_name : str
+        orca/pipeline table name
+    df : pandas DataFrame
+    """
+
+    rewrap(table_name, df)
+
+    _REPLACED_TABLES[table_name] = True
+
+
 def get_table(table_name, checkpoint_name=None):
     """
     Return pandas dataframe corresponding to table_name
@@ -543,7 +601,8 @@ def get_table(table_name, checkpoint_name=None):
 
     # if they want current version of table, no need to read from pipeline store
     if checkpoint_name is None or _LAST_CHECKPOINT[table_name] == checkpoint_name:
-        return orca.get_table(table_name).local
+        # return orca.get_table(table_name).local
+        return orca.get_table(table_name).to_frame()
 
     if checkpoint_name not in [checkpoint[_CHECKPOINT_NAME] for checkpoint in _CHECKPOINTS]:
         raise RuntimeError("checkpoint '%s' not in checkpoints." % checkpoint_name)

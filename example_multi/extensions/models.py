@@ -17,7 +17,7 @@ from activitysim.core import tracing
 from activitysim.core import config
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('activitysim')
 
 
 @orca.injectable()
@@ -31,7 +31,8 @@ def best_transit_path_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'best_transit_path.yaml')
 
 
-VECTOR_TEST_SIZE = 10000
+VECTOR_TEST_SIZE = 100000
+VECTOR_TEST_SIZE = 1014699
 
 
 @orca.step()
@@ -40,15 +41,15 @@ def best_transit_path(set_random_seed,
                       best_transit_path_spec,
                       best_transit_path_settings):
 
-
+    logger.info("best_transit_path VECTOR_TEST_SIZE %s" % VECTOR_TEST_SIZE)
 
     omaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
     dmaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
     tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
     od_df = pd.DataFrame({'omaz': omaz, 'dmaz': dmaz, 'tod': tod})
 
-    trace_od = ( od_df.omaz[0], od_df.dmaz[0])
-    print "\ntrace_od\n", trace_od
+    trace_od = (od_df.omaz[0], od_df.dmaz[0])
+    logger.info("trace_od omaz %s dmaz %s" % trace_od)
 
     # build exploded atap_btap_df
 
@@ -66,10 +67,9 @@ def best_transit_path(set_random_seed,
         how='left'
     )
 
-    print "\nlen od_df", len(od_df.index)
-    print "\nlen atap_btap_df", len(atap_btap_df.index)
-    print "\navg explosion", len(atap_btap_df.index) / (1.0 * len(od_df.index))
-
+    logger.info("len od_df %s" % len(od_df.index))
+    logger.info("len atap_btap_df %s" % len(atap_btap_df.index))
+    logger.info("avg explosion %s" % (len(atap_btap_df.index) / (1.0 * len(od_df.index))))
 
     if trace_od:
         trace_orig, trace_dest = trace_od
@@ -85,14 +85,8 @@ def best_transit_path(set_random_seed,
         locals_d.update(constants)
 
     results, trace_results, trace_assigned_locals \
-        = assign.assign_variables(best_transit_path_spec, atap_btap_df, locals_d, trace_rows=trace_oabd_rows)
-
-    # tracing.trace_df(results,
-    #                  label='results',
-    #                  slicer='NONE',
-    #                  transpose=False)
-
-    #print "\nresults\n", results
+        = assign.assign_variables(best_transit_path_spec, atap_btap_df, locals_d,
+                                  trace_rows=trace_oabd_rows)
 
     # copy results
     for column in results.columns:
@@ -102,12 +96,10 @@ def best_transit_path(set_random_seed,
     n = len(atap_btap_df.index)
     atap_btap_df = atap_btap_df.dropna(subset=['utility'])
 
-    print "\nDropped %s of %s rows with null utility" % (n - len(atap_btap_df.index), n)
+    logger.info("Dropped %s of %s rows with null utility" % (n - len(atap_btap_df.index), n))
 
     # choose max utility
     atap_btap_df = atap_btap_df.sort_values(by='utility').groupby('idx').tail(1)
-
-    print "\natap_btap_df\n", atap_btap_df
 
     if trace_od:
 
@@ -125,11 +117,5 @@ def best_transit_path(set_random_seed,
                              slicer='NONE',
                              transpose=False)
 
-            if trace_assigned_locals is not None:
-
-                tracing.write_locals(trace_assigned_locals,
-                                     file_name="trace_best_transit_path_locals")
-
-
-
-
+            if trace_assigned_locals:
+                tracing.write_csv(trace_assigned_locals, file_name="trace_best_transit_path_locals")

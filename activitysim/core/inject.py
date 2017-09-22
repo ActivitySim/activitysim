@@ -51,7 +51,7 @@ def table():
     return decorator
 
 
-def column(table_name, cache=True):
+def column(table_name, cache=False):
     def decorator(func):
         name = func.__name__
 
@@ -78,7 +78,7 @@ def injectable(cache=False):
         logger.debug("inject injectable %s" % name)
 
         assert not _DECORATED_INJECTABLES.get(name, False), "injectable '%s' already defined" % name
-        _DECORATED_INJECTABLES[name] = func
+        _DECORATED_INJECTABLES[name] = {'func': func, 'cache': cache}
 
         if PASS_THROUGH:
             func = orca.injectable(cache=cache)(func)
@@ -148,3 +148,7 @@ def reinject_decorated_tables():
         table_name, column_name = column_key
         logger.debug("reinject decorated column %s.%s" % (table_name, column_name))
         orca.add_column(table_name, column_name, args['func'], cache=args['cache'])
+
+    for name, args in _DECORATED_INJECTABLES.iteritems():
+        logger.debug("reinject decorated injectable %s" % name)
+        orca.add_injectable(name, args['func'], cache=args['cache'])

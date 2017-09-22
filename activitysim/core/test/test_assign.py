@@ -3,6 +3,9 @@
 
 import os.path
 
+import logging
+import logging.config
+
 import numpy.testing as npt
 import numpy as np
 import pandas as pd
@@ -13,6 +16,16 @@ import orca
 
 from .. import assign
 from .. import tracing
+
+
+def close_handlers():
+
+    loggers = logging.Logger.manager.loggerDict
+    for name in loggers:
+        logger = logging.getLogger(name)
+        logger.handlers = []
+        logger.propagate = True
+        logger.setLevel(logging.NOTSET)
 
 
 @pytest.fixture(scope='module')
@@ -137,6 +150,8 @@ def test_assign_variables_aliased(capsys, data):
 
 def test_assign_variables_failing(capsys, data):
 
+    close_handlers()
+
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
     orca.add_injectable("output_dir", output_dir)
 
@@ -159,9 +174,6 @@ def test_assign_variables_failing(capsys, data):
     out, err = capsys.readouterr()
     # don't consume output
     print out
-
-    # numpy warning should appear in log but not raise error
-    assert 'invalid value encountered in log' in out
 
     # undefined variable should raise error
     assert "'undefined_variable' is not defined" in str(excinfo.value)

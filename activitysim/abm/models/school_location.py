@@ -3,14 +3,13 @@
 
 import logging
 
-import orca
 import pandas as pd
-import numpy as np
 
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
+from activitysim.core import inject
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
@@ -33,17 +32,22 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@orca.injectable()
+@inject.injectable()
 def school_location_sample_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'school_location_sample.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def school_location_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'school_location.yaml')
 
 
-@orca.step()
+@inject.injectable()
+def school_location_spec(configs_dir):
+    return simulate.read_model_spec(configs_dir, 'school_location.csv')
+
+
+@inject.step()
 def school_location_sample(
         persons_merged,
         school_location_sample_spec,
@@ -120,10 +124,10 @@ def school_location_sample(
 
     choices = pd.concat(choices_list)
 
-    orca.add_table('school_location_sample', choices)
+    inject.add_table('school_location_sample', choices)
 
 
-@orca.step()
+@inject.step()
 def school_location_logsums(
         persons_merged,
         land_use,
@@ -149,12 +153,6 @@ def school_location_logsums(
     """
 
     trace_label = 'school_location_logsums'
-
-    # extract logsums_spec from omnibus_spec
-    # omnibus_spec = orca.get_injectable('tour_mode_choice_spec')
-    # for tour_type in ['school', 'university']:
-    #     logsums_spec = get_segment_and_unstack(omnibus_spec, tour_type)
-    #     tracing.dump_df(DUMP, logsums_spec, trace_label, 'logsums_spec_%s' % tour_type)
 
     school_location_settings = config.read_model_settings(configs_dir, 'school_location.yaml')
 
@@ -208,20 +206,10 @@ def school_location_logsums(
 
     # add_column series should have an index matching the table to which it is being added
     # logsums does, since school_location_sample was on left side of merge creating choosers
-    orca.add_column("school_location_sample", "mode_choice_logsum", logsums)
+    inject.add_column("school_location_sample", "mode_choice_logsum", logsums)
 
 
-@orca.injectable()
-def school_location_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'school_location.csv')
-
-
-@orca.injectable()
-def school_location_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'school_location.yaml')
-
-
-@orca.step()
+@inject.step()
 def school_location_simulate(persons_merged,
                              school_location_sample,
                              school_location_spec,
@@ -299,13 +287,13 @@ def school_location_simulate(persons_merged,
 
     tracing.print_summary('school_taz', choices, describe=True)
 
-    orca.add_column("persons", "school_taz", choices)
+    inject.add_column("persons", "school_taz", choices)
 
     pipeline.add_dependent_columns("persons", "persons_school")
 
     if trace_hh_id:
-        trace_columns = ['school_taz'] + orca.get_table('persons_school').columns
-        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+        trace_columns = ['school_taz'] + inject.get_table('persons_school').columns
+        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
                          label="school_location",
                          columns=trace_columns,
                          warn_if_empty=True)

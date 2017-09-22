@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import orca
 
+
 from .tracing import print_elapsed_time
 
 import logging
@@ -371,7 +372,7 @@ class Random(object):
 
     def __init__(self, channel_info=_CHANNELS):
 
-        self.channel_info = channel_info
+        self.channel_info = channel_info.copy()
 
         # for map index name to channel name
         self.index_map = {info['index']: channel_name
@@ -497,7 +498,7 @@ class Random(object):
             for channels being loaded (resumed) we need the step_name and step_num to maintain
             consistent step numbering
 
-        step_num : int or None
+        step_num : int or NULL_STEP_NUM
             for channels being loaded (resumed) we need the step_name and step_num to maintain
             consistent step numbering
         """

@@ -6,8 +6,7 @@ import os
 import yaml
 
 import logging
-import orca
-
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
@@ -41,22 +40,22 @@ def handle_standard_args(parser=None):
     if args.config:
         if not os.path.exists(args.config):
             raise IOError("Could not find configs dir '%s'." % args.config)
-        orca.add_injectable("configs_dir", args.config)
+            inject.add_injectable("configs_dir", args.config)
     if args.output:
         if not os.path.exists(args.output):
             raise IOError("Could not find output dir '%s'." % args.config)
-        orca.add_injectable("output_dir", args.output)
+            inject.add_injectable("output_dir", args.output)
     if args.data:
         if not os.path.exists(args.data):
             raise IOError("Could not find data dir '%s'." % args.config)
-        orca.add_injectable("data_dir", args.data)
+            inject.add_injectable("data_dir", args.data)
 
     return args
 
 
 def setting(key, default=None):
 
-    settings = orca.get_injectable('settings')
+    settings = inject.get_injectable('settings')
 
     return settings.get(key, default)
 

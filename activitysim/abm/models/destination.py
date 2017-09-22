@@ -3,36 +3,34 @@
 
 import logging
 
-import orca
 import pandas as pd
-import numpy as np
 
 from activitysim.core.simulate import read_model_spec
 from activitysim.core.interaction_simulate import interaction_simulate
 
 from activitysim.core import tracing
 from activitysim.core import config
-
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
 
-@orca.table()
+@inject.table()
 def atwork_subtour_destination_choice_spec(configs_dir):
     return read_model_spec(configs_dir, 'atwork_subtour_destination_choice.csv')
 
 
-@orca.table()
+@inject.table()
 def non_mandatory_tour_destination_choice_spec(configs_dir):
     return read_model_spec(configs_dir, 'non_mandatory_tour_destination_choice.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def non_mandatory_tour_destination_choice_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'non_mandatory_tour_destination_choice.yaml')
 
 
-@orca.step()
+@inject.step()
 def non_mandatory_tour_destination_choice(non_mandatory_tours_merged,
                                           skim_dict,
                                           non_mandatory_tour_destination_choice_spec,
@@ -116,10 +114,10 @@ def non_mandatory_tour_destination_choice(non_mandatory_tours_merged,
 
     # every trip now has a destination which is the index from the
     # alternatives table - in this case it's the destination taz
-    orca.add_column("non_mandatory_tours", "destination", choices)
+    inject.add_column("non_mandatory_tours", "destination", choices)
 
     if trace_hh_id:
-        tracing.trace_df(orca.get_table('non_mandatory_tours').to_frame(),
+        tracing.trace_df(inject.get_table('non_mandatory_tours').to_frame(),
                          label="non_mandatory_tour_destination",
                          slicer='person_id',
                          index_label='tour',

@@ -15,14 +15,14 @@ import yaml
 
 import numpy as np
 import pandas as pd
-import orca
 
+from activitysim.core import inject
 
 import inject_defaults
 
 
 # Configurations
-ASIM_LOGGER = 'simca'
+ASIM_LOGGER = 'activitysim'
 CSV_FILE_TYPE = 'csv'
 LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
@@ -30,16 +30,8 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 logger = logging.getLogger(__name__)
 
 
-def get_injectable(name, default=None):
-
-    if orca.is_injectable(name):
-        return orca.get_injectable(name)
-    else:
-        return default
-
-
 def check_for_variability():
-    return get_injectable('check_for_variability', False)
+    return inject.get_injectable('check_for_variability', False)
 
 
 def extend_trace_label(trace_label, extension):
@@ -99,7 +91,7 @@ def log_file_path(name):
     f: str
         output folder name
     """
-    output_dir = get_injectable('output_dir')
+    output_dir = inject.get_injectable('output_dir')
     f = os.path.join(output_dir, name)
     return f
 
@@ -129,7 +121,7 @@ def config_logger(custom_config_file=None, basic=False):
         log_config_file = custom_config_file
     elif not basic:
         # look for conf file in configs_dir
-        configs_dir = get_injectable('configs_dir')
+        configs_dir = inject.get_injectable('configs_dir')
         default_config_file = os.path.join(configs_dir, LOGGING_CONF_FILE_NAME)
         if os.path.isfile(default_config_file):
             log_config_file = default_config_file
@@ -154,7 +146,7 @@ def config_logger(custom_config_file=None, basic=False):
         print "Configured logging using basicConfig"
         logger.info("Configured logging using basicConfig")
 
-    output_dir = get_injectable('output_dir')
+    output_dir = inject.get_injectable('output_dir')
     logger.debug("Deleting files in output_dir %s" % output_dir)
     delete_csv_files(output_dir)
 
@@ -215,7 +207,7 @@ def register_households(df, trace_hh_id):
     if df.index.name is None:
         df.index.names = ['household_id']
         logger.warn("households table index had no name. renamed index '%s'" % df.index.name)
-    orca.add_injectable("hh_index_name", df.index.name)
+    inject.add_injectable("hh_index_name", df.index.name)
 
     logger.debug("register_households injected hh_index_name '%s'" % df.index.name)
 
@@ -241,7 +233,7 @@ def register_persons(df, trace_hh_id):
     if df.index.name is None:
         df.index.names = ['person_id']
         logger.warn("persons table index had no name. renamed index '%s'" % df.index.name)
-    orca.add_injectable("persons_index_name", df.index.name)
+    inject.add_injectable("persons_index_name", df.index.name)
 
     logger.debug("register_persons injected persons_index_name '%s'" % df.index.name)
 
@@ -252,7 +244,7 @@ def register_persons(df, trace_hh_id):
     if len(trace_person_ids) == 0:
         logger.warn("register_persons: trace_hh_id %s not found." % trace_hh_id)
 
-    orca.add_injectable("trace_person_ids", trace_person_ids)
+    inject.add_injectable("trace_person_ids", trace_person_ids)
     logger.debug("register_persons injected trace_person_ids %s" % trace_person_ids)
 
     logger.info("tracing person_ids %s in %s persons" % (trace_person_ids, len(df.index)))
@@ -260,9 +252,9 @@ def register_persons(df, trace_hh_id):
 
 def register_tours(df, trace_hh_id):
     """
-    Register with orca persons for tracing
+    Register with inject for tracing
 
-    create an orca injectable 'trace_tour_ids' with a list of tour_ids in household we are tracing.
+    create an injectable 'trace_tour_ids' with a list of tour_ids in household we are tracing.
     This allows us to slice by tour_id without requiring presence of person_id column
 
     Parameters
@@ -279,7 +271,7 @@ def register_tours(df, trace_hh_id):
     """
 
     # get list of persons in traced household (should already have been registered)
-    person_ids = get_injectable("trace_person_ids", [])
+    person_ids = inject.get_injectable("trace_person_ids", [])
 
     if len(person_ids) == 0:
         # trace_hh_id not in households table or register_persons was not not called
@@ -296,17 +288,17 @@ def register_tours(df, trace_hh_id):
 
     # register_tours is called for both mandatory and non_mandatory tours
     # so there may already be some tours registered - add the new tours to the existing list
-    trace_tour_ids = get_injectable("trace_tour_ids", []) + trace_tour_ids
+    trace_tour_ids = inject.get_injectable("trace_tour_ids", []) + trace_tour_ids
 
-    orca.add_injectable("trace_tour_ids", trace_tour_ids)
+    inject.add_injectable("trace_tour_ids", trace_tour_ids)
     logger.debug("register_tours injected trace_tour_ids %s" % trace_tour_ids)
 
 
 def register_trips(df, trace_hh_id):
     """
-    Register with orca persons for tracing
+    Register with inject for tracing
 
-    create an orca injectable 'trace_tour_ids' with a list of tour_ids in household we are tracing.
+    create an injectable 'trace_tour_ids' with a list of tour_ids in household we are tracing.
     This allows us to slice by tour_id without requiring presence of person_id column
 
     Parameters
@@ -323,7 +315,7 @@ def register_trips(df, trace_hh_id):
     """
 
     # get list of persons in traced household (should already have been registered)
-    tour_ids = get_injectable("trace_tour_ids", [])
+    tour_ids = inject.get_injectable("trace_tour_ids", [])
 
     if len(tour_ids) == 0:
         # register_persons was not not called
@@ -338,7 +330,7 @@ def register_trips(df, trace_hh_id):
     else:
         logger.info("tracing trip_ids %s in %s trips" % (trace_trip_ids, len(df.index)))
 
-    orca.add_injectable("trace_trip_ids", trace_trip_ids)
+    inject.add_injectable("trace_trip_ids", trace_trip_ids)
     logger.debug("register_trips injected trace_tour_ids %s" % trace_trip_ids)
 
 
@@ -356,7 +348,7 @@ def register_traceable_table(table_name, df):
     Nothing
     """
 
-    trace_hh_id = get_injectable("trace_hh_id", None)
+    trace_hh_id = inject.get_injectable("trace_hh_id", None)
 
     if trace_hh_id is None:
         return
@@ -542,30 +534,30 @@ def get_trace_target(df, slicer):
 
     if len(df.index) == 0:
         target_ids = None
-    elif slicer == 'PERID' or slicer == get_injectable('persons_index_name'):
-        target_ids = get_injectable('trace_person_ids', [])
-    elif slicer == 'HHID' or slicer == orca.get_injectable('hh_index_name'):
-        target_ids = get_injectable('trace_hh_id', [])
+    elif slicer == 'PERID' or slicer == inject.get_injectable('persons_index_name'):
+        target_ids = inject.get_injectable('trace_person_ids', [])
+    elif slicer == 'HHID' or slicer == inject.get_injectable('hh_index_name'):
+        target_ids = inject.get_injectable('trace_hh_id', [])
     elif slicer == 'person_id':
-        target_ids = get_injectable('trace_person_ids', [])
+        target_ids = inject.get_injectable('trace_person_ids', [])
         column = slicer
     elif slicer == 'hh_id':
-        target_ids = get_injectable('trace_hh_id', [])
+        target_ids = inject.get_injectable('trace_hh_id', [])
         column = slicer
     elif slicer == 'tour_id':
         if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target_ids = get_injectable('trace_person_ids', [])
+            target_ids = inject.get_injectable('trace_person_ids', [])
             column = 'person_id'
         else:
-            target_ids = get_injectable('trace_tour_ids', [])
+            target_ids = inject.get_injectable('trace_tour_ids', [])
     elif slicer == 'trip_id':  # FIX ME
         if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target_ids = get_injectable('trace_person_ids', [])
+            target_ids = inject.get_injectable('trace_person_ids', [])
             column = 'person_id'
         else:
-            target_ids = get_injectable('trace_trip_ids', [])
+            target_ids = inject.get_injectable('trace_trip_ids', [])
     elif slicer == 'TAZ' or slicer == 'ZONE':
-        target_ids = get_injectable('trace_od', [])
+        target_ids = inject.get_injectable('trace_od', [])
     elif slicer == 'NONE':
         target_ids = None
     else:
@@ -626,7 +618,8 @@ def has_trace_targets(df, slicer=None):
 
 def hh_id_for_chooser(id, choosers):
 
-    if choosers.index.name == 'HHID' or choosers.index.name == get_injectable('hh_index_name'):
+    if choosers.index.name == 'HHID' or \
+                    choosers.index.name == inject.get_injectable('hh_index_name', 'HHID'):
         hh_id = id
     elif 'household_id' in choosers.columns:
         hh_id = choosers.loc[id]['household_id']
@@ -706,12 +699,12 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     # currently we only ever slice by person_id, but that could change, so we check here...
 
     if choosers.index.name == 'PERID' \
-            or choosers.index.name == get_injectable('persons_index_name'):
+            or choosers.index.name == inject.get_injectable('persons_index_name'):
         slicer_column_name = choosers.index.name
-        targets = get_injectable('trace_person_ids', [])
+        targets = inject.get_injectable('trace_person_ids', [])
     elif (choosers.index.name == 'tour_id' and 'person_id' in choosers.columns):
         slicer_column_name = 'person_id'
-        targets = get_injectable('trace_person_ids', [])
+        targets = inject.get_injectable('trace_person_ids', [])
     else:
         raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
                            % choosers.index.name)

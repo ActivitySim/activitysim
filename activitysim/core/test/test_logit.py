@@ -78,12 +78,13 @@ def test_utils_to_probs_raises():
 
     add_canonical_dirs()
 
+    idx = pd.Index(name='HHID', data=[1])
     with pytest.raises(RuntimeError) as excinfo:
-        logit.utils_to_probs(pd.DataFrame([[1, 2, np.inf, 3]]), trace_label=None)
+        logit.utils_to_probs(pd.DataFrame([[1, 2, np.inf, 3]], index=idx), trace_label=None)
     assert "infinite exponentiated utilities" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
-        logit.utils_to_probs(pd.DataFrame([[-999, -999, -999, -999]]), trace_label=None)
+        logit.utils_to_probs(pd.DataFrame([[-999, -999, -999, -999]], index=idx), trace_label=None)
     assert "all probabilities are zero" in str(excinfo.value)
 
 

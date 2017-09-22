@@ -5,8 +5,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-import orca
 
+from activitysim.core import inject
 from activitysim.core import skim as askim
 from activitysim.core.util import quick_loc_df
 
@@ -166,7 +166,7 @@ class NetworkLOS(object):
         ))
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def network_los(store, taz_skim_dict, tap_skim_dict):
 
     taz = store["TAZ"]

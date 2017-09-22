@@ -71,11 +71,11 @@ for table_name in pipeline.checkpointed_tables():
     file_path = os.path.join(orca.get_injectable("output_dir"), file_name)
     pipeline.get_table(table_name).to_csv(file_path)
 
-# tables will no longer be available after pipeline is closed
-pipeline.close()
-
-# write checkpoints (this can be called whether of not pipeline is open)
+# write checkpoints
 file_path = os.path.join(orca.get_injectable("output_dir"), "checkpoints.csv")
 pipeline.get_checkpoints().to_csv(file_path)
+
+# tables will no longer be available after pipeline is closed
+pipeline.close_pipeline()
 
 t0 = print_elapsed_time("all models", t0)

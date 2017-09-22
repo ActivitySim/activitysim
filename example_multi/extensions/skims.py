@@ -6,10 +6,11 @@ import logging
 
 import numpy as np
 import openmatrix as omx
-import orca
 
 from activitysim.core import skim as askim
 from activitysim.core import tracing
+from activitysim.core import inject
+
 
 logger = logging.getLogger('activitysim')
 
@@ -48,7 +49,7 @@ def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset_int=None
                 skim_dict.set((key, key2), skim_data)
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def taz_skim_dict(data_dir, settings):
 
     logger.info("loading taz_skim_dict")
@@ -64,7 +65,7 @@ def taz_skim_dict(data_dir, settings):
     return skim_dict
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def tap_skim_dict(data_dir, settings):
 
     logger.info("loading tap_skim_dict")

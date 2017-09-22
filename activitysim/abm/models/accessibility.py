@@ -4,13 +4,13 @@
 import logging
 import os
 
-import orca
 import pandas as pd
 import numpy as np
 
 from activitysim.core import assign
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import inject
 
 
 logger = logging.getLogger(__name__)
@@ -62,18 +62,18 @@ class AccessibilitySkims(object):
             return data.flatten()
 
 
-@orca.injectable()
+@inject.injectable()
 def accessibility_spec(configs_dir):
     f = os.path.join(configs_dir, 'accessibility.csv')
     return assign.read_assignment_spec(f)
 
 
-@orca.injectable()
+@inject.injectable()
 def accessibility_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'accessibility.yaml')
 
 
-@orca.step()
+@inject.step()
 def compute_accessibility(settings, accessibility_spec,
                           accessibility_settings,
                           skim_dict, omx_file, land_use, trace_od):
@@ -138,7 +138,7 @@ def compute_accessibility(settings, accessibility_spec,
         data.shape = (zone_count, zone_count)
         accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
 
-        orca.add_column("accessibility", column, accessibility_df[column])
+        inject.add_column("accessibility", column, accessibility_df[column])
 
     if trace_od:
 
@@ -161,5 +161,5 @@ def compute_accessibility(settings, accessibility_spec,
             if trace_assigned_locals:
                 tracing.write_csv(trace_assigned_locals, file_name="accessibility_locals")
 
-        tracing.trace_df(orca.get_table('persons_merged').to_frame(), "persons_merged",
+        tracing.trace_df(inject.get_table('persons_merged').to_frame(), "persons_merged",
                          warn_if_empty=True)

@@ -3,6 +3,7 @@
 
 import os
 import tempfile
+import logging
 
 import numpy as np
 import orca
@@ -18,6 +19,7 @@ from . import extensions
 
 from activitysim.core import tracing
 from activitysim.core import pipeline
+from activitysim.core import inject
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
@@ -25,6 +27,21 @@ HH_ID = 961042
 
 SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
+
+
+def teardown_function(func):
+    orca.clear_cache()
+    inject.reinject_decorated_tables()
+
+
+def close_handlers():
+
+    loggers = logging.Logger.manager.loggerDict
+    for name in loggers:
+        logger = logging.getLogger(name)
+        logger.handlers = []
+        logger.propagate = True
+        logger.setLevel(logging.NOTSET)
 
 
 def inject_settings(configs_dir, households_sample_size, chunk_size=None,
@@ -62,13 +79,16 @@ def test_rng_access():
 
     pipeline.set_rn_generator_base_seed(0)
 
-    pipeline.start_pipeline()
+    pipeline.open_pipeline()
 
     with pytest.raises(RuntimeError) as excinfo:
         pipeline.set_rn_generator_base_seed(0)
     assert "call set_rn_generator_base_seed before the first step" in str(excinfo.value)
 
     rng = pipeline.get_rn_generator()
+
+    pipeline.close_pipeline()
+    orca.clear_cache()
 
 
 def test_mini_pipeline_run():
@@ -85,6 +105,8 @@ def test_mini_pipeline_run():
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
     orca.clear_cache()
+
+    tracing.config_logger()
 
     # assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
@@ -135,9 +157,10 @@ def test_mini_pipeline_run():
         pipeline.get_table("households", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
-    pipeline.close()
-
+    pipeline.close_pipeline()
     orca.clear_cache()
+
+    close_handlers()
 
 
 def test_mini_pipeline_run2():
@@ -164,7 +187,7 @@ def test_mini_pipeline_run2():
     prev_checkpoint_count = len(checkpoints_df.index)
     assert prev_checkpoint_count == 11
 
-    pipeline.start_pipeline('auto_ownership_simulate')
+    pipeline.open_pipeline('auto_ownership_simulate')
 
     auto_choice = pipeline.get_table("households").auto_ownership
 
@@ -197,17 +220,10 @@ def test_mini_pipeline_run2():
     pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
 
     # should be able to get this before pipeline is closed (from existing open store)
-    assert orca.get_injectable('pipeline_store') is not None
     checkpoints_df = pipeline.get_checkpoints()
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
-    pipeline.close()
-
-    # should also be able to get this after pipeline is closed (open and close)
-    assert orca.get_injectable('pipeline_store') is None
-    checkpoints_df = pipeline.get_checkpoints()
-    assert len(checkpoints_df.index) == prev_checkpoint_count
-
+    pipeline.close_pipeline()
     orca.clear_cache()
 
 
@@ -262,7 +278,7 @@ def full_run(resume_after=None, chunk_size=0,
     tours = pipeline.get_table('tours')
     tour_count = len(tours.index)
 
-    pipeline.close()
+    pipeline.close_pipeline()
 
     orca.clear_cache()
 

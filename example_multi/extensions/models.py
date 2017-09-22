@@ -7,12 +7,10 @@ import logging
 import numpy as np
 import pandas as pd
 
-import orca
-
 from activitysim.core import simulate as asim
 
 from activitysim.core import assign
-
+from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import config
 
@@ -20,13 +18,13 @@ from activitysim.core import config
 logger = logging.getLogger('activitysim')
 
 
-@orca.injectable()
+@inject.injectable()
 def best_transit_path_spec(configs_dir):
     f = os.path.join(configs_dir, 'best_transit_path.csv')
     return assign.read_assignment_spec(f)
 
 
-@orca.injectable()
+@inject.injectable()
 def best_transit_path_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'best_transit_path.yaml')
 
@@ -35,7 +33,7 @@ VECTOR_TEST_SIZE = 100000
 VECTOR_TEST_SIZE = 1014699
 
 
-@orca.step()
+@inject.step()
 def best_transit_path(set_random_seed,
                       network_los,
                       best_transit_path_spec,

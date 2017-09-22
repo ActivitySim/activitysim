@@ -101,8 +101,8 @@ class NumpyLogger(object):
         self.expression = ''
 
     def write(self, msg):
-        self.logger.error("numpy warning: %s" % (msg.rstrip()))
-        self.logger.error("expression: %s = %s" % (str(self.target), str(self.expression)))
+        self.logger.warning("numpy: %s expression: %s = %s" %
+                            (msg.rstrip(), str(self.target), str(self.expression)))
 
 
 def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, trace_rows=None):

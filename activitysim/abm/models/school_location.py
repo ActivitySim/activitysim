@@ -68,6 +68,8 @@ def school_location_sample(
     23751,  14,       0.972732479292,  2
     """
 
+    trace_label = 'school_location_sample'
+
     choosers = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
 
@@ -117,7 +119,7 @@ def school_location_sample(
                 skims=skims,
                 locals_d=locals_d,
                 chunk_size=chunk_size,
-                trace_label=trace_hh_id and 'school_location_sample.%s' % school_type)
+                trace_label=tracing.extend_trace_label(trace_label, school_type))
 
             choices['school_type'] = school_type
             choices_list.append(choices)
@@ -193,12 +195,15 @@ def school_location_logsums(
         choosers['dest_topology'] = reindex(land_use.TOPOLOGY, choosers[alt_col_name])
         choosers['dest_density_index'] = reindex(land_use.density_index, choosers[alt_col_name])
 
-        tracing.dump_df(DUMP, choosers, trace_label, '%s_choosers' % school_type)
+        tracing.dump_df(DUMP, choosers,
+                        tracing.extend_trace_label(trace_label, school_type),
+                        'choosers')
 
         logsums = compute_logsums(
             choosers, logsums_spec, logsum_settings,
             skim_dict, skim_stack, alt_col_name, chunk_size,
-            trace_hh_id, trace_label)
+            trace_hh_id,
+            tracing.extend_trace_label(trace_label, school_type))
 
         logsums_list.append(logsums)
 
@@ -272,7 +277,7 @@ def school_location_simulate(persons_merged,
             skims=skims,
             locals_d=locals_d,
             chunk_size=chunk_size,
-            trace_label=trace_hh_id and 'school_location_simulate',
+            trace_label=tracing.extend_trace_label(trace_label, school_type),
             trace_choice_name='school_location')
 
         choices_list.append(choices)

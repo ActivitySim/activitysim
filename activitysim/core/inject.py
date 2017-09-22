@@ -17,8 +17,7 @@ def step():
     def decorator(func):
         name = func.__name__
 
-        logger.info("inject step %s" % name)
-        print "inject step %s" % name
+        logger.debug("inject step %s" % name)
 
         assert not _DECORATED_STEPS.get(name, False)
         _DECORATED_STEPS[name] = func
@@ -37,8 +36,7 @@ def table():
     def decorator(func):
         name = func.__name__
 
-        logger.info("inject table %s" % name)
-        print "inject table %s" % name
+        logger.debug("inject table %s" % name)
 
         assert not _DECORATED_TABLES.get(name, False)
         _DECORATED_TABLES[name] = func
@@ -57,8 +55,7 @@ def column(table_name, cache=True):
     def decorator(func):
         name = func.__name__
 
-        logger.info("inject column %s.%s" % (table_name, name))
-        print "inject column %s.%s" % (table_name, name)
+        logger.debug("inject column %s.%s" % (table_name, name))
 
         column_key = (table_name, name)
 
@@ -78,8 +75,7 @@ def injectable(cache=False):
     def decorator(func):
         name = func.__name__
 
-        logger.info("inject injectable %s" % name)
-        print "inject injectable %s" % name
+        logger.debug("inject injectable %s" % name)
 
         assert not _DECORATED_INJECTABLES.get(name, False), "injectable '%s' already defined" % name
         _DECORATED_INJECTABLES[name] = func
@@ -136,6 +132,8 @@ def reinject_decorated_tables():
     reinject the decorated tables (and columns)
     """
 
+    logger.info("reinject_decorated_tables")
+
     # need to clear any non-decorated tables that were added during the previous run
     orca.orca._TABLES.clear()
     orca.orca._COLUMNS.clear()
@@ -143,8 +141,10 @@ def reinject_decorated_tables():
     orca.orca._COLUMN_CACHE.clear()
 
     for name, func in _DECORATED_TABLES.iteritems():
+        logger.debug("reinject decorated table %s" % name)
         orca.add_table(name, func)
 
     for column_key, args in _DECORATED_COLUMNS.iteritems():
         table_name, column_name = column_key
+        logger.debug("reinject decorated column %s.%s" % (table_name, column_name))
         orca.add_column(table_name, column_name, args['func'], cache=args['cache'])

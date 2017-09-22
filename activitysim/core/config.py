@@ -40,15 +40,15 @@ def handle_standard_args(parser=None):
     if args.config:
         if not os.path.exists(args.config):
             raise IOError("Could not find configs dir '%s'." % args.config)
-            inject.add_injectable("configs_dir", args.config)
+        inject.add_injectable("configs_dir", args.config)
     if args.output:
         if not os.path.exists(args.output):
             raise IOError("Could not find output dir '%s'." % args.config)
-            inject.add_injectable("output_dir", args.output)
+        inject.add_injectable("output_dir", args.output)
     if args.data:
         if not os.path.exists(args.data):
             raise IOError("Could not find data dir '%s'." % args.config)
-            inject.add_injectable("data_dir", args.data)
+        inject.add_injectable("data_dir", args.data)
 
     return args
 

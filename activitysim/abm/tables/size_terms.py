@@ -4,8 +4,9 @@
 import os
 import logging
 
-import orca
 import pandas as pd
+
+from activitysim.core import inject
 
 
 logger = logging.getLogger(__name__)
@@ -47,13 +48,13 @@ def size_term(land_use, destination_choice_coeffs):
     return land_use[coeffs.index].dot(coeffs)
 
 
-@orca.table()
+@inject.table()
 def size_terms(configs_dir):
     f = os.path.join(configs_dir, 'destination_choice_size_terms.csv')
     return pd.read_csv(f, index_col='segment')
 
 
-@orca.table()
+@inject.table()
 def destination_size_terms(land_use, size_terms):
     land_use = land_use.to_frame()
     size_terms = size_terms.to_frame()

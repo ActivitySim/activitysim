@@ -401,8 +401,9 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
             # this will RuntimeWarning: divide by zero encountered in log
             # if all nest alternative utilities are zero
             # but the resulting inf will become 0 when exp is applied below
-            nested_utilities[name] = \
-                nest.coefficient * np.log(nested_utilities[nest.alternatives].sum(axis=1))
+            with np.errstate(divide='ignore'):
+                nested_utilities[name] = \
+                    nest.coefficient * np.log(nested_utilities[nest.alternatives].sum(axis=1))
 
         # exponentiate the utility
         nested_utilities[name] = np.exp(nested_utilities[name])

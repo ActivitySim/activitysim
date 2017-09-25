@@ -13,8 +13,10 @@ from .. import tracing as tracing
 
 
 def close_handlers():
-    for logger_name in ['activitysim', 'orca']:
-        logger = logging.getLogger(logger_name)
+
+    loggers = logging.Logger.manager.loggerDict
+    for name in loggers:
+        logger = logging.getLogger(name)
         logger.handlers = []
         logger.propagate = True
         logger.setLevel(logging.NOTSET)
@@ -130,42 +132,6 @@ def test_custom_config_logger(capsys):
     assert 'custom_log_warn' in out
 
 
-def test_basic(capsys):
-
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
-
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
-
-    # remove existing handlers or basicConfig is a NOP
-    logging.getLogger().handlers = []
-
-    tracing.config_logger(basic=True)
-
-    logger = logging.getLogger()
-    file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]
-    assert len(file_handlers) == 0
-
-    logger = logging.getLogger('activitysim')
-
-    logger.info('test_basic')
-    logger.debug('log_debug')
-    logger.info('log_info')
-    logger.warn('log_warn')
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    assert 'log_warn' in out
-    assert 'log_info' in out
-    assert 'log_debug' not in out
-
-    close_handlers()
-
-
 def test_print_summary(capsys):
 
     add_canonical_dirs()
@@ -213,6 +179,9 @@ def test_register_tours(capsys):
     add_canonical_dirs()
 
     tracing.config_logger()
+
+    # in case another test injected this
+    orca.add_injectable("trace_person_ids", [])
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
@@ -287,3 +256,41 @@ def test_slice_ids():
     with pytest.raises(RuntimeError) as excinfo:
         sliced_df = tracing.slice_ids(df, [5, 6], column='baddie')
     assert "slice_ids slicer column 'baddie' not in dataframe" in str(excinfo.value)
+
+
+def test_basic(capsys):
+
+    close_handlers()
+
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    orca.add_injectable("configs_dir", configs_dir)
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    orca.add_injectable("output_dir", output_dir)
+
+    # remove existing handlers or basicConfig is a NOP
+    logging.getLogger().handlers = []
+
+    tracing.config_logger(basic=True)
+
+    logger = logging.getLogger()
+    file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]
+    assert len(file_handlers) == 0
+
+    logger = logging.getLogger('activitysim')
+
+    logger.info('test_basic')
+    logger.debug('log_debug')
+    logger.info('log_info')
+    logger.warn('log_warn')
+
+    out, err = capsys.readouterr()
+
+    # don't consume output
+    print out
+
+    assert 'log_warn' in out
+    assert 'log_info' in out
+    assert 'log_debug' not in out
+
+    close_handlers()

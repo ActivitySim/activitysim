@@ -5,13 +5,12 @@ import os
 import logging
 
 import pandas as pd
-import numpy as np
-import orca
 
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
+from activitysim.core import inject
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
@@ -37,17 +36,17 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@orca.injectable()
+@inject.injectable()
 def workplace_location_sample_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'workplace_location_sample.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def workplace_location_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'workplace_location.yaml')
 
 
-@orca.step()
+@inject.step()
 def workplace_location_sample(persons_merged,
                               workplace_location_sample_spec,
                               workplace_location_settings,
@@ -104,10 +103,10 @@ def workplace_location_sample(persons_merged,
         chunk_size=chunk_size,
         trace_label=trace_label)
 
-    orca.add_table('workplace_location_sample', choices)
+    inject.add_table('workplace_location_sample', choices)
 
 
-@orca.step()
+@inject.step()
 def workplace_location_logsums(persons_merged,
                                land_use,
                                skim_dict, skim_stack,
@@ -175,20 +174,15 @@ def workplace_location_logsums(persons_merged,
     # when the index has duplicates, however, in the special case that the series index exactly
     # matches the table index, then the series value order is preserved
     # logsums now does, since workplace_location_sample was on left side of merge de-dup merge
-    orca.add_column("workplace_location_sample", "mode_choice_logsum", logsums)
+    inject.add_column("workplace_location_sample", "mode_choice_logsum", logsums)
 
 
-@orca.injectable()
+@inject.injectable()
 def workplace_location_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'workplace_location.csv')
 
 
-@orca.injectable()
-def workplace_location_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'workplace_location.yaml')
-
-
-@orca.step()
+@inject.step()
 def workplace_location_simulate(persons_merged,
                                 workplace_location_sample,
                                 workplace_location_spec,
@@ -260,13 +254,13 @@ def workplace_location_simulate(persons_merged,
 
     tracing.print_summary('workplace_taz', choices, describe=True)
 
-    orca.add_column("persons", "workplace_taz", choices)
+    inject.add_column("persons", "workplace_taz", choices)
 
     pipeline.add_dependent_columns("persons", "persons_workplace")
 
     if trace_hh_id:
-        trace_columns = ['workplace_taz'] + orca.get_table('persons_workplace').columns
-        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+        trace_columns = ['workplace_taz'] + inject.get_table('persons_workplace').columns
+        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
                          label="workplace_location",
                          columns=trace_columns,
                          warn_if_empty=True)

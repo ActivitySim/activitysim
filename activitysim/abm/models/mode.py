@@ -4,13 +4,13 @@
 import os
 import logging
 
-import orca
 import pandas as pd
 import yaml
 
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import inject
 from activitysim.core.util import memory_info
 
 from .util.mode import _mode_choice_spec
@@ -93,23 +93,23 @@ will be used for the tour
 """
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'tour_mode_choice.yaml')
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_spec_df(configs_dir):
     return asim.read_model_spec(configs_dir, 'tour_mode_choice.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_coeffs(configs_dir):
     with open(os.path.join(configs_dir, 'tour_mode_choice_coeffs.csv')) as f:
         return pd.read_csv(f, index_col='Expression')
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_spec(tour_mode_choice_spec_df,
                           tour_mode_choice_coeffs,
                           tour_mode_choice_settings):
@@ -119,7 +119,7 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
                              trace_label='tour_mode_choice')
 
 
-@orca.step()
+@inject.step()
 def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
@@ -197,11 +197,11 @@ def tour_mode_choice_simulate(tours_merged,
     tracing.print_summary('tour_mode_choice_simulate all tour type choices',
                           choices, value_counts=True)
 
-    orca.add_column("tours", "mode", choices)
+    inject.add_column("tours", "mode", choices)
 
     if trace_hh_id:
         trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num']
-        tracing.trace_df(orca.get_table('tours').to_frame(),
+        tracing.trace_df(inject.get_table('tours').to_frame(),
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour_id',
@@ -218,23 +218,23 @@ will be used for the trip
 """
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'trip_mode_choice.yaml')
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_spec_df(configs_dir):
     return asim.read_model_spec(configs_dir, 'trip_mode_choice.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_coeffs(configs_dir):
     with open(os.path.join(configs_dir, 'trip_mode_choice_coeffs.csv')) as f:
         return pd.read_csv(f, index_col='Expression')
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_spec(trip_mode_choice_spec_df,
                           trip_mode_choice_coeffs,
                           trip_mode_choice_settings):
@@ -243,7 +243,7 @@ def trip_mode_choice_spec(trip_mode_choice_spec_df,
                              trip_mode_choice_settings)
 
 
-@orca.step()
+@inject.step()
 def trip_mode_choice_simulate(trips_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
@@ -260,6 +260,8 @@ def trip_mode_choice_simulate(trips_merged,
     constants = config.get_model_constants(trip_mode_choice_settings)
 
     logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
+
+    print "\ntrips.columns\n", trips.columns
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key='OTAZ', right_key='DTAZ',
                                              skim_key="start_period")
@@ -307,11 +309,11 @@ def trip_mode_choice_simulate(trips_merged,
                           choices, value_counts=True)
 
     # FIXME - is this a NOP if trips table doesn't exist
-    orca.add_column("trips", "trip_mode", choices)
+    inject.add_column("trips", "trip_mode", choices)
 
     if trace_hh_id:
 
-        tracing.trace_df(orca.get_table('trips').to_frame(),
+        tracing.trace_df(inject.get_table('trips').to_frame(),
                          label="trip_mode",
                          slicer='trip_id',
                          index_label='trip_id',

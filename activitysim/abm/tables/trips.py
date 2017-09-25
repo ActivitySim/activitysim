@@ -3,13 +3,15 @@
 
 import logging
 
-import orca
 import pandas as pd
+
+from activitysim.core import inject
+
 
 logger = logging.getLogger(__name__)
 
 
-@orca.column("trips")
+@inject.column('trips')
 def start_period(trips, settings):
     cats = pd.cut(trips.start_trip,
                   settings['time_periods']['hours'],
@@ -18,9 +20,9 @@ def start_period(trips, settings):
     return cats.astype(str)
 
 
-@orca.table()
+@inject.table()
 def trips_merged(trips, tours):
-    return orca.merge_tables(trips.name, tables=[
-        trips, tours])
+    return inject.merge_tables(trips.name, tables=[trips, tours])
 
-orca.broadcast('tours', 'trips', cast_index=True, onto_on='tour_id')
+
+inject.broadcast('tours', 'trips', cast_index=True, onto_on='tour_id')

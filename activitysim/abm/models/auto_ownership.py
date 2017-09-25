@@ -3,28 +3,26 @@
 
 import logging
 
-import orca
-
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
-
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
 
-@orca.injectable()
+@inject.injectable()
 def auto_ownership_spec(configs_dir):
     return asim.read_model_spec(configs_dir, 'auto_ownership.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def auto_ownership_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'auto_ownership.yaml')
 
 
-@orca.step()
+@inject.step()
 def auto_ownership_simulate(households_merged,
                             auto_ownership_spec,
                             auto_ownership_settings,
@@ -49,13 +47,13 @@ def auto_ownership_simulate(households_merged,
 
     tracing.print_summary('auto_ownership', choices, value_counts=True)
 
-    orca.add_column('households', 'auto_ownership', choices)
+    inject.add_column('households', 'auto_ownership', choices)
 
     pipeline.add_dependent_columns('households', 'households_autoown')
 
     if trace_hh_id:
-        trace_columns = ['auto_ownership'] + orca.get_table('households_autoown').columns
-        tracing.trace_df(orca.get_table('households').to_frame(),
+        trace_columns = ['auto_ownership'] + inject.get_table('households_autoown').columns
+        tracing.trace_df(inject.get_table('households').to_frame(),
                          label='auto_ownership',
                          columns=trace_columns,
                          warn_if_empty=True)

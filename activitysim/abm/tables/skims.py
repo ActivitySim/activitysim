@@ -5,11 +5,12 @@ import os
 import logging
 
 import openmatrix as omx
-import orca
 
 from activitysim.core import skim as askim
 from activitysim.core import tracing
 from activitysim.core import pipeline
+
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ Read in the omx files and create the skim objects
 
 
 # cache this so we don't open it again and again - skim code is not closing it....
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def omx_file(data_dir, settings):
     logger.debug("opening omx file")
 
@@ -31,7 +32,7 @@ def omx_file(data_dir, settings):
     return file
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def skim_dict(omx_file, cache_skim_key_values):
 
     logger.info("skims injectable loading skims")
@@ -56,7 +57,7 @@ def skim_dict(omx_file, cache_skim_key_values):
     return skim_dict
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def skim_stack(skim_dict):
 
     logger.debug("loading skim_stack")

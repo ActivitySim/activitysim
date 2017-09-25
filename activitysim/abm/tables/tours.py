@@ -3,17 +3,16 @@
 
 import logging
 
-import orca
 import numpy as np
 import pandas as pd
 
 from activitysim.core.util import reindex
-
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
 
-@orca.table()
+@inject.table()
 def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
 
     non_mandatory_df = non_mandatory_tours.local
@@ -37,147 +36,145 @@ def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
     assert df.index.name == 'tour_id'
 
     # replace table function with dataframe
-    orca.add_table('tours', df)
+    inject.add_table('tours', df)
 
     return df
 
 
-@orca.table()
+@inject.table()
 def mandatory_tours_merged(mandatory_tours, persons_merged):
-    return orca.merge_tables(mandatory_tours.name,
-                             [mandatory_tours, persons_merged])
+    return inject.merge_tables(mandatory_tours.name,
+                               [mandatory_tours, persons_merged])
 
 
-@orca.table()
+@inject.table()
 def non_mandatory_tours_merged(non_mandatory_tours, persons_merged):
     tours = non_mandatory_tours
-    return orca.merge_tables(tours.name, tables=[
+    return inject.merge_tables(tours.name, tables=[
         tours, persons_merged])
 
 
-@orca.table()
+@inject.table()
 def tours_merged(tours, persons_merged):
-    return orca.merge_tables(tours.name, tables=[
+    return inject.merge_tables(tours.name, tables=[
         tours, persons_merged])
 
 
 # broadcast trips onto persons using the person_id
-orca.broadcast('persons', 'non_mandatory_tours',
-               cast_index=True, onto_on='person_id')
-orca.broadcast('persons_merged', 'non_mandatory_tours',
-               cast_index=True, onto_on='person_id')
-orca.broadcast('persons_merged', 'tours', cast_index=True, onto_on='person_id')
+inject.broadcast('persons', 'non_mandatory_tours', cast_index=True, onto_on='person_id')
+inject.broadcast('persons_merged', 'non_mandatory_tours', cast_index=True, onto_on='person_id')
+inject.broadcast('persons_merged', 'tours', cast_index=True, onto_on='person_id')
 
 
-@orca.column("tours")
+@inject.column("tours")
 def sov_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def hov2_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def hov2toll_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def hov3_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def sovtoll_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def drive_local_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def drive_lrf_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def drive_express_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def drive_heavyrail_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def drive_commuter_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def walk_local_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def walk_lrf_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def walk_commuter_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def walk_express_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def walk_heavyrail_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def is_joint(tours):
     # FIXME
     return pd.Series(False, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def is_not_joint(tours):
     # FIXME
     return pd.Series(True, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def number_of_participants(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def work_tour_is_drive(tours):
     # FIXME
     # FIXME note that there's something about whether this is a subtour?
@@ -185,43 +182,43 @@ def work_tour_is_drive(tours):
     return pd.Series(0, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def terminal_time(tours):
     # FIXME
     return pd.Series(0, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def origin_walk_time(tours):
     # FIXME
     return pd.Series(0, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def destination_walk_time(tours):
     # FIXME
     return pd.Series(0, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def daily_parking_cost(tours):
     # FIXME - this is a computation based on the tour destination
     return pd.Series(0, index=tours.index)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def dest_density_index(tours, land_use):
     return reindex(land_use.density_index,
                    tours.destination)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def dest_topology(tours, land_use):
     return reindex(land_use.TOPOLOGY,
                    tours.destination)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def out_period(tours, settings):
     cats = pd.cut(tours.end,
                   settings['time_periods']['hours'],
@@ -230,7 +227,7 @@ def out_period(tours, settings):
     return cats.astype(str)
 
 
-@orca.column("tours")
+@inject.column("tours")
 def in_period(tours, settings):
     cats = pd.cut(tours.start,
                   settings['time_periods']['hours'],

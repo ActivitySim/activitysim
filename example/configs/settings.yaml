@@ -32,12 +32,12 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination_choice
   - non_mandatory_tour_scheduling
-  - combine_tours
+  - annotate_tours
   - tour_mode_choice_simulate
   - create_simple_trips
   - trip_mode_choice_simulate
 
-#resume_after: mandatory_tour_frequency
+#resume_after: non_mandatory_tour_scheduling
 
 # area_types less than this are considered urban
 urban_threshold: 4
@@ -100,3 +100,7 @@ skim_time_periods:
         - PM
 
 num_time_windows: 19
+
+
+
+

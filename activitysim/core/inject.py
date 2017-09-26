@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 import orca
 
 _DECORATED_STEPS = {}

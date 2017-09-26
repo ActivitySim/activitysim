@@ -11,6 +11,7 @@ from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ def non_mandatory_tour_destination_choice_settings(configs_dir):
 
 
 @inject.step()
-def non_mandatory_tour_destination_choice(non_mandatory_tours_merged,
+def non_mandatory_tour_destination_choice(tours,
+                                          persons_merged,
                                           skim_dict,
                                           non_mandatory_tour_destination_choice_spec,
                                           non_mandatory_tour_destination_choice_settings,
@@ -45,10 +47,14 @@ def non_mandatory_tour_destination_choice(non_mandatory_tours_merged,
     person that's making the tour)
     """
 
-    # choosers are tours - in a sense tours are choosing their destination
-    choosers = non_mandatory_tours_merged.to_frame()
+    tours = tours.to_frame()
+    persons_merged = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
     spec = non_mandatory_tour_destination_choice_spec.to_frame()
+
+    # choosers are tours - in a sense tours are choosing their destination
+    choosers = tours[~tours.mandatory]
+    choosers = pd.merge(choosers, persons_merged, left_on='person_id', right_index=True)
 
     constants = config.get_model_constants(non_mandatory_tour_destination_choice_settings)
 
@@ -116,8 +122,13 @@ def non_mandatory_tour_destination_choice(non_mandatory_tours_merged,
     # alternatives table - in this case it's the destination taz
     inject.add_column("non_mandatory_tours", "destination", choices)
 
+    tours.loc[choices.index, 'destination'] = choices
+    pipeline.replace_table("tours", tours)
+
+    pipeline.add_dependent_columns("tours", "tours_with_dest")
+
     if trace_hh_id:
-        tracing.trace_df(inject.get_table('non_mandatory_tours').to_frame(),
+        tracing.trace_df(tours,
                          label="non_mandatory_tour_destination",
                          slicer='person_id',
                          index_label='tour',

@@ -35,23 +35,19 @@ checkpointed channels.
 _CHANNELS = {
     'households': {
         'max_steps': 2,
-        'index': 'HHID',
-        'table_names': ['households']
+        'index': 'HHID'
     },
     'persons': {
         'max_steps': 7,
-        'index': 'PERID',
-        'table_names': ['persons']
+        'index': 'PERID'
     },
     'tours': {
         'max_steps': 5,
-        'index': 'tour_id',
-        'table_names': ['non_mandatory_tours', 'mandatory_tours']
+        'index': 'tour_id'
     },
     'trips': {
         'max_steps': 5,
-        'index': 'trip_id',
-        'table_names': ['trips']
+        'index': 'trip_id'
     },
 }
 
@@ -558,10 +554,6 @@ class Random(object):
         Note that we assume that the channel names correspond to orca table names, so that
         we can get the domain_df for that channel from orca.
 
-        Since tours are originally created in two tables (mandatory and non-mandatory) we get the
-        domain_dfs from them because the checkpoint may have occurred when only one of those
-        tables had been created and the tours table may not exist yet.
-
         Parameters
         ----------
         saved_channels : array of SavedChannelState
@@ -572,20 +564,16 @@ class Random(object):
             channel_name = channel_state.channel_name
             assert channel_name in self.channel_info
 
-            # FIXME - this rigamarole is here to support the tours channel two component tables
-            table_names = self.get_channel_info(channel_name, 'table_names')
-
-            logger.debug("loading channel %s from %s" % (channel_state.channel_name, table_names))
+            logger.debug("loading channel %s" % (channel_name,))
 
             logger.debug("channel_state %s" % (channel_state, ))
 
-            for table_name in table_names:
-                if orca.is_table(table_name):
-                    df = orca.get_table(table_name).local
-                    self.add_channel(df,
-                                     channel_name=channel_state.channel_name,
-                                     step_num=channel_state.step_num,
-                                     step_name=channel_state.step_name)
+            if orca.is_table(channel_name):
+                df = orca.get_table(channel_name).local
+                self.add_channel(df,
+                                 channel_name=channel_state.channel_name,
+                                 step_num=channel_state.step_num,
+                                 step_name=channel_state.step_name)
 
     # random number generation
 

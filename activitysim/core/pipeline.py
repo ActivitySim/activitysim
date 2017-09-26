@@ -508,7 +508,7 @@ def open_pipeline(resume_after=None):
         orca.get_injectable('skim_stack')
         t0 = print_elapsed_time("load skim_stack", t0)
 
-    #why bother?
+    # why bother?
     # # load timetable
     # if orca.is_injectable('timetable'):
     #     logger.debug("preload timetable")
@@ -562,31 +562,6 @@ def run(models, resume_after=None):
     t0 = print_elapsed_time("run (%s models)" % len(models), t0)
 
     # don't close the pipeline, as the user may want to read intermediate results from the store
-
-
-def replace_table(table_name, df):
-    """
-    Add or replace a orca table, removing any existing added orca columns
-
-    The use case for this function is a method that calls to_frame on an orca table, modifies
-    it and then saves the modified.
-
-    orca.to_frame returns a copy, so no changes are saved, and adding multiple column with
-    add_column adds them in an indeterminate order.
-
-    Simply replacing an existing the table "behind the pipeline's back" by calling orca.add_table
-    risks pipeline to failing to detect that it has changed, and thus not checkpoint the changes.
-
-    Parameters
-    ----------
-    table_name : str
-        orca/pipeline table name
-    df : pandas DataFrame
-    """
-
-    rewrap(table_name, df)
-
-    _PIPELINE.replaced_tables[table_name] = True
 
 
 def get_table(table_name, checkpoint_name=None):
@@ -657,3 +632,50 @@ def get_checkpoints():
     df.index.name = 'step_num'
 
     return df
+
+
+def replace_table(table_name, df):
+    """
+    Add or replace a orca table, removing any existing added orca columns
+
+    The use case for this function is a method that calls to_frame on an orca table, modifies
+    it and then saves the modified.
+
+    orca.to_frame returns a copy, so no changes are saved, and adding multiple column with
+    add_column adds them in an indeterminate order.
+
+    Simply replacing an existing the table "behind the pipeline's back" by calling orca.add_table
+    risks pipeline to failing to detect that it has changed, and thus not checkpoint the changes.
+
+    Parameters
+    ----------
+    table_name : str
+        orca/pipeline table name
+    df : pandas DataFrame
+    """
+
+    rewrap(table_name, df)
+
+    _PIPELINE.replaced_tables[table_name] = True
+
+
+def extend_table(table_name, df):
+    """
+    add new table or extend (add rows) to an existing table
+
+    Parameters
+    ----------
+    table_name : str
+        orca/inject table name
+    df : pandas DataFrame
+    """
+
+    if orca.is_table(table_name):
+        existing_df = orca.get_table(table_name).to_frame()
+
+        # don't expect indexes to overlap
+        assert len(existing_df.index.intersection(df.index)) == 0
+
+        df = pd.concat([existing_df, df], ignore_index=False)
+
+    replace_table(table_name, df)

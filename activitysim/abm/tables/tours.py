@@ -12,182 +12,144 @@ from activitysim.core import inject
 logger = logging.getLogger(__name__)
 
 
-# @inject.table()
-# def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
-#
-#     assert False
-#
-#     non_mandatory_df = non_mandatory_tours.local
-#     mandatory_df = mandatory_tours.local
-#
-#     # don't expect indexes to overlap
-#     assert len(non_mandatory_df.index.intersection(mandatory_df.index)) == 0
-#
-#     # expect non-overlapping indexes (so the tripids dont change)
-#     assert len(np.intersect1d(non_mandatory_df.index, mandatory_df.index, assume_unique=True)) == 0
-#
-#     tours = pd.concat([non_mandatory_tours.to_frame(),
-#                       mandatory_tours.to_frame()],
-#                       ignore_index=False)
-#
-#     # go ahead here and add the start, end, and duration here for future use
-#     chosen_tours = tdd_alts.to_frame().loc[tours.tour_departure_and_duration]
-#     chosen_tours.index = tours.index
-#
-#     df = pd.concat([tours, chosen_tours], axis=1)
-#     assert df.index.name == 'tour_id'
-#
-#     # replace table function with dataframe
-#     inject.add_table('tours', df)
-#
-#     return df
-
-
-@inject.table()
-def mandatory_tours_merged(mandatory_tours, persons_merged):
-    return inject.merge_tables(mandatory_tours.name,
-                               [mandatory_tours, persons_merged])
-
-
-@inject.table()
-def non_mandatory_tours_merged(non_mandatory_tours, persons_merged):
-    tours = non_mandatory_tours
-    return inject.merge_tables(tours.name, tables=[
-        tours, persons_merged])
-
-
 @inject.table()
 def tours_merged(tours, persons_merged):
     return inject.merge_tables(tours.name, tables=[
         tours, persons_merged])
 
-
-# broadcast trips onto persons using the person_id
-inject.broadcast('persons', 'non_mandatory_tours', cast_index=True, onto_on='person_id')
-inject.broadcast('persons_merged', 'non_mandatory_tours', cast_index=True, onto_on='person_id')
 inject.broadcast('persons_merged', 'tours', cast_index=True, onto_on='person_id')
 
 
+# this is the placeholder for all the columns to update after tour destinations are assigned
+@inject.table()
+def tours_with_dest(tours):
+    return pd.DataFrame(index=tours.index)
 
-@inject.column("non_mandatory_tours")
-def destination_in_cbd(non_mandatory_tours, land_use, settings):
+
+@inject.column("tours_with_dest")
+def destination_in_cbd(tours, land_use, settings):
     # protection until filled in by destination choice model
-    if "destination" not in non_mandatory_tours.columns:
-        return pd.Series(False, index=non_mandatory_tours.index)
+    assert "destination" in tours.columns
 
-    s = reindex(land_use.area_type, non_mandatory_tours.destination)
+    s = reindex(land_use.area_type, tours.destination)
     return s < settings['cbd_threshold']
 
 
-@inject.column("tours")
+# this is the placeholder for all the columns to update after destination choice and scheduling
+@inject.table()
+def tours_extras(tours):
+    return pd.DataFrame(index=tours.index)
+
+
+@inject.column("tours_extras")
 def sov_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def hov2_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def hov2toll_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def hov3_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def sovtoll_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def drive_local_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def drive_lrf_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def drive_express_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def drive_heavyrail_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def drive_commuter_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def walk_local_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def walk_lrf_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def walk_commuter_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def walk_express_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def walk_heavyrail_available(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def is_joint(tours):
     # FIXME
     return pd.Series(False, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def is_not_joint(tours):
     # FIXME
     return pd.Series(True, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def number_of_participants(tours):
     # FIXME
     return pd.Series(1, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def work_tour_is_drive(tours):
     # FIXME
     # FIXME note that there's something about whether this is a subtour?
@@ -195,43 +157,43 @@ def work_tour_is_drive(tours):
     return pd.Series(0, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def terminal_time(tours):
     # FIXME
     return pd.Series(0, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def origin_walk_time(tours):
     # FIXME
     return pd.Series(0, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def destination_walk_time(tours):
     # FIXME
     return pd.Series(0, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def daily_parking_cost(tours):
     # FIXME - this is a computation based on the tour destination
     return pd.Series(0, index=tours.index)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def dest_density_index(tours, land_use):
     return reindex(land_use.density_index,
                    tours.destination)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def dest_topology(tours, land_use):
     return reindex(land_use.TOPOLOGY,
                    tours.destination)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def out_period(tours, settings):
     cats = pd.cut(tours.end,
                   settings['skim_time_periods']['hours'],
@@ -240,7 +202,7 @@ def out_period(tours, settings):
     return cats.astype(str)
 
 
-@inject.column("tours")
+@inject.column("tours_extras")
 def in_period(tours, settings):
     cats = pd.cut(tours.start,
                   settings['skim_time_periods']['hours'],

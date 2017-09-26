@@ -110,15 +110,14 @@ def non_mandatory_tour_frequency(persons_merged,
                          columns=trace_columns,
                          warn_if_empty=True)
 
-"""
-We have now generated non-mandatory tours, but they are attributes of the
-person table - this function creates a "tours" table which
-has one row per tour that has been generated (and the person id it is
-associated with)
-"""
-
 
 def create_non_mandatory_tours_table():
+    """
+    We have now generated non-mandatory tours, but they are attributes of the
+    person table - this function creates a "tours" table which
+    has one row per tour that has been generated (and the person id it is
+    associated with)
+    """
 
     persons = inject.get_table('persons')
     non_mandatory_tour_frequency_alts = inject.get_table('non_mandatory_tour_frequency_alts')
@@ -128,9 +127,6 @@ def create_non_mandatory_tours_table():
         non_mandatory_tour_frequency_alts.local
     )
 
-    inject.add_table("non_mandatory_tours", df)
-    tracing.register_traceable_table('non_mandatory_tours', df)
+    pipeline.extend_table("tours", df)
+    tracing.register_traceable_table('tours', df)
     pipeline.get_rn_generator().add_channel(df, 'tours')
-
-
-

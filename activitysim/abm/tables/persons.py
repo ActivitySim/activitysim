@@ -54,16 +54,16 @@ def persons_nmtf(persons):
 
 
 @inject.column("persons_nmtf")
-def num_escort_tours(persons, non_mandatory_tours):
-    nmt = non_mandatory_tours.to_frame()
-    return nmt[nmt.tour_type == "escort"].groupby("person_id").size()\
+def num_escort_tours(persons, tours):
+    tours = tours.to_frame()
+    return tours[tours.tour_type == "escort"].groupby("person_id").size()\
         .reindex(persons.index).fillna(0)
 
 
 @inject.column("persons_nmtf")
-def num_non_escort_tours(persons, non_mandatory_tours):
-    nmt = non_mandatory_tours.to_frame()
-    return nmt[nmt.tour_type != "escort"].groupby("person_id").size()\
+def num_non_escort_tours(persons, tours):
+    tours = tours.to_frame()
+    return tours[~tours.tour_type.isin(["escort", "work", "school"])].groupby("person_id").size()\
         .reindex(persons.index).fillna(0)
 
 

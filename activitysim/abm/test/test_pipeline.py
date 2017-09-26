@@ -61,6 +61,8 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
 
     orca.add_injectable("settings", settings)
 
+    return settings
+
 
 def test_rng_access():
 
@@ -240,40 +242,21 @@ def full_run(resume_after=None, chunk_size=0,
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
     orca.add_injectable("output_dir", output_dir)
 
-    inject_settings(configs_dir,
-                    households_sample_size=households_sample_size,
-                    chunk_size=chunk_size,
-                    trace_hh_id=trace_hh_id,
-                    trace_od=trace_od,
-                    check_for_variability=check_for_variability)
+    settings = inject_settings(
+        configs_dir,
+        households_sample_size=households_sample_size,
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
+        trace_od=trace_od,
+        check_for_variability=check_for_variability)
 
     orca.clear_cache()
 
     tracing.config_logger()
 
-    # assert orca.get_injectable("chunk_size") == chunk_size
+    MODELS = settings['models']
 
-    _MODELS = [
-        'compute_accessibility',
-        'school_location_sample',
-        'school_location_logsums',
-        'school_location_simulate',
-        'workplace_location_sample',
-        'workplace_location_logsums',
-        'workplace_location_simulate',
-        'auto_ownership_simulate',
-        'cdap_simulate',
-        'mandatory_tour_frequency',
-        'mandatory_tour_scheduling',
-        'non_mandatory_tour_frequency',
-        'non_mandatory_tour_destination_choice',
-        'non_mandatory_tour_scheduling',
-        'tour_mode_choice_simulate',
-        'create_simple_trips',
-        'trip_mode_choice_simulate'
-    ]
-
-    pipeline.run(models=_MODELS, resume_after=resume_after)
+    pipeline.run(models=MODELS, resume_after=resume_after)
 
     tours = pipeline.get_table('tours')
     tour_count = len(tours.index)

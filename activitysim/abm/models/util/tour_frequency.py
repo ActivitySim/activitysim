@@ -22,7 +22,7 @@ def canonical_tours():
     non_mandatory_tour_flavors = {'escort': 2, 'shopping': 1, 'othmaint': 1, 'othdiscr': 1,
                                   'eatout': 1, 'social': 1}
 
-    # this logic is hardwired in process_mandatory_tours()
+    # FIXME - this logic is hardwired in process_mandatory_tours()
     mandatory_tour_flavors = {'work': 2, 'school': 2}
 
     tour_flavors = dict(non_mandatory_tour_flavors, **mandatory_tour_flavors)
@@ -136,23 +136,25 @@ def process_mandatory_tours(persons):
         else:
             assert 0
 
-    """
-    Pretty basic at this point - trip table looks like this so far
-           person_id tour_type tour_num destination
-    tour_id
-    0          4419    work     1       <work_taz>
-    1          4419    school   2       <school_taz>
-    4          4650    school   1       <school_taz>
-    5         10001    school   1       <school_taz>
-    6         10001    work     2       <work_taz>
-    """
+    tours = pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num", "destination"])
 
-    df = pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num", "destination"])
+    tours['mandatory'] = True
 
     # assign a stable (predictable) tour_id
-    set_tour_index(df)
+    set_tour_index(tours)
 
-    return df
+    """
+    Pretty basic at this point - trip table looks like this so far
+           person_id tour_type tour_num destination    mandatory
+    tour_id
+    0          4419    work     1       <work_taz>      True
+    1          4419    school   2       <school_taz>    True
+    4          4650    school   1       <school_taz>    True
+    5         10001    school   1       <school_taz>    True
+    6         10001    work     2       <work_taz>      True
+    """
+
+    return tours
 
 
 def process_non_mandatory_tours(non_mandatory_tour_frequency,
@@ -202,7 +204,6 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     2588677       0         0         0         0       0       0
     """
 
-
     # reformat with the columns given below
     tours = tours.stack().reset_index()
     tours.columns = ["person_id", "tour_type", "tour_count"]
@@ -240,19 +241,21 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     # don't need tour_count column any more
     del tours['tour_count']
 
+    tours['mandatory'] = False
+
     # assign a stable (predictable) tour_id
     set_tour_index(tours)
 
     """
     Pretty basic at this point - trip table looks like this so far
-           person_id tour_type tour_num
+           person_id tour_type tour_num mandatory
     tour_id
-    0          4419    escort   1
-    1          4419    escort   2
-    2          4419  othmaint   1
-    3          4419    eatout   1
-    4          4419    social   1
-    5         10001    escort   1
-    6         10001    escort   2
+    0          4419    escort   1        False
+    1          4419    escort   2        False
+    2          4419  othmaint   1        False
+    3          4419    eatout   1        False
+    4          4419    social   1        False
+    5         10001    escort   1        False
+    6         10001    escort   2        False
     """
     return tours

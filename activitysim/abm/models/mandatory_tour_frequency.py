@@ -64,10 +64,6 @@ def mandatory_tour_frequency(persons_merged,
 
     create_mandatory_tours_table()
 
-    # FIXME - test prng repeatability
-    r = pipeline.get_rn_generator().random_for_df(choices)
-    inject.add_column("persons", "mtf_rand", [item for sublist in r for item in sublist])
-
     if trace_hh_id:
         trace_columns = ['mandatory_tour_frequency']
         tracing.trace_df(inject.get_table('persons_merged').to_frame(),
@@ -92,11 +88,6 @@ def create_mandatory_tours_table():
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
     df = process_mandatory_tours(persons)
 
-    inject.add_table("mandatory_tours", df)
-    tracing.register_traceable_table('mandatory_tours', df)
+    pipeline.extend_table("tours", df)
+    tracing.register_traceable_table('tours', df)
     pipeline.get_rn_generator().add_channel(df, 'tours')
-
-
-# broadcast mandatory_tours on to persons using the person_id foreign key
-inject.broadcast('persons', 'mandatory_tours', cast_index=True, onto_on='person_id')
-inject.broadcast('persons_merged', 'mandatory_tours', cast_index=True, onto_on='person_id')

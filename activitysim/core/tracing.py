@@ -286,10 +286,6 @@ def register_tours(df, trace_hh_id):
     else:
         logger.info("tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
 
-    # register_tours is called for both mandatory and non_mandatory tours
-    # so there may already be some tours registered - add the new tours to the existing list
-    trace_tour_ids = inject.get_injectable("trace_tour_ids", []) + trace_tour_ids
-
     inject.add_injectable("trace_tour_ids", trace_tour_ids)
     logger.debug("register_tours injected trace_tour_ids %s" % trace_tour_ids)
 
@@ -359,7 +355,7 @@ def register_traceable_table(table_name, df):
         register_persons(df, trace_hh_id)
     elif table_name == 'trips':
         register_trips(df, trace_hh_id)
-    elif table_name in ["non_mandatory_tours", "mandatory_tours"]:
+    elif table_name == 'tours':
         register_tours(df, trace_hh_id)
 
 

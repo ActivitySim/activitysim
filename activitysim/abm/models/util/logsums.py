@@ -23,14 +23,15 @@ def skim_time_period_label(hour):
 
 
 def mode_choice_logsums_spec(configs_dir, dest_type):
-    DEST_TO_TOUR_TYPE = \
+    DEST_TO_TOUR_SPEC_TYPE = \
         {'university': 'university',
          'highschool': 'school',
          'gradeschool': 'school',
          'work': 'work'}
 
-    tour_type = DEST_TO_TOUR_TYPE.get(dest_type)
-    spec = simulate.read_model_spec(configs_dir, 'logsums_spec_%s.csv' % tour_type)
+    # tour_spec_type is just name for labelling specs which differ by dest, not tour_type
+    tour_spec_type = DEST_TO_TOUR_SPEC_TYPE.get(dest_type)
+    spec = simulate.read_model_spec(configs_dir, 'logsums_spec_%s.csv' % tour_spec_type)
     return spec
 
 

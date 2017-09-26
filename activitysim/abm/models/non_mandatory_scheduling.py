@@ -55,8 +55,7 @@ def non_mandatory_tour_scheduling(non_mandatory_tours_merged,
     tracing.print_summary('non_mandatory_tour_scheduling tour_departure_and_duration',
                           choices, describe=True)
 
-    inject.add_column(
-        "non_mandatory_tours", "tour_departure_and_duration", choices)
+    inject.add_column("non_mandatory_tours", "tour_departure_and_duration", choices)
 
     if trace_hh_id:
         tracing.trace_df(inject.get_table('non_mandatory_tours').to_frame(),

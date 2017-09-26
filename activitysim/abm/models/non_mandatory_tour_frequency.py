@@ -133,17 +133,4 @@ def create_non_mandatory_tours_table():
     pipeline.get_rn_generator().add_channel(df, 'tours')
 
 
-"""
-This is where I'm currently putting computed columns for non_mandatory_tours
-- there's an argument this should go in the tables directory in tours.py
-"""
 
-
-@inject.column("non_mandatory_tours")
-def destination_in_cbd(non_mandatory_tours, land_use, settings):
-    # protection until filled in by destination choice model
-    if "destination" not in non_mandatory_tours.columns:
-        return pd.Series(False, index=non_mandatory_tours.index)
-
-    s = reindex(land_use.area_type, non_mandatory_tours.destination)
-    return s < settings['cbd_threshold']

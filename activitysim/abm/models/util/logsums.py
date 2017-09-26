@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 # FIXME - needs a better home?
-def time_period_label(hour):
-    time_periods = config.setting('time_periods')
-    bin = np.digitize([hour % 24], time_periods['hours'])[0] - 1
-    return time_periods['labels'][bin]
+def skim_time_period_label(hour):
+    skim_time_periods = config.setting('skim_time_periods')
+    bin = np.digitize([hour % 24], skim_time_periods['hours'])[0] - 1
+    return skim_time_periods['labels'][bin]
 
 
 def mode_choice_logsums_spec(configs_dir, dest_type):

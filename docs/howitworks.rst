@@ -351,8 +351,8 @@ and the model is calculating and adding the mode choice logsums using the logsum
             how="left")
 
         # setup skim key fields
-        choosers['in_period'] = time_period_label(school_location_settings['IN_PERIOD'])
-        choosers['out_period'] = time_period_label(school_location_settings['OUT_PERIOD'])
+        choosers['in_period'] = skim_time_period_label(school_location_settings['IN_PERIOD'])
+        choosers['out_period'] = skim_time_period_label(school_location_settings['OUT_PERIOD'])
     
         logsums = compute_logsums(
             choosers, logsums_spec, logsum_settings,

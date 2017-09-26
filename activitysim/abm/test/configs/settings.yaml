@@ -52,7 +52,7 @@ household_type_map:
     6: nonfamily_female_alone
     7: nonfamily_female_notalone
 
-time_periods:
+skim_time_periods:
     hours:
         - 0
         - 11

@@ -7,7 +7,6 @@ _DECORATED_TABLES = {}
 _DECORATED_COLUMNS = {}
 _DECORATED_INJECTABLES = {}
 
-PASS_THROUGH = False
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +21,7 @@ def step():
         assert not _DECORATED_STEPS.get(name, False)
         _DECORATED_STEPS[name] = func
 
-        if PASS_THROUGH:
-            func = orca.step()(func)
-        else:
-            orca.add_step(name, func)
+        orca.add_step(name, func)
 
         return func
     return decorator
@@ -41,10 +37,7 @@ def table():
         assert not _DECORATED_TABLES.get(name, False)
         _DECORATED_TABLES[name] = func
 
-        if PASS_THROUGH:
-            func = orca.table()(func)
-        else:
-            orca.add_table(name, func)
+        orca.add_table(name, func)
 
         return func
 
@@ -62,10 +55,7 @@ def column(table_name, cache=False):
         assert not _DECORATED_COLUMNS.get(column_key, False)
         _DECORATED_COLUMNS[column_key] = {'func': func, 'cache': cache}
 
-        if PASS_THROUGH:
-            func = orca.column(table_name, cache=cache)(func)
-        else:
-            orca.add_column(table_name, name, func, cache=cache)
+        orca.add_column(table_name, name, func, cache=cache)
 
         return func
     return decorator
@@ -80,10 +70,7 @@ def injectable(cache=False):
         assert not _DECORATED_INJECTABLES.get(name, False), "injectable '%s' already defined" % name
         _DECORATED_INJECTABLES[name] = {'func': func, 'cache': cache}
 
-        if PASS_THROUGH:
-            func = orca.injectable(cache=cache)(func)
-        else:
-            orca.add_injectable(name, func, cache=cache)
+        orca.add_injectable(name, func, cache=cache)
 
         return func
     return decorator

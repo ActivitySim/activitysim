@@ -45,13 +45,9 @@ def set_tour_index(tours):
         The new index values are stable based on the person_id, tour_type, and tour_num.
         The existing index is ignored and replaced.
 
-        Having a stable (predictable) index value
+        This gives us a stable (predictable) tour_id
         It also simplifies attaching random number streams to tours that are stable
         (even across simulations)
-
-    Returns
-    -------
-
     """
 
     possible_tours = canonical_tours()
@@ -153,6 +149,7 @@ def process_mandatory_tours(persons):
 
     df = pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num", "destination"])
 
+    # assign a stable (predictable) tour_id
     set_tour_index(df)
 
     return df
@@ -197,9 +194,35 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     # assign person ids to the index
     tours.index = nmtf.index
 
+    """
+    tours now looks like this:
+             escort  shopping  othmaint  othdiscr  eatout  social
+    PERID
+    2588676       1         0         0         0       0       0
+    2588677       0         0         0         0       0       0
+    """
+
+
     # reformat with the columns given below
     tours = tours.stack().reset_index()
     tours.columns = ["person_id", "tour_type", "tour_count"]
+
+    """
+    tours now looks like this:
+        person_id tour_type  tour_count
+    0     2588676    escort           1
+    1     2588676  shopping           0
+    2     2588676  othmaint           0
+    3     2588676  othdiscr           0
+    4     2588676    eatout           0
+    5     2588676    social           0
+    6     2588677    escort           0
+    7     2588677  shopping           0
+
+    person_id is the index from non_mandatory_tour_frequency
+    tour_type is the column name from non_mandatory_tour_frequency_alts
+    tour_count is the count value of the tour's chosen alt's tour_type from alts table
+    """
 
     # map non-zero tour_counts to a list of ranges [1,2,1] -> [[0], [0, 1], [0]]
     tour_nums = map(range, tours.tour_count[tours.tour_count > 0].values)
@@ -210,9 +233,14 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     # now have two rows, and zero trips yields zero rows
     tours = tours.take(np.repeat(tours.index.values, tours.tour_count.values))
 
+    # tours and tour_num are aligned as each now has one row per tour
+    # we dropped zero tour count rows and flattened/repeated the remaining rows tour_count
     tours['tour_num'] = tour_nums
 
-    # make index unique
+    # don't need tour_count column any more
+    del tours['tour_count']
+
+    # assign a stable (predictable) tour_id
     set_tour_index(tours)
 
     """

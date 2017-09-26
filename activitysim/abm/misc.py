@@ -36,7 +36,7 @@ def store(data_dir, settings):
 
 @inject.injectable(cache=True)
 def cache_skim_key_values(settings):
-    return settings['time_periods']['labels']
+    return settings['skim_time_periods']['labels']
 
 
 @inject.injectable(cache=True)

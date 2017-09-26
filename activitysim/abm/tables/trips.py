@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 @inject.column('trips')
 def start_period(trips, settings):
     cats = pd.cut(trips.start_trip,
-                  settings['time_periods']['hours'],
-                  labels=settings['time_periods']['labels'])
+                  settings['skim_time_periods']['hours'],
+                  labels=settings['skim_time_periods']['labels'])
     # cut returns labelled categories but we convert to str
     return cats.astype(str)
 

@@ -12,33 +12,35 @@ from activitysim.core import inject
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
-
-    non_mandatory_df = non_mandatory_tours.local
-    mandatory_df = mandatory_tours.local
-
-    # don't expect indexes to overlap
-    assert len(non_mandatory_df.index.intersection(mandatory_df.index)) == 0
-
-    # expect non-overlapping indexes (so the tripids dont change)
-    assert len(np.intersect1d(non_mandatory_df.index, mandatory_df.index, assume_unique=True)) == 0
-
-    tours = pd.concat([non_mandatory_tours.to_frame(),
-                      mandatory_tours.to_frame()],
-                      ignore_index=False)
-
-    # go ahead here and add the start, end, and duration here for future use
-    chosen_tours = tdd_alts.to_frame().loc[tours.tour_departure_and_duration]
-    chosen_tours.index = tours.index
-
-    df = pd.concat([tours, chosen_tours], axis=1)
-    assert df.index.name == 'tour_id'
-
-    # replace table function with dataframe
-    inject.add_table('tours', df)
-
-    return df
+# @inject.table()
+# def tours(non_mandatory_tours, mandatory_tours, tdd_alts):
+#
+#     assert False
+#
+#     non_mandatory_df = non_mandatory_tours.local
+#     mandatory_df = mandatory_tours.local
+#
+#     # don't expect indexes to overlap
+#     assert len(non_mandatory_df.index.intersection(mandatory_df.index)) == 0
+#
+#     # expect non-overlapping indexes (so the tripids dont change)
+#     assert len(np.intersect1d(non_mandatory_df.index, mandatory_df.index, assume_unique=True)) == 0
+#
+#     tours = pd.concat([non_mandatory_tours.to_frame(),
+#                       mandatory_tours.to_frame()],
+#                       ignore_index=False)
+#
+#     # go ahead here and add the start, end, and duration here for future use
+#     chosen_tours = tdd_alts.to_frame().loc[tours.tour_departure_and_duration]
+#     chosen_tours.index = tours.index
+#
+#     df = pd.concat([tours, chosen_tours], axis=1)
+#     assert df.index.name == 'tour_id'
+#
+#     # replace table function with dataframe
+#     inject.add_table('tours', df)
+#
+#     return df
 
 
 @inject.table()
@@ -64,6 +66,17 @@ def tours_merged(tours, persons_merged):
 inject.broadcast('persons', 'non_mandatory_tours', cast_index=True, onto_on='person_id')
 inject.broadcast('persons_merged', 'non_mandatory_tours', cast_index=True, onto_on='person_id')
 inject.broadcast('persons_merged', 'tours', cast_index=True, onto_on='person_id')
+
+
+
+@inject.column("non_mandatory_tours")
+def destination_in_cbd(non_mandatory_tours, land_use, settings):
+    # protection until filled in by destination choice model
+    if "destination" not in non_mandatory_tours.columns:
+        return pd.Series(False, index=non_mandatory_tours.index)
+
+    s = reindex(land_use.area_type, non_mandatory_tours.destination)
+    return s < settings['cbd_threshold']
 
 
 @inject.column("tours")
@@ -221,8 +234,8 @@ def dest_topology(tours, land_use):
 @inject.column("tours")
 def out_period(tours, settings):
     cats = pd.cut(tours.end,
-                  settings['time_periods']['hours'],
-                  labels=settings['time_periods']['labels'])
+                  settings['skim_time_periods']['hours'],
+                  labels=settings['skim_time_periods']['labels'])
     # cut returns labelled categories but we convert to str
     return cats.astype(str)
 
@@ -230,7 +243,7 @@ def out_period(tours, settings):
 @inject.column("tours")
 def in_period(tours, settings):
     cats = pd.cut(tours.start,
-                  settings['time_periods']['hours'],
-                  labels=settings['time_periods']['labels'])
+                  settings['skim_time_periods']['hours'],
+                  labels=settings['skim_time_periods']['labels'])
     # cut returns labelled categories but we convert to str
     return cats.astype(str)

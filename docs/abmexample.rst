@@ -70,7 +70,7 @@ is the main settings file for the model run.  This file includes:
 
     * ``urban_threshold`` - urban threshold area type max value
     * ``county_map`` - mapping of county codes to county names
-    * ``time_periods`` - time period upper bound values and labels
+    * ``skim_time_periods`` - time period upper bound values and labels
 
 .. index:: chunk_size
 .. _chunk_size:

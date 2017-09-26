@@ -90,8 +90,7 @@ def mandatory_tour_scheduling(mandatory_tours_merged,
     tracing.print_summary('mandatory_tour_scheduling tour_departure_and_duration',
                           choices, describe=True)
 
-    inject.add_column(
-        "mandatory_tours", "tour_departure_and_duration", choices)
+    inject.add_column("mandatory_tours", "tour_departure_and_duration", choices)
 
     if trace_hh_id:
         tracing.trace_df(inject.get_table('mandatory_tours').to_frame(),

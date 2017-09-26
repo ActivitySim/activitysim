@@ -11,7 +11,7 @@ households_sample_size: 1000
 
 
 
-time_periods:
+skim_time_periods:
     hours:
         - 0
         - 11

@@ -18,7 +18,7 @@ from activitysim.core.util import reindex
 from activitysim.core.util import left_merge_on_index_and_col
 
 from .util.logsums import compute_logsums
-from .util.logsums import time_period_label
+from .util.logsums import skim_time_period_label
 from .util.logsums import mode_choice_logsums_spec
 
 from .mode import get_segment_and_unstack
@@ -188,8 +188,8 @@ def school_location_logsums(
             right_index=True,
             how="left")
 
-        choosers['in_period'] = time_period_label(school_location_settings['IN_PERIOD'])
-        choosers['out_period'] = time_period_label(school_location_settings['OUT_PERIOD'])
+        choosers['in_period'] = skim_time_period_label(school_location_settings['IN_PERIOD'])
+        choosers['out_period'] = skim_time_period_label(school_location_settings['OUT_PERIOD'])
 
         # FIXME - should do this in expression file?
         choosers['dest_topology'] = reindex(land_use.TOPOLOGY, choosers[alt_col_name])

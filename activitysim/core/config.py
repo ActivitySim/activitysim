@@ -35,6 +35,7 @@ def handle_standard_args(parser=None):
     parser.add_argument("-c", "--config", help="path to config dir")
     parser.add_argument("-o", "--output", help="path to output dir")
     parser.add_argument("-d", "--data", help="path to data dir")
+    parser.add_argument("-r", "--resume", help="resume after")
     args = parser.parse_args()
 
     if args.config:
@@ -49,6 +50,10 @@ def handle_standard_args(parser=None):
         if not os.path.exists(args.data):
             raise IOError("Could not find data dir '%s'." % args.config)
         inject.add_injectable("data_dir", args.data)
+    if args.resume:
+        settings = inject.get_injectable('settings')
+        settings['resume_after'] = args.resume
+        inject.add_injectable("settings", settings)
 
     return args
 

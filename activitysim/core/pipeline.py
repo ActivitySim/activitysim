@@ -483,18 +483,6 @@ def open_pipeline(resume_after=None):
 
     t0 = print_elapsed_time()
 
-    # preload skim_dict
-    if orca.is_injectable('skim_dict'):
-        logger.debug("preload skim_dict")
-        orca.get_injectable('skim_dict')
-        t0 = print_elapsed_time("load skim_dict", t0)
-
-    # load skim_stack
-    if orca.is_injectable('skim_stack'):
-        logger.debug("preload skim_stack")
-        orca.get_injectable('skim_stack')
-        t0 = print_elapsed_time("load skim_stack", t0)
-
     if resume_after:
         # open existing pipeline
         logger.debug("open_pipeline - open existing pipeline")
@@ -507,6 +495,25 @@ def open_pipeline(resume_after=None):
         open_pipeline_store(overwrite=True)
         add_checkpoint(INITIAL_CHECKPOINT_NAME)
         t0 = print_elapsed_time("add_checkpoint '%s'" % INITIAL_CHECKPOINT_NAME, t0)
+
+    # preload skim_dict
+    if orca.is_injectable('skim_dict'):
+        logger.debug("preload skim_dict")
+        orca.get_injectable('skim_dict')
+        t0 = print_elapsed_time("load skim_dict", t0)
+
+    # load skim_stack
+    if orca.is_injectable('skim_stack'):
+        logger.debug("preload skim_stack")
+        orca.get_injectable('skim_stack')
+        t0 = print_elapsed_time("load skim_stack", t0)
+
+    #why bother?
+    # # load timetable
+    # if orca.is_injectable('timetable'):
+    #     logger.debug("preload timetable")
+    #     orca.get_injectable('timetable')
+    #     t0 = print_elapsed_time("load timetable", t0)
 
     logger.debug("open_pipeline complete")
 

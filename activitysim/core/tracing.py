@@ -2,9 +2,6 @@
 # See full license in LICENSE.txt.
 
 import os
-import psutil
-import gc
-
 import logging
 import logging.config
 import sys

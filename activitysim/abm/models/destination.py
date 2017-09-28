@@ -16,12 +16,7 @@ from activitysim.core import pipeline
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def atwork_subtour_destination_choice_spec(configs_dir):
-    return read_model_spec(configs_dir, 'atwork_subtour_destination_choice.csv')
-
-
-@inject.table()
+@inject.injectable()
 def non_mandatory_tour_destination_choice_spec(configs_dir):
     return read_model_spec(configs_dir, 'non_mandatory_tour_destination_choice.csv')
 
@@ -50,7 +45,7 @@ def non_mandatory_tour_destination_choice(tours,
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
-    spec = non_mandatory_tour_destination_choice_spec.to_frame()
+    spec = non_mandatory_tour_destination_choice_spec
 
     # choosers are tours - in a sense tours are choosing their destination
     choosers = tours[~tours.mandatory]
@@ -118,17 +113,13 @@ def non_mandatory_tour_destination_choice(tours,
 
     tracing.print_summary('destination', choices, describe=True)
 
-    # every trip now has a destination which is the index from the
-    # alternatives table - in this case it's the destination taz
-    inject.add_column("non_mandatory_tours", "destination", choices)
-
     tours.loc[choices.index, 'destination'] = choices
     pipeline.replace_table("tours", tours)
 
     pipeline.add_dependent_columns("tours", "tours_with_dest")
 
     if trace_hh_id:
-        tracing.trace_df(tours,
+        tracing.trace_df(tours[~tours.mandatory],
                          label="non_mandatory_tour_destination",
                          slicer='person_id',
                          index_label='tour',

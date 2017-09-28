@@ -113,6 +113,7 @@ def test_mini_pipeline_run():
     # assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     _MODELS = [
+        'initialize',
         'compute_accessibility',
         'school_location_sample',
         'school_location_logsums',
@@ -128,7 +129,7 @@ def test_mini_pipeline_run():
     auto_choice = pipeline.get_table("households").auto_ownership
 
     # regression test: these are among the first 10 households in households table
-    hh_ids = [582398, 93277, 2601277]
+    hh_ids = [464138, 1918238, 2201602]
     choices = [0, 1, 2]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
@@ -141,12 +142,35 @@ def test_mini_pipeline_run():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [23712, 93277, 328095]
+    per_ids = [24375, 92382, 93172]
     choices = ['work1', 'work_and_school', 'school1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
     print "mtf_choice\n", mtf_choice.head(20)
+    # mtf_choice
+    # PERID
+    # 23647                 NaN
+    # 24203                 NaN
+    # 24375               work1
+    # 24687                 NaN
+    # 24824                 NaN
+    # 24975                 NaN
+    # 25027                 NaN
+    # 25117                 NaN
+    # 25772                 NaN
+    # 25871                 NaN
+    # 26284                 NaN
+    # 26863                 NaN
+    # 27059                 NaN
+    # 92233                 NaN
+    # 92382     work_and_school
+    # 92744               work1
+    # 92823                 NaN
+    # 93172             school1
+    # 93774                 NaN
+    # 172491              work1
+    # Name: mandatory_tour_frequency, dtype: object
     pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
 
     # try to get a non-existant table
@@ -187,6 +211,8 @@ def test_mini_pipeline_run2():
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
     prev_checkpoint_count = len(checkpoints_df.index)
+
+    # print "checkpoints_df\n", checkpoints_df[['checkpoint_name']]
     assert prev_checkpoint_count == 11
 
     pipeline.open_pipeline('auto_ownership_simulate')
@@ -194,7 +220,7 @@ def test_mini_pipeline_run2():
     auto_choice = pipeline.get_table("households").auto_ownership
 
     # regression test: these are the same as in test_mini_pipeline_run1
-    hh_ids = [582398, 93277, 2601277]
+    hh_ids = [464138, 1918238, 2201602]
     choices = [0, 1, 2]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
@@ -213,7 +239,7 @@ def test_mini_pipeline_run2():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [23712, 93277, 328095]
+    per_ids = [24375, 92382, 93172]
     choices = ['work1', 'work_and_school', 'school1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
@@ -292,7 +318,7 @@ def get_trace_csv(file_name):
 EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696', '1888696']
 EXPECT_TOUR_TYPES = ['work', 'work', 'othdiscr', 'social']
 EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY', 'DRIVEALONEPAY']
-EXPECT_TOUR_COUNT = 155
+EXPECT_TOUR_COUNT = 166
 
 
 def test_full_run1():

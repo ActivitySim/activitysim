@@ -291,8 +291,6 @@ def add_checkpoint(checkpoint_name):
 
     for table_name in orca_dataframe_tables():
 
-        logger.debug("add_checkpoint table_name %s" % (table_name, ))
-
         # if we have not already checkpointed it or it has changed
         # FIXME - this won't detect if the orca table was modified
         if len(orca.list_columns_for_table(table_name)):
@@ -493,27 +491,11 @@ def open_pipeline(resume_after=None):
         # open new, empty pipeline
         logger.debug("open_pipeline - new, empty pipeline")
         open_pipeline_store(overwrite=True)
-        add_checkpoint(INITIAL_CHECKPOINT_NAME)
-        t0 = print_elapsed_time("add_checkpoint '%s'" % INITIAL_CHECKPOINT_NAME, t0)
-
-    # preload skim_dict
-    if orca.is_injectable('skim_dict'):
-        logger.debug("preload skim_dict")
-        orca.get_injectable('skim_dict')
-        t0 = print_elapsed_time("load skim_dict", t0)
-
-    # load skim_stack
-    if orca.is_injectable('skim_stack'):
-        logger.debug("preload skim_stack")
-        orca.get_injectable('skim_stack')
-        t0 = print_elapsed_time("load skim_stack", t0)
-
-    # why bother?
-    # # load timetable
-    # if orca.is_injectable('timetable'):
-    #     logger.debug("preload timetable")
-    #     orca.get_injectable('timetable')
-    #     t0 = print_elapsed_time("load timetable", t0)
+        # - not sure why I thought we needed this?
+        # could have exogenous tables or prng instantiation under some circumstance??
+        _PIPELINE.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
+        # add_checkpoint(INITIAL_CHECKPOINT_NAME)
+        # t0 = print_elapsed_time("add_checkpoint '%s'" % INITIAL_CHECKPOINT_NAME, t0)
 
     logger.debug("open_pipeline complete")
 
@@ -530,6 +512,17 @@ def close_pipeline():
     _PIPELINE.init_state()
 
     logger.info("close_pipeline")
+
+
+def preload_injectables():
+
+    t0 = print_elapsed_time()
+
+    # load skim_stack
+    if orca.is_injectable('preload_injectables'):
+        orca.get_injectable('preload_injectables')
+
+    t0 = print_elapsed_time("preload_injectables", t0)
 
 
 def run(models, resume_after=None):
@@ -555,6 +548,8 @@ def run(models, resume_after=None):
         models = models[models.index(resume_after) + 1:]
 
     open_pipeline(resume_after)
+
+    preload_injectables()
 
     t0 = print_elapsed_time()
     for model in models:
@@ -671,11 +666,15 @@ def extend_table(table_name, df):
     """
 
     if orca.is_table(table_name):
-        existing_df = orca.get_table(table_name).to_frame()
+
+        extend_df = orca.get_table(table_name).to_frame()
 
         # don't expect indexes to overlap
-        assert len(existing_df.index.intersection(df.index)) == 0
+        assert len(extend_df.index.intersection(df.index)) == 0
 
-        df = pd.concat([existing_df, df], ignore_index=False)
+        # preserve existing column order (concat reorders columns)
+        columns = list(extend_df.columns) + [c for c in df.columns if c not in extend_df.columns]
+
+        df = pd.concat([extend_df, df])[columns]
 
     replace_table(table_name, df)

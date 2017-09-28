@@ -92,17 +92,26 @@ def mandatory_tour_scheduling(tours,
     tracing.print_summary('mandatory_tour_scheduling tour_departure_and_duration',
                           choices, describe=True)
 
-    # FIXME loc might be slow, could try:
-    # col = "tour_departure_and_duration"
-    # if col not in tours:
-    #     tours[col] = choices
-    # else:
-    #     tours[col].update(choices)
-    tours.loc[choices.index, 'tour_departure_and_duration'] = choices
+    # add the start, end, and duration from tdd_alts (don't care about tdd alt index)
+    tdd = tdd_alts.loc[choices]
+    tdd.index = choices.index
+    for c in tdd.columns:
+        tours.loc[tdd.index, c] = tdd[c]
+    # FIXME loc above might be slow - should benchmark compared to below
+    # for c in tdd.columns:
+    #     if c in tours:
+    #         tours[c].update(tdd[c])
+    #     else:
+    #         tours[c] = tdd[c]
+
     pipeline.replace_table("tours", tours)
 
+    timetable = inject.get_injectable("timetable")
+    timetable.set_availability(tours.loc[choices.index])
+    timetable.replace_table()
+
     if trace_hh_id:
-        tracing.trace_df(tours,
+        tracing.trace_df(tours[tours.mandatory],
                          label="mandatory_tour_scheduling",
                          slicer='person_id',
                          index_label='tour',

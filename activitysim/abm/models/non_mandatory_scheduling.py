@@ -51,9 +51,9 @@ def non_mandatory_tour_scheduling(tours,
 
     constants = config.get_model_constants(non_mandatory_tour_scheduling_settings)
 
-    alts = tdd_alts.to_frame()
+    tdd_alts = tdd_alts.to_frame()
 
-    choices = vectorize_tour_scheduling(non_mandatory_tours, alts, tdd_non_mandatory_spec,
+    choices = vectorize_tour_scheduling(non_mandatory_tours, tdd_alts, tdd_non_mandatory_spec,
                                         constants=constants,
                                         chunk_size=chunk_size,
                                         trace_label='non_mandatory_tour_scheduling')
@@ -61,13 +61,23 @@ def non_mandatory_tour_scheduling(tours,
     tracing.print_summary('non_mandatory_tour_scheduling tour_departure_and_duration',
                           choices, describe=True)
 
-    # FIXME - loc might be slow
-    tours.loc[choices.index, 'tour_departure_and_duration'] = choices
+    # add the start, end, and duration from tdd_alts (don't care about tdd alt index)
+    tdd = tdd_alts.loc[choices]
+    tdd.index = choices.index
+    for c in tdd.columns:
+        tours.loc[tdd.index, c] = tdd[c]
+    # FIXME loc above might be slow - should benchmark compared to below
+    # for c in tdd.columns:
+    #     if c in tours:
+    #         tours[c].update(tdd[c])
+    #     else:
+    #         tours[c] = tdd[c]
+
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(tours,
-                         label="non_mandatory_tours",
+        tracing.trace_df(tours[~tours.mandatory],
+                         label="non_mandatory_tour_scheduling",
                          slicer='person_id',
                          index_label='tour_id',
                          columns=None,

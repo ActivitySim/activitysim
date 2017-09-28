@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import initialize
 import accessibility
 import auto_ownership
 import destination

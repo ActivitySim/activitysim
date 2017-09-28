@@ -2,10 +2,10 @@ import collections
 
 import numpy as np
 import pandas as pd
-import orca
 
-
+import inject
 from .tracing import print_elapsed_time
+
 
 import logging
 
@@ -568,12 +568,19 @@ class Random(object):
 
             logger.debug("channel_state %s" % (channel_state, ))
 
-            if orca.is_table(channel_name):
-                df = orca.get_table(channel_name).local
-                self.add_channel(df,
-                                 channel_name=channel_state.channel_name,
-                                 step_num=channel_state.step_num,
-                                 step_name=channel_state.step_name)
+            df = inject.get_table(channel_name).local
+            self.add_channel(df,
+                             channel_name=channel_state.channel_name,
+                             step_num=channel_state.step_num,
+                             step_name=channel_state.step_name)
+
+            # why would this not be the case?
+            # if orca.is_table(channel_name):
+            #     df = orca.get_table(channel_name).local
+            #     self.add_channel(df,
+            #                      channel_name=channel_state.channel_name,
+            #                      step_num=channel_state.step_num,
+            #                      step_name=channel_state.step_name)
 
     # random number generation
 

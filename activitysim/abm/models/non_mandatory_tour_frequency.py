@@ -32,15 +32,11 @@ def non_mandatory_tour_frequency_spec(configs_dir):
     return read_model_spec(configs_dir, 'non_mandatory_tour_frequency.csv')
 
 
-@inject.table()
+@inject.injectable()
 def non_mandatory_tour_frequency_alts(configs_dir):
     f = os.path.join(configs_dir, 'non_mandatory_tour_frequency_alternatives.csv')
-    return pd.read_csv(f)
-
-
-@inject.column("non_mandatory_tour_frequency_alts")
-def tot_tours(non_mandatory_tour_frequency_alts):
-    return non_mandatory_tour_frequency_alts.local.sum(axis=1)
+    df = pd.read_csv(f)
+    return df
 
 
 @inject.step()
@@ -61,7 +57,8 @@ def non_mandatory_tour_frequency(persons_merged,
     t0 = print_elapsed_time()
 
     choosers = persons_merged.to_frame()
-    alts = non_mandatory_tour_frequency_alts.to_frame()
+
+    non_mandatory_tour_frequency_alts['tot_tours'] = non_mandatory_tour_frequency_alts.sum(axis=1)
 
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
@@ -78,7 +75,7 @@ def non_mandatory_tour_frequency(persons_merged,
 
         choices = interaction_simulate(
             segment,
-            alts,
+            non_mandatory_tour_frequency_alts,
             # notice that we pick the column for the segment for each segment we run
             spec=non_mandatory_tour_frequency_spec[[name]],
             locals_d=constants,
@@ -120,13 +117,14 @@ def create_non_mandatory_tours_table():
     """
 
     persons = inject.get_table('persons')
-    non_mandatory_tour_frequency_alts = inject.get_table('non_mandatory_tour_frequency_alts')
+    alts = inject.get_injectable('non_mandatory_tour_frequency_alts')
 
     df = process_non_mandatory_tours(
         persons.non_mandatory_tour_frequency.dropna(),
-        non_mandatory_tour_frequency_alts.local
+        alts
     )
 
     pipeline.extend_table("tours", df)
+
     tracing.register_traceable_table('tours', df)
     pipeline.get_rn_generator().add_channel(df, 'tours')

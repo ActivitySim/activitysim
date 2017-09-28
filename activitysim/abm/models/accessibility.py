@@ -160,6 +160,3 @@ def compute_accessibility(settings, accessibility_spec,
 
             if trace_assigned_locals:
                 tracing.write_csv(trace_assigned_locals, file_name="accessibility_locals")
-
-        tracing.trace_df(inject.get_table('persons_merged').to_frame(), "persons_merged",
-                         warn_if_empty=True)

@@ -1,7 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+
 import logging
 
 import pandas as pd
@@ -20,20 +20,6 @@ logger = logging.getLogger(__name__)
 @inject.injectable()
 def mandatory_tour_scheduling_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'mandatory_tour_scheduling.yaml')
-
-
-@inject.table()
-def tdd_alts(configs_dir):
-    # right now this file just contains the start and end hour
-    f = os.path.join(configs_dir, 'tour_departure_and_duration_alternatives.csv')
-    return pd.read_csv(f)
-
-
-# used to have duration in the actual alternative csv file,
-# but this is probably better as a computed column like this
-@inject.column("tdd_alts")
-def duration(tdd_alts):
-    return tdd_alts.end - tdd_alts.start
 
 
 @inject.injectable()
@@ -63,55 +49,40 @@ def mandatory_tour_scheduling(tours,
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
-    tdd_alts = tdd_alts.to_frame()
+    mandatory_tours = tours[tours.mandatory]
 
     constants = config.get_model_constants(mandatory_tour_scheduling_settings)
 
     # - school tours
-    school_tours = tours[tours.tour_type == "school"]
-    school_tours = pd.merge(school_tours, persons_merged, left_on='person_id', right_index=True)
+    school_tours = mandatory_tours[mandatory_tours.tour_type == "school"]
     logger.info("Running mandatory_tour_scheduling school_tours with %d tours" % len(school_tours))
     school_choices = vectorize_tour_scheduling(
-        school_tours, tdd_alts, tdd_school_spec,
+        school_tours, persons_merged,
+        tdd_alts, tdd_school_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label='mandatory_tour_scheduling.school')
 
-    # - school tours
-    work_tours = tours[tours.tour_type == "work"]
-    work_tours = pd.merge(work_tours, persons_merged, left_on='person_id', right_index=True)
+    # - work tours
+    work_tours = mandatory_tours[mandatory_tours.tour_type == "work"]
     logger.info("Running %d work tour scheduling choices" % len(work_tours))
     work_choices = vectorize_tour_scheduling(
-        work_tours, tdd_alts, tdd_work_spec,
+        work_tours, persons_merged,
+        tdd_alts, tdd_work_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label='mandatory_tour_scheduling.work')
 
-    choices = pd.concat([school_choices, work_choices])
+    tdd_choices = pd.concat([school_choices, work_choices])
 
-    tracing.print_summary('mandatory_tour_scheduling tour_departure_and_duration',
-                          choices, describe=True)
-
-    # add the start, end, and duration from tdd_alts (don't care about tdd alt index)
-    tdd = tdd_alts.loc[choices]
-    tdd.index = choices.index
-    for c in tdd.columns:
-        tours.loc[tdd.index, c] = tdd[c]
-    # FIXME loc above might be slow - should benchmark compared to below
-    # for c in tdd.columns:
-    #     if c in tours:
-    #         tours[c].update(tdd[c])
-    #     else:
-    #         tours[c] = tdd[c]
+    # add tdd_choices columns to tours
+    for c in tdd_choices.columns:
+        tours.loc[tdd_choices.index, c] = tdd_choices[c]
 
     pipeline.replace_table("tours", tours)
 
-    timetable = inject.get_injectable("timetable")
-    timetable.set_availability(tours.loc[choices.index])
-    timetable.replace_table()
-
     if trace_hh_id:
-        tracing.trace_df(tours[tours.mandatory],
+        tracing.trace_df(mandatory_tours,
                          label="mandatory_tour_scheduling",
                          slicer='person_id',
                          index_label='tour',

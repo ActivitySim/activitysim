@@ -42,41 +42,28 @@ def non_mandatory_tour_scheduling(tours,
     """
 
     tours = tours.to_frame()
+    persons_merged = persons_merged.to_frame()
 
-    non_mandatory_tours = pd.merge(tours[~tours.mandatory],
-                                   persons_merged.to_frame(),
-                                   left_on='person_id', right_index=True)
+    non_mandatory_tours = tours[~tours.mandatory]
 
     logger.info("Running non_mandatory_tour_scheduling with %d tours" % len(tours))
 
     constants = config.get_model_constants(non_mandatory_tour_scheduling_settings)
 
-    tdd_alts = tdd_alts.to_frame()
+    tdd_choices = vectorize_tour_scheduling(non_mandatory_tours, persons_merged,
+                                            tdd_alts, tdd_non_mandatory_spec,
+                                            constants=constants,
+                                            chunk_size=chunk_size,
+                                            trace_label='non_mandatory_tour_scheduling')
 
-    choices = vectorize_tour_scheduling(non_mandatory_tours, tdd_alts, tdd_non_mandatory_spec,
-                                        constants=constants,
-                                        chunk_size=chunk_size,
-                                        trace_label='non_mandatory_tour_scheduling')
-
-    tracing.print_summary('non_mandatory_tour_scheduling tour_departure_and_duration',
-                          choices, describe=True)
-
-    # add the start, end, and duration from tdd_alts (don't care about tdd alt index)
-    tdd = tdd_alts.loc[choices]
-    tdd.index = choices.index
-    for c in tdd.columns:
-        tours.loc[tdd.index, c] = tdd[c]
-    # FIXME loc above might be slow - should benchmark compared to below
-    # for c in tdd.columns:
-    #     if c in tours:
-    #         tours[c].update(tdd[c])
-    #     else:
-    #         tours[c] = tdd[c]
+    # add tdd_choices columns to tours
+    for c in tdd_choices.columns:
+        tours.loc[tdd_choices.index, c] = tdd_choices[c]
 
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(tours[~tours.mandatory],
+        tracing.trace_df(non_mandatory_tours,
                          label="non_mandatory_tour_scheduling",
                          slicer='person_id',
                          index_label='tour_id',

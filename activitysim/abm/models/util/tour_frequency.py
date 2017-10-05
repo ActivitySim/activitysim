@@ -35,7 +35,7 @@ def canonical_tours():
     return sub_channels
 
 
-def set_tour_index(tours):
+def set_tour_index(tours, tour_num_col='tour_num'):
     """
 
     Parameters
@@ -54,7 +54,7 @@ def set_tour_index(tours):
     possible_tours_count = len(possible_tours)
 
     # concat tour_type + tour_num
-    tours['tour_id'] = tours.tour_type + tours.tour_num.map(str)
+    tours['tour_id'] = tours.tour_type + tours[tour_num_col].map(str)
 
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(to_replace=possible_tours,
@@ -225,26 +225,33 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     tour_count is the count value of the tour's chosen alt's tour_type from alts table
     """
 
+    #drop
     # map non-zero tour_counts to a list of ranges [1,2,1] -> [[0], [0, 1], [0]]
-    tour_nums = map(range, tours.tour_count[tours.tour_count > 0].values)
+    tour_type_nums = map(range, tours.tour_count[tours.tour_count > 0].values)
     # flatten (more baroque but faster than np.hstack)
-    tour_nums = np.array(list(itertools.chain.from_iterable(tour_nums))) + 1
+    tour_type_nums = np.array(list(itertools.chain.from_iterable(tour_type_nums))) + 1
 
     # now do a repeat and a take, so if you have two trips of given type you
     # now have two rows, and zero trips yields zero rows
     tours = tours.take(np.repeat(tours.index.values, tours.tour_count.values))
 
-    # tours and tour_num are aligned as each now has one row per tour
+    #drop
+    # tours and tour_type_nums are aligned as each now has one row per tour
     # we dropped zero tour count rows and flattened/repeated the remaining rows tour_count
-    tours['tour_num'] = tour_nums
+    tours['tour_type_num'] = tour_type_nums
 
     # don't need tour_count column any more
     del tours['tour_count']
 
+    # we want tour num to be number of tour across all non mandatory tour_types for person
+    tours['tour_num'] = tours.groupby('person_id').cumcount(ascending=True) + 1
+
     tours['mandatory'] = False
 
     # assign a stable (predictable) tour_id
-    set_tour_index(tours)
+    set_tour_index(tours, tour_num_col='tour_type_num')
+    # don't need tour_type_num column any more - just needed it to assign stable tour_index id
+    del tours['tour_type_num']
 
     """
     Pretty basic at this point - trip table looks like this so far
@@ -252,9 +259,9 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     tour_id
     0          4419    escort   1        False
     1          4419    escort   2        False
-    2          4419  othmaint   1        False
-    3          4419    eatout   1        False
-    4          4419    social   1        False
+    2          4419  othmaint   3        False
+    3          4419    eatout   4        False
+    4          4419    social   5        False
     5         10001    escort   1        False
     6         10001    escort   2        False
     """

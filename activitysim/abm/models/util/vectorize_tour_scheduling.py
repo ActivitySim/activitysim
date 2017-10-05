@@ -6,8 +6,10 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core.interaction_simulate import interaction_simulate
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core import tracing
+from activitysim.core import inject
+from activitysim.core import logit
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +54,53 @@ def get_previous_tour_by_tourid(current_tour_person_ids,
     return previous_tour_by_tourid
 
 
-def vectorize_tour_scheduling(tours, alts, spec, constants={},
+def tdd_interaction_dataset(tours, alts, timetable, choice_column):
+    """
+    interaction_sample_simulate expects
+    alts index same as choosers (e.g. tour_id)
+    name of choice column in alts
+
+    Parameters
+    ----------
+    tours : pandas DataFrame
+        must have person_id column and index on tour_id
+    alts : pandas DataFrame
+        alts index must be timetable tdd id
+    timetable : TimeTable object
+    choice_column : str
+        name of column to store alt index in alt_tdd DataFrame
+        (since alt_tdd is duplicate index on person_id but unique on person_id,alt_id)
+
+    Returns
+    -------
+    alt_tdd : pandas DataFrame
+        columns: start, end , duration, <choice_column>
+        index: tour_id
+
+
+    """
+
+    alts_ids = np.tile(alts.index, len(tours.index))
+    tour_ids = np.repeat(tours.index, len(alts.index))
+    person_ids = np.repeat(tours['person_id'], len(alts.index))
+
+    alt_tdd = alts.take(alts_ids).copy()
+    alt_tdd.index = tour_ids
+    alt_tdd['person_id'] = person_ids
+    alt_tdd[choice_column] = alts_ids
+
+    # slice out all non-available tours
+    available = timetable.tour_available(alt_tdd.person_id, alt_tdd[choice_column])
+    alt_tdd = alt_tdd[available]
+
+    # FIXME - don't need this any more after slicing
+    del alt_tdd['person_id']
+
+    return alt_tdd
+
+
+def vectorize_tour_scheduling(tours, persons_merged,
+                              alts, spec, constants={},
                               chunk_size=0, trace_label=None):
     """
     The purpose of this method is fairly straightforward - it takes tours
@@ -91,12 +139,8 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={},
         DataFrame and the values are the index of the alts DataFrame.
     """
 
-    max_num_trips = tours.groupby('person_id').size().max()
-
-    if np.isnan(max_num_trips):
-        s = pd.Series()
-        s.index.name = 'tour_id'
-        return s
+    assert len(tours.index) > 0
+    timetable = inject.get_injectable("timetable")
 
     # because this is Python, we have to vectorize everything by doing the
     # "nth" trip for each person in a for loop (in other words, because each
@@ -109,45 +153,51 @@ def vectorize_tour_scheduling(tours, alts, spec, constants={},
     previous_tour_by_personid = pd.Series(
         pd.Series(alts.index).iloc[0], index=tours.person_id.unique())
 
-    for i in range(max_num_trips):
-
-        # this reset_index / set_index stuff keeps the index as the tours
-        # index rather that switching to person_id as the index which is
-        # what happens when you groupby person_id
-        index_name = tours.index.name or 'index'
-        nth_tours = tours.reset_index().\
-            groupby('person_id').nth(i).reset_index().set_index(index_name)
-
-        nth_tours.index.name = 'tour_id'
+    for tour_num, nth_tours in tours.groupby('tour_num'):
 
         if trace_label:
-            logger.info("%s running %d #%d tour choices" % (trace_label, len(nth_tours), i+1))
+            tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % tour_num)
+            logger.info("%s running %d #%d tour choices" % (trace_label, len(nth_tours), tour_num))
 
-        # tour num can be set by the user, but if it isn't we set it here
-        if "tour_num" not in nth_tours:
-            nth_tours["tour_num"] = i+1
+        nth_tours = pd.merge(nth_tours, persons_merged, left_on='person_id', right_index=True)
 
-        nth_tours = nth_tours.join(get_previous_tour_by_tourid(
-            nth_tours.person_id,
-            previous_tour_by_personid,
-            alts))
+        nth_tours = nth_tours.join(
+            get_previous_tour_by_tourid(nth_tours.person_id, previous_tour_by_personid, alts)
+        )
 
-        tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % i)
+        choice_column = 'tdd'
+        alt_tdd = tdd_interaction_dataset(nth_tours, alts, timetable, choice_column=choice_column)
 
-        nth_choices = interaction_simulate(
+        """
+        alt_tdd : pandas DataFrame
+            columns: start, end , duration, person_id, tdd
+            index: tour_id
+        """
+
+        nth_choices = interaction_sample_simulate(
             nth_tours,
-            alts.copy(),
+            alt_tdd,
             spec,
+            choice_column=choice_column,
             locals_d=constants,
             chunk_size=chunk_size,
             trace_label=tour_trace_label
         )
 
-        choices.append(nth_choices)
-
         previous_tour_by_personid.loc[nth_tours.person_id] = nth_choices.values
+
+        timetable.assign(nth_tours.person_id, nth_choices)
+
+        choices.append(nth_choices)
 
     choices = pd.concat(choices)
 
-    # return the concatenated choices
-    return choices
+    # add the start, end, and duration from tdd_alts
+    tdd = alts.loc[choices]
+    tdd.index = choices.index
+    # include the index of the choice in the tdd alts table
+    tdd['tdd'] = choices
+
+    timetable.replace_table()
+
+    return tdd

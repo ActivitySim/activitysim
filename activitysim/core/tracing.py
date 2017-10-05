@@ -703,10 +703,17 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
                            % choosers.index.name)
 
     if sample_size is None:
-        # if sample size not constant, we count on index of interaction_df being same as choosers
-        assert interaction_df.index.name == choosers.index.name
-        trace_rows = np.in1d(interaction_df.index, targets)
-        trace_ids = interaction_df[trace_rows].index.values
+        # if sample size not constant, we count on either
+        # slicer column being in itneraction_df
+        # or index of interaction_df being same as choosers
+        if slicer_column_name in interaction_df.columns:
+            trace_rows = np.in1d(interaction_df[slicer_column_name], targets)
+            trace_ids = interaction_df.loc[trace_rows, slicer_column_name].values
+        else:
+            assert interaction_df.index.name == choosers.index.name
+            trace_rows = np.in1d(interaction_df.index, targets)
+            trace_ids = interaction_df[trace_rows].index.values
+
     else:
 
         if slicer_column_name == choosers.index.name:

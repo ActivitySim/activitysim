@@ -14,6 +14,7 @@ trace_od: [5, 11]
 #internal settings 
 chunk_size: 1000000
 
+
 # comment out or set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False
 
@@ -33,12 +34,12 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination_choice
   - non_mandatory_tour_scheduling
-  - annotate_tours
-  - tour_mode_choice_simulate
-  - create_simple_trips
-  - trip_mode_choice_simulate
+#  - annotate_tours
+#  - tour_mode_choice_simulate
+#  - create_simple_trips
+#  - trip_mode_choice_simulate
 
-#resume_after: mandatory_tour_frequency
+resume_after: mandatory_tour_frequency
 
 # area_types less than this are considered urban
 urban_threshold: 4

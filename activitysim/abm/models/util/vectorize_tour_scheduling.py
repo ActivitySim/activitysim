@@ -91,6 +91,9 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column):
 
     # slice out all non-available tours
     available = timetable.tour_available(alt_tdd.person_id, alt_tdd[choice_column])
+
+    assert available.any()
+
     alt_tdd = alt_tdd[available]
 
     # FIXME - don't need this any more after slicing
@@ -126,6 +129,8 @@ def vectorize_tour_scheduling(tours, persons_merged,
     tours : DataFrame
         DataFrame of tours containing tour attributes, as well as a person_id
         column to define the nth tour for each person.
+    persons_merged : DataFrame
+        DataFrame of persons containing attributes referenced by expressions in spec
     alts : DataFrame
         DataFrame of alternatives which represent time slots.  Will be passed to
         interaction_simulate in batches for each nth tour.
@@ -148,6 +153,7 @@ def vectorize_tour_scheduling(tours, persons_merged,
     # hopefully this will work out ok!
 
     choices = []
+    tour_trace_label = None
 
     # keep a series of the the most recent tours for each person
     previous_tour_by_personid = pd.Series(

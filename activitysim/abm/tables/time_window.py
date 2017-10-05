@@ -47,11 +47,14 @@ def tdd_alts(configs_dir):
 @inject.injectable(cache=True)
 def tdd_windows(tdd_alts):
 
+    min_start = tdd_alts.start.min()
+    max_end = tdd_alts.end.max()
+
     w_strings = [
-        C_EMPTY * (row.start - 5) +
+        C_EMPTY * (row.start - min_start) +
         (C_START + C_MIDDLE * (row.duration - 1) if row.duration > 0 else '') +
         (C_END if row.duration > 0 else C_START_END) +
-        (C_EMPTY * (23 - row.end))
+        (C_EMPTY * (max_end - row.end))
         for idx, row in tdd_alts.iterrows()]
 
     windows = np.asanyarray([list(r) for r in w_strings]).astype(int)
@@ -74,11 +77,11 @@ def tdd_intersects(tdd_windows):
 
 
 @inject.table()
-def person_time_windows(persons):
+def person_time_windows(persons, tdd_alts):
 
     assert persons.index is not None
 
-    time_windows = config.setting('time_windows')
+    time_windows = range(tdd_alts.start.min(), tdd_alts.end.max() + 1)
 
     # hdf5 store converts these to strs, se we conform
     time_window_cols = [str(w) for w in time_windows]
@@ -144,7 +147,7 @@ class TimeTable(object):
         tour_intersect_masks = tour_intersect_masks.as_matrix()
 
         # row idxs of tour_df group rows in person_windows
-        row_ixs = person_ids.map(self.row_ix)
+        row_ixs = person_ids.map(self.row_ix).values
 
         available = ~np.bitwise_and(self.person_windows[row_ixs], tour_intersect_masks).any(axis=1)
         available = pd.Series(available, index=person_ids.index)
@@ -165,7 +168,7 @@ class TimeTable(object):
         tour_windows = tour_windows.as_matrix()
 
         # row idxs of tour_df group rows in person_windows
-        row_ixs = person_ids.map(self.row_ix)
+        row_ixs = person_ids.map(self.row_ix).values
 
         self.person_windows[row_ixs] = np.bitwise_or(self.person_windows[row_ixs], tour_windows)
 

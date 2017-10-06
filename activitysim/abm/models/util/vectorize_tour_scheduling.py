@@ -102,8 +102,47 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column):
     return alt_tdd
 
 
-def vectorize_tour_scheduling(tours, persons_merged,
-                              alts, spec, constants={},
+def schedule_nth_tours(tours, persons_merged,
+                       alts, spec, constants,
+                       timetable, previous_tour_by_personid,
+                       chunk_size, tour_trace_label):
+
+    logger.info("%s schedule_nth_tours running %d tour choices" % (tour_trace_label, len(tours)))
+
+    # merge persons into tours
+    tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
+
+    # merge previous tour columns
+    tours = tours.join(
+        get_previous_tour_by_tourid(tours.person_id, previous_tour_by_personid, alts)
+    )
+
+    # build interaction dataset filtered to include only available tdd alts
+    # dataframe columns start, end , duration, person_id, tdd
+    # indexed (not unique) on tour_id
+    choice_column = 'tdd'
+    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column=choice_column)
+
+    choices = interaction_sample_simulate(
+        tours,
+        alt_tdd,
+        spec,
+        choice_column=choice_column,
+        locals_d=constants,
+        chunk_size=chunk_size,
+        trace_label=tour_trace_label
+    )
+
+    previous_tour_by_personid.loc[tours.person_id] = choices.values
+
+    timetable.assign(tours.person_id, choices)
+
+    return choices
+
+
+def vectorize_tour_scheduling(tours, persons_merged, alts,
+                              spec, tour_types=None,
+                              constants={},
                               chunk_size=0, trace_label=None):
     """
     The purpose of this method is fairly straightforward - it takes tours
@@ -136,6 +175,7 @@ def vectorize_tour_scheduling(tours, persons_merged,
         interaction_simulate in batches for each nth tour.
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
+        (or dict of specs keyed on tour_type if tour_types is not None)
 
     Returns
     -------
@@ -143,6 +183,9 @@ def vectorize_tour_scheduling(tours, persons_merged,
         A Series of choices where the index is the index of the tours
         DataFrame and the values are the index of the alts DataFrame.
     """
+
+    if not trace_label:
+        trace_label = 'vectorize_tour_scheduling'
 
     assert len(tours.index) > 0
     timetable = inject.get_injectable("timetable")
@@ -155,46 +198,45 @@ def vectorize_tour_scheduling(tours, persons_merged,
     choices = []
     tour_trace_label = None
 
+    if tour_types is None:
+        tour_types = [None]
+    else:
+        # we expect to be able to slice both tours and spec by tour_type
+        assert 'tour_type' in tours.columns
+        assert isinstance(spec, dict)
+        assert all(t in spec for t in tour_types)
+
     # keep a series of the the most recent tours for each person
     previous_tour_by_personid = pd.Series(
         pd.Series(alts.index).iloc[0], index=tours.person_id.unique())
 
     for tour_num, nth_tours in tours.groupby('tour_num'):
 
-        if trace_label:
-            tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % tour_num)
-            logger.info("%s running %d #%d tour choices" % (trace_label, len(nth_tours), tour_num))
+        for tour_type in tour_types:
 
-        nth_tours = pd.merge(nth_tours, persons_merged, left_on='person_id', right_index=True)
+            if tour_type:
+                tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s_%s'
+                                                              % (tour_num, tour_type))
+                tours_to_schedule = nth_tours[nth_tours.tour_type == tour_type]
+            else:
+                tour_trace_label = tracing.extend_trace_label(tour_trace_label, tour_type)
+                tours_to_schedule = nth_tours
 
-        nth_tours = nth_tours.join(
-            get_previous_tour_by_tourid(nth_tours.person_id, previous_tour_by_personid, alts)
-        )
+            # there might not be an nth tour of all types
+            if tours_to_schedule.empty:
+                logger.info("%s vectorize_tour_scheduling skip: no choices" % (tour_trace_label, ))
+                continue
 
-        choice_column = 'tdd'
-        alt_tdd = tdd_interaction_dataset(nth_tours, alts, timetable, choice_column=choice_column)
+            nth_choices = \
+                schedule_nth_tours(tours_to_schedule,
+                                   persons_merged,
+                                   alts,
+                                   spec[tour_type] if tour_type else spec,
+                                   constants,
+                                   timetable, previous_tour_by_personid,
+                                   chunk_size, tour_trace_label)
 
-        """
-        alt_tdd : pandas DataFrame
-            columns: start, end , duration, person_id, tdd
-            index: tour_id
-        """
-
-        nth_choices = interaction_sample_simulate(
-            nth_tours,
-            alt_tdd,
-            spec,
-            choice_column=choice_column,
-            locals_d=constants,
-            chunk_size=chunk_size,
-            trace_label=tour_trace_label
-        )
-
-        previous_tour_by_personid.loc[nth_tours.person_id] = nth_choices.values
-
-        timetable.assign(nth_tours.person_id, nth_choices)
-
-        choices.append(nth_choices)
+            choices.append(nth_choices)
 
     choices = pd.concat(choices)
 

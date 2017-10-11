@@ -60,9 +60,11 @@ def mandatory_tour_frequency(persons_merged,
     tracing.print_summary('mandatory_tour_frequency', choices, value_counts=True)
 
     inject.add_column("persons", "mandatory_tour_frequency", choices)
-    pipeline.add_dependent_columns("persons", "persons_mtf")
 
     create_mandatory_tours_table()
+
+    # add mandatory_tour-dependent columns (e.g. tour counts) to persons
+    pipeline.add_dependent_columns("persons", "persons_mtf")
 
     if trace_hh_id:
         trace_columns = ['mandatory_tour_frequency']

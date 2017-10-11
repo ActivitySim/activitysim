@@ -39,7 +39,7 @@ models:
   - create_simple_trips
   - trip_mode_choice_simulate
 
-resume_after: mandatory_tour_frequency
+#resume_after: mandatory_tour_frequency
 
 # area_types less than this are considered urban
 urban_threshold: 4

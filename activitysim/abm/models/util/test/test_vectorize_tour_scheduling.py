@@ -47,7 +47,8 @@ def test_vts():
 
     tours = pd.DataFrame({
         "person_id": [1, 1, 2, 3, 3],
-        "tour_num": [1, 2, 1, 1, 2]
+        "tour_num": [1, 2, 1, 1, 2],
+        "tour_type": ['x', 'x', 'x', 'x', 'x']
     })
 
     persons = pd.DataFrame({
@@ -62,8 +63,6 @@ def test_vts():
     orca.add_injectable("check_for_variability", True)
 
     tdd = vectorize_tour_scheduling(tours, persons, alts, spec)
-
-    print tdd
 
     # FIXME - dead reckoning regression
     # there's no real logic here - this is just what came out of the monte carlo

@@ -35,7 +35,7 @@ def canonical_tours():
     return sub_channels
 
 
-def set_tour_index(tours, tour_num_col=None):
+def set_tour_index(tours, tour_num_col):
     """
 
     Parameters
@@ -53,14 +53,9 @@ def set_tour_index(tours, tour_num_col=None):
     possible_tours = canonical_tours()
     possible_tours_count = len(possible_tours)
 
-    # concat tour_type + tour_num
-    if tour_num_col:
-        # school/work tours_nums can cross tour_types, so they tell us
-        tour_nums = tours[tour_num_col]
-    else:
-        # for non-mandatory, we want distinct tour_num for each person's tour_type
-        tour_nums = tours.groupby(['person_id', 'tour_type']).cumcount(ascending=True) + 1
-    tours['tour_id'] = tours.tour_type + tour_nums.map(str)
+    assert tour_num_col in tours.columns
+
+    tours['tour_id'] = tours.tour_type + tours[tour_num_col] .map(str)
 
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(to_replace=possible_tours,
@@ -121,43 +116,51 @@ def process_mandatory_tours(persons):
 
         # 1 work trip
         if mtour == "work1":
-            tours += [(key, "work", 1, work_taz)]
+            tours += [(key, "work", work_taz)]
         # 2 work trips
         elif mtour == "work2":
-            tours += [(key, "work", 1, work_taz), (key, "work", 2, work_taz)]
+            tours += [(key, "work", work_taz), (key, "work", work_taz)]
         # 1 school trip
         elif mtour == "school1":
-            tours += [(key, "school", 1, school_taz)]
+            tours += [(key, "school", school_taz)]
         # 2 school trips
         elif mtour == "school2":
-            tours += [(key, "school", 1, school_taz), (key, "school", 2, school_taz)]
+            tours += [(key, "school", school_taz), (key, "school", school_taz)]
         # 1 work and 1 school trip
         elif mtour == "work_and_school":
             if is_worker:
                 # is worker, work trip goes first
-                tours += [(key, "work", 1, work_taz), (key, "school", 2, school_taz)]
+                tours += [(key, "work", work_taz), (key, "school", school_taz)]
             else:
                 # is student, work trip goes second
-                tours += [(key, "school", 1, school_taz), (key, "work", 2, work_taz)]
+                tours += [(key, "school", school_taz), (key, "work", work_taz)]
         else:
             assert 0
 
-    tours = pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num", "destination"])
+    tours = pd.DataFrame(tours, columns=["person_id", "tour_type", "destination"])
+
+    grouped = tours.groupby('person_id')
+    tours['tour_num'] = grouped.cumcount() + 1
+    tours['tour_count'] = tours['tour_num'] + grouped.cumcount(ascending=False)
+
+    grouped = tours.groupby(['person_id', 'tour_type'])
+    tours['tour_type_num'] = grouped.cumcount() + 1
+    tours['tour_type_count'] = tours['tour_type_num'] + grouped.cumcount(ascending=False)
 
     tours['mandatory'] = True
 
     # assign a stable (predictable) tour_id
-    set_tour_index(tours, tour_num_col='tour_num')
+    set_tour_index(tours, 'tour_num')
 
-    """
+    """  # noqa
     Pretty basic at this point - trip table looks like this so far
-           person_id tour_type tour_num destination    mandatory
+           person_id tour_type tour_num tour_count tour_type_num tour_type_count mandatory destination
     tour_id
-    0          4419    work     1       <work_taz>      True
-    1          4419    school   2       <school_taz>    True
-    4          4650    school   1       <school_taz>    True
-    5         10001    school   1       <school_taz>    True
-    6         10001    work     2       <work_taz>      True
+    0          4419    work     1       2           1             1              True   <work_taz>
+    1          4419    school   2       2           1             1              True   <school_taz>
+    4          4650    school   1       1           1             1              True   <school_taz>
+    5         10001    school   1       2           1             2              True   <school_taz>
+    6         10001    work     2       2           2             2              True   <work_taz>
     """
 
     return tours
@@ -192,18 +195,15 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
         column names of the alternatives DataFrame supplied above.
     """
 
-    nmtf = non_mandatory_tour_frequency
-
     # get the actual alternatives for each person - have to go back to the
     # non_mandatory_tour_frequency_alts dataframe to get this - the choice
     # above just stored the index values for the chosen alts
-    tours = non_mandatory_tour_frequency_alts.loc[nmtf]
+    tours = non_mandatory_tour_frequency_alts.loc[non_mandatory_tour_frequency]
 
     # assign person ids to the index
-    tours.index = nmtf.index
+    tours.index = non_mandatory_tour_frequency.index
 
     """
-    tours now looks like this:
              escort  shopping  othmaint  othdiscr  eatout  social
     PERID
     2588676       1         0         0         0       0       0
@@ -212,11 +212,10 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
 
     # reformat with the columns given below
     tours = tours.stack().reset_index()
-    tours.columns = ["person_id", "tour_type", "tour_count"]
+    tours.columns = ["person_id", "tour_type", "tour_type_count"]
 
     """
-    tours now looks like this:
-        person_id tour_type  tour_count
+        person_id tour_type  tour_type_count
     0     2588676    escort           1
     1     2588676  shopping           0
     2     2588676  othmaint           0
@@ -228,34 +227,35 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
 
     person_id is the index from non_mandatory_tour_frequency
     tour_type is the column name from non_mandatory_tour_frequency_alts
-    tour_count is the count value of the tour's chosen alt's tour_type from alts table
+    tour_type_count is the count value of the tour's chosen alt's tour_type from alts table
     """
 
     # now do a repeat and a take, so if you have two trips of given type you
     # now have two rows, and zero trips yields zero rows
-    tours = tours.take(np.repeat(tours.index.values, tours.tour_count.values))
+    tours = tours.take(np.repeat(tours.index.values, tours.tour_type_count.values))
 
-    # don't need tour_count column any more
-    del tours['tour_count']
+    grouped = tours.groupby(['person_id', 'tour_type'])
+    tours['tour_type_num'] = grouped.cumcount() + 1
+    tours['tour_type_count'] = tours['tour_type_num'] + grouped.cumcount(ascending=False)
 
-    # we want tour num to be number of tour across all non mandatory tour_types for person
-    tours['tour_num'] = tours.groupby('person_id').cumcount(ascending=True) + 1
+    grouped = tours.groupby('person_id')
+    tours['tour_num'] = grouped.cumcount() + 1
+    tours['tour_count'] = tours['tour_num'] + grouped.cumcount(ascending=False)
 
     tours['mandatory'] = False
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours)
+    set_tour_index(tours, 'tour_type_num')
 
     """
-    Pretty basic at this point - trip table looks like this so far
-           person_id tour_type tour_num mandatory
+           person_id tour_type tour_type_num  tour_type_count tour_num  tour_count mandatory
     tour_id
-    0          4419    escort   1        False
-    1          4419    escort   2        False
-    2          4419  othmaint   3        False
-    3          4419    eatout   4        False
-    4          4419    social   5        False
-    5         10001    escort   1        False
-    6         10001    escort   2        False
+    0          4419    escort   1              2               1          5         False
+    1          4419    escort   2              2               2          5         False
+    2          4419  othmaint   1              1               3          5         False
+    3          4419    eatout   1              1               4          5         False
+    4          4419    social   1              1               5          5         False
+    5         10001    escort   1              2               1          2         False
+    6         10001    escort   2              2               2          2         False
     """
     return tours

@@ -98,6 +98,7 @@ def non_mandatory_tour_frequency(persons_merged,
 
     create_non_mandatory_tours_table()
 
+    # add non_mandatory_tour-dependent columns (e.g. tour counts) to persons
     pipeline.add_dependent_columns("persons", "persons_nmtf")
 
     if trace_hh_id:
@@ -110,10 +111,9 @@ def non_mandatory_tour_frequency(persons_merged,
 
 def create_non_mandatory_tours_table():
     """
-    We have now generated non-mandatory tours, but they are attributes of the
-    person table - this function creates a "tours" table which
-    has one row per tour that has been generated (and the person id it is
-    associated with)
+    We have now generated non-mandatory tours, but they are attributes of the person table
+    Now we create a "tours" table which has one row per tour that has been generated
+    (and the person id it is associated with)
     """
 
     persons = inject.get_table('persons')
@@ -125,6 +125,5 @@ def create_non_mandatory_tours_table():
     )
 
     pipeline.extend_table("tours", df)
-
     tracing.register_traceable_table('tours', df)
     pipeline.get_rn_generator().add_channel(df, 'tours')

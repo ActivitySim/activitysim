@@ -73,8 +73,7 @@ def test_basic(persons, tdd_alts):
     person_ids = pd.Series(range(num_persons)*num_alts)
     tdds = pd.Series(np.repeat(range(num_alts), num_persons))
 
-    available = timetable.tour_available(person_ids, tdds)
-    assert available.all()
+    assert timetable.tour_available(person_ids, tdds).all()
 
     person_ids = pd.Series([0, 1, 2, 3, 4, 5])
     tdds = pd.Series([0, 1, 2, 15, 16, 17])
@@ -99,8 +98,7 @@ def test_basic(persons, tdd_alts):
         3,  # tdd END does not collide with START_END
         3,  # tdd END does not collide with START
     ])
-    available = timetable.tour_available(person_ids, tdds)
-    assert available.all()
+    assert timetable.tour_available(person_ids, tdds).all()
 
     # print "\nupdated_person_time_windows\n", timetable.get_person_windows()
     #    4  5  6  7  8  9  10  11
@@ -118,8 +116,18 @@ def test_basic(persons, tdd_alts):
         6,   # tdd START_END collides with MIDDLE
         1,   # tdd START + END collides with START + MIDDLE
     ])
-    available = timetable.tour_available(person_ids, tdds)
-    assert not available.any()
+    assert not timetable.tour_available(person_ids, tdds).any()
+
+    # ensure that tour_available handles heterogeneous results
+    person_ids = pd.Series([0, 1, 1, 5])
+    tdds = pd.Series([
+        0,  # tdd START_END does not collide with START_END
+        0,  # tdd START_END does not collide with START
+        1,   # tdd START + END collides with START + END
+        17,  # START + MIDDLE + END collides with same
+    ])
+    pdt.assert_series_equal(timetable.tour_available(person_ids, tdds),
+                            pd.Series([True, True, False, False], index=person_ids.index))
 
     # assigning overlapping trip END,START should convert END to START_END
     person_ids = pd.Series([2])

@@ -112,12 +112,26 @@ class TimeTable(object):
 
     def get_person_windows(self):
 
-        # it appears that writing to numpy array person_windows writes through to person_windows_df
+        # It appears that assignments into person_windows write through to underlying pandas table.
+        # Because we set person_windows = person_windows_df.as_matrix, though as_matrix does not
+        # document this feature.
+
         # so no need to refresh pandas dataframe, but if we had to it would go here
+
         return self.person_windows_df
 
     def replace_table(self):
+        """
+        Save or replace person_windows_df  DataFrame to pipeline with saved table name
+        (specified when object instantiated.)
 
+        This is a convenience function in case caller instantiates object in one context
+        (e.g. dependency injection) where it knows the pipeline table name, but wants to
+        checkpoint the table in another context where it does not know that name.
+        """
+
+        # get person_windows_df from bottleneck function in case updates to self.person_window
+        # do not write through to pandas dataframe
         pipeline.replace_table(self.person_windows_table_name, self.get_person_windows())
 
     def tour_available(self, person_ids, tdds):
@@ -154,6 +168,19 @@ class TimeTable(object):
         return available
 
     def assign(self, person_ids, tdds):
+        """
+        Assign tours (represented by tdd allt ids) to persons
+
+        Updates self.person_windows numpy array. Assignments will no 'take' outside this object
+        until/unless replace_table() called or updated timetable retrieved by get_person_windows()
+
+        Parameters
+        ----------
+        person_ids : pandas Series
+            series of person_ids indexed by tour_id
+        tdds : pandas series
+            series of tdd_alt ids, index irrelevant
+        """
 
         assert len(person_ids) == len(tdds)
 
@@ -171,18 +198,25 @@ class TimeTable(object):
 
         self.person_windows[row_ixs] = np.bitwise_or(self.person_windows[row_ixs], tour_windows)
 
-    # def scheduled(self, person_ids, times):
-    #     assert len(person_ids) == len(times)
-    #
-    #     # row idxs of tour_df group rows in person_windows
-    #     row_ixs = person_ids.map(self.row_ix).values
-    #
-    #     col_ixs = times.map(self.time_ix)
-    #     scheduled = self.person_windows[row_ixs, col_ixs]
-    #
-    #     return pd.Series(scheduled > 0, index=person_ids.index)
+    def adjacent_window_run_length(self, person_ids, periods, before):
+        """
+        Return the number of adjacent periods before or after specified period
+        that are available (not in the middle of another tour.)
 
-    def adjacent_time_window_run_length(self, person_ids, periods, before):
+        Internal DRY method to implement adjacent_window_before and adjacent_window_after
+
+        Parameters
+        ----------
+        person_ids : pandas Series int
+            series of person_ids indexed by tour_id
+        periods : pandas series int
+            series of tdd_alt ids, index irrelevant
+        before : bool
+            Specify desired run length is of adjacent window before (True) or after (False)
+        Returns
+        -------
+
+        """
 
         assert len(person_ids) == len(periods)
 
@@ -216,26 +250,68 @@ class TimeTable(object):
         return pd.Series(available_run_length, index=person_ids.index)
 
     def adjacent_window_before(self, person_ids, periods):
-        return self.adjacent_time_window_run_length(person_ids, periods, before=True)
-
-    def adjacent_window_after(self, person_ids, periods):
-        return self.adjacent_time_window_run_length(person_ids, periods, before=False)
-
-    def window_in_states(self, person_ids, periods, states):
         """
-        return boolean array indicating whether specified time_window is in list of states
+        Return number of adjacent periods before specified period that are available
+        (not in the middle of another tour.)
 
+        Implements CTRAMP MTCTM1 macro @@getAdjWindowBeforeThisPeriodAlt
+        Function name is kind of a misnomer, but parallels that used in mtctm1 UECs
 
         Parameters
         ----------
-        person_ids
-        periods
+        person_ids : pandas Series int
+            series of person_ids indexed by tour_id
+        periods : pandas series int
+            series of tdd_alt ids, index irrelevant
+
+        Returns
+        -------
+        pandas Series int
+            Number of adjacent windows indexed by person_ids.index
+        """
+        return self.adjacent_window_run_length(person_ids, periods, before=True)
+
+    def adjacent_window_after(self, person_ids, periods):
+        """
+        Return number of adjacent periods after specified period that are available
+        (not in the middle of another tour.)
+
+        Implements CTRAMP MTCTM1 macro @@adjWindowAfterThisPeriodAlt
+        Function name is kind of a misnomer, but parallels that used in mtctm1 UECs
+
+        Parameters
+        ----------
+        person_ids : pandas Series int
+            series of person_ids indexed by tour_id
+        periods : pandas series int
+            series of tdd_alt ids, index irrelevant
+
+        Returns
+        -------
+        pandas Series int
+            Number of adjacent windows indexed by person_ids.index
+        """
+        return self.adjacent_window_run_length(person_ids, periods, before=False)
+
+    def window_in_states(self, person_ids, periods, states):
+        """
+        Return boolean array indicating whether specified time_window is in list of states.
+
+        Internal DRY method to implement previous_tour_ends and previous_tour_begins
+
+        Parameters
+        ----------
+        person_ids : pandas Series int
+            series of person_ids indexed by tour_id
+        periods : pandas series int
+            series of tdd_alt ids, index irrelevant
         states : list of int
             presumably (e.g. I_EMPTY, I_START...)
 
         Returns
         -------
-
+        pandas Series boolean
+            indexed by person_ids.index
         """
 
         # row ixs of tour_df group rows in person_windows
@@ -249,34 +325,70 @@ class TimeTable(object):
         return pd.Series(np.isin(window, states), person_ids.index)
 
     def previous_tour_ends(self, person_ids, periods):
+        """
+        Does a previously scheduled tour end in the specified period?
 
+        Implements CTRAMP @@prevTourEndsThisDeparturePeriodAlt
+
+        Parameters
+        ----------
+        person_ids : pandas Series int
+            series of person_ids indexed by tour_id
+        periods : pandas series int
+            series of tdd_alt ids, index irrelevant
+
+        Returns
+        -------
+        pandas Series boolean
+            indexed by person_ids.index
+        """
         return self.window_in_states(person_ids, periods, [I_END, I_START_END])
 
     def previous_tour_begins(self, person_ids, periods):
+        """
+        Does a previously scheduled tour begin in the specified period?
+
+        Implements CTRAMP @@prevTourBeginsThisArrivalPeriodAlt
+
+        Parameters
+        ----------
+        person_ids : pandas Series int
+            series of person_ids indexed by tour_id
+        periods : pandas series int
+            series of tdd_alt ids, index irrelevant
+
+        Returns
+        -------
+        pandas Series boolean
+            indexed by person_ids.index
+        """
 
         return self.window_in_states(person_ids, periods, [I_START, I_START_END])
 
     def remaining_periods_available(self, person_ids, starts, ends):
         """
-        determine number of periods remaining available after the time window from starts to ends
+        Determine number of periods remaining available after the time window from starts to ends
         is hypothetically scheduled
 
-        the start and end periods will always be available after scheduling
-        so ignore them
+        Implements CTRAMP @@remainingPeriodsAvailableAlt
 
-        the periods between start and end must be unscheduled
-        so count them all as unavailable after scheduling this window.
+        The start and end periods will always be available after scheduling, so ignore them.
+        The periods between start and end must be currently unscheduled, so assume they will become
+        unavailable after scheduling this window.
 
         Parameters
         ----------
-        person_ids
-        starts
-        ends
+        person_ids : pandas Series int
+            series of person_ids indexed by tour_id
+        starts : pandas series int
+            series of tdd_alt ids, index irrelevant
+        ends : pandas series int
+            series of tdd_alt ids, index irrelevant
 
         Returns
         -------
         available : pandas Series int
-            periods available indexed by person_ids.index
+            number periods available indexed by person_ids.index
         """
 
         # row idxs of tour_df group rows in person_windows

@@ -213,7 +213,9 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     # second trip of type must be in group immediately following first
     # segregate scheduling by tour_type if multiple specs passed in dict keyed by tour_type
 
-    for tour_num, nth_tours in tours.groupby('tour_num'):
+    prev_tour_num = 0
+
+    for tour_num, nth_tours in tours.groupby('tour_num', sort=True):
 
         tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
 

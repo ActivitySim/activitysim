@@ -278,9 +278,10 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
 
     print timetable.windows
     """
-    [[7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7]
-     [7 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
-     [7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
+    [[7 7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7]
+     [7 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
+     [7 7 7 7 7 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7]
+     [7 7 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
     """
 
     choice_list = []
@@ -317,6 +318,12 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
-    print "\nfinal timetable.windows\n", timetable.windows
+    # print "\nfinal timetable.windows\n", timetable.windows
+    """
+    [[7 7 7 0 0 0 0 2 7 7 4 7 7 7 7 7 7 7 7 7 7]
+     [7 0 2 7 4 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
+     [7 7 7 7 7 2 4 0 0 0 0 0 0 0 0 7 7 7 7 7 7]
+     [7 7 0 2 7 7 4 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
+    """
 
     return tdd

@@ -45,7 +45,7 @@ models:
 #  - create_simple_trips
 #  - trip_mode_choice_simulate
 
-#resume_after: atwork_subtour_scheduling
+resume_after: tour_mode_choice_simulate
 
 # area_types less than this are considered urban
 urban_threshold: 4

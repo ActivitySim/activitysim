@@ -11,10 +11,13 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import timetable as tt
 
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
 logger = logging.getLogger(__name__)
+
+DUMP = True
 
 
 @inject.injectable()
@@ -49,6 +52,7 @@ def mandatory_tour_scheduling(tours,
     persons_merged = persons_merged.to_frame()
     mandatory_tours = tours[tours.mandatory]
 
+    trace_label = 'mandatory_tour_scheduling'
     constants = config.get_model_constants(mandatory_tour_scheduling_settings)
 
     logger.info("Running mandatory_tour_scheduling with %d tours" % len(tours))
@@ -58,13 +62,19 @@ def mandatory_tour_scheduling(tours,
         spec={'work': tdd_work_spec, 'school': tdd_school_spec},
         constants=constants,
         chunk_size=chunk_size,
-        trace_label='mandatory_tour_scheduling')
+        trace_label=trace_label)
 
     # add tdd_choices columns to tours
     for c in tdd_choices.columns:
         tours.loc[tdd_choices.index, c] = tdd_choices[c]
 
     pipeline.replace_table("tours", tours)
+
+    mandatory_tours = tours[tours.mandatory]
+
+    tracing.dump_df(DUMP,
+                    tt.tour_map(persons_merged, mandatory_tours, tdd_alts),
+                    trace_label, 'tour_map')
 
     if trace_hh_id:
         tracing.trace_df(mandatory_tours,

@@ -13,6 +13,9 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 
+from .util import expressions
+from activitysim.core.util import assign_in_place
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,6 +36,7 @@ def non_mandatory_tour_destination_choice(tours,
                                           non_mandatory_tour_destination_choice_spec,
                                           non_mandatory_tour_destination_choice_settings,
                                           destination_size_terms,
+                                          configs_dir,
                                           chunk_size,
                                           trace_hh_id):
 
@@ -42,14 +46,17 @@ def non_mandatory_tour_destination_choice(tours,
     person that's making the tour)
     """
 
+    trace_label = 'non_mandatory_tour_destination'
+
     tours = tours.to_frame()
+
     persons_merged = persons_merged.to_frame()
     alternatives = destination_size_terms.to_frame()
     spec = non_mandatory_tour_destination_choice_spec
 
     # choosers are tours - in a sense tours are choosing their destination
-    choosers = tours[~tours.mandatory]
-    choosers = pd.merge(choosers, persons_merged, left_on='person_id', right_index=True)
+    non_mandatory_tours = tours[tours.non_mandatory]
+    choosers = pd.merge(non_mandatory_tours, persons_merged, left_on='person_id', right_index=True)
 
     constants = config.get_model_constants(non_mandatory_tour_destination_choice_settings)
 
@@ -99,27 +106,27 @@ def non_mandatory_tour_destination_choice(tours,
             locals_d=locals_d,
             sample_size=sample_size,
             chunk_size=chunk_size,
-            trace_label='non_mandatory_tour_destination.%s' % name)
+            trace_label=tracing.extend_trace_label(trace_label,  name))
 
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
 
-    # FIXME - can there be null destinations?
-    if choices.isnull().any():
-        logger.error("non_mandatory_tour_destination_choice had %s null destinations" %
-                     choices.isnull().sum())
-        assert choices.isnull().sum() == 0
+    non_mandatory_tours['destination'] = choices
 
-    tracing.print_summary('destination', choices, describe=True)
+    results = expressions.compute_columns(
+        df=non_mandatory_tours,
+        model_settings='annotate_tours_with_dest',
+        configs_dir=configs_dir,
+        trace_label=trace_label)
 
-    tours.loc[choices.index, 'destination'] = choices
+    assign_in_place(tours, non_mandatory_tours[['destination']])
+    assign_in_place(tours, results)
+
     pipeline.replace_table("tours", tours)
 
-    pipeline.add_dependent_columns("tours", "tours_with_dest")
-
     if trace_hh_id:
-        tracing.trace_df(tours[~tours.mandatory],
+        tracing.trace_df(tours[tours.non_mandatory],
                          label="non_mandatory_tour_destination",
                          slicer='person_id',
                          index_label='tour',

@@ -222,3 +222,30 @@ def quick_loc_series(loc_list, target_series):
     # assert list(df.right) == list(target_series.loc[loc_list])
 
     return df.right
+
+
+def assign_in_place(df, df2):
+    """
+    update existing row values in df from df2, adding columns to df if they are not tehre
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        assignment left-hand-side (dest)
+    df2: pd.DataFrame
+        assignment right-hand-side (source)
+    Returns
+    -------
+
+    """
+
+    # expect no rows in df2 that are not in df
+    assert (len(df2.index.difference(df.index)) == 0)
+
+    # update common columns in place
+    if len(df2.columns.intersection(df.columns)) > 0:
+        df.update(df2)
+
+    # add new columns
+    new_columns = df2.columns.difference(df.columns)
+    df[new_columns] = df2[new_columns]

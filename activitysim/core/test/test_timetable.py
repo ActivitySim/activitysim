@@ -39,11 +39,11 @@ def tdd_alts():
 
 def test_basic(persons, tdd_alts):
 
-    person_time_windows = tt.create_person_time_windows(persons, tdd_alts)
+    person_windows = tt.create_timetable_windows(persons, tdd_alts)
 
-    timetable = tt.TimeTable('person_windows', person_time_windows, tdd_alts)
+    timetable = tt.TimeTable(person_windows, tdd_alts, 'person_windows')
 
-    # print "\ntdd_window_states_df\n", timetable.tdd_window_states_df
+    # print "\ntdd_footprints_df\n", timetable.tdd_footprints_df
     #     0  1  2  3  4  5  6  7
     # 0   0  6  0  0  0  0  0  0
     # 1   0  2  4  0  0  0  0  0
@@ -79,7 +79,7 @@ def test_basic(persons, tdd_alts):
     tdds = pd.Series([0, 1, 2, 15, 16, 17])
     timetable.assign(person_ids, tdds)
 
-    # print "\nupdated_person_time_windows\n", timetable.get_person_windows()
+    # print "\nupdated_person_windows\n", timetable.get_person_windows_df()
     #    4  5  6  7  8  9  10  11
     # 0  0  6  0  0  0  0   0   0
     # 1  0  2  4  0  0  0   0   0
@@ -100,7 +100,7 @@ def test_basic(persons, tdd_alts):
     ])
     assert timetable.tour_available(person_ids, tdds).all()
 
-    # print "\nupdated_person_time_windows\n", timetable.get_person_windows()
+    # print "\nupdated_person_windows\n", timetable.get_person_windows_df()
     #    4  5  6  7  8  9  10  11
     # 0  0  6  0  0  0  0   0   0
     # 1  0  2  4  0  0  0   0   0
@@ -133,11 +133,11 @@ def test_basic(persons, tdd_alts):
     person_ids = pd.Series([2])
     tdds = pd.Series([13])
     assert timetable.tour_available(person_ids, tdds).all()
-    assert timetable.person_windows[2, 3] == tt.I_END
+    assert timetable.windows[2, 3] == tt.I_END
     timetable.assign(person_ids, tdds)
-    assert timetable.person_windows[2, 3] == tt.I_START_END
+    assert timetable.windows[2, 3] == tt.I_START_END
 
-    # print "\nupdated_person_time_windows\n", timetable.get_person_windows()
+    # print "\nupdated_person_windows\n", timetable.get_person_windows_df()
     #    4  5  6  7  8  9  10  11
     # 0  0  6  0  0  0  0   0   0
     # 1  0  2  4  0  0  0   0   0

@@ -25,15 +25,15 @@ def tdd_alts(configs_dir):
 
 
 @inject.table()
-def person_time_windows(persons, tdd_alts):
+def person_windows(persons, tdd_alts):
 
-    df = tt.create_person_time_windows(persons, tdd_alts)
+    df = tt.create_timetable_windows(persons, tdd_alts)
 
-    inject.add_table('person_time_windows', df)
+    inject.add_table('person_windows', df)
 
     return df
 
 
 @inject.injectable()
-def timetable(person_time_windows, tdd_alts):
-    return tt.TimeTable(person_time_windows.name, person_time_windows.to_frame(), tdd_alts)
+def timetable(person_windows, tdd_alts):
+    return tt.TimeTable(person_windows.to_frame(), tdd_alts, person_windows.name)

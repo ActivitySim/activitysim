@@ -9,13 +9,13 @@ import pandas as pd
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core import tracing
 from activitysim.core import inject
-from activitysim.core import logit
+from activitysim.core import timetable as tt
 
 logger = logging.getLogger(__name__)
 
 
-def get_previous_tour_by_tourid(current_tour_person_ids,
-                                previous_tour_by_personid,
+def get_previous_tour_by_tourid(current_tour_window_ids,
+                                previous_tour_by_window_id,
                                 alts):
     """
     Matches current tours with attributes of previous tours for the same
@@ -23,11 +23,11 @@ def get_previous_tour_by_tourid(current_tour_person_ids,
 
     Parameters
     ----------
-    current_tour_person_ids : Series
-        A Series of person ids for the tours we're about make the choice for
+    current_tour_window_ids : Series
+        A Series of parent ids for the tours we're about make the choice for
         - index should match the tours DataFrame.
-    previous_tour_by_personid : Series
-        A Series where the index is the person id and the value is the index
+    previous_tour_by_window_id : Series
+        A Series where the index is the parent (window) id and the value is the index
         of the alternatives of the scheduling.
     alts : DataFrame
         The alternatives of the scheduling.
@@ -46,17 +46,17 @@ def get_previous_tour_by_tourid(current_tour_person_ids,
     PREV_TOUR_COLUMNS = ['start', 'end']
 
     previous_tour_by_tourid = \
-        previous_tour_by_personid.loc[current_tour_person_ids]
+        previous_tour_by_window_id.loc[current_tour_window_ids]
 
     previous_tour_by_tourid = alts.loc[previous_tour_by_tourid, PREV_TOUR_COLUMNS]
 
-    previous_tour_by_tourid.index = current_tour_person_ids.index
+    previous_tour_by_tourid.index = current_tour_window_ids.index
     previous_tour_by_tourid.columns = [x+'_previous' for x in PREV_TOUR_COLUMNS]
 
     return previous_tour_by_tourid
 
 
-def tdd_interaction_dataset(tours, alts, timetable, choice_column):
+def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col):
     """
     interaction_sample_simulate expects
     alts index same as choosers (e.g. tour_id)
@@ -84,29 +84,30 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column):
 
     alts_ids = np.tile(alts.index, len(tours.index))
     tour_ids = np.repeat(tours.index, len(alts.index))
-    person_ids = np.repeat(tours['person_id'], len(alts.index))
+    window_row_id_ids = np.repeat(tours[window_id_col], len(alts.index))
 
     alt_tdd = alts.take(alts_ids).copy()
     alt_tdd.index = tour_ids
-    alt_tdd['person_id'] = person_ids
+    alt_tdd[window_id_col] = window_row_id_ids
     alt_tdd[choice_column] = alts_ids
 
     # slice out all non-available tours
-    available = timetable.tour_available(alt_tdd.person_id, alt_tdd[choice_column])
+    available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
 
     assert available.any()
 
     alt_tdd = alt_tdd[available]
 
     # FIXME - don't need this any more after slicing
-    del alt_tdd['person_id']
+    del alt_tdd[window_id_col]
 
     return alt_tdd
 
 
 def schedule_tours(tours, persons_merged,
                    alts, spec, constants,
-                   timetable, previous_tour_by_personid,
+                   timetable,
+                   previous_tour, window_id_col,
                    chunk_size, tour_trace_label):
 
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
@@ -119,14 +120,14 @@ def schedule_tours(tours, persons_merged,
 
     # merge previous tour columns
     tours = tours.join(
-        get_previous_tour_by_tourid(tours.person_id, previous_tour_by_personid, alts)
+        get_previous_tour_by_tourid(tours[window_id_col], previous_tour, alts)
     )
 
     # build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
     choice_column = 'tdd'
-    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column=choice_column)
+    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col)
 
     locals_d = {
         'tt': timetable
@@ -144,9 +145,9 @@ def schedule_tours(tours, persons_merged,
         trace_label=tour_trace_label
     )
 
-    previous_tour_by_personid.loc[tours.person_id] = choices.values
+    previous_tour.loc[tours[window_id_col]] = choices.values
 
-    timetable.assign(tours.person_id, choices)
+    timetable.assign(tours[window_id_col], choices)
 
     return choices
 
@@ -195,7 +196,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     """
 
     if not trace_label:
-        trace_label = 'vectorize_non_mandatory_tour_scheduling'
+        trace_label = 'vectorize_tour_scheduling'
 
     assert len(tours.index) > 0
     assert 'tour_num' in tours.columns
@@ -213,8 +214,6 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     # second trip of type must be in group immediately following first
     # segregate scheduling by tour_type if multiple specs passed in dict keyed by tour_type
 
-    prev_tour_num = 0
-
     for tour_num, nth_tours in tours.groupby('tour_num', sort=True):
 
         tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
@@ -229,7 +228,8 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
                     schedule_tours(nth_tours[nth_tours.tour_type == tour_type],
                                    persons_merged, alts,
                                    spec[tour_type],
-                                   constants, timetable, previous_tour_by_personid,
+                                   constants, timetable,
+                                   previous_tour_by_personid, 'person_id',
                                    chunk_size, tour_trace_label)
 
                 choice_list.append(choices)
@@ -240,7 +240,8 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
                 schedule_tours(nth_tours,
                                persons_merged, alts,
                                spec,
-                               constants, timetable, previous_tour_by_personid,
+                               constants, timetable,
+                               previous_tour_by_personid, 'person_id',
                                chunk_size, tour_trace_label)
 
             choice_list.append(choices)
@@ -254,5 +255,68 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     tdd['tdd'] = choices
 
     timetable.replace_table()
+
+    return tdd
+
+
+def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, spec,
+                                 constants, chunk_size=0, trace_label=None):
+
+    if not trace_label:
+        trace_label = 'vectorize_non_mandatory_tour_scheduling'
+
+    assert len(subtours.index) > 0
+    assert 'tour_num' in subtours.columns
+    assert 'tour_type' in subtours.columns
+
+    # timetable with a window for each parent tour
+    parent_tour_windows = tt.create_timetable_windows(parent_tours, alts)
+    timetable = tt.TimeTable(parent_tour_windows, alts)
+
+    # mask the periods outside parent tour footprint
+    timetable.assign_subtour_mask(parent_tours.tour_id, parent_tours.tdd)
+
+    print timetable.windows
+    """
+    [[7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7]
+     [7 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
+     [7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
+    """
+
+    choice_list = []
+
+    # keep a series of the the most recent tours for each person
+    # initialize with first trip from alts
+    previous_tour_by_parent_tour_id = \
+        pd.Series(alts.index[0], index=subtours['parent_tour_id'].unique())
+
+    # no more than one tour per person per call to schedule_tours
+    # tours must be scheduled in increasing trip_num order
+    # second trip of type must be in group immediately following first
+    # segregate scheduling by tour_type if multiple specs passed in dict keyed by tour_type
+
+    for tour_num, nth_tours in subtours.groupby('tour_num', sort=True):
+
+        tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
+
+        choices = \
+            schedule_tours(nth_tours,
+                           persons_merged, alts,
+                           spec,
+                           constants, timetable,
+                           previous_tour_by_parent_tour_id, 'parent_tour_id',
+                           chunk_size, tour_trace_label)
+
+        choice_list.append(choices)
+
+    choices = pd.concat(choice_list)
+
+    # add the start, end, and duration from tdd_alts
+    tdd = alts.loc[choices]
+    tdd.index = choices.index
+    # include the index of the choice in the tdd alts table
+    tdd['tdd'] = choices
+
+    print "\nfinal timetable.windows\n", timetable.windows
 
     return tdd

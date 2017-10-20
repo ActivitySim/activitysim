@@ -38,11 +38,11 @@ _CHANNELS = {
         'index': 'HHID'
     },
     'persons': {
-        'max_steps': 7,
+        'max_steps': 8,
         'index': 'PERID'
     },
     'tours': {
-        'max_steps': 5,
+        'max_steps': 9,
         'index': 'tour_id'
     },
     'trips': {
@@ -138,11 +138,10 @@ class SimpleChannel(object):
 
         return row_states
 
-    def extend_domain(self, domain_df, step_name, step_num):
+    def extend_domain(self, domain_df):
         """
         Extend existing row_state df by adding seed info for each row in domain_df
 
-        This is only needed if the channel is composed of more than one underlying table.
         It is assumed that the index values of the component tables are disjoint and
         there will be no ambiguity/collisions between them
 
@@ -160,12 +159,6 @@ class SimpleChannel(object):
 
         # these should be new rows, no intersection with existing row_states
         assert len(self.row_states.index.intersection(domain_df.index)) == 0
-
-        self.step_name = step_name
-
-        if step_num >= 0:
-            assert step_num >= self.step_num
-            self.step_num = step_num
 
         new_row_states = self.create_row_states_for_domain(domain_df)
         self.row_states = pd.concat([self.row_states, new_row_states])
@@ -499,14 +492,17 @@ class Random(object):
             consistent step numbering
         """
         assert channel_name == self.get_channel_name_for_df(domain_df)
-        assert (step_name is None) == (step_num == NULL_STEP_NUM)
 
         logger.debug("Random: add_channel step_num %s step_name '%s'" % (step_num, step_name))
+
+        assert (step_name is None) == (step_num == NULL_STEP_NUM)
 
         if channel_name in self.channels:
             logger.debug("extending channel '%s' %s ids" % (channel_name, len(domain_df.index)))
             channel = self.channels[channel_name]
-            channel.extend_domain(domain_df, step_name, step_num)
+
+            assert step_name is None
+            channel.extend_domain(domain_df)
 
         else:
             logger.debug("adding channel '%s' %s ids" % (channel_name, len(domain_df.index)))

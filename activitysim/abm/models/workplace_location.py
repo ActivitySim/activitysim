@@ -16,10 +16,9 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.core.util import reindex
-from activitysim.core.util import left_merge_on_index_and_col
 
 from .util.logsums import compute_logsums
-from .util.logsums import skim_time_period_label
+from .util.expressions import skim_time_period_label
 from .util.logsums import mode_choice_logsums_spec
 
 """
@@ -111,6 +110,7 @@ def workplace_location_logsums(persons_merged,
                                land_use,
                                skim_dict, skim_stack,
                                workplace_location_sample,
+                               workplace_location_settings,
                                configs_dir,
                                chunk_size,
                                trace_hh_id):
@@ -134,9 +134,8 @@ def workplace_location_logsums(persons_merged,
 
     logsums_spec = mode_choice_logsums_spec(configs_dir, 'work')
 
-    workplace_location_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
-
     alt_col_name = workplace_location_settings["ALT_COL_NAME"]
+    chooser_col_name = 'TAZ'
 
     # FIXME - just using settings from tour_mode_choice
     logsum_settings = config.read_model_settings(configs_dir, 'tour_mode_choice.yaml')
@@ -168,7 +167,7 @@ def workplace_location_logsums(persons_merged,
 
     logsums = compute_logsums(
         choosers, logsums_spec, logsum_settings,
-        skim_dict, skim_stack, alt_col_name, chunk_size, trace_hh_id, trace_label)
+        skim_dict, skim_stack, chooser_col_name, alt_col_name, chunk_size, trace_hh_id, trace_label)
 
     # "add_column series should have an index matching the table to which it is being added"
     # when the index has duplicates, however, in the special case that the series index exactly

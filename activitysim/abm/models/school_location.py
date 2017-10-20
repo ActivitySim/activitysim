@@ -18,10 +18,10 @@ from activitysim.core.util import reindex
 from activitysim.core.util import left_merge_on_index_and_col
 
 from .util.logsums import compute_logsums
-from .util.logsums import skim_time_period_label
+from .util.expressions import skim_time_period_label
 from .util.logsums import mode_choice_logsums_spec
 
-from .mode import get_segment_and_unstack
+from .mode_choice import get_segment_and_unstack
 
 """
 The school location model predicts the zones in which various people will
@@ -159,6 +159,7 @@ def school_location_logsums(
     school_location_settings = config.read_model_settings(configs_dir, 'school_location.yaml')
 
     alt_col_name = school_location_settings["ALT_COL_NAME"]
+    chooser_col_name = 'TAZ'
 
     # FIXME - just using settings from tour_mode_choice
     logsum_settings = config.read_model_settings(configs_dir, 'tour_mode_choice.yaml')
@@ -201,7 +202,7 @@ def school_location_logsums(
 
         logsums = compute_logsums(
             choosers, logsums_spec, logsum_settings,
-            skim_dict, skim_stack, alt_col_name, chunk_size,
+            skim_dict, skim_stack, chooser_col_name, alt_col_name, chunk_size,
             trace_hh_id,
             tracing.extend_trace_label(trace_label, school_type))
 
@@ -286,7 +287,7 @@ def school_location_simulate(persons_merged,
 
     # We only chose school locations for the subset of persons who go to school
     # so we backfill the empty choices with -1 to code as no school location
-    choices = choices.reindex(persons_merged.index).fillna(-1)
+    choices = choices.reindex(persons_merged.index).fillna(-1).astype(int)
 
     tracing.dump_df(DUMP, choices, trace_label, 'choices')
 

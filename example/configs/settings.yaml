@@ -34,12 +34,18 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination_choice
   - non_mandatory_tour_scheduling
-  - annotate_tours
+  - annotate_table.model_name=annotate_tours
   - tour_mode_choice_simulate
-  - create_simple_trips
-  - trip_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination_sample
+  - atwork_subtour_destination_logsums
+  - atwork_subtour_destination_simulate
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice_simulate
+#  - create_simple_trips
+#  - trip_mode_choice_simulate
 
-#resume_after: mandatory_tour_frequency
+#resume_after: atwork_subtour_scheduling
 
 # area_types less than this are considered urban
 urban_threshold: 4
@@ -71,14 +77,15 @@ student_map:
     3: not
 
 person_type_map:
-    1: full
-    2: part
-    3: university
-    4: nonwork
-    5: retired
-    6: driving
-    7: school
-    8: preschool
+    1: full          # FT_worker_age_16plus,
+    2: part          # PT_worker_nonstudent_age_16plus,
+    3: university    # University_student,
+    4: nonwork       # Nonworker_nonstudent_age_16_64,
+    5: retired       # Nonworker_nonstudent_age_65plus,
+    6: driving       # Student_age_16_19_not_FT_wrkr_or_univ_stud,
+    7: school        # Student_age_6_15_schpred,
+    8: preschool     # Preschool_under_age_6
+
 
 household_type_map:
     0: null

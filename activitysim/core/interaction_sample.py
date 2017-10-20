@@ -38,7 +38,7 @@ def make_sample_choices(
     sample_size : int
         number of samples/choices to make
     alternative_count
-    alt_col_name
+    alt_col_name : str
     trace_label
 
     Returns
@@ -191,6 +191,8 @@ def _interaction_sample(
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+
+    assert len(choosers.index) > 0
 
     if alt_col_name is None:
         alt_col_name = 'alt_%s' % alternatives.index.name
@@ -368,8 +370,8 @@ def interaction_sample(
 
     rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
 
-    logger.info("interaction_simulate chunk_size %s num_choosers %s" %
-                (chunk_size, len(choosers.index)))
+    logger.info("interaction_simulate chunk_size %s num_choosers %s rows_per_chunk %s" %
+                (chunk_size, len(choosers.index), rows_per_chunk))
 
     result_list = []
     for i, num_chunks, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):

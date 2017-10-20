@@ -15,13 +15,6 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 
-# FIXME - needs a better home?
-def skim_time_period_label(hour):
-    skim_time_periods = config.setting('skim_time_periods')
-    bin = np.digitize([hour % 24], skim_time_periods['hours'])[0] - 1
-    return skim_time_periods['labels'][bin]
-
-
 def mode_choice_logsums_spec(configs_dir, dest_type):
     DEST_TO_TOUR_SPEC_TYPE = \
         {'university': 'university',
@@ -36,7 +29,7 @@ def mode_choice_logsums_spec(configs_dir, dest_type):
 
 
 def compute_logsums(choosers, logsum_spec, logsum_settings,
-                    skim_dict, skim_stack, alt_col_name,
+                    skim_dict, skim_stack, chooser_col_name, alt_col_name,
                     chunk_size, trace_hh_id, trace_label):
     """
 
@@ -71,11 +64,11 @@ def compute_logsums(choosers, logsum_spec, logsum_settings,
                          slicer='NONE', transpose=False)
 
     # setup skim keys
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key='TAZ', right_key=alt_col_name,
+    odt_skim_stack_wrapper = skim_stack.wrap(left_key=chooser_col_name, right_key=alt_col_name,
                                              skim_key="out_period")
-    dot_skim_stack_wrapper = skim_stack.wrap(left_key=alt_col_name, right_key='TAZ',
+    dot_skim_stack_wrapper = skim_stack.wrap(left_key=alt_col_name, right_key=chooser_col_name,
                                              skim_key="in_period")
-    od_skim_stack_wrapper = skim_dict.wrap('TAZ', alt_col_name)
+    od_skim_stack_wrapper = skim_dict.wrap(chooser_col_name, alt_col_name)
 
     skims = [odt_skim_stack_wrapper, dot_skim_stack_wrapper, od_skim_stack_wrapper]
 

@@ -593,6 +593,22 @@ def slice_canonically(df, slicer, label, warn_if_empty=False):
     return df
 
 
+def trace_targets(df, slicer=None):
+
+    target_ids, column = get_trace_target(df, slicer)
+
+    if target_ids is None:
+        targets = None
+    else:
+
+        if column is None:
+            targets = df.index.isin(target_ids)
+        else:
+            targets = df[column].isin(target_ids)
+
+    return targets
+
+
 def has_trace_targets(df, slicer=None):
 
     target_ids, column = get_trace_target(df, slicer)

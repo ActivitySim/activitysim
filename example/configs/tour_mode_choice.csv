@@ -23,7 +23,7 @@ Drive alone toll - Bridge toll ,@odt_skims['SOVTOLL_BTOLL'] + dot_skims['SOVTOLL
 Drive alone toll - Value toll ,@odt_skims['SOVTOLL_VTOLL'] + dot_skims['SOVTOLL_VTOLL'],DRIVEALONEPAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
 Drive alone toll - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEPAY,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da
 Shared ride 2 - Unavailable,hov2_available == False,SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 2 - Unavailable based on party size,is_joint & (number_of_participants > 2),SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Shared ride 2 - Unavailable based on party size,is_joint * (number_of_participants > 2),SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Shared ride 2 - In-vehicle time,@odt_skims['HOV2_TIME'] + dot_skims['HOV2_TIME'],SHARED2FREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Shared ride 2 - Terminal time,2 * terminal_time,SHARED2FREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Shared ride 2 - Operating cost ,@costPerMile * (odt_skims['HOV2_DIST'] + dot_skims['HOV2_DIST']),SHARED2FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
@@ -33,7 +33,7 @@ Shared ride 2 - One person household,hhsize == 1,SHARED2FREE,hhsize1_sr,hhsize1_
 Shared ride 2 - Two person household,hhsize == 2,SHARED2FREE,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
 Shared ride 2 - Person is 16 years old or older,age_16_p,SHARED2FREE,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
 Shared ride 2 toll - Unavailable,hov2toll_available == False,SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 2 toll - Unavailable based on party size,is_joint & (number_of_participants > 2),SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Shared ride 2 toll - Unavailable based on party size,is_joint * (number_of_participants > 2),SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Shared ride 2 toll - In-vehicle time,@odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME'],SHARED2PAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Shared ride 2 toll - Terminal time,2 * terminal_time,SHARED2PAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Shared ride 2 toll - Operating cost ,@costPerMile * (odt_skims['HOV2TOLL_DIST'] + dot_skims['HOV2TOLL_DIST']),SHARED2PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost

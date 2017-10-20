@@ -36,8 +36,8 @@ def initialize():
     inject.get_table('persons').to_frame()
     t0 = tracing.print_elapsed_time("preload persons")
 
-    inject.get_table('person_time_windows').to_frame()
-    t0 = tracing.print_elapsed_time("preload person_time_windows")
+    inject.get_table('person_windows').to_frame()
+    t0 = tracing.print_elapsed_time("preload person_windows")
 
     pass
 

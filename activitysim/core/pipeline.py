@@ -620,10 +620,14 @@ def get_checkpoints():
         pipeline_file_path = orca.get_injectable('pipeline_path')
         df = pd.read_hdf(pipeline_file_path, CHECKPOINT_TABLE_NAME)
 
+    return df
+
     # non-table columns first (column order in df is random because created from a dict)
     table_names = [name for name in df.columns.values if name not in NON_TABLE_COLUMNS]
 
+    # omit human-illegible PRNG_CHANNELS
     df = df[[CHECKPOINT_NAME, TIMESTAMP] + table_names]
+
     df.index.name = 'step_num'
 
     return df

@@ -12,6 +12,7 @@ import yaml
 from activitysim.core import pipeline
 from activitysim.core import inject
 
+# FIXME - really?
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 

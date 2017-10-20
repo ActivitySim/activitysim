@@ -54,6 +54,13 @@ def persons_nmtf(persons):
 
 
 @inject.column("persons_nmtf")
+def num_non_mand(persons, tours):
+    tours = tours.to_frame()
+    return tours[tours.non_mandatory].groupby("person_id").size()\
+        .reindex(persons.index).fillna(0)
+
+
+@inject.column("persons_nmtf")
 def num_escort_tours(persons, tours):
     tours = tours.to_frame()
     return tours[tours.tour_type == "escort"].groupby("person_id").size()\
@@ -64,6 +71,13 @@ def num_escort_tours(persons, tours):
 def num_non_escort_tours(persons, tours):
     tours = tours.to_frame()
     return tours[~tours.tour_type.isin(["escort", "work", "school"])].groupby("person_id").size()\
+        .reindex(persons.index).fillna(0)
+
+
+@inject.column("persons_nmtf")
+def num_eatout_tours(persons, tours):
+    tours = tours.to_frame()
+    return tours[tours.tour_type == 'eatout'].groupby("person_id").size()\
         .reindex(persons.index).fillna(0)
 
 
@@ -84,6 +98,18 @@ def num_mand(persons):
         "school1": 1,
         "school2": 2,
         "work_and_school": 2
+    }, na_action='ignore')
+    return s.fillna(0)
+
+
+# count the number of mandatory tours for each person
+@inject.column("persons_mtf")
+def num_work_tours(persons):
+
+    s = persons.mandatory_tour_frequency.map({
+        "work1": 1,
+        "work2": 2,
+        "work_and_school": 1
     }, na_action='ignore')
     return s.fillna(0)
 
@@ -138,6 +164,11 @@ def roundtrip_auto_time_to_work(persons, skim_dict):
 def workplace_in_cbd(persons, land_use, settings):
     s = reindex(land_use.area_type, persons.workplace_taz)
     return s < settings['cbd_threshold']
+
+
+@inject.column('persons_workplace')
+def work_taz_area_type(persons, land_use, settings):
+    return reindex(land_use.area_type, persons.workplace_taz)
 
 
 # this is the placeholder for all the columns to update after the

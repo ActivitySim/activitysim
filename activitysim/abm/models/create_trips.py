@@ -28,6 +28,8 @@ def create_simple_trips(tours, households, persons, trace_hh_id):
 
     tours_df = tours.to_frame()
 
+    tours_df = tours_df[tours_df.tour_category != 'subtour']
+
     # we now have a tour_id column
     tours_df.reset_index(inplace=True)
 

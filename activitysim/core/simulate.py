@@ -59,13 +59,13 @@ def num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives=None, by_ch
 
 
 def chunked_choosers(choosers, rows_per_chunk):
-    # generator to iterate over chooses in chunk_size chunks
+    # generator to iterate over choosers in chunk_size chunks
     num_choosers = len(choosers.index)
     num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
 
     i = offset = 0
     while offset < num_choosers:
-        yield i+1, num_chunks, choosers[offset: offset+rows_per_chunk]
+        yield i+1, num_chunks, choosers.iloc[offset: offset+rows_per_chunk]
         offset += rows_per_chunk
         i += 1
 

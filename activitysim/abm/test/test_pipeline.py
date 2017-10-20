@@ -142,8 +142,9 @@ def test_mini_pipeline_run():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [24375, 92382, 93172]
-    choices = ['work1', 'work_and_school', 'school1']
+    # these choices are nonsensical as the test mandatory_tour_frequency spec is very truncated
+    per_ids = [24375, 92744, 172491]
+    choices = ['school2', 'work_and_school', 'work1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
@@ -152,7 +153,7 @@ def test_mini_pipeline_run():
     # PERID
     # 23647                 NaN
     # 24203                 NaN
-    # 24375               work1
+    # 24375             school2
     # 24687                 NaN
     # 24824                 NaN
     # 24975                 NaN
@@ -164,10 +165,10 @@ def test_mini_pipeline_run():
     # 26863                 NaN
     # 27059                 NaN
     # 92233                 NaN
-    # 92382     work_and_school
-    # 92744               work1
+    # 92382             school1
+    # 92744     work_and_school
     # 92823                 NaN
-    # 93172             school1
+    # 93172             school2
     # 93774                 NaN
     # 172491              work1
     # Name: mandatory_tour_frequency, dtype: object
@@ -239,8 +240,8 @@ def test_mini_pipeline_run2():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [24375, 92382, 93172]
-    choices = ['work1', 'work_and_school', 'school1']
+    per_ids = [24375, 92744, 172491]
+    choices = ['school2', 'work_and_school', 'work1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
@@ -315,10 +316,10 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696', '1888696']
-EXPECT_TOUR_TYPES = ['work', 'work', 'othdiscr', 'social']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY', 'DRIVEALONEPAY']
-EXPECT_TOUR_COUNT = 166
+EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
+EXPECT_TOUR_TYPES = ['work', 'school', 'othdiscr']
+EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC']
+EXPECT_TOUR_COUNT = 173
 
 
 def test_full_run1():
@@ -335,13 +336,12 @@ def test_full_run1():
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
 
     print mode_df
-    #           tour_id           mode person_id tour_type tour_num
-    # value_2  20775643      DRIVE_LOC   1888694      work        1
-    # value_3  20775644      DRIVE_LOC   1888694      work        2
-    # value_4  20775650      DRIVE_LOC   1888695    school        1
-    # value_5  20775651      DRIVE_LOC   1888695    school        2
-    # value_1  20775660  DRIVEALONEPAY   1888696  othmaint        1
+    #           tour_id       mode person_id tour_type tour_num
+    # value_1  28330423  DRIVE_LOC   1888694      work        1
+    # value_2  28330434  DRIVE_LOC   1888695    school        1
+    # value_3  28330447  DRIVE_LOC   1888696  othdiscr        1
 
+    assert len(mode_df.person_id) == len(EXPECT_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
     assert (mode_df['mode'].values == EXPECT_MODES).all()

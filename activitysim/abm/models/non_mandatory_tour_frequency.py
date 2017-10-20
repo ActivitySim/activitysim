@@ -93,10 +93,13 @@ def non_mandatory_tour_frequency(persons_merged,
 
     choices = pd.concat(choices_list)
 
+    tracing.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
+
     # FIXME - no need to reindex?
+    # FIXME - how about the persons not processed
     inject.add_column("persons", "non_mandatory_tour_frequency", choices)
 
-    create_non_mandatory_tours_table()
+    create_non_mandatory_tours()
 
     # add non_mandatory_tour-dependent columns (e.g. tour counts) to persons
     pipeline.add_dependent_columns("persons", "persons_nmtf")
@@ -109,7 +112,7 @@ def non_mandatory_tour_frequency(persons_merged,
                          warn_if_empty=True)
 
 
-def create_non_mandatory_tours_table():
+def create_non_mandatory_tours():
     """
     We have now generated non-mandatory tours, but they are attributes of the person table
     Now we create a "tours" table which has one row per tour that has been generated

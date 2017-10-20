@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # time_window states
 # coding for time_window states is chosen so that we can quickly assign a tour
-# to person_windows with a bitwise_or of alt's tdd_window with existing person_windows
+# to windows with a bitwise_or of alt's tdd footprint with existing windows
 # e.g. bitwise_or of I_START with I_END equals I_START_END
 I_EMPTY = 0x0
 I_END = 0x4
@@ -36,7 +36,7 @@ COLLISIONS = [
 COLLISION_LIST = [a + (b << I_BIT_SHIFT) for a, b in COLLISIONS]
 
 
-# str versions of time windows states
+# str versions of time windows period states
 C_EMPTY = str(I_EMPTY)
 C_END = str(I_END)
 C_START = str(I_START)
@@ -44,37 +44,107 @@ C_MIDDLE = str(I_MIDDLE)
 C_START_END = str(I_START_END)
 
 
-def create_person_time_windows(persons, tdd_alts):
+def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
 
-    assert persons.index is not None
+    sigil = {
+        'empty': '   ',
+        'overlap': '+++',
+        'work': 'WWW',
+        'school': 'SSS',
+        'escort': 'esc',
+        'shopping': 'shp',
+        'othmaint': 'mnt',
+        'othdiscr': 'dsc',
+        'eatout': 'eat',
+        'social': 'soc',
+        'eat': 'eat',
+        'business': 'bus',
+        'maint': 'mnt'
+    }
 
-    # pad time windows at both ends of day
-    time_windows = range(tdd_alts.start.min() - 1, tdd_alts.end.max() + 2)
+    sigil_type = 'S3'
+
+    # we can only map scheduled tours
+    tours = tours[tours.tdd.notnull()]
+
+    # convert tdd_alts_df start, end times to time_windows
+    min_period = tdd_alts.start.min()
+    max_period = tdd_alts.end.max()
+    n_periods = max_period - min_period + 1
+    n_persons = len(persons.index)
+
+    agenda = np.array([sigil['empty']]*(n_periods*n_persons), dtype=sigil_type)
+    agenda = agenda.reshape(n_persons, n_periods)
+
+    scheduled = np.zeros_like(agenda, dtype=int)
+    row_ix_map = pd.Series(range(n_persons), index=persons.index)
+
+    # construct with strings so we can create runs of strings using char * int
+    w_strings = [
+        '0' * (row.start - min_period) +
+        '1' * (row.duration + 1) +
+        '0' * (max_period - row.end)
+        for idx, row in tdd_alts.iterrows()]
+
+    window_periods = np.asanyarray([list(r) for r in w_strings]).astype(int)
+    window_periods_df = pd.DataFrame(data=window_periods, index=tdd_alts.index)
+
+    for keys, nth_tours in tours.groupby(['tour_type', 'tour_type_num'], sort=True):
+
+        tour_type = keys[0]
+        tour_sigil = sigil[tour_type]
+
+        # numpy array with one time window row for each row in nth_tours
+        tour_windows = window_periods_df.loc[nth_tours.tdd].as_matrix()
+
+        # row idxs of tour_df group rows in windows
+        row_ixs = nth_tours[persons_id_col].map(row_ix_map).values
+
+        # count tours per period
+        scheduled[row_ixs] += tour_windows
+
+        # assign tour_char to agenda tour periods
+        agenda[row_ixs] = np.where(tour_windows, tour_sigil, agenda[row_ixs])
+
+    # show tour overlaps
+    agenda = np.where(scheduled > 1, sigil['overlap'], agenda)
+
+    # a = pd.Series([' '.join(a) for a in agenda], index=persons.index)
+    a = pd.DataFrame(data=agenda, columns=[str(w) for w in range(min_period, max_period+1)])
+
+    return a
+
+
+def create_timetable_windows(rows, tdd_alts):
+
+    # want something with an index to
+    assert rows.index is not None
+
+    # pad windows at both ends of day
+    windows = range(tdd_alts.start.min() - 1, tdd_alts.end.max() + 2)
 
     # hdf5 store converts these to strs, se we conform
-    time_window_cols = [str(w) for w in time_windows]
+    window_cols = [str(w) for w in windows]
 
     UNSCHEDULED = 0
 
     df = pd.DataFrame(data=UNSCHEDULED,
-                      index=persons.index,
-                      columns=time_window_cols)
+                      index=rows.index,
+                      columns=window_cols)
 
     return df
 
 
 class TimeTable(object):
     """
-                     tdd time window states
-    tdd_alts_df      tdd_window_states_df
+    tdd_alts_df      tdd_footprints_df
     start  end      '0' '1' '2' '3' '4'...
     5      5    ==>  0   6   0   0   0 ...
     5      6    ==>  0   2   4   0   0 ...
     5      7    ==>  0   2   7   4   0 ...
-
     """
 
-    def __init__(self, table_name, person_windows_df, tdd_alts_df):
+    def __init__(self, windows_df, tdd_alts_df, table_name=None):
         """
 
         Parameters
@@ -84,21 +154,20 @@ class TimeTable(object):
         tdd_alts_df
         """
 
-        self.person_windows_table_name = table_name
+        self.windows_table_name = table_name
 
-        self.person_windows_df = person_windows_df
-        self.person_windows = self.person_windows_df.as_matrix()
+        self.windows_df = windows_df
+        self.windows = self.windows_df.as_matrix()
 
-        # series to map person_id to time_window ordinal index
-        self.row_ix = pd.Series(range(len(person_windows_df.index)), index=person_windows_df.index)
+        # series to map window row index value to window row's ordinal index
+        self.window_row_ix = pd.Series(range(len(windows_df.index)), index=windows_df.index)
 
-        int_time_windows = [int(c) for c in person_windows_df.columns.values]
-        self.time_ix = pd.Series(range(len(person_windows_df.columns)), index=int_time_windows)
+        int_time_periods = [int(c) for c in windows_df.columns.values]
+        self.time_ix = pd.Series(range(len(windows_df.columns)), index=int_time_periods)
 
-        # - pre-compute time window states for every tdd_alt
-        # convert tdd_alts_df start, end times to time_windows
-        min_period = min(int_time_windows)
-        max_period = max(int_time_windows)
+        # - pre-compute window state footprints for every tdd_alt
+        min_period = min(int_time_periods)
+        max_period = max(int_time_periods)
         # construct with strings so we can create runs of strings using char * int
         w_strings = [
             C_EMPTY * (row.start - min_period) +
@@ -106,23 +175,42 @@ class TimeTable(object):
             (C_END if row.duration > 0 else C_START_END) +
             (C_EMPTY * (max_period - row.end))
             for idx, row in tdd_alts_df.iterrows()]
-        windows = np.asanyarray([list(r) for r in w_strings]).astype(int)
-        self.tdd_window_states_df = pd.DataFrame(data=windows, index=tdd_alts_df.index)
-        # print "\ntdd_window_states_df\n", self.tdd_window_states_df
+        footprints = np.asanyarray([list(r) for r in w_strings]).astype(int)
+        self.tdd_footprints_df = pd.DataFrame(data=footprints, index=tdd_alts_df.index)
+        # print "\tdd_footprints_df\n", self.tdd_footprints_df
 
-    def get_person_windows(self):
+    def slice_windows_by_row_id(self, window_row_ids):
 
-        # It appears that assignments into person_windows write through to underlying pandas table.
-        # Because we set person_windows = person_windows_df.as_matrix, though as_matrix does not
+        row_ixs = window_row_ids.map(self.window_row_ix).values
+        windows = self.windows[row_ixs]
+
+        return windows
+
+    def slice_windows_by_row_id_and_period(self, window_row_ids, periods):
+
+        # row ixs of tour_df group rows in windows
+        row_ixs = window_row_ids.map(self.window_row_ix).values
+
+        # col ixs of periods in windows
+        time_col_ixs = periods.map(self.time_ix).values
+
+        windows = self.windows[row_ixs, time_col_ixs]
+
+        return windows
+
+    def get_windows_df(self):
+
+        # It appears that assignments into windows write through to underlying pandas table.
+        # Because we set windows = windows_df.as_matrix, though as_matrix does not
         # document this feature.
 
         # so no need to refresh pandas dataframe, but if we had to it would go here
 
-        return self.person_windows_df
+        return self.windows_df
 
     def replace_table(self):
         """
-        Save or replace person_windows_df  DataFrame to pipeline with saved table name
+        Save or replace windows_df  DataFrame to pipeline with saved table name
         (specified when object instantiated.)
 
         This is a convenience function in case caller instantiates object in one context
@@ -130,75 +218,113 @@ class TimeTable(object):
         checkpoint the table in another context where it does not know that name.
         """
 
-        # get person_windows_df from bottleneck function in case updates to self.person_window
-        # do not write through to pandas dataframe
-        pipeline.replace_table(self.person_windows_table_name, self.get_person_windows())
+        assert self.windows_table_name is not None
 
-    def tour_available(self, person_ids, tdds):
+        # get windows_df from bottleneck function in case updates to self.person_window
+        # do not write through to pandas dataframe
+        pipeline.replace_table(self.windows_table_name, self.get_windows_df())
+
+    def tour_available(self, window_row_ids, tdds):
         """
-        test whether person's time window allows tour with specific tdd alt's time window
+        test whether time window allows tour with specific tdd alt's time window
 
         Parameters
         ----------
-        person_ids : pandas Series
-            series of person_ids indexed by tour_id
+        row_ids : pandas Series
+            series of window_row_ids indexed by tour_id
         tdds : pandas series
             series of tdd_alt ids, index irrelevant
 
         Returns
         -------
         available : pandas Series of bool
-            with same index as person_ids.index (presumably tour_id, but we don't care)
+            with same index as window_row_ids.index (presumably tour_id, but we don't care)
         """
 
-        assert len(person_ids) == len(tdds)
+        assert len(window_row_ids) == len(tdds)
 
-        # numpy array with one tdd_window_states_df row for tdds
-        tour_windows = self.tdd_window_states_df.loc[tdds].as_matrix()
+        # numpy array with one tdd_footprints_df row for tdds
+        tour_footprints = self.tdd_footprints_df.loc[tdds].as_matrix()
 
-        # numpy array with one person_windows row for each person
-        row_ixs = person_ids.map(self.row_ix).values
-        person_windows = self.person_windows[row_ixs]
+        # numpy array with one windows row for each person
+        windows = self.slice_windows_by_row_id(window_row_ids)
 
-        x = tour_windows + (person_windows << I_BIT_SHIFT)
+        x = tour_footprints + (windows << I_BIT_SHIFT)
 
         available = ~np.isin(x, COLLISION_LIST).any(axis=1)
-        available = pd.Series(available, index=person_ids.index)
+        available = pd.Series(available, index=window_row_ids.index)
 
         return available
 
-    def assign(self, person_ids, tdds):
+    def assign(self, window_row_ids, tdds):
         """
-        Assign tours (represented by tdd allt ids) to persons
+        Assign tours (represented by tdd alt ids) to persons
 
-        Updates self.person_windows numpy array. Assignments will no 'take' outside this object
-        until/unless replace_table() called or updated timetable retrieved by get_person_windows()
+        Updates self.windows numpy array. Assignments will no 'take' outside this object
+        until/unless replace_table called or updated timetable retrieved by get_windows_df
 
         Parameters
         ----------
-        person_ids : pandas Series
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series
+            series of window_row_ids indexed by tour_id
         tdds : pandas series
             series of tdd_alt ids, index irrelevant
         """
 
-        assert len(person_ids) == len(tdds)
+        assert len(window_row_ids) == len(tdds)
 
         # vectorization doesn't work duplicates
-        assert len(person_ids.index) == len(np.unique(person_ids.values))
+        assert len(window_row_ids.index) == len(np.unique(window_row_ids.values))
 
-        # df with one time window row for each row in df (tour_num group of tour_df)
-        tour_windows = self.tdd_window_states_df.loc[tdds]
+        # df with one tdd_footprint row for each person tdd
+        tour_footprints = self.tdd_footprints_df.loc[tdds]
 
         # numpy array with one time window row for each row in df
-        tour_windows = tour_windows.as_matrix()
+        tour_footprints = tour_footprints.as_matrix()
 
-        # row idxs of tour_df group rows in person_windows
-        row_ixs = person_ids.map(self.row_ix).values
+        # row idxs of windows to assign to
+        row_ixs = window_row_ids.map(self.window_row_ix).values
 
-        self.person_windows[row_ixs] = np.bitwise_or(self.person_windows[row_ixs], tour_windows)
+        self.windows[row_ixs] = np.bitwise_or(self.windows[row_ixs], tour_footprints)
 
-    def adjacent_window_run_length(self, person_ids, periods, before):
+    def assign_subtour_mask(self, window_row_ids, tdds):
+        """
+                  window_row_ids   tdds
+        20973389  20973389           26
+        44612864  44612864            3
+        48954854  48954854            7
+
+        tour footprints
+        [[0 0 2 7 7 7 7 7 7 4 0 0 0 0 0 0 0 0 0 0 0]
+         [0 2 7 7 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+         [0 2 7 7 7 7 7 7 4 0 0 0 0 0 0 0 0 0 0 0 0]]
+
+        subtour_mask
+        [[7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7]
+         [7 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
+         [7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
+        """
+
+        # expect window_row_ids for every row
+        assert len(window_row_ids) == len(self.window_row_ix)
+
+        assert len(window_row_ids) == len(tdds)
+
+        self.windows.fill(0)
+        self.assign(window_row_ids, tdds)
+
+        # df with one tdd_footprint row for each person tdd
+        tour_footprints = self.tdd_footprints_df.loc[tdds]
+
+        # numpy array with one time window row for each row in df
+        tour_footprints = tour_footprints.as_matrix()
+
+        # row idxs of windows to assign to
+        row_ixs = window_row_ids.map(self.window_row_ix).values
+
+        self.windows[row_ixs] = (tour_footprints == 0) * I_MIDDLE
+
+    def adjacent_window_run_length(self, window_row_ids, periods, before):
         """
         Return the number of adjacent periods before or after specified period
         that are available (not in the middle of another tour.)
@@ -207,8 +333,8 @@ class TimeTable(object):
 
         Parameters
         ----------
-        person_ids : pandas Series int
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series int
+            series of window_row_ids indexed by tour_id
         periods : pandas series int
             series of tdd_alt ids, index irrelevant
         before : bool
@@ -218,38 +344,41 @@ class TimeTable(object):
 
         """
 
-        assert len(person_ids) == len(periods)
+        assert len(window_row_ids) == len(periods)
 
-        person_row_ixs = person_ids.map(self.row_ix).values
         time_col_ixs = periods.map(self.time_ix).values
 
-        # ones for available windows
-        available = (self.person_windows[person_row_ixs] != I_MIDDLE) * 1
+        # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
+        available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
+
         # padding periods not available
         available[:, 0] = 0
         available[:, -1] = 0
 
         # column idxs of windows
         num_rows, num_cols = available.shape
-        window_idx = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
+        time_col_ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
+        # 0 1 2 3 4 5...
+        # 0 1 2 3 4 5...
+        # 0 1 2 3 4 5...
 
         if before:
             # ones after specified time, zeroes before
-            before_mask = (window_idx < time_col_ixs.reshape(num_rows, 1)) * 1
+            before_mask = (time_col_ix_map < time_col_ixs.reshape(num_rows, 1)) * 1
             # index of first unavailable window after time
-            first_unavailable = np.where((1-available)*before_mask, window_idx, 0).max(axis=1)
+            first_unavailable = np.where((1-available)*before_mask, time_col_ix_map, 0).max(axis=1)
             available_run_length = time_col_ixs - first_unavailable - 1
         else:
             # ones after specified time, zeroes before
-            after_mask = (window_idx > time_col_ixs.reshape(num_rows, 1)) * 1
+            after_mask = (time_col_ix_map > time_col_ixs.reshape(num_rows, 1)) * 1
             # index of first unavailable window after time
             first_unavailable = \
-                np.where((1 - available) * after_mask, window_idx, num_cols).min(axis=1)
+                np.where((1 - available) * after_mask, time_col_ix_map, num_cols).min(axis=1)
             available_run_length = first_unavailable - time_col_ixs - 1
 
-        return pd.Series(available_run_length, index=person_ids.index)
+        return pd.Series(available_run_length, index=window_row_ids.index)
 
-    def adjacent_window_before(self, person_ids, periods):
+    def adjacent_window_before(self, window_row_ids, periods):
         """
         Return number of adjacent periods before specified period that are available
         (not in the middle of another tour.)
@@ -259,19 +388,19 @@ class TimeTable(object):
 
         Parameters
         ----------
-        person_ids : pandas Series int
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series int
+            series of window_row_ids indexed by tour_id
         periods : pandas series int
             series of tdd_alt ids, index irrelevant
 
         Returns
         -------
         pandas Series int
-            Number of adjacent windows indexed by person_ids.index
+            Number of adjacent windows indexed by window_row_ids.index
         """
-        return self.adjacent_window_run_length(person_ids, periods, before=True)
+        return self.adjacent_window_run_length(window_row_ids, periods, before=True)
 
-    def adjacent_window_after(self, person_ids, periods):
+    def adjacent_window_after(self, window_row_ids, periods):
         """
         Return number of adjacent periods after specified period that are available
         (not in the middle of another tour.)
@@ -281,28 +410,28 @@ class TimeTable(object):
 
         Parameters
         ----------
-        person_ids : pandas Series int
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series int
+            series of window_row_ids indexed by tour_id
         periods : pandas series int
             series of tdd_alt ids, index irrelevant
 
         Returns
         -------
         pandas Series int
-            Number of adjacent windows indexed by person_ids.index
+            Number of adjacent windows indexed by window_row_ids.index
         """
-        return self.adjacent_window_run_length(person_ids, periods, before=False)
+        return self.adjacent_window_run_length(window_row_ids, periods, before=False)
 
-    def window_in_states(self, person_ids, periods, states):
+    def window_periods_in_states(self, window_row_ids, periods, states):
         """
-        Return boolean array indicating whether specified time_window is in list of states.
+        Return boolean array indicating whether specified window periods are in list of states.
 
         Internal DRY method to implement previous_tour_ends and previous_tour_begins
 
         Parameters
         ----------
-        person_ids : pandas Series int
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series int
+            series of window_row_ids indexed by tour_id
         periods : pandas series int
             series of tdd_alt ids, index irrelevant
         states : list of int
@@ -311,20 +440,14 @@ class TimeTable(object):
         Returns
         -------
         pandas Series boolean
-            indexed by person_ids.index
+            indexed by window_row_ids.index
         """
 
-        # row ixs of tour_df group rows in person_windows
-        person_row_ixs = person_ids.map(self.row_ix).values
+        window = self.slice_windows_by_row_id_and_period(window_row_ids, periods)
 
-        # col ixs of periods in person_windows
-        time_col_ixs = periods.map(self.time_ix).values
+        return pd.Series(np.isin(window, states), window_row_ids.index)
 
-        window = self.person_windows[person_row_ixs, time_col_ixs]
-
-        return pd.Series(np.isin(window, states), person_ids.index)
-
-    def previous_tour_ends(self, person_ids, periods):
+    def previous_tour_ends(self, window_row_ids, periods):
         """
         Does a previously scheduled tour end in the specified period?
 
@@ -332,19 +455,19 @@ class TimeTable(object):
 
         Parameters
         ----------
-        person_ids : pandas Series int
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series int
+            series of window_row_ids indexed by tour_id
         periods : pandas series int
             series of tdd_alt ids, index irrelevant
 
         Returns
         -------
         pandas Series boolean
-            indexed by person_ids.index
+            indexed by window_row_ids.index
         """
-        return self.window_in_states(person_ids, periods, [I_END, I_START_END])
+        return self.window_periods_in_states(window_row_ids, periods, [I_END, I_START_END])
 
-    def previous_tour_begins(self, person_ids, periods):
+    def previous_tour_begins(self, window_row_ids, periods):
         """
         Does a previously scheduled tour begin in the specified period?
 
@@ -352,20 +475,20 @@ class TimeTable(object):
 
         Parameters
         ----------
-        person_ids : pandas Series int
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series int
+            series of window_row_ids indexed by tour_id
         periods : pandas series int
             series of tdd_alt ids, index irrelevant
 
         Returns
         -------
         pandas Series boolean
-            indexed by person_ids.index
+            indexed by window_row_ids.index
         """
 
-        return self.window_in_states(person_ids, periods, [I_START, I_START_END])
+        return self.window_periods_in_states(window_row_ids, periods, [I_START, I_START_END])
 
-    def remaining_periods_available(self, person_ids, starts, ends):
+    def remaining_periods_available(self, window_row_ids, starts, ends):
         """
         Determine number of periods remaining available after the time window from starts to ends
         is hypothetically scheduled
@@ -378,8 +501,8 @@ class TimeTable(object):
 
         Parameters
         ----------
-        person_ids : pandas Series int
-            series of person_ids indexed by tour_id
+        window_row_ids : pandas Series int
+            series of window_row_ids indexed by tour_id
         starts : pandas series int
             series of tdd_alt ids, index irrelevant
         ends : pandas series int
@@ -388,18 +511,15 @@ class TimeTable(object):
         Returns
         -------
         available : pandas Series int
-            number periods available indexed by person_ids.index
+            number periods available indexed by window_row_ids.index
         """
 
-        # row idxs of tour_df group rows in person_windows
-        row_ixs = person_ids.map(self.row_ix).values
-
-        available = (self.person_windows[row_ixs] != I_MIDDLE).sum(axis=1)
+        available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE).sum(axis=1)
 
         # don't count time window padding at both ends of day
         available -= 2
 
         available -= np.clip((ends - starts - 1), a_min=0, a_max=None)
-        available = pd.Series(available, index=person_ids.index)
+        available = pd.Series(available, index=window_row_ids.index)
 
         return available

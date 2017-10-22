@@ -200,7 +200,9 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             saved_handler = np.seterrcall(np_logger)
             save_err = np.seterr(all='log')
 
-            values = to_series(eval(expression, globals(), locals_dict), target=target)
+            # FIXME should whitelist globals for security?
+            globals_dict = {}
+            values = to_series(eval(expression, globals_dict, locals_dict), target=target)
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)

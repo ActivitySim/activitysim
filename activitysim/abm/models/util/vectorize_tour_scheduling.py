@@ -109,7 +109,45 @@ def schedule_tours(tours, persons_merged,
                    timetable,
                    previous_tour, window_id_col,
                    chunk_size, tour_trace_label):
+    """
 
+    previous_tour stores values used to add columns that can be used in the spec
+    which have to do with the previous tours per person.  Every column in the
+    alternatives table is appended with the suffix "_previous" and made
+    available.  So if your alternatives table has columns for start and end,
+    then start_previous and end_previous will be set to the start and end of
+    the most recent tour for a person.  The first time through,
+    start_previous and end_previous are undefined, so make sure to protect
+    with a tour_num >= 2 in the variable computation.
+    Parameters
+    ----------
+    tours : DataFrame
+        chunk of tours to schedule with unique window_id_col (person_id or parent_tour_id)
+    persons_merged : DataFrame
+        DataFrame of persons to be merged with tours containing attributes referenced
+        by expressions in spec
+    alts : DataFrame
+        DataFrame of alternatives which represent all possible time slots.
+        tdd_interaction_dataset function will use timetable to filter them to omit
+        unavailable alternatives
+    spec : DataFrame
+        The spec which will be passed to interaction_simulate.
+    constants : dict
+        dict of model-specific constants for eval
+    timetable : TimeTable
+        timetable of timewidows for person (or subtour) with rows for tours[window_id_col]
+    previous_tour: Series
+        series with value of tdd_alt choice for last previous tour scheduled for
+    window_id_col : str
+        column name from tours that identifies 'owner' of this tour
+        (person_id for non/mandatory tours or parent_tout_id for subtours)
+    chunk_size
+    tour_trace_label
+
+    Returns
+    -------
+
+    """
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
     # timetable can't handle multiple tours per person
@@ -160,12 +198,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     and schedules them into time slots.  Alternatives should be specified so
     as to define those time slots (usually with start and end times).
 
-    The difficulty of doing this in Python is that subsequent tours are
-    dependent on certain characteristics of previous tours for the same
-    person.  This is a problem with Python's vectorization requirement,
-    so this method does all the 1st tours, then all the 2nd tours, and so forth.
-
-    This method also adds variables that can be used in the spec which have
+    schedule_tours adds variables that can be used in the spec which have
     to do with the previous tours per person.  Every column in the
     alternatives table is appended with the suffix "_previous" and made
     available.  So if your alternatives table has columns for start and end,
@@ -187,7 +220,8 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (or dict of specs keyed on tour_type if tour_types is not None)
-
+    constants : dict
+        dict of model-specific constants for eval
     Returns
     -------
     choices : Series
@@ -261,7 +295,40 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
 
 def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, spec,
                                  constants, chunk_size=0, trace_label=None):
+    """
+    Like vectorize_tour_scheduling but specifically for atwork subtours
 
+    subtours have a few peculiarities necessitating separate treatment:
+
+    Timetable has to be initialized to set all timeperiods outside parent tour footprint as
+    unavailable. So atwork subtour timewindows are limited to the foorprint of the parent work
+    tour. And parent_tour_id' column of tours is used instead of parent_id as timetable row_id.
+
+    Parameters
+    ----------
+    parent_tours : DataFrame
+        parent tours of the subtours (because we need to know the tdd of the parent tour to
+        assign_subtour_mask of timetable indexed by parent_tour id
+    subtours : DataFrame
+        atwork subtours to schedule
+    persons_merged : DataFrame
+        DataFrame of persons containing attributes referenced by expressions in spec
+    alts : DataFrame
+        DataFrame of alternatives which represent time slots.  Will be passed to
+        interaction_simulate in batches for each nth tour.
+    spec : DataFrame
+        The spec which will be passed to interaction_simulate.
+        (all subtours share same spec regardless of subtour type)
+    constants : dict
+        dict of model-specific constants for eval    chunk_size
+    trace_label
+
+    Returns
+    -------
+    choices : Series
+        A Series of choices where the index is the index of the subtours
+        DataFrame and the values are the index of the alts DataFrame.
+    """
     if not trace_label:
         trace_label = 'vectorize_non_mandatory_tour_scheduling'
 

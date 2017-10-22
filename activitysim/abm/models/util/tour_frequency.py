@@ -294,8 +294,40 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
 
 def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
 
-    # persons = persons[~persons.mandatory_tour_frequency.isnull()]
-    # persons = persons[["mandatory_tour_frequency", "is_worker", "school_taz", "workplace_taz"]]
+    """
+    This method processes the atwork_subtour_frequency column that comes
+    out of the model of the same name and turns into a DataFrame that
+    represents the subtours tours that were generated
+
+    Parameters
+    ----------
+    work_tours: DataFrame
+        A series which has parent work tour tour_id as the index and
+        columns with person_id and atwork_subtour_frequency.
+    atwork_subtour_frequency_alts: DataFrame
+        A DataFrame which has as a unique index with atwork_subtour_frequency values
+        and frequency counts for the subtours to be generated for that choice
+
+    Returns
+    -------
+    tours : DataFrame
+        An example of a tours DataFrame is supplied as a comment in the
+        source code - it has an index which is a unique tour identifier,
+        a person_id column, and a tour type column which comes from the
+        column names of the alternatives DataFrame supplied above.
+    """
+
+    # print atwork_subtour_frequency_alts
+    """
+                  eat  business  maint
+    alt
+    no_subtours     0         0      0
+    eat             1         0      0
+    business1       0         1      0
+    maint           0         0      1
+    business2       0         2      0
+    eat_business    1         1      0
+    """
 
     parent_col = 'parent_tour_id'
     tours = process_tours(work_tours.atwork_subtour_frequency.dropna(),
@@ -303,6 +335,21 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
                           tour_category='subtour',
                           parent_col=parent_col)
 
+    # print tours
+    """
+               parent_tour_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
+    tour_id
+    77147972         77147984       eat                1              1         1           2
+    77401056         77147984     maint                1              1         2           2
+    80893007         80893019       eat                1              1         1           1
+
+              mandatory  non_mandatory tour_category
+                  False          False       subtour
+                  False          False       subtour
+                  False          False       subtour
+    """
+
+    # merge person_id from parent work_tours
     work_tours = work_tours[["person_id"]]
     tours = pd.merge(tours, work_tours, left_on=parent_col, right_index=True)
 

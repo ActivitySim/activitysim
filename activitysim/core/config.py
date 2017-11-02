@@ -36,6 +36,7 @@ def handle_standard_args(parser=None):
     parser.add_argument("-o", "--output", help="path to output dir")
     parser.add_argument("-d", "--data", help="path to data dir")
     parser.add_argument("-r", "--resume", help="resume after")
+    parser.add_argument("-m", "--models", help="models run_list_name in settings")
     args = parser.parse_args()
 
     if args.config:
@@ -51,9 +52,9 @@ def handle_standard_args(parser=None):
             raise IOError("Could not find data dir '%s'." % args.config)
         inject.add_injectable("data_dir", args.data)
     if args.resume:
-        settings = inject.get_injectable('settings')
-        settings['resume_after'] = args.resume
-        inject.add_injectable("settings", settings)
+        inject.add_injectable("resume_after", args.resume)
+    if args.models:
+        inject.add_injectable("run_list_name", args.models)
 
     return args
 

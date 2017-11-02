@@ -22,7 +22,10 @@ DUMP = True
 
 
 @inject.step()
-def annotate_table(configs_dir, model_name):
+def annotate_table(configs_dir):
+
+    # model_settings name should have been provided as a step argument
+    model_name = inject.get_step_arg('model_name')
 
     model_settings = config.read_model_settings(configs_dir, '%s.yaml' % model_name)
 

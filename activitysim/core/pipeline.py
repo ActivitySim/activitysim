@@ -9,6 +9,7 @@ import pandas as pd
 import orca
 
 import logging
+import inject
 
 import random
 import tracing
@@ -413,6 +414,24 @@ def load_checkpoint(checkpoint_name):
     _PIPELINE.prng.load_channels(cPickle.loads(_PIPELINE.last_checkpoint[PRNG_CHANNELS]))
 
 
+def split_arg(s, sep, default=''):
+    """
+    split str s in two at first sep, returning empty string as second result if no sep
+    """
+    r = s.split(sep, 2)
+    r = map(str.strip, r)
+
+    arg = r[0]
+
+    if len(r) == 1:
+        val = default
+    else:
+        val = r[1]
+        val = {'true': True, 'false': False}.get(val.lower(), val)
+
+    return arg, val
+
+
 def run_model(model_name):
     """
     Run the specified model and add checkpoint for model_name
@@ -438,25 +457,18 @@ def run_model(model_name):
     # check for args
     if '.' in model_name:
         step_name, arg_string = model_name.split('.', 1)
-        assert '=' in arg_string, "Expected '=' in model argument '%s'" % model_name
-        args = dict((k.strip(), v.strip())
-                    for k, v in (item.split("=") for item in arg_string.split(";")))
+        args = dict((k, v)
+                    for k, v in (split_arg(item, "=", default=True)
+                                 for item in arg_string.split(";")))
     else:
         step_name = model_name
         args = {}
 
-    # add the args
-    for key, value in args.iteritems():
-        assert not orca.is_injectable(key), "%s arg '%s' already in use" % (model_name, key)
-
-        logger.debug("run_model %s arg '%s' = '%s'" % (model_name, key, value))
-        orca.add_injectable(key, value)
+    inject.set_step_args(args)
 
     orca.run([step_name])
 
-    # delete args to avoid conflicting with later steps
-    for key in args:
-        orca.orca._INJECTABLES.pop(key, None)
+    inject.set_step_args(None)
 
     _PIPELINE.prng.end_step(model_name)
     t0 = print_elapsed_time("run_model '%s'" % model_name, t0)

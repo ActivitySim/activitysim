@@ -9,6 +9,9 @@ _DECORATED_COLUMNS = {}
 _DECORATED_INJECTABLES = {}
 
 
+# we want to allow None (any anyting else) as a default value, so just choose an improbable string
+_NO_DEFAULT = 'throw error if missing'
+
 logger = logging.getLogger(__name__)
 
 
@@ -99,12 +102,12 @@ def broadcast(cast, onto, cast_on=None, onto_on=None, cast_index=False, onto_ind
                           cast_index=cast_index, onto_index=onto_index)
 
 
-def get_table(name):
-    return orca.get_table(name)
+def get_table(name, default=_NO_DEFAULT):
 
-
-# we want to allow None (any anyting else) as a default value, so just choose an improbable string
-_NO_DEFAULT = 'throw error if missing'
+    if orca.is_table(name) or default == _NO_DEFAULT:
+        return orca.get_table(name)
+    else:
+        return default
 
 
 def get_injectable(name, default=_NO_DEFAULT):
@@ -140,3 +143,20 @@ def reinject_decorated_tables():
     for name, args in _DECORATED_INJECTABLES.iteritems():
         logger.debug("reinject decorated injectable %s" % name)
         orca.add_injectable(name, args['func'], cache=args['cache'])
+
+
+def set_step_args(args=None):
+
+    assert isinstance(args, dict) or args is None
+    orca.add_injectable('step_args', args)
+
+
+def get_step_arg(arg_name, default=_NO_DEFAULT):
+
+    args = orca.get_injectable('step_args')
+
+    assert isinstance(args, dict)
+    if arg_name not in args and default == _NO_DEFAULT:
+        raise "step arg '%s' not found and no default" % arg_name
+
+    return args.get(arg_name, default)

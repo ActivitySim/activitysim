@@ -66,7 +66,7 @@ Dependencies
 ActivitySim depends on the following libraries, some of which* are pre-installed
 with Anaconda:
 
-* `numpy <http://numpy.org>`__ >= 1.12.0 \*
+* `numpy <http://numpy.org>`__ >= 1.13.0 \*
 * `pandas <http://pandas.pydata.org>`__ >= 0.20.3 \*
 * `pyyaml <http://pyyaml.org/wiki/PyYAML>`__ >= 3.0 \*
 * `tables <http://www.pytables.org/moin>`__ >= 3.3.0 \*

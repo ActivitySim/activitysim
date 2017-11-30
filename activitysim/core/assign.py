@@ -176,7 +176,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         locals_dict['df'] = df
     local_keys = locals_dict.keys()
 
-    l = []
+    target_history = []
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
@@ -216,7 +216,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             # values = to_series(None, target=target)
             raise err
 
-        l.append((target, values))
+        target_history.append((target, values))
 
         if trace_results is not None:
             trace_results.append((target, values[trace_rows]))
@@ -230,7 +230,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     # the first time we see them so they end up in execution order
     variables = []
     seen = set()
-    for statement in reversed(l):
+    for statement in reversed(target_history):
         # statement is a tuple (<target_name>, <eval results in pandas.Series>)
         target_name = statement[0]
         if not is_temp(target_name) and target_name not in seen:

@@ -274,6 +274,7 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
             return pd.Series([x] * len(df), index=df.index)
         return x
 
+    value_list = []
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
     for expr in exprs:
@@ -282,11 +283,12 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
                 expr_values = to_series(eval(expr[1:], globals(), locals_d))
             else:
                 expr_values = df.eval(expr)
+            value_list.append((expr, expr_values))
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
 
-    values = pd.DataFrame.from_items(l)
+    values = pd.DataFrame.from_items(value_list)
 
     # FIXME - for performance, it is essential that spec and expression_values
     # FIXME - not contain booleans when dotted with spec values
@@ -357,9 +359,7 @@ def _check_for_variability(expression_values, trace_label):
     if trace_label is None:
         trace_label = '_check_for_variability'
 
-    MAX_ROWS_TO_CHECK = 1000
-
-    sample = random_rows(expression_values, min(MAX_ROWS_TO_CHECK, len(expression_values)))
+    sample = random_rows(expression_values, min(1000, len(expression_values)))
 
     no_variability = has_missing_vals = 0
     for i in range(len(sample.columns)):

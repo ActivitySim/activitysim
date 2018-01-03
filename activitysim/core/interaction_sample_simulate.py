@@ -1,10 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-import psutil
-import gc
-
 import logging
 
 import numpy as np
@@ -32,7 +28,7 @@ def _interaction_sample_simulate(
     be merged with choosers because there are interaction terms or
     because alternatives are being sampled.
 
-    Parameters are same as for public function interaction_simulate
+    Parameters are same as for public function interaction_sample_simulate
 
     spec : dataframe
         one row per spec expression and one col with utility coefficient
@@ -241,6 +237,7 @@ def interaction_sample_simulate(
         DataFrame of choosers
     alternatives : pandas.DataFrame
         DataFrame of alternatives - will be merged with choosers
+        index domain same as choosers, but repeated for each alternative
     spec : pandas.DataFrame
         A Pandas DataFrame that gives the specification of the variables to
         compute and the coefficients for each variable.

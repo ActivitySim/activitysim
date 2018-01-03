@@ -1,0 +1,33 @@
+Description,Target,Expression
+#,,
+#,, auto peak
+#,,
+local,_SKIM_TIME_PERIODS,"setting('skim_time_periods')"
+local,_SKIM_PERIODS,"_SKIM_TIME_PERIODS['hours']"
+local,_SKIM_LABELS,"_SKIM_TIME_PERIODS['labels']"
+FIXME,sov_available,1
+FIXME,hov2_available,1
+FIXME,hov2toll_available,1
+FIXME,hov3_available,1
+FIXME,sovtoll_available,1
+FIXME,drive_local_available,1
+FIXME,drive_lrf_available,1
+FIXME,drive_express_available,1
+FIXME,drive_heavyrail_available,1
+FIXME,drive_commuter_available,1
+FIXME,walk_local_available,1
+FIXME,walk_lrf_available,1
+FIXME,walk_commuter_available,1
+FIXME,walk_express_available,1
+FIXME,walk_heavyrail_available,1
+FIXME,is_joint,0
+FIXME,number_of_participants,1
+FIXME note that there's something about whether this is a subtour?,work_tour_is_drive,0
+FIXME,terminal_time,0
+FIXME,origin_walk_time,0
+FIXME,destination_walk_time,0
+FIXME,daily_parking_cost,0
+dest_density_index,dest_density_index,"reindex(land_use.density_index, tours.destination)"
+dest_topology,dest_topology,"reindex(land_use.TOPOLOGY, tours.destination)"
+out_period skim label(as string not categorical),out_period,"pd.cut(tours.end, _SKIM_PERIODS, labels=_SKIM_LABELS).astype(str)"
+in_period skim label(as string not categorical),in_period,"pd.cut(tours.start, _SKIM_PERIODS, labels=_SKIM_LABELS).astype(str)"

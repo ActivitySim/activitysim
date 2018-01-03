@@ -14,9 +14,38 @@ trace_od: [5, 11]
 #internal settings 
 chunk_size: 1000000
 
+
 # comment out or set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False
 
+models:
+  - initialize
+  - compute_accessibility
+  - school_location_sample
+  - school_location_logsums
+  - school_location_simulate
+  - workplace_location_sample
+  - workplace_location_logsums
+  - workplace_location_simulate
+  - auto_ownership_simulate
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination_choice
+  - non_mandatory_tour_scheduling
+  - annotate_table.model_name=annotate_tours
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination_sample
+  - atwork_subtour_destination_logsums
+  - atwork_subtour_destination_simulate
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice_simulate
+  - create_simple_trips
+  - trip_mode_choice_simulate
+
+#resume_after: tour_mode_choice_simulate
 
 # area_types less than this are considered urban
 urban_threshold: 4
@@ -48,14 +77,15 @@ student_map:
     3: not
 
 person_type_map:
-    1: full
-    2: part
-    3: university
-    4: nonwork
-    5: retired
-    6: driving
-    7: school
-    8: preschool
+    1: full          # FT_worker_age_16plus,
+    2: part          # PT_worker_nonstudent_age_16plus,
+    3: university    # University_student,
+    4: nonwork       # Nonworker_nonstudent_age_16_64,
+    5: retired       # Nonworker_nonstudent_age_65plus,
+    6: driving       # Student_age_16_19_not_FT_wrkr_or_univ_stud,
+    7: school        # Student_age_6_15_schpred,
+    8: preschool     # Preschool_under_age_6
+
 
 household_type_map:
     0: null
@@ -67,7 +97,7 @@ household_type_map:
     6: nonfamily_female_alone
     7: nonfamily_female_notalone
 
-time_periods:
+skim_time_periods:
     hours:
         - 0
         - 11
@@ -77,5 +107,3 @@ time_periods:
         - AM
         - MD
         - PM
-
-

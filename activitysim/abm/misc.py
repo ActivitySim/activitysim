@@ -6,19 +6,20 @@ import warnings
 import logging
 
 import numpy as np
-import orca
 import pandas as pd
 import yaml
 
 from activitysim.core import pipeline
+from activitysim.core import inject
 
+# FIXME - really?
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
 logger = logging.getLogger(__name__)
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def store(data_dir, settings):
     if 'store' not in settings:
         logger.error("store file name not specified in settings")
@@ -34,27 +35,27 @@ def store(data_dir, settings):
     return file
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def cache_skim_key_values(settings):
-    return settings['time_periods']['labels']
+    return settings['skim_time_periods']['labels']
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def households_sample_size(settings):
     return settings.get('households_sample_size', 0)
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def chunk_size(settings):
     return int(settings.get('chunk_size', 0))
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def check_for_variability(settings):
     return bool(settings.get('check_for_variability', False))
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def trace_hh_id(settings):
 
     id = settings.get('trace_hh_id', None)
@@ -66,31 +67,31 @@ def trace_hh_id(settings):
     return id
 
 
-@orca.injectable()
+@inject.injectable()
 def trace_person_ids():
     # overridden by register_persons if trace_hh_id is defined
     return []
 
 
-@orca.injectable()
+@inject.injectable()
 def trace_tour_ids():
     # overridden by register_tours if trace_hh_id is defined
     return []
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def hh_index_name(settings):
     # overridden by register_households if trace_hh_id is defined
     return None
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def persons_index_name(settings):
     # overridden by register_persons if trace_hh_id is defined
     return None
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def trace_od(settings):
 
     od = settings.get('trace_od', None)
@@ -102,6 +103,6 @@ def trace_od(settings):
     return od
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def enable_trace_log(trace_hh_id, trace_od):
     return (trace_hh_id or trace_od)

@@ -1,10 +1,11 @@
 
 import logging
 
-import orca
 from activitysim import abm
 from activitysim.core import tracing
+from activitysim.core import inject
 from activitysim.core import simulate as asim
+
 import pandas as pd
 import numpy as np
 import os
@@ -23,14 +24,14 @@ tracing.config_logger()
 logger = logging.getLogger('activitysim')
 
 
-@orca.injectable()
+@inject.injectable()
 def output_dir():
     if not os.path.exists('output'):
         os.makedirs('output')  # make directory if needed
     return 'output'
 
 
-@orca.injectable()
+@inject.injectable()
 def data_dir():
     return os.path.join(DATA_REPO)
 
@@ -160,19 +161,19 @@ def set_random_seed():
 
 # uncomment the line below to set random seed so that run results are reproducible
 set_random_seed()
-orca.add_injectable("set_random_seed", set_random_seed)
+inject.add_injectable("set_random_seed", set_random_seed)
 
 tracing.config_logger()
 
 t0 = print_elapsed_time()
 
-taz_skim_stack = orca.get_injectable('taz_skim_dict')
+taz_skim_stack = inject.get_injectable('taz_skim_dict')
 t0 = print_elapsed_time("load taz_skim_dict", t0)
 
-tap_skim_stack = orca.get_injectable('tap_skim_dict')
+tap_skim_stack = inject.get_injectable('tap_skim_dict')
 t0 = print_elapsed_time("load tap_skim_dict", t0)
 
-network_los = orca.get_injectable('network_los')
+network_los = inject.get_injectable('network_los')
 t0 = print_elapsed_time("load network_los", t0)
 
 # test sizes for all implemented methods
@@ -225,5 +226,5 @@ for size in VECTOR_TEST_SIZEs:
 
 
 t0 = print_elapsed_time()
-orca.run(["best_transit_path"])
+inject.run(["best_transit_path"])
 t0 = print_elapsed_time("best_transit_path", t0)

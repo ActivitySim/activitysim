@@ -6,10 +6,11 @@ import logging
 
 import numpy as np
 import openmatrix as omx
-import orca
 
 from activitysim.core import skim as askim
 from activitysim.core import tracing
+from activitysim.core import inject
+
 
 logger = logging.getLogger('activitysim')
 
@@ -43,18 +44,18 @@ def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset_int=None
         else:
             # there may be more time periods in the skim than are used by the model
             # cache_skim_key_values is a list of time periods (from settings) that are used
-            # FIXME - assumes that the only types of key2 are time_periods
+            # FIXME - assumes that the only types of key2 are skim_time_periods
             if key2 in cache_skim_key_values:
                 skim_dict.set((key, key2), skim_data)
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def taz_skim_dict(data_dir, settings):
 
     logger.info("loading taz_skim_dict")
 
     skims_file = os.path.join(data_dir, settings["taz_skims_file"])
-    cache_skim_key_values = settings['time_periods']['labels']
+    cache_skim_key_values = settings['skim_time_periods']['labels']
 
     skim_dict = askim.SkimDict()
 
@@ -64,12 +65,12 @@ def taz_skim_dict(data_dir, settings):
     return skim_dict
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def tap_skim_dict(data_dir, settings):
 
     logger.info("loading tap_skim_dict")
 
-    cache_skim_key_values = settings['time_periods']['labels']
+    cache_skim_key_values = settings['skim_time_periods']['labels']
     skim_dict = askim.SkimDict()
 
     for skims_file in settings["tap_skims_files"]:

@@ -2,9 +2,10 @@ import collections
 
 import numpy as np
 import pandas as pd
-import orca
 
+import inject
 from .tracing import print_elapsed_time
+
 
 import logging
 
@@ -34,23 +35,19 @@ checkpointed channels.
 _CHANNELS = {
     'households': {
         'max_steps': 2,
-        'index': 'HHID',
-        'table_names': ['households']
+        'index': 'HHID'
     },
     'persons': {
-        'max_steps': 7,
-        'index': 'PERID',
-        'table_names': ['persons']
+        'max_steps': 8,
+        'index': 'PERID'
     },
     'tours': {
-        'max_steps': 5,
-        'index': 'tour_id',
-        'table_names': ['non_mandatory_tours', 'mandatory_tours']
+        'max_steps': 9,
+        'index': 'tour_id'
     },
     'trips': {
         'max_steps': 5,
-        'index': 'trip_id',
-        'table_names': ['trips']
+        'index': 'trip_id'
     },
 }
 
@@ -141,11 +138,10 @@ class SimpleChannel(object):
 
         return row_states
 
-    def extend_domain(self, domain_df, step_name, step_num):
+    def extend_domain(self, domain_df):
         """
         Extend existing row_state df by adding seed info for each row in domain_df
 
-        This is only needed if the channel is composed of more than one underlying table.
         It is assumed that the index values of the component tables are disjoint and
         there will be no ambiguity/collisions between them
 
@@ -163,12 +159,6 @@ class SimpleChannel(object):
 
         # these should be new rows, no intersection with existing row_states
         assert len(self.row_states.index.intersection(domain_df.index)) == 0
-
-        self.step_name = step_name
-
-        if step_num >= 0:
-            assert step_num >= self.step_num
-            self.step_num = step_num
 
         new_row_states = self.create_row_states_for_domain(domain_df)
         self.row_states = pd.concat([self.row_states, new_row_states])
@@ -371,7 +361,7 @@ class Random(object):
 
     def __init__(self, channel_info=_CHANNELS):
 
-        self.channel_info = channel_info
+        self.channel_info = channel_info.copy()
 
         # for map index name to channel name
         self.index_map = {info['index']: channel_name
@@ -497,19 +487,22 @@ class Random(object):
             for channels being loaded (resumed) we need the step_name and step_num to maintain
             consistent step numbering
 
-        step_num : int or None
+        step_num : int or NULL_STEP_NUM
             for channels being loaded (resumed) we need the step_name and step_num to maintain
             consistent step numbering
         """
         assert channel_name == self.get_channel_name_for_df(domain_df)
-        assert (step_name is None) == (step_num == NULL_STEP_NUM)
 
         logger.debug("Random: add_channel step_num %s step_name '%s'" % (step_num, step_name))
+
+        assert (step_name is None) == (step_num == NULL_STEP_NUM)
 
         if channel_name in self.channels:
             logger.debug("extending channel '%s' %s ids" % (channel_name, len(domain_df.index)))
             channel = self.channels[channel_name]
-            channel.extend_domain(domain_df, step_name, step_num)
+
+            assert step_name is None
+            channel.extend_domain(domain_df)
 
         else:
             logger.debug("adding channel '%s' %s ids" % (channel_name, len(domain_df.index)))
@@ -557,10 +550,6 @@ class Random(object):
         Note that we assume that the channel names correspond to orca table names, so that
         we can get the domain_df for that channel from orca.
 
-        Since tours are originally created in two tables (mandatory and non-mandatory) we get the
-        domain_dfs from them because the checkpoint may have occurred when only one of those
-        tables had been created and the tours table may not exist yet.
-
         Parameters
         ----------
         saved_channels : array of SavedChannelState
@@ -571,20 +560,23 @@ class Random(object):
             channel_name = channel_state.channel_name
             assert channel_name in self.channel_info
 
-            # FIXME - this rigamarole is here to support the tours channel two component tables
-            table_names = self.get_channel_info(channel_name, 'table_names')
-
-            logger.debug("loading channel %s from %s" % (channel_state.channel_name, table_names))
+            logger.debug("loading channel %s" % (channel_name,))
 
             logger.debug("channel_state %s" % (channel_state, ))
 
-            for table_name in table_names:
-                if orca.is_table(table_name):
-                    df = orca.get_table(table_name).local
-                    self.add_channel(df,
-                                     channel_name=channel_state.channel_name,
-                                     step_num=channel_state.step_num,
-                                     step_name=channel_state.step_name)
+            df = inject.get_table(channel_name).local
+            self.add_channel(df,
+                             channel_name=channel_state.channel_name,
+                             step_num=channel_state.step_num,
+                             step_name=channel_state.step_name)
+
+            # why would this not be the case?
+            # if orca.is_table(channel_name):
+            #     df = orca.get_table(channel_name).local
+            #     self.add_channel(df,
+            #                      channel_name=channel_state.channel_name,
+            #                      step_num=channel_state.step_num,
+            #                      step_name=channel_state.step_name)
 
     # random number generation
 

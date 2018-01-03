@@ -8,7 +8,7 @@ with open('README.rst') as file:
 
 setup(
     name='activitysim',
-    version='0.4',
+    version='0.5',
     description='Activity-Based Travel Modeling',
     author='contributing authors',
     author_email='ben.stabler@rsginc.com',
@@ -22,7 +22,7 @@ setup(
     long_description=long_description,
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
-        'numpy >= 1.12.0',
+        'numpy >= 1.13.0',
         'openmatrix >= 0.2.4',
         'orca >= 1.1',
         'pandas >= 0.20.3',

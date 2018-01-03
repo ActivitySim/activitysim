@@ -81,6 +81,14 @@ for more information.  It also supports custom expressions as noted above, which
 code additional types of choice models.  In addition, developers can write their own choice models 
 in Python and expose these through the framework.  
 
+Person Time Windows
+~~~~~~~~~~~~~~~~~~~
+
+The departure time and duration models require person time windows. Time windows are adjacent time 
+periods that are available for travel. ActivitySim maintains time windows in a pandas table where each row is 
+a person and each time period is a column.  As travel is scheduled throughout the simulation, the relevant 
+columns for the tour, trip, etc. are updated as needed. Refer to :ref:`time_windows` for more information.
+
 Contents
 --------
 

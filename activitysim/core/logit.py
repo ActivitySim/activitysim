@@ -122,7 +122,8 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
                            trace_choosers=trace_choosers)
 
     # if allow_zero_probs, this may cause a RuntimeWarning: invalid value encountered in divide
-    np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
+    with np.errstate(invalid='ignore' if allow_zero_probs else 'warn'):
+        np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
 
     PROB_MIN = 0.0
     PROB_MAX = 1.0
@@ -236,7 +237,7 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     else:
         sample = np.tile(alts_idx, numchoosers)
 
-    alts_sample = alternatives.take(sample)
+    alts_sample = alternatives.take(sample).copy()
     alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
 
     alts_sample = pd.merge(

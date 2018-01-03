@@ -4,14 +4,16 @@
 import os
 import logging
 
-import orca
 import pandas as pd
 import yaml
 
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import inject
 from activitysim.core.util import memory_info
+
+from activitysim.core.util import assign_in_place
 
 from .util.mode import _mode_choice_spec
 
@@ -93,23 +95,23 @@ will be used for the tour
 """
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'tour_mode_choice.yaml')
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_spec_df(configs_dir):
     return asim.read_model_spec(configs_dir, 'tour_mode_choice.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_coeffs(configs_dir):
     with open(os.path.join(configs_dir, 'tour_mode_choice_coeffs.csv')) as f:
         return pd.read_csv(f, index_col='Expression')
 
 
-@orca.injectable()
+@inject.injectable()
 def tour_mode_choice_spec(tour_mode_choice_spec_df,
                           tour_mode_choice_coeffs,
                           tour_mode_choice_settings):
@@ -119,7 +121,81 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
                              trace_label='tour_mode_choice')
 
 
-@orca.step()
+@inject.step()
+def atwork_subtour_mode_choice_simulate(tours,
+                                        persons_merged,
+                                        tour_mode_choice_spec,
+                                        tour_mode_choice_settings,
+                                        skim_dict, skim_stack,
+                                        trace_hh_id):
+    """
+    At-work subtour mode choice simulate
+    """
+
+    trace_label = 'atwork_subtour_mode_choice'
+
+    tours = tours.to_frame()
+    subtours = tours[tours.tour_category == 'subtour']
+    # merge persons into tours
+    choosers = pd.merge(subtours,
+                        persons_merged.to_frame(),
+                        left_on='person_id', right_index=True)
+
+    nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
+    constants = config.get_model_constants(tour_mode_choice_settings)
+
+    logger.info("Running %s with %d subtours" % (trace_label, len(subtours.index)))
+
+    tracing.print_summary('%s tour_type' % trace_label, subtours.tour_type, value_counts=True)
+
+    if trace_hh_id:
+        tracing.trace_df(tour_mode_choice_spec,
+                         tracing.extend_trace_label(trace_label, 'spec'),
+                         slicer='NONE', transpose=False)
+
+    # setup skim keys
+    odt_skim_stack_wrapper = skim_stack.wrap(left_key='workplace_taz', right_key='destination',
+                                             skim_key="out_period")
+    dot_skim_stack_wrapper = skim_stack.wrap(left_key='destination', right_key='workplace_taz',
+                                             skim_key="in_period")
+    od_skims = skim_dict.wrap('workplace_taz', 'destination')
+
+    spec = get_segment_and_unstack(tour_mode_choice_spec, segment='workbased')
+
+    if trace_hh_id:
+        tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec'),
+                         slicer='NONE', transpose=False)
+
+    choices = _mode_choice_simulate(
+        choosers,
+        odt_skim_stack_wrapper=odt_skim_stack_wrapper,
+        dot_skim_stack_wrapper=dot_skim_stack_wrapper,
+        od_skim_stack_wrapper=od_skims,
+        spec=spec,
+        constants=constants,
+        nest_spec=nest_spec,
+        trace_label=trace_label,
+        trace_choice_name='tour_mode_choice')
+
+    tracing.print_summary('%s choices' % trace_label, choices, value_counts=True)
+
+    subtours['destination'] = choices
+    assign_in_place(tours, subtours[['destination']])
+
+    if trace_hh_id:
+        trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num', 'parent_tour_id']
+        tracing.trace_df(subtours,
+                         label=tracing.extend_trace_label(trace_label, 'mode'),
+                         slicer='tour_id',
+                         index_label='tour_id',
+                         columns=trace_columns,
+                         warn_if_empty=True)
+
+    # FIXME - this forces garbage collection
+    memory_info()
+
+
+@inject.step()
 def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
@@ -132,6 +208,8 @@ def tour_mode_choice_simulate(tours_merged,
     trace_label = trace_hh_id and 'tour_mode_choice'
 
     tours = tours_merged.to_frame()
+
+    tours = tours[tours.tour_category != 'subtour']
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
     constants = config.get_model_constants(tour_mode_choice_settings)
@@ -197,11 +275,11 @@ def tour_mode_choice_simulate(tours_merged,
     tracing.print_summary('tour_mode_choice_simulate all tour type choices',
                           choices, value_counts=True)
 
-    orca.add_column("tours", "mode", choices)
+    inject.add_column("tours", "mode", choices)
 
     if trace_hh_id:
         trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num']
-        tracing.trace_df(orca.get_table('tours').to_frame(),
+        tracing.trace_df(inject.get_table('tours').to_frame(),
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour_id',
@@ -218,23 +296,23 @@ will be used for the trip
 """
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'trip_mode_choice.yaml')
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_spec_df(configs_dir):
     return asim.read_model_spec(configs_dir, 'trip_mode_choice.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_coeffs(configs_dir):
     with open(os.path.join(configs_dir, 'trip_mode_choice_coeffs.csv')) as f:
         return pd.read_csv(f, index_col='Expression')
 
 
-@orca.injectable()
+@inject.injectable()
 def trip_mode_choice_spec(trip_mode_choice_spec_df,
                           trip_mode_choice_coeffs,
                           trip_mode_choice_settings):
@@ -243,7 +321,7 @@ def trip_mode_choice_spec(trip_mode_choice_spec_df,
                              trip_mode_choice_settings)
 
 
-@orca.step()
+@inject.step()
 def trip_mode_choice_simulate(trips_merged,
                               trip_mode_choice_spec,
                               trip_mode_choice_settings,
@@ -260,6 +338,8 @@ def trip_mode_choice_simulate(trips_merged,
     constants = config.get_model_constants(trip_mode_choice_settings)
 
     logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
+
+    print "\ntrips.columns\n", trips.columns
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key='OTAZ', right_key='DTAZ',
                                              skim_key="start_period")
@@ -307,11 +387,11 @@ def trip_mode_choice_simulate(trips_merged,
                           choices, value_counts=True)
 
     # FIXME - is this a NOP if trips table doesn't exist
-    orca.add_column("trips", "trip_mode", choices)
+    inject.add_column("trips", "trip_mode", choices)
 
     if trace_hh_id:
 
-        tracing.trace_df(orca.get_table('trips').to_frame(),
+        tracing.trace_df(inject.get_table('trips').to_frame(),
                          label="trip_mode",
                          slicer='trip_id',
                          index_label='trip_id',

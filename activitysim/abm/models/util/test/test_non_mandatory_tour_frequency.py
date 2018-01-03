@@ -25,7 +25,7 @@ def test_nmtf():
     nmt = process_non_mandatory_tours(non_mandatory_tour_frequency,
                                       non_mandatory_tour_frequency_alts)
 
-    idx = pd.Index([7, 23, 24, 37], name="tour_id")
+    idx = nmt.index
 
     pdt.assert_series_equal(
         nmt.person_id,

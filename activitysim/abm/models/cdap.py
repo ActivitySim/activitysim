@@ -4,21 +4,20 @@
 import logging
 import os
 
-import orca
 import pandas as pd
 
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
-
+from activitysim.core import inject
 
 from .util.cdap import run_cdap
 
 logger = logging.getLogger(__name__)
 
 
-@orca.injectable()
+@inject.injectable()
 def cdap_settings(configs_dir):
     """
     canonical model settings file to permit definition of local constants for by
@@ -27,7 +26,7 @@ def cdap_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'cdap.yaml')
 
 
-@orca.injectable()
+@inject.injectable()
 def cdap_indiv_spec(configs_dir):
     """
     spec to compute the activity utilities for each individual hh member
@@ -36,7 +35,7 @@ def cdap_indiv_spec(configs_dir):
     return asim.read_model_spec(configs_dir, 'cdap_indiv_and_hhsize1.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def cdap_interaction_coefficients(configs_dir):
     """
     Rules and coefficients for generating interaction specs for different household sizes
@@ -45,7 +44,7 @@ def cdap_interaction_coefficients(configs_dir):
     return pd.read_csv(f, comment='#')
 
 
-@orca.injectable()
+@inject.injectable()
 def cdap_fixed_relative_proportions(configs_dir):
     """
     spec to compute/specify the relative proportions of each activity (M, N, H)
@@ -59,7 +58,7 @@ def cdap_fixed_relative_proportions(configs_dir):
     return asim.read_model_spec(configs_dir, 'cdap_fixed_relative_proportions.csv')
 
 
-@orca.step()
+@inject.step()
 def cdap_simulate(persons_merged,
                   cdap_settings,
                   cdap_indiv_spec,
@@ -96,15 +95,15 @@ def cdap_simulate(persons_merged,
     print pd.crosstab(persons_df.ptype, choices.cdap_activity, margins=True)
 
     choices = choices.reindex(persons_merged.index)
-    orca.add_column("persons", "cdap_activity", choices.cdap_activity)
-    orca.add_column("persons", "cdap_rank", choices.cdap_rank)
+    inject.add_column("persons", "cdap_activity", choices.cdap_activity)
+    inject.add_column("persons", "cdap_rank", choices.cdap_rank)
 
     pipeline.add_dependent_columns("persons", "persons_cdap")
     pipeline.add_dependent_columns("households", "households_cdap")
 
     if trace_hh_id:
 
-        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
                          label="cdap",
                          columns=['ptype', 'cdap_rank', 'cdap_activity'],
                          warn_if_empty=True)

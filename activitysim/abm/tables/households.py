@@ -3,19 +3,18 @@
 
 import logging
 
-import numpy as np
-import orca
 import pandas as pd
 
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import pipeline
 
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
 
-@orca.table()
+@inject.table()
 def households(store, households_sample_size, trace_hh_id):
 
     df_full = store["households"]
@@ -46,7 +45,7 @@ def households(store, households_sample_size, trace_hh_id):
     logger.info("loaded households %s" % (df.shape,))
 
     # replace table function with dataframe
-    orca.add_table('households', df)
+    inject.add_table('households', df)
 
     pipeline.get_rn_generator().add_channel(df, 'households')
 
@@ -58,7 +57,7 @@ def households(store, households_sample_size, trace_hh_id):
 
 
 # this assigns a chunk_id to each household so we can iterate over persons by whole households
-@orca.column("households", cache=True)
+@inject.column("households", cache=True)
 def chunk_id(households):
 
     # FIXME - pathological knowledge of name of chunk_id column used by hh_chunked_choosers
@@ -67,7 +66,7 @@ def chunk_id(households):
     return chunk_ids
 
 
-@orca.column('households')
+@inject.column('households')
 def work_tour_auto_time_savings(households):
     # FIXME - fix this variable from auto ownership model
     return pd.Series(0, households.index)
@@ -75,12 +74,12 @@ def work_tour_auto_time_savings(households):
 
 # this is the placeholder for all the columns to update after the
 # workplace location choice model
-@orca.table()
+@inject.table()
 def households_cdap(households):
     return pd.DataFrame(index=households.index)
 
 
-@orca.column("households_cdap")
+@inject.column("households_cdap")
 def num_under16_not_at_school(persons, households):
     return persons.under16_not_at_school.groupby(persons.household_id).size().\
         reindex(households.index).fillna(0)
@@ -88,26 +87,26 @@ def num_under16_not_at_school(persons, households):
 
 # this is a placeholder table for columns that get computed after the
 # auto ownership model
-@orca.table()
+@inject.table()
 def households_autoown(households):
     return pd.DataFrame(index=households.index)
 
 
-@orca.column('households_autoown')
+@inject.column('households_autoown')
 def no_cars(households):
     return (households.auto_ownership == 0)
 
 
-@orca.column('households_autoown')
+@inject.column('households_autoown')
 def car_sufficiency(households, persons):
     return households.auto_ownership - persons.household_id.value_counts()
 
 
 # this is a common merge so might as well define it once here and use it
-@orca.table()
+@inject.table()
 def households_merged(households, land_use, accessibility):
-    return orca.merge_tables(households.name, tables=[
+    return inject.merge_tables(households.name, tables=[
         households, land_use, accessibility])
 
 
-orca.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
+inject.broadcast('households', 'persons', cast_index=True, onto_on='household_id')

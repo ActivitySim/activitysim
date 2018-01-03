@@ -5,11 +5,12 @@ import os
 import logging
 
 import openmatrix as omx
-import orca
 
 from activitysim.core import skim as askim
 from activitysim.core import tracing
 from activitysim.core import pipeline
+
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ Read in the omx files and create the skim objects
 
 
 # cache this so we don't open it again and again - skim code is not closing it....
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def omx_file(data_dir, settings):
     logger.debug("opening omx file")
 
@@ -31,7 +32,7 @@ def omx_file(data_dir, settings):
     return file
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def skim_dict(omx_file, cache_skim_key_values):
 
     logger.info("skims injectable loading skims")
@@ -49,14 +50,14 @@ def skim_dict(omx_file, cache_skim_key_values):
         else:
             # there may be more time periods in the skim than are used by the model
             # cache_skim_key_values is a list of time periods (frem settings) that are used
-            # FIXME - assumes that the only types of key2 are time_periods
+            # FIXME - assumes that the only types of key2 are skim_time_periods
             if key2 in cache_skim_key_values:
                 skim_dict.set((key, key2), skim_data)
 
     return skim_dict
 
 
-@orca.injectable(cache=True)
+@inject.injectable(cache=True)
 def skim_stack(skim_dict):
 
     logger.debug("loading skim_stack")

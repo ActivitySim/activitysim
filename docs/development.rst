@@ -21,7 +21,7 @@ data tables.
 Style
 -----
 
-* Python code should follow the `pep8 style guide <http://legacy.python.org/dev/peps/pep-0008/>`__
+* Python code should follow the `pycodestyle style guide <https://pypi.python.org/pypi/pycodestyle>`__
 * Python docstrings should follow the `numpydoc documentation format <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`__
 
 Imports
@@ -35,7 +35,6 @@ Imports
 
 ::
 
-    import matplotlib.pyplot as plt
     import numpy as np
     import pandas as pd
     import scipy as sp
@@ -58,7 +57,7 @@ Testing
 
 ActivitySim testing is done with three tools:
 
-* `pep8 <http://pep8.readthedocs.org/en/latest/intro.html>`__, a tool to check Python code against the PEP8 style conventions
+* `pycodestyle <https://pypi.python.org/pypi/pycodestyle>`__, a tool to check Python code against the pycodestyle style conventions
 * `pytest <http://pytest.org/latest/>`__, a Python testing tool
 * `coveralls <https://github.com/coagulant/coveralls-python>`__, a tool for measuring code coverage and publishing code coverage stats online
 
@@ -66,16 +65,15 @@ To run the tests locally, first make sure the required packages are installed:
 
 ::
 
-    pip install pytest pytest-cov coveralls pep8
+    pip install pytest pytest-cov coveralls pycodestyle
     
 
 Next, run the tests with the following commands:
 
 ::
 
-    pep8 activitysim
+    pycodestyle activitysim
     py.test --cov activitysim --cov-report term-missing
-    coveralls
 
 These same tests are run by Travis with each push to the repository.  These tests need to pass in order
 to merge the revisions into master.
@@ -109,6 +107,10 @@ Next, build the documentation in html format with the following command run from
 ::
 
     make html
+
+If the activitysim package is installed, then the documentation will be built from that version of 
+the source code instead of the git repo version.  Make sure to ``pip uninstall activitysim`` before 
+bulding the documentation if needed.  
 
 When pushing revisions to the repo, the documentation is automatically built by Travis after 
 successfully passing the tests.  The documents are built with the ``bin/build_docs.sh`` script.  

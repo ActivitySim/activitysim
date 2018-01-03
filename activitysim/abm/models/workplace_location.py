@@ -5,22 +5,20 @@ import os
 import logging
 
 import pandas as pd
-import numpy as np
-import orca
 
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
+from activitysim.core import inject
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.core.util import reindex
-from activitysim.core.util import left_merge_on_index_and_col
 
 from .util.logsums import compute_logsums
-from .util.logsums import time_period_label
+from .util.expressions import skim_time_period_label
 from .util.logsums import mode_choice_logsums_spec
 
 """
@@ -37,17 +35,17 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@orca.injectable()
+@inject.injectable()
 def workplace_location_sample_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'workplace_location_sample.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def workplace_location_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'workplace_location.yaml')
 
 
-@orca.step()
+@inject.step()
 def workplace_location_sample(persons_merged,
                               workplace_location_sample_spec,
                               workplace_location_settings,
@@ -104,14 +102,15 @@ def workplace_location_sample(persons_merged,
         chunk_size=chunk_size,
         trace_label=trace_label)
 
-    orca.add_table('workplace_location_sample', choices)
+    inject.add_table('workplace_location_sample', choices)
 
 
-@orca.step()
+@inject.step()
 def workplace_location_logsums(persons_merged,
                                land_use,
                                skim_dict, skim_stack,
                                workplace_location_sample,
+                               workplace_location_settings,
                                configs_dir,
                                chunk_size,
                                trace_hh_id):
@@ -121,23 +120,27 @@ def workplace_location_logsums(persons_merged,
     logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
     in workplace_location_sample, and computing the logsum of all the utilities
 
-                                                   <added>
-    PERID,  dest_TAZ, rand,            pick_count, logsum
-    23750,  14,       0.565502716034,  4           1.85659498857
-    23750,  16,       0.711135838871,  6           1.92315598631
-    ...
-    23751,  12,       0.408038878552,  1           2.40612135416
-    23751,  14,       0.972732479292,  2           1.44009018355
-
+    +-------+--------------+----------------+------------+----------------+
+    | PERID | dest_TAZ     | rand           | pick_count | logsum (added) |
+    +=======+==============+================+============+================+
+    | 23750 |  14          | 0.565502716034 | 4          |  1.85659498857 |
+    +-------+--------------+----------------+------------+----------------+
+    + 23750 | 16           | 0.711135838871 | 6          | 1.92315598631  |
+    +-------+--------------+----------------+------------+----------------+
+    + ...   |              |                |            |                |
+    +-------+--------------+----------------+------------+----------------+
+    | 23751 | 12           | 0.408038878552 | 1          | 2.40612135416  |
+    +-------+--------------+----------------+------------+----------------+
+    | 23751 | 14           | 0.972732479292 | 2          |  1.44009018355 |
+    +-------+--------------+----------------+------------+----------------+
     """
 
     trace_label = 'workplace_location_logsums'
 
     logsums_spec = mode_choice_logsums_spec(configs_dir, 'work')
 
-    workplace_location_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
-
     alt_col_name = workplace_location_settings["ALT_COL_NAME"]
+    chooser_col_name = 'TAZ'
 
     # FIXME - just using settings from tour_mode_choice
     logsum_settings = config.read_model_settings(configs_dir, 'tour_mode_choice.yaml')
@@ -157,8 +160,8 @@ def workplace_location_logsums(persons_merged,
                         right_index=True,
                         how="left")
 
-    choosers['in_period'] = time_period_label(workplace_location_settings['IN_PERIOD'])
-    choosers['out_period'] = time_period_label(workplace_location_settings['OUT_PERIOD'])
+    choosers['in_period'] = skim_time_period_label(workplace_location_settings['IN_PERIOD'])
+    choosers['out_period'] = skim_time_period_label(workplace_location_settings['OUT_PERIOD'])
 
     # FIXME - should do this in expression file?
     choosers['dest_topology'] = reindex(land_use.TOPOLOGY, choosers[alt_col_name])
@@ -169,26 +172,21 @@ def workplace_location_logsums(persons_merged,
 
     logsums = compute_logsums(
         choosers, logsums_spec, logsum_settings,
-        skim_dict, skim_stack, alt_col_name, chunk_size, trace_hh_id, trace_label)
+        skim_dict, skim_stack, chooser_col_name, alt_col_name, chunk_size, trace_hh_id, trace_label)
 
     # "add_column series should have an index matching the table to which it is being added"
     # when the index has duplicates, however, in the special case that the series index exactly
     # matches the table index, then the series value order is preserved
     # logsums now does, since workplace_location_sample was on left side of merge de-dup merge
-    orca.add_column("workplace_location_sample", "mode_choice_logsum", logsums)
+    inject.add_column("workplace_location_sample", "mode_choice_logsum", logsums)
 
 
-@orca.injectable()
+@inject.injectable()
 def workplace_location_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'workplace_location.csv')
 
 
-@orca.injectable()
-def workplace_location_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'workplace_location.yaml')
-
-
-@orca.step()
+@inject.step()
 def workplace_location_simulate(persons_merged,
                                 workplace_location_sample,
                                 workplace_location_spec,
@@ -260,13 +258,13 @@ def workplace_location_simulate(persons_merged,
 
     tracing.print_summary('workplace_taz', choices, describe=True)
 
-    orca.add_column("persons", "workplace_taz", choices)
+    inject.add_column("persons", "workplace_taz", choices)
 
     pipeline.add_dependent_columns("persons", "persons_workplace")
 
     if trace_hh_id:
-        trace_columns = ['workplace_taz'] + orca.get_table('persons_workplace').columns
-        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+        trace_columns = ['workplace_taz'] + inject.get_table('persons_workplace').columns
+        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
                          label="workplace_location",
                          columns=trace_columns,
                          warn_if_empty=True)

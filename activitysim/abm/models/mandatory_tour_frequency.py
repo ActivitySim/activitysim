@@ -4,31 +4,40 @@
 import os
 import logging
 
-import orca
 import pandas as pd
-import yaml
 
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
+from activitysim.core import inject
 
 from .util.tour_frequency import process_mandatory_tours
+from .util import expressions
 
 logger = logging.getLogger(__name__)
 
 
-@orca.injectable()
+@inject.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
     return asim.read_model_spec(configs_dir, 'mandatory_tour_frequency.csv')
 
 
-@orca.injectable()
+@inject.injectable()
 def mandatory_tour_frequency_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'mandatory_tour_frequency.yaml')
 
 
-@orca.step()
+@inject.injectable()
+def mandatory_tour_frequency_alternatives(configs_dir):
+    # alt file for building tours even though simulation is simple_simulate not interaction_simulate
+    f = os.path.join(configs_dir, 'mandatory_tour_frequency_alternatives.csv')
+    df = pd.read_csv(f, comment='#')
+    df.set_index('alt', inplace=True)
+    return df
+
+
+@inject.step()
 def mandatory_tour_frequency(persons_merged,
                              mandatory_tour_frequency_spec,
                              mandatory_tour_frequency_settings,
@@ -61,18 +70,16 @@ def mandatory_tour_frequency(persons_merged,
 
     tracing.print_summary('mandatory_tour_frequency', choices, value_counts=True)
 
-    orca.add_column("persons", "mandatory_tour_frequency", choices)
+    inject.add_column("persons", "mandatory_tour_frequency", choices)
+
+    create_mandatory_tours()
+
+    # add mandatory_tour-dependent columns (e.g. tour counts) to persons
     pipeline.add_dependent_columns("persons", "persons_mtf")
-
-    create_mandatory_tours_table()
-
-    # FIXME - test prng repeatability
-    r = pipeline.get_rn_generator().random_for_df(choices)
-    orca.add_column("persons", "mtf_rand", [item for sublist in r for item in sublist])
 
     if trace_hh_id:
         trace_columns = ['mandatory_tour_frequency']
-        tracing.trace_df(orca.get_table('persons_merged').to_frame(),
+        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
                          label="mandatory_tour_frequency",
                          columns=trace_columns,
                          warn_if_empty=True)
@@ -85,22 +92,27 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
-def create_mandatory_tours_table():
+def create_mandatory_tours():
 
-    persons = orca.get_table('persons')
+    # FIXME - move this to body?
+
+    persons = inject.get_table('persons')
+    configs_dir = inject.get_injectable('configs_dir')
 
     persons = persons.to_frame(columns=["mandatory_tour_frequency",
                                         "is_worker", "school_taz", "workplace_taz"])
     persons = persons[~persons.mandatory_tour_frequency.isnull()]
-    df = process_mandatory_tours(persons)
 
-    orca.add_table("mandatory_tours", df)
-    tracing.register_traceable_table('mandatory_tours', df)
-    pipeline.get_rn_generator().add_channel(df, 'tours')
+    tour_frequency_alternatives = inject.get_injectable('mandatory_tour_frequency_alternatives')
 
+    tours = process_mandatory_tours(persons, tour_frequency_alternatives)
 
-# broadcast mandatory_tours on to persons using the person_id foreign key
-orca.broadcast('persons', 'mandatory_tours',
-               cast_index=True, onto_on='person_id')
-orca.broadcast('persons_merged', 'mandatory_tours',
-               cast_index=True, onto_on='person_id')
+    expressions.assign_columns(
+        df=tours,
+        model_settings='annotate_tours_with_dest',
+        configs_dir=configs_dir,
+        trace_label='create_mandatory_tours')
+
+    pipeline.extend_table("tours", tours)
+    tracing.register_traceable_table('tours', tours)
+    pipeline.get_rn_generator().add_channel(tours, 'tours')

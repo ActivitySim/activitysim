@@ -4,7 +4,6 @@
 import os
 import logging
 
-import orca
 import pandas as pd
 import numpy as np
 
@@ -12,11 +11,12 @@ from activitysim.core.util import reindex
 
 from activitysim.core import tracing
 from activitysim.core import pipeline
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
 
-@orca.step()
+@inject.step()
 def create_simple_trips(tours, households, persons, trace_hh_id):
     """
     Create a simple trip table from the tours table.  Two trips are created
@@ -27,6 +27,8 @@ def create_simple_trips(tours, households, persons, trace_hh_id):
     logger.info("Running simple trips table creation with %d tours" % len(tours.index))
 
     tours_df = tours.to_frame()
+
+    tours_df = tours_df[tours_df.tour_category != 'subtour']
 
     # we now have a tour_id column
     tours_df.reset_index(inplace=True)
@@ -64,7 +66,7 @@ def create_simple_trips(tours, households, persons, trace_hh_id):
     trip_columns = ['tour_id', 'INBOUND', 'trip_num', 'OTAZ', 'DTAZ', 'start_trip', 'end_trip']
     trips = trips[trip_columns]
 
-    orca.add_table("trips", trips)
+    inject.add_table('trips', trips)
 
     tracing.register_traceable_table('trips', trips)
     pipeline.get_rn_generator().add_channel(trips, 'trips')

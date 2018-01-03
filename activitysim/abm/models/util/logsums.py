@@ -15,27 +15,21 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 
-# FIXME - needs a better home?
-def time_period_label(hour):
-    time_periods = config.setting('time_periods')
-    bin = np.digitize([hour % 24], time_periods['hours'])[0] - 1
-    return time_periods['labels'][bin]
-
-
 def mode_choice_logsums_spec(configs_dir, dest_type):
-    DEST_TO_TOUR_TYPE = \
+    DEST_TO_TOUR_SPEC_TYPE = \
         {'university': 'university',
          'highschool': 'school',
          'gradeschool': 'school',
          'work': 'work'}
 
-    tour_type = DEST_TO_TOUR_TYPE.get(dest_type)
-    spec = simulate.read_model_spec(configs_dir, 'logsums_spec_%s.csv' % tour_type)
+    # tour_spec_type is just name for labelling specs which differ by dest, not tour_type
+    tour_spec_type = DEST_TO_TOUR_SPEC_TYPE.get(dest_type)
+    spec = simulate.read_model_spec(configs_dir, 'logsums_spec_%s.csv' % tour_spec_type)
     return spec
 
 
 def compute_logsums(choosers, logsum_spec, logsum_settings,
-                    skim_dict, skim_stack, alt_col_name,
+                    skim_dict, skim_stack, chooser_col_name, alt_col_name,
                     chunk_size, trace_hh_id, trace_label):
     """
 
@@ -70,11 +64,11 @@ def compute_logsums(choosers, logsum_spec, logsum_settings,
                          slicer='NONE', transpose=False)
 
     # setup skim keys
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key='TAZ', right_key=alt_col_name,
+    odt_skim_stack_wrapper = skim_stack.wrap(left_key=chooser_col_name, right_key=alt_col_name,
                                              skim_key="out_period")
-    dot_skim_stack_wrapper = skim_stack.wrap(left_key=alt_col_name, right_key='TAZ',
+    dot_skim_stack_wrapper = skim_stack.wrap(left_key=alt_col_name, right_key=chooser_col_name,
                                              skim_key="in_period")
-    od_skim_stack_wrapper = skim_dict.wrap('TAZ', alt_col_name)
+    od_skim_stack_wrapper = skim_dict.wrap(chooser_col_name, alt_col_name)
 
     skims = [odt_skim_stack_wrapper, dot_skim_stack_wrapper, od_skim_stack_wrapper]
 

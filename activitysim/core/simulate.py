@@ -59,19 +59,21 @@ def num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives=None, by_ch
 
 
 def chunked_choosers(choosers, rows_per_chunk):
-    # generator to iterate over chooses in chunk_size chunks
+    # generator to iterate over choosers in chunk_size chunks
     num_choosers = len(choosers.index)
     num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
 
     i = offset = 0
     while offset < num_choosers:
-        yield i+1, num_chunks, choosers[offset: offset+rows_per_chunk]
+        yield i+1, num_chunks, choosers.iloc[offset: offset+rows_per_chunk]
         offset += rows_per_chunk
         i += 1
 
 
 def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
     """
+    generator to iterate over choosers and alternatives in chunk_size chunks
+
     like chunked_choosers, but also chunks alternatives
     for use with sampled alternatives which will have different alternatives (and numbers of alts)
 
@@ -102,23 +104,42 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
         chunk of alternatives for chooser chunk
     """
 
-    assert 'cum_pick_count' not in alternatives.columns
-    alternatives['cum_pick_count'] = alternatives['pick_count'].cumsum()
+    assert 'pick_count' in alternatives.columns or choosers.index.name == alternatives.index.name
 
-    # currently no convenient way to remember sample_size across steps
-    pick_count = alternatives.cum_pick_count.iat[-1]
-    sample_size = pick_count / len(choosers.index)
-    assert pick_count % sample_size == 0
-
-    # generator to iterate over choosers and alternatives in chunk_size chunks
     num_choosers = len(choosers.index)
     num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
 
-    alt_chunk_size = rows_per_chunk * sample_size
+    if choosers.index.name == alternatives.index.name:
+        assert choosers.index.name == alternatives.index.name
 
-    # array of indices of starts of alt chunks
-    alt_chunk_end = np.where(alternatives['cum_pick_count'] % alt_chunk_size == 0)[0] + 1
-    # plus index of end of array for any final partial chunk
+        # alt chunks boundaries are where index changes
+        alt_ids = alternatives.index.values
+        alt_chunk_end = np.where(alt_ids[:-1] != alt_ids[1:])[0] + 1
+        alt_chunk_end = np.append([0], alt_chunk_end)  # including the first...
+        alt_chunk_end = alt_chunk_end[rows_per_chunk::rows_per_chunk]
+
+    else:
+        # used to do it this way for school and workplace (which are sampled based on prob)
+        # since the utility expressions need to know pick_count for sample correction
+        # but for now the assumption that choosers and alternatives share indexes is more general
+        # leaving this (previously correct) code here for now in case that changes...
+        assert False
+
+        # assert 'pick_count' in alternatives.columns
+        # assert 'cum_pick_count' not in alternatives.columns
+        # alternatives['cum_pick_count'] = alternatives['pick_count'].cumsum()
+        #
+        # # currently no convenient way to remember sample_size across steps
+        # pick_count = alternatives.cum_pick_count.iat[-1]
+        # sample_size = pick_count / len(choosers.index)
+        # assert pick_count % sample_size == 0
+        #
+        # alt_chunk_size = rows_per_chunk * sample_size
+        #
+        # # array of indices of starts of alt chunks
+        # alt_chunk_end = np.where(alternatives['cum_pick_count'] % alt_chunk_size == 0)[0] + 1
+
+    # add index to end of array to capture any final partial chunk
     alt_chunk_end = np.append(alt_chunk_end, [len(alternatives.index)])
 
     i = offset = alt_offset = 0
@@ -253,7 +274,7 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
             return pd.Series([x] * len(df), index=df.index)
         return x
 
-    l = []
+    value_list = []
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
     for expr in exprs:
@@ -262,12 +283,12 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
                 expr_values = to_series(eval(expr[1:], globals(), locals_d))
             else:
                 expr_values = df.eval(expr)
-            l.append((expr, expr_values))
+            value_list.append((expr, expr_values))
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
 
-    values = pd.DataFrame.from_items(l)
+    values = pd.DataFrame.from_items(value_list)
 
     # FIXME - for performance, it is essential that spec and expression_values
     # FIXME - not contain booleans when dotted with spec values
@@ -338,9 +359,7 @@ def _check_for_variability(expression_values, trace_label):
     if trace_label is None:
         trace_label = '_check_for_variability'
 
-    l = min(1000, len(expression_values))
-
-    sample = random_rows(expression_values, l)
+    sample = random_rows(expression_values, min(1000, len(expression_values)))
 
     no_variability = has_missing_vals = 0
     for i in range(len(sample.columns)):
@@ -401,8 +420,9 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
             # this will RuntimeWarning: divide by zero encountered in log
             # if all nest alternative utilities are zero
             # but the resulting inf will become 0 when exp is applied below
-            nested_utilities[name] = \
-                nest.coefficient * np.log(nested_utilities[nest.alternatives].sum(axis=1))
+            with np.errstate(divide='ignore'):
+                nested_utilities[name] = \
+                    nest.coefficient * np.log(nested_utilities[nest.alternatives].sum(axis=1))
 
         # exponentiate the utility
         nested_utilities[name] = np.exp(nested_utilities[name])

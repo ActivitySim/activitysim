@@ -1,54 +1,43 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+
 import logging
 
-import orca
 import pandas as pd
 
 from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import inject
+from activitysim.core import pipeline
+from activitysim.core import timetable as tt
 
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
 logger = logging.getLogger(__name__)
 
+DUMP = True
 
-@orca.injectable()
+
+@inject.injectable()
 def mandatory_tour_scheduling_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'mandatory_tour_scheduling.yaml')
 
 
-@orca.table()
-def tdd_alts(configs_dir):
-    # right now this file just contains the start and end hour
-    f = os.path.join(configs_dir, 'tour_departure_and_duration_alternatives.csv')
-    return pd.read_csv(f)
-
-
-# used to have duration in the actual alternative csv file,
-# but this is probably better as a computed column like this
-@orca.column("tdd_alts")
-def duration(tdd_alts):
-    return tdd_alts.end - tdd_alts.start
-
-
-@orca.table()
+@inject.injectable()
 def tdd_work_spec(configs_dir):
     return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_work.csv')
 
 
-@orca.table()
+@inject.injectable()
 def tdd_school_spec(configs_dir):
     return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_school.csv')
 
 
-# I think it's easier to do this in one model so you can merge the two
-# resulting series together right away
-@orca.step()
-def mandatory_tour_scheduling(mandatory_tours_merged,
+@inject.step()
+def mandatory_tour_scheduling(tours,
+                              persons_merged,
                               tdd_alts,
                               tdd_school_spec,
                               tdd_work_spec,
@@ -56,48 +45,40 @@ def mandatory_tour_scheduling(mandatory_tours_merged,
                               chunk_size,
                               trace_hh_id):
     """
-    This model predicts the departure time and duration of each activity for
-    mandatory tours
+    This model predicts the departure time and duration of each activity for mandatory tours
     """
 
-    tours = mandatory_tours_merged.to_frame()
-    alts = tdd_alts.to_frame()
+    tours = tours.to_frame()
+    persons_merged = persons_merged.to_frame()
+    mandatory_tours = tours[tours.mandatory]
 
+    trace_label = 'mandatory_tour_scheduling'
     constants = config.get_model_constants(mandatory_tour_scheduling_settings)
 
-    school_spec = tdd_school_spec.to_frame()
-    school_tours = tours[tours.tour_type == "school"]
-
-    logger.info("Running mandatory_tour_scheduling school_tours with %d tours" % len(school_tours))
-
-    school_choices = vectorize_tour_scheduling(
-        school_tours, alts, school_spec,
+    logger.info("Running mandatory_tour_scheduling with %d tours" % len(tours))
+    tdd_choices = vectorize_tour_scheduling(
+        tours, persons_merged,
+        tdd_alts,
+        spec={'work': tdd_work_spec, 'school': tdd_school_spec},
         constants=constants,
         chunk_size=chunk_size,
-        trace_label='mandatory_tour_scheduling.school')
+        trace_label=trace_label)
 
-    work_spec = tdd_work_spec.to_frame()
-    work_tours = tours[tours.tour_type == "work"]
+    # add tdd_choices columns to tours
+    for c in tdd_choices.columns:
+        tours.loc[tdd_choices.index, c] = tdd_choices[c]
 
-    logger.info("Running %d work tour scheduling choices" % len(work_tours))
+    pipeline.replace_table("tours", tours)
 
-    work_choices = vectorize_tour_scheduling(
-        work_tours, alts, work_spec,
-        constants=constants,
-        chunk_size=chunk_size,
-        trace_label='mandatory_tour_scheduling.work')
+    mandatory_tours = tours[tours.mandatory]
 
-    choices = pd.concat([school_choices, work_choices])
-
-    tracing.print_summary('mandatory_tour_scheduling tour_departure_and_duration',
-                          choices, describe=True)
-
-    orca.add_column(
-        "mandatory_tours", "tour_departure_and_duration", choices)
+    tracing.dump_df(DUMP,
+                    tt.tour_map(persons_merged, mandatory_tours, tdd_alts),
+                    trace_label, 'tour_map')
 
     if trace_hh_id:
-        tracing.trace_df(orca.get_table('mandatory_tours').to_frame(),
-                         label="mandatory_tours",
+        tracing.trace_df(mandatory_tours,
+                         label="mandatory_tour_scheduling",
                          slicer='person_id',
                          index_label='tour',
                          columns=None,

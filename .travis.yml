@@ -20,16 +20,16 @@ install:
 - conda update -q conda
 - conda info -a
 - |
-  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz numpy pandas pip pytables pyyaml toolz
+  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz numpy pandas pip pytables pyyaml toolz psutil
 - source activate test-environment
 - pip install orca openmatrix zbox
-- pip install pytest pytest-cov coveralls pep8 pytest-xdist
+- pip install pytest pytest-cov coveralls pycodestyle
 - pip install sphinx numpydoc
-- pip install psutil
+# - pip install psutil
 - pip install .
 script:
-- pep8 activitysim
-- py.test --boxed --cov activitysim --cov-report term-missing
+- pycodestyle activitysim
+- py.test --cov activitysim --cov-report term-missing
 after_success:
 - coveralls
 - bin/build_docs.sh

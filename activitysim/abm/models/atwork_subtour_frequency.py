@@ -51,10 +51,9 @@ def atwork_subtour_frequency(tours,
                              trace_hh_id):
 
     """
-    This model predicts the frequency of making non-mandatory trips
+    This model predicts the frequency of making at-work subtour tours
     (alternatives for this model come from a separate csv file which is
-    configured by the user) - these trips include escort, shopping, othmaint,
-    othdiscr, eatout, and social trips in various combination.
+    configured by the user).
     """
 
     trace_label = 'atwork_subtour_frequency'

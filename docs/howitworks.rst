@@ -9,7 +9,12 @@ This page describes describes how the ActivitySim software works.
 Execution Flow
 --------------
 
-The example model run starts by running ``simulation.py``, which calls:
+The example model run starts by running ``simulation.py``.
+
+Initialization
+~~~~~~~~~~~~~~
+
+The first steps of ``simulation.py`` are:
 
 ::
 
@@ -26,22 +31,26 @@ sources but does not load the data.  The second statement loads :mod:`activitysi
    import models
 
 which then loads the misc, tables, and models class definitions.  Loading :mod:`activitysim.abm.misc` defines orca injectables 
-(functions) for the ``settings`` object based on the setting.yaml file and the ``store`` based on the HDF5 input 
-file.  The Python decorator ``@orca.injectable`` overrides the function definition ``store`` to execute this 
-function whenever ``store`` is called by orca.
+(functions) for the ``settings`` object based on the setting yaml file, the ``store`` based on the HDF5 input 
+file, and the trace settings.  The Python decorator ``@inject.injectable`` overrides the function definition ``store`` 
+to execute this function whenever ``store`` is called by orca.  The ``misc`` class depends on 
+:mod:`activitysim.core.inject` and :mod:`activitysim.core.pipeline`, which wrap orca and manage the data pipeline.  
 
 :: 
 
-  @orca.injectable(cache=True)
+  @inject.injectable(cache=True)
   def store(data_dir, settings):
-    return pd.HDFStore(os.path.join(data_dir, settings["store"]),mode='r')
+    #...
+    file = pd.HDFStore(fname, mode='r')
+    pipeline.close_on_exit(file, fname)
+    return file
 
-Next, the tables module executes the following import statements to define the dynamic orca tables households, 
-persons, skims, etc., but does not load them. It also defines the core dynamic orca table columns (calculated fields) 
-and injectables (functions) defined in the classes.  The Python decorator ``@orca.table`` and 
-``@orca.column("households")`` override the function definitions so the function name
+Next, the tables module executes the following import statements to define the dynamic orca tables (households, 
+persons, skims, etc.), but does not load them. It also defines the core dynamic orca table columns (calculated fields) 
+and injectables (functions) defined in the classes.  The Python decorator ``@inject.table`` and 
+``@inject.column("households")`` override the function definitions so the function name
 becomes the table name in the first case, whereas the function name becomes the column name in the second case.  The 
-argument to ``households`` in ``@orca.column("households")`` is the table (either real or virtual) that the 
+argument to ``households`` in ``@inject.column("households")`` is the table (either real or virtual) that the 
 column is added to.  The columns defined in these classes are thought to be generic across AB model implementations.
 Additional implementation specific columns can be defined in an extensions folder, as discussed later.  
 
@@ -51,30 +60,31 @@ Additional implementation specific columns can be defined in an extensions folde
   import persons
   #etc...
   
-  @orca.table(cache=True)
+  @inject.table(cache=True)
     def households(store, households_sample_size, trace_hh_id):
     
-  @orca.column("households")
-  def income_in_thousands(households):
-    return households.income / 1000
+  @inject.column('households_autoown')
+  def no_cars(households):
+    return (households.auto_ownership == 0)
   
 The models module then loads all the sub-models, which are registered as orca model steps with 
-the ``@orca.step()`` decorator.  These steps will eventually be run by the pipeline manager.
+the ``@inject.step()`` decorator.  These steps will eventually be run by the pipeline manager.
 
 ::
 
+  import initialize
   import accessibility
   import auto_ownership
   #etc...
   
-  @orca.step()
+  @inject.step()
   def compute_accessibility(settings, accessibility_spec,
                           accessibility_settings,
                           skim_dict, omx_file, land_use, trace_od):
 
 Back in the main ``simulation.py`` script, the next steps are to load the pipeline manager and import the example
 extensions.  The example extensions are additional orca computed columns that are specific to the example.  This
-includes columns such as person age bins, which are not included in the core person table since they often vary
+includes columns such as person age bins, which are not included in the core person table since they typically vary
 by implementation.
 
 ::
@@ -82,19 +92,27 @@ by implementation.
   from activitysim.core import pipeline
   import extensions
 
-The next step in the example is to define and run the pipeline.  The ``resume_after`` argument is set to None
+The ``extensions`` are stored in the example folder\extensions and include an init.py class that 
+loads each table extension.  In the example, the household, landuse, and person tables all have extensions.
+For example, the landuse extension adds a new column to the land use table called ``total_households``, which is a 
+function of the ``TOTHH`` input column.
+
+::
+ 
+  @inject.column("land_use")
+  def total_households(land_use):
+    return land_use.local.TOTHH
+
+The next step in the example is to read and run the pipeline.  The ``resume_after`` argument is set to None
 in order to start the pipeline from the beginning.
 
 ::
   
-  _MODELS = [
-    'compute_accessibility',
-    'school_location_sample',
-  #etc...
+  MODELS = setting('models')
   
-  pipeline.run(models=_MODELS, resume_after=None)
+  pipeline.run(models=MODELS, resume_after=None)
 
-The :func:`activitysim.core.pipeline.run` method loops through the list of models, calls ``orca.run(model_step)``, 
+The :func:`activitysim.core.pipeline.run` method loops through the list of models, calls ``inject.run(model_step)``, 
 and manages the data pipeline.  The first microsimulation model run is school location.  The school location 
 model is broken into three steps:
 
@@ -105,13 +123,15 @@ model is broken into three steps:
 School Location Sample
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The school location sample model is called via:
+The school location sample model is run via:
 
 ::
-
-  orca.run(["school_location_sample"])
+  
+  #run model step
+  inject.run(["school_location_sample"])
           
-  @orca.step()
+  #define model step
+  @inject.step()
   def school_location_sample(persons_merged,
                              school_location_sample_spec,
                              school_location_settings,
@@ -123,23 +143,19 @@ The school location sample model is called via:
 The ``school_location_sample`` step requires the objects defined in the function definition 
 above.  Since they are not yet loaded, orca goes looking for them.  This is called lazy 
 loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.
+The various calls also setup logging, tracing, and stable random number management. 
 
 ::
 
   #persons_merged is in the step function signature
 
-  @orca.table()
+  @inject.table()
   def persons_merged(persons, households, land_use, accessibility):
-    return orca.merge_tables(persons.name, tables=[
+    return inject.merge_tables(persons.name, tables=[
         persons, households, land_use, accessibility])
         
-  #it required persons, households, land_use, accessibility
-  @orca.table(cache=True)
-  def persons(persons_internal):
-      return persons_internal.to_frame()
-      
   #persons requires store, households_sample_size, households, trace_hh_id
-  @orca.table()
+  @inject.table()
   def persons(store, households_sample_size, households, trace_hh_id):
 
     df = store["persons"]
@@ -151,7 +167,7 @@ loading (or on-demand loading).  The steps to get the persons data loaded is ill
     logger.info("loaded persons %s" % (df.shape,))
 
     # replace table function with dataframe
-    orca.add_table('persons', df)
+    inject.add_table('persons', df)
 
     pipeline.get_rn_generator().add_channel(df, 'persons')
 
@@ -162,7 +178,7 @@ loading (or on-demand loading).  The steps to get the persons data loaded is ill
     return df
   
   #households requires store, households_sample_size, trace_hh_id
-  @orca.table()
+  @inject.table()
   def households(store, households_sample_size, trace_hh_id):
 
     df_full = store["households"]
@@ -193,7 +209,7 @@ loading (or on-demand loading).  The steps to get the persons data loaded is ill
     logger.info("loaded households %s" % (df.shape,))
 
     # replace table function with dataframe
-    orca.add_table('households', df)
+    inject.add_table('households', df)
 
     pipeline.get_rn_generator().add_channel(df, 'households')
 
@@ -203,9 +219,7 @@ loading (or on-demand loading).  The steps to get the persons data loaded is ill
 
     return df
   
-  #etc.... until all the required dependencies are resolved
-  
-The various calls are also setting up the logging, the tracing, and the random number generators.  
+  #etc.... until all the required dependencies are resolved 
 
 ``school_location_sample`` also sets the persons merged table as choosers, reads the expressions 
 specification file, settings yaml file, and destination_size_terms file, and also sets the chunk 
@@ -309,7 +323,7 @@ then used for the next model step - solving the logsums for the sample.
 
 :: 
 
-    orca.add_table('school_location_sample', choices)
+    inject.add_table('school_location_sample', choices)
     
 
 School Location Logsums
@@ -319,9 +333,11 @@ The school location logsums model is called via:
 
 ::
 
-  orca.run(["school_location_logsums"])
+  #run model step
+  inject.run(["school_location_logsums"])
           
-  @orca.step()
+  #define model step
+  @inject.step()
   def school_location_logsums(
         persons_merged,
         land_use,
@@ -359,7 +375,7 @@ and the model is calculating and adding the mode choice logsums using the logsum
             skim_dict, skim_stack, alt_col_name, chunk_size,
             trace_hh_id, trace_label)
 
-    orca.add_column("school_location_sample", "mode_choice_logsum", logsums)
+    inject.add_column("school_location_sample", "mode_choice_logsum", logsums)
 
 The :func:`activitysim.abm.models.util.logsums.compute_logsums` method goes through a similar series
 of steps as the interaction_sample function but ends up calling 
@@ -377,9 +393,11 @@ above and is called as follows:
 
 :: 
 
-  orca.run(["school_location_simulate"])
+  #run model step
+  inject.run(["school_location_simulate"])
   
-  @orca.step()
+  #define model step
+  @inject.step()
   def school_location_simulate(persons_merged,
                              school_location_sample,
                              school_location_spec,
@@ -395,28 +413,28 @@ this time the sampled locations table is the choosers and the model selects one 
 each chooser using the school location simulate expression files and the 
 :func:`activitysim.core.interaction_sample_simulate.interaction_sample_simulate` function.  
 The model adds the choices as a column to the applicable table - ``persons`` - and adds 
-additional dependent columns.  The dependent columns are those orca columns with the virtual 
-table name ``persons_school``.
+additional dependent columns.  The dependent columns are defined in the persons table and are
+those orca columns with the virtual table name ``persons_school``.
 
 :: 
 
-   orca.add_column("persons", "school_taz", choices)
+   inject.add_column("persons", "school_taz", choices)
    
    pipeline.add_dependent_columns("persons", "persons_school")
 
    # columns to update after the school location choice model
-   @orca.table()
+   @inject.table()
    def persons_school(persons):
     return pd.DataFrame(index=persons.index)
     
-   @orca.column("persons_school")
+   @inject.column("persons_school")
    def distance_to_school(persons, skim_dict):
        distance_skim = skim_dict.get('DIST')
        return pd.Series(distance_skim.get(persons.home_taz,
                                           persons.school_taz),
                         index=persons.index)
    
-   @orca.column("persons_school")
+   @inject.column("persons_school")
    def roundtrip_auto_time_to_school(persons, skim_dict):
        sovmd_skim = skim_dict.get(('SOV_TIME', 'MD'))
        return pd.Series(sovmd_skim.get(persons.home_taz,
@@ -428,36 +446,58 @@ table name ``persons_school``.
 Any orca columns that are required are calculated-on-the-fly, such as ``roundtrip_auto_time_to_school``
 which in turn uses skims from the skim_dict orca injectable.
 
+Finishing Up 
+~~~~~~~~~~~~
+
+Back in the main ``simulation.py`` script, the next steps are to:
+
+* loop through the final data pipeline tables (households, persons, tours, trips, etc.) and write them to CSV files
+* close the data pipeline (and attached HDF5 file)
+* print the elapsed model runtime
+
+Additional Notes
+----------------
+
 The rest of the microsimulation models operate in a similar fashion with a few notable additions:
 
 * creating new tables
 * vectorized 3D skims indexing
-* the accessibilities model
+* aggregate (OD-level) accessibilities model
 
 Creating New Tables
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The mandatory tour frequency model sets the ``persons.mandatory_tour_frequency`` column.  Once the number of tours
 is known, then the next step is to create tours records for subsequent models.  This is done with the following code,
-which requires the ``persons`` table and returns a new pandas DataFrame which is registered as an 
-orca table named ``mandatory_tours``.
+which adds tours to the ``tours`` table managed in the data pipeline:
 
 ::
 
-  @orca.table(cache=True)
-  def mandatory_tours(persons):
-    persons = persons.to_frame(columns=["mandatory_tour_frequency","is_worker"])
-    persons = persons[~persons.mandatory_tour_frequency.isnull()]
-    return process_mandatory_tours(persons)
+  def create_mandatory_tours():
   
-  #processes the mandatory_tour_frequency column that comes out of the model 
-  #and turns into a DataFrame that represents the mandatory tours that were generated
-  def process_mandatory_tours(persons):
-    #...
-    return pd.DataFrame(tours, columns=["person_id", "tour_type", "tour_num"])
+    persons = inject.get_table('persons')
+    configs_dir = inject.get_injectable('configs_dir')
 
+    persons = persons.to_frame(columns=["mandatory_tour_frequency",
+                                        "is_worker", "school_taz", "workplace_taz"])
+    persons = persons[~persons.mandatory_tour_frequency.isnull()]
+
+    tour_frequency_alternatives = inject.get_injectable('mandatory_tour_frequency_alternatives')
+
+    tours = process_mandatory_tours(persons, tour_frequency_alternatives)
+
+    expressions.assign_columns(
+        df=tours,
+        model_settings='annotate_tours_with_dest',
+        configs_dir=configs_dir,
+        trace_label='create_mandatory_tours')
+
+    pipeline.extend_table("tours", tours)
+    tracing.register_traceable_table('tours', tours)
+    pipeline.get_rn_generator().add_channel(tours, 'tours')
+    
 Vectorized 3D Skim Indexing
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The mode choice model uses the :class:`activitysim.core.skim.SkimStackWrapper` class in addition to the skims (2D) 
 class.  The SkimStackWrapper class represents a collection of skims with a third dimension, which in this case 
@@ -489,7 +529,7 @@ significant model runtime.
 See :ref:`skims_in_detail` for more information on skim handling.
 
 Accessibilities Model
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Unlike the microsimulation models, which operate on a table of choosers, the accessibilities model is 
 an aggregate model that calculates accessibility measures by origin zone to all destination zones.  This 

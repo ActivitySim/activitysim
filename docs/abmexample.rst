@@ -59,7 +59,8 @@ The ``configs`` folder contains settings, expressions files, and other files req
 model utilities and form.  The first place to start in the ``configs`` folder is ``settings.yaml``, which 
 is the main settings file for the model run.  This file includes:
 
-* ``store`` - HDF5 input file and also output file
+* ``models`` - list of model steps to run - auto ownership, tour frequency, etc. - see :ref:`model_steps`
+* ``store`` - HDF5 inputs file
 * ``skims_file`` - skim matrices in one OMX file
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
@@ -113,6 +114,17 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |  :ref:`accessibility`                          |  - accessibility.yaml                              |
 |                                                |  - accessibility.csv                               |
 +------------------------------------------------+----------------------------------------------------+
+|   :ref:`school_location`                       |  - school_location.yaml                            |
+|                                                |  - school_location_sample.csv                      |
+|                                                |  - logsums_spec_school.csv                         |
+|                                                |  - logsums_spec_university.csv                     |
+|                                                |  - school_location.csv                             |
++------------------------------------------------+----------------------------------------------------+
+|    :ref:`work_location`                        |  - workplace_location.yaml                         |
+|                                                |  - workplace_location_sample.csv                   |
+|                                                |  - logsums_spec_work.csv                           |
+|                                                |  - workplace_location.csv                          |
++------------------------------------------------+----------------------------------------------------+
 | :ref:`auto_ownership`                          |  - auto_ownership.yaml                             |
 |                                                |  - auto_ownership.csv                              |
 +------------------------------------------------+----------------------------------------------------+
@@ -122,38 +134,46 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - cdap_fixed_relative_proportions.csv             |
 +------------------------------------------------+----------------------------------------------------+
 |  :ref:`mandatory_tour_frequency`               |  - mandatory_tour_frequency.csv                    |
-+------------------------------------------------+----------------------------------------------------+
-| :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.csv                |
-|                                                |  - non_mandatory_tour_frequency_alternatives.csv   |
-+------------------------------------------------+----------------------------------------------------+
-| Non-Mandatory Tour :ref:`destination_choice`   |  - non_mandatory_tour_destination_choice.yaml      |
-|                                                |  - non_mandatory_tour_destination_choice.csv       |
-+------------------------------------------------+----------------------------------------------------+
-|   :ref:`school_location`                       |  - school_location.yaml                            |
-|                                                |  - school_location_sample.csv                      |
-|                                                |  - logsums_spec_school.csv                         |
-|                                                |  - logsums_spec_university.csv                     |
-|                                                |  - school_location.csv                             |
+|                                                |  - mandatory_tour_frequency_alternatives.csv       |
 +------------------------------------------------+----------------------------------------------------+
 | :ref:`mandatory_tour_scheduling`               |  - tour_departure_and_duration_alternatives.csv    |
 |                                                |  - tour_departure_and_duration_school.csv          |
 |                                                |  - tour_departure_and_duration_work.csv            |
 +------------------------------------------------+----------------------------------------------------+
+| :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.csv                |
+|                                                |  - non_mandatory_tour_frequency_alternatives.csv   |
++------------------------------------------------+----------------------------------------------------+
+| :ref:`non_mandatory_tour_destination_choice`   |  - non_mandatory_tour_destination_choice.yaml      |
+|                                                |  - non_mandatory_tour_destination_choice.csv       |
++------------------------------------------------+----------------------------------------------------+
 | :ref:`non_mandatory_tour_scheduling`           |  - tour_departure_and_duration_alternatives.csv    |
 |                                                |  - tour_departure_and_duration_nonmandatory.csv    |
 +------------------------------------------------+----------------------------------------------------+
-|        Tour :ref:`mode_choice`                 |  - tour_mode_choice.yaml                           |
+| :ref:`annotate_table` model_name=annotate_tours|  - annotate_tours.csv                              |
+|                                                |  - annotate_tours.yaml                             |
++------------------------------------------------+----------------------------------------------------+
+|        :ref:`tour_mode_choice`                 |  - tour_mode_choice.yaml                           |
 |                                                |  - tour_mode_choice.csv                            |
 |                                                |  - tour_mode_choice_coeffs.csv                     |
 +------------------------------------------------+----------------------------------------------------+
-|      Trip :ref:`mode_choice`                   |  - trip_mode_choice.yaml                           |
+|  :ref:`atwork_subtour_frequency`               |  - atwork_subtour_frequency.csv                    |
+|                                                |  - atwork_subtour_frequency_alternatives.csv       |
++------------------------------------------------+----------------------------------------------------+
+|   :ref:`atwork_subtour_destination`            |  - atwork_subtour_destination.yaml                 |
+|                                                |  - atwork_subtour_destination_sample.csv           |
+|                                                |  - atwork_subtour_destination.csv                  |
+|                                                |  - logsums_spec_work.csv                           |
++------------------------------------------------+----------------------------------------------------+
+| :ref:`atwork_subtour_scheduling`               |  - tour_departure_and_duration_subtour.csv         |
+|                                                |  - tour_departure_and_duration_alternatives.csv    |
++------------------------------------------------+----------------------------------------------------+
+|        :ref:`atwork_subtour_mode_choice`       |  - tour_mode_choice.yaml                           |
+|                                                |  - tour_mode_choice.csv                            |
+|                                                |  - tour_mode_choice_coeffs.csv                     |
++------------------------------------------------+----------------------------------------------------+
+|      :ref:`trip_mode_choice`                   |  - trip_mode_choice.yaml                           |
 |                                                |  - trip_mode_choice.csv                            |
 |                                                |  - trip_mode_choice_coeffs.csv                     |
-+------------------------------------------------+----------------------------------------------------+
-|    :ref:`work_location`                        |  - workplace_location.yaml                         |
-|                                                |  - workplace_location_sample.csv                   |
-|                                                |  - logsums_spec_work.csv                           |
-|                                                |  - workplace_location.csv                          |
 +------------------------------------------------+----------------------------------------------------+
 
 Running the Example Model
@@ -168,32 +188,41 @@ To run the example, do the following:
 
 The example should complete within a couple minutes since it is running a small sample of households.
 
+.. _model_steps :
+
 Pipeline
 --------
 
-The ``simulation.py`` script contains the specification of the data pipeline model steps, as shown below:
+The ``models`` setting contains the specification of the data pipeline model steps, as shown below:
 
 ::
 
-  _MODELS = [
-    'compute_accessibility',
-    'school_location_sample',
-    'school_location_logsums',
-    'school_location_simulate',
-    'workplace_location_sample',
-    'workplace_location_logsums',
-    'workplace_location_simulate',
-    'auto_ownership_simulate',
-    'cdap_simulate',
-    'mandatory_tour_frequency',
-    'mandatory_tour_scheduling',
-    'non_mandatory_tour_frequency',
-    'non_mandatory_tour_destination_choice',
-    'non_mandatory_tour_scheduling',
-    'tour_mode_choice_simulate',
-    'create_simple_trips',
-    'trip_mode_choice_simulate'
-  ]
+  models:
+    - initialize
+    - compute_accessibility
+    - school_location_sample
+    - school_location_logsums
+    - school_location_simulate
+    - workplace_location_sample
+    - workplace_location_logsums
+    - workplace_location_simulate
+    - auto_ownership_simulate
+    - cdap_simulate
+    - mandatory_tour_frequency
+    - mandatory_tour_scheduling
+    - non_mandatory_tour_frequency
+    - non_mandatory_tour_destination_choice
+    - non_mandatory_tour_scheduling
+    - annotate_table.model_name=annotate_tours
+    - tour_mode_choice_simulate
+    - atwork_subtour_frequency
+    - atwork_subtour_destination_sample
+    - atwork_subtour_destination_logsums
+    - atwork_subtour_destination_simulate
+    - atwork_subtour_scheduling
+    - atwork_subtour_mode_choice_simulate
+    - create_simple_trips
+    - trip_mode_choice_simulate
 
 These model steps must be registered orca steps, as noted below.  If you provide a ``resume_after`` 
 argument to :func:`activitysim.core.pipeline.run` the pipeliner will load checkpointed tables from the checkpoint store 
@@ -223,45 +252,71 @@ the pipeline at any step.
 +----------------------------------------------------------------------+-------+-------------------+
 | Table                                                                | Type  | [Rows, Columns]   |
 +======================================================================+=======+===================+ 
-| /checkpoints                                                         | frame | (shape->[14,11])  |
+| /checkpoints                                                         | frame |  (shape->[25,13]) |
 +----------------------------------------------------------------------+-------+-------------------+
-| /accessibility/compute_accessibility                                 | frame | (shape->[25,21])  |
+| /land_use/initialize                                                 | frame |  (shape->[25,49]) |
 +----------------------------------------------------------------------+-------+-------------------+
-| /households/compute_accessibility                                    | frame | (shape->[100,64]) |
+| /accessibility/school_location_sample                                | frame |  (shape->[25,20]) |
 +----------------------------------------------------------------------+-------+-------------------+
-| /households/auto_ownership_simulate                                  | frame | (shape->[100,67]) |
+| /households/initialize                                               | frame |  (shape->[100,64])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /households/cdap_simulate                                            | frame | (shape->[100,68]) |
+| /households/auto_ownership_simulate                                  | frame |  (shape->[100,67])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /land_use/compute_accessibility                                      | frame | (shape->[25,49])  |
+| /households/cdap_simulate                                            | frame |  (shape->[100,68])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /mandatory_tours/mandatory_tour_frequency                            | frame | (shape->[77,4])   |
+| /persons/initialize                                                  | frame |  (shape->[154,50])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /mandatory_tours/mandatory_tour_scheduling                           | frame | (shape->[77,5])   |
+| /persons/school_location_simulate                                    | frame |  (shape->[154,53])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /non_mandatory_tours/non_mandatory_tour_frequency                    | frame | (shape->[83,5])   |
+| /persons/cdap_simulate                                               | frame |  (shape->[154,63])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /non_mandatory_tours/non_mandatory_tour_destination_choice           | frame | (shape->[83,6])   |
+| /persons/mandatory_tour_frequency                                    | frame |  (shape->[154,68])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /non_mandatory_tours/non_mandatory_tour_scheduling                   | frame | (shape->[83,7])   |
+| /persons/non_mandatory_tour_frequency                                | frame |  (shape->[154,73])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /persons/compute_accessibility                                       | frame | (shape->[156,50]) |
+| /persons/workplace_location_simulate                                 | frame |  (shape->[154,58])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /persons/school_location_simulate                                    | frame | (shape->[156,54]) |
+| /person_windows/initialize                                           | frame |  (shape->[154,21])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /persons/workplace_location_simulate                                 | frame | (shape->[156,59]) |
+| /person_windows/mandatory_tour_scheduling                            | frame |  (shape->[154,21])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /persons/cdap_simulate                                               | frame | (shape->[156,64]) |
+| /person_windows/non_mandatory_tour_scheduling                        | frame |  (shape->[154,21])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /persons/mandatory_tour_frequency                                    | frame | (shape->[156,69]) |
+| /tours/mandatory_tour_frequency                                      | frame |  (shape->[79,11]) |
 +----------------------------------------------------------------------+-------+-------------------+
-| /persons/non_mandatory_tour_frequency                                | frame | (shape->[156,72]) |
+| /tours/mandatory_tour_scheduling                                     | frame |  (shape->[79,15]) |
 +----------------------------------------------------------------------+-------+-------------------+
-| /tours/tour_mode_choice_simulate                                     | frame | (shape->[160,38]) |
+| /tours/non_mandatory_tour_frequency                                  | frame |  (shape->[168,15])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /trips/create_simple_trips                                           | frame | (shape->[320,8])  |
+| /tours/non_mandatory_tour_destination_choice                         | frame |  (shape->[168,15])|
 +----------------------------------------------------------------------+-------+-------------------+
-| /trips/trip_mode_choice_simulate                                     | frame | (shape->[320,9])  |
+| /tours/non_mandatory_tour_scheduling                                 | frame |  (shape->[168,15])|
++----------------------------------------------------------------------+-------+-------------------+
+| /tours/annotate_table.model_name=annotate_tours                      | frame |  (shape->[168,41])|
++----------------------------------------------------------------------+-------+-------------------+
+| /tours/tour_mode_choice_simulate                                     | frame |  (shape->[168,42])|
++----------------------------------------------------------------------+-------+-------------------+
+| /tours/atwork_subtour_frequency                                      | frame |  (shape->[173,44])|
++----------------------------------------------------------------------+-------+-------------------+
+| /tours/atwork_subtour_destination_simulate                           | frame |  (shape->[173,44])|
++----------------------------------------------------------------------+-------+-------------------+
+| /tours/atwork_subtour_scheduling                                     | frame |  (shape->[173,44])|
++----------------------------------------------------------------------+-------+-------------------+
+| /trips/create_simple_trips                                           | frame |  (shape->[336,8]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /trips/trip_mode_choice_simulate                                     | frame |  (shape->[336,9]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /school_location_sample/school_location_sample                       | frame |  (shape->[168,5]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /school_location_sample/school_location_logsums                      | frame |  (shape->[168,6]) |
++----------------------------------------------------------------------+-------+-------------------+
+| /workplace_location_sample/workplace_location_sample                 | frame |  (shape->[2196,4])|
++----------------------------------------------------------------------+-------+-------------------+
+| /workplace_location_sample/workplace_location_logsums                | frame |  (shape->[2196,5])|
++----------------------------------------------------------------------+-------+-------------------+
+| /atwork_subtour_destination_sample/atwork_subtour_destination_sample | frame |  (shape->[77,6])  |
++----------------------------------------------------------------------+-------+-------------------+
+| /atwork_subtour_destination_sample/atwork_subtour_destination_logsums| frame |  (shape->[77,7])  |
 +----------------------------------------------------------------------+-------+-------------------+
 
 The example ``simulation.py`` run model script also writes the final table to a CSV file

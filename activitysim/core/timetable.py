@@ -137,11 +137,14 @@ def create_timetable_windows(rows, tdd_alts):
 
 class TimeTable(object):
     """
-    tdd_alts_df      tdd_footprints_df
-    start  end      '0' '1' '2' '3' '4'...
-    5      5    ==>  0   6   0   0   0 ...
-    5      6    ==>  0   2   4   0   0 ...
-    5      7    ==>  0   2   7   4   0 ...
+    ::
+
+      tdd_alts_df      tdd_footprints_df
+      start  end      '0' '1' '2' '3' '4'...
+      5      5    ==>  0   6   0   0   0 ...
+      5      6    ==>  0   2   4   0   0 ...
+      5      7    ==>  0   2   7   4   0 ...
+
     """
 
     def __init__(self, windows_df, tdd_alts_df, table_name=None):
@@ -289,20 +292,23 @@ class TimeTable(object):
 
     def assign_subtour_mask(self, window_row_ids, tdds):
         """
-                  window_row_ids   tdds
-        20973389  20973389           26
-        44612864  44612864            3
-        48954854  48954854            7
+        ::
 
-        tour footprints
-        [[0 0 2 7 7 7 7 7 7 4 0 0 0 0 0 0 0 0 0 0 0]
-         [0 2 7 7 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-         [0 2 7 7 7 7 7 7 4 0 0 0 0 0 0 0 0 0 0 0 0]]
+          index     window_row_ids   tdds
+          20973389  20973389           26
+          44612864  44612864            3
+          48954854  48954854            7
 
-        subtour_mask
-        [[7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7]
-         [7 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
-         [7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
+          tour footprints
+          [[0 0 2 7 7 7 7 7 7 4 0 0 0 0 0 0 0 0 0 0 0]
+          [0 2 7 7 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+          [0 2 7 7 7 7 7 7 4 0 0 0 0 0 0 0 0 0 0 0 0]]
+
+          subtour_mask
+          [[7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7]
+          [7 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]
+          [7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
+
         """
 
         # expect window_row_ids for every row
@@ -339,11 +345,7 @@ class TimeTable(object):
             series of tdd_alt ids, index irrelevant
         before : bool
             Specify desired run length is of adjacent window before (True) or after (False)
-        Returns
-        -------
-
         """
-
         assert len(window_row_ids) == len(periods)
 
         time_col_ixs = periods.map(self.time_ix).values
@@ -383,8 +385,8 @@ class TimeTable(object):
         Return number of adjacent periods before specified period that are available
         (not in the middle of another tour.)
 
-        Implements CTRAMP MTCTM1 macro @@getAdjWindowBeforeThisPeriodAlt
-        Function name is kind of a misnomer, but parallels that used in mtctm1 UECs
+        Implements MTC TM1 macro @@getAdjWindowBeforeThisPeriodAlt
+        Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs
 
         Parameters
         ----------
@@ -405,8 +407,8 @@ class TimeTable(object):
         Return number of adjacent periods after specified period that are available
         (not in the middle of another tour.)
 
-        Implements CTRAMP MTCTM1 macro @@adjWindowAfterThisPeriodAlt
-        Function name is kind of a misnomer, but parallels that used in mtctm1 UECs
+        Implements MTC TM1 macro @@adjWindowAfterThisPeriodAlt
+        Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs
 
         Parameters
         ----------
@@ -451,7 +453,7 @@ class TimeTable(object):
         """
         Does a previously scheduled tour end in the specified period?
 
-        Implements CTRAMP @@prevTourEndsThisDeparturePeriodAlt
+        Implements MTC TM1 @@prevTourEndsThisDeparturePeriodAlt
 
         Parameters
         ----------
@@ -471,7 +473,7 @@ class TimeTable(object):
         """
         Does a previously scheduled tour begin in the specified period?
 
-        Implements CTRAMP @@prevTourBeginsThisArrivalPeriodAlt
+        Implements MTC TM1 @@prevTourBeginsThisArrivalPeriodAlt
 
         Parameters
         ----------
@@ -493,7 +495,7 @@ class TimeTable(object):
         Determine number of periods remaining available after the time window from starts to ends
         is hypothetically scheduled
 
-        Implements CTRAMP @@remainingPeriodsAvailableAlt
+        Implements MTC TM1 @@remainingPeriodsAvailableAlt
 
         The start and end periods will always be available after scheduling, so ignore them.
         The periods between start and end must be currently unscheduled, so assume they will become

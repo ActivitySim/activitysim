@@ -110,7 +110,6 @@ def schedule_tours(tours, persons_merged,
                    previous_tour, window_id_col,
                    chunk_size, tour_trace_label):
     """
-
     previous_tour stores values used to add columns that can be used in the spec
     which have to do with the previous tours per person.  Every column in the
     alternatives table is appended with the suffix "_previous" and made
@@ -119,6 +118,7 @@ def schedule_tours(tours, persons_merged,
     the most recent tour for a person.  The first time through,
     start_previous and end_previous are undefined, so make sure to protect
     with a tour_num >= 2 in the variable computation.
+
     Parameters
     ----------
     tours : DataFrame
@@ -148,6 +148,7 @@ def schedule_tours(tours, persons_merged,
     -------
 
     """
+
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
     # timetable can't handle multiple tours per person

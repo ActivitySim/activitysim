@@ -24,7 +24,7 @@ scientific Python ecosystem, most notably `pandas <http://pandas.pydata.org>`__
 and `numpy <http://numpy.org>`__. ActivitySim does not currently support Python 3.
    
 The recommended way to get your own scientific Python installation is to
-install Anaconda_, which contains many of the libraries upon which
+install Anaconda_ 2 64bit, which contains many of the libraries upon which
 ActivitySim depends + some handy Python installation management tools.  
 
 Anaconda includes the ``conda`` command line tool, which does a number of useful 
@@ -48,7 +48,9 @@ with the following commands:
 
 If you access the internet from behind a firewall, then you will need to configure your proxy 
 server. To do so, create a ``.condarc`` file in your Anaconda installation folder, such as:
+
 ::
+    
     proxy_servers:
       http: http://proxynew.odot.state.or.us:8080
       https: https://proxynew.odot.state.or.us:8080
@@ -66,7 +68,7 @@ Dependencies
 ActivitySim depends on the following libraries, some of which* are pre-installed
 with Anaconda:
 
-* `numpy <http://numpy.org>`__ >= 1.12.0 \*
+* `numpy <http://numpy.org>`__ >= 1.13.0 \*
 * `pandas <http://pandas.pydata.org>`__ >= 0.20.3 \*
 * `pyyaml <http://pyyaml.org/wiki/PyYAML>`__ >= 3.0 \*
 * `tables <http://www.pytables.org/moin>`__ >= 3.3.0 \*
@@ -88,7 +90,7 @@ attempt to install any dependencies that are not already installed.
     pip install orca openmatrix zbox
     
     #optional required packages for testing and building documentation
-    pip install pytest pytest-cov coveralls pep8 pytest-xdist
+    pip install pytest pytest-cov coveralls pycodestyle
     pip install sphinx numpydoc sphinx_rtd_theme
 
 If numexpr (which numpy requires) fails to install, you may need 
@@ -96,7 +98,9 @@ the `Microsoft Visual C++ Compiler for Python <http://aka.ms/vcpython27>`__.
 
 If you access the internet from behind a firewall, then you will need to configure 
 your proxy server when downloading packages.  For example:
+
 ::
+    
     pip install --trusted-host pypi.python.org --proxy=proxynew.odot.state.or.us:8080  cytoolz
 
 ActivitySim
@@ -149,7 +153,7 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 * Python expressions, denoted by beginning with ``@``, are evaluated with `Python's eval() <https://docs.python.org/2/library/functions.html#eval>`__.
 
 Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects 
-urrently in memory.
+currently in memory.
 
 Conventions
 ~~~~~~~~~~~
@@ -185,32 +189,5 @@ An expressions file has the following basic form:
 * The Description column describes the expression
 * The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, ``drivers`` is a column in the current table.  Use ``@`` to refer to data outside the current table
 * There is a column for each alternative and its relevant coefficient
-
-There are some variations on this setup, but the functionality is similar.  For example, 
-in the example destination choice model, the size terms expressions file has market segments as rows and employment type 
-coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:
-
-* Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
-* :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The non-mandatory tour :ref:`destination_choice` model implements this approach.
-* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`mode_choice` models are examples of this and are illustrated below.
-* Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
-
-The :ref:`mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
-Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.  
-In the example below, the ``@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']`` expression is travel time for the tour origin to desination at the tour start time plus the tour
-destination to tour origin at the tour end time.  The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.
-The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.
-
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+
-| Description                            |  Expression                                     |     Alternative      |   school  | shopping |
-+========================================+=================================================+======================+===========+==========+ 
-|DA - Unavailable                        | sov_available == False                          |  DRIVEALONEFREE      |         0 |   3.0773 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
-|DA - In-vehicle time                    | @odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']  |  DRIVEALONEFREE      |         0 |  -0.4849 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
-|DAP - Unavailable for age less than 16  | age < 16                                        |  DRIVEALONEPAY       |         0 |   0.2936 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
-|DAP - Unavailable for joint tours       | is_joint                                        |  DRIVEALONEPAY       | -3.2451   |  -0.9523 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
 
 See :ref:`expressions` for more information.

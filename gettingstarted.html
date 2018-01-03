@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; ActivitySim 0.4 documentation</title>
+  <title>Getting Started &mdash; ActivitySim 0.5 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.4 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5 documentation" href="index.html"/>
         <link rel="next" title="Example" href="abmexample.html"/>
         <link rel="prev" title="ActivitySim" href="index.html"/> 
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.4
+                0.5
               </div>
             
           
@@ -196,7 +196,7 @@ in memory.</p>
 scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
 and <a class="reference external" href="http://numpy.org">numpy</a>. ActivitySim does not currently support Python 3.</p>
 <p>The recommended way to get your own scientific Python installation is to
-install <a class="reference external" href="http://docs.continuum.io/anaconda/index.html">Anaconda</a>, which contains many of the libraries upon which
+install <a class="reference external" href="http://docs.continuum.io/anaconda/index.html">Anaconda</a> 2 64bit, which contains many of the libraries upon which
 ActivitySim depends + some handy Python installation management tools.</p>
 <p>Anaconda includes the <code class="docutils literal"><span class="pre">conda</span></code> command line tool, which does a number of useful
 things, including creating <a class="reference external" href="http://conda.pydata.org/docs/using/envs.html">environments</a>
@@ -233,7 +233,7 @@ start a new command session.  You can remove an environment with
 <p>ActivitySim depends on the following libraries, some of which* are pre-installed
 with Anaconda:</p>
 <ul class="simple">
-<li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.12.0 *</li>
+<li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.13.0 *</li>
 <li><a class="reference external" href="http://pandas.pydata.org">pandas</a> &gt;= 0.20.3 *</li>
 <li><a class="reference external" href="http://pyyaml.org/wiki/PyYAML">pyyaml</a> &gt;= 3.0 *</li>
 <li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.3.0 *</li>
@@ -252,7 +252,7 @@ attempt to install any dependencies that are not already installed.</p>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
 
 <span class="c1">#optional required packages for testing and building documentation</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pep8</span> <span class="n">pytest</span><span class="o">-</span><span class="n">xdist</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
 </pre></div>
 </div>
@@ -305,7 +305,7 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 <li>Python expressions, denoted by beginning with <code class="docutils literal"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python’s eval()</a>.</li>
 </ul>
 <p>Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects
-urrently in memory.</p>
+currently in memory.</p>
 <div class="section" id="conventions">
 <h3>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h3>
 <p>There are a few conventions for writing expressions in ActivitySim:</p>
@@ -365,63 +365,6 @@ urrently in memory.</p>
 <li>The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, <code class="docutils literal"><span class="pre">drivers</span></code> is a column in the current table.  Use <code class="docutils literal"><span class="pre">&#64;</span></code> to refer to data outside the current table</li>
 <li>There is a column for each alternative and its relevant coefficient</li>
 </ul>
-<p>There are some variations on this setup, but the functionality is similar.  For example,
-in the example destination choice model, the size terms expressions file has market segments as rows and employment type
-coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:</p>
-<ul class="simple">
-<li>Simple <a class="reference internal" href="core.html#simulate"><span class="std std-ref">Simulate</span></a> choice model - select from a fixed set of choices defined in the specification file, such as the example above.</li>
-<li><a class="reference internal" href="core.html#simulate-with-interaction"><span class="std std-ref">Simulate with Interaction</span></a> choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The non-mandatory tour <a class="reference internal" href="models.html#destination-choice"><span class="std std-ref">Destination Choice</span></a> model implements this approach.</li>
-<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a> models are examples of this and are illustrated below.</li>
-<li>Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a> model implements this approach.</li>
-</ul>
-<p>The <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
-Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.
-In the example below, the <code class="docutils literal"><span class="pre">&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME']</span></code> expression is travel time for the tour origin to desination at the tour start time plus the tour
-destination to tour origin at the tour end time.  The <code class="docutils literal"><span class="pre">odt_skims</span></code> and <code class="docutils literal"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.
-The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="30%" />
-<col width="37%" />
-<col width="17%" />
-<col width="8%" />
-<col width="8%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Description</th>
-<th class="head">Expression</th>
-<th class="head">Alternative</th>
-<th class="head">school</th>
-<th class="head">shopping</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>DA - Unavailable</td>
-<td>sov_available == False</td>
-<td>DRIVEALONEFREE</td>
-<td>0</td>
-<td>3.0773</td>
-</tr>
-<tr class="row-odd"><td>DA - In-vehicle time</td>
-<td>&#64;odt_skims[‘SOV_TIME’] + dot_skims[‘SOV_TIME’]</td>
-<td>DRIVEALONEFREE</td>
-<td>0</td>
-<td>-0.4849</td>
-</tr>
-<tr class="row-even"><td>DAP - Unavailable for age less than 16</td>
-<td>age &lt; 16</td>
-<td>DRIVEALONEPAY</td>
-<td>0</td>
-<td>0.2936</td>
-</tr>
-<tr class="row-odd"><td>DAP - Unavailable for joint tours</td>
-<td>is_joint</td>
-<td>DRIVEALONEPAY</td>
-<td>-3.2451</td>
-<td>-0.9523</td>
-</tr>
-</tbody>
-</table>
 <p>See <a class="reference internal" href="core.html#expressions"><span class="std std-ref">Utility Expressions</span></a> for more information.</p>
 </div>
 </div>
@@ -471,7 +414,7 @@ The tour mode choice model is a nested logit (NL) model and the nesting structur
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.4',
+            VERSION:'0.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

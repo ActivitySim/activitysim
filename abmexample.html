@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example &mdash; ActivitySim 0.4 documentation</title>
+  <title>Example &mdash; ActivitySim 0.5 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.4 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5 documentation" href="index.html"/>
         <link rel="next" title="How the System Works" href="howitworks.html"/>
         <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.4
+                0.5
               </div>
             
           
@@ -229,7 +229,9 @@ which creates the land use, synthetic population, and skim inputs for a subset o
 model utilities and form.  The first place to start in the <code class="docutils literal"><span class="pre">configs</span></code> folder is <code class="docutils literal"><span class="pre">settings.yaml</span></code>, which
 is the main settings file for the model run.  This file includes:</p>
 <ul>
-<li><p class="first"><code class="docutils literal"><span class="pre">store</span></code> - HDF5 input file and also output file</p>
+<li><p class="first"><code class="docutils literal"><span class="pre">models</span></code> - list of model steps to run - auto ownership, tour frequency, etc. - see <a class="reference internal" href="#model-steps"><span class="std std-ref">Pipeline</span></a></p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">store</span></code> - HDF5 inputs file</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p>
 </li>
@@ -248,7 +250,7 @@ is the main settings file for the model run.  This file includes:</p>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</li>
 <li><code class="docutils literal"><span class="pre">county_map</span></code> - mapping of county codes to county names</li>
-<li><code class="docutils literal"><span class="pre">time_periods</span></code> - time period upper bound values and labels</li>
+<li><code class="docutils literal"><span class="pre">skim_time_periods</span></code> - time period upper bound values and labels</li>
 </ul>
 </div></blockquote>
 </li>
@@ -299,6 +301,25 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#school-location"><span class="std std-ref">School Location</span></a></td>
+<td><ul class="first last simple">
+<li>school_location.yaml</li>
+<li>school_location_sample.csv</li>
+<li>logsums_spec_school.csv</li>
+<li>logsums_spec_university.csv</li>
+<li>school_location.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#work-location"><span class="std std-ref">Workplace Location</span></a></td>
+<td><ul class="first last simple">
+<li>workplace_location.yaml</li>
+<li>workplace_location_sample.csv</li>
+<li>logsums_spec_work.csv</li>
+<li>workplace_location.csv</li>
+</ul>
+</td>
+</tr>
 <tr class="row-odd"><td><a class="reference internal" href="models.html#auto-ownership"><span class="std std-ref">Auto Ownership</span></a></td>
 <td><ul class="first last simple">
 <li>auto_ownership.yaml</li>
@@ -318,34 +339,11 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <tr class="row-odd"><td><a class="reference internal" href="models.html#mandatory-tour-frequency"><span class="std std-ref">Mandatory Tour Frequency</span></a></td>
 <td><ul class="first last simple">
 <li>mandatory_tour_frequency.csv</li>
+<li>mandatory_tour_frequency_alternatives.csv</li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></td>
-<td><ul class="first last simple">
-<li>non_mandatory_tour_frequency.csv</li>
-<li>non_mandatory_tour_frequency_alternatives.csv</li>
-</ul>
-</td>
-</tr>
-<tr class="row-odd"><td>Non-Mandatory Tour <a class="reference internal" href="models.html#destination-choice"><span class="std std-ref">Destination Choice</span></a></td>
-<td><ul class="first last simple">
-<li>non_mandatory_tour_destination_choice.yaml</li>
-<li>non_mandatory_tour_destination_choice.csv</li>
-</ul>
-</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#school-location"><span class="std std-ref">School Location</span></a></td>
-<td><ul class="first last simple">
-<li>school_location.yaml</li>
-<li>school_location_sample.csv</li>
-<li>logsums_spec_school.csv</li>
-<li>logsums_spec_university.csv</li>
-<li>school_location.csv</li>
-</ul>
-</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#mandatory-tour-scheduling"><span class="std std-ref">Mandatory Tour Scheduling</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#mandatory-tour-scheduling"><span class="std std-ref">Mandatory Tour Scheduling</span></a></td>
 <td><ul class="first last simple">
 <li>tour_departure_and_duration_alternatives.csv</li>
 <li>tour_departure_and_duration_school.csv</li>
@@ -353,14 +351,35 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></td>
+<td><ul class="first last simple">
+<li>non_mandatory_tour_frequency.csv</li>
+<li>non_mandatory_tour_frequency_alternatives.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a></td>
+<td><ul class="first last simple">
+<li>non_mandatory_tour_destination_choice.yaml</li>
+<li>non_mandatory_tour_destination_choice.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></td>
 <td><ul class="first last simple">
 <li>tour_departure_and_duration_alternatives.csv</li>
 <li>tour_departure_and_duration_nonmandatory.csv</li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td>Tour <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#annotate-table"><span class="std std-ref">Annotate Table</span></a> model_name=annotate_tours</td>
+<td><ul class="first last simple">
+<li>annotate_tours.csv</li>
+<li>annotate_tours.yaml</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a></td>
 <td><ul class="first last simple">
 <li>tour_mode_choice.yaml</li>
 <li>tour_mode_choice.csv</li>
@@ -368,20 +387,42 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td>Trip <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-frequency"><span class="std std-ref">At-work Subtours Frequency</span></a></td>
+<td><ul class="first last simple">
+<li>atwork_subtour_frequency.csv</li>
+<li>atwork_subtour_frequency_alternatives.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-destination"><span class="std std-ref">At-work Subtours Destination Choice</span></a></td>
+<td><ul class="first last simple">
+<li>atwork_subtour_destination.yaml</li>
+<li>atwork_subtour_destination_sample.csv</li>
+<li>atwork_subtour_destination.csv</li>
+<li>logsums_spec_work.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-scheduling"><span class="std std-ref">At-work Subtour Scheduling</span></a></td>
+<td><ul class="first last simple">
+<li>tour_departure_and_duration_subtour.csv</li>
+<li>tour_departure_and_duration_alternatives.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-mode-choice"><span class="std std-ref">At-work Subtour Mode</span></a></td>
+<td><ul class="first last simple">
+<li>tour_mode_choice.yaml</li>
+<li>tour_mode_choice.csv</li>
+<li>tour_mode_choice_coeffs.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Mode</span></a></td>
 <td><ul class="first last simple">
 <li>trip_mode_choice.yaml</li>
 <li>trip_mode_choice.csv</li>
 <li>trip_mode_choice_coeffs.csv</li>
-</ul>
-</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#work-location"><span class="std std-ref">Workplace Location</span></a></td>
-<td><ul class="first last simple">
-<li>workplace_location.yaml</li>
-<li>workplace_location_sample.csv</li>
-<li>logsums_spec_work.csv</li>
-<li>workplace_location.csv</li>
 </ul>
 </td>
 </tr>
@@ -401,27 +442,34 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <p>The example should complete within a couple minutes since it is running a small sample of households.</p>
 </div>
 <div class="section" id="pipeline">
-<h2>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal"><span class="pre">simulation.py</span></code> script contains the specification of the data pipeline model steps, as shown below:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">_MODELS</span> <span class="o">=</span> <span class="p">[</span>
-  <span class="s1">&#39;compute_accessibility&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;school_location_sample&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;school_location_logsums&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;school_location_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;workplace_location_sample&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;workplace_location_logsums&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;workplace_location_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;auto_ownership_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;cdap_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;mandatory_tour_frequency&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;mandatory_tour_scheduling&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;non_mandatory_tour_frequency&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;non_mandatory_tour_destination_choice&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;non_mandatory_tour_scheduling&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;tour_mode_choice_simulate&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;create_simple_trips&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;trip_mode_choice_simulate&#39;</span>
-<span class="p">]</span>
+<span id="model-steps"></span><h2>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">models</span></code> setting contains the specification of the data pipeline model steps, as shown below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">initialize</span>
+  <span class="o">-</span> <span class="n">compute_accessibility</span>
+  <span class="o">-</span> <span class="n">school_location_sample</span>
+  <span class="o">-</span> <span class="n">school_location_logsums</span>
+  <span class="o">-</span> <span class="n">school_location_simulate</span>
+  <span class="o">-</span> <span class="n">workplace_location_sample</span>
+  <span class="o">-</span> <span class="n">workplace_location_logsums</span>
+  <span class="o">-</span> <span class="n">workplace_location_simulate</span>
+  <span class="o">-</span> <span class="n">auto_ownership_simulate</span>
+  <span class="o">-</span> <span class="n">cdap_simulate</span>
+  <span class="o">-</span> <span class="n">mandatory_tour_frequency</span>
+  <span class="o">-</span> <span class="n">mandatory_tour_scheduling</span>
+  <span class="o">-</span> <span class="n">non_mandatory_tour_frequency</span>
+  <span class="o">-</span> <span class="n">non_mandatory_tour_destination_choice</span>
+  <span class="o">-</span> <span class="n">non_mandatory_tour_scheduling</span>
+  <span class="o">-</span> <span class="n">annotate_table</span><span class="o">.</span><span class="n">model_name</span><span class="o">=</span><span class="n">annotate_tours</span>
+  <span class="o">-</span> <span class="n">tour_mode_choice_simulate</span>
+  <span class="o">-</span> <span class="n">atwork_subtour_frequency</span>
+  <span class="o">-</span> <span class="n">atwork_subtour_destination_sample</span>
+  <span class="o">-</span> <span class="n">atwork_subtour_destination_logsums</span>
+  <span class="o">-</span> <span class="n">atwork_subtour_destination_simulate</span>
+  <span class="o">-</span> <span class="n">atwork_subtour_scheduling</span>
+  <span class="o">-</span> <span class="n">atwork_subtour_mode_choice_simulate</span>
+  <span class="o">-</span> <span class="n">create_simple_trips</span>
+  <span class="o">-</span> <span class="n">trip_mode_choice_simulate</span>
 </pre></div>
 </div>
 <p>These model steps must be registered orca steps, as noted below.  If you provide a <code class="docutils literal"><span class="pre">resume_after</span></code>
@@ -459,83 +507,135 @@ the pipeline at any step.</p>
 <tbody valign="top">
 <tr class="row-even"><td>/checkpoints</td>
 <td>frame</td>
-<td>(shape-&gt;[14,11])</td>
+<td>(shape-&gt;[25,13])</td>
 </tr>
-<tr class="row-odd"><td>/accessibility/compute_accessibility</td>
-<td>frame</td>
-<td>(shape-&gt;[25,21])</td>
-</tr>
-<tr class="row-even"><td>/households/compute_accessibility</td>
-<td>frame</td>
-<td>(shape-&gt;[100,64])</td>
-</tr>
-<tr class="row-odd"><td>/households/auto_ownership_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[100,67])</td>
-</tr>
-<tr class="row-even"><td>/households/cdap_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[100,68])</td>
-</tr>
-<tr class="row-odd"><td>/land_use/compute_accessibility</td>
+<tr class="row-odd"><td>/land_use/initialize</td>
 <td>frame</td>
 <td>(shape-&gt;[25,49])</td>
 </tr>
-<tr class="row-even"><td>/mandatory_tours/mandatory_tour_frequency</td>
+<tr class="row-even"><td>/accessibility/school_location_sample</td>
 <td>frame</td>
-<td>(shape-&gt;[77,4])</td>
+<td>(shape-&gt;[25,20])</td>
 </tr>
-<tr class="row-odd"><td>/mandatory_tours/mandatory_tour_scheduling</td>
+<tr class="row-odd"><td>/households/initialize</td>
 <td>frame</td>
-<td>(shape-&gt;[77,5])</td>
+<td>(shape-&gt;[100,64])</td>
 </tr>
-<tr class="row-even"><td>/non_mandatory_tours/non_mandatory_tour_frequency</td>
+<tr class="row-even"><td>/households/auto_ownership_simulate</td>
 <td>frame</td>
-<td>(shape-&gt;[83,5])</td>
+<td>(shape-&gt;[100,67])</td>
 </tr>
-<tr class="row-odd"><td>/non_mandatory_tours/non_mandatory_tour_destination_choice</td>
+<tr class="row-odd"><td>/households/cdap_simulate</td>
 <td>frame</td>
-<td>(shape-&gt;[83,6])</td>
+<td>(shape-&gt;[100,68])</td>
 </tr>
-<tr class="row-even"><td>/non_mandatory_tours/non_mandatory_tour_scheduling</td>
+<tr class="row-even"><td>/persons/initialize</td>
 <td>frame</td>
-<td>(shape-&gt;[83,7])</td>
+<td>(shape-&gt;[154,50])</td>
 </tr>
-<tr class="row-odd"><td>/persons/compute_accessibility</td>
+<tr class="row-odd"><td>/persons/school_location_simulate</td>
 <td>frame</td>
-<td>(shape-&gt;[156,50])</td>
-</tr>
-<tr class="row-even"><td>/persons/school_location_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[156,54])</td>
-</tr>
-<tr class="row-odd"><td>/persons/workplace_location_simulate</td>
-<td>frame</td>
-<td>(shape-&gt;[156,59])</td>
+<td>(shape-&gt;[154,53])</td>
 </tr>
 <tr class="row-even"><td>/persons/cdap_simulate</td>
 <td>frame</td>
-<td>(shape-&gt;[156,64])</td>
+<td>(shape-&gt;[154,63])</td>
 </tr>
 <tr class="row-odd"><td>/persons/mandatory_tour_frequency</td>
 <td>frame</td>
-<td>(shape-&gt;[156,69])</td>
+<td>(shape-&gt;[154,68])</td>
 </tr>
 <tr class="row-even"><td>/persons/non_mandatory_tour_frequency</td>
 <td>frame</td>
-<td>(shape-&gt;[156,72])</td>
+<td>(shape-&gt;[154,73])</td>
+</tr>
+<tr class="row-odd"><td>/persons/workplace_location_simulate</td>
+<td>frame</td>
+<td>(shape-&gt;[154,58])</td>
+</tr>
+<tr class="row-even"><td>/person_windows/initialize</td>
+<td>frame</td>
+<td>(shape-&gt;[154,21])</td>
+</tr>
+<tr class="row-odd"><td>/person_windows/mandatory_tour_scheduling</td>
+<td>frame</td>
+<td>(shape-&gt;[154,21])</td>
+</tr>
+<tr class="row-even"><td>/person_windows/non_mandatory_tour_scheduling</td>
+<td>frame</td>
+<td>(shape-&gt;[154,21])</td>
+</tr>
+<tr class="row-odd"><td>/tours/mandatory_tour_frequency</td>
+<td>frame</td>
+<td>(shape-&gt;[79,11])</td>
+</tr>
+<tr class="row-even"><td>/tours/mandatory_tour_scheduling</td>
+<td>frame</td>
+<td>(shape-&gt;[79,15])</td>
+</tr>
+<tr class="row-odd"><td>/tours/non_mandatory_tour_frequency</td>
+<td>frame</td>
+<td>(shape-&gt;[168,15])</td>
+</tr>
+<tr class="row-even"><td>/tours/non_mandatory_tour_destination_choice</td>
+<td>frame</td>
+<td>(shape-&gt;[168,15])</td>
+</tr>
+<tr class="row-odd"><td>/tours/non_mandatory_tour_scheduling</td>
+<td>frame</td>
+<td>(shape-&gt;[168,15])</td>
+</tr>
+<tr class="row-even"><td>/tours/annotate_table.model_name=annotate_tours</td>
+<td>frame</td>
+<td>(shape-&gt;[168,41])</td>
 </tr>
 <tr class="row-odd"><td>/tours/tour_mode_choice_simulate</td>
 <td>frame</td>
-<td>(shape-&gt;[160,38])</td>
+<td>(shape-&gt;[168,42])</td>
 </tr>
-<tr class="row-even"><td>/trips/create_simple_trips</td>
+<tr class="row-even"><td>/tours/atwork_subtour_frequency</td>
 <td>frame</td>
-<td>(shape-&gt;[320,8])</td>
+<td>(shape-&gt;[173,44])</td>
 </tr>
-<tr class="row-odd"><td>/trips/trip_mode_choice_simulate</td>
+<tr class="row-odd"><td>/tours/atwork_subtour_destination_simulate</td>
 <td>frame</td>
-<td>(shape-&gt;[320,9])</td>
+<td>(shape-&gt;[173,44])</td>
+</tr>
+<tr class="row-even"><td>/tours/atwork_subtour_scheduling</td>
+<td>frame</td>
+<td>(shape-&gt;[173,44])</td>
+</tr>
+<tr class="row-odd"><td>/trips/create_simple_trips</td>
+<td>frame</td>
+<td>(shape-&gt;[336,8])</td>
+</tr>
+<tr class="row-even"><td>/trips/trip_mode_choice_simulate</td>
+<td>frame</td>
+<td>(shape-&gt;[336,9])</td>
+</tr>
+<tr class="row-odd"><td>/school_location_sample/school_location_sample</td>
+<td>frame</td>
+<td>(shape-&gt;[168,5])</td>
+</tr>
+<tr class="row-even"><td>/school_location_sample/school_location_logsums</td>
+<td>frame</td>
+<td>(shape-&gt;[168,6])</td>
+</tr>
+<tr class="row-odd"><td>/workplace_location_sample/workplace_location_sample</td>
+<td>frame</td>
+<td>(shape-&gt;[2196,4])</td>
+</tr>
+<tr class="row-even"><td>/workplace_location_sample/workplace_location_logsums</td>
+<td>frame</td>
+<td>(shape-&gt;[2196,5])</td>
+</tr>
+<tr class="row-odd"><td>/atwork_subtour_destination_sample/atwork_subtour_destination_sample</td>
+<td>frame</td>
+<td>(shape-&gt;[77,6])</td>
+</tr>
+<tr class="row-even"><td>/atwork_subtour_destination_sample/atwork_subtour_destination_logsums</td>
+<td>frame</td>
+<td>(shape-&gt;[77,7])</td>
 </tr>
 </tbody>
 </table>
@@ -609,7 +709,7 @@ help debug data and/or logic errors.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.4',
+            VERSION:'0.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

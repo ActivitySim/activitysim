@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core Components &mdash; ActivitySim 0.4 documentation</title>
+  <title>Core Components &mdash; ActivitySim 0.5 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.4 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5 documentation" href="index.html"/>
         <link rel="next" title="Models" href="models.html"/>
         <link rel="prev" title="Data Schema" href="dataschema.html"/> 
 
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.4
+                0.5
               </div>
             
           
@@ -147,17 +147,25 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#helpers">Helpers</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id12">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#person-time-windows">Person Time Windows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id12">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#helpers">Helpers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id13">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#inject-defaults">Inject_Defaults</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id14">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#inject">Inject</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id16">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#inject-defaults">Inject_Defaults</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id17">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
@@ -233,10 +241,11 @@
   <div class="section" id="core-components">
 <h1>Core Components<a class="headerlink" href="#core-components" title="Permalink to this headline">¶</a></h1>
 <p>ActivitySim’s core components include features for data management,
-utility expressions, choice models, and helper functions.  These core
-components include the skim matrix manager, the data pipeline manager, the
-random number manager, the tracer, sampling methods, simulation methods, model
-specification readers and expression evaluators, choice models, and helper functions.</p>
+utility expressions, choice models, person time window management, and helper
+functions.  These core components include the skim matrix manager, the
+data pipeline manager, the random number manager, the tracer, sampling
+methods, simulation methods, model specification readers and expression
+evaluators, choice models, timetable, and helper functions.</p>
 <div class="section" id="data-management">
 <h2>Data Management<a class="headerlink" href="#data-management" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="skim">
@@ -521,9 +530,28 @@ Write the current state of the random number generator.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.core.pipeline.close">
-<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.close" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.pipeline.close_pipeline">
+<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">close_pipeline</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.close_pipeline" title="Permalink to this definition">¶</a></dt>
 <dd><p>Close any known open files</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.pipeline.extend_table">
+<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">extend_table</code><span class="sig-paren">(</span><em>table_name</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.extend_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>add new table or extend (add rows) to an existing table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table_name</strong> : str</p>
+<blockquote>
+<div><p>orca/inject table name</p>
+</div></blockquote>
+<p class="last"><strong>df</strong> : pandas DataFrame</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -543,7 +571,7 @@ Write the current state of the random number generator.</p>
 <dl class="function">
 <dt id="activitysim.core.pipeline.get_pipeline_store">
 <code class="descclassname">activitysim.core.pipeline.</code><code class="descname">get_pipeline_store</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.get_pipeline_store" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the open pipeline hdf5 checkpoint store or return False if it not been opened</p>
+<dd><p>Return the open pipeline hdf5 checkpoint store or return None if it not been opened</p>
 </dd></dl>
 
 <dl class="function">
@@ -595,7 +623,27 @@ This allows us to resume the simulation after the specified checkpoint</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>checkpoint_name</strong> : str</p>
 <blockquote class="last">
-<div><p>model_name of checkpoint to load (resume_after argument to start_pipeline)</p>
+<div><p>model_name of checkpoint to load (resume_after argument to open_pipeline)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.pipeline.open_pipeline">
+<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">open_pipeline</code><span class="sig-paren">(</span><em>resume_after=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.open_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start pipeline, either for a new run or, if resume_after, loading checkpoint from pipeline.</p>
+<p>If resume_after, then we expect the pipeline hdf5 file to exist and contain
+checkpoints from a previous run, including a checkpoint with name specified in resume_after</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>resume_after</strong> : str or None</p>
+<blockquote class="last">
+<div><p>name of checkpoint to load from pipeline store</p>
 </div></blockquote>
 </td>
 </tr>
@@ -606,7 +654,7 @@ This allows us to resume the simulation after the specified checkpoint</p>
 <dl class="function">
 <dt id="activitysim.core.pipeline.open_pipeline_store">
 <code class="descclassname">activitysim.core.pipeline.</code><code class="descname">open_pipeline_store</code><span class="sig-paren">(</span><em>overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.open_pipeline_store" title="Permalink to this definition">¶</a></dt>
-<dd><p>Open the pipeline checkpoint store and add an orca injectable to access it</p>
+<dd><p>Open the pipeline checkpoint store</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -647,6 +695,31 @@ so we need to know both the table_name and the checkpoint_name of hte desired ta
 <blockquote class="last">
 <div><p>the dataframe read from the store</p>
 </div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.pipeline.replace_table">
+<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">replace_table</code><span class="sig-paren">(</span><em>table_name</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.replace_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add or replace a orca table, removing any existing added orca columns</p>
+<p>The use case for this function is a method that calls to_frame on an orca table, modifies
+it and then saves the modified.</p>
+<p>orca.to_frame returns a copy, so no changes are saved, and adding multiple column with
+add_column adds them in an indeterminate order.</p>
+<p>Simply replacing an existing the table “behind the pipeline’s back” by calling orca.add_table
+risks pipeline to failing to detect that it has changed, and thus not checkpoint the changes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table_name</strong> : str</p>
+<blockquote>
+<div><p>orca/pipeline table name</p>
+</div></blockquote>
+<p class="last"><strong>df</strong> : pandas DataFrame</p>
 </td>
 </tr>
 </tbody>
@@ -734,7 +807,7 @@ The default base seed value is 0, so set_base_seed(0) is a NOP</p>
 than the default, but will provide repeatable results re-running or resuming the simulation</p>
 <p>set_rn_generator_base_seed(None) will set the base seed to a random and unpredictable integer
 and so provides “fully pseudo random” non-repeatable streams with different results every time</p>
-<p>Must be called before start_pipeline() or pipeline.run()</p>
+<p>Must be called before open_pipeline() or pipeline.run()</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -746,23 +819,9 @@ and so provides “fully pseudo random” non-repeatable streams with different 
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.core.pipeline.start_pipeline">
-<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">start_pipeline</code><span class="sig-paren">(</span><em>resume_after=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.start_pipeline" title="Permalink to this definition">¶</a></dt>
-<dd><p>Start pipeline, either for a new run or, if resume_after, loading checkpoint from pipeline.</p>
-<p>If resume_after, then we expect the pipeline hdf5 file to exist and contain
-checkpoints from a previous run, including a checkpoint with name specified in resume_after</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>resume_after</strong> : str or None</p>
-<blockquote class="last">
-<div><p>name of checkpoint to load from pipeline store</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="activitysim.core.pipeline.split_arg">
+<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">split_arg</code><span class="sig-paren">(</span><em>s</em>, <em>sep</em>, <em>default=''</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.split_arg" title="Permalink to this definition">¶</a></dt>
+<dd><p>split str s in two at first sep, returning empty string as second result if no sep</p>
 </dd></dl>
 
 <dl class="function">
@@ -981,10 +1040,9 @@ with stable, predictable, repeatable row_seeds for that domain_df index value</p
 
 <dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.extend_domain">
-<code class="descname">extend_domain</code><span class="sig-paren">(</span><em>domain_df</em>, <em>step_name</em>, <em>step_num</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.extend_domain" title="Permalink to this definition">¶</a></dt>
+<code class="descname">extend_domain</code><span class="sig-paren">(</span><em>domain_df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.extend_domain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extend existing row_state df by adding seed info for each row in domain_df</p>
-<p>This is only needed if the channel is composed of more than one underlying table.
-It is assumed that the index values of the component tables are disjoint and
+<p>It is assumed that the index values of the component tables are disjoint and
 there will be no ambiguity/collisions between them</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1319,8 +1377,8 @@ so it can create separate tables for each distinct target for readability</p>
 <dl class="function">
 <dt id="activitysim.core.tracing.register_tours">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_tours</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_tours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register with orca persons for tracing</p>
-<p>create an orca injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
+<dd><p>Register with inject for tracing</p>
+<p>create an injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
 This allows us to slice by tour_id without requiring presence of person_id column</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1367,8 +1425,8 @@ This allows us to slice by tour_id without requiring presence of person_id colum
 <dl class="function">
 <dt id="activitysim.core.tracing.register_trips">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_trips</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_trips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register with orca persons for tracing</p>
-<p>create an orca injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
+<dd><p>Register with inject for tracing</p>
+<p>create an injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
 This allows us to slice by tour_id without requiring presence of person_id column</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1646,11 +1704,11 @@ in the example destination choice model, the size terms expressions file has mar
 coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:</p>
 <ul class="simple">
 <li>Simple <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> choice model - select from a fixed set of choices defined in the specification file, such as the example above.</li>
-<li><a class="reference internal" href="#simulate-with-interaction"><span class="std std-ref">Simulate with Interaction</span></a> choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The non-mandatory tour <a class="reference internal" href="models.html#destination-choice"><span class="std std-ref">Destination Choice</span></a> model implements this approach.</li>
-<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a> models are examples of this and are illustrated below.</li>
+<li><a class="reference internal" href="#simulate-with-interaction"><span class="std std-ref">Simulate with Interaction</span></a> choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The <a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a> model implements this approach.</li>
+<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a> models are examples of this and are illustrated below.</li>
 <li>Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a> model implements this approach.</li>
 </ul>
-<p>The <a class="reference internal" href="models.html#mode-choice"><span class="std std-ref">Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
+<p>The <a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
 Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.
 In the example below, the <code class="docutils literal"><span class="pre">&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME']</span></code> expression is travel time for the tour origin to desination at the tour start time plus the tour
 destination to tour origin at the tour end time.  The <code class="docutils literal"><span class="pre">odt_skims</span></code> and <code class="docutils literal"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.
@@ -1815,7 +1873,7 @@ choices are simulated in the standard Monte Carlo fashion</p>
 <div><p>number of samples/choices to make</p>
 </div></blockquote>
 <p><strong>alternative_count</strong></p>
-<p><strong>alt_col_name</strong></p>
+<p><strong>alt_col_name</strong> : str</p>
 <p class="last"><strong>trace_label</strong></p>
 </td>
 </tr>
@@ -1864,7 +1922,8 @@ the skims object is intended to be used.</p>
 <dl class="function">
 <dt id="activitysim.core.simulate.chunked_choosers_and_alts">
 <code class="descclassname">activitysim.core.simulate.</code><code class="descname">chunked_choosers_and_alts</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>rows_per_chunk</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.chunked_choosers_and_alts" title="Permalink to this definition">¶</a></dt>
-<dd><p>like chunked_choosers, but also chunks alternatives
+<dd><p>generator to iterate over choosers and alternatives in chunk_size chunks</p>
+<p>like chunked_choosers, but also chunks alternatives
 for use with sampled alternatives which will have different alternatives (and numbers of alts)</p>
 <p>There may be up to sample_size (or as few as one) alternatives for each chooser
 because alternatives may have been sampled more than once,  but pick_count for those
@@ -2394,7 +2453,8 @@ because alternatives are being sampled.</p>
 </div></blockquote>
 <p><strong>alternatives</strong> : pandas.DataFrame</p>
 <blockquote>
-<div><p>DataFrame of alternatives - will be merged with choosers</p>
+<div><p>DataFrame of alternatives - will be merged with choosers
+index domain same as choosers, but repeated for each alternative</p>
 </div></blockquote>
 <p><strong>spec</strong> : pandas.DataFrame</p>
 <blockquote>
@@ -2783,14 +2843,370 @@ which is indexed on index values from alternatives df</p>
 </div>
 </div>
 </div>
+<div class="section" id="person-time-windows">
+<span id="time-windows"></span><h2>Person Time Windows<a class="headerlink" href="#person-time-windows" title="Permalink to this headline">¶</a></h2>
+<p>The departure time and duration models require person time windows. Time windows are adjacent time
+periods that are available for travel. Time windows are stored in a timetable table and each row is
+a person and each time period (in the case of MTC TM1 is 5am to midnight in 1 hr increments) is a column.
+Each column is coded as follows:</p>
+<ul class="simple">
+<li>0 - unscheduled, available</li>
+<li>2 - scheduled, start of a tour, is available as the last period of another tour</li>
+<li>4 - scheduled, end of a tour, is available as the first period of another tour</li>
+<li>6 - scheduled, end or start of a tour, available for this period only</li>
+<li>7 - scheduled, unavailable, middle of a tour</li>
+</ul>
+<p>A good example of a time window expression is <code class="docutils literal"><span class="pre">&#64;tt.previous_tour_ends(df.person_id,</span> <span class="pre">df.start)</span></code>.  This
+uses the person id and the tour start period to check if a previous tour ends in the same time period.</p>
+<div class="section" id="id12">
+<h3>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.core.timetable"></span><dl class="class">
+<dt id="activitysim.core.timetable.TimeTable">
+<em class="property">class </em><code class="descclassname">activitysim.core.timetable.</code><code class="descname">TimeTable</code><span class="sig-paren">(</span><em>windows_df</em>, <em>tdd_alts_df</em>, <em>table_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tdd_alts_df</span>      <span class="n">tdd_footprints_df</span>
+<span class="n">start</span>  <span class="n">end</span>      <span class="s1">&#39;0&#39;</span> <span class="s1">&#39;1&#39;</span> <span class="s1">&#39;2&#39;</span> <span class="s1">&#39;3&#39;</span> <span class="s1">&#39;4&#39;</span><span class="o">...</span>
+<span class="mi">5</span>      <span class="mi">5</span>    <span class="o">==&gt;</span>  <span class="mi">0</span>   <span class="mi">6</span>   <span class="mi">0</span>   <span class="mi">0</span>   <span class="mi">0</span> <span class="o">...</span>
+<span class="mi">5</span>      <span class="mi">6</span>    <span class="o">==&gt;</span>  <span class="mi">0</span>   <span class="mi">2</span>   <span class="mi">4</span>   <span class="mi">0</span>   <span class="mi">0</span> <span class="o">...</span>
+<span class="mi">5</span>      <span class="mi">7</span>    <span class="o">==&gt;</span>  <span class="mi">0</span>   <span class="mi">2</span>   <span class="mi">7</span>   <span class="mi">4</span>   <span class="mi">0</span> <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.adjacent_window_after">
+<code class="descname">adjacent_window_after</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_after" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of adjacent periods after specified period that are available
+(not in the middle of another tour.)</p>
+<p>Implements MTC TM1 macro &#64;&#64;adjWindowAfterThisPeriodAlt
+Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>periods</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series int</p>
+<blockquote class="last">
+<div><p>Number of adjacent windows indexed by window_row_ids.index</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.adjacent_window_before">
+<code class="descname">adjacent_window_before</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_before" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of adjacent periods before specified period that are available
+(not in the middle of another tour.)</p>
+<p>Implements MTC TM1 macro &#64;&#64;getAdjWindowBeforeThisPeriodAlt
+Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>periods</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series int</p>
+<blockquote class="last">
+<div><p>Number of adjacent windows indexed by window_row_ids.index</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.adjacent_window_run_length">
+<code class="descname">adjacent_window_run_length</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em>, <em>before</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_run_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of adjacent periods before or after specified period
+that are available (not in the middle of another tour.)</p>
+<p>Internal DRY method to implement adjacent_window_before and adjacent_window_after</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>periods</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+<p><strong>before</strong> : bool</p>
+<blockquote class="last">
+<div><p>Specify desired run length is of adjacent window before (True) or after (False)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.assign">
+<code class="descname">assign</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign tours (represented by tdd alt ids) to persons</p>
+<p>Updates self.windows numpy array. Assignments will no ‘take’ outside this object
+until/unless replace_table called or updated timetable retrieved by get_windows_df</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>tdds</strong> : pandas series</p>
+<blockquote class="last">
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.assign_subtour_mask">
+<code class="descname">assign_subtour_mask</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign_subtour_mask" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">index</span>     <span class="n">window_row_ids</span>   <span class="n">tdds</span>
+<span class="mi">20973389</span>  <span class="mi">20973389</span>           <span class="mi">26</span>
+<span class="mi">44612864</span>  <span class="mi">44612864</span>            <span class="mi">3</span>
+<span class="mi">48954854</span>  <span class="mi">48954854</span>            <span class="mi">7</span>
+
+<span class="n">tour</span> <span class="n">footprints</span>
+<span class="p">[[</span><span class="mi">0</span> <span class="mi">0</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">4</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">4</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">4</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span><span class="p">]]</span>
+
+<span class="n">subtour_mask</span>
+<span class="p">[[</span><span class="mi">7</span> <span class="mi">7</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">7</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">7</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span> <span class="mi">7</span><span class="p">]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.previous_tour_begins">
+<code class="descname">previous_tour_begins</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.previous_tour_begins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does a previously scheduled tour begin in the specified period?</p>
+<p>Implements MTC TM1 &#64;&#64;prevTourBeginsThisArrivalPeriodAlt</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>periods</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series boolean</p>
+<blockquote class="last">
+<div><p>indexed by window_row_ids.index</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.previous_tour_ends">
+<code class="descname">previous_tour_ends</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.previous_tour_ends" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does a previously scheduled tour end in the specified period?</p>
+<p>Implements MTC TM1 &#64;&#64;prevTourEndsThisDeparturePeriodAlt</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>periods</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series boolean</p>
+<blockquote class="last">
+<div><p>indexed by window_row_ids.index</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.remaining_periods_available">
+<code class="descname">remaining_periods_available</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>starts</em>, <em>ends</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.remaining_periods_available" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine number of periods remaining available after the time window from starts to ends
+is hypothetically scheduled</p>
+<p>Implements MTC TM1 &#64;&#64;remainingPeriodsAvailableAlt</p>
+<p>The start and end periods will always be available after scheduling, so ignore them.
+The periods between start and end must be currently unscheduled, so assume they will become
+unavailable after scheduling this window.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>starts</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+<p><strong>ends</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>available</strong> : pandas Series int</p>
+<blockquote class="last">
+<div><p>number periods available indexed by window_row_ids.index</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.replace_table">
+<code class="descname">replace_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.replace_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save or replace windows_df  DataFrame to pipeline with saved table name
+(specified when object instantiated.)</p>
+<p>This is a convenience function in case caller instantiates object in one context
+(e.g. dependency injection) where it knows the pipeline table name, but wants to
+checkpoint the table in another context where it does not know that name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.tour_available">
+<code class="descname">tour_available</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.tour_available" title="Permalink to this definition">¶</a></dt>
+<dd><p>test whether time window allows tour with specific tdd alt’s time window</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row_ids</strong> : pandas Series</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>tdds</strong> : pandas series</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>available</strong> : pandas Series of bool</p>
+<blockquote class="last">
+<div><p>with same index as window_row_ids.index (presumably tour_id, but we don’t care)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.window_periods_in_states">
+<code class="descname">window_periods_in_states</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em>, <em>states</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.window_periods_in_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return boolean array indicating whether specified window periods are in list of states.</p>
+<p>Internal DRY method to implement previous_tour_ends and previous_tour_begins</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
+<blockquote>
+<div><p>series of window_row_ids indexed by tour_id</p>
+</div></blockquote>
+<p><strong>periods</strong> : pandas series int</p>
+<blockquote>
+<div><p>series of tdd_alt ids, index irrelevant</p>
+</div></blockquote>
+<p><strong>states</strong> : list of int</p>
+<blockquote>
+<div><p>presumably (e.g. I_EMPTY, I_START…)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series boolean</p>
+<blockquote class="last">
+<div><p>indexed by window_row_ids.index</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="helpers">
 <h2>Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <p>Vectorized helper functions</p>
-<div class="section" id="id12">
-<h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id13">
+<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="function">
+<dt id="activitysim.core.util.assign_in_place">
+<code class="descclassname">activitysim.core.util.</code><code class="descname">assign_in_place</code><span class="sig-paren">(</span><em>df</em>, <em>df2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.assign_in_place" title="Permalink to this definition">¶</a></dt>
+<dd><p>update existing row values in df from df2, adding columns to df if they are not tehre</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pd.DataFrame</p>
+<blockquote>
+<div><p>assignment left-hand-side (dest)</p>
+</div></blockquote>
+<p><strong>df2: pd.DataFrame</strong></p>
+<blockquote>
+<div><p>assignment right-hand-side (source)</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p class="last"><strong>——-</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.util.left_merge_on_index_and_col">
 <code class="descclassname">activitysim.core.util.</code><code class="descname">left_merge_on_index_and_col</code><span class="sig-paren">(</span><em>left_df</em>, <em>right_df</em>, <em>join_col</em>, <em>target_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.left_merge_on_index_and_col" title="Permalink to this definition">¶</a></dt>
 <dd><p>like pandas left merge, but join on both index and a specified join_col</p>
@@ -2943,8 +3359,8 @@ table and would require a second step to change the index.</p>
 <div class="section" id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for configuring a model run</p>
-<div class="section" id="id13">
-<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id14">
+<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.config"></span><dl class="function">
 <dt id="activitysim.core.config.get_logit_model_settings">
 <code class="descclassname">activitysim.core.config.</code><code class="descname">get_logit_model_settings</code><span class="sig-paren">(</span><em>model_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.get_logit_model_settings" title="Permalink to this definition">¶</a></dt>
@@ -2985,13 +3401,53 @@ table and would require a second step to change the index.</p>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="activitysim.core.config.handle_standard_args">
+<code class="descclassname">activitysim.core.config.</code><code class="descname">handle_standard_args</code><span class="sig-paren">(</span><em>parser=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.handle_standard_args" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Adds ‘standard’ activitysim arguments:</dt>
+<dd>–config : specify path to config_dir
+–output : specify path to output_dir
+–data   : specify path to data_dir</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>parser</strong> : argparse.ArgumentParser or None</p>
+<blockquote>
+<div><p>to  custom argument handling, pass in a parser with arguments added
+and handle them based on returned args. This method will hand the args it adds</p>
+</div></blockquote>
+<p><strong>Returns</strong></p>
+<p><strong>——-</strong></p>
+<p class="last"><strong>args</strong> : parser.parse_args() result</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="inject">
+<span id="id15"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
+<p>ORCA wrapper class to make it easier to track and manage interaction with the data pipeline.</p>
+<div class="section" id="id16">
+<h4>API<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.inject"></span><dl class="function">
+<dt id="activitysim.core.inject.reinject_decorated_tables">
+<code class="descclassname">activitysim.core.inject.</code><code class="descname">reinject_decorated_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.reinject_decorated_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>reinject the decorated tables (and columns)</p>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="inject-defaults">
 <h3>Inject_Defaults<a class="headerlink" href="#inject-defaults" title="Permalink to this headline">¶</a></h3>
-<p>Default file and folder settings</p>
-<div class="section" id="id14">
-<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<p>Default file and folder settings are injected into the orca model runner if needed.</p>
+<div class="section" id="id17">
+<h4>API<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject_defaults"></span><dl class="function">
 <dt id="activitysim.core.inject_defaults.pipeline_path">
 <code class="descclassname">activitysim.core.inject_defaults.</code><code class="descname">pipeline_path</code><span class="sig-paren">(</span><em>output_dir</em>, <em>settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject_defaults.pipeline_path" title="Permalink to this definition">¶</a></dt>
@@ -3002,7 +3458,7 @@ table and would require a second step to change the index.</p>
 </div>
 <div class="section" id="tests">
 <h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
-<p>See activitysim.core.tests</p>
+<p>See activitysim.core.test</p>
 </div>
 </div>
 </div>
@@ -3051,7 +3507,7 @@ table and would require a second step to change the index.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.4',
+            VERSION:'0.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

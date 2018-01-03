@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ActivitySim &mdash; ActivitySim 0.4 documentation</title>
+  <title>ActivitySim &mdash; ActivitySim 0.5 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.4 documentation" href="#"/>
+    <link rel="top" title="ActivitySim 0.5 documentation" href="#"/>
         <link rel="next" title="Getting Started" href="gettingstarted.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4
+                0.5
               </div>
             
           
@@ -228,6 +228,13 @@ for more information.  It also supports custom expressions as noted above, which
 code additional types of choice models.  In addition, developers can write their own choice models
 in Python and expose these through the framework.</p>
 </div>
+<div class="section" id="person-time-windows">
+<h3>Person Time Windows<a class="headerlink" href="#person-time-windows" title="Permalink to this headline">¶</a></h3>
+<p>The departure time and duration models require person time windows. Time windows are adjacent time
+periods that are available for travel. ActivitySim maintains time windows in a pandas table where each row is
+a person and each time period is a column.  As travel is scheduled throughout the simulation, the relevant
+columns for the tour, trip, etc. are updated as needed. Refer to <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a> for more information.</p>
+</div>
 </div>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
@@ -250,18 +257,17 @@ in Python and expose these through the framework.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="howitworks.html#execution-flow">Execution Flow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="howitworks.html#creating-new-tables">Creating New Tables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="howitworks.html#vectorized-3d-skim-indexing">Vectorized 3D Skim Indexing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="howitworks.html#accessibilities-model">Accessibilities Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="howitworks.html#additional-notes">Additional Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dataschema.html#accessibilities">Accessibilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataschema.html#households">Households</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dataschema.html#land-use">Land use</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataschema.html#persons">Persons</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dataschema.html#size-terms">Size terms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#households">Households</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#persons">Persons</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dataschema.html#skims">Skims</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataschema.html#time-windows">Time Windows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dataschema.html#tours">Tours</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dataschema.html#trips">Trips</a></li>
 </ul>
@@ -270,22 +276,30 @@ in Python and expose these through the framework.</p>
 <li class="toctree-l2"><a class="reference internal" href="core.html#data-management">Data Management</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#utility-expressions">Utility Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#choice-models">Choice Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#person-time-windows">Person Time Windows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#helpers">Helpers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#initialize">Initialize</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#accessibility">Accessibility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#auto-ownership">Auto Ownership</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#coordinated-daily-activity-pattern">Coordinated Daily Activity Pattern</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#destination-choice">Destination Choice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-tour-frequency">Mandatory Tour Frequency</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-tour-scheduling">Mandatory Tour Scheduling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#create-trips">Create Trips</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#mode">Mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-tour-scheduling">Non-Mandatory Tour Scheduling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#school-location">School Location</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#workplace-location">Workplace Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#auto-ownership">Auto Ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#coordinated-daily-activity-pattern">Coordinated Daily Activity Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-tour-frequency">Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#mandatory-tour-scheduling">Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice">Non-Mandatory Tour Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#annotate-table">Annotate Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#non-mandatory-tour-scheduling">Non-Mandatory Tour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#tour-mode">Tour Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#at-work-subtours-frequency">At-work Subtours Frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#at-work-subtours-destination-choice">At-work Subtours Destination Choice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#at-work-subtour-scheduling">At-work Subtour Scheduling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#at-work-subtour-mode">At-work Subtour Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#create-trips">Create Trips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#trip-mode">Trip Mode</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#util">Util</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#tests">Tests</a></li>
 </ul>
@@ -355,7 +369,7 @@ in Python and expose these through the framework.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.4',
+            VERSION:'0.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

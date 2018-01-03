@@ -3,10 +3,11 @@ Core Components
 ===============
 
 ActivitySim's core components include features for data management, 
-utility expressions, choice models, and helper functions.  These core 
-components include the skim matrix manager, the data pipeline manager, the 
-random number manager, the tracer, sampling methods, simulation methods, model 
-specification readers and expression evaluators, choice models, and helper functions.
+utility expressions, choice models, person time window management, and helper 
+functions.  These core components include the skim matrix manager, the 
+data pipeline manager, the random number manager, the tracer, sampling 
+methods, simulation methods, model specification readers and expression 
+evaluators, choice models, timetable, and helper functions.
 
 Data Management
 ---------------
@@ -154,11 +155,11 @@ in the example destination choice model, the size terms expressions file has mar
 coefficients as columns.  Broadly speaking, there are currently four types of model expression configurations:
 
 * Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
-* :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The non-mandatory tour :ref:`destination_choice` model implements this approach.
-* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`mode_choice` models are examples of this and are illustrated below.
+* :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The :ref:`non_mandatory_tour_destination_choice` model implements this approach.
+* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`tour_mode_choice` models are examples of this and are illustrated below.
 * Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
 
-The :ref:`mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
+The :ref:`tour_mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
 Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.  
 In the example below, the ``@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']`` expression is travel time for the tour origin to desination at the tour start time plus the tour
 destination to tour origin at the tour end time.  The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.
@@ -289,7 +290,31 @@ API
 .. automodule:: activitysim.core.logit
    :members:
 
+.. _time_windows:
 
+Person Time Windows
+-------------------
+
+The departure time and duration models require person time windows. Time windows are adjacent time 
+periods that are available for travel. Time windows are stored in a timetable table and each row is 
+a person and each time period (in the case of MTC TM1 is 5am to midnight in 1 hr increments) is a column. 
+Each column is coded as follows:
+
+* 0 - unscheduled, available
+* 2 - scheduled, start of a tour, is available as the last period of another tour
+* 4 - scheduled, end of a tour, is available as the first period of another tour
+* 6 - scheduled, end or start of a tour, available for this period only
+* 7 - scheduled, unavailable, middle of a tour
+
+A good example of a time window expression is ``@tt.previous_tour_ends(df.person_id, df.start)``.  This 
+uses the person id and the tour start period to check if a previous tour ends in the same time period.
+
+API
+~~~
+
+.. automodule:: activitysim.core.timetable
+   :members:
+   
 Helpers
 -------
 
@@ -315,11 +340,23 @@ API
 .. automodule:: activitysim.core.config
    :members:
 
+.. _inject:
+
+Inject
+~~~~~~
+
+ORCA wrapper class to make it easier to track and manage interaction with the data pipeline.
+
+API
+^^^
+
+.. automodule:: activitysim.core.inject
+   :members:
 
 Inject_Defaults
 ~~~~~~~~~~~~~~~
 
-Default file and folder settings
+Default file and folder settings are injected into the orca model runner if needed.
 
 API
 ^^^
@@ -330,4 +367,4 @@ API
 Tests
 ~~~~~
 
-See activitysim.core.tests
+See activitysim.core.test

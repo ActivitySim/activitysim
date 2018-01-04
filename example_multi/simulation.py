@@ -4,7 +4,10 @@ import logging
 from activitysim import abm
 from activitysim.core import tracing
 from activitysim.core import inject
+from activitysim.core import pipeline
 from activitysim.core import simulate as asim
+
+from activitysim.core.util import memory_info
 
 import pandas as pd
 import numpy as np
@@ -17,23 +20,28 @@ DATA_REPO = "C:/projects/sandag-asim/toRSG/output/"
 DATA_REPO = "E:/activitysim/project/output/"
 DATA_REPO = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output/"
 
-
 COMPARE_RESULTS = False
 
 tracing.config_logger()
 logger = logging.getLogger('activitysim')
 
 
-@inject.injectable()
+@inject.injectable(override=True)
 def output_dir():
     if not os.path.exists('output'):
         os.makedirs('output')  # make directory if needed
     return 'output'
 
 
-@inject.injectable()
+@inject.injectable(override=True)
 def data_dir():
     return os.path.join(DATA_REPO)
+
+
+@inject.injectable(override=True)
+def preload_injectables():
+    # don't want to load standard skims
+    pass
 
 
 def print_elapsed_time(msg=None, t0=None):
@@ -52,81 +60,90 @@ def print_elapsed_time_per_unit(msg, t0, divisor):
     if msg:
         t = t1 - (t0 or t1)
         per_unit = unit * t / divisor
-        msg = "Time to execute %s : %s seconds (%s per unit)" % (msg, round(t, 3),
-                                                                 round(per_unit, 4))
+        msg = "Time to execute %s : %s seconds (%s per unit, divisor %s)" % \
+              (msg, round(t, 3), round(per_unit, 4), divisor)
         logger.info(msg)
     return time.time()
 
 
 def get_taz(VECTOR_TEST_SIZE):
-    # select some random rows with attributes
-    taz_df = network_los.taz_df[~np.isnan(network_los.taz_df.terminal_time)]
-    random_taz = taz_df.sample(VECTOR_TEST_SIZE, replace=True)
-    result = network_los.get_taz(random_taz.index.values, 'terminal_time')
+    # select some random rows with non-null attributes
+
+    random_taz = np.random.choice(
+        network_los.taz_df.terminal_time.dropna().index.values,
+        size=VECTOR_TEST_SIZE, replace=True)
+
+    result = network_los.get_taz(random_taz, 'terminal_time')
 
     if COMPARE_RESULTS:
 
         # Int64Index
-        result2 = network_los.get_taz(random_taz.index, 'terminal_time')
+        result2 = network_los.get_taz(pd.Series(0, index=random_taz).index, 'terminal_time')
         assert list(result) == list(result2)
 
         # Series
-        result2 = network_los.get_taz(pd.Series(data=random_taz.index.values), 'terminal_time')
+        result2 = network_los.get_taz(pd.Series(data=random_taz), 'terminal_time')
         assert list(result) == list(result2)
 
     return result
 
 
 def get_tap(VECTOR_TEST_SIZE):
-    tap_df = network_los.tap_df
-    random_tap = tap_df.sample(VECTOR_TEST_SIZE, replace=True)
-    result = network_los.get_tap(random_tap.index.values, 'TAZ')
+
+    random_tap = np.random.choice(
+        network_los.tap_df.index.values,
+        size=VECTOR_TEST_SIZE, replace=True)
+
+    result = network_los.get_tap(random_tap, 'TAZ')
 
     if COMPARE_RESULTS:
 
         # Int64Index
-        result2 = network_los.get_tap(random_tap.index, 'TAZ')
+        result2 = network_los.get_tap(pd.Series(index=random_tap).index, 'TAZ')
         assert list(result) == list(result2)
 
         # Series
-        result2 = network_los.get_tap(pd.Series(data=random_tap.index.values), 'TAZ')
+        result2 = network_los.get_tap(pd.Series(data=random_tap), 'TAZ')
         assert list(result) == list(result2)
 
     return result
 
 
 def get_maz(VECTOR_TEST_SIZE):
-    maz_df = network_los.maz_df
-    random_maz = maz_df.sample(VECTOR_TEST_SIZE, replace=True)
-    result = network_los.get_maz(random_maz.index.values, 'milestocoast')
+
+    random_maz = np.random.choice(
+        network_los.maz_df.index.values,
+        size=VECTOR_TEST_SIZE, replace=True)
+
+    result = network_los.get_maz(random_maz, 'milestocoast')
 
     if COMPARE_RESULTS:
 
         # Int64Index
-        result2 = network_los.get_maz(random_maz.index, 'milestocoast')
+        result2 = network_los.get_maz(pd.Series(index=random_maz).index, 'milestocoast')
         assert list(result) == list(result2)
 
         # Series
-        result2 = network_los.get_maz(pd.Series(data=random_maz.index.values), 'milestocoast')
+        result2 = network_los.get_maz(pd.Series(data=random_maz), 'milestocoast')
         assert list(result) == list(result2)
 
     return result
 
 
 def taz_skims(VECTOR_TEST_SIZE):
-    taz_df = network_los.taz_df
+    taz_values = network_los.taz_df.index.values
+    otaz = np.random.choice(taz_values, size=VECTOR_TEST_SIZE, replace=True)
+    dtaz = np.random.choice(taz_values, size=VECTOR_TEST_SIZE, replace=True)
 
-    otaz = taz_df.sample(VECTOR_TEST_SIZE, replace=True).index
-    dtaz = taz_df.sample(VECTOR_TEST_SIZE, replace=True).index
     tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
     sov_time = network_los.get_tazpairs3d(otaz, dtaz, tod, 'SOV_TIME')
 
 
 def tap_skims(VECTOR_TEST_SIZE):
-    tap_df = network_los.tap_df
+    tap_values = network_los.tap_df.index.values
 
-    otap = tap_df.sample(VECTOR_TEST_SIZE, replace=True).index
-    dtap = tap_df.sample(VECTOR_TEST_SIZE, replace=True).index
+    otap = np.random.choice(tap_values, size=VECTOR_TEST_SIZE, replace=True)
+    dtap = np.random.choice(tap_values, size=VECTOR_TEST_SIZE, replace=True)
     tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
     local_bus_fare = network_los.get_tappairs3d(otap, dtap, tod, 'LOCAL_BUS_FARE')
 
@@ -145,14 +162,13 @@ def get_maz_tap_pairs(VECTOR_TEST_SIZE):
     drive_distance = network_los.get_maztappairs(maz, tap, "drive_distance")
 
 
-def get_taps_mazs(VECTOR_TEST_SIZE):
+def get_taps_mazs(VECTOR_TEST_SIZE, attribute=None):
 
-    maz_df = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True)
-    omaz = maz_df.index
-    maz_tap_distance = network_los.get_taps_mazs(omaz)
-    # when called with attribute, only returns rows with non-null attributes
-    attribute = 'drive_distance'
-    maz_tap_distance = network_los.get_taps_mazs(omaz, attribute)
+    random_omaz = np.random.choice(network_los.maz_df.index.values, size=VECTOR_TEST_SIZE, replace=True)
+
+    taps_mazs = network_los.get_taps_mazs(random_omaz, attribute=attribute)
+
+    return len(taps_mazs.index)
 
 
 def set_random_seed():
@@ -179,7 +195,7 @@ t0 = print_elapsed_time("load network_los", t0)
 # test sizes for all implemented methods
 VECTOR_TEST_SIZEs = (10000, 100000, 1000000, 5000000, 10000000, 20000000)
 
-# VECTOR_TEST_SIZEs = []
+# VECTOR_TEST_SIZEs = [20000000, 40000000]
 
 for size in VECTOR_TEST_SIZEs:
 
@@ -206,8 +222,22 @@ for size in VECTOR_TEST_SIZEs:
     get_maz_tap_pairs(size)
     t0 = print_elapsed_time_per_unit("get_maz_tap_pairs", t0, size)
 
-    get_taps_mazs(size)
-    t0 = print_elapsed_time_per_unit("get_taps_mazs", t0, size)
+    result_size = get_taps_mazs(size, attribute='drive_distance')
+    print_elapsed_time_per_unit("get_taps_mazs drive_distance by input", t0, size)
+    t0 = print_elapsed_time_per_unit("get_taps_mazs drive_distance by output", t0, result_size)
+
+    result_size = get_taps_mazs(size)
+    print_elapsed_time_per_unit("get_taps_mazs by input", t0, size)
+    t0 = print_elapsed_time_per_unit("get_taps_mazs by output", t0, result_size)
+
+    # - not sure why, but runs faster on subsequent calls time...
+    result_size = get_taps_mazs(size)
+    print_elapsed_time_per_unit("get_taps_mazs2 by input", t0, size)
+    t0 = print_elapsed_time_per_unit("get_taps_mazs2 by output", t0, result_size)
+
+    result_size = get_taps_mazs(size)
+    print_elapsed_time_per_unit("get_taps_mazs3 by input", t0, size)
+    t0 = print_elapsed_time_per_unit("get_taps_mazs3 by output", t0, result_size)
 
 
 # # taz_skims() test sizes; comment out all other methods
@@ -224,7 +254,7 @@ for size in VECTOR_TEST_SIZEs:
 #     get_maz_pairs(size)
 #     t0 = print_elapsed_time_per_unit("get_maz_pairs", t0, size)
 
-
-t0 = print_elapsed_time()
-inject.run(["best_transit_path"])
-t0 = print_elapsed_time("best_transit_path", t0)
+#bug
+# t0 = print_elapsed_time()
+# pipeline.run(models=["best_transit_path"], resume_after=None)
+# t0 = print_elapsed_time("best_transit_path", t0)

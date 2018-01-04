@@ -65,13 +65,16 @@ def column(table_name, cache=False):
     return decorator
 
 
-def injectable(cache=False):
+def injectable(cache=False, override=False):
     def decorator(func):
         name = func.__name__
 
         logger.debug("inject injectable %s" % name)
 
-        assert not _DECORATED_INJECTABLES.get(name, False), "injectable '%s' already defined" % name
+        # insist on explicit override to ensure multiple definitions occur in correct order
+        assert override or not _DECORATED_INJECTABLES.get(name, False), \
+            "injectable '%s' already defined. not overridden" % name
+
         _DECORATED_INJECTABLES[name] = {'func': func, 'cache': cache}
 
         orca.add_injectable(name, func, cache=cache)

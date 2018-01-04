@@ -40,7 +40,7 @@ def extensions_dir():
     return 'extensions'
 
 
-@inject.injectable()
+@inject.injectable(cache=True)
 def settings(configs_dir):
     with open(os.path.join(configs_dir, 'settings.yaml')) as f:
         return yaml.load(f)

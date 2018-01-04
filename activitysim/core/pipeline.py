@@ -367,6 +367,9 @@ def load_checkpoint(checkpoint_name):
 
     checkpoints = read_df(CHECKPOINT_TABLE_NAME)
 
+    if checkpoint_name == '_':
+        checkpoint_name = checkpoints[CHECKPOINT_NAME].iloc[-1]
+
     try:
         # truncate rows after target checkpoint
         i = checkpoints[checkpoints[CHECKPOINT_NAME] == checkpoint_name].index[0]

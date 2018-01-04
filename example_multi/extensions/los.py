@@ -10,6 +10,8 @@ from activitysim.core import inject
 from activitysim.core import skim as askim
 from activitysim.core.util import quick_loc_df
 
+from activitysim.core.tracing import print_elapsed_time
+
 logger = logging.getLogger('activitysim')
 
 
@@ -131,9 +133,10 @@ class NetworkLOS(object):
             # 0-based index of original maz
             maz_df = pd.DataFrame({'MAZ': maz, 'idx': range(len(maz))})
 
-        df = pd.merge(maz_df, maz2tap_df, how="inner")
+        df = pd.merge(maz_df, maz2tap_df, how="inner", sort=False)
 
         return df
+
 
     def get_tappairs_mazpairs(network_los, omaz, dmaz, ofilter=None, dfilter=None):
 

@@ -77,6 +77,7 @@ def best_transit_path(set_random_seed,
 
     constants = config.get_model_constants(best_transit_path_settings)
     locals_d = {
+        'np': np,
         'network_los': network_los
     }
     if constants is not None:

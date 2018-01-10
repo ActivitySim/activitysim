@@ -63,7 +63,18 @@ def setting(key, default=None):
 
     settings = inject.get_injectable('settings')
 
-    return settings.get(key, default)
+    # explicit setting in settings file takes precedence
+    s = settings.get(key, None)
+
+    # if no setting, try injectable
+    if s is None:
+        s = inject.get_injectable(key, None)
+
+    # otherwise fall back to supplied default
+    if s is None:
+        s = default
+
+    return s
 
 
 def read_model_settings(configs_dir, file_name):

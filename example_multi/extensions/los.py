@@ -137,7 +137,6 @@ class NetworkLOS(object):
 
         return df
 
-
     def get_tappairs_mazpairs(network_los, omaz, dmaz, ofilter=None, dfilter=None):
 
         # get nearby boarding TAPs to origin

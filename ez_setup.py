@@ -206,6 +206,7 @@ def has_powershell():
             return False
     return True
 
+
 download_file_powershell.viable = has_powershell
 
 
@@ -223,6 +224,7 @@ def has_curl():
             return False
     return True
 
+
 download_file_curl.viable = has_curl
 
 
@@ -239,6 +241,7 @@ def has_wget():
         except Exception:
             return False
     return True
+
 
 download_file_wget.viable = has_wget
 
@@ -258,6 +261,7 @@ def download_file_insecure(url, target):
     # Write all the data in one block to avoid creating a partial file.
     with open(target, "wb") as dst:
         dst.write(data)
+
 
 download_file_insecure.viable = lambda: True
 

@@ -164,7 +164,8 @@ def get_maz_tap_pairs(VECTOR_TEST_SIZE):
 
 def get_taps_mazs(VECTOR_TEST_SIZE, attribute=None):
 
-    random_omaz = np.random.choice(network_los.maz_df.index.values, size=VECTOR_TEST_SIZE, replace=True)
+    random_omaz = np.random.choice(network_los.maz_df.index.values, size=VECTOR_TEST_SIZE,
+                                   replace=True)
 
     taps_mazs = network_los.get_taps_mazs(random_omaz, attribute=attribute)
 
@@ -254,7 +255,7 @@ for size in VECTOR_TEST_SIZEs:
 #     get_maz_pairs(size)
 #     t0 = print_elapsed_time_per_unit("get_maz_pairs", t0, size)
 
-#bug
+# bug
 # t0 = print_elapsed_time()
 # pipeline.run(models=["best_transit_path"], resume_after=None)
 # t0 = print_elapsed_time("best_transit_path", t0)

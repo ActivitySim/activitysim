@@ -1,7 +1,7 @@
 ActivitySim
 ===========
 
-[![Build Status](https://travis-ci.org/ActivitySim/activitysim.svg?branch=master)](https://travis-ci.org/ActivitySim/activitysim) [![Coverage Status](https://coveralls.io/repos/ActivitySim/activitysim/badge.png?branch=master)](https://coveralls.io/r/ActivitySim/activitysim?branch=master)
+[![Build Status](https://travis-ci.org/ActivitySim/activitysim.svg?branch=master)](https://travis-ci.org/ActivitySim/activitysim)[![Coverage Status](https://coveralls.io/repos/github/ActivitySim/activitysim/badge.svg?branch=master)](https://coveralls.io/github/ActivitySim/activitysim?branch=master)
 
 ActivitySim is an open platform for activity-based travel modeling.  It emerged
 from a consortium of Metropolitan Planning Organizations (MPOs) and other

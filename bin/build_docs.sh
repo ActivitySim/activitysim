@@ -48,7 +48,7 @@ if [ "$TRAVIS_REPO_SLUG" == "ActivitySim/activitysim" ] && \
         git config --global user.name "Jeff Doyle"
 
         echo "Cloning repository"
-        git clone --quiet --single-branch --branch=gh-pages https://${GH_TOKEN}@github.com/activitysim/activitysim.git  gh-pages > /dev/null 2>&1
+        git clone --quiet --single-branch --branch=gh-pages https://${GH_TOKEN}@github.com/ActivitySim/activitysim.git  gh-pages > /dev/null 2>&1
 
         cd gh-pages
         rm -rf *

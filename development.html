@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Development &mdash; ActivitySim 0.5 documentation</title>
+  <title>Development &mdash; ActivitySim 0.5.1 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5.1 documentation" href="index.html"/>
         <link rel="prev" title="Models" href="models.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.5
+                0.5.1
               </div>
             
           
@@ -101,6 +101,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#style">Style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#imports">Imports</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#working-together-in-the-repository">Working Together in the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#versioning">Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#releases">Releases</a></li>
@@ -222,6 +223,18 @@ our GitHub workflow are:</p>
 <li>Every time a merge is made to master, the version should be incremented and a new package posted to PyPI</li>
 </ul>
 </div>
+<div class="section" id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h2>
+<p>ActivitySim uses the following <a class="reference external" href="http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html">versioning convention</a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MAJOR</span><span class="o">.</span><span class="n">MINOR</span><span class="p">[</span><span class="o">.</span><span class="n">MICRO</span><span class="p">]</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs or ABIs.</li>
+<li>MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.</li>
+<li>Some softwares use a third level: MICRO. This level is used when the release cycle of minor release is quite long. In that case, micro releases are dedicated to bug fixes.</li>
+</ul>
+</div>
 <div class="section" id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim testing is done with three tools:</p>
@@ -325,7 +338,7 @@ The script does the following:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5',
+            VERSION:'0.5.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

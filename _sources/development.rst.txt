@@ -53,6 +53,18 @@ our GitHub workflow are:
 * The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
 * Every time a merge is made to master, the version should be incremented and a new package posted to PyPI
 
+Versioning
+----------
+ActivitySim uses the following `versioning convention <http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html>`__
+
+::
+
+  MAJOR.MINOR[.MICRO]
+
+* where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs or ABIs.
+* MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.
+* Some softwares use a third level: MICRO. This level is used when the release cycle of minor release is quite long. In that case, micro releases are dedicated to bug fixes.
+
 Testing
 -------
 

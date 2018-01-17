@@ -217,8 +217,9 @@ our GitHub workflow are:</p>
 <li>The master branch is protected and therefore can only be written to by the <a class="reference external" href="https://travis-ci.org/">Travis</a> CI system</li>
 <li>Work is done in an issue/feature branch (or a fork) and then pushed to a new brach in the repo</li>
 <li>The test system automatically runs the tests on the new branch</li>
-<li>If the tests pass, then a pull request can be approved to merge into master</li>
+<li>If the tests pass, then a manual pull request can be approved to merge into master</li>
 <li>The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated</li>
+<li>Every time a merge is made to master, the version should be incremented and a new package posted to PyPI</li>
 </ul>
 </div>
 <div class="section" id="testing">

@@ -12,7 +12,7 @@ households_sample_size: 100
 #trace_od: [5, 11]
 
 #internal settings 
-chunk_size: 1000000
+chunk_size: 400000000
 
 
 # comment out or set false to disable variability check in simple_simulate and interaction_simulate
@@ -45,8 +45,16 @@ models:
   - create_simple_trips
   - trip_mode_choice_simulate
   - write_data_dictionary
+  - write_tables
 
 #resume_after: tour_mode_choice_simulate
+
+output_tables:
+  action: include
+  prefix: final_
+  tables:
+    - checkpoints
+
 
 # area_types less than this are considered urban
 urban_threshold: 4

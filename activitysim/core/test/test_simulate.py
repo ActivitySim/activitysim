@@ -10,7 +10,7 @@ import pytest
 
 import orca
 
-from .. import simulate as asim
+from .. import simulate
 
 
 @pytest.fixture(scope='module')
@@ -25,9 +25,10 @@ def spec_name(data_dir):
 
 @pytest.fixture(scope='module')
 def spec(data_dir, spec_name):
-    return asim.read_model_spec(data_dir, spec_name,
-                                description_name='description',
-                                expression_name='expression')
+    return simulate.read_model_spec(
+        data_dir, spec_name,
+        description_name='description',
+        expression_name='expression')
 
 
 @pytest.fixture(scope='module')
@@ -37,7 +38,7 @@ def data(data_dir):
 
 def test_read_model_spec(data_dir, spec_name):
 
-    spec = asim.read_model_spec(
+    spec = simulate.read_model_spec(
         data_dir, spec_name,
         description_name='description', expression_name='expression')
 
@@ -51,7 +52,7 @@ def test_read_model_spec(data_dir, spec_name):
 
 def test_eval_variables(spec, data):
 
-    result = asim.eval_variables(spec.index, data, target_type=None)
+    result = simulate.eval_variables(spec.index, data, target_type=None)
 
     expected_result = pd.DataFrame([
             [True, False, 4, 1],
@@ -61,7 +62,7 @@ def test_eval_variables(spec, data):
 
     pdt.assert_frame_equal(result, expected_result, check_names=False)
 
-    result = asim.eval_variables(spec.index, data, target_type=float)
+    result = simulate.eval_variables(spec.index, data, target_type=float)
 
     expected_result = pd.DataFrame([
             [1.0, 0.0, 4.0, 1.0],
@@ -76,7 +77,7 @@ def test_simple_simulate(data, spec):
 
     orca.add_injectable("check_for_variability", False)
 
-    choices = asim.simple_simulate(data, spec, nest_spec=None)
+    choices = simulate.simple_simulate(data, spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)
 
@@ -85,6 +86,6 @@ def test_simple_simulate_chunked(data, spec):
 
     orca.add_injectable("check_for_variability", False)
 
-    choices = asim.simple_simulate(data, spec, nest_spec=None, chunk_size=2)
+    choices = simulate.simple_simulate(data, spec, nest_spec=None, chunk_size=2)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)

@@ -8,9 +8,9 @@ import pandas as pd
 
 from . import logit
 from . import tracing
+from . import chunk
 from .simulate import add_skims
-from .simulate import chunked_choosers_and_alts
-from .simulate import num_chunk_rows_for_chunk_size
+
 
 from .interaction_simulate import eval_interaction_utilities
 
@@ -101,6 +101,8 @@ def _interaction_sample_simulate(
         alternatives, choosers,
         left_index=True, right_index=True,
         suffixes=('', '_r'))
+
+    chunk.log_chunk_df(trace_label, interaction_df)
 
     tracing.dump_df(DUMP, interaction_df, trace_label, 'interaction_df')
 
@@ -270,14 +272,14 @@ def interaction_sample_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
+    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers, alt_sample=alternatives)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s"
                 % (chunk_size, len(choosers.index)))
 
     result_list = []
     for i, num_chunks, chooser_chunk, alternative_chunk \
-            in chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
+            in chunk.chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 

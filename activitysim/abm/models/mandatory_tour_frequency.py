@@ -6,7 +6,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @inject.injectable()
 def mandatory_tour_frequency_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'mandatory_tour_frequency.csv')
+    return simulate.read_model_spec(configs_dir, 'mandatory_tour_frequency.csv')
 
 
 @inject.injectable()
@@ -55,7 +55,7 @@ def mandatory_tour_frequency(persons_merged,
     nest_spec = config.get_logit_model_settings(mandatory_tour_frequency_settings)
     constants = config.get_model_constants(mandatory_tour_frequency_settings)
 
-    choices = asim.simple_simulate(
+    choices = simulate.simple_simulate(
         choosers,
         spec=mandatory_tour_frequency_spec,
         nest_spec=nest_spec,
@@ -72,16 +72,16 @@ def mandatory_tour_frequency(persons_merged,
 
     inject.add_column("persons", "mandatory_tour_frequency", choices)
 
-    create_mandatory_tours()
+    create_mandatory_tours(trace_hh_id)
 
     # add mandatory_tour-dependent columns (e.g. tour counts) to persons
     pipeline.add_dependent_columns("persons", "persons_mtf")
 
     if trace_hh_id:
         trace_columns = ['mandatory_tour_frequency']
-        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
-                         label="mandatory_tour_frequency",
-                         columns=trace_columns,
+        tracing.trace_df(inject.get_table('persons').to_frame(),
+                         label="mandatory_tour_frequency.persons",
+                         # columns=trace_columns,
                          warn_if_empty=True)
 
 
@@ -92,7 +92,7 @@ the same as got non_mandatory_tours except trip types are "work" and "school"
 """
 
 
-def create_mandatory_tours():
+def create_mandatory_tours(trace_hh_id):
 
     # FIXME - move this to body?
 
@@ -105,14 +105,19 @@ def create_mandatory_tours():
 
     tour_frequency_alternatives = inject.get_injectable('mandatory_tour_frequency_alternatives')
 
-    tours = process_mandatory_tours(persons, tour_frequency_alternatives)
+    mandatory_tours = process_mandatory_tours(persons, tour_frequency_alternatives)
 
     expressions.assign_columns(
-        df=tours,
+        df=mandatory_tours,
         model_settings='annotate_tours_with_dest',
         configs_dir=configs_dir,
         trace_label='create_mandatory_tours')
 
-    pipeline.extend_table("tours", tours)
+    tours = pipeline.extend_table("tours", mandatory_tours)
     tracing.register_traceable_table('tours', tours)
-    pipeline.get_rn_generator().add_channel(tours, 'tours')
+    pipeline.get_rn_generator().add_channel(mandatory_tours, 'tours')
+
+    if trace_hh_id:
+        tracing.trace_df(mandatory_tours,
+                         label="mandatory_tour_frequency.mandatory_tours",
+                         warn_if_empty=True)

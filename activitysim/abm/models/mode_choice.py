@@ -7,12 +7,12 @@ import logging
 import pandas as pd
 import yaml
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core.util import memory_info
-
+from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 from .util.mode import _mode_choice_spec
@@ -56,13 +56,14 @@ def _mode_choice_simulate(records,
     if od_skim_stack_wrapper is not None:
         skims.append(od_skim_stack_wrapper)
 
-    choices = asim.simple_simulate(records,
-                                   spec,
-                                   nest_spec,
-                                   skims=skims,
-                                   locals_d=locals_d,
-                                   trace_label=trace_label,
-                                   trace_choice_name=trace_choice_name)
+    choices = simulate.simple_simulate(
+        records,
+        spec,
+        nest_spec,
+        skims=skims,
+        locals_d=locals_d,
+        trace_label=trace_label,
+        trace_choice_name=trace_choice_name)
 
     alts = spec.columns
     choices = choices.map(dict(zip(range(len(alts)), alts)))
@@ -102,7 +103,7 @@ def tour_mode_choice_settings(configs_dir):
 
 @inject.injectable()
 def tour_mode_choice_spec_df(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_mode_choice.csv')
+    return simulate.read_model_spec(configs_dir, 'tour_mode_choice.csv')
 
 
 @inject.injectable()
@@ -114,10 +115,12 @@ def tour_mode_choice_coeffs(configs_dir):
 @inject.injectable()
 def tour_mode_choice_spec(tour_mode_choice_spec_df,
                           tour_mode_choice_coeffs,
-                          tour_mode_choice_settings):
+                          tour_mode_choice_settings,
+                          trace_hh_id):
     return _mode_choice_spec(tour_mode_choice_spec_df,
                              tour_mode_choice_coeffs,
                              tour_mode_choice_settings,
+                             trace_spec=trace_hh_id,
                              trace_label='tour_mode_choice')
 
 
@@ -191,8 +194,7 @@ def atwork_subtour_mode_choice_simulate(tours,
                          columns=trace_columns,
                          warn_if_empty=True)
 
-    # FIXME - this forces garbage collection
-    memory_info()
+    force_garbage_collect()
 
 
 @inject.step()
@@ -267,8 +269,7 @@ def tour_mode_choice_simulate(tours_merged,
         choices_list.append(choices)
 
         # FIXME - force garbage collection
-        mem = memory_info()
-        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
+        force_garbage_collect()
 
     choices = pd.concat(choices_list)
 
@@ -286,9 +287,6 @@ def tour_mode_choice_simulate(tours_merged,
                          columns=trace_columns,
                          warn_if_empty=True)
 
-    # FIXME - this forces garbage collection
-    memory_info()
-
 
 """
 Trip mode choice is run for all trips to determine the transportation mode that
@@ -303,7 +301,7 @@ def trip_mode_choice_settings(configs_dir):
 
 @inject.injectable()
 def trip_mode_choice_spec_df(configs_dir):
-    return asim.read_model_spec(configs_dir, 'trip_mode_choice.csv')
+    return simulate.read_model_spec(configs_dir, 'trip_mode_choice.csv')
 
 
 @inject.injectable()
@@ -315,10 +313,13 @@ def trip_mode_choice_coeffs(configs_dir):
 @inject.injectable()
 def trip_mode_choice_spec(trip_mode_choice_spec_df,
                           trip_mode_choice_coeffs,
-                          trip_mode_choice_settings):
+                          trip_mode_choice_settings,
+                          trace_hh_id):
     return _mode_choice_spec(trip_mode_choice_spec_df,
                              trip_mode_choice_coeffs,
-                             trip_mode_choice_settings)
+                             trip_mode_choice_settings,
+                             trace_spec=trace_hh_id,
+                             trace_label='trip_mode_choice')
 
 
 @inject.step()
@@ -338,8 +339,6 @@ def trip_mode_choice_simulate(trips_merged,
     constants = config.get_model_constants(trip_mode_choice_settings)
 
     logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
-
-    print "\ntrips.columns\n", trips.columns
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key='OTAZ', right_key='DTAZ',
                                              skim_key="start_period")
@@ -378,8 +377,7 @@ def trip_mode_choice_simulate(trips_merged,
         choices_list.append(choices)
 
         # FIXME - force garbage collection
-        mem = memory_info()
-        logger.debug('memory_info tour_type %s, %s' % (tour_type, mem))
+        force_garbage_collect()
 
     choices = pd.concat(choices_list)
 
@@ -397,5 +395,4 @@ def trip_mode_choice_simulate(trips_merged,
                          index_label='trip_id',
                          warn_if_empty=True)
 
-    # FIXME - this forces garbage collection
-    memory_info()
+    force_garbage_collect()

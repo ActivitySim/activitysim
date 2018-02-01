@@ -9,8 +9,8 @@ import pandas as pd
 from . import logit
 from . import tracing
 from .simulate import add_skims
-from .simulate import chunked_choosers
-from .simulate import num_chunk_rows_for_chunk_size
+from . import chunk
+
 
 logger = logging.getLogger(__name__)
 
@@ -212,6 +212,8 @@ def _interaction_simulate(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
 
+    chunk.log_chunk_df(trace_label, interaction_df)
+
     if skims:
         add_skims(interaction_df, skims)
 
@@ -343,13 +345,15 @@ def interaction_simulate(
 
     assert len(choosers) > 0
 
-    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
+    rows_per_chunk = \
+        chunk.calc_rows_per_chunk(chunk_size, choosers,
+                                  alternatives=alternatives, sample_size=sample_size)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))
 
     result_list = []
-    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
+    for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 

@@ -10,9 +10,8 @@ from zbox import toolz as tz, gen
 
 from activitysim.core.simulate import eval_variables
 from activitysim.core.simulate import compute_utilities
-from activitysim.core.simulate import hh_chunked_choosers
-from activitysim.core.simulate import num_chunk_rows_for_chunk_size
 
+from activitysim.core import chunk
 from activitysim.core import logit
 from activitysim.core import tracing
 
@@ -599,23 +598,6 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
 
-    # if DUMP:
-    #
-    #     if hhsize > 1:
-    #         tracing.trace_df(choosers, '%s.DUMP.hhsize%d_choosers' % (trace_label, hhsize),
-    #                          transpose=False, slicer='NONE')
-    #         tracing.trace_df(vars, '%s.DUMP.hhsize%d_vars' % (trace_label, hhsize),
-    #                          transpose=False, slicer='NONE')
-    #
-    #     tracing.trace_df(utils, '%s.DUMP.hhsize%d_utils' % (trace_label, hhsize),
-    #                      transpose=False, slicer='NONE')
-    #
-    #     tracing.trace_df(probs, '%s.DUMP.hhsize%d_probs' % (trace_label, hhsize),
-    #                      transpose=False, slicer='NONE')
-    #
-    #     tracing.trace_df(choices, '%s.DUMP.hhsize%d_activity_choices' % (trace_label, hhsize),
-    #                      transpose=False, slicer='NONE')
-
     if trace_hh_id:
 
         if hhsize > 1:
@@ -881,12 +863,11 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
-    # FIXME - what is the actual size/cardinality of the chooser
-    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, persons, by_chunk_id=True)
+    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, num_chunks, persons_chunk in hh_chunked_choosers(persons, rows_per_chunk):
+    for i, num_chunks, persons_chunk in chunk.hh_chunked_choosers(persons, rows_per_chunk):
 
         logger.info("Running chunk %s of %s with %d persons" % (i, num_chunks, len(persons_chunk)))
 

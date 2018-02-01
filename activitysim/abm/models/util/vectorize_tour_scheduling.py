@@ -10,6 +10,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core import tracing
 from activitysim.core import inject
 from activitysim.core import timetable as tt
+from activitysim.core.util import memory_info
 
 logger = logging.getLogger(__name__)
 
@@ -151,8 +152,11 @@ def schedule_tours(tours, persons_merged,
 
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
-    # timetable can't handle multiple tours per person
-    assert len(tours.index) == len(np.unique(tours.person_id.values))
+    if tours[window_id_col].duplicated().any():
+        print "\ntours.person_id not unique\n", tours[tours[window_id_col].duplicated(keep=False)]
+
+    # timetable can't handle multiple tours per window_id
+    assert not tours[window_id_col].duplicated().any()
 
     # merge persons into tours
     tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
@@ -344,7 +348,7 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     # mask the periods outside parent tour footprint
     timetable.assign_subtour_mask(parent_tours.tour_id, parent_tours.tdd)
 
-    print timetable.windows
+    # print timetable.windows
     """
     [[7 7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7]
      [7 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]

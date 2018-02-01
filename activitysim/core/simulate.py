@@ -13,168 +13,9 @@ from . import logit
 from . import tracing
 from . import pipeline
 
+from . import chunk
 
 logger = logging.getLogger(__name__)
-
-
-def num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives=None, by_chunk_id=False):
-
-    # FIXME - chunk size should take number of chooser and alternative columns into account
-    # FIXME - that is, chunk size should represent memory footprint (rows X columns) not just rows
-
-    if by_chunk_id:
-        num_choosers = choosers['chunk_id'].max() + 1
-    else:
-        num_choosers = len(choosers.index)
-
-    # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
-
-    row_size = len(choosers.columns)
-
-    if alternatives is not None:
-        alt_row_size = len(alternatives.columns)
-        # logger.debug('num_chunk_rows_for_chunk_size row_size %s alt_row_size %s'
-        #              % (row_size, alt_row_size,))
-        row_size = row_size * alt_row_size
-
-    if by_chunk_id:
-        # scale row_size by average number of chooser rows per chunk_id
-        rows_per_chunk_id = len(choosers.index) / float(num_choosers)
-        row_size = int(rows_per_chunk_id * row_size)
-        # logger.debug('num_chunk_rows_for_chunk_size by_chunk_id rows_per_chunk_id %s'
-        #              % (rows_per_chunk_id,))
-
-    # closest number of chooser rows to achieve chunk_size
-    rows_per_chunk = int(round(chunk_size / float(row_size)))
-    rows_per_chunk = max(rows_per_chunk, 1)
-
-    logger.info("num_chunk_rows_for_chunk_size %s row_size %s rows_per_chunk %s "
-                "num_choosers %s chunks %s"
-                % (chunk_size, row_size, rows_per_chunk,
-                   num_choosers, int(ceil(num_choosers / float(rows_per_chunk)))))
-
-    return rows_per_chunk
-
-
-def chunked_choosers(choosers, rows_per_chunk):
-    # generator to iterate over choosers in chunk_size chunks
-    num_choosers = len(choosers.index)
-    num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
-
-    i = offset = 0
-    while offset < num_choosers:
-        yield i+1, num_chunks, choosers.iloc[offset: offset+rows_per_chunk]
-        offset += rows_per_chunk
-        i += 1
-
-
-def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
-    """
-    generator to iterate over choosers and alternatives in chunk_size chunks
-
-    like chunked_choosers, but also chunks alternatives
-    for use with sampled alternatives which will have different alternatives (and numbers of alts)
-
-    There may be up to sample_size (or as few as one) alternatives for each chooser
-    because alternatives may have been sampled more than once,  but pick_count for those
-    alternatives will always sum to sample_size.
-
-    When we chunk the choosers, we need to take care chunking the alternatives as there are
-    varying numbers of them for each chooser. Since alternatives appear in the same order
-    as choosers, we can use cumulative pick_counts to identify boundaries of sets of alternatives
-
-    Parameters
-    ----------
-    choosers
-    alternatives : pandas DataFrame
-        sample alternatives including pick_count column in same order as choosers
-    rows_per_chunk : int
-
-    Yields
-    -------
-    i : int
-        one-based index of current chunk
-    num_chunks : int
-        total number of chunks that will be yielded
-    choosers : pandas DataFrame slice
-        chunk of choosers
-    alternatives : pandas DataFrame slice
-        chunk of alternatives for chooser chunk
-    """
-
-    assert 'pick_count' in alternatives.columns or choosers.index.name == alternatives.index.name
-
-    num_choosers = len(choosers.index)
-    num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
-
-    if choosers.index.name == alternatives.index.name:
-        assert choosers.index.name == alternatives.index.name
-
-        # alt chunks boundaries are where index changes
-        alt_ids = alternatives.index.values
-        alt_chunk_end = np.where(alt_ids[:-1] != alt_ids[1:])[0] + 1
-        alt_chunk_end = np.append([0], alt_chunk_end)  # including the first...
-        alt_chunk_end = alt_chunk_end[rows_per_chunk::rows_per_chunk]
-
-    else:
-        # used to do it this way for school and workplace (which are sampled based on prob)
-        # since the utility expressions need to know pick_count for sample correction
-        # but for now the assumption that choosers and alternatives share indexes is more general
-        # leaving this (previously correct) code here for now in case that changes...
-        assert False
-
-        # assert 'pick_count' in alternatives.columns
-        # assert 'cum_pick_count' not in alternatives.columns
-        # alternatives['cum_pick_count'] = alternatives['pick_count'].cumsum()
-        #
-        # # currently no convenient way to remember sample_size across steps
-        # pick_count = alternatives.cum_pick_count.iat[-1]
-        # sample_size = pick_count / len(choosers.index)
-        # assert pick_count % sample_size == 0
-        #
-        # alt_chunk_size = rows_per_chunk * sample_size
-        #
-        # # array of indices of starts of alt chunks
-        # alt_chunk_end = np.where(alternatives['cum_pick_count'] % alt_chunk_size == 0)[0] + 1
-
-    # add index to end of array to capture any final partial chunk
-    alt_chunk_end = np.append(alt_chunk_end, [len(alternatives.index)])
-
-    i = offset = alt_offset = 0
-    while offset < num_choosers:
-
-        alt_end = alt_chunk_end[i]
-
-        chooser_chunk = choosers[offset: offset + rows_per_chunk]
-        alternative_chunk = alternatives[alt_offset: alt_end]
-
-        assert len(chooser_chunk.index) == len(np.unique(alternative_chunk.index.values))
-
-        yield i+1, num_chunks, chooser_chunk, alternative_chunk
-
-        i += 1
-        offset += rows_per_chunk
-        alt_offset = alt_end
-
-
-def hh_chunked_choosers(choosers, rows_per_chunk):
-    # generator to iterate over choosers in chunk_size chunks
-    # like chunked_choosers but based on chunk_id field rather than dataframe length
-    # (the presumption is that choosers has multiple rows with the same chunk_id that
-    # all have to be included in the same chunk)
-    # FIXME - we pathologically know name of chunk_id col in households table
-
-    num_choosers = choosers['chunk_id'].max() + 1
-    num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
-
-    i = offset = 0
-    while offset < num_choosers:
-        chooser_chunk = choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
-        yield i+1, num_chunks, chooser_chunk
-        offset += rows_per_chunk
-        i += 1
 
 
 def random_rows(df, n):
@@ -717,10 +558,13 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         Index will be that of `choosers`, values will match the columns
         of `spec`.
     """
-    if skims:
-        add_skims(choosers, skims)
 
     trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate')
+
+    chunk.log_chunk_df(trace_label, choosers)
+
+    if skims:
+        add_skims(choosers, skims)
 
     if nest_spec is None:
         choices = eval_mnl(choosers, spec, locals_d,
@@ -742,14 +586,14 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
 
     assert len(choosers) > 0
 
-    num_chunk_rows = num_chunk_rows_for_chunk_size(chunk_size, choosers)
+    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers)
 
-    logger.info("simple_simulate num_chunk_rows %s num_choosers %s" %
-                (num_chunk_rows, len(choosers.index)))
+    logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
+                (rows_per_chunk, len(choosers.index)))
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
+    for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
@@ -873,10 +717,13 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
     logsums : pandas.Series
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
-    if skims:
-        add_skims(choosers, skims)
 
     trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
+
+    chunk.log_chunk_df(trace_label, choosers)
+
+    if skims:
+        add_skims(choosers, skims)
 
     if nest_spec is None:
         logsums = eval_mnl_logsums(choosers, spec, locals_d, trace_label=trace_label)
@@ -900,14 +747,14 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     assert len(choosers) > 0
 
-    num_chunk_rows = num_chunk_rows_for_chunk_size(chunk_size, choosers)
+    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers)
 
-    logger.info("simple_simulate_logsums chunk_size %s num_choosers %s, num_chunk_rows %s" %
-                (chunk_size, len(choosers.index), num_chunk_rows))
+    logger.info("simple_simulate_logsums chunk_size %s num_choosers %s, rows_per_chunk %s" %
+                (chunk_size, len(choosers.index), rows_per_chunk))
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, num_chunk_rows):
+    for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 

@@ -41,7 +41,7 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     t1 = time.time()
     if msg:
         t = t1 - (t0 or t1)
-        msg = "Time to execute %s : %s seconds (%s minutes)" % (msg, round(t, 3), round(t/60.0))
+        msg = "Time to execute %s : %s seconds (%s minutes)" % (msg, round(t, 3), round(t/60.0, 1))
         if debug:
             logger.debug(msg)
         else:
@@ -291,8 +291,8 @@ def register_trips(df, trace_hh_id):
     """
     Register with inject for tracing
 
-    create an injectable 'trace_tour_ids' with a list of tour_ids in household we are tracing.
-    This allows us to slice by tour_id without requiring presence of person_id column
+    create an injectable 'trace_trip_ids' with a list of tour_ids in household we are tracing.
+    This allows us to slice by trip_id without requiring presence of person_id column
 
     Parameters
     ----------
@@ -307,7 +307,7 @@ def register_trips(df, trace_hh_id):
     Nothing
     """
 
-    # get list of persons in traced household (should already have been registered)
+    # get list of tours in traced household (should already have been registered)
     tour_ids = inject.get_injectable("trace_tour_ids", [])
 
     if len(tour_ids) == 0:
@@ -356,21 +356,12 @@ def register_traceable_table(table_name, df):
         register_tours(df, trace_hh_id)
 
 
-def sort_for_registration(table_names):
+def traceable_tables():
 
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
-    preferred_order = ['households', 'persons', 'non_mandatory_tours', 'mandatory_tours', 'trips']
 
-    table_names = list(table_names)
-
-    for table_name in reversed(preferred_order):
-        if table_name in table_names:
-            # move it to the end of the list
-            table_names.remove(table_name)
-            table_names.append(table_name)
-
-    return reversed(table_names)
+    return ['households', 'persons', 'tours', 'trips']
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):

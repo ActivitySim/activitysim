@@ -262,6 +262,8 @@ def workplace_location_simulate(persons_merged,
 
     pipeline.add_dependent_columns("persons", "persons_workplace")
 
+    pipeline.drop_table('workplace_location_sample')
+
     if trace_hh_id:
         trace_columns = ['workplace_taz'] + inject.get_table('persons_workplace').columns
         tracing.trace_df(inject.get_table('persons_merged').to_frame(),

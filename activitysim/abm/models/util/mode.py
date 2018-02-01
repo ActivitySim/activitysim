@@ -137,8 +137,8 @@ def expand_alternatives(df):
     return df
 
 
-def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
-                      mode_choice_settings, trace_label=None):
+def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs, mode_choice_settings,
+                      trace_spec=False, trace_label=None):
     """
     Ok we have read in the spec - we need to do several things to reformat it
     to the same style spec that all the other models have.
@@ -178,7 +178,7 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
     df = mode_choice_spec_df
     index_name = df.index.name
 
-    if trace_label:
+    if trace_spec:
         tracing.trace_df(df,
                          tracing.extend_trace_label(trace_label, 'raw'),
                          slicer='NONE', transpose=False)
@@ -192,7 +192,7 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
     # set index to ['Expression', 'Alternative']
     df = df.set_index('Alternative', append=True)
 
-    if trace_label:
+    if trace_spec:
         tracing.trace_df(df,
                          tracing.extend_trace_label(trace_label, 'pre_process_expressions'),
                          slicer='NONE', transpose=False)
@@ -213,14 +213,14 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs,
             df[col],
             mode_choice_coeffs[col].to_dict())
 
-    if trace_label:
+    if trace_spec:
         tracing.trace_df(df,
                          tracing.extend_trace_label(trace_label, 'evaluate_expression_list'),
                          slicer='NONE', transpose=False)
 
     df = expand_alternatives(df)
 
-    if trace_label:
+    if trace_spec:
         tracing.trace_df(df,
                          tracing.extend_trace_label(trace_label, 'expand_alternatives'),
                          slicer='NONE', transpose=False)

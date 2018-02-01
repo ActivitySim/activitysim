@@ -3,7 +3,7 @@
 
 import logging
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @inject.injectable()
 def auto_ownership_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'auto_ownership.csv')
+    return simulate.read_model_spec(configs_dir, 'auto_ownership.csv')
 
 
 @inject.injectable()
@@ -37,7 +37,7 @@ def auto_ownership_simulate(households_merged,
     nest_spec = config.get_logit_model_settings(auto_ownership_settings)
     constants = config.get_model_constants(auto_ownership_settings)
 
-    choices = asim.simple_simulate(
+    choices = simulate.simple_simulate(
         choosers=households_merged.to_frame(),
         spec=auto_ownership_spec,
         nest_spec=nest_spec,

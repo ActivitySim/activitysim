@@ -10,9 +10,9 @@ from activitysim.core.util import quick_loc_series
 
 from . import logit
 from . import tracing
+from . import chunk
 from .simulate import add_skims
-from .simulate import chunked_choosers
-from .simulate import num_chunk_rows_for_chunk_size
+
 
 from .interaction_simulate import eval_interaction_utilities
 import pipeline
@@ -218,6 +218,8 @@ def _interaction_sample(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, alternative_count)
 
+    chunk.log_chunk_df(trace_label, interaction_df)
+
     assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
     if skims:
@@ -368,13 +370,13 @@ def interaction_sample(
     assert sample_size > 0
     sample_size = min(sample_size, len(alternatives.index))
 
-    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
+    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers, alternatives)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s rows_per_chunk %s" %
                 (chunk_size, len(choosers.index), rows_per_chunk))
 
     result_list = []
-    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
+    for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 

@@ -8,6 +8,12 @@ rural_threshold: 6
 
 households_sample_size: 100
 
+# trace household id; comment out for no trace
+trace_hh_id: 961042
+
+# trace origin, destination in accessibility calculation
+#trace_od: [5, 11]
+
 grade_school_max_age: 14
 
 county_map:

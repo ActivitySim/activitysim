@@ -28,16 +28,16 @@ def initialize():
 
     t0 = tracing.print_elapsed_time()
     inject.get_table('land_use').to_frame()
-    t0 = tracing.print_elapsed_time("preload land_use")
+    t0 = tracing.print_elapsed_time("preload land_use", t0, debug=True)
 
     inject.get_table('households').to_frame()
-    t0 = tracing.print_elapsed_time("preload households")
+    t0 = tracing.print_elapsed_time("preload households", t0, debug=True)
 
     inject.get_table('persons').to_frame()
-    t0 = tracing.print_elapsed_time("preload persons")
+    t0 = tracing.print_elapsed_time("preload persons", t0, debug=True)
 
     inject.get_table('person_windows').to_frame()
-    t0 = tracing.print_elapsed_time("preload person_windows")
+    t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)
 
     pass
 
@@ -55,7 +55,7 @@ def preload_injectables():
     t0 = tracing.print_elapsed_time()
 
     if inject.get_injectable('skim_dict', None) is not None:
-        t0 = tracing.print_elapsed_time("preload skim_dict")
+        t0 = tracing.print_elapsed_time("preload skim_dict", t0, debug=True)
 
     if inject.get_injectable('skim_stack', None) is not None:
-        t0 = tracing.print_elapsed_time("preload skim_stack")
+        t0 = tracing.print_elapsed_time("preload skim_stack", t0, debug=True)

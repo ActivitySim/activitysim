@@ -6,10 +6,10 @@ skims_file: skims.omx
 households_sample_size: 100
 
 #trace household id; comment out for no trace
-trace_hh_id: 961042
+#trace_hh_id: 961042
 
 # trace origin, destination in accessibility calculation
-trace_od: [5, 11]
+#trace_od: [5, 11]
 
 #internal settings 
 chunk_size: 1000000
@@ -44,6 +44,7 @@ models:
   - atwork_subtour_mode_choice_simulate
   - create_simple_trips
   - trip_mode_choice_simulate
+  - write_data_dictionary
 
 #resume_after: tour_mode_choice_simulate
 

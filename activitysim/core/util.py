@@ -1,6 +1,8 @@
 import os
 import psutil
+import resource
 import gc
+import logging
 
 from operator import itemgetter
 
@@ -9,14 +11,36 @@ import pandas as pd
 
 from zbox import toolz as tz
 
+logger = logging.getLogger(__name__)
+
+
+def force_garbage_collect():
+
+    mi = psutil.Process().memory_full_info()
+    logger.debug("force_garbage_collect before: vms: %s rss: %s uss: %s" %
+                 (GB(mi.vms), GB(mi.rss), GB(mi.uss)))
+
+    gc.collect()
+
+    mi = psutil.Process().memory_full_info()
+    logger.debug("force_garbage_collect after: vms: %s rss: %s uss: %s" %
+                 (GB(mi.vms), GB(mi.rss), GB(mi.uss)))
+
+
+def GB(bytes):
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return "%s GB" % (round(gb, 2), )
+
 
 def memory_info():
+
     gc.collect()
-    process = psutil.Process(os.getpid())
-    bytes = process.memory_info().rss
-    mb = (bytes / (1024 * 1024.0))
-    gb = (bytes / (1024 * 1024 * 1024.0))
-    return "memory_info: %s MB (%s GB)" % (int(mb), round(gb, 2))
+
+    mi = psutil.Process().memory_full_info()
+
+    peak_bytes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return "memory_info: vms: %s rss: %s uss: %s peak: %s" % \
+           (GB(mi.vms), GB(mi.rss), GB(mi.uss), GB(peak_bytes))
 
 
 def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):

@@ -11,7 +11,7 @@ from . import tracing
 from . import chunk
 from .simulate import add_skims
 
-
+from activitysim.core.util import force_garbage_collect
 from .interaction_simulate import eval_interaction_utilities
 
 logger = logging.getLogger(__name__)
@@ -274,7 +274,7 @@ def interaction_sample_simulate(
 
     rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers, alt_sample=alternatives)
 
-    logger.info("interaction_simulate chunk_size %s num_choosers %s"
+    logger.info("interaction_sample_simulate chunk_size %s num_choosers %s"
                 % (chunk_size, len(choosers.index)))
 
     result_list = []
@@ -289,6 +289,8 @@ def interaction_sample_simulate(
             tracing.extend_trace_label(trace_label, 'chunk_%s' % i), trace_choice_name)
 
         result_list.append(choices)
+
+        force_garbage_collect()
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

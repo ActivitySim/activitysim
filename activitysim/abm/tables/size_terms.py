@@ -4,6 +4,7 @@
 import os
 import logging
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core import inject
@@ -61,4 +62,12 @@ def destination_size_terms(land_use, size_terms):
     df = pd.DataFrame({key: size_term(land_use, row) for key, row in size_terms.iterrows()},
                       index=land_use.index)
     df.index.name = "TAZ"
+
+    if not (df.dtypes == 'float64').all():
+        logger.warn('Surprised to find that not all size_terms were float64!')
+
+    # - #NARROW
+    # float16 has 3.3 decimal digits of precision, float32 has 7.2
+    df = df.astype(np.float16, errors='raise')
+
     return df

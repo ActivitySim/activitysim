@@ -21,6 +21,7 @@ def log_chunk_df(trace_label, df):
 
     elements = df.shape[0] * df.shape[1]
     bytes = df.memory_usage(index=True).sum()
+
     logger.debug("%s log_chunk_df #chunk %s %s" % (trace_label, elements, util.GB(bytes)))
 
 

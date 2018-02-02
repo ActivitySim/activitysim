@@ -11,6 +11,8 @@ from . import tracing
 from .simulate import add_skims
 from . import chunk
 
+from activitysim.core.util import force_garbage_collect
+
 
 logger = logging.getLogger(__name__)
 
@@ -363,6 +365,8 @@ def interaction_simulate(
                                         trace_choice_name)
 
         result_list.append(choices)
+
+        force_garbage_collect()
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

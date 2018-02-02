@@ -11,7 +11,6 @@ from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
-from activitysim.core.util import memory_info
 from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import assign_in_place
 

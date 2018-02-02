@@ -6,7 +6,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core.util import quick_loc_series
+from activitysim.core.util import force_garbage_collect
 
 from . import logit
 from . import tracing
@@ -309,6 +309,14 @@ def _interaction_sample(
                          transpose=False,
                          column_labels=['sample_alt', 'alternative'])
 
+    # don't need this after tracing
+    del choices_df['rand']
+
+    # - #NARROW
+    choices_df['prob'] = choices_df['prob'].astype(np.float32)
+    assert choices_df['pick_count'].max() < 4294967295
+    choices_df['pick_count'] = choices_df['pick_count'].astype(np.uint32)
+
     return choices_df
 
 
@@ -372,7 +380,7 @@ def interaction_sample(
 
     rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers, alternatives)
 
-    logger.info("interaction_simulate chunk_size %s num_choosers %s rows_per_chunk %s" %
+    logger.info("interaction_sample chunk_size %s num_choosers %s rows_per_chunk %s" %
                 (chunk_size, len(choosers.index), rows_per_chunk))
 
     result_list = []
@@ -385,6 +393,8 @@ def interaction_sample(
                                       tracing.extend_trace_label(trace_label, 'chunk_%s' % i))
 
         result_list.append(choices)
+
+        force_garbage_collect()
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

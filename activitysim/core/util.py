@@ -1,6 +1,5 @@
 import os
 import psutil
-import resource
 import gc
 import logging
 
@@ -38,9 +37,7 @@ def memory_info():
 
     mi = psutil.Process().memory_full_info()
 
-    peak_bytes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    return "memory_info: vms: %s rss: %s uss: %s peak: %s" % \
-           (GB(mi.vms), GB(mi.rss), GB(mi.uss), GB(peak_bytes))
+    return "memory_info: vms: %s rss: %s uss: %s" % (GB(mi.vms), GB(mi.rss), GB(mi.uss))
 
 
 def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):

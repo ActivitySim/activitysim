@@ -2,7 +2,9 @@
 # See full license in LICENSE.txt.
 
 import logging
+from collections import OrderedDict
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core import tracing
@@ -30,6 +32,9 @@ go to school.
 
 logger = logging.getLogger(__name__)
 DUMP = False
+
+# use int not str to identify school type in sample df
+SCHOOL_TYPE_ID = OrderedDict([('university', 1), ('highschool', 2), ('gradeschool', 3)])
 
 
 @inject.injectable()
@@ -96,7 +101,7 @@ def school_location_sample(
     choosers = choosers[chooser_columns]
 
     choices_list = []
-    for school_type in ['university', 'highschool', 'gradeschool']:
+    for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
 
         locals_d['segment'] = school_type
 
@@ -121,10 +126,13 @@ def school_location_sample(
                 chunk_size=chunk_size,
                 trace_label=tracing.extend_trace_label(trace_label, school_type))
 
-            choices['school_type'] = school_type
+            choices['school_type'] = school_type_id
             choices_list.append(choices)
 
     choices = pd.concat(choices_list)
+
+    # - # NARROW
+    choices['school_type'] = choices['school_type'].astype(np.uint8)
 
     inject.add_table('school_location_sample', choices)
 
@@ -182,11 +190,11 @@ def school_location_logsums(
     tracing.dump_df(DUMP, persons_merged, trace_label, 'persons_merged')
 
     logsums_list = []
-    for school_type in ['university', 'highschool', 'gradeschool']:
+    for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
 
         logsums_spec = mode_choice_logsums_spec(configs_dir, school_type)
 
-        choosers = school_location_sample[school_location_sample['school_type'] == school_type]
+        choosers = school_location_sample[school_location_sample['school_type'] == school_type_id]
 
         choosers = pd.merge(
             choosers,
@@ -261,12 +269,13 @@ def school_location_simulate(persons_merged,
     tracing.dump_df(DUMP, choosers, 'school_location_simulate', 'choosers')
 
     choices_list = []
-    for school_type in ['university', 'highschool', 'gradeschool']:
+    for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
 
         locals_d['segment'] = school_type
 
         choosers_segment = choosers[choosers["is_" + school_type]]
-        alts_segment = school_location_sample[school_location_sample['school_type'] == school_type]
+        alts_segment = \
+            school_location_sample[school_location_sample['school_type'] == school_type_id]
 
         # alternatives are pre-sampled and annotated with logsums and pick_count
         # but we have to merge additional alt columns into alt sample list

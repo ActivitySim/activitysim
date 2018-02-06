@@ -13,19 +13,6 @@ from zbox import toolz as tz
 logger = logging.getLogger(__name__)
 
 
-def force_garbage_collect():
-
-    mi = psutil.Process().memory_full_info()
-    logger.debug("force_garbage_collect before: vms: %s rss: %s uss: %s" %
-                 (GB(mi.vms), GB(mi.rss), GB(mi.uss)))
-
-    gc.collect()
-
-    mi = psutil.Process().memory_full_info()
-    logger.debug("force_garbage_collect after: vms: %s rss: %s uss: %s" %
-                 (GB(mi.vms), GB(mi.rss), GB(mi.uss)))
-
-
 def GB(bytes):
     gb = (bytes / (1024 * 1024 * 1024.0))
     return "%s GB" % (round(gb, 2), )
@@ -33,11 +20,14 @@ def GB(bytes):
 
 def memory_info():
 
-    gc.collect()
-
     mi = psutil.Process().memory_full_info()
-
     return "memory_info: vms: %s rss: %s uss: %s" % (GB(mi.vms), GB(mi.rss), GB(mi.uss))
+
+
+def force_garbage_collect():
+
+    gc.collect()
+    logger.debug("force_garbage_collect %s" % memory_info())
 
 
 def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):

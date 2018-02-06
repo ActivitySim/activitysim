@@ -19,11 +19,9 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def initialize():
     """
-
     Because random seed is set differently for each step, the sampling of households depends
-    on which step they are initially loaded in.
-
-    We load them explicitly up front, so that
+    on which step they are initially loaded in so we force them to load here and they get
+    stored to the pipeline,
     """
 
     t0 = tracing.print_elapsed_time()
@@ -39,16 +37,12 @@ def initialize():
     inject.get_table('person_windows').to_frame()
     t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)
 
-    pass
-
 
 @inject.injectable(cache=True)
 def preload_injectables():
     """
-    called after pipeline is
+    preload bulky injectables up front - stuff that isn't inserted into eh pipeline
     """
-
-    # could simply list injectables as arguments, but this way we can report timing...
 
     logger.info("preload_injectables")
 

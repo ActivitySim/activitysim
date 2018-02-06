@@ -13,6 +13,8 @@ from . import logit
 from . import tracing
 from . import pipeline
 
+from . import util
+
 from . import chunk
 
 logger = logging.getLogger(__name__)
@@ -119,6 +121,8 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
     for expr in exprs:
+        logger.debug("eval_variables: %s" % expr)
+        logger.debug("eval_variables %s" % util.memory_info())
         try:
             if expr.startswith('@'):
                 expr_values = to_series(eval(expr[1:], globals(), locals_d))

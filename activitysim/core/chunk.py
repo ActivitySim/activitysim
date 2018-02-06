@@ -23,6 +23,7 @@ def log_chunk_df(trace_label, df):
     bytes = df.memory_usage(index=True).sum()
 
     logger.debug("%s log_chunk_df #chunk %s %s" % (trace_label, elements, util.GB(bytes)))
+    logger.debug("%s log_chunk_df %s" % (trace_label, util.memory_info()))
 
 
 def calc_rows_per_chunk(chunk_size, choosers, alternatives=None,

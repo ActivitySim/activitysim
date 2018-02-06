@@ -531,13 +531,6 @@ def close_pipeline():
     logger.info("close_pipeline")
 
 
-def preload_injectables():
-
-    # load skim_stack
-    if orca.is_injectable('preload_injectables'):
-        orca.get_injectable('preload_injectables')
-
-
 def run(models, resume_after=None):
     """
     run the specified list of models, optionally loading checkpoint and resuming after specified
@@ -565,8 +558,10 @@ def run(models, resume_after=None):
     open_pipeline(resume_after)
     t0 = print_elapsed_time('open_pipeline', t0)
 
-    preload_injectables()
-    t0 = print_elapsed_time('preload_injectables', t0)
+    # preload any bulky injectables (e.g. skims) not in pipeline
+    if orca.is_injectable('preload_injectables'):
+        orca.get_injectable('preload_injectables')
+        t0 = print_elapsed_time('preload_injectables', t0)
 
     t0 = print_elapsed_time()
     for model in models:

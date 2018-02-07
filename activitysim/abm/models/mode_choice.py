@@ -30,6 +30,7 @@ def _mode_choice_simulate(records,
                           spec,
                           constants,
                           nest_spec,
+                          chunk_size,
                           trace_label=None, trace_choice_name=None
                           ):
     """
@@ -61,6 +62,7 @@ def _mode_choice_simulate(records,
         nest_spec,
         skims=skims,
         locals_d=locals_d,
+        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name=trace_choice_name)
 
@@ -129,6 +131,7 @@ def atwork_subtour_mode_choice_simulate(tours,
                                         tour_mode_choice_spec,
                                         tour_mode_choice_settings,
                                         skim_dict, skim_stack,
+                                        chunk_size,
                                         trace_hh_id):
     """
     At-work subtour mode choice simulate
@@ -176,6 +179,7 @@ def atwork_subtour_mode_choice_simulate(tours,
         spec=spec,
         constants=constants,
         nest_spec=nest_spec,
+        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='tour_mode_choice')
 
@@ -201,6 +205,7 @@ def tour_mode_choice_simulate(tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
                               skim_dict, skim_stack,
+                              chunk_size,
                               trace_hh_id):
     """
     Tour mode choice simulate
@@ -259,6 +264,7 @@ def tour_mode_choice_simulate(tours_merged,
             spec=spec,
             constants=constants,
             nest_spec=nest_spec,
+            chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(trace_label, tour_type),
             trace_choice_name='tour_mode_choice')
 
@@ -327,6 +333,7 @@ def trip_mode_choice_simulate(trips_merged,
                               trip_mode_choice_settings,
                               skim_dict,
                               skim_stack,
+                              chunk_size,
                               trace_hh_id):
     """
     Trip mode choice simulate
@@ -366,6 +373,7 @@ def trip_mode_choice_simulate(trips_merged,
             spec=get_segment_and_unstack(trip_mode_choice_spec, tour_type),
             constants=constants,
             nest_spec=nest_spec,
+            chunk_size=chunk_size,
             trace_label=trace_label,
             trace_choice_name='trip_mode_choice')
 

@@ -121,8 +121,8 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
     for expr in exprs:
-        logger.debug("eval_variables: %s" % expr)
-        logger.debug("eval_variables %s" % util.memory_info())
+        # ogger.debug("eval_variables: %s" % expr)
+        # logger.debug("eval_variables %s" % util.memory_info())
         try:
             if expr.startswith('@'):
                 expr_values = to_series(eval(expr[1:], globals(), locals_d))
@@ -403,6 +403,9 @@ def eval_mnl(choosers, spec, locals_d,
     choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
+    chunk.log_df_size("utilities", utilities)
+    chunk.log_df_size("probs", probs)
+
     if trace_label:
 
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
@@ -502,6 +505,11 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
     choices, rands = logit.make_choices(base_probabilities, trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
+    chunk.log_df_size("raw_utilities", raw_utilities)
+    chunk.log_df_size("nested_exp_utilities", nested_exp_utilities)
+    chunk.log_df_size("nested_probabilities", nested_probabilities)
+    chunk.log_df_size("base_probabilities", base_probabilities)
+
     if trace_label:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
@@ -565,7 +573,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate')
 
-    chunk.log_chunk_df(trace_label, choosers)
+    chunk.log_df_size('simple_simulate choosers', choosers)
 
     if skims:
         add_skims(choosers, skims)
@@ -590,7 +598,18 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
 
     assert len(choosers) > 0
 
-    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers)
+    if nest_spec is None:
+        # utilities and probs for each alt plus choices and rands
+        num_alt_columns = 2 * len(spec.columns) + 2
+    else:
+        # raw_utilities and base_probabilities) for each alt
+        # nested_exp_utilities, nested_probabilities for each nest
+        # plus choices and rands
+        num_alt_columns = len(spec.columns) + logit.count_nests(nest_spec)
+        num_alt_columns = 2 * num_alt_columns + 2
+
+    rows_per_chunk = \
+        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns)
 
     logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
                 (rows_per_chunk, len(choosers.index)))
@@ -639,6 +658,8 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
 
     # utility values
     utilities = compute_utilities(expression_values, spec)
+
+    chunk.log_df_size("utilities", utilities)
 
     # logsum is log of exponentiated utilities summed across columns of each chooser row
     utils_arr = utilities.as_matrix().astype('float')
@@ -692,6 +713,9 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
     t0 = tracing.print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
 
+    chunk.log_df_size("raw_utilities", raw_utilities)
+    chunk.log_df_size("nested_exp_utilities", nested_exp_utilities)
+
     logsums = np.log(nested_exp_utilities.root)
     logsums = pd.Series(logsums, index=choosers.index)
     t0 = tracing.print_elapsed_time("logsums", t0, debug=True)
@@ -724,7 +748,7 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
 
     trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
 
-    chunk.log_chunk_df(trace_label, choosers)
+    chunk.log_df_size('simple_simulate_logsums choosers', choosers)
 
     if skims:
         add_skims(choosers, skims)
@@ -751,7 +775,9 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     assert len(choosers) > 0
 
-    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers)
+    num_alt_columns = len(spec.columns) + logit.count_nests(nest_spec)
+    rows_per_chunk = \
+        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns)
 
     logger.info("simple_simulate_logsums chunk_size %s num_choosers %s, rows_per_chunk %s" %
                 (chunk_size, len(choosers.index), rows_per_chunk))

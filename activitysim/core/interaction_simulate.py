@@ -214,7 +214,7 @@ def _interaction_simulate(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
 
-    chunk.log_chunk_df(trace_label, interaction_df)
+    chunk.log_df_size('interaction_simulate interaction_df', interaction_df)
 
     if skims:
         add_skims(interaction_df, skims)

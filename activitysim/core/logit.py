@@ -369,3 +369,16 @@ def each_nest(nest_spec, type=None, post_order=False):
     for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
         if type is None or (type == nest.type):
             yield nest
+
+
+def count_nests(nest_spec, type=None):
+    """
+    count the nests of the specified type (or all nests if type is None)
+    return 0 if nest_spec is none
+    """
+    count = 0
+    if nest_spec is not None:
+        for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=False):
+            if type is None or nest.type == type:
+                count += 1
+    return count

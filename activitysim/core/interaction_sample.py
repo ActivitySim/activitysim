@@ -218,7 +218,7 @@ def _interaction_sample(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, alternative_count)
 
-    chunk.log_chunk_df(trace_label, interaction_df)
+    chunk.log_df_size('interaction_simulate choosers', interaction_df)
 
     assert alternative_count == len(interaction_df.index) / len(choosers.index)
 

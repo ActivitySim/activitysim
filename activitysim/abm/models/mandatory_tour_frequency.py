@@ -41,6 +41,7 @@ def mandatory_tour_frequency_alternatives(configs_dir):
 def mandatory_tour_frequency(persons_merged,
                              mandatory_tour_frequency_spec,
                              mandatory_tour_frequency_settings,
+                             chunk_size,
                              trace_hh_id):
     """
     This model predicts the frequency of making mandatory trips (see the
@@ -60,6 +61,7 @@ def mandatory_tour_frequency(persons_merged,
         spec=mandatory_tour_frequency_spec,
         nest_spec=nest_spec,
         locals_d=constants,
+        chunk_size=chunk_size,
         trace_label=trace_hh_id and 'mandatory_tour_frequency',
         trace_choice_name='mandatory_tour_frequency')
 

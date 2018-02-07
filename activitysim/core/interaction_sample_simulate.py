@@ -73,7 +73,7 @@ def _interaction_sample_simulate(
 
     assert len(choosers.index) == len(np.unique(alternatives.index.values))
 
-    trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
+    trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
 
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
@@ -102,7 +102,7 @@ def _interaction_sample_simulate(
         left_index=True, right_index=True,
         suffixes=('', '_r'))
 
-    chunk.log_chunk_df(trace_label, interaction_df)
+    chunk.log_df_size('interaction_sample_simulate interaction_df', interaction_df)
 
     tracing.dump_df(DUMP, interaction_df, trace_label, 'interaction_df')
 

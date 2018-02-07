@@ -76,6 +76,7 @@ def atwork_subtour_frequency(tours,
         spec=atwork_subtour_frequency_spec,
         nest_spec=nest_spec,
         locals_d=constants,
+        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='atwork_subtour_frequency')
 

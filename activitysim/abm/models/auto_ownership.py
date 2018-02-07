@@ -26,6 +26,7 @@ def auto_ownership_settings(configs_dir):
 def auto_ownership_simulate(households_merged,
                             auto_ownership_spec,
                             auto_ownership_settings,
+                            chunk_size,
                             trace_hh_id):
     """
     Auto ownership is a standard model which predicts how many cars a household
@@ -42,6 +43,7 @@ def auto_ownership_simulate(households_merged,
         spec=auto_ownership_spec,
         nest_spec=nest_spec,
         locals_d=constants,
+        chunk_size=chunk_size,
         trace_label=trace_hh_id and 'auto_ownership',
         trace_choice_name='auto_ownership')
 

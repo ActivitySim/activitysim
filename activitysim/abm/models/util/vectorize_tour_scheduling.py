@@ -11,6 +11,10 @@ from activitysim.core import tracing
 from activitysim.core import inject
 from activitysim.core import timetable as tt
 from activitysim.core.util import memory_info
+from activitysim.core.util import df_size
+from activitysim.core.util import force_garbage_collect
+
+from activitysim.core import chunk
 
 logger = logging.getLogger(__name__)
 
@@ -105,11 +109,9 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     return alt_tdd
 
 
-def schedule_tours(tours, persons_merged,
-                   alts, spec, constants,
-                   timetable,
-                   previous_tour, window_id_col,
-                   chunk_size, tour_trace_label):
+def _schedule_tours(
+        tours, persons_merged, alts, spec, constants, timetable,
+        previous_tour, window_id_col, chunk_size, tour_trace_label):
     """
     previous_tour stores values used to add columns that can be used in the spec
     which have to do with the previous tours per person.  Every column in the
@@ -166,11 +168,15 @@ def schedule_tours(tours, persons_merged,
         get_previous_tour_by_tourid(tours[window_id_col], previous_tour, alts)
     )
 
+    s0 = chunk.log_df_size(tour_trace_label, "tours merged plus previous tour columns", tours)
+
     # build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
     choice_column = 'tdd'
     alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col)
+
+    s0 = chunk.log_df_size(tour_trace_label, "alt_tdd", alt_tdd, s0)
 
     locals_d = {
         'tt': timetable
@@ -191,6 +197,64 @@ def schedule_tours(tours, persons_merged,
     previous_tour.loc[tours[window_id_col]] = choices.values
 
     timetable.assign(tours[window_id_col], choices)
+
+    return choices
+
+
+def schedule_tours(
+        tours, persons_merged, alts, spec, constants, timetable,
+        previous_tour, window_id_col, chunk_size, tour_trace_label):
+    """
+    chunking wrapper for _schedule_tours
+
+    While interaction_sample_simulate provides chunking support, the merged tours, persons
+    dataframe and the tdd_interaction_dataset are very big, so we want to create them inside
+    the chunking loop to minimize memory footprint. So we implement the chunking loop here,
+    and pass a chunk_size of 0 to interaction_sample_simulate to disable its chunking support.
+
+    """
+    # return _schedule_tours(tours, persons_merged, alts, spec, constants, timetable,
+    #                        previous_tour, window_id_col, chunk_size, tour_trace_label)
+
+    logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
+
+    # persons_merged columns plus 2 previous tour columns
+    extra_chooser_columns = persons_merged.shape[1] + 2
+
+    rows_per_chunk = \
+        chunk.calc_rows_per_chunk(chunk_size, tours, alternatives=alts,
+                                  extra_chooser_columns=extra_chooser_columns,
+                                  trace_label=tour_trace_label)
+
+    logger.info("chunk_size %s rows_per_chunk %s" % (chunk_size, rows_per_chunk))
+
+    result_list = []
+    for i, num_chunks, chooser_chunk \
+            in chunk.chunked_choosers(tours, rows_per_chunk):
+
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
+
+        chunk_trace_label = tracing.extend_trace_label(tour_trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else tour_trace_label
+
+        choices = _schedule_tours(chooser_chunk, persons_merged,
+                                  alts, spec, constants,
+                                  timetable,
+                                  previous_tour, window_id_col,
+                                  chunk_size=0,
+                                  tour_trace_label=chunk_trace_label)
+
+        result_list.append(choices)
+
+        force_garbage_collect()
+
+    # FIXME: this will require 2X RAM
+    # if necessary, could append to hdf5 store on disk:
+    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
+
+    assert len(choices.index == len(tours.index))
 
     return choices
 
@@ -234,8 +298,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
         DataFrame and the values are the index of the alts DataFrame.
     """
 
-    if not trace_label:
-        trace_label = 'vectorize_tour_scheduling'
+    trace_label = tracing.extend_trace_label(trace_label, 'vectorize_tour_scheduling')
 
     assert len(tours.index) > 0
     assert 'tour_num' in tours.columns

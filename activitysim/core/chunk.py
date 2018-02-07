@@ -17,19 +17,27 @@ from . import util
 logger = logging.getLogger(__name__)
 
 
-def log_df_size(trace_label, df):
+def log_df_size(trace_label, table_name, df, prev=None):
 
     elements = df.shape[0] * df.shape[1]
     bytes = df.memory_usage(index=True).sum()
 
-    logger.debug("#chunk log_df_size %s %s %s %s" %
-                 (trace_label, df.shape, elements, util.GB(bytes)))
-    logger.debug("%s log_chunk_df %s" % (trace_label, util.memory_info()))
+    logger.debug("%s #chunk log_df_size %s %s %s %s" %
+                 (trace_label, table_name, df.shape, elements, util.GB(bytes)))
+    logger.debug("%s %s" % (trace_label, util.memory_info()))
+
+    if prev:
+        elements += prev[0]
+        bytes += prev[1]
+
+    logger.debug("%s #chunk CUM %s %s" % (trace_label, elements, util.GB(bytes)))
+
+    return elements, bytes
 
 
 def calc_rows_per_chunk(chunk_size, choosers, alternatives=None,
                         sample_size=None, alt_sample=None, by_chunk_id=False,
-                        extra_chooser_columns=0):
+                        extra_chooser_columns=0, trace_label=None):
 
     if by_chunk_id:
         num_choosers = choosers['chunk_id'].max() + 1
@@ -38,10 +46,13 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives=None,
 
     # FIXME - except we want logging?...
     # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers
+    if chunk_size == 0:
+        return num_choosers
 
     chooser_row_size = len(choosers.columns)
+
+    if extra_chooser_columns > 0:
+        chooser_row_size += extra_chooser_columns
 
     assert (alternatives is None) or (alt_sample is None)
 
@@ -62,9 +73,6 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives=None,
         sample_size = 1
         row_size = chooser_row_size
 
-    if extra_chooser_columns > 0:
-        row_size += extra_chooser_columns
-
     if by_chunk_id:
         # scale row_size by average number of chooser rows per chunk_id
         rows_per_chunk_id = len(choosers.index) / float(num_choosers)
@@ -83,16 +91,16 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives=None,
     chunks = int(ceil(num_choosers / float(rows_per_chunk)))
     effective_chunk_size = row_size * rows_per_chunk
 
-    logger.debug("#chunk calc_rows_per_chunk chunk_size %s" % chunk_size)
-    logger.debug("#chunk calc_rows_per_chunk num_choosers %s" % num_choosers)
-    logger.debug("#chunk calc_rows_per_chunk chooser_row_size %s" % chooser_row_size)
-    logger.debug("#chunk calc_rows_per_chunk extra_chooser_columns %s" % extra_chooser_columns)
-    logger.debug("#chunk calc_rows_per_chunk sample_size %s" % sample_size)
-    logger.debug("#chunk calc_rows_per_chunk alt_row_size %s" % alt_row_size)
-    logger.debug("#chunk calc_rows_per_chunk total row_size %s" % row_size)
-    logger.debug("#chunk calc_rows_per_chunk rows_per_chunk %s" % rows_per_chunk)
-    logger.debug("#chunk calc_rows_per_chunk effective_chunk_size %s" % effective_chunk_size)
-    logger.debug("#chunk calc_rows_per_chunk chunks %s" % chunks)
+    logger.debug("%s #chunk_calc chunk_size %s" % (trace_label, chunk_size))
+    logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
+    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))
+    logger.debug("%s #chunk_calc rows_per_chunk %s" % (trace_label, rows_per_chunk))
+    logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
+    logger.debug("%s #chunk_calc chunks %s" % (trace_label, chunks))
 
     return rows_per_chunk
 

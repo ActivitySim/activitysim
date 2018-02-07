@@ -11,6 +11,7 @@ import orca
 import logging
 import inject
 from util import memory_info
+from util import df_size
 
 import random
 import tracing
@@ -288,16 +289,15 @@ def add_checkpoint(checkpoint_name):
         # if we have not already checkpointed it or it has changed
         # FIXME - this won't detect if the orca table was modified
         if len(orca.list_columns_for_table(table_name)):
-            logger.debug("add_checkpoint table_name %s rewrap" % (table_name,))
             # rewrap the changed orca table as a unitary DataFrame-backed DataFrameWrapper table
             df = rewrap(table_name)
         elif table_name not in _PIPELINE.last_checkpoint or table_name in _PIPELINE.replaced_tables:
             df = orca.get_table(table_name).to_frame()
-            logger.debug("add_checkpoint table_name %s get_table" % (table_name,))
         else:
             continue
 
-        logger.debug("add_checkpoint %s writing %s to store" % (checkpoint_name, table_name,))
+        logger.debug("add_checkpoint '%s' table '%s' %s" %
+                     (checkpoint_name, table_name, df_size(df)))
         write_df(df, table_name, checkpoint_name)
 
         # remember which checkpoint it was last written

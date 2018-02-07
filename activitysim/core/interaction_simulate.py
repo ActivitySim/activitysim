@@ -214,7 +214,7 @@ def _interaction_simulate(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
 
-    chunk.log_df_size('interaction_simulate interaction_df', interaction_df)
+    chunk.log_df_size(trace_label, 'interaction_df', interaction_df)
 
     if skims:
         add_skims(interaction_df, skims)
@@ -345,11 +345,14 @@ def interaction_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
+
     assert len(choosers) > 0
 
     rows_per_chunk = \
         chunk.calc_rows_per_chunk(chunk_size, choosers,
-                                  alternatives=alternatives, sample_size=sample_size)
+                                  alternatives=alternatives, sample_size=sample_size,
+                                  trace_label=trace_label)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))
@@ -359,9 +362,12 @@ def interaction_simulate(
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
+        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else trace_label
+
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,
-                                        tracing.extend_trace_label(trace_label, 'chunk_%s' % i),
+                                        chunk_trace_label,
                                         trace_choice_name)
 
         result_list.append(choices)

@@ -73,8 +73,6 @@ def _interaction_sample_simulate(
 
     assert len(choosers.index) == len(np.unique(alternatives.index.values))
 
-    trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
-
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
@@ -102,7 +100,7 @@ def _interaction_sample_simulate(
         left_index=True, right_index=True,
         suffixes=('', '_r'))
 
-    chunk.log_df_size('interaction_sample_simulate interaction_df', interaction_df)
+    chunk.log_df_size(trace_label, 'interaction_df', interaction_df)
 
     tracing.dump_df(DUMP, interaction_df, trace_label, 'interaction_df')
 
@@ -272,7 +270,10 @@ def interaction_sample_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers, alt_sample=alternatives)
+    trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
+
+    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, choosers, alt_sample=alternatives,
+                                               trace_label=trace_label)
 
     logger.info("interaction_sample_simulate chunk_size %s num_choosers %s"
                 % (chunk_size, len(choosers.index)))
@@ -283,10 +284,13 @@ def interaction_sample_simulate(
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
+        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else trace_label
+
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
             skims, locals_d,
-            tracing.extend_trace_label(trace_label, 'chunk_%s' % i), trace_choice_name)
+            chunk_trace_label, trace_choice_name)
 
         result_list.append(choices)
 

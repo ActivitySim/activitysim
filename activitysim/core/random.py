@@ -707,10 +707,8 @@ class Random(object):
             rands = np.asanyarray([rng.rand(n) for _ in range(len(df))])
             return rands
 
-        t0 = print_elapsed_time()
         channel = self.get_channel_for_df(df)
         rands = channel.random_for_df(df, self.step_name, n)
-        t0 = print_elapsed_time("random_for_df for %s rows" % len(df.index), t0, debug=True)
         return rands
 
     def choice_for_df(self, df, a, size, replace):

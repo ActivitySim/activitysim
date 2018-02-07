@@ -403,8 +403,8 @@ def eval_mnl(choosers, spec, locals_d,
     choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
-    chunk.log_df_size("utilities", utilities)
-    chunk.log_df_size("probs", probs)
+    s0 = chunk.log_df_size(trace_label, "utilities", utilities)
+    s0 = chunk.log_df_size(trace_label, "probs", probs, s0)
 
     if trace_label:
 
@@ -505,10 +505,10 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
     choices, rands = logit.make_choices(base_probabilities, trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
-    chunk.log_df_size("raw_utilities", raw_utilities)
-    chunk.log_df_size("nested_exp_utilities", nested_exp_utilities)
-    chunk.log_df_size("nested_probabilities", nested_probabilities)
-    chunk.log_df_size("base_probabilities", base_probabilities)
+    s0 = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities)
+    s0 = chunk.log_df_size(trace_label, "nested_exp_utilities", nested_exp_utilities, s0)
+    s0 = chunk.log_df_size(trace_label, "nested_probabilities", nested_probabilities, s0)
+    s0 = chunk.log_df_size(trace_label, "base_probabilities", base_probabilities, s0)
 
     if trace_label:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
@@ -571,9 +571,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         of `spec`.
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate')
-
-    chunk.log_df_size('simple_simulate choosers', choosers)
+    chunk.log_df_size(trace_label, 'simple_simulate choosers', choosers)
 
     if skims:
         add_skims(choosers, skims)
@@ -596,6 +594,8 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
     properties and no need to sample from alternatives.
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate')
+
     assert len(choosers) > 0
 
     if nest_spec is None:
@@ -609,7 +609,8 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
         num_alt_columns = 2 * num_alt_columns + 2
 
     rows_per_chunk = \
-        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns)
+        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns,
+                                  trace_label=trace_label)
 
     logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
                 (rows_per_chunk, len(choosers.index)))
@@ -620,10 +621,13 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
+        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else trace_label
+
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
-            tracing.extend_trace_label(trace_label, 'chunk_%s' % i),
+            chunk_trace_label,
             trace_choice_name)
 
         result_list.append(choices)
@@ -659,7 +663,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     # utility values
     utilities = compute_utilities(expression_values, spec)
 
-    chunk.log_df_size("utilities", utilities)
+    chunk.log_df_size(trace_label, "utilities", utilities)
 
     # logsum is log of exponentiated utilities summed across columns of each chooser row
     utils_arr = utilities.as_matrix().astype('float')
@@ -713,8 +717,8 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
     t0 = tracing.print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
 
-    chunk.log_df_size("raw_utilities", raw_utilities)
-    chunk.log_df_size("nested_exp_utilities", nested_exp_utilities)
+    s0 = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities)
+    s0 = chunk.log_df_size(trace_label, "nested_exp_utilities", nested_exp_utilities, s0)
 
     logsums = np.log(nested_exp_utilities.root)
     logsums = pd.Series(logsums, index=choosers.index)
@@ -746,9 +750,7 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
-
-    chunk.log_df_size('simple_simulate_logsums choosers', choosers)
+    chunk.log_df_size(trace_label, 'choosers', choosers)
 
     if skims:
         add_skims(choosers, skims)
@@ -773,11 +775,14 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
+
     assert len(choosers) > 0
 
     num_alt_columns = len(spec.columns) + logit.count_nests(nest_spec)
     rows_per_chunk = \
-        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns)
+        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns,
+                                  trace_label=trace_label)
 
     logger.info("simple_simulate_logsums chunk_size %s num_choosers %s, rows_per_chunk %s" %
                 (chunk_size, len(choosers.index), rows_per_chunk))
@@ -788,10 +793,13 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
+        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else trace_label
+
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
-            tracing.extend_trace_label(trace_label, 'chunk_%s' % i))
+            chunk_trace_label)
 
         result_list.append(logsums)
 

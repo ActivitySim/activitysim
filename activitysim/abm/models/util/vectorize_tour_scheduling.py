@@ -111,7 +111,7 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 
 def _schedule_tours(
         tours, persons_merged, alts, spec, constants, timetable,
-        previous_tour, window_id_col, chunk_size, tour_trace_label):
+        previous_tour, window_id_col, tour_trace_label):
     """
     previous_tour stores values used to add columns that can be used in the spec
     which have to do with the previous tours per person.  Every column in the
@@ -144,7 +144,6 @@ def _schedule_tours(
     window_id_col : str
         column name from tours that identifies 'owner' of this tour
         (person_id for non/mandatory tours or parent_tout_id for subtours)
-    chunk_size
     tour_trace_label
 
     Returns
@@ -168,15 +167,11 @@ def _schedule_tours(
         get_previous_tour_by_tourid(tours[window_id_col], previous_tour, alts)
     )
 
-    s0 = chunk.log_df_size(tour_trace_label, "tours merged plus previous tour columns", tours)
-
     # build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
     choice_column = 'tdd'
     alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col)
-
-    s0 = chunk.log_df_size(tour_trace_label, "alt_tdd", alt_tdd, s0)
 
     locals_d = {
         'tt': timetable
@@ -190,7 +185,7 @@ def _schedule_tours(
         spec,
         choice_column=choice_column,
         locals_d=locals_d,
-        chunk_size=chunk_size,
+        chunk_size=0,
         trace_label=tour_trace_label
     )
 
@@ -198,7 +193,38 @@ def _schedule_tours(
 
     timetable.assign(tours[window_id_col], choices)
 
+    cum_size = chunk.log_df_size(tour_trace_label, "tours", tours, cum_size=None)
+    cum_size = chunk.log_df_size(tour_trace_label, "alt_tdd", alt_tdd, cum_size)
+    chunk.log_chunk_size(tour_trace_label, cum_size)
+
     return choices
+
+
+def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_label=None):
+
+    num_choosers = len(tours.index)
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
+
+    chooser_row_size = tours.shape[1]
+    sample_size = alternatives.shape[0]
+
+    # persons_merged columns plus 2 previous tour columns
+    extra_chooser_columns = persons_merged.shape[1] + 2
+
+    # one column per alternative plus skim and join columns
+    alt_row_size = alternatives.shape[1] + 2
+
+    row_size = (chooser_row_size + extra_chooser_columns + alt_row_size) * sample_size
+
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
+    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def schedule_tours(
@@ -222,9 +248,7 @@ def schedule_tours(
     extra_chooser_columns = persons_merged.shape[1] + 2
 
     rows_per_chunk = \
-        chunk.calc_rows_per_chunk(chunk_size, tours, alternatives=alts,
-                                  extra_chooser_columns=extra_chooser_columns,
-                                  trace_label=tour_trace_label)
+        calc_rows_per_chunk(chunk_size, tours, persons_merged, alts, trace_label=tour_trace_label)
 
     logger.info("chunk_size %s rows_per_chunk %s" % (chunk_size, rows_per_chunk))
 
@@ -241,7 +265,6 @@ def schedule_tours(
                                   alts, spec, constants,
                                   timetable,
                                   previous_tour, window_id_col,
-                                  chunk_size=0,
                                   tour_trace_label=chunk_trace_label)
 
         result_list.append(choices)

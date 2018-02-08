@@ -181,7 +181,7 @@ def school_location_logsums(
     persons_merged = persons_merged.to_frame()
     school_location_sample = school_location_sample.to_frame()
 
-    logger.info("Running school_location_sample with %s rows" % len(school_location_sample))
+    logger.info("Running school_location_logsums with %s rows" % school_location_sample.shape[0])
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = school_location_settings['LOGSUM_CHOOSER_COLUMNS']

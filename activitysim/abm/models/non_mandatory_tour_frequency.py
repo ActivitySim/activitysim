@@ -80,7 +80,7 @@ def non_mandatory_tour_frequency(persons_merged,
             spec=non_mandatory_tour_frequency_spec[[name]],
             locals_d=constants,
             chunk_size=chunk_size,
-            trace_label=trace_hh_id and 'non_mandatory_tour_frequency.%s' % name,
+            trace_label='non_mandatory_tour_frequency.%s' % name,
             trace_choice_name='non_mandatory_tour_frequency')
 
         choices_list.append(choices)

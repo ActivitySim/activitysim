@@ -48,6 +48,8 @@ def mandatory_tour_frequency(persons_merged,
     alternatives above) - these trips include work and school in some combination.
     """
 
+    trace_label = 'mandatory_tour_frequency'
+
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'M']
@@ -62,7 +64,7 @@ def mandatory_tour_frequency(persons_merged,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,
-        trace_label=trace_hh_id and 'mandatory_tour_frequency',
+        trace_label=trace_label,
         trace_choice_name='mandatory_tour_frequency')
 
     # convert indexes to alternative names

@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+
 from math import ceil
 import os
 import logging
@@ -118,10 +120,10 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
         return x
 
     value_list = []
-    # need to be able to identify which variables causes an error, which keeps
-    # this from being expressed more parsimoniously
+    print('eval_variables', end='')
     for expr in exprs:
-        # ogger.debug("eval_variables: %s" % expr)
+        print('.', end='')
+        # logger.debug("eval_variables: %s" % expr)
         # logger.debug("eval_variables %s" % util.memory_info())
         try:
             if expr.startswith('@'):
@@ -130,8 +132,10 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
                 expr_values = df.eval(expr)
             value_list.append((expr, expr_values))
         except Exception as err:
+            print()
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
+    print()
 
     values = pd.DataFrame.from_items(value_list)
 
@@ -403,8 +407,11 @@ def eval_mnl(choosers, spec, locals_d,
     choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
-    s0 = chunk.log_df_size(trace_label, "utilities", utilities)
-    s0 = chunk.log_df_size(trace_label, "probs", probs, s0)
+    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
+    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "probs", probs, cum_size)
+    chunk.log_chunk_size(trace_label, cum_size)
 
     if trace_label:
 
@@ -505,10 +512,13 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
     choices, rands = logit.make_choices(base_probabilities, trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
-    s0 = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities)
-    s0 = chunk.log_df_size(trace_label, "nested_exp_utilities", nested_exp_utilities, s0)
-    s0 = chunk.log_df_size(trace_label, "nested_probabilities", nested_probabilities, s0)
-    s0 = chunk.log_df_size(trace_label, "base_probabilities", base_probabilities, s0)
+    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
+    cum_size = chunk.log_df_size(trace_label, "expression_values", expression_values, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "nested_exp_utils", nested_exp_utilities, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "nested_probs", nested_probabilities, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "base_probs", base_probabilities, cum_size)
+    chunk.log_chunk_size(trace_label, cum_size)
 
     if trace_label:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
@@ -571,8 +581,6 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         of `spec`.
     """
 
-    chunk.log_df_size(trace_label, 'simple_simulate choosers', choosers)
-
     if skims:
         add_skims(choosers, skims)
 
@@ -584,6 +592,39 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                           trace_label=trace_label, trace_choice_name=trace_choice_name)
 
     return choices
+
+
+def simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
+
+    num_choosers = len(choosers.index)
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
+
+    chooser_row_size = len(choosers.columns)
+
+    if nest_spec is None:
+        # expression_values for each spec row
+        # utilities and probs for each alt
+        extra_columns = spec.shape[0] + (2 * spec.shape[1])
+    else:
+        # expression_values for each spec row
+        # raw_utilities and base_probabilities) for each alt
+        # nested_exp_utilities, nested_probabilities for each nest
+        # less 1 as nested_probabilities lacks root
+        nest_count = logit.count_nests(nest_spec)
+        extra_columns = spec.shape[0] + (2 * spec.shape[1]) + (2 * nest_count) - 1
+
+        logger.debug("%s #chunk_calc nest_count %s" % (trace_label, nest_count))
+
+    row_size = chooser_row_size + extra_columns
+
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
+    logger.debug("%s #chunk_calc extra_columns %s" % (trace_label, extra_columns))
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_size=0,
@@ -598,19 +639,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
 
     assert len(choosers) > 0
 
-    if nest_spec is None:
-        # utilities and probs for each alt plus choices and rands
-        num_alt_columns = 2 * len(spec.columns) + 2
-    else:
-        # raw_utilities and base_probabilities) for each alt
-        # nested_exp_utilities, nested_probabilities for each nest
-        # plus choices and rands
-        num_alt_columns = len(spec.columns) + logit.count_nests(nest_spec)
-        num_alt_columns = 2 * num_alt_columns + 2
-
-    rows_per_chunk = \
-        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns,
-                                  trace_label=trace_label)
+    rows_per_chunk = simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
 
     logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
                 (rows_per_chunk, len(choosers.index)))
@@ -654,21 +683,27 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     check_for_variability = tracing.check_for_variability()
 
     logger.debug("running eval_mnl_logsums")
+    t0 = tracing.print_elapsed_time()
 
     expression_values = eval_variables(spec.index, choosers, locals_d)
+    t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
 
     if check_for_variability:
         _check_for_variability(expression_values, trace_label)
 
     # utility values
     utilities = compute_utilities(expression_values, spec)
-
-    chunk.log_df_size(trace_label, "utilities", utilities)
+    t0 = tracing.print_elapsed_time("compute_utilities", t0, debug=True)
 
     # logsum is log of exponentiated utilities summed across columns of each chooser row
     utils_arr = utilities.as_matrix().astype('float')
     logsums = np.log(np.exp(utils_arr).sum(axis=1))
     logsums = pd.Series(logsums, index=choosers.index)
+
+    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
+    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
+    chunk.log_chunk_size(trace_label, cum_size)
 
     if trace_label:
         # add logsum to utilities for tracing
@@ -695,7 +730,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'nl_logsums')
+    trace_label = tracing.extend_trace_label(trace_label, 'nl')
     check_for_variability = tracing.check_for_variability()
 
     logger.debug("running eval_nl_logsums")
@@ -717,12 +752,15 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
     t0 = tracing.print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
 
-    s0 = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities)
-    s0 = chunk.log_df_size(trace_label, "nested_exp_utilities", nested_exp_utilities, s0)
-
     logsums = np.log(nested_exp_utilities.root)
     logsums = pd.Series(logsums, index=choosers.index)
     t0 = tracing.print_elapsed_time("logsums", t0, debug=True)
+
+    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
+    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
+    cum_size = chunk.log_df_size(trace_label, "nested_exp_utils", nested_exp_utilities, cum_size)
+    chunk.log_chunk_size(trace_label, cum_size)
 
     if trace_label:
         # add logsum to nested_exp_utilities for tracing
@@ -750,8 +788,6 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    chunk.log_df_size(trace_label, 'choosers', choosers)
-
     if skims:
         add_skims(choosers, skims)
 
@@ -761,6 +797,36 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
         logsums = eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=trace_label)
 
     return logsums
+
+
+def simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
+
+    num_choosers = len(choosers.index)
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
+
+    chooser_row_size = len(choosers.columns)
+
+    if nest_spec is None:
+        # expression_values for each spec row
+        # utilities for each alt
+        extra_columns = spec.shape[0] + spec.shape[1]
+        logger.warn("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
+                    " so chunk sizing might be a bit off")
+    else:
+        # expression_values for each spec row
+        # raw_utilities for each alt
+        # nested_exp_utilities for each nest
+        extra_columns = spec.shape[0] + spec.shape[1] + logit.count_nests(nest_spec)
+
+    row_size = chooser_row_size + extra_columns
+
+    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    logger.debug("%s #chunk_calc extra_columns %s" % (trace_label, extra_columns))
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def simple_simulate_logsums(choosers, spec, nest_spec,
@@ -779,13 +845,9 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     assert len(choosers) > 0
 
-    num_alt_columns = len(spec.columns) + logit.count_nests(nest_spec)
-    rows_per_chunk = \
-        chunk.calc_rows_per_chunk(chunk_size, choosers, extra_chooser_columns=num_alt_columns,
-                                  trace_label=trace_label)
-
-    logger.info("simple_simulate_logsums chunk_size %s num_choosers %s, rows_per_chunk %s" %
-                (chunk_size, len(choosers.index), rows_per_chunk))
+    rows_per_chunk = simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
+    logger.info("%s chunk_size %s num_choosers %s, rows_per_chunk %s" %
+                (trace_label, chunk_size, len(choosers.index), rows_per_chunk))
 
     result_list = []
     # segment by person type and pick the right spec for each person type

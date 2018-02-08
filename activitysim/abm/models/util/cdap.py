@@ -811,8 +811,32 @@ def _run_cdap(
     #     tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
     #                      transpose=False, slicer='NONE')
 
+    cum_size = chunk.log_df_size(trace_label, 'persons', persons, cum_size=None)
+    chunk.log_chunk_size(trace_label, cum_size)
+
     # return dataframe with two columns
     return cdap_results
+
+
+# calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
+def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
+
+    # NOTE we chunk chunk_id
+    num_choosers = choosers['chunk_id'].max() + 1
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
+
+    chooser_row_size = choosers.shape[1]
+
+    # scale row_size by average number of chooser rows per chunk_id
+    rows_per_chunk_id = choosers.shape[0] / float(num_choosers)
+    row_size = int(rows_per_chunk_id * chooser_row_size)
+
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def run_cdap(
@@ -863,7 +887,7 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
-    rows_per_chunk = chunk.calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
+    rows_per_chunk = calc_rows_per_chunk(chunk_size, persons, trace_label=trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type

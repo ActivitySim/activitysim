@@ -211,7 +211,7 @@ def tour_mode_choice_simulate(tours_merged,
     Tour mode choice simulate
     """
 
-    trace_label = trace_hh_id and 'tour_mode_choice'
+    trace_label = 'tour_mode_choice'
 
     tours = tours_merged.to_frame()
 
@@ -338,6 +338,7 @@ def trip_mode_choice_simulate(trips_merged,
     """
     Trip mode choice simulate
     """
+    trace_label = 'tour_mode_choice'
 
     trips = trips_merged.to_frame()
 
@@ -363,8 +364,6 @@ def trip_mode_choice_simulate(trips_merged,
 
         # FIXME - check that destination is not null
 
-        trace_label = trace_hh_id and ('trip_mode_choice_%s' % tour_type)
-
         choices = _mode_choice_simulate(
             segment,
             odt_skim_stack_wrapper=odt_skim_stack_wrapper,
@@ -374,7 +373,7 @@ def trip_mode_choice_simulate(trips_merged,
             constants=constants,
             nest_spec=nest_spec,
             chunk_size=chunk_size,
-            trace_label=trace_label,
+            trace_label=tracing.extend_trace_label(trace_label, tour_type),
             trace_choice_name='trip_mode_choice')
 
         # FIXME - no point in printing verbose value_counts now that we have tracing?

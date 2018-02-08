@@ -32,6 +32,7 @@ def auto_ownership_simulate(households_merged,
     Auto ownership is a standard model which predicts how many cars a household
     with given characteristics owns
     """
+    trace_label = 'auto_ownership_simulate'
 
     logger.info("Running auto_ownership_simulate with %d households" % len(households_merged))
 
@@ -44,7 +45,7 @@ def auto_ownership_simulate(households_merged,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,
-        trace_label=trace_hh_id and 'auto_ownership',
+        trace_label=trace_label,
         trace_choice_name='auto_ownership')
 
     tracing.print_summary('auto_ownership', choices, value_counts=True)

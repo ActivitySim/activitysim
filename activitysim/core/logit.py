@@ -243,6 +243,18 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     alts_sample = alternatives.take(sample).copy()
     alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
 
+    logger.debug("interaction_dataset merge choosers %s alternatives %s alts_sample %s" %
+                 (choosers.shape, alternatives.shape, alts_sample.shape))
+
+    # FIXME - merge throws error trying to merge df with two many rows - may be a pandas bug?
+    # this sets limits to max chunk size  - might work to merge in chunks and join
+    # no pressing as there is currently no obvious performance gain to larger chunk size
+    # DEBUG - merge choosers (564016, 4) alternatives (1443, 16) alts_sample (813875088, 17)
+    #
+    #   File "..\pandas\core\internals.py", line 5573, in is_na
+    #     for i in range(0, total_len, chunk_len):
+    # OverflowError: Python int too large to convert to C long
+
     alts_sample = pd.merge(
         alts_sample, choosers, left_on='chooser_idx', right_index=True,
         suffixes=('', '_r'))

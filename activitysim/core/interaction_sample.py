@@ -329,7 +329,7 @@ def _interaction_sample(
     return choices_df
 
 
-def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, trace_label):
+def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
 
     num_choosers = choosers.shape[0]
 
@@ -346,14 +346,14 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, trace_l
     # interaction_utilities
     alt_row_size += 1
 
-    row_size = (chooser_row_size + alt_row_size) * sample_size
+    # interaction_df includes all alternatives and is only afterwards sampled
+    row_size = (chooser_row_size + alt_row_size) * alternatives.shape[0]
 
     # utilities and probs have one row per chooser and one column per alternative row
     row_size += 2 * alternatives.shape[0]
 
     logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
     logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
     logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
@@ -420,7 +420,7 @@ def interaction_sample(
     sample_size = min(sample_size, len(alternatives.index))
 
     rows_per_chunk = \
-        calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, trace_label)
+        calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label)
     logger.info("interaction_sample chunk_size %s num_choosers %s rows_per_chunk %s" %
                 (chunk_size, choosers.shape[0], rows_per_chunk))
 

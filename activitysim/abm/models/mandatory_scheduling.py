@@ -17,7 +17,7 @@ from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
 logger = logging.getLogger(__name__)
 
-DUMP = True
+DUMP = False
 
 
 @inject.injectable()

@@ -383,6 +383,8 @@ def eval_mnl(choosers, spec, locals_d,
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
+    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+
     check_for_variability = tracing.check_for_variability()
 
     t0 = tracing.print_elapsed_time()
@@ -413,7 +415,7 @@ def eval_mnl(choosers, spec, locals_d,
     cum_size = chunk.log_df_size(trace_label, "probs", probs, cum_size)
     chunk.log_chunk_size(trace_label, cum_size)
 
-    if trace_label:
+    if have_trace_targets:
 
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
@@ -464,6 +466,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'nl')
+    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+
     check_for_variability = tracing.check_for_variability()
 
     t0 = tracing.print_elapsed_time()
@@ -520,7 +524,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
     cum_size = chunk.log_df_size(trace_label, "base_probs", base_probabilities, cum_size)
     chunk.log_chunk_size(trace_label, cum_size)
 
-    if trace_label:
+    if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
@@ -595,6 +599,9 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
 
 def simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
+    """
+    rows_per_chunk calculator for simple_simulate
+    """
 
     num_choosers = len(choosers.index)
 
@@ -680,6 +687,8 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
+    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+
     check_for_variability = tracing.check_for_variability()
 
     logger.debug("running eval_mnl_logsums")
@@ -705,7 +714,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
     chunk.log_chunk_size(trace_label, cum_size)
 
-    if trace_label:
+    if have_trace_targets:
         # add logsum to utilities for tracing
         utilities['logsum'] = logsums
 
@@ -731,6 +740,8 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'nl')
+    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+
     check_for_variability = tracing.check_for_variability()
 
     logger.debug("running eval_nl_logsums")
@@ -762,7 +773,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     cum_size = chunk.log_df_size(trace_label, "nested_exp_utils", nested_exp_utilities, cum_size)
     chunk.log_chunk_size(trace_label, cum_size)
 
-    if trace_label:
+    if have_trace_targets:
         # add logsum to nested_exp_utilities for tracing
         nested_exp_utilities['logsum'] = logsums
 

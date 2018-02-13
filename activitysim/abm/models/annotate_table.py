@@ -18,7 +18,6 @@ from .util import expressions
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
-DUMP = True
 
 
 @inject.step()

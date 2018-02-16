@@ -31,6 +31,7 @@ models:
   - cdap_simulate
   - mandatory_tour_frequency
   - mandatory_tour_scheduling
+  - joint_tour_frequency
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination_choice
   - non_mandatory_tour_scheduling
@@ -94,17 +95,6 @@ person_type_map:
     6: driving       # Student_age_16_19_not_FT_wrkr_or_univ_stud,
     7: school        # Student_age_6_15_schpred,
     8: preschool     # Preschool_under_age_6
-
-
-household_type_map:
-    0: null
-    1: family_married
-    2: family_male
-    3: family_female
-    4: nonfamily_male_alone
-    5: nonfamily_male_notalone
-    6: nonfamily_female_alone
-    7: nonfamily_female_notalone
 
 skim_time_periods:
     hours:

@@ -23,27 +23,27 @@ auPkTotal               float64
 dtype: object
 
 ### person_windows (170, 21)
-4     int64
-5     int64
-6     int64
-7     int64
-8     int64
-9     int64
-10    int64
-11    int64
-12    int64
-13    int64
-14    int64
-15    int64
-16    int64
-17    int64
-18    int64
-19    int64
-20    int64
-21    int64
-22    int64
-23    int64
-24    int64
+4     int8
+5     int8
+6     int8
+7     int8
+8     int8
+9     int8
+10    int8
+11    int8
+12    int8
+13    int8
+14    int8
+15    int8
+16    int8
+17    int8
+18    int8
+19    int8
+20    int8
+21    int8
+22    int8
+23    int8
+24    int8
 dtype: object
 
 ### households (110, 68)
@@ -98,7 +98,6 @@ income_segment                   int64
 non_workers                      int64
 family                            bool
 num_young_adults               float64
-household_type                  object
 home_is_rural                     bool
 drivers                        float64
 home_taz                         int64
@@ -116,6 +115,7 @@ auto_ownership                   int64
 no_cars                           bool
 car_sufficiency                  int64
 num_under16_not_at_school        int64
+joint_tour_frequency            object
 dtype: object
 
 ### persons (170, 73)
@@ -195,7 +195,7 @@ non_mandatory_tour_frequency     float64
 num_non_escort_tours             float64
 dtype: object
 
-### tours (194, 45)
+### tours (183, 45)
 tour_id
 person_id                    float64
 tour_type                     object
@@ -296,7 +296,7 @@ total_households        int64
 total_employment        int64
 dtype: object
 
-### trips (368, 9)
+### trips (344, 9)
 trip_id
 tour_id           int64
 INBOUND            bool

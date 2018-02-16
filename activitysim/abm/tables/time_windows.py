@@ -36,4 +36,6 @@ def person_windows(persons, tdd_alts):
 
 @inject.injectable()
 def timetable(person_windows, tdd_alts):
+
+    logging.debug('@inject timetable')
     return tt.TimeTable(person_windows.to_frame(), tdd_alts, person_windows.name)

@@ -34,7 +34,7 @@ checkpointed channels.
 
 _CHANNELS = {
     'households': {
-        'max_steps': 2,
+        'max_steps': 3,
         'index': 'HHID'
     },
     'persons': {

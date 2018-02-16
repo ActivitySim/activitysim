@@ -1,0 +1,6 @@
+joint_tour_frequency_macros:
+  SPEC: joint_tour_frequency_macros
+  DF: households
+  TABLES:
+    - persons
+    - accessibility

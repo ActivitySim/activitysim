@@ -10,8 +10,8 @@ import numpy as np
 from activitysim.core import tracing
 from activitysim.core import inject
 from activitysim.core import pipeline
-from activitysim.core import timetable as tt
-from activitysim.core import assign
+# from activitysim.core import timetable as tt
+# from activitysim.core import assign
 from activitysim.core import config
 
 from .util import expressions

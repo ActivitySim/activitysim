@@ -115,7 +115,7 @@ def compute_columns(df, model_settings, configs_dir, trace_label=None):
 
 def assign_columns(df, model_settings, configs_dir=None, trace_label=None):
     """
-    Evaluate expressions in context of df and assign rusulting target columns to df
+    Evaluate expressions in context of df and assign resulting target columns to df
 
     Can add new or modify existing columns (if target same as existing df column name)
 

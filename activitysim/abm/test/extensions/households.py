@@ -3,6 +3,7 @@ import pandas as pd
 
 from activitysim.core.util import reindex
 from activitysim.core import inject
+from constants import *
 
 
 @inject.column("households")
@@ -71,32 +72,20 @@ def home_taz(households):
     return households.TAZ
 
 
-# map household type ids to strings
-@inject.column("households")
-def household_type(households, settings):
-    return households.HHT.map(settings["household_type_map"])
-
-
 @inject.column("households")
 def non_family(households):
-    return households.household_type.isin(["nonfamily_male_alone",
-                                           "nonfamily_male_notalone",
-                                           "nonfamily_female_alone",
-                                           "nonfamily_female_notalone"])
+    return households.HHT.isin([HHT_NONFAMILY_MALE_ALONE,
+                                HHT_NONFAMILY_MALE_NOTALONE,
+                                HHT_NONFAMILY_FEMALE_ALONE,
+                                HHT_NONFAMILY_FEMALE_NOTALONE])
 
 
 # can't just invert these unfortunately because there's a null household type
-@inject.column("households")
+@ inject.column("households")
 def family(households):
-    return households.household_type.isin(["family_married",
-                                           "family_male",
-                                           "family_female"])
-
-
-# FIXME - not sure why we would need this since it is added by auto_ownership model
-# @inject.column('households')
-# def auto_ownership(households):
-#     return pd.Series(0, households.index)
+    return households.HHT.isin([HHT_FAMILY_MARRIED,
+                                HHT_FAMILY_MALE,
+                                HHT_FAMILY_FEMALE])
 
 
 @inject.column('households')

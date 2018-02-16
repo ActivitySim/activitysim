@@ -98,8 +98,6 @@ def atwork_subtour_frequency(tours,
 
     subtours = process_atwork_subtours(work_tours, atwork_subtour_frequency_alternatives)
 
-    print subtours
-
     tours = pipeline.extend_table("tours", subtours)
     tracing.register_traceable_table('tours', tours)
     pipeline.get_rn_generator().add_channel(subtours, 'tours')

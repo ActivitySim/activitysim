@@ -130,7 +130,7 @@ def test_mini_pipeline_run():
 
     # regression test: these are among the first 10 households in households table
     hh_ids = [464138, 1918238, 2201602]
-    choices = [0, 1, 2]
+    choices = [0, 2, 1]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
@@ -143,7 +143,7 @@ def test_mini_pipeline_run():
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
     # these choices are nonsensical as the test mandatory_tour_frequency spec is very truncated
-    per_ids = [24375, 92744, 172491]
+    per_ids = [92233, 92744, 172491]
     choices = ['school2', 'work_and_school', 'work1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
@@ -153,7 +153,7 @@ def test_mini_pipeline_run():
     # PERID
     # 23647                 NaN
     # 24203                 NaN
-    # 24375             school2
+    # 24375                 NaN
     # 24687                 NaN
     # 24824                 NaN
     # 24975                 NaN
@@ -164,10 +164,10 @@ def test_mini_pipeline_run():
     # 26284                 NaN
     # 26863                 NaN
     # 27059                 NaN
-    # 92233                 NaN
+    # 92233             school2
     # 92382             school1
     # 92744     work_and_school
-    # 92823                 NaN
+    # 92823             school1
     # 93172             school2
     # 93774                 NaN
     # 172491              work1
@@ -222,7 +222,7 @@ def test_mini_pipeline_run2():
 
     # regression test: these are the same as in test_mini_pipeline_run1
     hh_ids = [464138, 1918238, 2201602]
-    choices = [0, 1, 2]
+    choices = [0, 2, 1]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
@@ -240,7 +240,7 @@ def test_mini_pipeline_run2():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [24375, 92744, 172491]
+    per_ids = [92233, 92744, 172491]
     choices = ['school2', 'work_and_school', 'work1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
@@ -317,9 +317,9 @@ def get_trace_csv(file_name):
 
 
 EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
-EXPECT_TOUR_TYPES = ['work', 'school', 'othdiscr']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY']
-EXPECT_TOUR_COUNT = 177
+EXPECT_TOUR_TYPES = ['work', 'school', 'work']
+EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC']
+EXPECT_TOUR_COUNT = 165
 
 
 def test_full_run1():
@@ -337,9 +337,9 @@ def test_full_run1():
 
     print mode_df
     #           tour_id       mode person_id tour_type tour_num
-    # value_1  28330423  DRIVE_LOC   1888694      work        1
-    # value_2  28330434  DRIVE_LOC   1888695    school        1
-    # value_3  28330447  DRIVE_LOC   1888696  othdiscr        1
+    # value_1  35885203  DRIVE_LOC   1888694      work        1
+    # value_2  35885218  DRIVE_LOC   1888695    school        1
+    # value_3  35885241  DRIVE_LOC   1888696      work        1
 
     assert len(mode_df.person_id) == len(EXPECT_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()

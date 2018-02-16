@@ -132,7 +132,8 @@ def create_timetable_windows(rows, tdd_alts):
 
     df = pd.DataFrame(data=UNSCHEDULED,
                       index=rows.index,
-                      columns=window_cols)
+                      columns=window_cols,
+                      dtype=np.int8)
 
     return df
 
@@ -340,6 +341,17 @@ class TimeTable(object):
         row_ixs = window_row_ids.map(self.window_row_ix).values
 
         self.windows[row_ixs] = (tour_footprints == 0) * I_MIDDLE
+
+    def pairwise_available(self, window1_row_ids, window2_row_ids):
+
+        available1 = (self.slice_windows_by_row_id(window1_row_ids) != I_MIDDLE) * 1
+        available2 = (self.slice_windows_by_row_id(window2_row_ids) != I_MIDDLE) * 1
+
+        available = (available1 * available2)
+
+        np.set_printoptions(edgeitems=10)
+
+        return available
 
     def adjacent_window_run_length(self, window_row_ids, periods, before):
         """

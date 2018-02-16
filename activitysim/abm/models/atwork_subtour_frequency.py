@@ -76,6 +76,7 @@ def atwork_subtour_frequency(tours,
         spec=atwork_subtour_frequency_spec,
         nest_spec=nest_spec,
         locals_d=constants,
+        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='atwork_subtour_frequency')
 
@@ -97,13 +98,13 @@ def atwork_subtour_frequency(tours,
 
     subtours = process_atwork_subtours(work_tours, atwork_subtour_frequency_alternatives)
 
-    pipeline.extend_table("tours", subtours)
-    tracing.register_traceable_table('tours', subtours)
+    print subtours
+
+    tours = pipeline.extend_table("tours", subtours)
+    tracing.register_traceable_table('tours', tours)
     pipeline.get_rn_generator().add_channel(subtours, 'tours')
 
     if trace_hh_id:
-        trace_columns = ['atwork_subtour_frequency']
-        tracing.trace_df(inject.get_table('tours').to_frame(),
-                         label=trace_label,
-                         columns=trace_columns,
+        tracing.trace_df(tours,
+                         label='atwork_subtour_frequency.tours',
                          warn_if_empty=True)

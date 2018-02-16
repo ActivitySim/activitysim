@@ -26,7 +26,9 @@ def households(store, households_sample_size, trace_hh_id):
         df = tracing.slice_ids(df_full, trace_hh_id)
 
     # if we need sample a subset of full store
-    elif households_sample_size > 0 and len(df_full.index) > households_sample_size:
+    elif households_sample_size > 0 and df_full.shape[0] > households_sample_size:
+
+        logger.info("sampling %s of %s households" % (households_sample_size, df_full.shape[0]))
 
         # take the requested random sample
         df = asim.random_rows(df_full, households_sample_size)

@@ -177,7 +177,7 @@ def test_mini_pipeline_run():
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
         pipeline.get_table("bogus")
-    assert "not in checkpointed tables" in str(excinfo.value)
+    assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
     with pytest.raises(RuntimeError) as excinfo:
@@ -318,8 +318,8 @@ def get_trace_csv(file_name):
 
 EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
 EXPECT_TOUR_TYPES = ['work', 'school', 'othdiscr']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC']
-EXPECT_TOUR_COUNT = 173
+EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY']
+EXPECT_TOUR_COUNT = 177
 
 
 def test_full_run1():
@@ -375,7 +375,7 @@ def test_full_run_with_chunks():
 
     tour_count = full_run(trace_hh_id=HH_ID,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                          chunk_size=10000)
+                          chunk_size=500000)
 
     assert(tour_count == EXPECT_TOUR_COUNT)
 
@@ -405,3 +405,10 @@ def test_full_run_stability():
     assert (mode_df.person_id.values == EXPECT_PERSON_IDS).any()
     assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).any()
     assert (mode_df['mode'].values == EXPECT_MODES).any()
+
+
+# if __name__ == "__main__":
+#
+#     print "\n\ntest_mini_pipeline_run"
+#     test_mini_pipeline_run()
+#     teardown_function(None)

@@ -273,6 +273,8 @@ def atwork_subtour_destination_simulate(tours,
 
     pipeline.replace_table("tours", tours)
 
+    pipeline.drop_table('atwork_subtour_destination_sample')
+
     if trace_hh_id:
         tracing.trace_df(tours,
                          label=trace_label,

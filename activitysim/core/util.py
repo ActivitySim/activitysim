@@ -1,6 +1,7 @@
 import os
 import psutil
 import gc
+import logging
 
 from operator import itemgetter
 
@@ -9,14 +10,29 @@ import pandas as pd
 
 from zbox import toolz as tz
 
+logger = logging.getLogger(__name__)
+
+
+def GB(bytes):
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return "%s GB" % (round(gb, 2), )
+
+
+def df_size(df):
+    bytes = df.memory_usage(index=True).sum()
+    return "%s %s" % (df.shape, GB(bytes))
+
 
 def memory_info():
+
+    mi = psutil.Process().memory_full_info()
+    return "memory_info: vms: %s rss: %s uss: %s" % (GB(mi.vms), GB(mi.rss), GB(mi.uss))
+
+
+def force_garbage_collect():
+
     gc.collect()
-    process = psutil.Process(os.getpid())
-    bytes = process.memory_info().rss
-    mb = (bytes / (1024 * 1024.0))
-    gb = (bytes / (1024 * 1024 * 1024.0))
-    return "memory_info: %s MB (%s GB)" % (int(mb), round(gb, 2))
+    logger.debug("force_garbage_collect %s" % memory_info())
 
 
 def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):
@@ -145,9 +161,9 @@ def other_than(groups, bools):
     return gt1.where(bools, other=gt0)
 
 
-def quick_loc_df(loc_list, target_df, attribute):
+def quick_loc_df(loc_list, target_df, attribute=None):
     """
-    faster replacement for target_df.loc[loc_list][attribute]
+    faster replacement for target_df.loc[loc_list] or target_df.loc[loc_list][attribute]
 
     pandas DataFrame.loc[] indexing doesn't scale for large arrays (e.g. > 1,000,000 elements)
 
@@ -155,11 +171,11 @@ def quick_loc_df(loc_list, target_df, attribute):
     ----------
     loc_list : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)
     target_df : pandas.DataFrame containing column named attribute
-    attribute : name of column from loc_list to return
+    attribute : name of column from loc_list to return (or none for all columns)
 
     Returns
     -------
-        pandas.Series
+        pandas.DataFrame or, if attribbute specified, pandas.Series
     """
 
     left_on = "left"
@@ -173,16 +189,26 @@ def quick_loc_df(loc_list, target_df, attribute):
     else:
         raise RuntimeError("quick_loc_df loc_list of unexpected type %s" % type(loc_list))
 
+    if attribute:
+        target_df = target_df[[attribute]]
+
     df = pd.merge(left_df,
-                  target_df[[attribute]],
+                  target_df,
                   left_on=left_on,
                   right_index=True,
-                  how="left")
+                  how="left").set_index(left_on)
+
+    df.index.name = target_df.index.name
 
     # regression test
-    # assert list(df[attribute]) == list(target_df.loc[loc_list][attribute])
+    # assert df.equals(target_df.loc[loc_list])
 
-    return df[attribute]
+    if attribute:
+        # return series
+        return df[attribute]
+    else:
+        # return df
+        return df
 
 
 def quick_loc_series(loc_list, target_series):

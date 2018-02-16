@@ -28,22 +28,29 @@ def canonical_tours():
     # FIXME - this logic is hardwired in process_mandatory_tours()
     mandatory_tour_flavors = {'work': 2, 'school': 2}
 
-    # FIXME - should get this from alts table
-    atwork_subtour_flavors = {'eat': 1, 'business': 2, 'maint': 1}
-
     tour_flavors = dict(non_mandatory_tour_flavors)
     tour_flavors.update(mandatory_tour_flavors)
-    tour_flavors.update(atwork_subtour_flavors)
 
     sub_channels = [tour_type + str(tour_num)
                     for tour_type, max_count in tour_flavors.iteritems()
                     for tour_num in range(1, max_count + 1)]
 
+    # FIXME - should get this from alts table
+    # we need to distinguish between subtours of different work tours
+    # (e.g. eat1_1 is eat subtour for parent work tour 1 and eat1_2 is for work tour 2)
+    max_work_tours = mandatory_tour_flavors['work']
+    atwork_subtour_channels = ['eat1', 'business1', 'business2', 'maint1']
+    atwork_subtour_channels = ['%s_%s' % (c, i+1)
+                               for c in atwork_subtour_channels
+                               for i in range(max_work_tours)]
+
+    sub_channels = sub_channels + atwork_subtour_channels
+
     sub_channels.sort()
     return sub_channels
 
 
-def set_tour_index(tours, tour_num_col):
+def set_tour_index(tours, tour_num_col, parent_tour_num_col=None):
     """
 
     Parameters
@@ -63,18 +70,25 @@ def set_tour_index(tours, tour_num_col):
 
     assert tour_num_col in tours.columns
 
-    tours['tour_id'] = tours.tour_type + tours[tour_num_col] .map(str)
+    tours['tour_id'] = tours.tour_type + tours[tour_num_col].map(str)
+
+    if parent_tour_num_col:
+        # we need to distinguish between subtours of different work tours
+        # (e.g. eat1_1 is eat subtour for parent work tour 1 and eat1_2 is for work tour 2)
+        tours['tour_id'] = tours['tour_id'] + '_' + tours[parent_tour_num_col].map(str)
 
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(to_replace=possible_tours,
                                           value=range(possible_tours_count))
+
     # convert to numeric - shouldn't be any NaNs - this will raise error if there are
     tours.tour_id = pd.to_numeric(tours.tour_id, errors='coerce').astype(int)
 
     tours.tour_id = (tours.person_id * possible_tours_count) + tours.tour_id
 
-    if len(tours.tour_id) > len(tours.tour_id.unique()):
-        print "\ntours.tour_id not unique\n", tours
+    # if tours.tour_id.duplicated().any():
+    #     print "\ntours.tour_id not unique\n", tours[tours.tour_id.duplicated(keep=False)]
+    assert not tours.tour_id.duplicated().any()
 
     tours.set_index('tour_id', inplace=True, verify_integrity=True)
 
@@ -107,6 +121,12 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
         source code - it has an index which is a unique tour identifier,
         a person_id column, and a tour type column which comes from the
         column names of the alternatives DataFrame supplied above.
+
+    tours.tour_type       - tour type (e.g. school, worl, shopping, eat)
+    tours.tour_type_num   - if there are two 'school' type tours, they will be numbered 1 and 2
+    tours.tour_type_count - number of tours of tour_type parent has (parent's max tour_type_num)
+    tours.tour_num        - index of tour (of any type) for parent
+    tours.tour_count      - number of tours of any type) for parent (parent's max tour_num)
     """
 
     # get the actual alternatives for each person - have to go back to the
@@ -156,10 +176,10 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
 
     """
         <parent_col> tour_type  tour_type_num  tour_type_count tour_num  tour_count
-    0     2588676       alt1           1           2               1         2
-    0     2588676       alt1           2           2               2         2
-    0     2588676       alt1           1           1               1         2
-    0     2588676       alt2           1           1               2         2
+    0     2588676       alt1           1           2               1         4
+    0     2588676       alt1           2           2               2         4
+    0     2588676       alt2           1           1               3         4
+    0     2588676       alt3           1           1               4         4
     """
 
     # set these here to ensure consistency across different tour categories
@@ -229,13 +249,15 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
     tour_id
     12413245      827549    school                2              1         2           2
     12413244      827549    school                2              2         1           2
-    12413264      827550      work                2              1         2           2
+    12413264      827550      work                1              1         1           2
+    12413265      827550    school                1              1         2           2
     ...
                mandatory  non_mandatory tour_category  destination
 
                     True          False     mandatory          102
                     True          False     mandatory          102
                     True          False     mandatory            9
+                    True          False     mandatory          102
     """
     return tours
 
@@ -350,11 +372,12 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     """
 
     # merge person_id from parent work_tours
-    work_tours = work_tours[["person_id"]]
+    work_tours = work_tours[["person_id", "tour_num"]]
+    work_tours.rename(columns={'tour_num': 'parent_tour_num'}, inplace=True)
     tours = pd.merge(tours, work_tours, left_on=parent_col, right_index=True)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, 'tour_type_num')
+    set_tour_index(tours, tour_num_col='tour_type_num', parent_tour_num_col='parent_tour_num')
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count

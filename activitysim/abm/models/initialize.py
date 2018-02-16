@@ -19,43 +19,37 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def initialize():
     """
-
     Because random seed is set differently for each step, the sampling of households depends
-    on which step they are initially loaded in.
-
-    We load them explicitly up front, so that
+    on which step they are initially loaded in so we force them to load here and they get
+    stored to the pipeline,
     """
 
     t0 = tracing.print_elapsed_time()
     inject.get_table('land_use').to_frame()
-    t0 = tracing.print_elapsed_time("preload land_use")
+    t0 = tracing.print_elapsed_time("preload land_use", t0, debug=True)
 
     inject.get_table('households').to_frame()
-    t0 = tracing.print_elapsed_time("preload households")
+    t0 = tracing.print_elapsed_time("preload households", t0, debug=True)
 
     inject.get_table('persons').to_frame()
-    t0 = tracing.print_elapsed_time("preload persons")
+    t0 = tracing.print_elapsed_time("preload persons", t0, debug=True)
 
     inject.get_table('person_windows').to_frame()
-    t0 = tracing.print_elapsed_time("preload person_windows")
-
-    pass
+    t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)
 
 
 @inject.injectable(cache=True)
 def preload_injectables():
     """
-    called after pipeline is
+    preload bulky injectables up front - stuff that isn't inserted into eh pipeline
     """
-
-    # could simply list injectables as arguments, but this way we can report timing...
 
     logger.info("preload_injectables")
 
     t0 = tracing.print_elapsed_time()
 
     if inject.get_injectable('skim_dict', None) is not None:
-        t0 = tracing.print_elapsed_time("preload skim_dict")
+        t0 = tracing.print_elapsed_time("preload skim_dict", t0, debug=True)
 
     if inject.get_injectable('skim_stack', None) is not None:
-        t0 = tracing.print_elapsed_time("preload skim_stack")
+        t0 = tracing.print_elapsed_time("preload skim_stack", t0, debug=True)

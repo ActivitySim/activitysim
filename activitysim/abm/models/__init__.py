@@ -18,5 +18,7 @@ import atwork_subtour_frequency
 import atwork_subtour_destination
 import atwork_subtour_scheduling
 
+import utility_steps
+
 # parameterized models
 import annotate_table

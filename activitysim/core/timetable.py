@@ -8,6 +8,8 @@ import pandas as pd
 
 from activitysim.core import config
 from activitysim.core import pipeline
+from activitysim.core import tracing
+from activitysim.core import util
 
 logger = logging.getLogger(__name__)
 
@@ -246,16 +248,25 @@ class TimeTable(object):
 
         assert len(window_row_ids) == len(tdds)
 
+        # t0 = tracing.print_elapsed_time()
+
         # numpy array with one tdd_footprints_df row for tdds
-        tour_footprints = self.tdd_footprints_df.loc[tdds].as_matrix()
+        tour_footprints = util.quick_loc_df(tdds, self.tdd_footprints_df).as_matrix()
+
+        # t0 = tracing.print_elapsed_time("tour_footprints", t0, debug=True)
+        # assert (tour_footprints == self.tdd_footprints_df.loc[tdds].as_matrix()).all
 
         # numpy array with one windows row for each person
         windows = self.slice_windows_by_row_id(window_row_ids)
+
+        # t0 = tracing.print_elapsed_time("slice_windows_by_row_id", t0, debug=True)
 
         x = tour_footprints + (windows << I_BIT_SHIFT)
 
         available = ~np.isin(x, COLLISION_LIST).any(axis=1)
         available = pd.Series(available, index=window_row_ids.index)
+
+        # t0 = tracing.print_elapsed_time("available", t0, debug=True)
 
         return available
 

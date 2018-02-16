@@ -10,9 +10,8 @@ from zbox import toolz as tz, gen
 
 from activitysim.core.simulate import eval_variables
 from activitysim.core.simulate import compute_utilities
-from activitysim.core.simulate import hh_chunked_choosers
-from activitysim.core.simulate import num_chunk_rows_for_chunk_size
 
+from activitysim.core import chunk
 from activitysim.core import logit
 from activitysim.core import tracing
 
@@ -599,23 +598,6 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
 
-    # if DUMP:
-    #
-    #     if hhsize > 1:
-    #         tracing.trace_df(choosers, '%s.DUMP.hhsize%d_choosers' % (trace_label, hhsize),
-    #                          transpose=False, slicer='NONE')
-    #         tracing.trace_df(vars, '%s.DUMP.hhsize%d_vars' % (trace_label, hhsize),
-    #                          transpose=False, slicer='NONE')
-    #
-    #     tracing.trace_df(utils, '%s.DUMP.hhsize%d_utils' % (trace_label, hhsize),
-    #                      transpose=False, slicer='NONE')
-    #
-    #     tracing.trace_df(probs, '%s.DUMP.hhsize%d_probs' % (trace_label, hhsize),
-    #                      transpose=False, slicer='NONE')
-    #
-    #     tracing.trace_df(choices, '%s.DUMP.hhsize%d_activity_choices' % (trace_label, hhsize),
-    #                      transpose=False, slicer='NONE')
-
     if trace_hh_id:
 
         if hhsize > 1:
@@ -829,8 +811,32 @@ def _run_cdap(
     #     tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
     #                      transpose=False, slicer='NONE')
 
+    cum_size = chunk.log_df_size(trace_label, 'persons', persons, cum_size=None)
+    chunk.log_chunk_size(trace_label, cum_size)
+
     # return dataframe with two columns
     return cdap_results
+
+
+# calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
+def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
+
+    # NOTE we chunk chunk_id
+    num_choosers = choosers['chunk_id'].max() + 1
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
+
+    chooser_row_size = choosers.shape[1]
+
+    # scale row_size by average number of chooser rows per chunk_id
+    rows_per_chunk_id = choosers.shape[0] / float(num_choosers)
+    row_size = int(rows_per_chunk_id * chooser_row_size)
+
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def run_cdap(
@@ -881,12 +887,11 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
-    # FIXME - what is the actual size/cardinality of the chooser
-    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, persons, by_chunk_id=True)
+    rows_per_chunk = calc_rows_per_chunk(chunk_size, persons, trace_label=trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, num_chunks, persons_chunk in hh_chunked_choosers(persons, rows_per_chunk):
+    for i, num_chunks, persons_chunk in chunk.hh_chunked_choosers(persons, rows_per_chunk):
 
         logger.info("Running chunk %s of %s with %d persons" % (i, num_chunks, len(persons_chunk)))
 

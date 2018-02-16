@@ -264,7 +264,7 @@ trace labels are passed in.
                 skims=skims,
                 locals_d=locals_d,
                 chunk_size=chunk_size,
-                trace_label=trace_hh_id and 'school_location_sample.%s' % school_type)
+                trace_label=school_location_sample.%s' % school_type)
     
 This function solves the utilities, calculates probabilities, draws random numbers, selects choices with 
 replacement, and returns the choices. This is done in a for loop of chunks of chooser records in order to avoid 

@@ -22,7 +22,8 @@ def step():
 
         logger.debug("inject step %s" % name)
 
-        assert not _DECORATED_STEPS.get(name, False)
+        assert not _DECORATED_STEPS.get(name, False), \
+            "step '%s' already decorated." % name
         _DECORATED_STEPS[name] = func
 
         orca.add_step(name, func)
@@ -38,7 +39,8 @@ def table():
 
         logger.debug("inject table %s" % name)
 
-        assert not _DECORATED_TABLES.get(name, False)
+        assert not _DECORATED_TABLES.get(name, False), \
+            "table '%s' already decorated." % name
         _DECORATED_TABLES[name] = func
 
         orca.add_table(name, func)
@@ -56,7 +58,8 @@ def column(table_name, cache=False):
 
         column_key = (table_name, name)
 
-        assert not _DECORATED_COLUMNS.get(column_key, False)
+        assert not _DECORATED_COLUMNS.get(column_key, False), \
+            "column '%s' already decorated." % name
         _DECORATED_COLUMNS[column_key] = {'func': func, 'cache': cache}
 
         orca.add_column(table_name, name, func, cache=cache)
@@ -88,6 +91,10 @@ def merge_tables(target, tables, columns=None):
 
 
 def add_table(table_name, table, cache=False):
+
+    if orca.is_table(table_name):
+        logger.warn("inject add_table replacing existing table %s" % table_name)
+
     return orca.add_table(table_name, table, cache=cache)
 
 

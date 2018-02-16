@@ -35,18 +35,6 @@ if resume_after:
 
 pipeline.run(models=MODELS, resume_after=resume_after)
 
-print "\n#### run completed"
-
-# write final versions of all checkpointed dataframes to CSV files to review results
-for table_name in pipeline.checkpointed_tables():
-    file_name = "final_%s_table.csv" % table_name
-    file_path = os.path.join(orca.get_injectable("output_dir"), file_name)
-    pipeline.get_table(table_name).to_csv(file_path)
-
-# write checkpoints
-file_path = os.path.join(orca.get_injectable("output_dir"), "checkpoints.csv")
-pipeline.get_checkpoints().to_csv(file_path)
-
 # tables will no longer be available after pipeline is closed
 pipeline.close_pipeline()
 

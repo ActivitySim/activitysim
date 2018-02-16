@@ -148,7 +148,7 @@ def workplace_location_logsums(persons_merged,
     persons_merged = persons_merged.to_frame()
     workplace_location_sample = workplace_location_sample.to_frame()
 
-    logger.info("Running workplace_location_sample with %s rows" % len(workplace_location_sample))
+    logger.info("Running workplace_location_logsums with %s rows" % len(workplace_location_sample))
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = workplace_location_settings['LOGSUM_CHOOSER_COLUMNS']
@@ -200,6 +200,8 @@ def workplace_location_simulate(persons_merged,
     to select a work_taz from sample alternatives
     """
 
+    trace_label = 'workplace_location_simulate'
+
     # for now I'm going to generate a workplace location for everyone -
     # presumably it will not get used in downstream models for everyone -
     # it should depend on CDAP and mandatory tour generation as to whether
@@ -250,7 +252,7 @@ def workplace_location_simulate(persons_merged,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
-        trace_label=trace_hh_id and 'workplace_location',
+        trace_label=trace_label,
         trace_choice_name='workplace_location')
 
     # FIXME - no need to reindex since we didn't slice choosers
@@ -261,6 +263,8 @@ def workplace_location_simulate(persons_merged,
     inject.add_column("persons", "workplace_taz", choices)
 
     pipeline.add_dependent_columns("persons", "persons_workplace")
+
+    pipeline.drop_table('workplace_location_sample')
 
     if trace_hh_id:
         trace_columns = ['workplace_taz'] + inject.get_table('persons_workplace').columns

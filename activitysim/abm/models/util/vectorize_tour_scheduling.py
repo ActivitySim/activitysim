@@ -10,6 +10,11 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core import tracing
 from activitysim.core import inject
 from activitysim.core import timetable as tt
+from activitysim.core.util import memory_info
+from activitysim.core.util import df_size
+from activitysim.core.util import force_garbage_collect
+
+from activitysim.core import chunk
 
 logger = logging.getLogger(__name__)
 
@@ -104,11 +109,9 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     return alt_tdd
 
 
-def schedule_tours(tours, persons_merged,
-                   alts, spec, constants,
-                   timetable,
-                   previous_tour, window_id_col,
-                   chunk_size, tour_trace_label):
+def _schedule_tours(
+        tours, persons_merged, alts, spec, constants, timetable,
+        previous_tour, window_id_col, tour_trace_label):
     """
     previous_tour stores values used to add columns that can be used in the spec
     which have to do with the previous tours per person.  Every column in the
@@ -141,7 +144,6 @@ def schedule_tours(tours, persons_merged,
     window_id_col : str
         column name from tours that identifies 'owner' of this tour
         (person_id for non/mandatory tours or parent_tout_id for subtours)
-    chunk_size
     tour_trace_label
 
     Returns
@@ -151,8 +153,11 @@ def schedule_tours(tours, persons_merged,
 
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
-    # timetable can't handle multiple tours per person
-    assert len(tours.index) == len(np.unique(tours.person_id.values))
+    if tours[window_id_col].duplicated().any():
+        print "\ntours.person_id not unique\n", tours[tours[window_id_col].duplicated(keep=False)]
+
+    # timetable can't handle multiple tours per window_id
+    assert not tours[window_id_col].duplicated().any()
 
     # merge persons into tours
     tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
@@ -180,13 +185,99 @@ def schedule_tours(tours, persons_merged,
         spec,
         choice_column=choice_column,
         locals_d=locals_d,
-        chunk_size=chunk_size,
+        chunk_size=0,
         trace_label=tour_trace_label
     )
 
     previous_tour.loc[tours[window_id_col]] = choices.values
 
     timetable.assign(tours[window_id_col], choices)
+
+    cum_size = chunk.log_df_size(tour_trace_label, "tours", tours, cum_size=None)
+    cum_size = chunk.log_df_size(tour_trace_label, "alt_tdd", alt_tdd, cum_size)
+    chunk.log_chunk_size(tour_trace_label, cum_size)
+
+    return choices
+
+
+def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_label=None):
+
+    num_choosers = len(tours.index)
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
+
+    chooser_row_size = tours.shape[1]
+    sample_size = alternatives.shape[0]
+
+    # persons_merged columns plus 2 previous tour columns
+    extra_chooser_columns = persons_merged.shape[1] + 2
+
+    # one column per alternative plus skim and join columns
+    alt_row_size = alternatives.shape[1] + 2
+
+    row_size = (chooser_row_size + extra_chooser_columns + alt_row_size) * sample_size
+
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
+    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+
+
+def schedule_tours(
+        tours, persons_merged, alts, spec, constants, timetable,
+        previous_tour, window_id_col, chunk_size, tour_trace_label):
+    """
+    chunking wrapper for _schedule_tours
+
+    While interaction_sample_simulate provides chunking support, the merged tours, persons
+    dataframe and the tdd_interaction_dataset are very big, so we want to create them inside
+    the chunking loop to minimize memory footprint. So we implement the chunking loop here,
+    and pass a chunk_size of 0 to interaction_sample_simulate to disable its chunking support.
+
+    """
+    # return _schedule_tours(tours, persons_merged, alts, spec, constants, timetable,
+    #                        previous_tour, window_id_col, chunk_size, tour_trace_label)
+
+    logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
+
+    # persons_merged columns plus 2 previous tour columns
+    extra_chooser_columns = persons_merged.shape[1] + 2
+
+    rows_per_chunk = \
+        calc_rows_per_chunk(chunk_size, tours, persons_merged, alts, trace_label=tour_trace_label)
+
+    logger.info("chunk_size %s rows_per_chunk %s" % (chunk_size, rows_per_chunk))
+
+    result_list = []
+    for i, num_chunks, chooser_chunk \
+            in chunk.chunked_choosers(tours, rows_per_chunk):
+
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
+
+        chunk_trace_label = tracing.extend_trace_label(tour_trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else tour_trace_label
+
+        choices = _schedule_tours(chooser_chunk, persons_merged,
+                                  alts, spec, constants,
+                                  timetable,
+                                  previous_tour, window_id_col,
+                                  tour_trace_label=chunk_trace_label)
+
+        result_list.append(choices)
+
+        force_garbage_collect()
+
+    # FIXME: this will require 2X RAM
+    # if necessary, could append to hdf5 store on disk:
+    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
+
+    assert len(choices.index == len(tours.index))
 
     return choices
 
@@ -230,8 +321,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
         DataFrame and the values are the index of the alts DataFrame.
     """
 
-    if not trace_label:
-        trace_label = 'vectorize_tour_scheduling'
+    trace_label = tracing.extend_trace_label(trace_label, 'vectorize_tour_scheduling')
 
     assert len(tours.index) > 0
     assert 'tour_num' in tours.columns
@@ -344,7 +434,7 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     # mask the periods outside parent tour footprint
     timetable.assign_subtour_mask(parent_tours.tour_id, parent_tours.tdd)
 
-    print timetable.windows
+    # print timetable.windows
     """
     [[7 7 7 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7]
      [7 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7]

@@ -80,16 +80,15 @@ def non_mandatory_tour_frequency(persons_merged,
             spec=non_mandatory_tour_frequency_spec[[name]],
             locals_d=constants,
             chunk_size=chunk_size,
-            trace_label=trace_hh_id and 'non_mandatory_tour_frequency.%s' % name,
+            trace_label='non_mandatory_tour_frequency.%s' % name,
             trace_choice_name='non_mandatory_tour_frequency')
 
         choices_list.append(choices)
 
-        t0 = print_elapsed_time("non_mandatory_tour_frequency.%s" % name, t0)
+        t0 = print_elapsed_time("non_mandatory_tour_frequency.%s" % name, t0, debug=True)
 
         # FIXME - force garbage collection
-        # mem = memory_info()
-        # logger.info('memory_info ptype %s, %s' % (name, mem))
+        # force_garbage_collect()
 
     choices = pd.concat(choices_list)
 
@@ -99,20 +98,20 @@ def non_mandatory_tour_frequency(persons_merged,
     # FIXME - how about the persons not processed
     inject.add_column("persons", "non_mandatory_tour_frequency", choices)
 
-    create_non_mandatory_tours()
+    create_non_mandatory_tours(trace_hh_id)
 
     # add non_mandatory_tour-dependent columns (e.g. tour counts) to persons
     pipeline.add_dependent_columns("persons", "persons_nmtf")
 
     if trace_hh_id:
         trace_columns = ['non_mandatory_tour_frequency']
-        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
-                         label="non_mandatory_tour_frequency",
-                         columns=trace_columns,
+        tracing.trace_df(inject.get_table('persons').to_frame(),
+                         label="non_mandatory_tour_frequency.persons",
+                         # columns=trace_columns,
                          warn_if_empty=True)
 
 
-def create_non_mandatory_tours():
+def create_non_mandatory_tours(trace_hh_id):
     """
     We have now generated non-mandatory tours, but they are attributes of the person table
     Now we create a "tours" table which has one row per tour that has been generated
@@ -122,11 +121,16 @@ def create_non_mandatory_tours():
     persons = inject.get_table('persons')
     alts = inject.get_injectable('non_mandatory_tour_frequency_alts')
 
-    df = process_non_mandatory_tours(
+    non_mandatory_tours = process_non_mandatory_tours(
         persons.non_mandatory_tour_frequency.dropna(),
         alts
     )
 
-    pipeline.extend_table("tours", df)
-    tracing.register_traceable_table('tours', df)
-    pipeline.get_rn_generator().add_channel(df, 'tours')
+    tours = pipeline.extend_table("tours", non_mandatory_tours)
+    tracing.register_traceable_table('tours', tours)
+    pipeline.get_rn_generator().add_channel(non_mandatory_tours, 'tours')
+
+    if trace_hh_id:
+        tracing.trace_df(non_mandatory_tours,
+                         label="non_mandatory_tour_frequency.non_mandatory_tours",
+                         warn_if_empty=True)

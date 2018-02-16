@@ -56,7 +56,7 @@ def compute_logsums(choosers, logsum_spec, logsum_settings,
     nest_spec = config.get_logit_model_settings(logsum_settings)
     constants = config.get_model_constants(logsum_settings)
 
-    logger.info("Running compute_logsums with %d choosers" % len(choosers.index))
+    logger.info("Running %s with %d choosers" % (trace_label, choosers.shape[0]))
 
     if trace_hh_id:
         tracing.trace_df(logsum_spec,

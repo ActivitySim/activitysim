@@ -200,6 +200,9 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     Combine choosers and alternatives into one table for the purposes
     of creating interaction variables and/or sampling alternatives.
 
+    Any duplicate column names in alternatives table will be renamed with an '_r' suffix.
+    (e.g. TAZ field in alternatives will appear as TAZ_r so that it can be targeted in a skim)
+
     Parameters
     ----------
     choosers : pandas.DataFrame
@@ -240,9 +243,32 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     alts_sample = alternatives.take(sample).copy()
     alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
 
-    alts_sample = pd.merge(
-        alts_sample, choosers, left_on='chooser_idx', right_index=True,
-        suffixes=('', '_r'))
+    logger.debug("interaction_dataset pre-merge choosers %s alternatives %s alts_sample %s" %
+                 (choosers.shape, alternatives.shape, alts_sample.shape))
+
+    AVOID_PD_MERGE = True
+    if AVOID_PD_MERGE:
+
+        for c in choosers.columns:
+            c_alts = ('%s_r' % c) if c in alts_sample.columns else c
+            alts_sample[c_alts] = np.repeat(choosers[c].values, sample_size)
+
+    else:
+
+        # FIXME - merge throws error trying to merge df with two many rows - may be a pandas bug?
+        # this sets limits to max chunk size  - might work to merge in chunks and join
+        # no pressing as there is currently no obvious performance gain to larger chunk size
+        # DEBUG - merge choosers (564016, 4) alternatives (1443, 16) alts_sample (813875088, 17)
+        #
+        #   File "..\pandas\core\internals.py", line 5573, in is_na
+        #     for i in range(0, total_len, chunk_len):
+        # OverflowError: Python int too large to convert to C long
+
+        alts_sample = pd.merge(
+            alts_sample, choosers, left_on='chooser_idx', right_index=True,
+            suffixes=('', '_r'))
+
+    logger.debug("interaction_dataset merged alts_sample %s" % (alts_sample.shape, ))
 
     return alts_sample
 
@@ -369,3 +395,16 @@ def each_nest(nest_spec, type=None, post_order=False):
     for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=post_order):
         if type is None or (type == nest.type):
             yield nest
+
+
+def count_nests(nest_spec, type=None):
+    """
+    count the nests of the specified type (or all nests if type is None)
+    return 0 if nest_spec is none
+    """
+    count = 0
+    if nest_spec is not None:
+        for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=False):
+            if type is None or nest.type == type:
+                count += 1
+    return count

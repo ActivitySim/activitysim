@@ -9,8 +9,10 @@ import pandas as pd
 from . import logit
 from . import tracing
 from .simulate import add_skims
-from .simulate import chunked_choosers
-from .simulate import num_chunk_rows_for_chunk_size
+from . import chunk
+
+from activitysim.core.util import force_garbage_collect
+
 
 logger = logging.getLogger(__name__)
 
@@ -215,6 +217,8 @@ def _interaction_simulate(
     if skims:
         add_skims(interaction_df, skims)
 
+    cum_size = chunk.log_df_size(trace_label, 'interaction_df', interaction_df, cum_size=None)
+
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
     # column names of model_design match spec index values
@@ -284,7 +288,37 @@ def _interaction_simulate(
         tracing.trace_df(rands, tracing.extend_trace_label(trace_label, 'rands'),
                          columns=[None, 'rand'])
 
+    chunk.log_chunk_size(trace_label, cum_size)
+
     return choices
+
+
+def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, skims, trace_label=None):
+
+    num_choosers = len(choosers.index)
+
+    # if not chunking, then return num_choosers
+    if chunk_size == 0:
+        return num_choosers
+
+    chooser_row_size = len(choosers.columns)
+
+    # alternative columns plus join column
+    alt_row_size = alternatives.shape[1] + 1
+
+    if skims is not None:
+        alt_row_size += 1
+
+    sample_size = sample_size or alternatives.shape[0]
+    row_size = (chooser_row_size + alt_row_size) * sample_size
+
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def interaction_simulate(
@@ -341,24 +375,34 @@ def interaction_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
+
     assert len(choosers) > 0
 
-    rows_per_chunk = num_chunk_rows_for_chunk_size(chunk_size, choosers, alternatives)
+    rows_per_chunk = \
+        calc_rows_per_chunk(chunk_size, choosers, alternatives=alternatives,
+                            sample_size=sample_size, skims=skims,
+                            trace_label=trace_label)
 
     logger.info("interaction_simulate chunk_size %s num_choosers %s" %
                 (chunk_size, len(choosers.index)))
 
     result_list = []
-    for i, num_chunks, chooser_chunk in chunked_choosers(choosers, rows_per_chunk):
+    for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
 
+        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else trace_label
+
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,
-                                        tracing.extend_trace_label(trace_label, 'chunk_%s' % i),
+                                        chunk_trace_label,
                                         trace_choice_name)
 
         result_list.append(choices)
+
+        force_garbage_collect()
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

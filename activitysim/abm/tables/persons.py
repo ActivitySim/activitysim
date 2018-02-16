@@ -6,12 +6,11 @@ import logging
 import pandas as pd
 
 from activitysim.core import pipeline
-
 from activitysim.core import inject
-
 from activitysim.core import tracing
 from activitysim.core.util import other_than, reindex
 
+from constants import *
 
 logger = logging.getLogger(__name__)
 
@@ -205,9 +204,9 @@ def roundtrip_auto_time_to_school(persons, skim_dict):
 def presence_of(ptype, persons, at_home=False):
     if at_home:
         # if at_home, they need to be of given type AND at home
-        bools = (persons.ptype_cat == ptype) & (persons.cdap_activity == "H")
+        bools = (persons.ptype == ptype) & (persons.cdap_activity == "H")
     else:
-        bools = persons.ptype_cat == ptype
+        bools = persons.ptype == ptype
 
     return other_than(persons.household_id, bools)
 
@@ -221,15 +220,15 @@ def persons_cdap(persons):
 
 @inject.column("persons_cdap")
 def under16_not_at_school(persons):
-    return (persons.ptype_cat.isin(["school", "preschool"]) &
+    return (persons.ptype.isin([PTYPE_SCHOOL, PTYPE_PRESCHOOL]) &
             persons.cdap_activity.isin(["N", "H"]))
 
 
 @inject.column('persons_cdap')
 def has_preschool_kid_at_home(persons):
-    return presence_of("preschool", persons, at_home=True)
+    return presence_of(PTYPE_PRESCHOOL, persons, at_home=True)
 
 
 @inject.column('persons_cdap')
 def has_school_kid_at_home(persons):
-    return presence_of("school", persons, at_home=True)
+    return presence_of(PTYPE_SCHOOL, persons, at_home=True)

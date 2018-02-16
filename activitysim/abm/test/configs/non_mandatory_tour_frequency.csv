@@ -1,4 +1,4 @@
-Description,Expression,full,part,university,nonwork,retired,driving,school,preschool
+Description,Expression,PTYPE_FULL,PTYPE_PART,PTYPE_UNIVERSITY,PTYPE_NONWORK,PTYPE_RETIRED,PTYPE_DRIVING,PTYPE_SCHOOL,PTYPE_PRESCHOOL
 Total Number of Tours  = 0 (No Prior Tours),(tot_tours == 0) & (num_mand == 0) & (num_joint_tours == 0),-999,-999,-999,-999,-999,-999,-999,-999
 Total Number of Tours  = 0 (1 or more Prior Tours),(tot_tours == 0) & ((num_mand > 0) | (num_joint_tours > 0)),0,0,0,0,0,0,0,0
 Total Number of Tours  = 1,tot_tours == 1,-7.3572,-7.6391,-6.2138,-8.9791,-8.5684,-7.1506,-7.1506,-5.759

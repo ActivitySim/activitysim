@@ -3,7 +3,7 @@ import pandas as pd
 
 from activitysim.core.util import reindex
 from activitysim.core import inject
-from constants import *
+from activitysim.abm.tables.constants import *
 
 @inject.column("households")
 def income_in_thousands(households):

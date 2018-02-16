@@ -15,7 +15,7 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 
-from activitysim.core.util import reindex
+from activitysim.abm.tables.constants import PTYPE_NAME
 
 from .util.tour_frequency import process_non_mandatory_tours
 
@@ -69,7 +69,9 @@ def non_mandatory_tour_frequency(persons_merged,
 
     choices_list = []
     # segment by person type and pick the right spec for each person type
-    for name, segment in choosers.groupby('ptype_cat'):
+    for ptype, segment in choosers.groupby('ptype'):
+
+        name = PTYPE_NAME[ptype]
 
         logger.info("Running segment '%s' of size %d" % (name, len(segment)))
 

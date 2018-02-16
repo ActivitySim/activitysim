@@ -3,7 +3,7 @@ import pandas as pd
 
 from activitysim.core.util import other_than, reindex
 from activitysim.core import inject
-from constants import *
+from activitysim.abm.tables.constants import *
 
 
 @inject.column("persons")
@@ -76,66 +76,60 @@ def female(persons):
 # this is an idiom to grab the person of the specified type and check to see if
 # there is 1 or more of that kind of person in each household other than the person themself
 def presence_of(ptype, persons):
-    bools = persons.ptype_cat == ptype
+    bools = persons.ptype == ptype
     return other_than(persons.household_id, bools)
 
 
 @inject.column('persons')
 def has_non_worker(persons):
-    return presence_of("nonwork", persons)
+    return presence_of(PTYPE_NONWORK, persons)
 
 
 @inject.column('persons')
 def has_retiree(persons):
-    return presence_of("retired", persons)
+    return presence_of(PTYPE_RETIRED, persons)
 
 
 @inject.column('persons')
 def has_preschool_kid(persons):
-    return presence_of("preschool", persons)
+    return presence_of(PTYPE_PRESCHOOL, persons)
 
 
 @inject.column('persons')
 def has_driving_kid(persons):
-    return presence_of("driving", persons)
+    return presence_of(PTYPE_DRIVING, persons)
 
 
 @inject.column('persons')
 def has_school_kid(persons):
-    return presence_of("school", persons)
+    return presence_of(PTYPE_SCHOOL, persons)
 
 
 @inject.column('persons')
 def has_full_time(persons):
-    return presence_of("full", persons)
+    return presence_of(PTYPE_FULL, persons)
 
 
 @inject.column('persons')
 def has_part_time(persons):
-    return presence_of("part", persons)
+    return presence_of(PTYPE_PART, persons)
 
 
 @inject.column('persons')
 def has_university(persons):
-    return presence_of("university", persons)
-
-
-# convert person type categories to string descriptors
-@inject.column("persons")
-def ptype_cat(persons, settings):
-    return persons.ptype.map(settings["person_type_map"])
+    return presence_of(PTYPE_UNIVERSITY, persons)
 
 
 # borrowing these definitions from the original code
 @inject.column("persons")
 def student_is_employed(persons):
-    return (persons.ptype_cat.isin(['university', 'driving']) &
+    return (persons.ptype.isin([PTYPE_UNIVERSITY, PTYPE_DRIVING]) &
             persons.pemploy.isin([PEMPLOY_FULL, PEMPLOY_PART]))
 
 
 @inject.column("persons")
 def nonstudent_to_school(persons):
-    return (persons.ptype_cat.isin(['full', 'part', 'nonwork', 'retired']) &
+    return (persons.ptype.isin([PTYPE_FULL, PTYPE_PART, PTYPE_NONWORK, PTYPE_RETIRED]) &
             persons.pstudent.isin([PSTUDENT_GRADE_OR_HIGH, PSTUDENT_UNIVERSITY]))
 
 

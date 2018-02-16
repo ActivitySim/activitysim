@@ -118,7 +118,7 @@ num_under16_not_at_school        int64
 joint_tour_frequency            object
 dtype: object
 
-### persons (170, 71)
+### persons (170, 70)
 PERID
 household_id                       int64
 age                                int64
@@ -153,7 +153,6 @@ has_retiree                         bool
 num_main_j                         int64
 num_joint_tours                    int64
 has_full_time                       bool
-ptype_cat                         object
 is_student                          bool
 has_school_kid                      bool
 is_worker                           bool

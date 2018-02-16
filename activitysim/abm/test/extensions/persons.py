@@ -3,6 +3,7 @@ import pandas as pd
 
 from activitysim.core.util import other_than, reindex
 from activitysim.core import inject
+from constants import *
 
 
 @inject.column("persons")
@@ -73,7 +74,7 @@ def female(persons):
 
 
 # this is an idiom to grab the person of the specified type and check to see if
-# there is 1 or more of that kind of person in each household
+# there is 1 or more of that kind of person in each household other than the person themself
 def presence_of(ptype, persons):
     bools = persons.ptype_cat == ptype
     return other_than(persons.household_id, bools)
@@ -119,18 +120,6 @@ def has_university(persons):
     return presence_of("university", persons)
 
 
-# convert employment categories to string descriptors
-@inject.column("persons")
-def employed_cat(persons, settings):
-    return persons.pemploy.map(settings["employment_map"])
-
-
-# convert student categories to string descriptors
-@inject.column("persons")
-def student_cat(persons, settings):
-    return persons.pstudent.map(settings["student_map"])
-
-
 # convert person type categories to string descriptors
 @inject.column("persons")
 def ptype_cat(persons, settings):
@@ -141,40 +130,40 @@ def ptype_cat(persons, settings):
 @inject.column("persons")
 def student_is_employed(persons):
     return (persons.ptype_cat.isin(['university', 'driving']) &
-            persons.employed_cat.isin(['full', 'part']))
+            persons.pemploy.isin([PEMPLOY_FULL, PEMPLOY_PART]))
 
 
 @inject.column("persons")
 def nonstudent_to_school(persons):
     return (persons.ptype_cat.isin(['full', 'part', 'nonwork', 'retired']) &
-            persons.student_cat.isin(['grade_or_high', 'college']))
+            persons.pstudent.isin([PSTUDENT_GRADE_OR_HIGH, PSTUDENT_UNIVERSITY]))
 
 
 @inject.column("persons")
 def is_worker(persons):
-    return persons.employed_cat.isin(['full', 'part'])
+    return persons.pemploy.isin([PEMPLOY_FULL, PEMPLOY_PART])
 
 
 @inject.column("persons")
 def is_student(persons):
-    return persons.student_cat.isin(['grade_or_high', 'college'])
+    return persons.pstudent.isin([PSTUDENT_GRADE_OR_HIGH, PSTUDENT_UNIVERSITY])
 
 
 @inject.column("persons")
 def is_gradeschool(persons, settings):
-    return (persons.student_cat == "grade_or_high") & \
+    return (persons.pstudent == PSTUDENT_GRADE_OR_HIGH) & \
            (persons.age <= settings['grade_school_max_age'])
 
 
 @inject.column("persons")
 def is_highschool(persons, settings):
-    return (persons.student_cat == "grade_or_high") & \
+    return (persons.pstudent == PSTUDENT_GRADE_OR_HIGH) & \
            (persons.age > settings['grade_school_max_age'])
 
 
 @inject.column("persons")
 def is_university(persons):
-    return persons.student_cat == "university"
+    return persons.pstudent == PSTUDENT_UNIVERSITY
 
 
 @inject.column("persons")

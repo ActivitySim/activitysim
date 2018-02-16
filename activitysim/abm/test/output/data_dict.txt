@@ -118,7 +118,7 @@ num_under16_not_at_school        int64
 joint_tour_frequency            object
 dtype: object
 
-### persons (170, 73)
+### persons (170, 71)
 PERID
 household_id                       int64
 age                                int64
@@ -140,7 +140,6 @@ pstudent                           int64
 ptype                              int64
 padkid                             int64
 has_preschool_kid                   bool
-student_cat                       object
 num_eat_j                          int64
 has_driving_kid                     bool
 female                              bool
@@ -148,7 +147,6 @@ has_non_worker                      bool
 home_taz                           int64
 is_university                       bool
 max_window                         int64
-employed_cat                      object
 student_is_employed                 bool
 is_gradeschool                      bool
 has_retiree                         bool
@@ -195,7 +193,7 @@ non_mandatory_tour_frequency     float64
 num_non_escort_tours             float64
 dtype: object
 
-### tours (183, 45)
+### tours (184, 45)
 tour_id
 person_id                    float64
 tour_type                     object
@@ -296,7 +294,7 @@ total_households        int64
 total_employment        int64
 dtype: object
 
-### trips (344, 9)
+### trips (346, 9)
 trip_id
 tour_id           int64
 INBOUND            bool

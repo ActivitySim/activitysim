@@ -99,6 +99,19 @@ which `assert` is failing, you can work your way back through the code that crea
 order to update it.  After updating the test targets, re-run the tests to confirm the new code passes all 
 the tests.
 
+Profiling
+---------
+
+A good way to profile ActivitySim model runs is to use `snakeviz <https://jiffyclub.github.io/snakeviz/>`__.  
+To do so, first install snakeviz and then run ActivitySim with the Python profiler (cProfile) to create 
+a profiler file.  Then run snakeviz on the profiler file to interactively explore the component runtimes.
+
+::
+
+    pip install snakeviz
+    python -m cProfile -o asim.prof simulation.py
+    snakeviz asim.prof
+
 Documentation
 -------------
 

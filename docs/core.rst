@@ -318,6 +318,19 @@ API
 Helpers
 -------
 
+.. _chunk_in_detail:
+
+Chunk
+~~~~~
+
+Chunking management
+
+API
+^^^
+
+.. automodule:: activitysim.core.chunk
+   :members:
+
 Utilities
 ~~~~~~~~~
 

@@ -172,10 +172,10 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.error("print_summary neither value_counts nor describe")
 
     if value_counts:
-        print "\n%s value counts:\n%s\n" % (label, df.value_counts())
+        logger.info("%s value counts:\n%s" % (label, df.value_counts()))
 
     if describe:
-        print "\n%s summary:\n%s\n" % (label, df.describe())
+        logger.info("%s summary:\n%s" % (label, df.describe()))
 
 
 def register_households(df, trace_hh_id):

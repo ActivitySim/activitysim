@@ -190,8 +190,8 @@ def joint_tour_frequency(households, persons,
     tracing.print_summary('joint_tour_frequency', choices, value_counts=True)
 
     multi_person_households['joint_tour_frequency'] = choices
-    tracing.trace_df(multi_person_households, '%s.DUMP.multi_person_households' %
-                     trace_label, transpose=False, slicer='NONE')
+    # tracing.trace_df(multi_person_households, '%s.DUMP.multi_person_households' %
+    #                  trace_label, transpose=False, slicer='NONE')
 
     # reindex since we are working with a subset of households
     choices = choices.reindex(households.index)

@@ -53,8 +53,6 @@ def make_sample_choices(
     assert isinstance(interaction_utilities, pd.DataFrame)
     assert interaction_utilities.shape == (len(choosers)*alternative_count, 1)
 
-    t0 = tracing.print_elapsed_time()
-
     # probs should sum to 1 across each row
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \
@@ -68,10 +66,7 @@ def make_sample_choices(
             msg="probabilities do not add up to 1",
             trace_choosers=choosers)
 
-    t0 = tracing.print_elapsed_time("make_choices bad_probs", t0, debug=True)
-
     cum_probs_arr = probs.as_matrix().cumsum(axis=1)
-    t0 = tracing.print_elapsed_time("make_choices cum_probs_arr", t0, debug=True)
 
     # alt probs in convenient layout to return prob of chose alternative
     # (same layout as cum_probs_arr and interaction_utilities)
@@ -83,7 +78,6 @@ def make_sample_choices(
     # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
     rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
     rands = rands.T.reshape(sample_size, -1, 1)
-    t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
 
     # the alternative value chosen
     choices_array = np.empty([sample_size, len(choosers)]).astype(int)

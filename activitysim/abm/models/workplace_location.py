@@ -17,6 +17,7 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.core.util import reindex
 
+from .util import expressions
 from .util.logsums import compute_logsums
 from .util.expressions import skim_time_period_label
 from .util.logsums import mode_choice_logsums_spec
@@ -187,7 +188,7 @@ def workplace_location_spec(configs_dir):
 
 
 @inject.step()
-def workplace_location_simulate(persons_merged,
+def workplace_location_simulate(persons_merged, persons,
                                 workplace_location_sample,
                                 workplace_location_spec,
                                 workplace_location_settings,
@@ -255,20 +256,23 @@ def workplace_location_simulate(persons_merged,
         trace_label=trace_label,
         trace_choice_name='workplace_location')
 
-    # FIXME - no need to reindex since we didn't slice choosers
-    # choices = choices.reindex(persons_merged.index)
+    persons = persons.to_frame()
 
-    tracing.print_summary('workplace_taz', choices, describe=True)
+    # no need to reindex since we didn't slice choosers
+    persons['workplace_taz'] = choices.reindex(persons.index)
 
-    inject.add_column("persons", "workplace_taz", choices)
+    expressions.assign_columns(
+        df=persons,
+        model_settings=workplace_location_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
-    pipeline.add_dependent_columns("persons", "persons_workplace")
+    pipeline.replace_table("persons", persons)
 
     pipeline.drop_table('workplace_location_sample')
 
+    tracing.print_summary('workplace_taz', persons.workplace_taz, describe=True)
+
     if trace_hh_id:
-        trace_columns = ['workplace_taz'] + inject.get_table('persons_workplace').columns
-        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
+        tracing.trace_df(persons,
                          label="workplace_location",
-                         columns=trace_columns,
                          warn_if_empty=True)

@@ -1,0 +1,5 @@
+annotate_persons:
+  SPEC: annotate_persons_nmtf
+  DF: persons
+  TABLES:
+    - tours

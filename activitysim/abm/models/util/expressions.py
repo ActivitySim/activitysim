@@ -7,14 +7,29 @@ import logging
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.tables import constants
+
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import assign
 from activitysim.core import inject
 
+from activitysim.core.util import other_than
 from activitysim.core.util import assign_in_place
 from activitysim.core import util
 
+
+# # this is an idiom to grab the person of the specified type and check to see if
+# # there is 1 or more of that kind of person in each household
+# def presence_of(ptype, persons, at_home=False):
+#     if at_home:
+#         # if at_home, they need to be of given type AND at home
+#         bools = (persons.ptype == ptype) & (persons.cdap_activity == "H")
+#     else:
+#         bools = persons.ptype == ptype
+#
+#     return other_than(persons.household_id, bools)
+#
 
 def local_utilities():
     """
@@ -29,15 +44,18 @@ def local_utilities():
     utility_dict = {
         'pd': pd,
         'np': np,
+        'constants': constants,
         'reindex': util.reindex,
         'setting': config.setting,
-        'skim_time_period_label': skim_time_period_label
+        'skim_time_period_label': skim_time_period_label,
+        'other_than': other_than,
+        'skim_dict': inject.get_injectable('skim_dict', None)
     }
 
     return utility_dict
 
 
-def compute_columns(df, model_settings, configs_dir, trace_label=None):
+def compute_columns(df, model_settings, trace_label=None):
     """
     Evaluate expressions_spec in context of df, with optional additional pipeline tables in locals
 
@@ -52,7 +70,6 @@ def compute_columns(df, model_settings, configs_dir, trace_label=None):
             TABLES - list of pipeline tables to load and make available as (read only) locals
         str:
             name of yaml file in confirs_dir to load dict from
-    configs_dir
     trace_label
 
     Returns
@@ -62,12 +79,15 @@ def compute_columns(df, model_settings, configs_dir, trace_label=None):
         same index as df
     """
 
+    configs_dir = inject.get_injectable('configs_dir')
+
     if isinstance(model_settings, str):
         model_settings_name = model_settings
         model_settings = config.read_model_settings(configs_dir, '%s.yaml' % model_settings)
         assert model_settings, "Found no model settings for %s" % model_settings_name
     else:
         model_settings_name = 'dict'
+        assert isinstance(model_settings, dict)
 
     assert 'DF' in model_settings, \
         "Expected to find 'DF' in %s" % model_settings_name
@@ -85,6 +105,9 @@ def compute_columns(df, model_settings, configs_dir, trace_label=None):
     if not expressions_spec_name.endswith(".csv"):
         expressions_spec_name = '%s.csv' % expressions_spec_name
     expressions_spec = assign.read_assignment_spec(os.path.join(configs_dir, expressions_spec_name))
+
+    assert expressions_spec.shape[0] > 0, \
+        "Expected to find some assignment expressions in %s" % expressions_spec_name
 
     tables = {t: inject.get_table(t).to_frame() for t in helper_table_names}
 
@@ -113,7 +136,7 @@ def compute_columns(df, model_settings, configs_dir, trace_label=None):
     return results
 
 
-def assign_columns(df, model_settings, configs_dir=None, trace_label=None):
+def assign_columns(df, model_settings, trace_label=None):
     """
     Evaluate expressions in context of df and assign resulting target columns to df
 
@@ -124,8 +147,9 @@ def assign_columns(df, model_settings, configs_dir=None, trace_label=None):
     """
 
     assert df is not None
+    assert model_settings is not None
 
-    results = compute_columns(df, model_settings, configs_dir, trace_label)
+    results = compute_columns(df, model_settings, trace_label)
     assign_in_place(df, results)
 
 

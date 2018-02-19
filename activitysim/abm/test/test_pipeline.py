@@ -319,7 +319,7 @@ def get_trace_csv(file_name):
 EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
 EXPECT_TOUR_TYPES = ['work', 'school', 'work']
 EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC']
-EXPECT_TOUR_COUNT = 166
+EXPECT_TOUR_COUNT = 164
 
 
 def test_full_run1():

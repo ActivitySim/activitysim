@@ -1,0 +1,6 @@
+Description,Target,Expression
+#,, annotate persons table after mandatory_tour_frequency model has run
+work_and_school_and_worker,work_and_school_and_worker,(persons.mandatory_tour_frequency == 'work_and_school') & persons.is_worker
+work_and_school_and_student,work_and_school_and_student,(persons.mandatory_tour_frequency == 'work_and_school') & persons.is_student
+number of mandatory tours for each person,num_mand,"persons.mandatory_tour_frequency.map({'work1': 1, 'work2': 2, 'school1': 1, 'school2': 2, 'work_and_school': 2}, na_action='ignore').fillna(0)"
+number of work tours for each person,num_work_tours,"persons.mandatory_tour_frequency.map({'work1': 1, 'work2': 2, 'work_and_school': 1}, na_action='ignore').fillna(0)"

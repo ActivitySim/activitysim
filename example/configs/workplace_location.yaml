@@ -18,3 +18,9 @@ LOGSUM_CHOOSER_COLUMNS:
 
 IN_PERIOD: 8
 OUT_PERIOD: 17
+
+annotate_persons:
+  SPEC: annotate_persons_workplace
+  DF: persons
+  TABLES:
+    - land_use

@@ -1,0 +1,3 @@
+Description,Target,Expression
+#,, annotate households table after cdap model has run
+num_under16_not_at_school,num_under16_not_at_school,"persons.under16_not_at_school.groupby(persons.household_id).sum().reindex(households.index).fillna(0)"

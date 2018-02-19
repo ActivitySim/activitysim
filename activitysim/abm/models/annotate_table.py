@@ -34,7 +34,6 @@ def annotate_table(configs_dir):
     results = expressions.compute_columns(
         df,
         model_settings=model_settings,
-        configs_dir=configs_dir,
         trace_label=None)
 
     assign_in_place(df, results)

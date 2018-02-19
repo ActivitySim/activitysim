@@ -489,7 +489,6 @@ which adds tours to the ``tours`` table managed in the data pipeline:
     expressions.assign_columns(
         df=tours,
         model_settings='annotate_tours_with_dest',
-        configs_dir=configs_dir,
         trace_label='create_mandatory_tours')
 
     pipeline.extend_table("tours", tours)

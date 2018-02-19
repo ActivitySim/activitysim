@@ -219,6 +219,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
         depends on the is_worker column: work tours first for workers, second for non-workers
     """
 
+    PERSON_COLUMNS = ["mandatory_tour_frequency", "is_worker", "school_taz", "workplace_taz"]
     assert not persons.mandatory_tour_frequency.isnull().any()
 
     tours = process_tours(persons.mandatory_tour_frequency.dropna(),
@@ -226,7 +227,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
                           tour_category='mandatory')
 
     tours_merged = pd.merge(tours[['person_id', 'tour_type']],
-                            persons,
+                            persons[PERSON_COLUMNS],
                             left_on='person_id', right_index=True)
 
     # by default work tours are first for work_and_school tours

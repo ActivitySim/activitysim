@@ -15,6 +15,8 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 
+from .util import expressions
+
 from activitysim.abm.tables.constants import PTYPE_NAME
 
 from .util.tour_frequency import process_non_mandatory_tours
@@ -40,7 +42,7 @@ def non_mandatory_tour_frequency_alts(configs_dir):
 
 
 @inject.step()
-def non_mandatory_tour_frequency(persons_merged,
+def non_mandatory_tour_frequency(persons, persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec,
                                  non_mandatory_tour_frequency_settings,
@@ -55,6 +57,8 @@ def non_mandatory_tour_frequency(persons_merged,
     """
 
     t0 = print_elapsed_time()
+
+    trace_label = 'non_mandatory_tour_frequency'
 
     choosers = persons_merged.to_frame()
 
@@ -94,33 +98,16 @@ def non_mandatory_tour_frequency(persons_merged,
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('non_mandatory_tour_frequency', choices, value_counts=True)
+    persons = persons.to_frame()
 
-    # FIXME - no need to reindex?
-    # FIXME - how about the persons not processed
-    inject.add_column("persons", "non_mandatory_tour_frequency", choices)
+    # need to reindex as we only handled persons with cdap_activity in ['M', 'N']
+    persons['non_mandatory_tour_frequency'] = choices.reindex(persons.index)
 
-    create_non_mandatory_tours(trace_hh_id)
-
-    # add non_mandatory_tour-dependent columns (e.g. tour counts) to persons
-    pipeline.add_dependent_columns("persons", "persons_nmtf")
-
-    if trace_hh_id:
-        trace_columns = ['non_mandatory_tour_frequency']
-        tracing.trace_df(inject.get_table('persons').to_frame(),
-                         label="non_mandatory_tour_frequency.persons",
-                         # columns=trace_columns,
-                         warn_if_empty=True)
-
-
-def create_non_mandatory_tours(trace_hh_id):
     """
     We have now generated non-mandatory tours, but they are attributes of the person table
     Now we create a "tours" table which has one row per tour that has been generated
     (and the person id it is associated with)
     """
-
-    persons = inject.get_table('persons')
     alts = inject.get_injectable('non_mandatory_tour_frequency_alts')
 
     non_mandatory_tours = process_non_mandatory_tours(
@@ -132,7 +119,21 @@ def create_non_mandatory_tours(trace_hh_id):
     tracing.register_traceable_table('tours', tours)
     pipeline.get_rn_generator().add_channel(non_mandatory_tours, 'tours')
 
+    expressions.assign_columns(
+        df=persons,
+        model_settings=non_mandatory_tour_frequency_settings.get('annotate_persons'),
+        trace_label=trace_label)
+
+    pipeline.replace_table("persons", persons)
+
+    tracing.print_summary('non_mandatory_tour_frequency',
+                          persons.non_mandatory_tour_frequency, value_counts=True)
+
     if trace_hh_id:
         tracing.trace_df(non_mandatory_tours,
                          label="non_mandatory_tour_frequency.non_mandatory_tours",
+                         warn_if_empty=True)
+
+        tracing.trace_df(inject.get_table('persons').to_frame(),
+                         label="non_mandatory_tour_frequency.persons",
                          warn_if_empty=True)

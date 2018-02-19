@@ -98,9 +98,8 @@ income_segment                   int64
 non_workers                      int64
 family                            bool
 num_young_adults               float64
-home_is_rural                     bool
-drivers                        float64
 home_taz                         int64
+home_is_rural                     bool
 work_tour_auto_time_savings      int64
 non_family                        bool
 hhsize                           int64
@@ -111,10 +110,11 @@ income_in_thousands            float64
 num_young_children             float64
 home_is_urban                     bool
 num_college_age                float64
+drivers                        float64
 auto_ownership                   int64
-no_cars                           bool
 car_sufficiency                  int64
-num_under16_not_at_school        int64
+no_cars                           bool
+num_under16_not_at_school      float64
 joint_tour_frequency            object
 dtype: object
 
@@ -170,29 +170,29 @@ male                                bool
 school_taz                         int64
 distance_to_school               float64
 roundtrip_auto_time_to_school    float64
-roundtrip_auto_time_to_work      float64
-distance_to_work                 float64
-workplace_in_cbd                    bool
-work_taz_area_type                 int64
 workplace_taz                      int64
-under16_not_at_school               bool
-cdap_rank                          int64
+distance_to_work                 float64
+roundtrip_auto_time_to_work      float64
+work_taz_area_type                 int64
+workplace_in_cbd                    bool
 cdap_activity                     object
+cdap_rank                          int64
 has_preschool_kid_at_home           bool
 has_school_kid_at_home              bool
-work_and_school_and_student         bool
-num_mand                         float64
-work_and_school_and_worker          bool
-num_work_tours                   float64
+under16_not_at_school               bool
 mandatory_tour_frequency          object
-num_eatout_tours                 float64
-num_non_mand                     float64
-num_escort_tours                 float64
+num_mand                         float64
+num_work_tours                   float64
+work_and_school_and_student         bool
+work_and_school_and_worker          bool
 non_mandatory_tour_frequency     float64
+num_eatout_tours                 float64
+num_escort_tours                 float64
 num_non_escort_tours             float64
+num_non_mand                     float64
 dtype: object
 
-### tours (184, 45)
+### tours (181, 45)
 tour_id
 person_id                    float64
 tour_type                     object
@@ -293,7 +293,7 @@ total_households        int64
 total_employment        int64
 dtype: object
 
-### trips (346, 9)
+### trips (342, 9)
 trip_id
 tour_id           int64
 INBOUND            bool

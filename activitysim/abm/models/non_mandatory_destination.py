@@ -36,7 +36,6 @@ def non_mandatory_tour_destination_choice(tours,
                                           non_mandatory_tour_destination_choice_spec,
                                           non_mandatory_tour_destination_choice_settings,
                                           destination_size_terms,
-                                          configs_dir,
                                           chunk_size,
                                           trace_hh_id):
 
@@ -117,7 +116,6 @@ def non_mandatory_tour_destination_choice(tours,
     results = expressions.compute_columns(
         df=non_mandatory_tours,
         model_settings='annotate_tours_with_dest',
-        configs_dir=configs_dir,
         trace_label=trace_label)
 
     assign_in_place(tours, non_mandatory_tours[['destination']])

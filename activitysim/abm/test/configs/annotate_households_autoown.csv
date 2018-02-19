@@ -1,0 +1,4 @@
+Description,Target,Expression
+#,, annotate households table after auto_ownership model has run
+no cars,no_cars,(households.auto_ownership == 0)
+number of cars minus number of persons,car_sufficiency,households.auto_ownership - households.PERSONS

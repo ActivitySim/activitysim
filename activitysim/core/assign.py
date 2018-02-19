@@ -116,13 +116,13 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     targets as the assigned target name.
 
     lowercase variables starting with underscore are temp variables (e.g. _local_var)
-    and not returned except in trace_restults
+    and not returned except in trace_results
 
-    uppercase variables starting with underscore are temp variables (e.g. _LOCAL_SCALAR)
+    uppercase variables starting with underscore are temp scalar variables (e.g. _LOCAL_SCALAR)
     and not returned except in trace_assigned_locals
     This is useful for defining general purpose local constants in expression file
 
-    Users should take care that expressions should result in
+    Users should take care that expressions (other than temp scalar variables) should result in
     a Pandas Series (scalars will be automatically promoted to series.)
 
     Parameters
@@ -156,9 +156,11 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     def to_series(x, target=None):
         if x is None or np.isscalar(x):
             if target:
-                logger.warn("WARNING: assign_variables promoting scalar %s to series" % target)
+                logger.warn("assign_variables promoting scalar %s to series" % target)
             return pd.Series([x] * len(df.index), index=df.index)
         return x
+
+    assert assignment_expressions.shape[0] > 0
 
     trace_assigned_locals = trace_results = None
     if trace_rows is not None:
@@ -243,6 +245,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     if trace_results is not None:
 
         trace_results = pd.DataFrame.from_items(trace_results)
+
         trace_results.index = df[trace_rows].index
 
         trace_results = undupe_column_names(trace_results)

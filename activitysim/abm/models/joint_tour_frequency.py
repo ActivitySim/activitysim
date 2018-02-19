@@ -169,7 +169,6 @@ def joint_tour_frequency(households, persons,
         expressions.assign_columns(
             df=multi_person_households,
             model_settings=macro_settings,
-            configs_dir=configs_dir,
             trace_label=trace_label)
 
     nest_spec = config.get_logit_model_settings(joint_tour_frequency_settings)
@@ -187,29 +186,25 @@ def joint_tour_frequency(households, persons,
     # convert indexes to alternative names
     choices = pd.Series(joint_tour_frequency_spec.columns[choices.values], index=choices.index)
 
-    tracing.print_summary('joint_tour_frequency', choices, value_counts=True)
-
-    multi_person_households['joint_tour_frequency'] = choices
-    # tracing.trace_df(multi_person_households, '%s.DUMP.multi_person_households' %
-    #                  trace_label, transpose=False, slicer='NONE')
-
-    # reindex since we are working with a subset of households
-    choices = choices.reindex(households.index)
-
     # add joint_tour_frequency column to households
-    households['joint_tour_frequency'] = choices
+    # reindex since we are working with a subset of households
+    households['joint_tour_frequency'] = choices.reindex(households.index)
     pipeline.replace_table("households", households)
 
     # - create atwork_subtours based on atwork_subtour_frequency choice names
     multi_person_households = households[households.PERSONS > 1]
     assert not multi_person_households.joint_tour_frequency.isnull().any()
 
+    # - eventually we do something like this????
     # alts = inject.get_injectable('joint_tour_frequency_alts')
     # joint_tours = process_joint_tours(multi_person_households, alts)
     #
     # tours = pipeline.extend_table("joint_tours", joint_tours)
     # tracing.register_traceable_table('joint_tours', joint_tours)
     # pipeline.get_rn_generator().add_channel(joint_tours, 'joint_tours')
+
+    tracing.print_summary('joint_tour_frequency', households.joint_tour_frequency,
+                          value_counts=True)
 
     if trace_hh_id:
         trace_columns = ['joint_tour_frequency']

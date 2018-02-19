@@ -27,6 +27,7 @@ PTYPE_DRIVING = 6
 PTYPE_SCHOOL = 7
 PTYPE_PRESCHOOL = 8
 
+# these appear as column headers in non_mandatory_tour_frequency.csv
 PTYPE_NAME = {
     PTYPE_FULL: 'PTYPE_FULL',
     PTYPE_PART: 'PTYPE_PART',
@@ -37,3 +38,9 @@ PTYPE_NAME = {
     PTYPE_SCHOOL: 'PTYPE_SCHOOL',
     PTYPE_PRESCHOOL: 'PTYPE_PRESCHOOL'
 }
+
+
+# joint tour frequency
+# 0_tours,1_Shop,1_Main,1_Eat,1_Visit,1_Disc,2_SS,2_SM,2_SE,2_SV,2_SD,2_MM,2_ME,2_MV,2_MD,2_EE,2_EV,2_ED,2_VV,2_VD,2_DD
+
+# work1,work2,school1,school2,work_and_school

@@ -19,6 +19,7 @@ from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.util import reindex
 from activitysim.core.util import left_merge_on_index_and_col
 
+from .util import expressions
 from .util.logsums import compute_logsums
 from .util.expressions import skim_time_period_label
 from .util.logsums import mode_choice_logsums_spec
@@ -230,7 +231,7 @@ def school_location_logsums(
 
 
 @inject.step()
-def school_location_simulate(persons_merged,
+def school_location_simulate(persons_merged, persons,
                              school_location_sample,
                              school_location_spec,
                              school_location_settings,
@@ -300,23 +301,25 @@ def school_location_simulate(persons_merged,
 
     choices = pd.concat(choices_list)
 
+    persons = persons.to_frame()
+
     # We only chose school locations for the subset of persons who go to school
     # so we backfill the empty choices with -1 to code as no school location
-    choices = choices.reindex(persons_merged.index).fillna(-1).astype(int)
+    persons['school_taz'] = choices.reindex(persons.index).fillna(-1).astype(int)
 
-    tracing.dump_df(DUMP, choices, trace_label, 'choices')
+    expressions.assign_columns(
+        df=persons,
+        model_settings=school_location_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
-    tracing.print_summary('school_taz', choices, describe=True)
-
-    inject.add_column("persons", "school_taz", choices)
-
-    pipeline.add_dependent_columns("persons", "persons_school")
+    pipeline.replace_table("persons", persons)
 
     pipeline.drop_table('school_location_sample')
 
+    tracing.dump_df(DUMP, persons.school_taz, trace_label, 'school_taz')
+    tracing.print_summary('school_taz', choices, describe=True)
+
     if trace_hh_id:
-        trace_columns = ['school_taz'] + inject.get_table('persons_school').columns
-        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
+        tracing.trace_df(persons,
                          label="school_location",
-                         columns=trace_columns,
                          warn_if_empty=True)

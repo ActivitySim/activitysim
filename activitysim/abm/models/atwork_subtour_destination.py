@@ -192,7 +192,6 @@ def atwork_subtour_destination_simulate(tours,
                                         atwork_subtour_destination_spec,
                                         skim_dict,
                                         destination_size_terms,
-                                        configs_dir,
                                         chunk_size,
                                         trace_hh_id):
     """
@@ -258,14 +257,11 @@ def atwork_subtour_destination_simulate(tours,
         trace_label=trace_label,
         trace_choice_name='workplace_location')
 
-    tracing.print_summary('subtour destination', choices, describe=True)
-
     subtours['destination'] = choices
 
     results = expressions.compute_columns(
         df=subtours,
         model_settings='annotate_tours_with_dest',
-        configs_dir=configs_dir,
         trace_label=trace_label)
 
     assign_in_place(tours, subtours[['destination']])
@@ -274,6 +270,8 @@ def atwork_subtour_destination_simulate(tours,
     pipeline.replace_table("tours", tours)
 
     pipeline.drop_table('atwork_subtour_destination_sample')
+
+    tracing.print_summary('subtour destination', subtours.destination, describe=True)
 
     if trace_hh_id:
         tracing.trace_df(tours,

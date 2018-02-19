@@ -42,7 +42,6 @@ def atwork_subtour_scheduling(
         tdd_alts,
         tdd_subtour_spec,
         atwork_subtour_scheduling_settings,
-        configs_dir,
         chunk_size,
         trace_hh_id):
     """
@@ -85,7 +84,6 @@ def atwork_subtour_scheduling(
     expressions.assign_columns(
         df=subtours,
         model_settings='annotate_tours',
-        configs_dir=configs_dir,
         trace_label=trace_label)
 
     assign_in_place(tours, subtours)

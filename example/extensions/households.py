@@ -107,3 +107,9 @@ def home_is_urban(households, land_use, settings):
 def home_is_rural(households, land_use, settings):
     s = reindex(land_use.area_type, households.home_taz)
     return s > settings['rural_threshold']
+
+
+@inject.column('households')
+def work_tour_auto_time_savings(households):
+    # FIXME - fix this variable from auto ownership model
+    return pd.Series(0, households.index)

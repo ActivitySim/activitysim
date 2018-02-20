@@ -17,8 +17,9 @@ install:
 - source activate test-environment
 - pip install orca openmatrix zbox
 - pip install pytest pytest-cov coveralls pycodestyle
-- pip install sphinx numpydoc
+- pip install sphinx numpydoc sphinx_rtd_theme
 - pip install .
+- pip freeze
 script:
 - pycodestyle activitysim
 - py.test --cov activitysim --cov-report term-missing

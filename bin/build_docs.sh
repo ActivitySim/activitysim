@@ -33,6 +33,10 @@ if [ "$TRAVIS_REPO_SLUG" == "ActivitySim/activitysim" ] && \
         [ "$TRAVIS_PULL_REQUEST" == "false" ] && \
         [ "$ACTUAL_TRAVIS_JOB_NUMBER" == "1" ]; then
 
+        # assume these are installed already
+        # echo "Installing dependencies"
+        # pip install sphinx numpydoc sphinx_rtd_theme
+
         echo "Building docs"
         cd docs
         make clean

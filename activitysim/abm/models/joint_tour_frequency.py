@@ -156,7 +156,7 @@ def joint_tour_frequency(households, persons,
     households = households.to_frame()
     persons = persons.to_frame()
 
-    multi_person_households = households[households.PERSONS > 1].copy()
+    multi_person_households = households[households.hhsize > 1].copy()
 
     logger.info("Running joint_tour_frequency with %d multi-person households" %
                 len(multi_person_households))
@@ -192,7 +192,7 @@ def joint_tour_frequency(households, persons,
     pipeline.replace_table("households", households)
 
     # - create atwork_subtours based on atwork_subtour_frequency choice names
-    multi_person_households = households[households.PERSONS > 1]
+    multi_person_households = households[households.hhsize > 1]
     assert not multi_person_households.joint_tour_frequency.isnull().any()
 
     # - eventually we do something like this????

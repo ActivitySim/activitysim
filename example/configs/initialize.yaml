@@ -1,0 +1,37 @@
+
+#import_tables:
+#  - tablename: land_use
+#    column_map:
+#      #TOTHH: total_households
+#      #TOTEMP: total_employment
+#      #TOTACRE: total_acres
+#      COUNTY: county_id
+
+annotate_tables:
+  - tablename: land_use
+    column_map:
+      #TOTHH: total_households
+      #TOTEMP: total_employment
+      #TOTACRE: total_acres
+      COUNTY: county_id
+    annotate:
+      SPEC: annotate_landuse
+      DF: land_use
+  - tablename: persons
+    annotate:
+      SPEC: annotate_persons
+      DF: persons
+      TABLES:
+        - households
+  - tablename: households
+    column_map:
+      #TOTHH: total_households
+      #TOTEMP: total_employment
+      #TOTACRE: total_acres
+      PERSONS: hhsize
+    annotate:
+      SPEC: annotate_households
+      DF: households
+      TABLES:
+        - persons
+        - land_use

@@ -11,28 +11,56 @@ from activitysim.core import assign
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import pipeline
+
+from .util import expressions
 
 
 logger = logging.getLogger(__name__)
 
 
+@inject.injectable()
+def initialize_settings(configs_dir):
+    return config.read_model_settings(configs_dir, 'initialize.yaml')
+
+
 @inject.step()
-def initialize():
+def initialize(store, initialize_settings):
     """
     Because random seed is set differently for each step, the sampling of households depends
     on which step they are initially loaded in so we force them to load here and they get
     stored to the pipeline,
     """
 
+    trace_label = 'initialize'
+
     t0 = tracing.print_elapsed_time()
-    inject.get_table('land_use').to_frame()
-    t0 = tracing.print_elapsed_time("preload land_use", t0, debug=True)
 
-    inject.get_table('households').to_frame()
-    t0 = tracing.print_elapsed_time("preload households", t0, debug=True)
+    annotate_tables = initialize_settings.get('annotate_tables')
+    for table_info in annotate_tables:
 
-    inject.get_table('persons').to_frame()
-    t0 = tracing.print_elapsed_time("preload persons", t0, debug=True)
+        tablename = table_info['tablename']
+        df = inject.get_table(tablename).to_frame()
+
+        # - rename columns
+        column_map = table_info.get('column_map', None)
+        if column_map:
+            logger.info("renaming %s columns %s" % (tablename, column_map,))
+            df.rename(columns=column_map, inplace=True)
+
+        # - annotate
+        annotate = table_info.get('annotate', None)
+        if annotate:
+            logger.info("annotated %s SPEC %s" % (tablename, annotate['SPEC'],))
+            expressions.assign_columns(
+                df=df,
+                model_settings=annotate,
+                trace_label=tracing.extend_trace_label(trace_label, 'annotate_%s' % tablename))
+
+        # - write table to pipeline
+        pipeline.replace_table(tablename, df)
+
+        t0 = tracing.print_elapsed_time("annotate %s" % tablename, t0, debug=True)
 
     inject.get_table('person_windows').to_frame()
     t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)

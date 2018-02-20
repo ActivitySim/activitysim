@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 _persons_index_ = 'PERID'
 _hh_index_ = 'HHID'
-_hh_size_ = 'PERSONS'
+_hh_size_ = 'hhsize'
 
 _hh_id_ = 'household_id'
 _ptype_ = 'ptype'

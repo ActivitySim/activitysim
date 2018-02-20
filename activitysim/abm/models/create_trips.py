@@ -12,6 +12,7 @@ from activitysim.core.util import reindex
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
+from activitysim.core.config import setting
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,9 @@ def create_simple_trips(tours, households, persons, trace_hh_id):
 
     trip_columns = ['tour_id', 'INBOUND', 'trip_num', 'OTAZ', 'DTAZ', 'start_trip', 'end_trip']
     trips = trips[trip_columns]
+
+    # cut returns labelled categories but we convert to str
+    trips['start_period'] = pd.cut(trips.start_trip, setting('skim_time_periods')['hours'], labels=setting('skim_time_periods')['labels']).astype(str)
 
     inject.add_table('trips', trips)
 

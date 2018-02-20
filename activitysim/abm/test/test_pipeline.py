@@ -15,7 +15,6 @@ import openmatrix as omx
 
 from .. import __init__
 from ..tables import size_terms
-from . import extensions
 
 from activitysim.core import tracing
 from activitysim.core import pipeline

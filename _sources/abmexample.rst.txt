@@ -79,14 +79,14 @@ is the main settings file for the model run.  This file includes:
 Chunk size
 ~~~~~~~~~~
 
-The ``chunk_size`` is the number of doubles in a chunk of the choosers table.  It is the number of rows 
-times the number of columns and it needs to be set to a value that efficiently processes the table with 
-the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 households with 10 attribute 
-columns.  Setting the chunk size too high will run into memory errors such as ``OverflowError: Python int 
+The ``chunk_size`` is the number of doubles in a chunk of the choosers table.  It is approximately the number 
+of rows times the number of columns and it needs to be set to a value that efficiently processes the table with 
+the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 households with 10 columns.  Setting 
+the chunk size too high will run into memory errors such as ``OverflowError: Python int 
 too large to convert to C long.`` Setting the chunk size too low may result in smaller than optimal vector
 lengths, which may waste runtime.  The chunk size is dependent on the size of the population, the complexity 
 of the utility expressions, the amount of RAM on the machine, and other problem specific dimensions.  Thus, 
-it needs to be set via experimentation.  
+it needs to be set via experimentation.
 
 Logging
 ~~~~~~~

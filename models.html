@@ -8,7 +8,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Models &mdash; ActivitySim 0.5.1 documentation</title>
+  <title>Models &mdash; ActivitySim 0.5.2
+ documentation</title>
   
 
   
@@ -30,12 +31,15 @@
   
 
   
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
 
   
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5.2
+ documentation" href="index.html"/>
         <link rel="next" title="Development" href="development.html"/>
         <link rel="prev" title="Core Components" href="core.html"/> 
 
@@ -66,7 +70,8 @@
             
             
               <div class="version">
-                0.5.1
+                0.5.2
+
               </div>
             
           
@@ -180,8 +185,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#id29">API</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#utility-steps">Utility Steps</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id31">API</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#util">Util</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id30">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id32">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#tests">Tests</a></li>
@@ -260,7 +269,7 @@
 households, persons, and person_windows tables because random seeds are set differently for each step
 and therefore the sampling of households depends on which step they are initially loaded in.  So, we
 load them explicitly up front.</p>
-<p>The main interface to the initialize model is the <a class="reference internal" href="#activitysim.abm.models.initialize.initialize" title="activitysim.abm.models.initialize.initialize"><code class="xref py py-func docutils literal"><span class="pre">initialize()</span></code></a>
+<p>The main interface to the initialize model is the <a class="reference internal" href="#activitysim.abm.models.initialize.initialize" title="activitysim.abm.models.initialize.initialize"><code class="xref py py-func docutils literal notranslate"><span class="pre">initialize()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
 <div class="section" id="module-activitysim.abm.models.initialize">
 <span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.abm.models.initialize" title="Permalink to this headline">¶</a></h3>
@@ -268,14 +277,14 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <dt id="activitysim.abm.models.initialize.initialize">
 <code class="descclassname">activitysim.abm.models.initialize.</code><code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.initialize.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Because random seed is set differently for each step, the sampling of households depends
-on which step they are initially loaded in.</p>
-<p>We load them explicitly up front, so that</p>
+on which step they are initially loaded in so we force them to load here and they get
+stored to the pipeline,</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="activitysim.abm.models.initialize.preload_injectables">
 <code class="descclassname">activitysim.abm.models.initialize.</code><code class="descname">preload_injectables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.initialize.preload_injectables" title="Permalink to this definition">¶</a></dt>
-<dd><p>called after pipeline is</p>
+<dd><p>preload bulky injectables up front - stuff that isn’t inserted into eh pipeline</p>
 </dd></dl>
 
 </div>
@@ -312,9 +321,9 @@ midday period (10 am to 3 pm), and the PM peak period (3 pm to 7 pm).</p>
 <li>nonMotorizedTotal, the accessibility by walking during all time periods to all employment</li>
 </ul>
 <p>The main interface to the accessibility model is the
-<a class="reference internal" href="#activitysim.abm.models.accessibility.compute_accessibility" title="activitysim.abm.models.accessibility.compute_accessibility"><code class="xref py py-func docutils literal"><span class="pre">compute_accessibility()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.accessibility.compute_accessibility" title="activitysim.abm.models.accessibility.compute_accessibility"><code class="xref py py-func docutils literal notranslate"><span class="pre">compute_accessibility()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">skims</span></code> | Result Table: <code class="docutils literal"><span class="pre">accessibility</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">O-D,</span> <span class="pre">D-O</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">skims</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">accessibility</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">O-D,</span> <span class="pre">D-O</span></code></p>
 <div class="section" id="id3">
 <h3>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.accessibility"></span><dl class="class">
@@ -376,11 +385,11 @@ steeper than automobile or transit.  The minimum accessibility is zero.</p>
 </dd>
 </dl>
 <p>The interfaces to the model steps are
-<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_sample" title="activitysim.abm.models.school_location.school_location_sample"><code class="xref py py-func docutils literal"><span class="pre">school_location_sample()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_logsums" title="activitysim.abm.models.school_location.school_location_logsums"><code class="xref py py-func docutils literal"><span class="pre">school_location_logsums()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_simulate" title="activitysim.abm.models.school_location.school_location_simulate"><code class="xref py py-func docutils literal"><span class="pre">school_location_simulate()</span></code></a>.
+<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_sample" title="activitysim.abm.models.school_location.school_location_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">school_location_sample()</span></code></a>,
+<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_logsums" title="activitysim.abm.models.school_location.school_location_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">school_location_logsums()</span></code></a>,
+<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_simulate" title="activitysim.abm.models.school_location.school_location_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">school_location_simulate()</span></code></a>.
 These functions are registered as orca steps in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
 <div class="section" id="id5">
 <h3>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.school_location"></span><dl class="function">
@@ -475,11 +484,11 @@ to select a school_taz from sample alternatives</p>
 </dd>
 </dl>
 <p>The interfaces to the model steps are
-<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_sample" title="activitysim.abm.models.workplace_location.workplace_location_sample"><code class="xref py py-func docutils literal"><span class="pre">workplace_location_sample()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_logsums" title="activitysim.abm.models.workplace_location.workplace_location_logsums"><code class="xref py py-func docutils literal"><span class="pre">workplace_location_logsums()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_simulate" title="activitysim.abm.models.workplace_location.workplace_location_simulate"><code class="xref py py-func docutils literal"><span class="pre">workplace_location_simulate()</span></code></a>.
+<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_sample" title="activitysim.abm.models.workplace_location.workplace_location_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">workplace_location_sample()</span></code></a>,
+<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_logsums" title="activitysim.abm.models.workplace_location.workplace_location_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">workplace_location_logsums()</span></code></a>,
+<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_simulate" title="activitysim.abm.models.workplace_location.workplace_location_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">workplace_location_simulate()</span></code></a>.
 These functions are registered as orca steps in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
 <div class="section" id="id6">
 <h3>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.workplace_location"></span><dl class="function">
@@ -566,14 +575,14 @@ to select a work_taz from sample alternatives</p>
 <span id="id7"></span><h2>Auto Ownership<a class="headerlink" href="#auto-ownership" title="Permalink to this headline">¶</a></h2>
 <p>The auto ownership model selects a number of autos for each household in the simulation.</p>
 <p>The main interface to the auto ownership model is the
-<a class="reference internal" href="#activitysim.abm.models.auto_ownership.auto_ownership_simulate" title="activitysim.abm.models.auto_ownership.auto_ownership_simulate"><code class="xref py py-func docutils literal"><span class="pre">auto_ownership_simulate()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.auto_ownership.auto_ownership_simulate" title="activitysim.abm.models.auto_ownership.auto_ownership_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">auto_ownership_simulate()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">households</span></code> | Result Field: <code class="docutils literal"><span class="pre">auto_ownership</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">households</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">auto_ownership</span></code> | Skims Keys: NA</p>
 <div class="section" id="id8">
 <h3>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.auto_ownership"></span><dl class="function">
 <dt id="activitysim.abm.models.auto_ownership.auto_ownership_simulate">
-<code class="descclassname">activitysim.abm.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>households_merged</em>, <em>auto_ownership_spec</em>, <em>auto_ownership_settings</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>households_merged</em>, <em>auto_ownership_spec</em>, <em>auto_ownership_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Auto ownership is a standard model which predicts how many cars a household
 with given characteristics owns</p>
 </dd></dl>
@@ -590,13 +599,13 @@ with given characteristics owns</p>
 <li>select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions</li>
 <li>repeat for households size 2, 3, 4, and 5. Each model is independent of one another.</li>
 </ul>
-<p>The main interface to the CDAP model is the <a class="reference internal" href="#activitysim.abm.models.util.cdap.run_cdap" title="activitysim.abm.models.util.cdap.run_cdap"><code class="xref py py-func docutils literal"><span class="pre">run_cdap()</span></code></a>
-function.  This function is called by the orca step <code class="docutils literal"><span class="pre">cdap_simulate</span></code> which is
+<p>The main interface to the CDAP model is the <a class="reference internal" href="#activitysim.abm.models.util.cdap.run_cdap" title="activitysim.abm.models.util.cdap.run_cdap"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_cdap()</span></code></a>
+function.  This function is called by the orca step <code class="docutils literal notranslate"><span class="pre">cdap_simulate</span></code> which is
 registered as an orca step in the example Pipeline.  There are two cdap class definitions in
-ActivitySim.  The first is at <a class="reference internal" href="#module-activitysim.abm.models.cdap" title="activitysim.abm.models.cdap"><code class="xref py py-func docutils literal"><span class="pre">cdap()</span></code></a> and contains the orca
+ActivitySim.  The first is at <a class="reference internal" href="#module-activitysim.abm.models.cdap" title="activitysim.abm.models.cdap"><code class="xref py py-func docutils literal notranslate"><span class="pre">cdap()</span></code></a> and contains the orca
 wrapper for running it as part of the model pipeline.  The second is
-at <a class="reference internal" href="#module-activitysim.abm.models.util.cdap" title="activitysim.abm.models.util.cdap"><code class="xref py py-func docutils literal"><span class="pre">cdap()</span></code></a> and contains CDAP model logic.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal"><span class="pre">cdap_activity</span></code> | Skims Keys: NA</p>
+at <a class="reference internal" href="#module-activitysim.abm.models.util.cdap" title="activitysim.abm.models.util.cdap"><code class="xref py py-func docutils literal notranslate"><span class="pre">cdap()</span></code></a> and contains CDAP model logic.</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">cdap_activity</span></code> | Skims Keys: NA</p>
 <div class="section" id="id9">
 <h3>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="id10">
@@ -1059,14 +1068,14 @@ e.g. ‘MNHH’ for a 4 person household with activities Mandatory, NonMandatory
 <p>The mandatory tour frequency model selects the number of mandatory tours made by each person on the simulation day.
 It also creates mandatory tours in the data pipeline.</p>
 <p>The main interface to the mandatory tour purpose frequency model is the
-<a class="reference internal" href="#activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency" title="activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency"><code class="xref py py-func docutils literal"><span class="pre">mandatory_tour_frequency()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency" title="activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency"><code class="xref py py-func docutils literal notranslate"><span class="pre">mandatory_tour_frequency()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Fields: <code class="docutils literal"><span class="pre">mandatory_tour_frequency,</span> <span class="pre">persons_mtf</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">mandatory_tour_frequency,</span> <span class="pre">persons_mtf</span></code> | Skims Keys: NA</p>
 <div class="section" id="id12">
 <h3>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency">
-<code class="descclassname">activitysim.abm.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em>, <em>mandatory_tour_frequency_settings</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em>, <em>mandatory_tour_frequency_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the frequency of making mandatory trips (see the
 alternatives above) - these trips include work and school in some combination.</p>
 </dd></dl>
@@ -1078,9 +1087,9 @@ alternatives above) - these trips include work and school in some combination.</
 <p>The mandatory tour scheduling model selects a tour departure and duration period (and therefore a start and end
 period as well) for each mandatory tour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.</p>
 <p>The main interface to the mandatory tour purpose scheduling model is the
-<a class="reference internal" href="#activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling" title="activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling"><code class="xref py py-func docutils literal"><span class="pre">mandatory_tour_scheduling()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling" title="activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">mandatory_tour_scheduling()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
 <div class="section" id="id14">
 <h3>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.mandatory_scheduling"></span><dl class="function">
@@ -1096,14 +1105,14 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>The non-mandatory tour frequency model selects the number of non-mandatory tours made by each person on the simulation day.
 It also creates non-mandatory tours in the data pipeline.</p>
 <p>The main interface to the non-mandatory tour purpose frequency model is the
-<a class="reference internal" href="#activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency"><code class="xref py py-func docutils literal"><span class="pre">non_mandatory_tour_frequency()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency"><code class="xref py py-func docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">persons</span></code> | Result Fields: <code class="docutils literal"><span class="pre">non_mandatory_tour_frequency,</span> <span class="pre">persons_nmtf</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency,</span> <span class="pre">persons_nmtf</span></code> | Skims Keys: NA</p>
 <div class="section" id="id16">
 <h3>API<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.non_mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.abm.models.non_mandatory_tour_frequency.create_non_mandatory_tours">
-<code class="descclassname">activitysim.abm.models.non_mandatory_tour_frequency.</code><code class="descname">create_non_mandatory_tours</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_tour_frequency.create_non_mandatory_tours" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.non_mandatory_tour_frequency.</code><code class="descname">create_non_mandatory_tours</code><span class="sig-paren">(</span><em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_tour_frequency.create_non_mandatory_tours" title="Permalink to this definition">¶</a></dt>
 <dd><p>We have now generated non-mandatory tours, but they are attributes of the person table
 Now we create a “tours” table which has one row per tour that has been generated
 (and the person id it is associated with)</p>
@@ -1125,9 +1134,9 @@ othdiscr, eatout, and social trips in various combination.</p>
 <p>The non-mandatory tour destination choice model chooses a destination zone for
 non-mandatory tours.</p>
 <p>The main interface to the non-mandatory tour destination choice model is the
-<a class="reference internal" href="#activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination_choice" title="activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination_choice"><code class="xref py py-func docutils literal"><span class="pre">non_mandatory_tour_destination_choice()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination_choice" title="activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination_choice"><code class="xref py py-func docutils literal notranslate"><span class="pre">non_mandatory_tour_destination_choice()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
 <div class="section" id="id18">
 <h3>API<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.non_mandatory_destination"></span><dl class="function">
@@ -1144,12 +1153,12 @@ person that’s making the tour)</p>
 <span id="id19"></span><h2>Annotate Table<a class="headerlink" href="#annotate-table" title="Permalink to this headline">¶</a></h2>
 <p>The annotate table model isn’t really a model, but a step in the data pipeline.  This step adds fields
 to a user specified data table in the pipeline.  The main interface to annotate table is the
-<code class="xref py py-func docutils literal"><span class="pre">annotate_table()</span></code> function.  This function is registered
+<code class="xref py py-func docutils literal notranslate"><span class="pre">annotate_table()</span></code> function.  This function is registered
 as an orca step in the example Pipeline.  Annotate_table make use of optional step arguments, as shown
-below.  In the example below, <code class="docutils literal"><span class="pre">annotate_tours</span></code> is passed as the <code class="docutils literal"><span class="pre">model_name</span></code>, which causes annotate table
+below.  In the example below, <code class="docutils literal notranslate"><span class="pre">annotate_tours</span></code> is passed as the <code class="docutils literal notranslate"><span class="pre">model_name</span></code>, which causes annotate table
 to read the annotate_tours.yaml settings file and the annotate_tours.csv expressions file.  These expressions
 are processed are added to the dataframe specified in the yaml file.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">annotate_table</span><span class="o">.</span><span class="n">model_name</span><span class="o">=</span><span class="n">annotate_tours</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">annotate_table</span><span class="o">.</span><span class="n">model_name</span><span class="o">=</span><span class="n">annotate_tours</span>
 </pre></div>
 </div>
 <div class="section" id="id20">
@@ -1161,9 +1170,9 @@ are processed are added to the dataframe specified in the yaml file.</p>
 <p>The non-mandatory tour scheduling model selects a tour departure and duration period (and therefore a start and end
 period as well) for each non-mandatory tour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.</p>
 <p>The main interface to the non-mandatory tour purpose scheduling model is the
-<a class="reference internal" href="#activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling" title="activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling"><code class="xref py py-func docutils literal"><span class="pre">non_mandatory_tour_scheduling()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling" title="activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">non_mandatory_tour_scheduling()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: NA</p>
 <div class="section" id="id22">
 <h3>API<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.non_mandatory_scheduling"></span><dl class="function">
@@ -1178,16 +1187,16 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <span id="tour-mode-choice"></span><h2>Tour Mode<a class="headerlink" href="#tour-mode" title="Permalink to this headline">¶</a></h2>
 <p>The tour mode choice model assigns a travel mode to each tour.</p>
 <p>The main interface to the tour mode model is the
-<a class="reference internal" href="#activitysim.abm.models.mode_choice.tour_mode_choice_simulate" title="activitysim.abm.models.mode_choice.tour_mode_choice_simulate"><code class="xref py py-func docutils literal"><span class="pre">tour_mode_choice_simulate()</span></code></a> function.  This function is
-called in the orca step <code class="docutils literal"><span class="pre">tour_mode_choice_simulate</span></code> and is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims od_skims Keys: <code class="docutils literal"><span class="pre">TAZ,</span> <span class="pre">destination</span></code> |
-SkimStackWrapper odt_skims Keys: <code class="docutils literal"><span class="pre">TAZ,</span> <span class="pre">destination,</span> <span class="pre">in_period</span></code> | SkimStackWrapper dot_skims Keys:
-<code class="docutils literal"><span class="pre">destination,</span> <span class="pre">TAZ,</span> <span class="pre">out_period</span></code></p>
+<a class="reference internal" href="#activitysim.abm.models.mode_choice.tour_mode_choice_simulate" title="activitysim.abm.models.mode_choice.tour_mode_choice_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">tour_mode_choice_simulate()</span></code></a> function.  This function is
+called in the orca step <code class="docutils literal notranslate"><span class="pre">tour_mode_choice_simulate</span></code> and is registered as an orca step in the example Pipeline.</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">mode</span></code> | Skims od_skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">destination</span></code> |
+SkimStackWrapper odt_skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">destination,</span> <span class="pre">in_period</span></code> | SkimStackWrapper dot_skims Keys:
+<code class="docutils literal notranslate"><span class="pre">destination,</span> <span class="pre">TAZ,</span> <span class="pre">out_period</span></code></p>
 <div class="section" id="id23">
 <h3>API<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.mode_choice"></span><dl class="function">
 <dt id="activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate">
-<code class="descclassname">activitysim.abm.models.mode_choice.</code><code class="descname">atwork_subtour_mode_choice_simulate</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tour_mode_choice_spec</em>, <em>tour_mode_choice_settings</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.mode_choice.</code><code class="descname">atwork_subtour_mode_choice_simulate</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tour_mode_choice_spec</em>, <em>tour_mode_choice_settings</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>At-work subtour mode choice simulate</p>
 </dd></dl>
 
@@ -1213,13 +1222,13 @@ is not unique)</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.mode_choice.tour_mode_choice_simulate">
-<code class="descclassname">activitysim.abm.models.mode_choice.</code><code class="descname">tour_mode_choice_simulate</code><span class="sig-paren">(</span><em>tours_merged</em>, <em>tour_mode_choice_spec</em>, <em>tour_mode_choice_settings</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mode_choice.tour_mode_choice_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.mode_choice.</code><code class="descname">tour_mode_choice_simulate</code><span class="sig-paren">(</span><em>tours_merged</em>, <em>tour_mode_choice_spec</em>, <em>tour_mode_choice_settings</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mode_choice.tour_mode_choice_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tour mode choice simulate</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="activitysim.abm.models.mode_choice.trip_mode_choice_simulate">
-<code class="descclassname">activitysim.abm.models.mode_choice.</code><code class="descname">trip_mode_choice_simulate</code><span class="sig-paren">(</span><em>trips_merged</em>, <em>trip_mode_choice_spec</em>, <em>trip_mode_choice_settings</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mode_choice.trip_mode_choice_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.mode_choice.</code><code class="descname">trip_mode_choice_simulate</code><span class="sig-paren">(</span><em>trips_merged</em>, <em>trip_mode_choice_spec</em>, <em>trip_mode_choice_settings</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mode_choice.trip_mode_choice_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trip mode choice simulate</p>
 </dd></dl>
 
@@ -1342,9 +1351,9 @@ Alternatives: none, 1 eating out tour, 1 business tour, 1 maintenance tour, 2 bu
 Dependent tables: household, person, accessibility
 Outputs: work tour subtour frequency choice, at-work tours table (with only tour origin zone at this point)</p>
 <p>The main interface to the at-work subtours model is the
-<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency" title="activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency"><code class="xref py py-func docutils literal"><span class="pre">atwork_subtour_frequency()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency" title="activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_frequency()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal"><span class="pre">tours</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Skims Keys: NA</p>
 <div class="section" id="id24">
 <h3>API<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.atwork_subtour_frequency"></span><dl class="function">
@@ -1374,9 +1383,9 @@ configured by the user).</p>
 Alternatives: all zones
 Dependent tables: skims, size terms, land use
 Outputs: alternative zone set for each at-work tour</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal"><span class="pre">atwork_subtour_destination_sample</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,</span> <span class="pre">alt</span> <span class="pre">zone,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">atwork_subtour_destination_sample</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,</span> <span class="pre">alt</span> <span class="pre">zone,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 <p>The main interface to the at-work subtours destination choice sample model is the
-<code class="xref py py-func docutils literal"><span class="pre">atwork_subtour_destination_sample()</span></code>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_destination_sample()</span></code>
 function.  This function is registered as an orca step in the example Pipeline.</p>
 </div>
 <div class="section" id="at-work-subtour-logsums">
@@ -1386,9 +1395,9 @@ function.  This function is registered as an orca step in the example Pipeline.<
 Alternatives: N/A
 Dependent tables: skims, size terms, household, person, land use, accessibility, work tour
 Outputs: logsums for the alternative zone set for each at-work tour</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">atwork_subtour_destination_sample</span></code> | Result Table: <code class="docutils literal"><span class="pre">atwork_subtour_destination_sample</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,</span> <span class="pre">alt</span> <span class="pre">zone,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">atwork_subtour_destination_sample</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">atwork_subtour_destination_sample</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,</span> <span class="pre">alt</span> <span class="pre">zone,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 <p>The main interface to the at-work subtours destination choice logsums model is the
-<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums" title="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums"><code class="xref py py-func docutils literal"><span class="pre">atwork_subtour_destination_logsums()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums" title="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_destination_logsums()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
 </div>
 <div class="section" id="at-work-subtour-location">
@@ -1398,9 +1407,9 @@ function.  This function is registered as an orca step in the example Pipeline.<
 Alternatives: alternative zones from the sample step
 Dependent tables: skims, size terms, land use
 Outputs: at-work tour destination zone</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">atwork_subtour_destination_sample</span></code> | Result Table: <code class="docutils literal"><span class="pre">tours</span></code> | Skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,</span> <span class="pre">alt</span> <span class="pre">zone,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">atwork_subtour_destination_sample</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,</span> <span class="pre">alt</span> <span class="pre">zone,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 <p>The main interface to the at-work subtours destination choice location model is the
-<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate" title="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate"><code class="xref py py-func docutils literal"><span class="pre">atwork_subtour_destination_simulate()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate" title="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_destination_simulate()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
 </div>
 <div class="section" id="id25">
@@ -1486,9 +1495,9 @@ Alternatives: alternative departure time and arrival back at origin time pairs W
 Dependent tables: skims, person, land use, work tour
 Outputs: at-work tour departure time and arrival back at origin time, updated person time windows</p>
 <p>The main interface to the at-work subtours scheduling model is the
-<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling" title="activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling"><code class="xref py py-func docutils literal"><span class="pre">atwork_subtour_scheduling()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling" title="activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_scheduling()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: Currently not implemented</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">tour_departure_and_duration</span></code> | Skims Keys: Currently not implemented</p>
 <div class="section" id="id26">
 <h3>API<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.atwork_subtour_scheduling"></span><dl class="function">
@@ -1507,12 +1516,12 @@ Alternatives: modes
 Dependent tables: skims, size terms, household, person, land use, accessibility, work tour
 Outputs: at-work tour mode</p>
 <p>The main interface to the at-work subtour mode choice model is the
-<a class="reference internal" href="#activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate" title="activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate"><code class="xref py py-func docutils literal"><span class="pre">atwork_subtour_mode_choice_simulate()</span></code></a>
-function.  This function is called in the orca step <code class="docutils literal"><span class="pre">atwork_subtour_mode_choice_simulate</span></code> and
+<a class="reference internal" href="#activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate" title="activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_mode_choice_simulate()</span></code></a>
+function.  This function is called in the orca step <code class="docutils literal notranslate"><span class="pre">atwork_subtour_mode_choice_simulate</span></code> and
 is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims od_skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,destination</span></code> |
-SkimStackWrapper odt_skims Keys: <code class="docutils literal"><span class="pre">workplace_taz,destination,out_period</span></code> |
-SkimStackWrapper dot_skims Keys: <code class="docutils literal"><span class="pre">destination,workplace_taz,in_period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">mode</span></code> | Skims od_skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,destination</span></code> |
+SkimStackWrapper odt_skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,destination,out_period</span></code> |
+SkimStackWrapper dot_skims Keys: <code class="docutils literal notranslate"><span class="pre">destination,workplace_taz,in_period</span></code></p>
 <div class="section" id="id27">
 <h3>API<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
 <p>See <a class="reference internal" href="#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a> API.</p>
@@ -1526,9 +1535,9 @@ SkimStackWrapper dot_skims Keys: <code class="docutils literal"><span class="pre
 <li>inbound - from tour destination to tour origin</li>
 </ul>
 <p>The main interface to the create trips model is the
-<a class="reference internal" href="#activitysim.abm.models.create_trips.create_simple_trips" title="activitysim.abm.models.create_trips.create_simple_trips"><code class="xref py py-func docutils literal"><span class="pre">create_simple_trips()</span></code></a>
+<a class="reference internal" href="#activitysim.abm.models.create_trips.create_simple_trips" title="activitysim.abm.models.create_trips.create_simple_trips"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_simple_trips()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal"><span class="pre">trips</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Skims Keys: NA</p>
 <div class="section" id="id28">
 <h3>API<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.create_trips"></span><dl class="function">
@@ -1545,21 +1554,79 @@ destination to tour origin (inbound).</p>
 <span id="trip-mode-choice"></span><h2>Trip Mode<a class="headerlink" href="#trip-mode" title="Permalink to this headline">¶</a></h2>
 <p>The trip mode choice model assigns a travel mode to each trip.</p>
 <p>The main interface to the trip mode model is the
-<a class="reference internal" href="#activitysim.abm.models.mode_choice.trip_mode_choice_simulate" title="activitysim.abm.models.mode_choice.trip_mode_choice_simulate"><code class="xref py py-func docutils literal"><span class="pre">trip_mode_choice_simulate()</span></code></a>
-function.  This function is called in the orca step <code class="docutils literal"><span class="pre">trip_mode_choice_simulate</span></code> and
+<a class="reference internal" href="#activitysim.abm.models.mode_choice.trip_mode_choice_simulate" title="activitysim.abm.models.mode_choice.trip_mode_choice_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">trip_mode_choice_simulate()</span></code></a>
+function.  This function is called in the orca step <code class="docutils literal notranslate"><span class="pre">trip_mode_choice_simulate</span></code> and
 is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal"><span class="pre">mode</span></code> | Skims od_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination</span></code> |
-SkimStackWrapper odt_skims Keys: <code class="docutils literal"><span class="pre">TAZ,destination,start_period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">mode</span></code> | Skims od_skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,destination</span></code> |
+SkimStackWrapper odt_skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,destination,start_period</span></code></p>
 <div class="section" id="id29">
 <h3>API<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <p>See <a class="reference internal" href="#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a> API.</p>
 </div>
 </div>
+<div class="section" id="utility-steps">
+<span id="id30"></span><h2>Utility Steps<a class="headerlink" href="#utility-steps" title="Permalink to this headline">¶</a></h2>
+<p>Model step utilities for writing out pipeline data tables and for understanding
+data table size.</p>
+<p>The main interfaces to the utility steps models are
+<a class="reference internal" href="#activitysim.abm.models.utility_steps.write_data_dictionary" title="activitysim.abm.models.utility_steps.write_data_dictionary"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_data_dictionary()</span></code></a> and
+<a class="reference internal" href="#activitysim.abm.models.utility_steps.write_tables" title="activitysim.abm.models.utility_steps.write_tables"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_tables()</span></code></a>.  These
+functions are registered as orca steps in the example Pipeline.</p>
+<div class="section" id="id31">
+<h3>API<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.abm.models.utility_steps"></span><dl class="function">
+<dt id="activitysim.abm.models.utility_steps.write_data_dictionary">
+<code class="descclassname">activitysim.abm.models.utility_steps.</code><code class="descname">write_data_dictionary</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.utility_steps.write_data_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write table_name, number of rows, columns, and bytes for each checkpointed table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>output_dir: str</strong></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.utility_steps.write_tables">
+<code class="descclassname">activitysim.abm.models.utility_steps.</code><code class="descname">write_tables</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.utility_steps.write_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write pipeline tables as csv files (in output directory) as specified by output_tables list
+in settings file.</p>
+<p>‘output_tables’ can specify either a list of output tables to include or to skip
+if no output_tables list is specified, then no checkpointed tables will be written</p>
+<p>To write all output tables EXCEPT the households and persons tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_tables</span><span class="p">:</span>
+  <span class="n">action</span><span class="p">:</span> <span class="n">skip</span>
+  <span class="n">tables</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">households</span>
+    <span class="o">-</span> <span class="n">persons</span>
+</pre></div>
+</div>
+<p>To write ONLY the households table:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_tables</span><span class="p">:</span>
+  <span class="n">action</span><span class="p">:</span> <span class="n">include</span>
+  <span class="n">tables</span><span class="p">:</span>
+     <span class="o">-</span> <span class="n">households</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>output_dir: str</strong></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="util">
 <h2>Util<a class="headerlink" href="#util" title="Permalink to this headline">¶</a></h2>
 <p>Additional helper classes</p>
-<div class="section" id="id30">
-<h3>API<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id32">
+<h3>API<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.util.expressions"></span><dl class="function">
 <dt id="activitysim.abm.models.util.expressions.assign_columns">
 <code class="descclassname">activitysim.abm.models.util.expressions.</code><code class="descname">assign_columns</code><span class="sig-paren">(</span><em>df</em>, <em>model_settings</em>, <em>configs_dir=None</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.expressions.assign_columns" title="Permalink to this definition">¶</a></dt>
@@ -1833,12 +1900,17 @@ one shopping trip and zero trips of other purposes, etc.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>tours</strong> : DataFrame</p>
-<blockquote class="last">
+<blockquote>
 <div><p>An example of a tours DataFrame is supplied as a comment in the
 source code - it has an index which is a unique tour identifier,
 a person_id column, and a tour type column which comes from the
 column names of the alternatives DataFrame supplied above.</p>
 </div></blockquote>
+<p>tours.tour_type       - tour type (e.g. school, worl, shopping, eat)</p>
+<p>tours.tour_type_num   - if there are two ‘school’ type tours, they will be numbered 1 and 2</p>
+<p>tours.tour_type_count - number of tours of tour_type parent has (parent’s max tour_type_num)</p>
+<p>tours.tour_num        - index of tour (of any type) for parent</p>
+<p class="last">tours.tour_count      - number of tours of any type) for parent (parent’s max tour_num)</p>
 </td>
 </tr>
 </tbody>
@@ -1847,7 +1919,7 @@ column names of the alternatives DataFrame supplied above.</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.tour_frequency.set_tour_index">
-<code class="descclassname">activitysim.abm.models.util.tour_frequency.</code><code class="descname">set_tour_index</code><span class="sig-paren">(</span><em>tours</em>, <em>tour_num_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.set_tour_index" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.tour_frequency.</code><code class="descname">set_tour_index</code><span class="sig-paren">(</span><em>tours</em>, <em>tour_num_col</em>, <em>parent_tour_num_col=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.set_tour_index" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1910,60 +1982,11 @@ interaction.</p>
 <dl class="function">
 <dt id="activitysim.abm.models.util.vectorize_tour_scheduling.schedule_tours">
 <code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">schedule_tours</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>constants</em>, <em>timetable</em>, <em>previous_tour</em>, <em>window_id_col</em>, <em>chunk_size</em>, <em>tour_trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.schedule_tours" title="Permalink to this definition">¶</a></dt>
-<dd><p>previous_tour stores values used to add columns that can be used in the spec
-which have to do with the previous tours per person.  Every column in the
-alternatives table is appended with the suffix “_previous” and made
-available.  So if your alternatives table has columns for start and end,
-then start_previous and end_previous will be set to the start and end of
-the most recent tour for a person.  The first time through,
-start_previous and end_previous are undefined, so make sure to protect
-with a tour_num &gt;= 2 in the variable computation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tours</strong> : DataFrame</p>
-<blockquote>
-<div><p>chunk of tours to schedule with unique window_id_col (person_id or parent_tour_id)</p>
-</div></blockquote>
-<p><strong>persons_merged</strong> : DataFrame</p>
-<blockquote>
-<div><p>DataFrame of persons to be merged with tours containing attributes referenced
-by expressions in spec</p>
-</div></blockquote>
-<p><strong>alts</strong> : DataFrame</p>
-<blockquote>
-<div><p>DataFrame of alternatives which represent all possible time slots.
-tdd_interaction_dataset function will use timetable to filter them to omit
-unavailable alternatives</p>
-</div></blockquote>
-<p><strong>spec</strong> : DataFrame</p>
-<blockquote>
-<div><p>The spec which will be passed to interaction_simulate.</p>
-</div></blockquote>
-<p><strong>constants</strong> : dict</p>
-<blockquote>
-<div><p>dict of model-specific constants for eval</p>
-</div></blockquote>
-<p><strong>timetable</strong> : TimeTable</p>
-<blockquote>
-<div><p>timetable of timewidows for person (or subtour) with rows for tours[window_id_col]</p>
-</div></blockquote>
-<p><strong>previous_tour: Series</strong></p>
-<blockquote>
-<div><p>series with value of tdd_alt choice for last previous tour scheduled for</p>
-</div></blockquote>
-<p><strong>window_id_col</strong> : str</p>
-<blockquote>
-<div><p>column name from tours that identifies ‘owner’ of this tour
-(person_id for non/mandatory tours or parent_tout_id for subtours)</p>
-</div></blockquote>
-<p><strong>chunk_size</strong></p>
-<p class="last"><strong>tour_trace_label</strong></p>
-</td>
-</tr>
-</tbody>
-</table>
+<dd><p>chunking wrapper for _schedule_tours</p>
+<p>While interaction_sample_simulate provides chunking support, the merged tours, persons
+dataframe and the tdd_interaction_dataset are very big, so we want to create them inside
+the chunking loop to minimize memory footprint. So we implement the chunking loop here,
+and pass a chunk_size of 0 to interaction_sample_simulate to disable its chunking support.</p>
 </dd></dl>
 
 <dl class="function">
@@ -2162,7 +2185,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.1',
+            VERSION:'0.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

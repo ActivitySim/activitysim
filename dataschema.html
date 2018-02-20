@@ -8,7 +8,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Data Schema &mdash; ActivitySim 0.5.1 documentation</title>
+  <title>Data Schema &mdash; ActivitySim 0.5.2
+ documentation</title>
   
 
   
@@ -30,12 +31,15 @@
   
 
   
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
 
   
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5.2
+ documentation" href="index.html"/>
         <link rel="next" title="Core Components" href="core.html"/>
         <link rel="prev" title="How the System Works" href="howitworks.html"/> 
 
@@ -66,7 +70,8 @@
             
             
               <div class="version">
-                0.5.1
+                0.5.2
+
               </div>
             
           
@@ -205,9 +210,9 @@
 <span id="index-2"></span><h1>Data Schema<a class="headerlink" href="#data-schema" title="Permalink to this headline">¶</a></h1>
 <p>The purpose of this page is to document the ActivitySim data schema assumed
 for the sub-models, as well as the example.  These tables and skims are
-defined in the <code class="xref py py-mod docutils literal"><span class="pre">activitysim.abm.tables</span></code> package.  These can be revised
+defined in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.tables</span></code> package.  These can be revised
 for alternative model implementations.</p>
-<p>Extension fields are defined in the <code class="docutils literal"><span class="pre">example\extensions</span></code> tables.  Virtual
+<p>Extension fields are defined in the <code class="docutils literal notranslate"><span class="pre">example\extensions</span></code> tables.  Virtual
 fields are calculated on-the-fly and typically depend on other table fields
 to be present.</p>
 <div class="section" id="accessibilities">
@@ -215,9 +220,9 @@ to be present.</p>
 <p>The accessibilities table contains zone-based accessibility measures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">These previously input fields are now calculated by <a class="reference internal" href="models.html#module-activitysim.abm.models.accessibility" title="activitysim.abm.models.accessibility"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.abm.models.accessibility</span></code></a></p>
+<p class="last">These previously input fields are now calculated by <a class="reference internal" href="models.html#module-activitysim.abm.models.accessibility" title="activitysim.abm.models.accessibility"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.models.accessibility</span></code></a></p>
 </div>
-<p>Index - TAZ (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<p>Index - TAZ (see <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="35%" />
@@ -292,7 +297,7 @@ to be present.</p>
 <div class="section" id="land-use">
 <span id="index-4"></span><h2>Land use<a class="headerlink" href="#land-use" title="Permalink to this headline">¶</a></h2>
 <p>The land use table contains zonal land use (such as population and employment) attributes for zone.</p>
-<p>Index - ZONE (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<p>Index - ZONE (see <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="32%" />
@@ -561,8 +566,8 @@ to be present.</p>
 </div>
 <div class="section" id="size-terms">
 <span id="index-5"></span><h2>Size terms<a class="headerlink" href="#size-terms" title="Permalink to this headline">¶</a></h2>
-<p>The size terms table is created by reading the <code class="docutils literal"><span class="pre">destination_choice_size_terms.csv</span></code> input file.</p>
-<p>Index - segment (see <code class="docutils literal"><span class="pre">activitysim.abm.tables.size_terms.py</span></code>)</p>
+<p>The size terms table is created by reading the <code class="docutils literal notranslate"><span class="pre">destination_choice_size_terms.csv</span></code> input file.</p>
+<p>Index - segment (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.size_terms.py</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="26%" />
@@ -682,7 +687,7 @@ coefficients series.</p>
 <div class="section" id="households">
 <span id="index-6"></span><h2>Households<a class="headerlink" href="#households" title="Permalink to this headline">¶</a></h2>
 <p>The households table contains household attributes for each household being simulated.</p>
-<p>Index - household_id (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<p>Index - household_id (see <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="42%" />
@@ -1037,7 +1042,7 @@ coefficients series.</p>
 <div class="section" id="persons">
 <span id="index-7"></span><h2>Persons<a class="headerlink" href="#persons" title="Permalink to this headline">¶</a></h2>
 <p>The persons table contains person attributes for each person being simulated.</p>
-<p>Index - PERID (see <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
+<p>Index - PERID (see <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="36%" />
@@ -5631,10 +5636,10 @@ The skimss are float64 matrix.</p>
 <span id="index-11"></span><h2>Time Windows<a class="headerlink" href="#time-windows" title="Permalink to this headline">¶</a></h2>
 <p>The time_windows table manages person time windows throughout the simulation.
 See <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>. The time_windows table is created during the simulation as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">initialize</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">time_windows</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">person_windows</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">initialize</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">time_windows</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">person_windows</span>
 </pre></div>
 </div>
-<p>Index - PERID (see the person_windows table create decorator in <code class="docutils literal"><span class="pre">activitysim.abm.tables.time_windows.py</span></code>)</p>
+<p>Index - PERID (see the person_windows table create decorator in <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.time_windows.py</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="49%" />
@@ -5685,12 +5690,12 @@ See <a class="reference internal" href="core.html#time-windows"><span class="std
 <span id="index-12"></span><h2>Tours<a class="headerlink" href="#tours" title="Permalink to this headline">¶</a></h2>
 <p>The tours table contains tours attributes for each tour (mandatory, non-mandatory, and atwork-subtour)
 being simulated.  The tours table is created during the simulation as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">non_mandatory_tour_frequency</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">create_non_mandatory_tours</span> <span class="o">-&gt;</span> <span class="n">util</span><span class="o">.</span><span class="n">tour_frequency</span><span class="o">.</span><span class="n">process_non_mandatory_tours</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">non_mandatory_tour_frequency</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">create_non_mandatory_tours</span> <span class="o">-&gt;</span> <span class="n">util</span><span class="o">.</span><span class="n">tour_frequency</span><span class="o">.</span><span class="n">process_non_mandatory_tours</span>
 <span class="n">mandatory_tour_frequency</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">create_mandatory_tours</span> <span class="o">-&gt;</span> <span class="n">util</span><span class="o">.</span><span class="n">tour_frequency</span><span class="o">.</span><span class="n">process_mandatory_tours</span>
 <span class="n">atwork_subtour_frequency</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">util</span><span class="o">.</span><span class="n">tour_frequency</span><span class="o">.</span><span class="n">process_atwork_subtours</span>
 </pre></div>
 </div>
-<p>Index - tour_id (see <code class="docutils literal"><span class="pre">activitysim.abm.models.util.tour_frequency.py</span></code>)</p>
+<p>Index - tour_id (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.py</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="30%" />
@@ -5807,10 +5812,10 @@ being simulated.  The tours table is created during the simulation as follows:</
 <p>The trips table contains trip attributes for each trip being simulated.  The trips
 table is currently created by simply creating a trip inbound and outbound for each
 tour.  The trips table is created during the simulation as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">create_trips</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">create_simple_trips</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">create_trips</span><span class="o">.</span><span class="n">py</span> <span class="o">-&gt;</span> <span class="n">create_simple_trips</span>
 </pre></div>
 </div>
-<p>Index - trip_id (see <code class="docutils literal"><span class="pre">activitysim.abm.models.create_trips.py</span></code>)</p>
+<p>Index - trip_id (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.create_trips.py</span></code>)</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="26%" />
@@ -5928,7 +5933,7 @@ tour.  The trips table is created during the simulation as follows:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.1',
+            VERSION:'0.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

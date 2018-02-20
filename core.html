@@ -8,7 +8,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core Components &mdash; ActivitySim 0.5.1 documentation</title>
+  <title>Core Components &mdash; ActivitySim 0.5.2
+ documentation</title>
   
 
   
@@ -30,12 +31,15 @@
   
 
   
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
 
   
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5.2
+ documentation" href="index.html"/>
         <link rel="next" title="Models" href="models.html"/>
         <link rel="prev" title="Data Schema" href="dataschema.html"/> 
 
@@ -66,7 +70,8 @@
             
             
               <div class="version">
-                0.5.1
+                0.5.2
+
               </div>
             
           
@@ -152,20 +157,24 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#helpers">Helpers</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chunk">Chunk</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id13">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id14">API</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id15">API</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#inject">Inject</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id16">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#inject-defaults">Inject_Defaults</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id17">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id18">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
@@ -869,7 +878,7 @@ so we need to know both the table_name and the checkpoint_name to label the save
 <p>Random number generation is done using the <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.RandomState.html">numpy Mersenne Twister PNRG</a>.
 ActivitySim seeds on-the-fly and uses a stream of random numbers seeded by the household id, person id, tour id, trip id, the model step offset, and the global seed.
 The logic for calculating the seed is something along the lines of:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chooser_table</span><span class="o">.</span><span class="n">index</span> <span class="o">*</span> <span class="n">number_of_models_for_chooser</span> <span class="o">+</span> <span class="n">chooser_model_offset</span> <span class="o">+</span> <span class="n">global_seed_offset</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chooser_table</span><span class="o">.</span><span class="n">index</span> <span class="o">*</span> <span class="n">number_of_models_for_chooser</span> <span class="o">+</span> <span class="n">chooser_model_offset</span> <span class="o">+</span> <span class="n">global_seed_offset</span>
 
 <span class="k">for</span> <span class="n">example</span>
   <span class="mi">1425</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">0</span> <span class="o">+</span> <span class="mi">1</span>
@@ -1139,8 +1148,8 @@ rands for each choice_for_df row_state row</p>
 <p>Household tracer.  If a household trace ID is specified, then ActivitySim will output a
 comprehensive set of trace files for all calculations for all household members:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
-<li><code class="docutils literal"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
+<li><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
+<li><code class="docutils literal notranslate"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
@@ -1426,8 +1435,8 @@ This allows us to slice by tour_id without requiring presence of person_id colum
 <dt id="activitysim.core.tracing.register_trips">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_trips</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_trips" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register with inject for tracing</p>
-<p>create an injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
-This allows us to slice by tour_id without requiring presence of person_id column</p>
+<p>create an injectable ‘trace_trip_ids’ with a list of tour_ids in household we are tracing.
+This allows us to slice by trip_id without requiring presence of person_id column</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1635,8 +1644,8 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 numpy expressions for calculations. Refer to the pandas help for a general
 introduction to expressions.  ActivitySim provides two ways to evaluate expressions:</p>
 <ul class="simple">
-<li>Simple table expressions are evaluated using <code class="docutils literal"><span class="pre">DataFrame.eval()</span></code>.  <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html">pandas’ eval</a> operates on the current table.</li>
-<li>Python expressions, denoted by beginning with <code class="docutils literal"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python’s eval()</a>.</li>
+<li>Simple table expressions are evaluated using <code class="docutils literal notranslate"><span class="pre">DataFrame.eval()</span></code>.  <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html">pandas’ eval</a> operates on the current table.</li>
+<li>Python expressions, denoted by beginning with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python’s eval()</a>.</li>
 </ul>
 <p>Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects
 urrently in memory.</p>
@@ -1647,9 +1656,9 @@ urrently in memory.</p>
 <li>each expression is applied to all rows in the table being operated on</li>
 <li>expressions must be vectorized expressions and can use most numpy and pandas expressions</li>
 <li>global constants are specified in the settings file</li>
-<li>comments are specified with <code class="docutils literal"><span class="pre">#</span></code></li>
-<li>you can refer to the current table being operated on as <code class="docutils literal"><span class="pre">df</span></code></li>
-<li>often an object called <code class="docutils literal"><span class="pre">skims</span></code>, <code class="docutils literal"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information.</li>
+<li>comments are specified with <code class="docutils literal notranslate"><span class="pre">#</span></code></li>
+<li>you can refer to the current table being operated on as <code class="docutils literal notranslate"><span class="pre">df</span></code></li>
+<li>often an object called <code class="docutils literal notranslate"><span class="pre">skims</span></code>, <code class="docutils literal notranslate"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information.</li>
 <li>when editing the CSV files in Excel, use single quote ‘ or space at the start of a cell to get Excel to accept the expression</li>
 </ul>
 </div>
@@ -1696,7 +1705,7 @@ urrently in memory.</p>
 <ul class="simple">
 <li>Rows are vectorized expressions that will be calculated for every record in the current table being operated on</li>
 <li>The Description column describes the expression</li>
-<li>The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, <code class="docutils literal"><span class="pre">drivers</span></code> is a column in the current table.  Use <code class="docutils literal"><span class="pre">&#64;</span></code> to refer to data outside the current table</li>
+<li>The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, <code class="docutils literal notranslate"><span class="pre">drivers</span></code> is a column in the current table.  Use <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> to refer to data outside the current table</li>
 <li>There is a column for each alternative and its relevant coefficient</li>
 </ul>
 <p>There are some variations on this setup, but the functionality is similar.  For example,
@@ -1710,8 +1719,8 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 </ul>
 <p>The <a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
 Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.
-In the example below, the <code class="docutils literal"><span class="pre">&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME']</span></code> expression is travel time for the tour origin to desination at the tour start time plus the tour
-destination to tour origin at the tour end time.  The <code class="docutils literal"><span class="pre">odt_skims</span></code> and <code class="docutils literal"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.
+In the example below, the <code class="docutils literal notranslate"><span class="pre">&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME']</span></code> expression is travel time for the tour origin to desination at the tour start time plus the tour
+destination to tour origin at the tour end time.  The <code class="docutils literal notranslate"><span class="pre">odt_skims</span></code> and <code class="docutils literal notranslate"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.
 The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1763,7 +1772,7 @@ The tour mode choice model is a nested logit (NL) model and the nesting structur
 with interaction with the chooser table.</p>
 <p>Sampling is done with replacement and a sample correction factor is calculated.  The factor is
 calculated as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">freq</span> <span class="o">=</span> <span class="n">how</span> <span class="n">often</span> <span class="n">an</span> <span class="n">alternative</span> <span class="ow">is</span> <span class="n">sampled</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">the</span> <span class="n">pick_count</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">freq</span> <span class="o">=</span> <span class="n">how</span> <span class="n">often</span> <span class="n">an</span> <span class="n">alternative</span> <span class="ow">is</span> <span class="n">sampled</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">the</span> <span class="n">pick_count</span><span class="p">)</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">probability</span> <span class="n">of</span> <span class="n">the</span> <span class="n">alternative</span>
 <span class="n">correction_factor</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">freq</span><span class="o">/</span><span class="n">prob</span><span class="p">)</span>
 
@@ -1912,52 +1921,6 @@ of this method in regards to skims is to call set_df with the
 dataframe that comes back from interacting choosers with
 alternatives.  See the skims module for more documentation on how
 the skims object is intended to be used.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.simulate.chunked_choosers_and_alts">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">chunked_choosers_and_alts</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>rows_per_chunk</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.chunked_choosers_and_alts" title="Permalink to this definition">¶</a></dt>
-<dd><p>generator to iterate over choosers and alternatives in chunk_size chunks</p>
-<p>like chunked_choosers, but also chunks alternatives
-for use with sampled alternatives which will have different alternatives (and numbers of alts)</p>
-<p>There may be up to sample_size (or as few as one) alternatives for each chooser
-because alternatives may have been sampled more than once,  but pick_count for those
-alternatives will always sum to sample_size.</p>
-<p>When we chunk the choosers, we need to take care chunking the alternatives as there are
-varying numbers of them for each chooser. Since alternatives appear in the same order
-as choosers, we can use cumulative pick_counts to identify boundaries of sets of alternatives</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong></p>
-<p><strong>alternatives</strong> : pandas DataFrame</p>
-<blockquote>
-<div><p>sample alternatives including pick_count column in same order as choosers</p>
-</div></blockquote>
-<p><strong>rows_per_chunk</strong> : int</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>i</strong> : int</p>
-<blockquote>
-<div><p>one-based index of current chunk</p>
-</div></blockquote>
-<p><strong>num_chunks</strong> : int</p>
-<blockquote>
-<div><p>total number of chunks that will be yielded</p>
-</div></blockquote>
-<p><strong>choosers</strong> : pandas DataFrame slice</p>
-<blockquote>
-<div><p>chunk of choosers</p>
-</div></blockquote>
-<p><strong>alternatives</strong> : pandas DataFrame slice</p>
-<blockquote class="last">
-<div><p>chunk of alternatives for chooser chunk</p>
 </div></blockquote>
 </td>
 </tr>
@@ -2304,6 +2267,12 @@ properties and no need to sample from alternatives.</p>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="activitysim.core.simulate.simple_simulate_rpc">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">simple_simulate_rpc</code><span class="sig-paren">(</span><em>chunk_size</em>, <em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_rpc" title="Permalink to this definition">¶</a></dt>
+<dd><p>rows_per_chunk calculator for simple_simulate</p>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="simulate-with-interaction">
@@ -2509,7 +2478,7 @@ choices are simulated in the standard Monte Carlo fashion</p>
 </div>
 <div class="section" id="assign">
 <h3>Assign<a class="headerlink" href="#assign" title="Permalink to this headline">¶</a></h3>
-<p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
+<p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
 Temporary variables are identified in the expressions as starting with “_”, such as “_hh_density_bin”.  These
 fields are not saved to the data pipeline store.  This feature is used by the <a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a> model.</p>
 <div class="section" id="id10">
@@ -2641,14 +2610,14 @@ targets, and expressions,</p>
 as the expressions and data handling described in the <a class="reference internal" href="howitworks.html#id1"><span class="std std-ref">Execution Flow</span></a> section.</p>
 <p>To specify and solve an MNL model:</p>
 <ul class="simple">
-<li>either specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">MNL</span></code> in the model configuration YAML file or omit the setting</li>
-<li>call either <code class="docutils literal"><span class="pre">simulate.simple_simulate()</span></code> or <code class="docutils literal"><span class="pre">simulate.interaction_simulate()</span></code> depending if the alternatives are interacted with the choosers or because alternatives are sampled</li>
+<li>either specify <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE:</span> <span class="pre">MNL</span></code> in the model configuration YAML file or omit the setting</li>
+<li>call either <code class="docutils literal notranslate"><span class="pre">simulate.simple_simulate()</span></code> or <code class="docutils literal notranslate"><span class="pre">simulate.interaction_simulate()</span></code> depending if the alternatives are interacted with the choosers or because alternatives are sampled</li>
 </ul>
 <p>To specify and solve an NL model:</p>
 <ul class="simple">
-<li>specify <code class="docutils literal"><span class="pre">LOGIT_TYPE:</span> <span class="pre">NL</span></code> in the model configuration YAML file</li>
-<li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></li>
-<li>call <code class="docutils literal"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</li>
+<li>specify <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE:</span> <span class="pre">NL</span></code> in the model configuration YAML file</li>
+<li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal notranslate"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></li>
+<li>call <code class="docutils literal notranslate"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal notranslate"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</li>
 </ul>
 <div class="section" id="id11">
 <h4>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
@@ -2661,6 +2630,13 @@ The nested logit design is stored in a yaml file as a tree of dict objects,
 but using an object to pass the nest data makes the code a little more readable</p>
 <p>An example nest specification is in the example tour mode choice model
 yaml configuration file - example/configs/tour_mode_choice.yaml.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.logit.count_nests">
+<code class="descclassname">activitysim.core.logit.</code><code class="descname">count_nests</code><span class="sig-paren">(</span><em>nest_spec</em>, <em>type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.count_nests" title="Permalink to this definition">¶</a></dt>
+<dd><p>count the nests of the specified type (or all nests if type is None)
+return 0 if nest_spec is none</p>
 </dd></dl>
 
 <dl class="function">
@@ -2704,6 +2680,8 @@ None yields all nests
 <code class="descclassname">activitysim.core.logit.</code><code class="descname">interaction_dataset</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>sample_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.interaction_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine choosers and alternatives into one table for the purposes
 of creating interaction variables and/or sampling alternatives.</p>
+<p>Any duplicate column names in alternatives table will be renamed with an ‘_r’ suffix.
+(e.g. TAZ field in alternatives will appear as TAZ_r so that it can be targeted in a skim)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2856,14 +2834,14 @@ Each column is coded as follows:</p>
 <li>6 - scheduled, end or start of a tour, available for this period only</li>
 <li>7 - scheduled, unavailable, middle of a tour</li>
 </ul>
-<p>A good example of a time window expression is <code class="docutils literal"><span class="pre">&#64;tt.previous_tour_ends(df.person_id,</span> <span class="pre">df.start)</span></code>.  This
+<p>A good example of a time window expression is <code class="docutils literal notranslate"><span class="pre">&#64;tt.previous_tour_ends(df.person_id,</span> <span class="pre">df.start)</span></code>.  This
 uses the person id and the tour start period to check if a previous tour ends in the same time period.</p>
 <div class="section" id="id12">
 <h3>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.core.timetable"></span><dl class="class">
 <dt id="activitysim.core.timetable.TimeTable">
 <em class="property">class </em><code class="descclassname">activitysim.core.timetable.</code><code class="descname">TimeTable</code><span class="sig-paren">(</span><em>windows_df</em>, <em>tdd_alts_df</em>, <em>table_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tdd_alts_df</span>      <span class="n">tdd_footprints_df</span>
+<dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tdd_alts_df</span>      <span class="n">tdd_footprints_df</span>
 <span class="n">start</span>  <span class="n">end</span>      <span class="s1">&#39;0&#39;</span> <span class="s1">&#39;1&#39;</span> <span class="s1">&#39;2&#39;</span> <span class="s1">&#39;3&#39;</span> <span class="s1">&#39;4&#39;</span><span class="o">...</span>
 <span class="mi">5</span>      <span class="mi">5</span>    <span class="o">==&gt;</span>  <span class="mi">0</span>   <span class="mi">6</span>   <span class="mi">0</span>   <span class="mi">0</span>   <span class="mi">0</span> <span class="o">...</span>
 <span class="mi">5</span>      <span class="mi">6</span>    <span class="o">==&gt;</span>  <span class="mi">0</span>   <span class="mi">2</span>   <span class="mi">4</span>   <span class="mi">0</span>   <span class="mi">0</span> <span class="o">...</span>
@@ -2987,7 +2965,7 @@ until/unless replace_table called or updated timetable retrieved by get_windows_
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.assign_subtour_mask">
 <code class="descname">assign_subtour_mask</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign_subtour_mask" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">index</span>     <span class="n">window_row_ids</span>   <span class="n">tdds</span>
+<dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">index</span>     <span class="n">window_row_ids</span>   <span class="n">tdds</span>
 <span class="mi">20973389</span>  <span class="mi">20973389</span>           <span class="mi">26</span>
 <span class="mi">44612864</span>  <span class="mi">44612864</span>            <span class="mi">3</span>
 <span class="mi">48954854</span>  <span class="mi">48954854</span>            <span class="mi">7</span>
@@ -3177,11 +3155,64 @@ checkpoint the table in another context where it does not know that name.</p>
 </div>
 <div class="section" id="helpers">
 <h2>Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="chunk">
+<span id="chunk-in-detail"></span><h3>Chunk<a class="headerlink" href="#chunk" title="Permalink to this headline">¶</a></h3>
+<p>Chunking management</p>
+<div class="section" id="id13">
+<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.chunk"></span><dl class="function">
+<dt id="activitysim.core.chunk.chunked_choosers_and_alts">
+<code class="descclassname">activitysim.core.chunk.</code><code class="descname">chunked_choosers_and_alts</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>rows_per_chunk</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.chunked_choosers_and_alts" title="Permalink to this definition">¶</a></dt>
+<dd><p>generator to iterate over choosers and alternatives in chunk_size chunks</p>
+<p>like chunked_choosers, but also chunks alternatives
+for use with sampled alternatives which will have different alternatives (and numbers of alts)</p>
+<p>There may be up to sample_size (or as few as one) alternatives for each chooser
+because alternatives may have been sampled more than once,  but pick_count for those
+alternatives will always sum to sample_size.</p>
+<p>When we chunk the choosers, we need to take care chunking the alternatives as there are
+varying numbers of them for each chooser. Since alternatives appear in the same order
+as choosers, we can use cumulative pick_counts to identify boundaries of sets of alternatives</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong></p>
+<p><strong>alternatives</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>sample alternatives including pick_count column in same order as choosers</p>
+</div></blockquote>
+<p><strong>rows_per_chunk</strong> : int</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>i</strong> : int</p>
+<blockquote>
+<div><p>one-based index of current chunk</p>
+</div></blockquote>
+<p><strong>num_chunks</strong> : int</p>
+<blockquote>
+<div><p>total number of chunks that will be yielded</p>
+</div></blockquote>
+<p><strong>choosers</strong> : pandas DataFrame slice</p>
+<blockquote>
+<div><p>chunk of choosers</p>
+</div></blockquote>
+<p><strong>alternatives</strong> : pandas DataFrame slice</p>
+<blockquote class="last">
+<div><p>chunk of alternatives for chooser chunk</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <p>Vectorized helper functions</p>
-<div class="section" id="id13">
-<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id14">
+<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="function">
 <dt id="activitysim.core.util.assign_in_place">
 <code class="descclassname">activitysim.core.util.</code><code class="descname">assign_in_place</code><span class="sig-paren">(</span><em>df</em>, <em>df2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.assign_in_place" title="Permalink to this definition">¶</a></dt>
@@ -3281,8 +3312,8 @@ a group with some property (as indicated by <cite>bools</cite>).</p>
 
 <dl class="function">
 <dt id="activitysim.core.util.quick_loc_df">
-<code class="descclassname">activitysim.core.util.</code><code class="descname">quick_loc_df</code><span class="sig-paren">(</span><em>loc_list</em>, <em>target_df</em>, <em>attribute</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.quick_loc_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>faster replacement for target_df.loc[loc_list][attribute]</p>
+<code class="descclassname">activitysim.core.util.</code><code class="descname">quick_loc_df</code><span class="sig-paren">(</span><em>loc_list</em>, <em>target_df</em>, <em>attribute=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.quick_loc_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>faster replacement for target_df.loc[loc_list] or target_df.loc[loc_list][attribute]</p>
 <p>pandas DataFrame.loc[] indexing doesn’t scale for large arrays (e.g. &gt; 1,000,000 elements)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3290,10 +3321,10 @@ a group with some property (as indicated by <cite>bools</cite>).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>loc_list</strong> : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)</p>
 <p><strong>target_df</strong> : pandas.DataFrame containing column named attribute</p>
-<p><strong>attribute</strong> : name of column from loc_list to return</p>
+<p><strong>attribute</strong> : name of column from loc_list to return (or none for all columns)</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas.Series</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas.DataFrame or, if attribbute specified, pandas.Series</p>
 </td>
 </tr>
 </tbody>
@@ -3359,8 +3390,8 @@ table and would require a second step to change the index.</p>
 <div class="section" id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for configuring a model run</p>
-<div class="section" id="id14">
-<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id15">
+<h4>API<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.config"></span><dl class="function">
 <dt id="activitysim.core.config.get_logit_model_settings">
 <code class="descclassname">activitysim.core.config.</code><code class="descname">get_logit_model_settings</code><span class="sig-paren">(</span><em>model_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.get_logit_model_settings" title="Permalink to this definition">¶</a></dt>
@@ -3431,10 +3462,10 @@ and handle them based on returned args. This method will hand the args it adds</
 </div>
 </div>
 <div class="section" id="inject">
-<span id="id15"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
+<span id="id16"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
 <p>ORCA wrapper class to make it easier to track and manage interaction with the data pipeline.</p>
-<div class="section" id="id16">
-<h4>API<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id17">
+<h4>API<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject"></span><dl class="function">
 <dt id="activitysim.core.inject.reinject_decorated_tables">
 <code class="descclassname">activitysim.core.inject.</code><code class="descname">reinject_decorated_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.reinject_decorated_tables" title="Permalink to this definition">¶</a></dt>
@@ -3446,8 +3477,8 @@ and handle them based on returned args. This method will hand the args it adds</
 <div class="section" id="inject-defaults">
 <h3>Inject_Defaults<a class="headerlink" href="#inject-defaults" title="Permalink to this headline">¶</a></h3>
 <p>Default file and folder settings are injected into the orca model runner if needed.</p>
-<div class="section" id="id17">
-<h4>API<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id18">
+<h4>API<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject_defaults"></span><dl class="function">
 <dt id="activitysim.core.inject_defaults.pipeline_path">
 <code class="descclassname">activitysim.core.inject_defaults.</code><code class="descname">pipeline_path</code><span class="sig-paren">(</span><em>output_dir</em>, <em>settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject_defaults.pipeline_path" title="Permalink to this definition">¶</a></dt>
@@ -3507,7 +3538,7 @@ and handle them based on returned args. This method will hand the args it adds</
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.1',
+            VERSION:'0.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

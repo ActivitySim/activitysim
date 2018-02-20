@@ -8,7 +8,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example &mdash; ActivitySim 0.5.1 documentation</title>
+  <title>Example &mdash; ActivitySim 0.5.2
+ documentation</title>
   
 
   
@@ -30,12 +31,15 @@
   
 
   
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
 
   
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5.2
+ documentation" href="index.html"/>
         <link rel="next" title="How the System Works" href="howitworks.html"/>
         <link rel="prev" title="Getting Started" href="gettingstarted.html"/> 
 
@@ -66,7 +70,8 @@
             
             
               <div class="version">
-                0.5.1
+                0.5.2
+
               </div>
             
           
@@ -193,7 +198,7 @@ less than 1 GB of RAM.</p>
 </div>
 <div class="section" id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h2>
-<p>In order to run the example, you first need two input files in the <code class="docutils literal"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal"><span class="pre">configs\settings.yaml</span></code> file:</p>
+<p>In order to run the example, you first need two input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code> file:</p>
 <ul>
 <li><p class="first">store: mtc_asim.h5 - an HDF5 file containing the following MTC travel model one tables as pandas DataFrames for a subset of zones:</p>
 <blockquote>
@@ -208,59 +213,59 @@ less than 1 GB of RAM.</p>
 <li><p class="first">skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.</p>
 </li>
 </ul>
-<p>Both of these files are used in the tests as well and are available here <code class="docutils literal"><span class="pre">activitysim\defaults\test\data</span></code>.  Alternatively,
+<p>Both of these files are used in the tests as well and are available here <code class="docutils literal notranslate"><span class="pre">activitysim\defaults\test\data</span></code>.  Alternatively,
 these files can be downloaded from the SF 25 zone example example data folder on
 MTC’s <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  Both files can
 be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.
 The pandas DataFrames are stored in an efficient pandas format within the HDF5 file so they are a
 bit cumbersome to inspect.</p>
-<p>The <code class="docutils literal"><span class="pre">scripts\data_mover.ipynb</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
+<p>The <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
 This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5
 file.</p>
-<p>The full set of MTC travel model one OMX skims are also on the box account. The <code class="docutils literal"><span class="pre">scripts\build_omx.py</span></code> script
+<p>The full set of MTC travel model one OMX skims are also on the box account. The <code class="docutils literal notranslate"><span class="pre">scripts\build_omx.py</span></code> script
 will build one OMX file containing all the skims. The original MTC travel model one skims were converted from
 Cube to OMX using the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter">Cube to OMX converter</a>.</p>
-<p>Finally, the example inputs were created by the <code class="docutils literal"><span class="pre">scripts\create_sf_example.py</span></code> script,
+<p>Finally, the example inputs were created by the <code class="docutils literal notranslate"><span class="pre">scripts\create_sf_example.py</span></code> script,
 which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.</p>
 </div>
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal"><span class="pre">configs</span></code> folder contains settings, expressions files, and other files required for specifying
-model utilities and form.  The first place to start in the <code class="docutils literal"><span class="pre">configs</span></code> folder is <code class="docutils literal"><span class="pre">settings.yaml</span></code>, which
+<p>The <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder contains settings, expressions files, and other files required for specifying
+model utilities and form.  The first place to start in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>, which
 is the main settings file for the model run.  This file includes:</p>
 <ul>
-<li><p class="first"><code class="docutils literal"><span class="pre">models</span></code> - list of model steps to run - auto ownership, tour frequency, etc. - see <a class="reference internal" href="#model-steps"><span class="std std-ref">Pipeline</span></a></p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">models</span></code> - list of model steps to run - auto ownership, tour frequency, etc. - see <a class="reference internal" href="#model-steps"><span class="std std-ref">Pipeline</span></a></p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">store</span></code> - HDF5 inputs file</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">store</span></code> - HDF5 inputs file</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a></p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a></p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p>
 </li>
 <li><p class="first">global variables that can be used in expressions tables and Python code such as:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</li>
-<li><code class="docutils literal"><span class="pre">county_map</span></code> - mapping of county codes to county names</li>
-<li><code class="docutils literal"><span class="pre">skim_time_periods</span></code> - time period upper bound values and labels</li>
+<li><code class="docutils literal notranslate"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</li>
+<li><code class="docutils literal notranslate"><span class="pre">county_map</span></code> - mapping of county codes to county names</li>
+<li><code class="docutils literal notranslate"><span class="pre">skim_time_periods</span></code> - time period upper bound values and labels</li>
 </ul>
 </div></blockquote>
 </li>
 </ul>
 <div class="section" id="chunk-size">
 <span id="index-2"></span><span id="id2"></span><h3>Chunk size<a class="headerlink" href="#chunk-size" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">chunk_size</span></code> is the number of doubles in a chunk of the choosers table.  It is the number of rows
-times the number of columns and it needs to be set to a value that efficiently processes the table with
-the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 households with 10 attribute
-columns.  Setting the chunk size too high will run into memory errors such as <code class="docutils literal"><span class="pre">OverflowError:</span> <span class="pre">Python</span> <span class="pre">int</span>
+<p>The <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> is the number of doubles in a chunk of the choosers table.  It is approximately the number
+of rows times the number of columns and it needs to be set to a value that efficiently processes the table with
+the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 households with 10 columns.  Setting
+the chunk size too high will run into memory errors such as <code class="docutils literal notranslate"><span class="pre">OverflowError:</span> <span class="pre">Python</span> <span class="pre">int</span>
 <span class="pre">too</span> <span class="pre">large</span> <span class="pre">to</span> <span class="pre">convert</span> <span class="pre">to</span> <span class="pre">C</span> <span class="pre">long.</span></code> Setting the chunk size too low may result in smaller than optimal vector
 lengths, which may waste runtime.  The chunk size is dependent on the size of the population, the complexity
 of the utility expressions, the amount of RAM on the machine, and other problem specific dimensions.  Thus,
@@ -268,20 +273,20 @@ it needs to be set via experimentation.</p>
 </div>
 <div class="section" id="logging">
 <h3>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h3>
-<p>Included in the <code class="docutils literal"><span class="pre">configs</span></code> folder is the <code class="docutils literal"><span class="pre">logging.yaml</span></code>, which configures Python logging
+<p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
 library and defines two key log files:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">asim.log</span></code> - overall system log file</li>
-<li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing is on</li>
+<li><code class="docutils literal notranslate"><span class="pre">asim.log</span></code> - overall system log file</li>
+<li><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing is on</li>
 </ul>
 <p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
 </div>
 <div class="section" id="model-specification-files">
 <h3>Model Specification Files<a class="headerlink" href="#model-specification-files" title="Permalink to this headline">¶</a></h3>
-<p>Included in the <code class="docutils literal"><span class="pre">configs</span></code> folder are the model specification files that store the
+<p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder are the model specification files that store the
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
-of this is the <code class="docutils literal"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
+of this is the <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The current set of files are below.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -434,17 +439,17 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <h2>Running the Example Model<a class="headerlink" href="#running-the-example-model" title="Permalink to this headline">¶</a></h2>
 <p>To run the example, do the following:</p>
 <ul class="simple">
-<li>Open a command line window in the <code class="docutils literal"><span class="pre">example</span></code> folder</li>
+<li>Open a command line window in the <code class="docutils literal notranslate"><span class="pre">example</span></code> folder</li>
 <li>Activate the correct conda environment if needed</li>
-<li>Run <code class="docutils literal"><span class="pre">python</span> <span class="pre">simulation.py</span></code> to run the data pipeline (i.e. model steps)</li>
-<li>ActivitySim should log some information and write outputs to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.</li>
+<li>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code> to run the data pipeline (i.e. model steps)</li>
+<li>ActivitySim should log some information and write outputs to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> folder.</li>
 </ul>
 <p>The example should complete within a couple minutes since it is running a small sample of households.</p>
 </div>
 <div class="section" id="pipeline">
 <span id="model-steps"></span><h2>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal"><span class="pre">models</span></code> setting contains the specification of the data pipeline model steps, as shown below:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
+<p>The <code class="docutils literal notranslate"><span class="pre">models</span></code> setting contains the specification of the data pipeline model steps, as shown below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
   <span class="o">-</span> <span class="n">initialize</span>
   <span class="o">-</span> <span class="n">compute_accessibility</span>
   <span class="o">-</span> <span class="n">school_location_sample</span>
@@ -472,23 +477,23 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
   <span class="o">-</span> <span class="n">trip_mode_choice_simulate</span>
 </pre></div>
 </div>
-<p>These model steps must be registered orca steps, as noted below.  If you provide a <code class="docutils literal"><span class="pre">resume_after</span></code>
-argument to <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> the pipeliner will load checkpointed tables from the checkpoint store
+<p>These model steps must be registered orca steps, as noted below.  If you provide a <code class="docutils literal notranslate"><span class="pre">resume_after</span></code>
+argument to <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> the pipeliner will load checkpointed tables from the checkpoint store
 and resume pipeline processing on the next model step after the specified checkpoint.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">resume_after</span> <span class="o">=</span> <span class="kc">None</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resume_after</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="c1">#resume_after = &#39;school_location_logsums&#39;</span>
 </pre></div>
 </div>
-<p>The model is run by calling the <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="n">resume_after</span><span class="p">)</span>
+<p>The model is run by calling the <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="n">resume_after</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h2>
-<p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal"><span class="pre">outputs\pipeline.h5</span></code>.  This file contains the
+<p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal notranslate"><span class="pre">outputs\pipeline.h5</span></code>.  This file contains the
 state of the key data tables after each model step in which the table was modified.  The
-<code class="docutils literal"><span class="pre">pd.io.pytables.HDFStore('output\pipeline.h5')</span></code> command returns the following information about
+<code class="docutils literal notranslate"><span class="pre">pd.io.pytables.HDFStore('output\pipeline.h5')</span></code> command returns the following information about
 the datastore.  You can see that the number of columns changes as each model step is run.  The checkpoints
 table stores the crosswalk between model steps and table states in order to reload tables for restarting
 the pipeline at any step.</p>
@@ -639,10 +644,10 @@ the pipeline at any step.</p>
 </tr>
 </tbody>
 </table>
-<p>The example <code class="docutils literal"><span class="pre">simulation.py</span></code> run model script also writes the final table to a CSV file
-for illustrative purposes by using the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method.  This method
-returns a pandas DataFrame, which can then be written to a CSV with the <code class="docutils literal"><span class="pre">to_csv(file_path)</span></code> method.</p>
-<p>ActivitySim also writes log and trace files to the <code class="docutils literal"><span class="pre">outputs</span></code> folder.  The asim.log file, which
+<p>The example <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code> run model script also writes the final table to a CSV file
+for illustrative purposes by using the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method.  This method
+returns a pandas DataFrame, which can then be written to a CSV with the <code class="docutils literal notranslate"><span class="pre">to_csv(file_path)</span></code> method.</p>
+<p>ActivitySim also writes log and trace files to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> folder.  The asim.log file, which
 is the overall log file is always produced.  If tracing is specified, then trace files are output
 as well.</p>
 </div>
@@ -652,13 +657,13 @@ as well.</p>
 is specified, then ActivitySim will output a comprehensive set of trace files for all
 calculations for all household members:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
-<li><code class="docutils literal"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
+<li><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
+<li><code class="docutils literal notranslate"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
 </ul>
 <p>If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace
 file:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</li>
+<li><code class="docutils literal notranslate"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</li>
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
@@ -709,7 +714,7 @@ help debug data and/or logic errors.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.1',
+            VERSION:'0.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

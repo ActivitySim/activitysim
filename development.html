@@ -8,7 +8,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Development &mdash; ActivitySim 0.5.1 documentation</title>
+  <title>Development &mdash; ActivitySim 0.5.2
+ documentation</title>
   
 
   
@@ -30,12 +31,15 @@
   
 
   
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
 
   
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5.2
+ documentation" href="index.html"/>
         <link rel="prev" title="Models" href="models.html"/> 
 
   
@@ -65,7 +69,8 @@
             
             
               <div class="version">
-                0.5.1
+                0.5.2
+
               </div>
             
           
@@ -103,6 +108,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#working-together-in-the-repository">Working Together in the Repository</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#versioning">Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#profiling">Profiling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#releases">Releases</a></li>
 </ul>
@@ -199,11 +205,11 @@ data tables.</p>
 <ul class="simple">
 <li>Imports should be one per line.</li>
 <li>Imports should be grouped into standard library, third-party, and intra-library imports.</li>
-<li><code class="docutils literal"><span class="pre">from</span></code> import should follow regular <code class="docutils literal"><span class="pre">imports</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">from</span></code> import should follow regular <code class="docutils literal notranslate"><span class="pre">imports</span></code>.</li>
 <li>Within each group the imports should be alphabetized.</li>
 <li>Imports of scientific Python libraries should follow these conventions:</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
 </pre></div>
@@ -226,7 +232,7 @@ our GitHub workflow are:</p>
 <div class="section" id="versioning">
 <h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim uses the following <a class="reference external" href="http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html">versioning convention</a></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MAJOR</span><span class="o">.</span><span class="n">MINOR</span><span class="p">[</span><span class="o">.</span><span class="n">MICRO</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MAJOR</span><span class="o">.</span><span class="n">MINOR</span><span class="p">[</span><span class="o">.</span><span class="n">MICRO</span><span class="p">]</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -244,11 +250,11 @@ our GitHub workflow are:</p>
 <li><a class="reference external" href="https://github.com/coagulant/coveralls-python">coveralls</a>, a tool for measuring code coverage and publishing code coverage stats online</li>
 </ul>
 <p>To run the tests locally, first make sure the required packages are installed:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
 </pre></div>
 </div>
 <p>Next, run the tests with the following commands:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pycodestyle</span> <span class="n">activitysim</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pycodestyle</span> <span class="n">activitysim</span>
 <span class="n">py</span><span class="o">.</span><span class="n">test</span> <span class="o">--</span><span class="n">cov</span> <span class="n">activitysim</span> <span class="o">--</span><span class="n">cov</span><span class="o">-</span><span class="n">report</span> <span class="n">term</span><span class="o">-</span><span class="n">missing</span>
 </pre></div>
 </div>
@@ -262,6 +268,17 @@ which <cite>assert</cite> is failing, you can work your way back through the cod
 order to update it.  After updating the test targets, re-run the tests to confirm the new code passes all
 the tests.</p>
 </div>
+<div class="section" id="profiling">
+<h2>Profiling<a class="headerlink" href="#profiling" title="Permalink to this headline">¶</a></h2>
+<p>A good way to profile ActivitySim model runs is to use <a class="reference external" href="https://jiffyclub.github.io/snakeviz/">snakeviz</a>.
+To do so, first install snakeviz and then run ActivitySim with the Python profiler (cProfile) to create
+a profiler file.  Then run snakeviz on the profiler file to interactively explore the component runtimes.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">snakeviz</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">cProfile</span> <span class="o">-</span><span class="n">o</span> <span class="n">asim</span><span class="o">.</span><span class="n">prof</span> <span class="n">simulation</span><span class="o">.</span><span class="n">py</span>
+<span class="n">snakeviz</span> <span class="n">asim</span><span class="o">.</span><span class="n">prof</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
 <p>The documentation is written in <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> markup
@@ -270,23 +287,23 @@ to html and other document formats, these tools also read the inline Python docs
 them into html as well.  ActivitySim’s docstrings are written in <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc format</a> since it is easier to use
 than standard rst format.</p>
 <p>To build the documentation, first make sure the required packages are installed:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
 </pre></div>
 </div>
-<p>Next, build the documentation in html format with the following command run from the <code class="docutils literal"><span class="pre">docs</span></code> folder:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">html</span>
+<p>Next, build the documentation in html format with the following command run from the <code class="docutils literal notranslate"><span class="pre">docs</span></code> folder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">html</span>
 </pre></div>
 </div>
 <p>If the activitysim package is installed, then the documentation will be built from that version of
-the source code instead of the git repo version.  Make sure to <code class="docutils literal"><span class="pre">pip</span> <span class="pre">uninstall</span> <span class="pre">activitysim</span></code> before
+the source code instead of the git repo version.  Make sure to <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">uninstall</span> <span class="pre">activitysim</span></code> before
 bulding the documentation if needed.</p>
 <p>When pushing revisions to the repo, the documentation is automatically built by Travis after
-successfully passing the tests.  The documents are built with the <code class="docutils literal"><span class="pre">bin/build_docs.sh</span></code> script.
+successfully passing the tests.  The documents are built with the <code class="docutils literal notranslate"><span class="pre">bin/build_docs.sh</span></code> script.
 The script does the following:</p>
 <ul class="simple">
 <li>installs the required python packages</li>
-<li>runs <code class="docutils literal"><span class="pre">make</span> <span class="pre">html</span></code></li>
-<li>copies the <code class="docutils literal"><span class="pre">master</span></code> branch <code class="docutils literal"><span class="pre">../activitysim/docs/_build/html/*</span></code> pages to the <code class="docutils literal"><span class="pre">gh-pages</span></code> branch</li>
+<li>runs <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code></li>
+<li>copies the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch <code class="docutils literal notranslate"><span class="pre">../activitysim/docs/_build/html/*</span></code> pages to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch</li>
 </ul>
 <p>GitHub automagically publishes the gh-pages branch at <a class="reference external" href="https://udst.github.io/activitysim">https://udst.github.io/activitysim</a>.</p>
 </div>
@@ -338,7 +355,7 @@ The script does the following:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.1',
+            VERSION:'0.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

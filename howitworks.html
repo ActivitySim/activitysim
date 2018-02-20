@@ -8,7 +8,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How the System Works &mdash; ActivitySim 0.5.1 documentation</title>
+  <title>How the System Works &mdash; ActivitySim 0.5.2
+ documentation</title>
   
 
   
@@ -30,12 +31,15 @@
   
 
   
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
 
   
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ActivitySim 0.5.2
+ documentation" href="index.html"/>
         <link rel="next" title="Data Schema" href="dataschema.html"/>
         <link rel="prev" title="Example" href="abmexample.html"/> 
 
@@ -66,7 +70,8 @@
             
             
               <div class="version">
-                0.5.1
+                0.5.2
+
               </div>
             
           
@@ -182,27 +187,27 @@
 <p>This page describes describes how the ActivitySim software works.</p>
 <div class="section" id="execution-flow">
 <span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this headline">¶</a></h2>
-<p>The example model run starts by running <code class="docutils literal"><span class="pre">simulation.py</span></code>.</p>
+<p>The example model run starts by running <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code>.</p>
 <div class="section" id="initialization">
 <h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h3>
-<p>The first steps of <code class="docutils literal"><span class="pre">simulation.py</span></code> are:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">orca</span>
+<p>The first steps of <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code> are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">orca</span>
 <span class="kn">from</span> <span class="nn">activitysim</span> <span class="k">import</span> <span class="n">abm</span>
 </pre></div>
 </div>
 <p>which starts orca, which will now take over running the system and defines the orca/pandas tables and their data
-sources but does not load the data.  The second statement loads <code class="xref py py-mod docutils literal"><span class="pre">activitysim.abm.__init__</span></code>, which calls:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">misc</span>
+sources but does not load the data.  The second statement loads <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.__init__</span></code>, which calls:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">misc</span>
 <span class="kn">import</span> <span class="nn">tables</span>
 <span class="kn">import</span> <span class="nn">models</span>
 </pre></div>
 </div>
-<p>which then loads the misc, tables, and models class definitions.  Loading <code class="xref py py-mod docutils literal"><span class="pre">activitysim.abm.misc</span></code> defines orca injectables
-(functions) for the <code class="docutils literal"><span class="pre">settings</span></code> object based on the setting yaml file, the <code class="docutils literal"><span class="pre">store</span></code> based on the HDF5 input
-file, and the trace settings.  The Python decorator <code class="docutils literal"><span class="pre">&#64;inject.injectable</span></code> overrides the function definition <code class="docutils literal"><span class="pre">store</span></code>
-to execute this function whenever <code class="docutils literal"><span class="pre">store</span></code> is called by orca.  The <code class="docutils literal"><span class="pre">misc</span></code> class depends on
-<a class="reference internal" href="core.html#module-activitysim.core.inject" title="activitysim.core.inject"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.inject</span></code></a> and <a class="reference internal" href="core.html#module-activitysim.core.pipeline" title="activitysim.core.pipeline"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.pipeline</span></code></a>, which wrap orca and manage the data pipeline.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">injectable</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<p>which then loads the misc, tables, and models class definitions.  Loading <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.misc</span></code> defines orca injectables
+(functions) for the <code class="docutils literal notranslate"><span class="pre">settings</span></code> object based on the setting yaml file, the <code class="docutils literal notranslate"><span class="pre">store</span></code> based on the HDF5 input
+file, and the trace settings.  The Python decorator <code class="docutils literal notranslate"><span class="pre">&#64;inject.injectable</span></code> overrides the function definition <code class="docutils literal notranslate"><span class="pre">store</span></code>
+to execute this function whenever <code class="docutils literal notranslate"><span class="pre">store</span></code> is called by orca.  The <code class="docutils literal notranslate"><span class="pre">misc</span></code> class depends on
+<a class="reference internal" href="core.html#module-activitysim.core.inject" title="activitysim.core.inject"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.inject</span></code></a> and <a class="reference internal" href="core.html#module-activitysim.core.pipeline" title="activitysim.core.pipeline"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.pipeline</span></code></a>, which wrap orca and manage the data pipeline.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">injectable</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">store</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
   <span class="c1">#...</span>
   <span class="n">file</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
@@ -212,13 +217,13 @@ to execute this function whenever <code class="docutils literal"><span class="pr
 </div>
 <p>Next, the tables module executes the following import statements to define the dynamic orca tables (households,
 persons, skims, etc.), but does not load them. It also defines the core dynamic orca table columns (calculated fields)
-and injectables (functions) defined in the classes.  The Python decorator <code class="docutils literal"><span class="pre">&#64;inject.table</span></code> and
-<code class="docutils literal"><span class="pre">&#64;inject.column(&quot;households&quot;)</span></code> override the function definitions so the function name
+and injectables (functions) defined in the classes.  The Python decorator <code class="docutils literal notranslate"><span class="pre">&#64;inject.table</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&#64;inject.column(&quot;households&quot;)</span></code> override the function definitions so the function name
 becomes the table name in the first case, whereas the function name becomes the column name in the second case.  The
-argument to <code class="docutils literal"><span class="pre">households</span></code> in <code class="docutils literal"><span class="pre">&#64;inject.column(&quot;households&quot;)</span></code> is the table (either real or virtual) that the
+argument to <code class="docutils literal notranslate"><span class="pre">households</span></code> in <code class="docutils literal notranslate"><span class="pre">&#64;inject.column(&quot;households&quot;)</span></code> is the table (either real or virtual) that the
 column is added to.  The columns defined in these classes are thought to be generic across AB model implementations.
 Additional implementation specific columns can be defined in an extensions folder, as discussed later.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">households</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">households</span>
 <span class="kn">import</span> <span class="nn">persons</span>
 <span class="c1">#etc...</span>
 
@@ -231,8 +236,8 @@ Additional implementation specific columns can be defined in an extensions folde
 </pre></div>
 </div>
 <p>The models module then loads all the sub-models, which are registered as orca model steps with
-the <code class="docutils literal"><span class="pre">&#64;inject.step()</span></code> decorator.  These steps will eventually be run by the pipeline manager.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">initialize</span>
+the <code class="docutils literal notranslate"><span class="pre">&#64;inject.step()</span></code> decorator.  These steps will eventually be run by the pipeline manager.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">initialize</span>
 <span class="kn">import</span> <span class="nn">accessibility</span>
 <span class="kn">import</span> <span class="nn">auto_ownership</span>
 <span class="c1">#etc...</span>
@@ -243,31 +248,31 @@ the <code class="docutils literal"><span class="pre">&#64;inject.step()</span></
                         <span class="n">skim_dict</span><span class="p">,</span> <span class="n">omx_file</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">trace_od</span><span class="p">):</span>
 </pre></div>
 </div>
-<p>Back in the main <code class="docutils literal"><span class="pre">simulation.py</span></code> script, the next steps are to load the pipeline manager and import the example
+<p>Back in the main <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code> script, the next steps are to load the pipeline manager and import the example
 extensions.  The example extensions are additional orca computed columns that are specific to the example.  This
 includes columns such as person age bins, which are not included in the core person table since they typically vary
 by implementation.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="k">import</span> <span class="n">pipeline</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="k">import</span> <span class="n">pipeline</span>
 <span class="kn">import</span> <span class="nn">extensions</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal"><span class="pre">extensions</span></code> are stored in the example folderextensions and include an init.py class that
+<p>The <code class="docutils literal notranslate"><span class="pre">extensions</span></code> are stored in the example folder extensions folder and include an init.py class that
 loads each table extension.  In the example, the household, landuse, and person tables all have extensions.
-For example, the landuse extension adds a new column to the land use table called <code class="docutils literal"><span class="pre">total_households</span></code>, which is a
-function of the <code class="docutils literal"><span class="pre">TOTHH</span></code> input column.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;land_use&quot;</span><span class="p">)</span>
+For example, the landuse extension adds a new column to the land use table called <code class="docutils literal notranslate"><span class="pre">total_households</span></code>, which is a
+function of the <code class="docutils literal notranslate"><span class="pre">TOTHH</span></code> input column.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;land_use&quot;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">total_households</span><span class="p">(</span><span class="n">land_use</span><span class="p">):</span>
   <span class="k">return</span> <span class="n">land_use</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">TOTHH</span>
 </pre></div>
 </div>
-<p>The next step in the example is to read and run the pipeline.  The <code class="docutils literal"><span class="pre">resume_after</span></code> argument is set to None
+<p>The next step in the example is to read and run the pipeline.  The <code class="docutils literal notranslate"><span class="pre">resume_after</span></code> argument is set to None
 in order to start the pipeline from the beginning.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MODELS</span> <span class="o">=</span> <span class="n">setting</span><span class="p">(</span><span class="s1">&#39;models&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MODELS</span> <span class="o">=</span> <span class="n">setting</span><span class="p">(</span><span class="s1">&#39;models&#39;</span><span class="p">)</span>
 
 <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method loops through the list of models, calls <code class="docutils literal"><span class="pre">inject.run(model_step)</span></code>,
+<p>The <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method loops through the list of models, calls <code class="docutils literal notranslate"><span class="pre">inject.run(model_step)</span></code>,
 and manages the data pipeline.  The first microsimulation model run is school location.  The school location
 model is broken into three steps:</p>
 <blockquote>
@@ -281,7 +286,7 @@ model is broken into three steps:</p>
 <div class="section" id="school-location-sample">
 <h3>School Location Sample<a class="headerlink" href="#school-location-sample" title="Permalink to this headline">¶</a></h3>
 <p>The school location sample model is run via:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#run model step</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#run model step</span>
 <span class="n">inject</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_sample&quot;</span><span class="p">])</span>
 
 <span class="c1">#define model step</span>
@@ -295,11 +300,11 @@ model is broken into three steps:</p>
                            <span class="n">trace_hh_id</span><span class="p">):</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal"><span class="pre">school_location_sample</span></code> step requires the objects defined in the function definition
+<p>The <code class="docutils literal notranslate"><span class="pre">school_location_sample</span></code> step requires the objects defined in the function definition
 above.  Since they are not yet loaded, orca goes looking for them.  This is called lazy
 loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.
 The various calls also setup logging, tracing, and stable random number management.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#persons_merged is in the step function signature</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#persons_merged is in the step function signature</span>
 
 <span class="nd">@inject</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">persons_merged</span><span class="p">(</span><span class="n">persons</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">accessibility</span><span class="p">):</span>
@@ -374,10 +379,10 @@ The various calls also setup logging, tracing, and stable random number manageme
 <span class="c1">#etc.... until all the required dependencies are resolved</span>
 </pre></div>
 </div>
-<p><code class="docutils literal"><span class="pre">school_location_sample</span></code> also sets the persons merged table as choosers, reads the expressions
+<p><code class="docutils literal notranslate"><span class="pre">school_location_sample</span></code> also sets the persons merged table as choosers, reads the expressions
 specification file, settings yaml file, and destination_size_terms file, and also sets the chunk
 size and trace id if specified.  The skims dictionary is also passed in, as explained next.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">school_location_sample</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">school_location_sample</span><span class="p">(</span><span class="n">persons_merged</span><span class="p">,</span>
                            <span class="n">school_location_sample_spec</span><span class="p">,</span>
                            <span class="n">school_location_settings</span><span class="p">,</span>
                            <span class="n">skim_dict</span><span class="p">,</span>
@@ -387,21 +392,21 @@ size and trace id if specified.  The skims dictionary is also passed in, as expl
 </pre></div>
 </div>
 <p>Inside the method, the skim lookups required for this model are configured. The following code
-set the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal"><span class="pre">TAZ</span></code> column
-in the choosers, which was in the <code class="docutils literal"><span class="pre">households</span></code> table that was joined with <code class="docutils literal"><span class="pre">persons</span></code> to make
-<code class="docutils literal"><span class="pre">persons_merged</span></code> and a <code class="docutils literal"><span class="pre">TAZ</span></code> in the alternatives generation code which get merged during
-interaction as renamed <code class="docutils literal"><span class="pre">TAZ_r</span></code>.  The skims are lazy loaded under the name “skims” and are
-available in the expressions using <code class="docutils literal"><span class="pre">&#64;skims</span></code>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;TAZ&quot;</span><span class="p">,</span> <span class="s2">&quot;TAZ_r&quot;</span><span class="p">)</span>
+set the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> column
+in the choosers, which was in the <code class="docutils literal notranslate"><span class="pre">households</span></code> table that was joined with <code class="docutils literal notranslate"><span class="pre">persons</span></code> to make
+<code class="docutils literal notranslate"><span class="pre">persons_merged</span></code> and a <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> in the alternatives generation code which get merged during
+interaction as renamed <code class="docutils literal notranslate"><span class="pre">TAZ_r</span></code>.  The skims are lazy loaded under the name “skims” and are
+available in the expressions using <code class="docutils literal notranslate"><span class="pre">&#64;skims</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">skims</span><span class="o">.</span><span class="n">set_keys</span><span class="p">(</span><span class="s2">&quot;TAZ&quot;</span><span class="p">,</span> <span class="s2">&quot;TAZ_r&quot;</span><span class="p">)</span>
 <span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;skims&quot;</span><span class="p">:</span> <span class="n">skims</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>The next step is to call the <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> function which
+<p>The next step is to call the <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> function which
 selects a sample of alternatives by running a MNL choice model simulation in which alternatives must be
 merged with choosers because there are interaction terms.  The choosers table, the alternatives table, the
 sample size, the model specification expressions file, the skims, the skims lookups, the chunk size, and the
 trace labels are passed in.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">choices</span> <span class="o">=</span> <span class="n">interaction_sample</span><span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">choices</span> <span class="o">=</span> <span class="n">interaction_sample</span><span class="p">(</span>
               <span class="n">choosers_segment</span><span class="p">,</span>
               <span class="n">alternatives_segment</span><span class="p">,</span>
               <span class="n">sample_size</span><span class="o">=</span><span class="n">sample_size</span><span class="p">,</span>
@@ -410,23 +415,23 @@ trace labels are passed in.</p>
               <span class="n">skims</span><span class="o">=</span><span class="n">skims</span><span class="p">,</span>
               <span class="n">locals_d</span><span class="o">=</span><span class="n">locals_d</span><span class="p">,</span>
               <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
-              <span class="n">trace_label</span><span class="o">=</span><span class="n">trace_hh_id</span> <span class="ow">and</span> <span class="s1">&#39;school_location_sample.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">school_type</span><span class="p">)</span>
+              <span class="n">trace_label</span><span class="o">=</span><span class="n">school_location_sample</span><span class="o">.%</span><span class="n">s</span><span class="s1">&#39; </span><span class="si">% s</span><span class="s1">chool_type)</span>
 </pre></div>
 </div>
 <p>This function solves the utilities, calculates probabilities, draws random numbers, selects choices with
 replacement, and returns the choices. This is done in a for loop of chunks of chooser records in order to avoid
 running out of RAM when building the often large data tables. This method does a lot, and eventually
-calls <a class="reference internal" href="core.html#activitysim.core.interaction_simulate.eval_interaction_utilities" title="activitysim.core.interaction_simulate.eval_interaction_utilities"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_simulate.eval_interaction_utilities()</span></code></a>, which loops through each
+calls <a class="reference internal" href="core.html#activitysim.core.interaction_simulate.eval_interaction_utilities" title="activitysim.core.interaction_simulate.eval_interaction_utilities"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_simulate.eval_interaction_utilities()</span></code></a>, which loops through each
 expression in  the expression file and solves it at once for all records in the chunked chooser
 table using either pandas’ eval() or Python’s eval().</p>
-<p>The <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> method is currently only a multinomial
-logit choice model.  The <a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a> method supports both MNL and NL as specified by
-the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal"><span class="pre">auto_ownership.yaml</span></code> file for example specifies
-the <code class="docutils literal"><span class="pre">LOGIT_TYPE</span></code> as <code class="docutils literal"><span class="pre">MNL.</span></code></p>
+<p>The <a class="reference internal" href="core.html#activitysim.core.interaction_sample.interaction_sample" title="activitysim.core.interaction_sample.interaction_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample.interaction_sample()</span></code></a> method is currently only a multinomial
+logit choice model.  The <a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate" title="activitysim.core.simulate.simple_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.simulate.simple_simulate()</span></code></a> method supports both MNL and NL as specified by
+the <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal notranslate"><span class="pre">auto_ownership.yaml</span></code> file for example specifies
+the <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE</span></code> as <code class="docutils literal notranslate"><span class="pre">MNL.</span></code></p>
 <p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
-in one vectorized step.  The <code class="docutils literal"><span class="pre">orig</span></code> and <code class="docutils literal"><span class="pre">dest</span></code> objects in <code class="docutils literal"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <a class="reference internal" href="core.html#module-activitysim.core.skim" title="activitysim.core.skim"><code class="xref py py-mod docutils literal"><span class="pre">activitysim.core.skim</span></code></a> are vectors
+in one vectorized step.  The <code class="docutils literal notranslate"><span class="pre">orig</span></code> and <code class="docutils literal notranslate"><span class="pre">dest</span></code> objects in <code class="docutils literal notranslate"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <a class="reference internal" href="core.html#module-activitysim.core.skim" title="activitysim.core.skim"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.skim</span></code></a> are vectors
 and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured (not shown below).</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># evaluate expressions from the spec multiply by coefficients and sum</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># evaluate expressions from the spec multiply by coefficients and sum</span>
 <span class="n">interaction_utilities</span><span class="p">,</span> <span class="n">trace_eval_results</span> \
     <span class="o">=</span> <span class="n">eval_interaction_utilities</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">interaction_df</span><span class="p">,</span> <span class="n">locals_d</span><span class="p">,</span> <span class="n">trace_label</span><span class="p">,</span> <span class="n">trace_rows</span><span class="p">)</span>
 
@@ -461,16 +466,16 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
 <span class="k">return</span> <span class="n">choices_df</span>
 </pre></div>
 </div>
-<p>The model creates the <code class="docutils literal"><span class="pre">school_location_sample</span></code> table using the choices above.  This table is
+<p>The model creates the <code class="docutils literal notranslate"><span class="pre">school_location_sample</span></code> table using the choices above.  This table is
 then used for the next model step - solving the logsums for the sample.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">inject</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;school_location_sample&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">inject</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;school_location_sample&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="school-location-logsums">
 <h3>School Location Logsums<a class="headerlink" href="#school-location-logsums" title="Permalink to this headline">¶</a></h3>
 <p>The school location logsums model is called via:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#run model step</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#run model step</span>
 <span class="n">inject</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_logsums&quot;</span><span class="p">])</span>
 
 <span class="c1">#define model step</span>
@@ -485,11 +490,11 @@ then used for the next model step - solving the logsums for the sample.</p>
       <span class="n">trace_hh_id</span><span class="p">):</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal"><span class="pre">school_location_logsums</span></code> step requires the objects defined in the function definition
+<p>The <code class="docutils literal notranslate"><span class="pre">school_location_logsums</span></code> step requires the objects defined in the function definition
 above.  Some of these are not yet loaded, so orca goes looking for them.  The next steps are
 similar to what the sampling model does, except this time the sampled locations table is the choosers
 and the model is calculating and adding the mode choice logsums using the logsums expression files:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">school_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;university&#39;</span><span class="p">,</span> <span class="s1">&#39;highschool&#39;</span><span class="p">,</span> <span class="s1">&#39;gradeschool&#39;</span><span class="p">]:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">school_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;university&#39;</span><span class="p">,</span> <span class="s1">&#39;highschool&#39;</span><span class="p">,</span> <span class="s1">&#39;gradeschool&#39;</span><span class="p">]:</span>
 
     <span class="n">logsums_spec</span> <span class="o">=</span> <span class="n">mode_choice_logsums_spec</span><span class="p">(</span><span class="n">configs_dir</span><span class="p">,</span> <span class="n">school_type</span><span class="p">)</span>
     <span class="n">choosers</span> <span class="o">=</span> <span class="n">school_location_sample</span><span class="p">[</span><span class="n">school_location_sample</span><span class="p">[</span><span class="s1">&#39;school_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">school_type</span><span class="p">]</span>
@@ -513,19 +518,19 @@ and the model is calculating and adding the mode choice logsums using the logsum
 <span class="n">inject</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;school_location_sample&quot;</span><span class="p">,</span> <span class="s2">&quot;mode_choice_logsum&quot;</span><span class="p">,</span> <span class="n">logsums</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="models.html#activitysim.abm.models.util.logsums.compute_logsums" title="activitysim.abm.models.util.logsums.compute_logsums"><code class="xref py py-func docutils literal"><span class="pre">activitysim.abm.models.util.logsums.compute_logsums()</span></code></a> method goes through a similar series
+<p>The <a class="reference internal" href="models.html#activitysim.abm.models.util.logsums.compute_logsums" title="activitysim.abm.models.util.logsums.compute_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.logsums.compute_logsums()</span></code></a> method goes through a similar series
 of steps as the interaction_sample function but ends up calling
-<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate_logsums" title="activitysim.core.simulate.simple_simulate_logsums"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate_logsums()</span></code></a> since it supports nested logit models, which
+<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate_logsums" title="activitysim.core.simulate.simple_simulate_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.simulate.simple_simulate_logsums()</span></code></a> since it supports nested logit models, which
 are required for the mode choice logsum calculation.  The
-<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate_logsums" title="activitysim.core.simulate.simple_simulate_logsums"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.simulate.simple_simulate_logsums()</span></code></a> returns a vector of logsums (instead of a vector
-choices). The resulting logsums are added to the <code class="docutils literal"><span class="pre">school_location_sample</span></code> table as the
-<code class="docutils literal"><span class="pre">mode_choice_logsum</span></code> column.</p>
+<a class="reference internal" href="core.html#activitysim.core.simulate.simple_simulate_logsums" title="activitysim.core.simulate.simple_simulate_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.simulate.simple_simulate_logsums()</span></code></a> returns a vector of logsums (instead of a vector
+choices). The resulting logsums are added to the <code class="docutils literal notranslate"><span class="pre">school_location_sample</span></code> table as the
+<code class="docutils literal notranslate"><span class="pre">mode_choice_logsum</span></code> column.</p>
 </div>
 <div class="section" id="school-location-final-choice">
 <h3>School Location Final Choice<a class="headerlink" href="#school-location-final-choice" title="Permalink to this headline">¶</a></h3>
-<p>The final school location choice model operates on the <code class="docutils literal"><span class="pre">school_location_sample</span></code> table created
+<p>The final school location choice model operates on the <code class="docutils literal notranslate"><span class="pre">school_location_sample</span></code> table created
 above and is called as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#run model step</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#run model step</span>
 <span class="n">inject</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;school_location_simulate&quot;</span><span class="p">])</span>
 
 <span class="c1">#define model step</span>
@@ -540,15 +545,15 @@ above and is called as follows:</p>
                            <span class="n">trace_hh_id</span><span class="p">):</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition
+<p>The <code class="docutils literal notranslate"><span class="pre">school_location_simulate</span></code> step requires the objects defined in the function definition
 above.  The operations executed by this model are very similar to the earlier models, except
 this time the sampled locations table is the choosers and the model selects one alternative for
 each chooser using the school location simulate expression files and the
-<a class="reference internal" href="core.html#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="activitysim.core.interaction_sample_simulate.interaction_sample_simulate"><code class="xref py py-func docutils literal"><span class="pre">activitysim.core.interaction_sample_simulate.interaction_sample_simulate()</span></code></a> function.
-The model adds the choices as a column to the applicable table - <code class="docutils literal"><span class="pre">persons</span></code> - and adds
+<a class="reference internal" href="core.html#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="activitysim.core.interaction_sample_simulate.interaction_sample_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample_simulate.interaction_sample_simulate()</span></code></a> function.
+The model adds the choices as a column to the applicable table - <code class="docutils literal notranslate"><span class="pre">persons</span></code> - and adds
 additional dependent columns.  The dependent columns are defined in the persons table and are
-those orca columns with the virtual table name <code class="docutils literal"><span class="pre">persons_school</span></code>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">inject</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;school_taz&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
+those orca columns with the virtual table name <code class="docutils literal notranslate"><span class="pre">persons_school</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">inject</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;school_taz&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
 
 <span class="n">pipeline</span><span class="o">.</span><span class="n">add_dependent_columns</span><span class="p">(</span><span class="s2">&quot;persons&quot;</span><span class="p">,</span> <span class="s2">&quot;persons_school&quot;</span><span class="p">)</span>
 
@@ -574,14 +579,18 @@ those orca columns with the virtual table name <code class="docutils literal"><s
                      <span class="n">index</span><span class="o">=</span><span class="n">persons</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal"><span class="pre">roundtrip_auto_time_to_school</span></code>
+<p>Any orca columns that are required are calculated-on-the-fly, such as <code class="docutils literal notranslate"><span class="pre">roundtrip_auto_time_to_school</span></code>
 which in turn uses skims from the skim_dict orca injectable.</p>
 </div>
 <div class="section" id="finishing-up">
 <h3>Finishing Up<a class="headerlink" href="#finishing-up" title="Permalink to this headline">¶</a></h3>
-<p>Back in the main <code class="docutils literal"><span class="pre">simulation.py</span></code> script, the next steps are to:</p>
+<p>The last models to be run by the data pipeline are:</p>
 <ul class="simple">
-<li>loop through the final data pipeline tables (households, persons, tours, trips, etc.) and write them to CSV files</li>
+<li><code class="docutils literal notranslate"><span class="pre">write_data_dictionary</span></code>, which writes the table_name, number of rows, number of columns, and number of bytes for each checkpointed table</li>
+<li><code class="docutils literal notranslate"><span class="pre">write_tables</span></code>, which writes pipeline tables as csv files as specified by the output_tables setting</li>
+</ul>
+<p>Back in the main <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code> script, the final steps are to:</p>
+<ul class="simple">
 <li>close the data pipeline (and attached HDF5 file)</li>
 <li>print the elapsed model runtime</li>
 </ul>
@@ -597,10 +606,10 @@ which in turn uses skims from the skim_dict orca injectable.</p>
 </ul>
 <div class="section" id="creating-new-tables">
 <h3>Creating New Tables<a class="headerlink" href="#creating-new-tables" title="Permalink to this headline">¶</a></h3>
-<p>The mandatory tour frequency model sets the <code class="docutils literal"><span class="pre">persons.mandatory_tour_frequency</span></code> column.  Once the number of tours
+<p>The mandatory tour frequency model sets the <code class="docutils literal notranslate"><span class="pre">persons.mandatory_tour_frequency</span></code> column.  Once the number of tours
 is known, then the next step is to create tours records for subsequent models.  This is done with the following code,
-which adds tours to the <code class="docutils literal"><span class="pre">tours</span></code> table managed in the data pipeline:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_mandatory_tours</span><span class="p">():</span>
+which adds tours to the <code class="docutils literal notranslate"><span class="pre">tours</span></code> table managed in the data pipeline:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_mandatory_tours</span><span class="p">():</span>
 
   <span class="n">persons</span> <span class="o">=</span> <span class="n">inject</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="s1">&#39;persons&#39;</span><span class="p">)</span>
   <span class="n">configs_dir</span> <span class="o">=</span> <span class="n">inject</span><span class="o">.</span><span class="n">get_injectable</span><span class="p">(</span><span class="s1">&#39;configs_dir&#39;</span><span class="p">)</span>
@@ -627,10 +636,10 @@ which adds tours to the <code class="docutils literal"><span class="pre">tours</
 </div>
 <div class="section" id="vectorized-3d-skim-indexing">
 <h3>Vectorized 3D Skim Indexing<a class="headerlink" href="#vectorized-3d-skim-indexing" title="Permalink to this headline">¶</a></h3>
-<p>The mode choice model uses the <a class="reference internal" href="core.html#activitysim.core.skim.SkimStackWrapper" title="activitysim.core.skim.SkimStackWrapper"><code class="xref py py-class docutils literal"><span class="pre">activitysim.core.skim.SkimStackWrapper</span></code></a> class in addition to the skims (2D)
+<p>The mode choice model uses the <a class="reference internal" href="core.html#activitysim.core.skim.SkimStackWrapper" title="activitysim.core.skim.SkimStackWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">activitysim.core.skim.SkimStackWrapper</span></code></a> class in addition to the skims (2D)
 class.  The SkimStackWrapper class represents a collection of skims with a third dimension, which in this case
 is time period.  Setting up the 3D index for SkimStackWrapper is done as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># setup three skim keys based on columns in the chooser table</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># setup three skim keys based on columns in the chooser table</span>
 <span class="c1"># origin, destination, time period; destination, origin, time period; origin, destination</span>
 <span class="n">odt_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_stack</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">left_key</span><span class="o">=</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;out_period&quot;</span><span class="p">)</span>
 <span class="n">dot_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_stack</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">left_key</span><span class="o">=</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;in_period&quot;</span><span class="p">)</span>
@@ -644,8 +653,8 @@ is time period.  Setting up the 3D index for SkimStackWrapper is done as follows
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>When model expressions such as <code class="docutils literal"><span class="pre">&#64;odt_skims['WLK_LOC_WLK_TOTIVT']</span></code> are solved,
-the <code class="docutils literal"><span class="pre">WLK_LOC_WLK_TOTIVT</span></code> skim matrix values for all chooser table origins, destinations, and
+<p>When model expressions such as <code class="docutils literal notranslate"><span class="pre">&#64;odt_skims['WLK_LOC_WLK_TOTIVT']</span></code> are solved,
+the <code class="docutils literal notranslate"><span class="pre">WLK_LOC_WLK_TOTIVT</span></code> skim matrix values for all chooser table origins, destinations, and
 out_periods can be retrieved in one vectorized request.</p>
 <p>All the skims are preloaded (cached) by the pipeline manager at the beginning of the model
 run in order to avoid repeatedly reading the skims from the OMX files on disk.  This saves
@@ -664,11 +673,11 @@ data setup, expression management, and solving means ActivitySim has one express
 easier to understand and document, and is more efficiently implemented.</p>
 <p>As illustrated below, in order to convert the
 accessibility calculation into a table operation, a table of OD pairs is first built using numpy
-<code class="docutils literal"><span class="pre">repeat</span></code> and <code class="docutils literal"><span class="pre">tile</span></code> functions.  Once constructed, the additional data columns are added to the
+<code class="docutils literal notranslate"><span class="pre">repeat</span></code> and <code class="docutils literal notranslate"><span class="pre">tile</span></code> functions.  Once constructed, the additional data columns are added to the
 table in order to solve the accessibility calculations.  The skim data is also added in column form.
 After solving the expressions for each OD pair row, the accessibility module aggregates the results
 to origin zone and write them to the datastore.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create OD dataframe</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create OD dataframe</span>
   <span class="n">od_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
       <span class="n">data</span><span class="o">=</span><span class="p">{</span>
           <span class="s1">&#39;orig&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">land_use_df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">zone_count</span><span class="p">),</span>
@@ -725,7 +734,7 @@ to origin zone and write them to the datastore.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.1',
+            VERSION:'0.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

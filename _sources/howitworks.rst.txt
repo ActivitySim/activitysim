@@ -92,7 +92,7 @@ by implementation.
   from activitysim.core import pipeline
   import extensions
 
-The ``extensions`` are stored in the example folder\extensions and include an init.py class that 
+The ``extensions`` are stored in the example folder extensions folder and include an init.py class that 
 loads each table extension.  In the example, the household, landuse, and person tables all have extensions.
 For example, the landuse extension adds a new column to the land use table called ``total_households``, which is a 
 function of the ``TOTHH`` input column.
@@ -264,7 +264,7 @@ trace labels are passed in.
                 skims=skims,
                 locals_d=locals_d,
                 chunk_size=chunk_size,
-                trace_label=trace_hh_id and 'school_location_sample.%s' % school_type)
+                trace_label=school_location_sample.%s' % school_type)
     
 This function solves the utilities, calculates probabilities, draws random numbers, selects choices with 
 replacement, and returns the choices. This is done in a for loop of chunks of chooser records in order to avoid 
@@ -449,9 +449,13 @@ which in turn uses skims from the skim_dict orca injectable.
 Finishing Up 
 ~~~~~~~~~~~~
 
-Back in the main ``simulation.py`` script, the next steps are to:
+The last models to be run by the data pipeline are:
 
-* loop through the final data pipeline tables (households, persons, tours, trips, etc.) and write them to CSV files
+* ``write_data_dictionary``, which writes the table_name, number of rows, number of columns, and number of bytes for each checkpointed table
+* ``write_tables``, which writes pipeline tables as csv files as specified by the output_tables setting
+
+Back in the main ``simulation.py`` script, the final steps are to:
+
 * close the data pipeline (and attached HDF5 file)
 * print the elapsed model runtime
 

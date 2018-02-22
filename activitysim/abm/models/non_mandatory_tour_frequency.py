@@ -62,6 +62,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
     choosers = persons_merged.to_frame()
 
+    # FIXME kind of tacky both that we know to add this here and del it below
     non_mandatory_tour_frequency_alts['tot_tours'] = non_mandatory_tour_frequency_alts.sum(axis=1)
 
     # filter based on results of CDAP
@@ -108,11 +109,10 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     Now we create a "tours" table which has one row per tour that has been generated
     (and the person id it is associated with)
     """
-    alts = inject.get_injectable('non_mandatory_tour_frequency_alts')
-
+    del non_mandatory_tour_frequency_alts['tot_tours']  # del tot_tours column we added above
     non_mandatory_tours = process_non_mandatory_tours(
         persons.non_mandatory_tour_frequency.dropna(),
-        alts
+        non_mandatory_tour_frequency_alts
     )
 
     tours = pipeline.extend_table("tours", non_mandatory_tours)

@@ -354,6 +354,8 @@ def register_traceable_table(table_name, df):
         register_trips(df, trace_hh_id)
     elif table_name == 'tours':
         register_tours(df, trace_hh_id)
+    else:
+        logger.warn("register_traceable_table - don't grok '%s'" % table_name)
 
 
 def traceable_tables():
@@ -525,7 +527,7 @@ def get_trace_target(df, slicer):
     elif slicer == 'person_id':
         target_ids = inject.get_injectable('trace_person_ids', [])
         column = slicer
-    elif slicer == 'hh_id':
+    elif slicer == 'household_id':
         target_ids = inject.get_injectable('trace_hh_id', [])
         column = slicer
     elif slicer == 'tour_id':

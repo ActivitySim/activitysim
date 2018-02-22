@@ -41,6 +41,7 @@ def mandatory_tour_frequency_alternatives(configs_dir):
 def mandatory_tour_frequency(persons, persons_merged,
                              mandatory_tour_frequency_spec,
                              mandatory_tour_frequency_settings,
+                             mandatory_tour_frequency_alternatives,
                              chunk_size,
                              trace_hh_id):
     """
@@ -82,10 +83,9 @@ def mandatory_tour_frequency(persons, persons_merged,
     alternatives into an actual dataframe of tours.  Ending format is
     the same as got non_mandatory_tours except trip types are "work" and "school"
     """
-    tour_frequency_alternatives = inject.get_injectable('mandatory_tour_frequency_alternatives')
     mandatory_tours = process_mandatory_tours(
         persons=persons[~persons.mandatory_tour_frequency.isnull()],
-        mandatory_tour_frequency_alts=tour_frequency_alternatives
+        mandatory_tour_frequency_alts=mandatory_tour_frequency_alternatives
     )
 
     expressions.assign_columns(

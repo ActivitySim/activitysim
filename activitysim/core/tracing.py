@@ -327,6 +327,38 @@ def register_trips(df, trace_hh_id):
     logger.debug("register_trips injected trace_tour_ids %s" % trace_trip_ids)
 
 
+def register_joint_tours(df, trace_hh_id):
+    """
+    Register with inject for tracing
+
+    create an injectable 'trace_joint_tour_ids' with a list of tour_ids in household we are tracing.
+    This allows us to slice by joint_tour_id without requiring presence of household_id column
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+
+    trace_hh_id: int
+        household id we are tracing
+
+    Returns
+    -------
+    Nothing
+    """
+
+    # but if household_id is in households, then we may have some tours
+    traced_joint_tours_df = slice_ids(df, trace_hh_id, column='household_id')
+    trace_tour_ids = traced_joint_tours_df.index.tolist()
+    if len(trace_tour_ids) == 0:
+        logger.info("register_joint_tours: no tours found for household_id %s." % trace_hh_id)
+    else:
+        logger.info("tracing joint_tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
+
+    inject.add_injectable("trace_joint_tour_ids", trace_tour_ids)
+    logger.debug("register_joint_tours injected trace_joint_tour_ids %s" % trace_tour_ids)
+
+
 def register_traceable_table(table_name, df):
     """
     Register traceable table
@@ -354,6 +386,8 @@ def register_traceable_table(table_name, df):
         register_trips(df, trace_hh_id)
     elif table_name == 'tours':
         register_tours(df, trace_hh_id)
+    elif table_name == 'joint_tours':
+        register_joint_tours(df, trace_hh_id)
     else:
         logger.warn("register_traceable_table - don't grok '%s'" % table_name)
 
@@ -363,7 +397,7 @@ def traceable_tables():
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
 
-    return ['households', 'persons', 'tours', 'trips']
+    return ['households', 'persons', 'tours', 'trips', 'jount_tours']
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
@@ -542,6 +576,12 @@ def get_trace_target(df, slicer):
             column = 'person_id'
         else:
             target_ids = inject.get_injectable('trace_trip_ids', [])
+    elif slicer == 'joint_tour_id':
+        if isinstance(df, pd.DataFrame) and ('household_id' in df.columns):
+            target_ids = inject.get_injectable('trace_hh_id', [])
+            column = 'household_id'
+        else:
+            target_ids = inject.get_injectable('trace_tour_ids', [])
     elif slicer == 'TAZ' or slicer == 'ZONE':
         target_ids = inject.get_injectable('trace_od', [])
     elif slicer == 'NONE':

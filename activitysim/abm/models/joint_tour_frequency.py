@@ -13,6 +13,7 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 
+from activitysim.core.util import assign_in_place
 from .util import expressions
 from .util.tour_frequency import process_joint_tours
 
@@ -132,7 +133,7 @@ def rle(a):
     return row_id, start_pos, run_length, run_val
 
 
-def assign_time_window_overlap(households, persons):
+def time_window_overlap(households, persons):
 
     timetable = inject.get_injectable("timetable")
 
@@ -163,19 +164,25 @@ def assign_time_window_overlap(households, persons):
     # fill in missing households (in case there were no overlaps)
     hh_time_window_overlap = hh_time_window_overlap.reindex(households.index).fillna(0)
 
-    households['time_window_overlap_adult'] = hh_time_window_overlap['aa']
-    households['time_window_overlap_child'] = hh_time_window_overlap['cc']
-    households['time_window_overlap_adult_child'] = hh_time_window_overlap['ac']
+    hh_time_window_overlap.rename(
+        columns={'aa': 'time_window_overlap_adult',
+                 'cc': 'time_window_overlap_child',
+                 'ac': 'time_window_overlap_adult_child'},
+        inplace=True
+    )
+
+    return hh_time_window_overlap
 
 
 @inject.step()
-def joint_tour_frequency(households, persons,
-                         joint_tour_frequency_spec,
-                         joint_tour_frequency_settings,
-                         joint_tour_frequency_alternatives,
-                         configs_dir,
-                         chunk_size,
-                         trace_hh_id):
+def joint_tour_frequency(
+        households, persons,
+        joint_tour_frequency_spec,
+        joint_tour_frequency_settings,
+        joint_tour_frequency_alternatives,
+        configs_dir,
+        chunk_size,
+        trace_hh_id):
     """
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.
@@ -188,11 +195,12 @@ def joint_tour_frequency(households, persons,
     multi_person_households = households[households.hhsize > 1].copy()
 
     logger.info("Running joint_tour_frequency with %d multi-person households" %
-                len(multi_person_households))
+                multi_person_households.shape[0])
 
     macro_settings = joint_tour_frequency_settings.get('joint_tour_frequency_macros', None)
 
-    assign_time_window_overlap(multi_person_households, persons)
+    hh_time_window_overlap = time_window_overlap(multi_person_households, persons)
+    assign_in_place(multi_person_households, hh_time_window_overlap)
 
     if macro_settings:
         expressions.assign_columns(
@@ -218,6 +226,9 @@ def joint_tour_frequency(households, persons,
     # add joint_tour_frequency column to households
     # reindex since we are working with a subset of households
     households['joint_tour_frequency'] = choices.reindex(households.index)
+
+    # - remember this as it is needed by subsequent joint_tour model steps
+    assign_in_place(households, hh_time_window_overlap.reindex(households.index).fillna(0))
     pipeline.replace_table("households", households)
 
     # - create atwork_subtours based on atwork_subtour_frequency choice names

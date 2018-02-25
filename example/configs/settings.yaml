@@ -38,6 +38,7 @@ models:
   - annotate_table.model_name=annotate_tours
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
+  - joint_party_composition
   - atwork_subtour_destination_sample
   - atwork_subtour_destination_logsums
   - atwork_subtour_destination_simulate

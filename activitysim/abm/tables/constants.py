@@ -43,6 +43,14 @@ PTYPE_NAME = {
     PTYPE_PRESCHOOL: 'PTYPE_PRESCHOOL'
 }
 
+CDAP_ACTIVITY_MANDATORY = 'M'
+CDAP_ACTIVITY_NONMANDATORY = 'N'
+CDAP_ACTIVITY_HOME = 'H'
+
+# for use in string expressions (e.g. so we can change from a string to an int)
+CDAP_ACTIVITY_MANDATORY_Q = "'M'"
+CDAP_ACTIVITY_NONMANDATORY_Q = "'N'"
+CDAP_ACTIVITY_HOME_Q = "'H'"
 
 # joint tour frequency
 # 0_tours,1_Shop,1_Main,1_Eat,1_Visit,1_Disc,2_SS,2_SM,2_SE,2_SV,2_SD,2_MM,2_ME,2_MV,2_MD,2_EE,2_EV,2_ED,2_VV,2_VD,2_DD

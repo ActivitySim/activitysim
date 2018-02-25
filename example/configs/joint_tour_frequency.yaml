@@ -1,3 +1,5 @@
+LOGIT_TYPE: MNL
+
 joint_tour_frequency_macros:
   SPEC: annotate_households_joint_macros
   DF: households

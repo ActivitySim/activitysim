@@ -1,0 +1,9 @@
+LOGIT_TYPE: MNL
+
+
+joint_party_composition_macros:
+  SPEC: annotate_households_joint_party_composition_macros
+  DF: joint_tours
+  TABLES:
+    - persons
+#    - accessibility

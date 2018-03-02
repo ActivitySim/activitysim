@@ -97,7 +97,6 @@ def make_sample_choices(
         positions = np.argmax(cum_probs_arr > r, axis=1)
 
         # FIXME - leave positions as numpy array, not pandas series?
-
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
         positions = pd.Series(positions, index=probs.index)
@@ -250,7 +249,6 @@ def _interaction_sample(
 
     tracing.dump_df(DUMP, interaction_utilities, trace_label, 'interaction_utilities')
 
-    # FIXME - do this in numpy, not pandas?
     # reshape utilities (one utility column and one row per row in interaction_utilities)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
@@ -265,7 +263,6 @@ def _interaction_sample(
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
 
-    # FIXME - do this in numpy, not pandas?
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)

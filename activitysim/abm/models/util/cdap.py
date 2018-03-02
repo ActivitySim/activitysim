@@ -437,7 +437,7 @@ def add_interaction_column(choosers, p_tup):
 
     """
 
-    # Since pytpes are always between 1 and 8, we represent the interaction as an integer (24)
+    # Since ptypes are always between 1 and 8, we represent the interaction as an integer (24)
     # rather than as a string ('24')
     # FIXME - check that coding interactions as integers is in fact faster then coding as strings
 

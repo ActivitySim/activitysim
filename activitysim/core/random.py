@@ -49,6 +49,10 @@ _CHANNELS = {
         'max_steps': 1,
         'index': 'joint_tour_id'
     },
+    'joint_tour_participants': {
+        'max_steps': 1,
+        'index': 'participant_id'
+    },
     'trips': {
         'max_steps': 5,
         'index': 'trip_id'

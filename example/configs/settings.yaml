@@ -32,13 +32,14 @@ models:
   - mandatory_tour_frequency
   - mandatory_tour_scheduling
   - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination_choice
   - non_mandatory_tour_scheduling
   - annotate_table.model_name=annotate_tours
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
-  - joint_party_composition
   - atwork_subtour_destination_sample
   - atwork_subtour_destination_logsums
   - atwork_subtour_destination_simulate
@@ -48,6 +49,7 @@ models:
   - trip_mode_choice_simulate
   - write_data_dictionary
   - write_tables
+
 
 #resume_after: tour_mode_choice_simulate
 

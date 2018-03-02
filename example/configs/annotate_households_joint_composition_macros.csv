@@ -9,8 +9,6 @@ Description,Target,Expression
 ,home_preschool_max3,"tour_person_count('ptype == %s' % constants.PTYPE_PRESCHOOL, joint_tours, persons).clip(0,3)"
 ,home_school_max3,"tour_person_count('ptype == %s' % constants.PTYPE_SCHOOL, joint_tours, persons).clip(0,3)"
 ,home_driving_max3,"tour_person_count('ptype == %s' % constants.PTYPE_DRIVING, joint_tours, persons).clip(0,3)"
-,num_travel_active_adults,"tour_person_count('adult & cdap_activity != %s' % constants.CDAP_ACTIVITY_HOME_Q, joint_tours, persons).clip(0,3)"
-,num_travel_active_children,"tour_person_count('~adult & cdap_activity != %s' % constants.CDAP_ACTIVITY_HOME_Q, joint_tours, persons).clip(0,3)"
 have_travel_active_adults_and_children,have_travel_active_adults_and_children,(num_travel_active_adults>0) & (num_travel_active_children>0)
 logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(joint_tours.time_window_overlap_adult)
 logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(joint_tours.time_window_overlap_child)

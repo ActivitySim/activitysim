@@ -1,3 +1,6 @@
 Description,Target,Expression
 #,, annotate households table after cdap model has run
 num_under16_not_at_school,num_under16_not_at_school,"persons.under16_not_at_school.groupby(persons.household_id).sum().reindex(households.index).fillna(0)"
+num_travel_active,num_travel_active,"persons.travel_active.groupby(persons.household_id).sum().reindex(households.index).fillna(0)"
+num_travel_active_adults,num_travel_active_adults,"(persons.adult & persons.travel_active).groupby(persons.household_id).sum().reindex(households.index).fillna(0)"
+num_travel_active_children,num_travel_active_children,"num_travel_active - num_travel_active_adults"

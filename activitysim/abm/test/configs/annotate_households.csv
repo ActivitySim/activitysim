@@ -1,14 +1,18 @@
 Description,Target,Expression
 #,, annotate households table after import
 ,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0)"
-income_in_thousands,income_in_thousands,households.income / 1000
+#,,FIXME households.income can be negative, so we clip?
+income_in_thousands,income_in_thousands,(households.income / 1000).clip(lower=0)
 income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"
 number of non_workers,non_workers,households.hhsize - households.workers
 #,,we assume that everyone 16 and older is a potential driver
 number of drivers,drivers,"_PERSON_COUNT('16 <= age', persons, households)"
+num_adults,num_adults,"_PERSON_COUNT('adult', persons, households)"
+num_children,num_children,"_PERSON_COUNT('~adult', persons, households)"
+#,,FIXME num_young_children is under 5 here but used in mandatory_tour_frequency where CTRAMP uec wants num_preschool which java code has as under 6
 num_young_children,num_young_children,"_PERSON_COUNT('age <= 4', persons, households)"
-num_children,num_children,"_PERSON_COUNT('5 <= age <= 15', persons, households)"
-num_adolescents,num_adolescents,"_PERSON_COUNT('16 <= age <= 17', persons, households)"
+num_children_5_to_15,num_children_5_to_15,"_PERSON_COUNT('5 <= age <= 15', persons, households)"
+num_children_16_to_17,num_children_16_to_17,"_PERSON_COUNT('16 <= age <= 17', persons, households)"
 num_college_age,num_college_age,"_PERSON_COUNT('18 <= age <= 24', persons, households)"
 num_young_adults,num_young_adults,"_PERSON_COUNT('25 <= age <= 34', persons, households)"
 non_family,non_family,households.HHT.isin(constants.HHT_NONFAMILY)
@@ -18,4 +22,3 @@ home_is_rural,home_is_rural,"reindex(land_use.area_type, households.TAZ) > setti
 #,, FIXME - fix this variable from auto ownership model
 work_tour_auto_time_savings,work_tour_auto_time_savings,0
 #home_taz,home_taz,households.TAZ
-

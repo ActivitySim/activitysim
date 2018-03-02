@@ -16,6 +16,7 @@ from . import tracing
 from . import pipeline
 
 from . import util
+from . import assign
 
 from . import chunk
 
@@ -111,8 +112,12 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     """
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
-    locals_d = locals_d.copy() if locals_d is not None else {}
-    locals_d.update(locals())
+    locals_dict = assign.local_utilities()
+    if locals_d is not None:
+        locals_dict.update(locals_d)
+    globals_dict = {}
+
+    locals_dict['df'] = df
 
     def to_series(x):
         if np.isscalar(x):
@@ -127,7 +132,7 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
         # logger.debug("eval_variables %s" % util.memory_info())
         try:
             if expr.startswith('@'):
-                expr_values = to_series(eval(expr[1:], globals(), locals_d))
+                expr_values = to_series(eval(expr[1:], globals_dict, locals_dict))
             else:
                 expr_values = df.eval(expr)
             value_list.append((expr, expr_values))
@@ -220,7 +225,7 @@ def _check_for_variability(expression_values, trace_label):
         # FIXME - how could this happen? Not sure it is really a problem?
         if np.count_nonzero(v.isnull().values) > 0:
             col_name = sample.columns[i]
-            logger.info("%s: missing values in: %s" % (trace_label, v.iloc[0], col_name))
+            logger.info("%s: missing values in: %s" % (trace_label, col_name))
             has_missing_vals += 1
 
     if no_variability > 0:
@@ -410,6 +415,7 @@ def eval_mnl(choosers, spec, locals_d,
     t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
 
     cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
+
     cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
     cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
     cum_size = chunk.log_df_size(trace_label, "probs", probs, cum_size)

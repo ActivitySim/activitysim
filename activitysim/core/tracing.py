@@ -359,6 +359,41 @@ def register_joint_tours(df, trace_hh_id):
     logger.debug("register_joint_tours injected trace_joint_tour_ids %s" % trace_tour_ids)
 
 
+def register_participants(df, trace_hh_id):
+    """
+    Register with inject for tracing
+
+    create an injectable 'trace_participant_ids' with a list of participant_ids in
+    household we are tracing.
+    This allows us to slice by participant_ids without requiring presence of household_id column
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+
+    trace_hh_id: int
+        household id we are tracing
+
+    Returns
+    -------
+    Nothing
+    """
+
+    # but if household_id is in households, then we may have some tours
+    traced_participants_df = slice_ids(df, trace_hh_id, column='household_id')
+    trace_participant_ids = traced_participants_df.index.tolist()
+    if len(trace_participant_ids) == 0:
+        logger.info("register_participants: no participants found for household_id %s." %
+                    trace_hh_id)
+    else:
+        logger.info("tracing participant_ids %s in %s participants" %
+                    (trace_participant_ids, len(df.index)))
+
+    inject.add_injectable("trace_participant_ids", trace_participant_ids)
+    logger.debug("register_participants injected trace_participant_ids %s" % trace_participant_ids)
+
+
 def register_traceable_table(table_name, df):
     """
     Register traceable table
@@ -388,6 +423,8 @@ def register_traceable_table(table_name, df):
         register_tours(df, trace_hh_id)
     elif table_name == 'joint_tours':
         register_joint_tours(df, trace_hh_id)
+    elif table_name == 'participants':
+        register_participants(df, trace_hh_id)
     else:
         logger.warn("register_traceable_table - don't grok '%s'" % table_name)
 
@@ -397,7 +434,7 @@ def traceable_tables():
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
 
-    return ['households', 'persons', 'tours', 'trips', 'jount_tours']
+    return ['households', 'persons', 'tours', 'trips', 'jount_tours', 'participants']
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
@@ -549,6 +586,13 @@ def get_trace_target(df, slicer):
     if slicer is None:
         slicer = df.index.name
 
+    # always slice by household id if we can
+    if isinstance(df, pd.DataFrame):
+        if ('household_id' in df.columns):
+            slicer = 'household_id'
+        elif ('person_id' in df.columns):
+            slicer = 'person_id'
+
     target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
     column = None  # column name to slice on or None to slice on index
 
@@ -565,28 +609,20 @@ def get_trace_target(df, slicer):
         target_ids = inject.get_injectable('trace_hh_id', [])
         column = slicer
     elif slicer == 'tour_id':
-        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target_ids = inject.get_injectable('trace_person_ids', [])
-            column = 'person_id'
-        else:
-            target_ids = inject.get_injectable('trace_tour_ids', [])
-    elif slicer == 'trip_id':  # FIX ME
-        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target_ids = inject.get_injectable('trace_person_ids', [])
-            column = 'person_id'
-        else:
-            target_ids = inject.get_injectable('trace_trip_ids', [])
+        target_ids = inject.get_injectable('trace_tour_ids', [])
+    elif slicer == 'trip_id':
+        target_ids = inject.get_injectable('trace_trip_ids', [])
     elif slicer == 'joint_tour_id':
-        if isinstance(df, pd.DataFrame) and ('household_id' in df.columns):
-            target_ids = inject.get_injectable('trace_hh_id', [])
-            column = 'household_id'
-        else:
-            target_ids = inject.get_injectable('trace_tour_ids', [])
+        target_ids = inject.get_injectable('trace_tour_ids', [])
+    elif slicer == 'participant_id':
+        target_ids = inject.get_injectable('trace_participant_ids', [])
     elif slicer == 'TAZ' or slicer == 'ZONE':
         target_ids = inject.get_injectable('trace_od', [])
     elif slicer == 'NONE':
         target_ids = None
     else:
+        print df.head()
+        return None, 'NONE'
         raise RuntimeError("slice_canonically: bad slicer '%s'" % (slicer, ))
 
     if target_ids and not isinstance(target_ids, (list, tuple)):

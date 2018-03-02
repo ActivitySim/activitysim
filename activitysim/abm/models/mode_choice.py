@@ -376,7 +376,7 @@ def trip_mode_choice_simulate(trips_merged,
             trace_label=tracing.extend_trace_label(trace_label, tour_type),
             trace_choice_name='trip_mode_choice')
 
-        # FIXME - no point in printing verbose value_counts now that we have tracing?
+        #   FIXME - no point in printing verbose value_counts now that we have tracing?
         tracing.print_summary('trip_mode_choice_simulate %s choices' % tour_type,
                               choices, value_counts=True)
 
@@ -390,7 +390,6 @@ def trip_mode_choice_simulate(trips_merged,
     tracing.print_summary('trip_mode_choice_simulate all tour type choices',
                           choices, value_counts=True)
 
-    # FIXME - is this a NOP if trips table doesn't exist
     inject.add_column("trips", "trip_mode", choices)
 
     if trace_hh_id:

@@ -3,15 +3,8 @@ Description,Target,Expression
 age_16_to_19,age_16_to_19,"persons.age.between(16, 19)"
 age_16_p,age_16_p,persons.age >= 16
 adult,adult,persons.age >= 18
-#,, FIXME - these are my placeholder for joint trip generation
-num_shop_j,num_shop_j,0
-num_main_j,num_main_j,0
-num_eat_j,num_eat_j,0
-num_visi_j,num_visi_j,0
-num_disc_j,num_disc_j,0
 male,male,persons.sex == 1
 female,female,persons.sex == 2
-num_joint_tours,num_joint_tours,num_shop_j + num_main_j + num_eat_j + num_visi_j + num_disc_j
 presence of non_worker other than self in household,has_non_worker,"other_than(persons.household_id, persons.ptype == constants.PTYPE_NONWORK)"
 presence of retiree other than self in household,has_retiree,"other_than(persons.household_id, persons.ptype == constants.PTYPE_RETIRED)"
 presence of preschooler other than self in household,has_preschool_kid,"other_than(persons.household_id, persons.ptype == constants.PTYPE_PRESCHOOL)"
@@ -28,6 +21,3 @@ is_gradeschool,is_gradeschool,"(persons.pstudent == constants.PSTUDENT_GRADE_OR_
 is_highschool,is_highschool,"(persons.pstudent == constants.PSTUDENT_GRADE_OR_HIGH) & (persons.age > setting('grade_school_max_age'))"
 is_university,is_university,"persons.pstudent == constants.PSTUDENT_UNIVERSITY"
 home_taz,home_taz,"reindex(households.TAZ, persons.household_id)"
-#,, FIXME not totally sure what this is but it's used in non mandatory tour generation and probably has to do with remaining unscheduled time
-max_window,max_window,0
-

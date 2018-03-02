@@ -19,18 +19,6 @@ from activitysim.core.util import assign_in_place
 from activitysim.core import util
 
 
-# # this is an idiom to grab the person of the specified type and check to see if
-# # there is 1 or more of that kind of person in each household
-# def presence_of(ptype, persons, at_home=False):
-#     if at_home:
-#         # if at_home, they need to be of given type AND at home
-#         bools = (persons.ptype == ptype) & (persons.cdap_activity == "H")
-#     else:
-#         bools = persons.ptype == ptype
-#
-#     return other_than(persons.household_id, bools)
-#
-
 def local_utilities():
     """
     Dict of useful modules and functions to provides as locals for use in eval of expressions

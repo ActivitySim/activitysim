@@ -15,7 +15,9 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 
+
 from .util import expressions
+from .util.overlap import person_max_window
 
 from activitysim.abm.tables.constants import PTYPE_NAME
 
@@ -65,6 +67,20 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     # FIXME kind of tacky both that we know to add this here and del it below
     non_mandatory_tour_frequency_alts['tot_tours'] = non_mandatory_tour_frequency_alts.sum(axis=1)
 
+    # - preprocessor
+    preprocessor_settings = non_mandatory_tour_frequency_settings.get('preprocessor_settings', None)
+    if preprocessor_settings:
+
+        locals_dict = {
+            'person_max_window': person_max_window
+        }
+
+        expressions.assign_columns(
+            df=choosers,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_dict,
+            trace_label=trace_label)
+
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
 
@@ -94,10 +110,13 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
         t0 = print_elapsed_time("non_mandatory_tour_frequency.%s" % name, t0, debug=True)
 
-        # FIXME - force garbage collection
+        # FIXME - force garbage collection?
         # force_garbage_collect()
 
     choices = pd.concat(choices_list)
+
+    # FIXME del when done with choosers dataframe?
+    # del choosers
 
     persons = persons.to_frame()
 
@@ -134,6 +153,10 @@ def non_mandatory_tour_frequency(persons, persons_merged,
                          label="non_mandatory_tour_frequency.non_mandatory_tours",
                          warn_if_empty=True)
 
-        tracing.trace_df(inject.get_table('persons').to_frame(),
-                         label="non_mandatory_tour_frequency.persons",
+        tracing.trace_df(choosers,
+                         label="non_mandatory_tour_frequency.choosers",
+                         warn_if_empty=True)
+
+        tracing.trace_df(persons,
+                         label="non_mandatory_tour_frequency.annotated_persons",
                          warn_if_empty=True)

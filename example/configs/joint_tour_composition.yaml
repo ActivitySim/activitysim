@@ -1,0 +1,9 @@
+LOGIT_TYPE: MNL
+
+
+preprocessor_settings:
+  SPEC: annotate_households_joint_composition_preprocessor
+  DF: households
+#  TABLES:
+#    - persons
+#    - accessibility

@@ -236,7 +236,7 @@ class TimeTable(object):
 
         Parameters
         ----------
-        row_ids : pandas Series
+        window_row_ids : pandas Series
             series of window_row_ids indexed by tour_id
         tdds : pandas series
             series of tdd_alt ids, index irrelevant
@@ -347,11 +347,11 @@ class TimeTable(object):
         available1 = (self.slice_windows_by_row_id(window1_row_ids) != I_MIDDLE) * 1
         available2 = (self.slice_windows_by_row_id(window2_row_ids) != I_MIDDLE) * 1
 
-        available = (available1 * available2)
+        return (available1 * available2)
 
-        np.set_printoptions(edgeitems=10)
+    def individually_available(self, window_row_ids):
 
-        return available
+        return (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
 
     def adjacent_window_run_length(self, window_row_ids, periods, before):
         """

@@ -457,7 +457,7 @@ def set_joint_tour_index(tours, alts):
     tours.set_index(index_name, inplace=True, verify_integrity=True)
 
 
-def process_joint_tours(households, joint_tour_frequency_alts):
+def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts):
     """
     This method processes the joint_tour_frequency column that comes out of
     the model of the same name and turns into a DataFrame that represents the
@@ -465,10 +465,8 @@ def process_joint_tours(households, joint_tour_frequency_alts):
 
     Parameters
     ----------
-    households : DataFrame
-        Persons is a DataFrame which has a column called
-        joint_tour_frequency (which came out of the joint tour
-        frequency model)
+    joint_tour_frequency : pandas.Series
+        houeshold joint_tour_frequency (which came out of the joint tour frequency model)
 
     Returns
     -------
@@ -480,9 +478,9 @@ def process_joint_tours(households, joint_tour_frequency_alts):
         made by the household.
     """
 
-    assert not households.joint_tour_frequency.isnull().any()
+    assert not joint_tour_frequency.isnull().any()
 
-    tours = process_tours(households.joint_tour_frequency.dropna(),
+    tours = process_tours(joint_tour_frequency.dropna(),
                           joint_tour_frequency_alts,
                           tour_category=None,
                           parent_col=JOINT_TOUR_OWNER_ID_COL)

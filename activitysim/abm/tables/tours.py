@@ -21,10 +21,19 @@ def tours_merged(tours, persons_merged):
 inject.broadcast('persons_merged', 'tours', cast_index=True, onto_on='person_id')
 
 
+# @inject.table()
+# def joint_tours_merged(tours, households):
+#     return inject.merge_tables(joint_tours_merged.name, tables=[
+#         tours, households])
+#
+#
+# inject.broadcast('households', 'joint_tours', cast_index=True, onto_on='household_id')
+
+
 @inject.table()
-def joint_tours_merged(tours, households):
-    return inject.merge_tables(joint_tours_merged.name, tables=[
-        tours, households])
+def participants_merged(joint_tour_participants, joint_tours):
+    return inject.merge_tables(joint_tour_participants.name, tables=[
+        joint_tour_participants, joint_tours])
 
 
-inject.broadcast('households', 'joint_tours', cast_index=True, onto_on='household_id')
+inject.broadcast('joint_tours', 'joint_tour_participants', cast_index=True, onto_on='joint_tour_id')

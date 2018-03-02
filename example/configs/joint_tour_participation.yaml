@@ -1,0 +1,16 @@
+LOGIT_TYPE: MNL
+
+
+preprocessor_settings:
+  SPEC: annotate_participants_joint_participation_preprocessor
+  DF: participants
+#  TABLES:
+#    - persons
+#    - accessibility
+
+
+annotate_persons:
+  SPEC: annotate_persons_joint_participation
+  DF: persons
+  TABLES:
+    - participants_merged

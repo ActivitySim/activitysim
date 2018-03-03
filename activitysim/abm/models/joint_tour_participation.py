@@ -50,10 +50,6 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
         persons_merged.reset_index().rename(columns={persons_merged.index.name: 'person_id'}),
         left_on=['household_id'], right_on=['household_id'])
 
-    print "persons_merged", persons_merged.shape
-    print "candidates['joint_tour_id'].unique()", candidates['joint_tour_id'].unique()
-    print "joint_tours", joint_tours
-
     # should have all joint_tours
     assert len(candidates['joint_tour_id'].unique()) == joint_tours.shape[0]
 
@@ -166,8 +162,6 @@ def joint_tour_participation(
 
         satisfaction = get_satisfaction(candidates)
 
-        print satisfaction
-
         candidates['satisfied'] = reindex(satisfaction, candidates.joint_tour_id)
 
         iter += 1
@@ -192,8 +186,6 @@ def joint_tour_participation(
 
     participants = pd.concat(participants_list)
     pipeline.replace_table("joint_tour_participants", participants)
-
-    print "joint_tour_participants\n", participants
 
     # FIXME drop channel if we aren't using any more?
     # pipeline.get_rn_generator().drop_channel('joint_tours_participants')

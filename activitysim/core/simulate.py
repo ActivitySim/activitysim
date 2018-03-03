@@ -125,9 +125,9 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
         return x
 
     value_list = []
-    print('eval_variables', end='')
+    print('eval_variables', end='')  # print ... for each expression
     for expr in exprs:
-        print('.', end='')
+        print('.', end='')  # print ...
         # logger.debug("eval_variables: %s" % expr)
         # logger.debug("eval_variables %s" % util.memory_info())
         try:
@@ -137,10 +137,10 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
                 expr_values = df.eval(expr)
             value_list.append((expr, expr_values))
         except Exception as err:
-            print()
+            print()  # print ...
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
-    print()
+    print()  # print ...
 
     values = pd.DataFrame.from_items(value_list)
 

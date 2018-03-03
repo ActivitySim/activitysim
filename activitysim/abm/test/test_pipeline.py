@@ -315,10 +315,54 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
-EXPECT_TOUR_TYPES = ['work', 'school', 'work']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC']
-EXPECT_TOUR_COUNT = 164
+EXPECT_MAND_PERSON_IDS = ['1888694', '1888695', '1888696']
+EXPECT_MAND_TOUR_TYPES = ['work', 'school', 'work']
+EXPECT_MAND_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVE_LOC']
+
+EXPECT_NON_MAND_PERSON_IDS =\
+    ['1888694', '1888694', '1888695', '1888695',
+     '1888695', '1888696', '1888696', '1888696']
+EXPECT_NON_MAND_TOUR_TYPES = \
+    ['othdiscr', 'social', 'shopping', 'othmaint',
+     'social', 'shopping', 'othdiscr', 'social']
+EXPECT_NON_MAND_MODES = \
+    ['BIKE', 'DRIVE_COM', 'DRIVE_COM', 'DRIVE_COM',
+     'DRIVE_COM', 'DRIVEALONEPAY', 'DRIVEALONEPAY', 'DRIVE_COM']
+
+
+# previous EXPECT_TOUR_COUNT = 164
+EXPECT_TOUR_COUNT = 310
+
+
+def regress_mode_df(mode_df):
+
+    mode_df = mode_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
+
+    print mode_df
+    #            tour_id           mode person_id tour_type tour_num  tour_category
+    # value_1   35885203      DRIVE_LOC   1888694      work        1      mandatory
+    # value_4   35885197           BIKE   1888694  othdiscr        1  non_mandatory
+    # value_5   35885202      DRIVE_COM   1888694    social        2  non_mandatory
+    # value_2   35885218      DRIVE_LOC   1888695    school        1      mandatory
+    # value_6   35885220      DRIVE_COM   1888695  shopping        1  non_mandatory
+    # value_7   35885217      DRIVE_COM   1888695  othmaint        2  non_mandatory
+    # value_8   35885221      DRIVE_COM   1888695    social        3  non_mandatory
+    # value_3   35885241      DRIVE_LOC   1888696      work        1      mandatory
+    # value_9   35885239  DRIVEALONEPAY   1888696  shopping        1  non_mandatory
+    # value_10  35885235  DRIVEALONEPAY   1888696  othdiscr        2  non_mandatory
+    # value_11  35885240      DRIVE_COM   1888696    social        3  non_mandatory
+
+    mand_mode_df = mode_df[mode_df.tour_category == 'mandatory']
+    assert len(mand_mode_df.person_id) == len(EXPECT_MAND_PERSON_IDS)
+    assert (mand_mode_df.person_id.values == EXPECT_MAND_PERSON_IDS).all()
+    assert (mand_mode_df.tour_type.values == EXPECT_MAND_TOUR_TYPES).all()
+    assert (mand_mode_df['mode'].values == EXPECT_MAND_MODES).all()
+
+    non_mand_mode_df = mode_df[mode_df.tour_category == 'non_mandatory']
+    assert len(non_mand_mode_df.person_id) == len(EXPECT_NON_MAND_PERSON_IDS)
+    assert (non_mand_mode_df.person_id.values == EXPECT_NON_MAND_PERSON_IDS).all()
+    assert (non_mand_mode_df.tour_type.values == EXPECT_NON_MAND_TOUR_TYPES).all()
+    assert (non_mand_mode_df['mode'].values == EXPECT_NON_MAND_MODES).all()
 
 
 def test_full_run1():
@@ -332,18 +376,7 @@ def test_full_run1():
     assert(tour_count == EXPECT_TOUR_COUNT)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
-
-    print mode_df
-    #           tour_id       mode person_id tour_type tour_num
-    # value_1  35885203  DRIVE_LOC   1888694      work        1
-    # value_2  35885218  DRIVE_LOC   1888695    school        1
-    # value_3  35885241  DRIVE_LOC   1888696      work        1
-
-    assert len(mode_df.person_id) == len(EXPECT_PERSON_IDS)
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_MODES).all()
+    regress_mode_df(mode_df)
 
 
 def test_full_run2():
@@ -358,11 +391,7 @@ def test_full_run2():
     assert(tour_count == EXPECT_TOUR_COUNT)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
-
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_MODES).all()
+    regress_mode_df(mode_df)
 
 
 def test_full_run_with_chunks():
@@ -379,11 +408,7 @@ def test_full_run_with_chunks():
     assert(tour_count == EXPECT_TOUR_COUNT)
 
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
-
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_MODES).all()
+    regress_mode_df(mode_df)
 
 
 def test_full_run_stability():
@@ -399,11 +424,8 @@ def test_full_run_stability():
     mode_df = get_trace_csv('tour_mode_choice.mode.csv')
     mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
 
-    print mode_df
-
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).any()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).any()
-    assert (mode_df['mode'].values == EXPECT_MODES).any()
+    mode_df = get_trace_csv('tour_mode_choice.mode.csv')
+    regress_mode_df(mode_df)
 
 
 # if __name__ == "__main__":

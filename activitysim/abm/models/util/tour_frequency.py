@@ -85,8 +85,6 @@ def set_tour_index(tours, parent_tour_num_col=None):
         # (e.g. eat1_1 is eat subtour for parent work tour 1 and eat1_2 is for work tour 2)
         tours['tour_id'] = tours['tour_id'] + '_' + tours[parent_tour_num_col].map(str)
 
-    print tours
-
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(to_replace=possible_tours,
                                           value=range(possible_tours_count))

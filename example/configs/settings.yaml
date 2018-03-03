@@ -58,6 +58,7 @@ output_tables:
   prefix: final_
   tables:
     - checkpoints
+    - tours
 
 
 # area_types less than this are considered urban

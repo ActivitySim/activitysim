@@ -47,11 +47,15 @@ class Pipeline(object):
 
         self.replaced_tables = {}
 
-        self.prng = random.Random()
+        self._rng = random.Random()
 
         self.open_files = {}
 
         self.pipeline_store = None
+
+    def rng(self):
+
+        return self._rng
 
 
 _PIPELINE = Pipeline()
@@ -121,7 +125,45 @@ def get_rn_generator():
     activitysim.random.Random
     """
 
-    return _PIPELINE.prng
+    return _PIPELINE.rng()
+
+
+def set_rn_generator_channel_info(channel_info):
+    """
+    We expect that the random number channel can be determined by the name of the index of the
+    dataframe accompanying the request.
+
+    channel_info is a dict with keys and value of the form:
+
+    <channel_name>: {
+        'max_steps': <num_max_steps>,
+        'index': <table_index_name>
+    }
+
+    channel_name: str
+        The channel name is just the table name used by the pipeline and inject.
+    index: str
+        name of the table index (so we can deduce the channel for a dataframe by index name)
+    max_steps: int
+        the max number os steps that will request random numbers for the channel
+
+    e.g.:
+
+    channel_info = {
+        'households': {
+            'max_steps': 3,
+            'index': 'HHID'
+        },
+        'persons': {
+            'max_steps': 8,
+            'index': 'PERID'
+        },
+
+        ...
+    }
+    """
+
+    _PIPELINE.rng().set_channel_info(channel_info)
 
 
 def set_rn_generator_base_seed(seed):
@@ -147,7 +189,7 @@ def set_rn_generator_base_seed(seed):
     if _PIPELINE.last_checkpoint:
         raise RuntimeError("Can only call set_rn_generator_base_seed before the first step.")
 
-    _PIPELINE.prng.set_base_seed(seed)
+    _PIPELINE.rng().set_base_seed(seed)
 
 
 def read_df(table_name, checkpoint_name=None):
@@ -309,7 +351,7 @@ def add_checkpoint(checkpoint_name):
     _PIPELINE.last_checkpoint[TIMESTAMP] = timestamp
 
     # current state of the random number generator
-    _PIPELINE.last_checkpoint[PRNG_CHANNELS] = cPickle.dumps(_PIPELINE.prng.get_channels())
+    _PIPELINE.last_checkpoint[PRNG_CHANNELS] = cPickle.dumps(_PIPELINE.rng().get_channels())
 
     # append to the array of checkpoint history
     _PIPELINE.checkpoints.append(_PIPELINE.last_checkpoint.copy())
@@ -324,7 +366,7 @@ def add_checkpoint(checkpoint_name):
     # write it to the store, overwriting any previous version (no way to simply extend)
     write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
-    for channel_state in _PIPELINE.prng.get_channels():
+    for channel_state in _PIPELINE.rng().get_channels():
         logger.debug("channel_name '%s', step_name '%s', offset: %s" % channel_state)
 
 
@@ -411,7 +453,7 @@ def load_checkpoint(checkpoint_name):
 
     # set random state to pickled state at end of last checkpoint
     logger.debug("resetting random state")
-    _PIPELINE.prng.load_channels(cPickle.loads(_PIPELINE.last_checkpoint[PRNG_CHANNELS]))
+    _PIPELINE.rng().load_channels(cPickle.loads(_PIPELINE.last_checkpoint[PRNG_CHANNELS]))
 
 
 def split_arg(s, sep, default=''):
@@ -451,7 +493,7 @@ def run_model(model_name):
     if model_name in [checkpoint[CHECKPOINT_NAME] for checkpoint in _PIPELINE.checkpoints]:
         raise RuntimeError("Cannot run model '%s' more than once" % model_name)
 
-    _PIPELINE.prng.begin_step(model_name)
+    _PIPELINE.rng().begin_step(model_name)
 
     # check for args
     if '.' in model_name:
@@ -476,7 +518,7 @@ def run_model(model_name):
 
     inject.set_step_args(None)
 
-    _PIPELINE.prng.end_step(model_name)
+    _PIPELINE.rng().end_step(model_name)
     if checkpoint:
         t0 = print_elapsed_time()
         add_checkpoint(model_name)
@@ -499,6 +541,12 @@ def open_pipeline(resume_after=None):
     """
 
     logger.info("open_pipeline...")
+
+    if orca.is_injectable('channel_info'):
+        channel_info = inject.get_injectable('channel_info', None)
+        if channel_info:
+            logger.info("initialize ran_generator channel_info")
+            get_rn_generator().set_channel_info(channel_info)
 
     if resume_after:
         # open existing pipeline

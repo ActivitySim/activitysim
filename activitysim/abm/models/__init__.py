@@ -9,6 +9,7 @@ import mandatory_scheduling
 import joint_tour_frequency
 import joint_tour_composition
 import joint_tour_participation
+import joint_tour_destination
 import non_mandatory_tour_frequency
 import non_mandatory_destination
 import non_mandatory_scheduling

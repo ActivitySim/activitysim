@@ -72,24 +72,36 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     return candidates
 
 
-def get_satisfaction(candidates):
+def get_tour_satisfaction(candidates):
 
-    candidates = candidates[candidates.participate]
+    joint_tour_ids = candidates.joint_tour_id.unique()
 
-    # if this happens, we would need to filter them out!
-    assert not ((candidates.composition == 'adults') & ~candidates.adult).any()
-    assert not ((candidates.composition == 'children') & candidates.adult).any()
+    if candidates.participate.any():
 
-    cols = ['joint_tour_id', 'composition', 'adult']
+        candidates = candidates[candidates.participate]
 
-    x = candidates[cols].groupby(['joint_tour_id', 'composition']).adult.agg(['size', 'sum']).\
-        reset_index('composition').rename(columns={'size': 'participants', 'sum': 'adults'})
+        # if this happens, we would need to filter them out!
+        assert not ((candidates.composition == 'adults') & ~candidates.adult).any()
+        assert not ((candidates.composition == 'children') & candidates.adult).any()
 
-    satisfied = (x.composition != 'mixed') & (x.participants > 1) | \
-                (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
-    x['satisfied'] = satisfied
+        cols = ['joint_tour_id', 'composition', 'adult']
 
-    return x.satisfied
+        # tour satisfaction
+        x = candidates[cols].groupby(['joint_tour_id', 'composition']).adult.agg(['size', 'sum']).\
+            reset_index('composition').rename(columns={'size': 'participants', 'sum': 'adults'})
+
+        satisfaction = (x.composition != 'mixed') & (x.participants > 1) | \
+                       (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
+
+        satisfaction = satisfaction.reindex(joint_tour_ids).fillna(False).astype(bool)
+
+    else:
+        satisfaction = pd.Series([])
+
+    # ensure we return a result for every joint tour, even if no participants
+    satisfaction = satisfaction.reindex(joint_tour_ids).fillna(False).astype(bool)
+
+    return satisfaction
 
 
 @inject.step()
@@ -139,8 +151,22 @@ def joint_tour_participation(
 
     participants_list = []
     iter = 0
-    MAX_ITERATIONS = 10
+    MAX_ITERATIONS = 20
     while candidates.shape[0] > 0:
+
+        iter += 1
+
+        logger.info('iteration %s : %s tours (%s candidates).' %
+                    (iter, len(candidates.joint_tour_id.unique()), candidates.shape[0]))
+
+        if iter > MAX_ITERATIONS:
+            logger.warn('giving up on remaining tours after %s iterations' % iter)
+            tracing.trace_df(candidates,
+                             label="joint_tour_participation.unsatisfied",
+                             slicer='NONE', transpose=False,
+                             warn_if_empty=True)
+            assert False
+            break
 
         choices = simulate.simple_simulate(
             candidates,
@@ -148,7 +174,7 @@ def joint_tour_participation(
             nest_spec=nest_spec,
             locals_d=constants,
             chunk_size=chunk_size,
-            trace_label=trace_label,
+            trace_label=tracing.extend_trace_label(trace_label, 'iter_%s' % iter),
             trace_choice_name='participation')
 
         # choice is boolean (participate or not)
@@ -160,29 +186,24 @@ def joint_tour_participation(
 
         candidates['participate'] = choices
 
-        satisfaction = get_satisfaction(candidates)
+        # satisfaction indexed by joint_tour_id
+        tour_satisfaction = get_tour_satisfaction(candidates)
+        num_tours_satisfied = tour_satisfaction.sum()
 
-        candidates['satisfied'] = reindex(satisfaction, candidates.joint_tour_id)
+        if num_tours_satisfied > 0:
 
-        iter += 1
-        if candidates.satisfied.any():
+            candidates['satisfied'] = reindex(tour_satisfaction, candidates.joint_tour_id)
+
             PARTICIPANT_COLS = ['joint_tour_id', 'household_id', 'person_id']
             participant = candidates.satisfied & candidates.participate
             participants = candidates[participant][PARTICIPANT_COLS].copy()
             participants_list.append(participants)
+
+            # remove candidates of satisfied tours
             candidates = candidates[~candidates.satisfied]
 
-            logger.info('iteration %s : %s joint tours (%s candidates) satisfied.' %
-                        (iter, len(participants.joint_tour_id.unique()), participants.shape[0]))
-        else:
-            logger.warn('no joint tours satisfied')
-
-        logger.info('iteration %s : %s tours (%s candidates) unsatisfied.' %
-                    (iter, len(candidates.joint_tour_id.unique()), candidates.shape[0]))
-
-        if iter == MAX_ITERATIONS:
-            logger.warn('giving up on remaining tours after %s iterations' % iteration_num)
-            break
+        num_tours_satisfied = tour_satisfaction.sum()
+        logger.info('iteration %s : %s joint tours satisfied.' % (iter, num_tours_satisfied,))
 
     participants = pd.concat(participants_list)
     pipeline.replace_table("joint_tour_participants", participants)
@@ -197,6 +218,12 @@ def joint_tour_participation(
         model_settings=joint_tour_participation_settings.get('annotate_persons'),
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
     pipeline.replace_table("persons", persons)
+
+    # FIXME - shold annotate joint_tours?
+    joint_tours['person_id'] = participants.groupby('joint_tour_id').person_id.min()
+    joint_tours['number_of_participants'] = participants.groupby('joint_tour_id').size()
+    joint_tours['is_joint'] = True
+    pipeline.replace_table("joint_tours", joint_tours)
 
     if trace_hh_id:
         tracing.trace_df(inject.get_table('participants_merged').to_frame(),

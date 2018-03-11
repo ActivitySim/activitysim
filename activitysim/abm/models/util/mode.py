@@ -74,33 +74,6 @@ def substitute_coefficients(expressions, constants):
     return pd.Series([float(eval(e, constants)) for e in expressions], index=expressions.index)
 
 
-def pre_process_expressions(expressions, variable_templates):
-    """
-    This one is pretty simple - pass in a list of expressions which contain
-    references to templates and pass a dictionary of the templates themselves.
-    Strings will only be evaluated which are prepended with $.
-
-    Parameters
-    ----------
-    expressions : list of strs
-        These are the expressions that will be evaluated - generally these
-        contain templates that get passed below.  So will be something like
-        ['$SKIM_TEMPLATE.format(sk="AMPEAK")']
-    variable_templates : dict of templates
-        Will be passed as the scope of eval.  Keys are usually template names
-        and values are strings.  The dict could be something like
-        {'SKIM_TEMPLATE': 'skims[{sk}]'}
-
-    Returns
-    -------
-    expressions : list of strs
-        Each expression is evaluated with variable_templates in the scope and
-        the result is returned.
-    """
-    return [eval(e[1:], variable_templates) if e.startswith('$') else e for
-            e in expressions]
-
-
 def expand_alternatives(df):
     """
     Alternatives are kept as a comma separated list.  At this stage we need
@@ -160,10 +133,8 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs, mode_choice_setti
         after running evaluate_expression_list, and that these floats are
         substituted in multiple place in the mode_choice_spec_df.
     mode_choice_settings : Dict, usually read from YAML
-        Has two values which are used.  One key in CONSTANTS which is used as
-        the scope for the evals which take place here and one that is
-        VARIABLE_TEMPLATES which is used as the scope for expressions in
-        mode_choice_spec_df which are prepended with "$"
+        Has key CONSTANTS which is used as the scope for the evals which
+        take place here.
 
     Returns
     -------
@@ -174,20 +145,12 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs, mode_choice_setti
     trace_label = tracing.extend_trace_label(trace_label, '_mode_choice_spec')
 
     constants = mode_choice_settings['CONSTANTS']
-    templates = mode_choice_settings['VARIABLE_TEMPLATES']
     df = mode_choice_spec_df
-    index_name = df.index.name
 
     if trace_spec:
         tracing.trace_df(df,
                          tracing.extend_trace_label(trace_label, 'raw'),
                          slicer='NONE', transpose=False)
-
-    # FIXME - this is no longer used and should probably be removed
-    # the expressions themselves can be prepended with a "$" in order to use
-    # model templates that are shared by several different expressions
-    df.index = pre_process_expressions(df.index, templates)
-    df.index.name = index_name
 
     # set index to ['Expression', 'Alternative']
     df = df.set_index('Alternative', append=True)
@@ -226,3 +189,22 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs, mode_choice_setti
                          slicer='NONE', transpose=False)
 
     return df
+
+
+def get_segment_and_unstack(omnibus_spec, segment):
+    """
+    This does what it says.  Take the spec, get the column from the spec for
+    the given segment, and unstack.  It is assumed that the last column of
+    the multiindex is alternatives so when you do this unstacking,
+    each alternative is in a column (which is the format this as used for the
+    simple_simulate call.  The weird nuance here is the "Rowid" column -
+    since many expressions are repeated (e.g. many are just "1") a Rowid
+    column is necessary to identify which alternatives are actually part of
+    which original row - otherwise the unstack is incorrect (i.e. the index
+    is not unique)
+    """
+    spec = omnibus_spec[segment].unstack().reset_index(level="Rowid", drop=True).fillna(0)
+
+    spec = spec.groupby(spec.index).sum()
+
+    return spec

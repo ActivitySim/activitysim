@@ -15,6 +15,7 @@ from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 from .util.mode import _mode_choice_spec
+from .util.mode import get_segment_and_unstack
 
 logger = logging.getLogger(__name__)
 
@@ -70,25 +71,6 @@ def _mode_choice_simulate(records,
     choices = choices.map(dict(zip(range(len(alts)), alts)))
 
     return choices
-
-
-def get_segment_and_unstack(omnibus_spec, segment):
-    """
-    This does what it says.  Take the spec, get the column from the spec for
-    the given segment, and unstack.  It is assumed that the last column of
-    the multiindex is alternatives so when you do this unstacking,
-    each alternative is in a column (which is the format this as used for the
-    simple_simulate call.  The weird nuance here is the "Rowid" column -
-    since many expressions are repeated (e.g. many are just "1") a Rowid
-    column is necessary to identify which alternatives are actually part of
-    which original row - otherwise the unstack is incorrect (i.e. the index
-    is not unique)
-    """
-    spec = omnibus_spec[segment].unstack().reset_index(level="Rowid", drop=True).fillna(0)
-
-    spec = spec.groupby(spec.index).sum()
-
-    return spec
 
 
 """

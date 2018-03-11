@@ -14,3 +14,4 @@ annotate_persons:
   DF: persons
   TABLES:
     - participants_merged
+

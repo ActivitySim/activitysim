@@ -15,29 +15,31 @@ from activitysim.core import pipeline
 
 from .util import expressions
 from activitysim.core.util import assign_in_place
+from .util.tour_destination import tour_destination_size_terms
 
 logger = logging.getLogger(__name__)
 
 
 @inject.injectable()
-def non_mandatory_tour_destination_choice_spec(configs_dir):
-    return read_model_spec(configs_dir, 'non_mandatory_tour_destination_choice.csv')
+def non_mandatory_tour_destination_spec(configs_dir):
+    return read_model_spec(configs_dir, 'non_mandatory_tour_destination_sample.csv')
 
 
 @inject.injectable()
-def non_mandatory_tour_destination_choice_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'non_mandatory_tour_destination_choice.yaml')
+def non_mandatory_tour_destination_settings(configs_dir):
+    return config.read_model_settings(configs_dir, 'non_mandatory_tour_destination.yaml')
 
 
 @inject.step()
-def non_mandatory_tour_destination_choice(tours,
-                                          persons_merged,
-                                          skim_dict,
-                                          non_mandatory_tour_destination_choice_spec,
-                                          non_mandatory_tour_destination_choice_settings,
-                                          destination_size_terms,
-                                          chunk_size,
-                                          trace_hh_id):
+def non_mandatory_tour_destination(
+        tours,
+        persons_merged,
+        skim_dict,
+        non_mandatory_tour_destination_spec,
+        non_mandatory_tour_destination_settings,
+        land_use, size_terms,
+        chunk_size,
+        trace_hh_id):
 
     """
     Given the tour generation from the above, each tour needs to have a
@@ -50,20 +52,23 @@ def non_mandatory_tour_destination_choice(tours,
     tours = tours.to_frame()
 
     persons_merged = persons_merged.to_frame()
-    alternatives = destination_size_terms.to_frame()
-    spec = non_mandatory_tour_destination_choice_spec
+    alternatives = tour_destination_size_terms(land_use, size_terms, 'non_mandatory')
+    spec = non_mandatory_tour_destination_spec
 
     # choosers are tours - in a sense tours are choosing their destination
     non_mandatory_tours = tours[tours.non_mandatory]
+
+    # FIXME - don't need all persons_merged columns...
     choosers = pd.merge(non_mandatory_tours, persons_merged, left_on='person_id', right_index=True)
 
-    constants = config.get_model_constants(non_mandatory_tour_destination_choice_settings)
+    constants = config.get_model_constants(non_mandatory_tour_destination_settings)
 
-    sample_size = non_mandatory_tour_destination_choice_settings["SAMPLE_SIZE"]
+    sample_size = non_mandatory_tour_destination_settings["SAMPLE_SIZE"]
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
-    # the skims will be available under the name "skims" for any @ expressions
+    # interaction_dataset adds '_r' suffix to duplicate columns,
+    # so TAZ column from households is TAZ and TAZ column from alternatives becomes TAZ_r
     skims = skim_dict.wrap("TAZ", "TAZ_r")
 
     locals_d = {
@@ -88,7 +93,7 @@ def non_mandatory_tour_destination_choice(tours,
         # the segment is now available to switch between size terms
         locals_d['segment'] = kludge_name
 
-        # FIXME - no point in considering impossible alternatives
+        # FIXME - no point in considering impossible alternatives (where dest size term is zero)
         alternatives_segment = alternatives[alternatives[kludge_name] > 0]
 
         logger.info("Running segment '%s' of %d tours %d alternatives" %

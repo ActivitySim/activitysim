@@ -22,17 +22,25 @@ SavedChannelState = collections.namedtuple('SavedChannelState', 'channel_name st
 
 """
 We expect that the random number channel can be determined by the name of the index of the
-dataframe accompanying the request. This function encapsulates the knowledge of that mapping.
+dataframe accompanying the request.
 
-Generally, the channel name is just the table name used by the pipeline and orca.
-The exception is the 'tours' channel, which is messy because the mandatory and non-mandatory
-tours tables are originally created separately and later combined in to a single 'tours'
-table. But during a few model steps before they are combined, they actually exist as two
-distinct tables. We only need to know this dirty secret about tables when we reload
-checkpointed channels.
-"""
+channel_info is a dict with keys and value of the form:
 
-_CHANNELS = {
+<channel_name>: {
+    'max_steps': <num_max_steps>,
+    'index': <table_index_name>
+}
+
+channel_name: str
+    The channel name is just the table name used by the pipeline and inject.
+index: str
+    name of the table index (so we can deduce the channel for a dataframe by index name)
+max_steps: int
+    the max number os steps that will request random numbers for the channel
+
+e.g.:
+
+channel_info = {
     'households': {
         'max_steps': 3,
         'index': 'HHID'
@@ -41,23 +49,10 @@ _CHANNELS = {
         'max_steps': 8,
         'index': 'PERID'
     },
-    'tours': {
-        'max_steps': 9,
-        'index': 'tour_id'
-    },
-    'joint_tours': {
-        'max_steps': 1,
-        'index': 'joint_tour_id'
-    },
-    'joint_tour_participants': {
-        'max_steps': 1,
-        'index': 'participant_id'
-    },
-    'trips': {
-        'max_steps': 5,
-        'index': 'trip_id'
-    },
+
+    ...
 }
+"""
 
 
 class SimpleChannel(object):
@@ -367,19 +362,27 @@ class SimpleChannel(object):
 
 class Random(object):
 
-    def __init__(self, channel_info=_CHANNELS):
+    def __init__(self):
 
-        self.channel_info = channel_info.copy()
-
-        # for map index name to channel name
-        self.index_map = {info['index']: channel_name
-                          for channel_name, info in self.channel_info.iteritems()}
+        # initialized in set_channel_info
+        self.channel_info = {}
+        self.index_map = {}
 
         self.channels = {}
         self.step_name = None
         self.step_seed = None
         self.base_seed = 0
         self.global_rng = np.random.RandomState()
+
+    def set_channel_info(self, channel_info):
+
+        assert len(self.channel_info) == 0
+        assert len(self.channels) == 0
+        self.channel_info = channel_info
+
+        # for mapping index name to channel name
+        self.index_map = {info['index']: channel_name
+                          for channel_name, info in self.channel_info.iteritems()}
 
     def get_channel_info(self, channel_name, property_name):
 

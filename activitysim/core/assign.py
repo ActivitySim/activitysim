@@ -209,6 +209,9 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
         target, expression = e
 
+        assert isinstance(target, str), \
+            "expected target '%s' for expression '%s' to be string" % (target, expression)
+
         if target in local_keys:
             logger.warn("assign_variables target obscures local_d name '%s'" % str(target))
 

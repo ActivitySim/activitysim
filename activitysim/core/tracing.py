@@ -583,6 +583,13 @@ def get_trace_target(df, slicer):
         name of column to search for targets or None to search index
     """
 
+    target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
+    column = None  # column name to slice on or None to slice on index
+
+    # special do-not-slice code for dumping entire df
+    if slicer == 'NONE':
+        return target_ids, column
+
     if slicer is None:
         slicer = df.index.name
 
@@ -592,9 +599,6 @@ def get_trace_target(df, slicer):
             slicer = 'household_id'
         elif ('person_id' in df.columns):
             slicer = 'person_id'
-
-    target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
-    column = None  # column name to slice on or None to slice on index
 
     if len(df.index) == 0:
         target_ids = None
@@ -783,6 +787,9 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     elif (choosers.index.name == 'tour_id' and 'person_id' in choosers.columns):
         slicer_column_name = 'person_id'
         targets = inject.get_injectable('trace_person_ids', [])
+    elif (choosers.index.name == 'joint_tour_id' and 'household_id' in choosers.columns):
+        slicer_column_name = 'household_id'
+        targets = inject.get_injectable('trace_hh_id', [])
     else:
         raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
                            % choosers.index.name)
@@ -804,9 +811,14 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
         if slicer_column_name == choosers.index.name:
             trace_rows = np.in1d(choosers.index, targets)
             trace_ids = np.asanyarray(choosers[trace_rows].index)
-        else:
+        elif slicer_column_name == 'person_id':
             trace_rows = np.in1d(choosers['person_id'], targets)
             trace_ids = np.asanyarray(choosers[trace_rows].person_id)
+        elif slicer_column_name == 'household_id':
+            trace_rows = np.in1d(choosers['household_id'], targets)
+            trace_ids = np.asanyarray(choosers[trace_rows].household_id)
+        else:
+            assert False
 
         # simply repeat if sample size is constant across choosers
         assert sample_size == len(interaction_df.index) / len(choosers.index)
@@ -843,6 +855,7 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
     assert type(trace_ids[1]) == np.ndarray
 
     slicer_column_name = trace_ids[0]
+
     trace_results[slicer_column_name] = trace_ids[1]
 
     targets = np.unique(trace_ids[1])

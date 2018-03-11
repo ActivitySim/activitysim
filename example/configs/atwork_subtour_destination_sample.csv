@@ -1,15 +1,8 @@
 Description,Expression,atwork
-# Sample of alternatives correction factor,"min(dcSoaCorrections,60)",1
 "Distance, piecewise linear from 0 to 1 miles",@skims['DIST'].clip(1),-0.7926
 "Distance, piecewise linear from 1 to 2 miles","@(skims['DIST']-1).clip(0,1)",-0.7926
 "Distance, piecewise linear from 2 to 5 miles","@(skims['DIST']-2).clip(0,3)",-0.5197
 "Distance, piecewise linear from 5 to 15 miles","@(skims['DIST']-5).clip(0,10)",-0.2045
 "Distance, piecewise linear for 15+ miles",@(skims['DIST']-15.0).clip(0),-0.2045
-"Size variable full-time worker, low income","@(df.income_segment==1)*df['work, low'].apply(np.log1p)",1
-"Size variable full-time worker, medium income","@(df.income_segment==2)*df['work, med'].apply(np.log1p)",1
-"Size variable full-time worker, high income","@(df.income_segment==3)*df['work, high'].apply(np.log1p)",1
-"Size variable full-time worker, very high income","@(df.income_segment==4)*df['work, veryhigh'].apply(np.log1p)",1
-"No attractions full-time worker, low income","@(df.income_segment==1)&(df['work, low']==0)",-999
-"No attractions full-time worker, medium income","@(df.income_segment==2)&(df['work, med']==0)",-999
-"No attractions full-time worker, high income","@(df.income_segment==3)&(df['work, high']==0)",-999
-"No attractions full-time worker, very high income","@(df.income_segment==4)&(df['work, veryhigh']==0)",-999
+"Size variable atwork","@(df.income_segment==1)*df['atwork'].apply(np.log1p)",1
+"No attractions, atwork",atwork==0,-999

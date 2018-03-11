@@ -1,5 +1,6 @@
 # alt file for building joint tours
-alt,shop,main,eat,visit,disc
+#alt,shop,main,eat,visit,disc
+alt,shopping,othmaint,eatout,social,othdiscr
 0_tours,0,0,0,0,0
 1_Shop,1,0,0,0,0
 1_Main,0,1,0,0,0

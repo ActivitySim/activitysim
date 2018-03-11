@@ -19,13 +19,8 @@ from .util import expressions
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def initialize_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'initialize.yaml')
-
-
 @inject.step()
-def initialize(store, initialize_settings):
+def initialize(store, configs_dir):
     """
     Because random seed is set differently for each step, the sampling of households depends
     on which step they are initially loaded in so we force them to load here and they get
@@ -34,9 +29,11 @@ def initialize(store, initialize_settings):
 
     trace_label = 'initialize'
 
+    model_settings = config.read_model_settings(configs_dir, 'initialize.yaml')
+
     t0 = tracing.print_elapsed_time()
 
-    annotate_tables = initialize_settings.get('annotate_tables')
+    annotate_tables = model_settings.get('annotate_tables')
     for table_info in annotate_tables:
 
         tablename = table_info['tablename']

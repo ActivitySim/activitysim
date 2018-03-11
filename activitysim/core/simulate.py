@@ -817,6 +817,9 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
 
 
 def simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
+    """
+    calculate rows_per_chunk for simple_simulate_logsums
+    """
 
     num_choosers = len(choosers.index)
 

@@ -6,7 +6,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
@@ -27,12 +27,12 @@ def mandatory_tour_scheduling_settings(configs_dir):
 
 @inject.injectable()
 def tdd_work_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_work.csv')
+    return simulate.read_model_spec(configs_dir, 'tour_departure_and_duration_work.csv')
 
 
 @inject.injectable()
 def tdd_school_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_school.csv')
+    return simulate.read_model_spec(configs_dir, 'tour_departure_and_duration_school.csv')
 
 
 @inject.step()

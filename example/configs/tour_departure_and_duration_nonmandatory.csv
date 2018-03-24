@@ -1,11 +1,10 @@
 Description,Expression,Coefficient
-# FIXME - Subsequent tour must start after previous tour ends,(start <= end_previous) & (tour_type_num > 1),-999
-Subsequent tour must start after previous tour for this purpose ends,(start < end_previous) & (tour_type_num > 1),-100
+Subsequent tour must start after previous tour for this purpose ends,(start < end_previous) & (tour_type_num > 1),-999
 Free-flow round trip auto time shift effects - duration,roundtrip_auto_time_to_work * duration,0.004741
 Shopping tour - departure shift effects,"(tour_type == 'shopping') * start",-0.06015
 Shopping tour - duration shift effects,"(tour_type == 'shopping') * duration",-0.1208
-Maintenance tour - departure shift effects,"(tour_type == 'oth_maint') * start",-0.1489
-Maintenance tour - departure shift effects,"(tour_type == 'oth_maint') * duration",-0.08372
+Maintenance tour - departure shift effects,"(tour_type == 'othmaint') * start",-0.1489
+Maintenance tour - departure shift effects,"(tour_type == 'othmaint') * duration",-0.08372
 Visit tour - departure shift effects,"(tour_type == 'social') * start",0.09688
 Visit tour - departure shift effects,"(tour_type == 'social') * duration",0.1638
 Eat Out tour - departure shift effects,"(tour_type == 'eatout') * start",0.07549
@@ -20,7 +19,7 @@ Number of escort tours - departure shift effects,num_escort_tours * start,0.0201
 Number of idividual non-mandatory tours (excluding escort) - departure shift effects,num_non_escort_tours * start,0.03896
 First of 2+ tours for same purpose - departure shift effect,((tour_type_count>1) & (tour_type_num == 1)) * start,-0.2364
 subsequent of 2+ tours for same purpose - duration shift effect,(tour_type_num > 1) * duration,-0.1731
-Maintenance tour - depart before 7,"(tour_type == 'oth_maint') & (start < 7)",-0.8826
+Maintenance tour - depart before 7,"(tour_type == 'othmaint') & (start < 7)",-0.8826
 Shopping tour - depart before 8,"(tour_type == 'shopping') & (start < 8)",-1.037
 Shopping tour - arrive after 22,"(tour_type == 'shopping') & (end > 22)",-0.6027
 School child under 16 - arrive after 22,(ptype == 7) & (end > 22),-1.18

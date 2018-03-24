@@ -784,13 +784,14 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
             or choosers.index.name == inject.get_injectable('persons_index_name'):
         slicer_column_name = choosers.index.name
         targets = inject.get_injectable('trace_person_ids', [])
-    elif (choosers.index.name == 'tour_id' and 'person_id' in choosers.columns):
-        slicer_column_name = 'person_id'
-        targets = inject.get_injectable('trace_person_ids', [])
-    elif (choosers.index.name == 'joint_tour_id' and 'household_id' in choosers.columns):
+    elif ('household_id' in choosers.columns and inject.get_injectable('trace_hh_id', False)):
         slicer_column_name = 'household_id'
         targets = inject.get_injectable('trace_hh_id', [])
+    elif ('person_id' in choosers.columns and inject.get_injectable('trace_person_ids', False)):
+        slicer_column_name = 'person_id'
+        targets = inject.get_injectable('trace_person_ids', [])
     else:
+        print choosers.columns
         raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
                            % choosers.index.name)
 

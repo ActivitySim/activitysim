@@ -206,6 +206,13 @@ def joint_tour_participation(
         logger.info('iteration %s : %s joint tours satisfied.' % (iter, num_tours_satisfied,))
 
     participants = pd.concat(participants_list)
+
+    # assign participant_num
+    # FIXME do we want something smarter than the participant with the lowest person_id?
+    participants['participant_num'] = \
+        participants.sort_values(by=['joint_tour_id', 'person_id']).\
+        groupby('joint_tour_id').cumcount() + 1
+
     pipeline.replace_table("joint_tour_participants", participants)
 
     # FIXME drop channel if we aren't using any more?
@@ -219,8 +226,11 @@ def joint_tour_participation(
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
     pipeline.replace_table("persons", persons)
 
+    # - assign joint tour 'point person' (participant_num == 1)
+    point_persons = participants[participants.participant_num == 1]
+    joint_tours['person_id'] = point_persons.set_index('joint_tour_id').person_id
+
     # FIXME - shold annotate joint_tours?
-    joint_tours['person_id'] = participants.groupby('joint_tour_id').person_id.min()
     joint_tours['number_of_participants'] = participants.groupby('joint_tour_id').size()
     joint_tours['is_joint'] = True
     pipeline.replace_table("joint_tours", joint_tours)

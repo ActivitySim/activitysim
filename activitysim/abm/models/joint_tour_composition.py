@@ -51,14 +51,13 @@ def joint_tour_composition(
     households = households.to_frame()
     persons = persons.to_frame()
 
-    logger.info("Running joint_tour_composition with %d joint tours" %
-                joint_tours.shape[0])
+    logger.info("Running joint_tour_composition with %d joint tours" % joint_tours.shape[0])
 
     # - only interested in households with joint_tours
     households = households[households.num_hh_joint_tours > 0]
     persons = persons[persons.household_id.isin(households.index)]
 
-    # - run preprocessor before merge
+    # - run preprocessor
     preprocessor_settings = joint_tour_composition_settings.get('preprocessor_settings', None)
     if preprocessor_settings:
 

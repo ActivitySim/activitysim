@@ -59,17 +59,20 @@ def canonical_tours():
 
 def set_tour_index(tours, parent_tour_num_col=None):
     """
+    The new index values are stable based on the person_id, tour_type, and tour_num.
+    The existing index is ignored and replaced.
+
+    This gives us a stable (predictable) tour_id with tours in canonical order
+    (when tours are sorted by tour_id, tours for each person
+    of the same type will be adjacent and in increasing tour_type_num order)
+
+    It also simplifies attaching random number streams to tours that are stable
+    (even across simulations)
 
     Parameters
     ----------
     tours : DataFrame
         Tours dataframe to reindex.
-        The new index values are stable based on the person_id, tour_type, and tour_num.
-        The existing index is ignored and replaced.
-
-        This gives us a stable (predictable) tour_id
-        It also simplifies attaching random number streams to tours that are stable
-        (even across simulations)
     """
 
     tour_num_col = 'tour_type_num'
@@ -137,6 +140,8 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
     tours.tour_num        - index of tour (of any type) for parent
     tours.tour_count      - number of tours of any type) for parent (parent's max tour_num)
     """
+
+    # FIXME - document requirement to ensure adjacent tour_type_nums in tour_num order
 
     # get the actual alternatives for each person - have to go back to the
     # non_mandatory_tour_frequency_alts dataframe to get this - the choice
@@ -412,17 +417,21 @@ JOINT_TOUR_OWNER_ID_COL = 'household_id'
 
 def set_joint_tour_index(tours, alts):
     """
+    The new index values are stable based on the person_id, tour_type, and tour_num.
+    The existing index is ignored and replaced.
+
+    This gives us a stable (predictable) tour_id with tours in canonical order
+    (when tours are sorted by tour_id, tours for each person
+    of the same type will be adjacent and in increasing tour_type_num order)
+
+    It also simplifies attaching random number streams to tours that are stable
+    (even across simulations)
 
     Parameters
     ----------
     tours : DataFrame
         Tours dataframe to reindex.
-        The new index values are stable based on the person_id, tour_type, and tour_num.
-        The existing index is ignored and replaced.
 
-        This gives us a stable (predictable) tour_id
-        It also simplifies attaching random number streams to tours that are stable
-        (even across simulations)
     """
 
     tour_num_col = 'tour_type_num'

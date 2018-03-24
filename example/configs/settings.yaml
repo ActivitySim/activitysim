@@ -37,6 +37,7 @@ models:
   - joint_tour_destination_sample
   - joint_tour_destination_logsums
   - joint_tour_destination_simulate
+  - joint_tour_scheduling
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling

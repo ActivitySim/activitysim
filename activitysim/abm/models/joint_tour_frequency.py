@@ -67,6 +67,7 @@ def joint_tour_frequency(
     if preprocessor_settings:
 
         # - only interested in persons in multi_person_households
+        # FIXME - gratuitous pathological efficiency move, just let yaml specify persons?
         persons = persons.to_frame()
         persons = persons[persons.household_id.isin(multi_person_households.index)]
 

@@ -54,11 +54,12 @@ def non_mandatory_tour_scheduling(tours,
 
     constants = config.get_model_constants(non_mandatory_tour_scheduling_settings)
 
-    tdd_choices = vectorize_tour_scheduling(non_mandatory_tours, persons_merged,
-                                            tdd_alts, tdd_non_mandatory_spec,
-                                            constants=constants,
-                                            chunk_size=chunk_size,
-                                            trace_label=trace_label)
+    tdd_choices = vectorize_tour_scheduling(
+        non_mandatory_tours, persons_merged,
+        tdd_alts, tdd_non_mandatory_spec,
+        constants=constants,
+        chunk_size=chunk_size,
+        trace_label=trace_label)
 
     # add tdd_choices columns to tours
     for c in tdd_choices.columns:

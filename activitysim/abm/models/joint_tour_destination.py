@@ -340,8 +340,6 @@ def joint_tour_destination_simulate(
 
         alts_segment = location_sample[location_sample.tour_type_id == tour_type_id]
 
-        print alts_segment
-
         assert tour_type not in alts_segment
 
         # alternatives are pre-sampled and annotated with logsums and pick_count
@@ -364,8 +362,6 @@ def joint_tour_destination_simulate(
             trace_choice_name='joint_tour_destination')
 
         choices_list.append(choices)
-
-        print "choices %s\n" % tour_type, choices
 
     choices = pd.concat(choices_list)
 

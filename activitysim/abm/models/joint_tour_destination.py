@@ -156,8 +156,8 @@ def joint_tour_destination_sample(
                     (tour_type, len(choosers_segment), len(alternatives_segment)))
 
         if len(choosers_segment.index) > 0:
-            # name index so tracing knows how to slice
-            choosers_segment.index.name = 'joint_tour_id'
+            # want named index so tracing knows how to slice
+            assert choosers_segment.index.name == 'joint_tour_id'
 
             choices = interaction_sample(
                 choosers_segment,

@@ -100,7 +100,7 @@ def non_mandatory_tour_destination(
                     (name, len(segment), len(alternatives_segment)))
 
         # name index so tracing knows how to slice
-        segment.index.name = 'tour_id'
+        assert segment.index.name == 'tour_id'
 
         choices = interaction_simulate(
             segment,

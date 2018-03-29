@@ -351,9 +351,9 @@ def register_joint_tours(df, trace_hh_id):
     traced_joint_tours_df = slice_ids(df, trace_hh_id, column='household_id')
     trace_tour_ids = traced_joint_tours_df.index.tolist()
     if len(trace_tour_ids) == 0:
-        logger.info("register_joint_tours: no tours found for household_id %s." % trace_hh_id)
+        logger.info("register_joint_tours: no joint tours found for household_id %s." % trace_hh_id)
     else:
-        logger.info("tracing joint_tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
+        logger.info("tracing joint_tour_ids %s in %s joint tours" % (trace_tour_ids, len(df.index)))
 
     inject.add_injectable("trace_joint_tour_ids", trace_tour_ids)
     logger.debug("register_joint_tours injected trace_joint_tour_ids %s" % trace_tour_ids)
@@ -434,7 +434,7 @@ def traceable_tables():
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
 
-    return ['households', 'persons', 'tours', 'trips', 'jount_tours', 'participants']
+    return ['households', 'persons', 'tours', 'trips', 'joint_tours', 'participants']
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):

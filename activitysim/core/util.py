@@ -252,7 +252,7 @@ def quick_loc_series(loc_list, target_series):
 
 def assign_in_place(df, df2):
     """
-    update existing row values in df from df2, adding columns to df if they are not tehre
+    update existing row values in df from df2, adding columns to df if they are not there
 
     Parameters
     ----------

@@ -1,0 +1,6 @@
+preprocessor_settings:
+  SPEC: annotate_tours_joint_mode_choice_preprocessor
+  DF: tours
+  TABLES:
+    - land_use
+#    - accessibility

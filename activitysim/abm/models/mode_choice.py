@@ -11,6 +11,7 @@ from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import pipeline
 from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
@@ -104,36 +105,33 @@ def tour_mode_choice_spec(tour_mode_choice_spec_df,
                              tour_mode_choice_coeffs,
                              tour_mode_choice_settings,
                              trace_spec=trace_hh_id,
-                             trace_label='tour_mode_choice')
+                             trace_label='tour_mode_choice_spec')
 
 
 @inject.step()
-def atwork_subtour_mode_choice_simulate(tours,
-                                        persons_merged,
-                                        tour_mode_choice_spec,
-                                        tour_mode_choice_settings,
-                                        skim_dict, skim_stack,
-                                        chunk_size,
-                                        trace_hh_id):
+def atwork_subtour_mode_choice(
+        tours, tours_merged,
+        persons_merged,
+        tour_mode_choice_spec,
+        tour_mode_choice_settings,
+        skim_dict, skim_stack,
+        chunk_size,
+        trace_hh_id):
     """
     At-work subtour mode choice simulate
     """
 
     trace_label = 'atwork_subtour_mode_choice'
 
-    tours = tours.to_frame()
-    subtours = tours[tours.tour_category == 'subtour']
-    # merge persons into tours
-    choosers = pd.merge(subtours,
-                        persons_merged.to_frame(),
-                        left_on='person_id', right_index=True)
+    tours_merged = tours_merged.to_frame()
+    tours_merged = tours_merged[tours_merged.tour_category == 'subtour']
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
     constants = config.get_model_constants(tour_mode_choice_settings)
 
-    logger.info("Running %s with %d subtours" % (trace_label, len(subtours.index)))
+    logger.info("Running %s with %d subtours" % (trace_label, tours_merged.shape[0]))
 
-    tracing.print_summary('%s tour_type' % trace_label, subtours.tour_type, value_counts=True)
+    tracing.print_summary('%s tour_type' % trace_label, tours_merged.tour_type, value_counts=True)
 
     if trace_hh_id:
         tracing.trace_df(tour_mode_choice_spec,
@@ -154,7 +152,7 @@ def atwork_subtour_mode_choice_simulate(tours,
                          slicer='NONE', transpose=False)
 
     choices = _mode_choice_simulate(
-        choosers,
+        tours_merged,
         odt_skim_stack_wrapper=odt_skim_stack_wrapper,
         dot_skim_stack_wrapper=dot_skim_stack_wrapper,
         od_skim_stack_wrapper=od_skims,
@@ -167,10 +165,12 @@ def atwork_subtour_mode_choice_simulate(tours,
 
     tracing.print_summary('%s choices' % trace_label, choices, value_counts=True)
 
-    subtours['destination'] = choices
-    assign_in_place(tours, subtours[['destination']])
+    tours = tours.to_frame()
+    assign_in_place(tours, choices.to_frame('mode'))
+    pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
+        subtours = tours[tours.tour_category == 'subtour']
         trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num', 'parent_tour_id']
         tracing.trace_df(subtours,
                          label=tracing.extend_trace_label(trace_label, 'mode'),
@@ -183,7 +183,7 @@ def atwork_subtour_mode_choice_simulate(tours,
 
 
 @inject.step()
-def tour_mode_choice_simulate(tours_merged,
+def tour_mode_choice_simulate(tours, tours_merged,
                               tour_mode_choice_spec,
                               tour_mode_choice_settings,
                               skim_dict, skim_stack,
@@ -195,17 +195,16 @@ def tour_mode_choice_simulate(tours_merged,
 
     trace_label = 'tour_mode_choice'
 
-    tours = tours_merged.to_frame()
-
-    tours = tours[tours.tour_category != 'subtour']
+    tours_merged = tours_merged.to_frame()
+    tours_merged = tours_merged[tours_merged.tour_category != 'subtour']
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
     constants = config.get_model_constants(tour_mode_choice_settings)
 
-    logger.info("Running tour_mode_choice_simulate with %d tours" % len(tours.index))
+    logger.info("Running %s with %d tours" % (trace_label, tours_merged.shape[0]))
 
-    tracing.print_summary('tour_mode_choice_simulate tour_type',
-                          tours.tour_type, value_counts=True)
+    tracing.print_summary('tour_types',
+                          tours_merged.tour_type, value_counts=True)
 
     if trace_hh_id:
         tracing.trace_df(tour_mode_choice_spec,
@@ -221,7 +220,7 @@ def tour_mode_choice_simulate(tours_merged,
 
     choices_list = []
 
-    for tour_type, segment in tours.groupby('tour_type'):
+    for tour_type, segment in tours_merged.groupby('tour_type'):
 
         # if tour_type != 'work':
         #     continue
@@ -230,7 +229,7 @@ def tour_mode_choice_simulate(tours_merged,
                     (tour_type, len(segment.index), ))
 
         # name index so tracing knows how to slice
-        segment.index.name = 'tour_id'
+        assert segment.index.name == 'tour_id'
 
         spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
 
@@ -263,11 +262,13 @@ def tour_mode_choice_simulate(tours_merged,
     tracing.print_summary('tour_mode_choice_simulate all tour type choices',
                           choices, value_counts=True)
 
-    inject.add_column("tours", "mode", choices)
+    tours = tours.to_frame()
+    assign_in_place(tours, choices.to_frame('mode'))
+    pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
         trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
-        tracing.trace_df(inject.get_table('tours').to_frame(),
+        tracing.trace_df(tours,
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour_id',
@@ -327,7 +328,7 @@ def trip_mode_choice_simulate(trips_merged,
     nest_spec = config.get_logit_model_settings(trip_mode_choice_settings)
     constants = config.get_model_constants(trip_mode_choice_settings)
 
-    logger.info("Running trip_mode_choice_simulate with %d trips" % len(trips))
+    logger.info("Running %s with %d trips" % (trace_label, trips.shape[0]))
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key='OTAZ', right_key='DTAZ',
                                              skim_key="start_period")
@@ -342,7 +343,7 @@ def trip_mode_choice_simulate(trips_merged,
         logger.info("running %s tour_type '%s'" % (len(segment.index), tour_type, ))
 
         # name index so tracing knows how to slice
-        segment.index.name = 'trip_id'
+        assert segment.index.name == 'trip_id'
 
         # FIXME - check that destination is not null
 

@@ -255,8 +255,11 @@ def schedule_tours(
 
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
-    # no more than one tour per person per call
-    assert not tours.person_id.duplicated().any()
+    # no more than one tour per timetable_window per call
+    if timetable_window_id_col is None:
+        assert not tours.index.duplicated().any()
+    else:
+        assert not tours[timetable_window_id_col].duplicated().any()
 
     # persons_merged columns plus 2 previous tour columns
     extra_chooser_columns = persons_merged.shape[1] + 2
@@ -475,8 +478,8 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
 
         tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
 
-        # no more than one tour per person per call to schedule_tours
-        assert not subtours.person_id.duplicated().any()
+        # no more than one tour per timetable window per call to schedule_tours
+        assert not nth_tours.parent_tour_id.duplicated().any()
 
         choices = \
             schedule_tours(nth_tours,
@@ -587,7 +590,7 @@ def vectorize_joint_tour_scheduling(
 
         tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
 
-        # no more than one tour per person per call to schedule_tours
+        # no more than one tour per household per call to schedule_tours
         assert not nth_tours.household_id.duplicated().any()
 
         nth_participants = \

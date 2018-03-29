@@ -6,7 +6,9 @@ skims_file: skims.omx
 households_sample_size: 100
 
 #trace household id; comment out for no trace
-#trace_hh_id: 961042
+# 2591315 IS a household with both subtours and joint tours
+trace_hh_id: 2591315
+
 
 # trace origin, destination in accessibility calculation
 #trace_od: [5, 11]
@@ -38,6 +40,7 @@ models:
   - joint_tour_destination_logsums
   - joint_tour_destination_simulate
   - joint_tour_scheduling
+  - joint_tour_mode_choice
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
@@ -48,14 +51,13 @@ models:
   - atwork_subtour_destination_logsums
   - atwork_subtour_destination_simulate
   - atwork_subtour_scheduling
-  - atwork_subtour_mode_choice_simulate
+  - atwork_subtour_mode_choice
   - create_simple_trips
   - trip_mode_choice_simulate
   - write_data_dictionary
   - write_tables
 
-
-#resume_after: tour_mode_choice_simulate
+#resume_after: joint_tour_scheduling
 
 output_tables:
   action: include

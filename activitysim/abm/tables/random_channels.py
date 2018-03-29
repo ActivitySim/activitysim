@@ -23,7 +23,7 @@ CHANNEL_INFO = {
         'index': 'tour_id'
     },
     'joint_tours': {
-        'max_steps': 4,
+        'max_steps': 5,
         'index': 'joint_tour_id'
     },
     'joint_tour_participants': {

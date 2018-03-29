@@ -220,7 +220,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - atwork_subtour_destination_logsums
     - atwork_subtour_destination_simulate
     - atwork_subtour_scheduling
-    - atwork_subtour_mode_choice_simulate
+    - atwork_subtour_mode_choice
     - create_simple_trips
     - trip_mode_choice_simulate
 

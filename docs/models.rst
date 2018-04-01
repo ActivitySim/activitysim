@@ -511,6 +511,26 @@ API
 See :ref:`tour_mode_choice` API.
 
 
+
+
+.. _utility_steps:
+
+Utility Steps
+-------------
+Model step utilities for writing out pipeline data tables and for understanding 
+data table size.
+
+The main interfaces to the utility steps models are 
+:py:func:`~activitysim.abm.models.utility_steps.write_data_dictionary` and 
+:py:func:`~activitysim.abm.models.utility_steps.write_tables`.  These 
+functions are registered as orca steps in the example Pipeline.
+
+API
+~~~
+
+.. automodule:: activitysim.abm.models.utility_steps
+   :members:
+
 Util
 ----
  

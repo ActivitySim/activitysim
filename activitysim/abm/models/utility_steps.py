@@ -1,4 +1,4 @@
-# aFreight
+# ActivitySim
 # See full license in LICENSE.txt.
 
 import logging
@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def write_data_dictionary(output_dir):
+    """
+    Write table_name, number of rows, columns, and bytes for each checkpointed table
+
+    Parameters
+    ----------
+    output_dir: str
+
+    """
     pd.options.display.max_columns = 500
     pd.options.display.max_rows = 100
 

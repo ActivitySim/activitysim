@@ -52,8 +52,8 @@ server. To do so, create a ``.condarc`` file in your Anaconda installation folde
 ::
     
     proxy_servers:
-      http: http://proxynew.odot.state.or.us:8080
-      https: https://proxynew.odot.state.or.us:8080
+      http: http://myproxy.org:8080
+      https: https://myproxy.org:8080
     ssl_verify: false
 
 This will create a new conda environment named ``asimtest`` and set it as the 
@@ -101,7 +101,7 @@ your proxy server when downloading packages.  For example:
 
 ::
     
-    pip install --trusted-host pypi.python.org --proxy=proxynew.odot.state.or.us:8080  cytoolz
+    pip install --trusted-host pypi.python.org --proxy=myproxy.org:8080  cytoolz
 
 ActivitySim
 ~~~~~~~~~~~
@@ -141,6 +141,19 @@ done with ``pip uninstall activitysim``.
 .. _pip: https://pip.pypa.io/en/stable/
 
 .. _expressions_in_detail :
+
+Hardware
+--------
+
+The computing hardware required to run an ActivitySim-based model generally depends on:
+
+* the number of households to be simulated
+* the number and size of network skims (i.e. the number of model zones (for each zone system if applicable))
+* the desired runtimes
+
+ActivitySim requires a substantial amount of RAM since it stores data in-memory in order to minimize runtimes.
+For example, the example model is tested on a Windows server with 256GB of RAM and 48 threads.  ActivitySim
+is NOT currently multi-threaded/processed, but this improvement is in the development roadmap.
 
 Expressions
 -----------

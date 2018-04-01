@@ -1,9 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import itertools
+import logging
+
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 TOUR_CATEGORIES = ['mandatory', 'non_mandatory', 'subtour']
@@ -86,7 +89,14 @@ def set_tour_index(tours, parent_tour_num_col=None):
     if parent_tour_num_col:
         # we need to distinguish between subtours of different work tours
         # (e.g. eat1_1 is eat subtour for parent work tour 1 and eat1_2 is for work tour 2)
-        tours['tour_id'] = tours['tour_id'] + '_' + tours[parent_tour_num_col].map(str)
+
+        parent_tour_num = tours[parent_tour_num_col]
+        if parent_tour_num.dtype != 'int64':
+            # might get converted to float if non-subtours rows are None (but we try to avoid this)
+            logger.error('parent_tour_num.dtype: %s' % parent_tour_num.dtype)
+            parent_tour_num = parent_tour_num.astype(int)
+
+        tours['tour_id'] = tours['tour_id'] + '_' + parent_tour_num.map(str)
 
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(to_replace=possible_tours,

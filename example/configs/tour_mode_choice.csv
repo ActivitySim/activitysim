@@ -2,7 +2,7 @@ Description,Expression,Alternative,eatout,escort,othdiscr,othmaint,school,shoppi
 Drive alone - Unavailable,sov_available == False,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - Unavailable for joint tours,is_joint,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone - Unavailable for joint tours,(is_joint == True),DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - In-vehicle time,@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'],DRIVEALONEFREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Drive alone - Terminal time,2 * terminal_time,DRIVEALONEFREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
@@ -13,7 +13,7 @@ Drive alone - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEFREE,
 Drive alone toll - Unavailable,sovtoll_available == False,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for persons less than 16,age < 16,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone toll - Unavailable for joint tours,is_joint,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone toll - Unavailable for joint tours,(is_joint == True),DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - In-vehicle time,@odt_skims['SOVTOLL_TIME'] + dot_skims['SOVTOLL_TIME'],DRIVEALONEPAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Drive alone toll - Terminal time,2 * terminal_time,DRIVEALONEPAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
@@ -23,7 +23,7 @@ Drive alone toll - Bridge toll ,@odt_skims['SOVTOLL_BTOLL'] + dot_skims['SOVTOLL
 Drive alone toll - Value toll ,@odt_skims['SOVTOLL_VTOLL'] + dot_skims['SOVTOLL_VTOLL'],DRIVEALONEPAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
 Drive alone toll - Person is between 16 and 19 years old,age_16_to_19,DRIVEALONEPAY,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da,age1619_da
 Shared ride 2 - Unavailable,hov2_available == False,SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 2 - Unavailable based on party size,is_joint * (number_of_participants > 2),SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Shared ride 2 - Unavailable based on party size,(is_joint == True) & (number_of_participants > 2),SHARED2FREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Shared ride 2 - In-vehicle time,@odt_skims['HOV2_TIME'] + dot_skims['HOV2_TIME'],SHARED2FREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Shared ride 2 - Terminal time,2 * terminal_time,SHARED2FREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Shared ride 2 - Operating cost ,@costPerMile * (odt_skims['HOV2_DIST'] + dot_skims['HOV2_DIST']),SHARED2FREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
@@ -33,7 +33,7 @@ Shared ride 2 - One person household,hhsize == 1,SHARED2FREE,hhsize1_sr,hhsize1_
 Shared ride 2 - Two person household,hhsize == 2,SHARED2FREE,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
 Shared ride 2 - Person is 16 years old or older,age_16_p,SHARED2FREE,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
 Shared ride 2 toll - Unavailable,hov2toll_available == False,SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Shared ride 2 toll - Unavailable based on party size,is_joint * (number_of_participants > 2),SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Shared ride 2 toll - Unavailable based on party size,(is_joint == True) & (number_of_participants > 2),SHARED2PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Shared ride 2 toll - In-vehicle time,@odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME'],SHARED2PAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Shared ride 2 toll - Terminal time,2 * terminal_time,SHARED2PAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Shared ride 2 toll - Operating cost ,@costPerMile * (odt_skims['HOV2TOLL_DIST'] + dot_skims['HOV2TOLL_DIST']),SHARED2PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
@@ -76,8 +76,7 @@ Walk - Time up to 2 miles,@od_skims['DISTWALK'].clip(upper=walkThresh)*2*60/walk
 Walk - Time beyond 2 of a miles,@(od_skims['DISTWALK'] - walkThresh).clip(lower=0)*2*60/walkSpeed,WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
 Walk - Destination zone densityIndex,density_index,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
 Walk - Topology,dest_topology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
-# FIXME - jwd - not sure what to do with this...,,,,,,,,,,,,
-#Bike - Unavailable if didn't bike to work,,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Bike - Unavailable if didn't bike to work,work_tour_is_bike,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Bike - Time up to 2 miles,@od_skims['DISTBIKE'].clip(upper=bikeThresh)*2*60/bikeSpeed,BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
 Bike - Time beyond 2 of a miles,@(od_skims['DISTBIKE']-bikeThresh).clip(lower=0)*2*60/bikeSpeed,BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
 Bike - Destination zone densityIndex,density_index,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index

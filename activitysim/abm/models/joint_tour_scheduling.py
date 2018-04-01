@@ -15,6 +15,7 @@ from activitysim.core import timetable as tt
 
 from .util import expressions
 from .util.vectorize_tour_scheduling import vectorize_joint_tour_scheduling
+from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
 
@@ -95,8 +96,6 @@ def joint_tour_scheduling(
         # if we annotated joint_tours, then we want a fresh copy before replace_table
         joint_tours_df = joint_tours.to_frame()
 
-    # add tdd_choices columns to tours
-    for c in tdd_choices.columns:
-        joint_tours_df.loc[tdd_choices.index, c] = tdd_choices[c]
+    assign_in_place(joint_tours_df, tdd_choices)
 
     pipeline.replace_table("joint_tours", joint_tours_df)

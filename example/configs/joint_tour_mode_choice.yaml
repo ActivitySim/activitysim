@@ -1,6 +1,13 @@
+
+# so far, we can use the same spec as for non-joint tours
 preprocessor_settings:
-  SPEC: annotate_tours_joint_mode_choice_preprocessor
-  DF: tours
-  TABLES:
-    - land_use
-#    - accessibility
+  - SPEC: annotate_tours_mode_choice_preprocessor1
+    DF: df
+    TABLES:
+      - land_use
+      - tours
+
+  - SPEC: annotate_tours_mode_choice_preprocessor2
+    DF: tours
+    TABLES:
+      - land_use

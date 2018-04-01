@@ -66,3 +66,16 @@ CONSTANTS:
     upperAM: 10
     upperMD: 15
     upperPM: 19
+
+
+preprocessor_settings:
+  - SPEC: annotate_trips_mode_choice_preprocessor1
+    DF: df
+    TABLES:
+      - land_use
+      - tours
+
+  - SPEC: annotate_trips_mode_choice_preprocessor2
+    DF: tours
+    TABLES:
+      - land_use

@@ -24,7 +24,7 @@ from .util.tour_destination import tour_destination_size_terms
 
 from .util import expressions
 
-from .mode_choice import get_segment_and_unstack
+from .util.mode import get_segment_and_unstack
 
 """
 The school location model predicts the zones in which various people will

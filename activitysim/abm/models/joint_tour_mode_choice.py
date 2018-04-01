@@ -6,17 +6,16 @@ import logging
 
 import pandas as pd
 
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core.util import force_garbage_collect
 
-from .util import expressions
-
 from .util.mode import get_segment_and_unstack
-
-from .mode_choice import _mode_choice_simulate
+from .util.mode import mode_choice_simulate
+from .util.mode import annotate_preprocessors
 
 logger = logging.getLogger(__name__)
 
@@ -42,44 +41,48 @@ def joint_tour_mode_choice(
 
     trace_label = 'joint_tour_mode_choice'
 
-    joint_tours_df = joint_tours.to_frame()
+    joint_tours = joint_tours.to_frame()
     persons_merged = persons_merged.to_frame()
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
     constants = config.get_model_constants(tour_mode_choice_settings)
 
-    logger.info("Running joint_tour_mode_choice with %d tours" % joint_tours_df.shape[0])
+    logger.info("Running joint_tour_mode_choice with %d tours" % joint_tours.shape[0])
 
-    tracing.print_summary('%s tour_type' % trace_label, joint_tours_df.tour_type, value_counts=True)
+    tracing.print_summary('%s tour_type' % trace_label, joint_tours.tour_type, value_counts=True)
 
     if trace_hh_id:
         tracing.trace_df(tour_mode_choice_spec,
                          tracing.extend_trace_label(trace_label, 'spec'),
                          slicer='NONE', transpose=False)
 
-    # - run preprocessor to annotate choosers
-    preprocessor_settings = joint_tour_mode_choice_settings.get('preprocessor_settings', None)
-    if preprocessor_settings:
-
-        locals_d = {}
-        if constants is not None:
-            locals_d.update(constants)
-
-        expressions.assign_columns(
-            df=joint_tours_df,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label)
-
-    joint_tours_merged = pd.merge(joint_tours_df, persons_merged, left_on='person_id',
+    joint_tours_merged = pd.merge(joint_tours, persons_merged, left_on='person_id',
                                   right_index=True, how='left')
 
     # setup skim keys
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key='TAZ', right_key='destination',
-                                             skim_key="out_period")
-    dot_skim_stack_wrapper = skim_stack.wrap(left_key='destination', right_key='TAZ',
-                                             skim_key="in_period")
-    od_skims = skim_dict.wrap('TAZ', 'destination')
+    orig_col_name = 'TAZ'
+    dest_col_name = 'destination'
+    odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,
+                                             skim_key='out_period')
+    dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
+                                             skim_key='in_period')
+    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
+
+    skims = {
+        "odt_skims": odt_skim_stack_wrapper,
+        "dot_skims": dot_skim_stack_wrapper,
+        "od_skims": od_skim_stack_wrapper,
+    }
+
+    locals_dict = {
+        'orig_col_name': orig_col_name,
+        'dest_col_name': dest_col_name
+    }
+    locals_dict.update(constants)
+
+    annotations = annotate_preprocessors(
+        joint_tours_merged, locals_dict, skims,
+        joint_tour_mode_choice_settings, trace_label)
 
     choices_list = []
 
@@ -100,11 +103,9 @@ def joint_tour_mode_choice(
             tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
                              slicer='NONE', transpose=False)
 
-        choices = _mode_choice_simulate(
+        choices = mode_choice_simulate(
             segment,
-            odt_skim_stack_wrapper=odt_skim_stack_wrapper,
-            dot_skim_stack_wrapper=dot_skim_stack_wrapper,
-            od_skim_stack_wrapper=od_skims,
+            skims=skims,
             spec=spec,
             constants=constants,
             nest_spec=nest_spec,
@@ -125,16 +126,12 @@ def joint_tour_mode_choice(
     tracing.print_summary('joint_tour_mode_choice all tour type choices',
                           choices, value_counts=True)
 
-    if preprocessor_settings:
-        # if we annotated joint_tours, then we want a fresh copy before replace_table
-        joint_tours_df = joint_tours.to_frame()
-
     # replace_table rather than add_columns as we want table for tracing.
-    joint_tours_df['mode'] = choices
-    pipeline.replace_table("joint_tours", joint_tours_df)
+    joint_tours['mode'] = choices
+    pipeline.replace_table("joint_tours", joint_tours)
 
     if trace_hh_id:
-        tracing.trace_df(joint_tours_df,
+        tracing.trace_df(joint_tours,
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour_id',

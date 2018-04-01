@@ -21,19 +21,6 @@ from . import expressions
 logger = logging.getLogger(__name__)
 
 
-def xmode_choice_logsums_spec(configs_dir, dest_type):
-    DEST_TO_TOUR_SPEC_TYPE = \
-        {'university': 'university',
-         'highschool': 'school',
-         'gradeschool': 'school',
-         'work': 'work'}
-
-    # tour_spec_type is just name for labelling specs which differ by dest, not tour_type
-    tour_spec_type = DEST_TO_TOUR_SPEC_TYPE.get(dest_type)
-    spec = simulate.read_model_spec(configs_dir, 'logsums_spec_%s.csv' % tour_spec_type)
-    return spec
-
-
 def get_omnibus_logsum_spec(logsum_settings, selector, configs_dir, want_tracing):
 
     spec_file_name = logsum_settings['SPEC']

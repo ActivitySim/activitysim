@@ -79,14 +79,8 @@ def atwork_subtour_scheduling(
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)
-    assign_in_place(subtours, tdd_choices)
 
-    expressions.assign_columns(
-        df=subtours,
-        model_settings='annotate_tours',
-        trace_label=trace_label)
-
-    assign_in_place(tours, subtours)
+    assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)
 
     tracing.dump_df(DUMP,
@@ -94,7 +88,7 @@ def atwork_subtour_scheduling(
                     trace_label, 'tour_map')
 
     if trace_hh_id:
-        tracing.trace_df(subtours,
+        tracing.trace_df(tours[tours.tour_category == 'subtour'],
                          label="atwork_subtour_scheduling",
                          slicer='person_id',
                          index_label='tour_id',

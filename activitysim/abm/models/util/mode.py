@@ -7,6 +7,11 @@ import pandas as pd
 import numpy as np
 
 from activitysim.core import tracing
+from activitysim.core import simulate
+
+from activitysim.core.util import assign_in_place
+
+import expressions
 
 
 """
@@ -208,3 +213,74 @@ def get_segment_and_unstack(omnibus_spec, segment):
     spec = spec.groupby(spec.index).sum()
 
     return spec
+
+
+def mode_choice_simulate(
+        records,
+        skims,
+        spec,
+        constants,
+        nest_spec,
+        chunk_size,
+        trace_label=None, trace_choice_name=None):
+    """
+    This is a utility to run a mode choice model for each segment (usually
+    segments are tour/trip purposes).  Pass in the tours/trip that need a mode,
+    the Skim object, the spec to evaluate with, and any additional expressions
+    you want to use in the evaluation of variables.
+    """
+
+    locals_dict = skims.copy()
+    if constants is not None:
+        locals_dict.update(constants)
+
+    choices = simulate.simple_simulate(
+        records,
+        spec,
+        nest_spec,
+        skims=list(skims.values()),
+        locals_d=locals_dict,
+        chunk_size=chunk_size,
+        trace_label=trace_label,
+        trace_choice_name=trace_choice_name)
+
+    alts = spec.columns
+    choices = choices.map(dict(zip(range(len(alts)), alts)))
+
+    return choices
+
+
+def annotate_preprocessors(
+        tours_df, locals_dict, skims,
+        model_settings, trace_label):
+
+    locals_d = {}
+    locals_d.update(locals_dict)
+    locals_d.update(skims)
+
+    annotations = []
+
+    preprocessor_settings = model_settings.get('preprocessor_settings', [])
+    if not isinstance(preprocessor_settings, list):
+        assert isinstance(preprocessor_settings, dict)
+        preprocessor_settings = [preprocessor_settings]
+
+    simulate.add_skims(tours_df, list(skims.values()))
+
+    annotations = None
+    for model_settings in preprocessor_settings:
+
+        results = expressions.compute_columns(
+            df=tours_df,
+            model_settings=model_settings,
+            locals_dict=locals_d,
+            trace_label=trace_label)
+
+        assign_in_place(tours_df, results)
+
+        if annotations is None:
+            annotations = results
+        else:
+            annotations = pd.concat([annotations, results], axis=1)
+
+    return annotations

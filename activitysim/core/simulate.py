@@ -139,6 +139,7 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
         except Exception as err:
             print()  # print ...
             logger.exception("Variable evaluation failed for: %s" % str(expr))
+
             raise err
     print()  # print ...
 
@@ -318,7 +319,7 @@ def compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label):
     return nested_probabilities
 
 
-def compute_base_probabilities(nested_probabilities, nests):
+def compute_base_probabilities(nested_probabilities, nests, spec):
     """
     compute base probabilities for nest leaves
     Base probabilities will be the nest-adjusted probabilities of all leaves
@@ -331,6 +332,8 @@ def compute_base_probabilities(nested_probabilities, nests):
         dataframe with the nested probabilities for nest leafs and nodes
     nest_spec : dict
         Nest tree dict from the model spec yaml file
+    spec : pandas.Dataframe
+        simple simulate spec so we can return columns in appropriate order
     Returns
     -------
     base_probabilities : pandas.DataFrame
@@ -345,6 +348,11 @@ def compute_base_probabilities(nested_probabilities, nests):
         ancestors = nest.ancestors[1:]
 
         base_probabilities[nest.name] = nested_probabilities[ancestors].prod(axis=1)
+
+    # reorder alternative columns to match spec
+    # since these are alternatives chosen by column index, order of columns matters
+    assert(set(base_probabilities.columns) == set(spec.columns))
+    base_probabilities = base_probabilities[spec.columns]
 
     return base_probabilities
 
@@ -499,8 +507,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
                                                         trace_label=trace_label)
     t0 = tracing.print_elapsed_time("compute_nested_probabilities", t0, debug=True)
 
-    # global (flattened) leaf probabilities based on relative nest coefficients
-    base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec)
+    # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
+    base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
     t0 = tracing.print_elapsed_time("compute_base_probabilities", t0, debug=True)
 
     # note base_probabilities could all be zero since we allowed all probs for nests to be zero

@@ -13,7 +13,9 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import timetable as tt
 
+from .util import expressions
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
+from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
 
@@ -57,19 +59,17 @@ def mandatory_tour_scheduling(tours,
 
     logger.info("Running mandatory_tour_scheduling with %d tours" % len(tours))
     tdd_choices = vectorize_tour_scheduling(
-        tours, persons_merged,
+        mandatory_tours, persons_merged,
         tdd_alts,
         spec={'work': tdd_work_spec, 'school': tdd_school_spec},
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)
 
-    # add tdd_choices columns to tours
-    for c in tdd_choices.columns:
-        tours.loc[tdd_choices.index, c] = tdd_choices[c]
-
+    assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)
 
+    # updated df for tracing
     mandatory_tours = tours[tours.mandatory]
 
     tracing.dump_df(DUMP,

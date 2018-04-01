@@ -140,6 +140,7 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
     assert model_settings is not None
 
     results = compute_columns(df, model_settings, locals_dict, trace_label)
+
     assign_in_place(df, results)
 
 

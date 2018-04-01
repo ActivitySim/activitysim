@@ -326,12 +326,13 @@ def regress_mode_df(mode_df):
 
     mand_mode_df = mode_df[mode_df.tour_category == 'mandatory']
     print "mand_mode_df\n", mand_mode_df
-    #           tour_id            mode person_id tour_type tour_num
-    # value_1  129967731            BIKE   6840406      work        1
+    #            tour_id            mode person_id tour_type tour_num
+    # value_1  129967731  DRIVEALONEFREE   6840406      work        1
     # value_2  129967769  DRIVEALONEFREE   6840408      work        1
+
     EXPECT_MAND_PERSON_IDS = ['6840406', '6840408']
     EXPECT_MAND_TOUR_TYPES = ['work', 'work']
-    EXPECT_MAND_MODES = ['BIKE', 'DRIVEALONEFREE']
+    EXPECT_MAND_MODES = ['DRIVEALONEFREE', 'DRIVEALONEFREE']
 
     assert len(mand_mode_df.person_id) == len(EXPECT_MAND_PERSON_IDS)
     assert (mand_mode_df.person_id.values == EXPECT_MAND_PERSON_IDS).all()
@@ -340,16 +341,16 @@ def regress_mode_df(mode_df):
 
     non_mand_mode_df = mode_df[mode_df.tour_category == 'non_mandatory']
     print "non_mand_mode_df\n", non_mand_mode_df
-    #            tour_id            mode person_id tour_type tour_num  \
-    # value_3   129967726            BIKE   6840406  othmaint        1
+    #             tour_id            mode person_id tour_type tour_num
+    # value_3   129967726  DRIVEALONEFREE   6840406  othmaint        1
     # value_4   129967740  DRIVEALONEFREE   6840407    escort        1
-    # value_5   129967741   DRIVEALONEPAY   6840407    escort        2
+    # value_5   129967741     SHARED2FREE   6840407    escort        2
     # value_6   129967748  DRIVEALONEFREE   6840407  shopping        3
-    # value_7   129967745            BIKE   6840407  othmaint        4
+    # value_7   129967745  DRIVEALONEFREE   6840407  othmaint        4
     # value_8   129967759  DRIVEALONEFREE   6840408    escort        1
     # value_9   129967760  DRIVEALONEFREE   6840408    escort        2
-    # value_10  129967767            BIKE   6840408  shopping        3
-    # value_11  129967786   DRIVEALONEPAY   6840409  shopping        1
+    # value_10  129967767  DRIVEALONEFREE   6840408  shopping        3
+    # value_11  129967786     SHARED2FREE   6840409  shopping        1
     EXPECT_NON_MAND_PERSON_IDS = [
         '6840406',
         '6840407',
@@ -371,15 +372,15 @@ def regress_mode_df(mode_df):
         'shopping',
         'shopping']
     EXPECT_NON_MAND_MODES = [
-        'BIKE',
-        'DRIVEALONEFREE',
-        'DRIVEALONEPAY',
-        'DRIVEALONEFREE',
-        'BIKE',
         'DRIVEALONEFREE',
         'DRIVEALONEFREE',
-        'BIKE',
-        'DRIVEALONEPAY']
+        'SHARED2FREE',
+        'DRIVEALONEFREE',
+        'DRIVEALONEFREE',
+        'DRIVEALONEFREE',
+        'DRIVEALONEFREE',
+        'DRIVEALONEFREE',
+        'SHARED2FREE']
 
     assert len(non_mand_mode_df.person_id) == len(EXPECT_NON_MAND_PERSON_IDS)
     assert (non_mand_mode_df.person_id.values == EXPECT_NON_MAND_PERSON_IDS).all()
@@ -392,10 +393,18 @@ def regress_joint_mode_df(mode_df):
     mode_df = mode_df.sort_values(by=['person_id', 'tour_num'])
 
     print mode_df
+    #       joint_tour_id household_id tour_type tour_type_count tour_type_num  \
+    # value      25913150      2591315    eatout               1             1
+    #
+    #       tour_num tour_count composition person_id number_of_participants  \
+    # value        1          1       mixed   6840407                      3
+    #
+    #       is_joint destination start end duration tdd        mode
+    # value     True          18     6   7        1  20  SHARED3PAY
 
     EXPECT_JOINT_PERSON_IDS = ['6840407']
     EXPECT_JOINT_TOUR_TYPES = ['eatout']
-    EXPECT_JOINT_MODES = ['BIKE']
+    EXPECT_JOINT_MODES = ['SHARED3PAY']
 
     assert len(mode_df.person_id) == len(EXPECT_JOINT_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_JOINT_PERSON_IDS).all()
@@ -409,9 +418,12 @@ def regress_subtour_mode_df(mode_df):
 
     print mode_df
 
-    EXPECT_SUBTOUR_PERSON_IDS = ['6840406.0']
+    #          tour_id  mode person_id tour_type tour_num parent_tour_id
+    # value  129967718  WALK   6840406       eat        1    129967731.0
+
+    EXPECT_SUBTOUR_PERSON_IDS = ['6840406']
     EXPECT_SUBTOUR_TYPES = ['eat']
-    EXPECT_SUBTOUR_MODES = ['DRIVE_LOC']
+    EXPECT_SUBTOUR_MODES = ['WALK']
     EXPECT_PARENT_TOUR_IDS = ['129967731.0']
 
     assert len(mode_df.person_id) == len(EXPECT_SUBTOUR_PERSON_IDS)

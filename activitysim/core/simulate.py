@@ -357,7 +357,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
     return base_probabilities
 
 
-def eval_mnl(choosers, spec, locals_d,
+def eval_mnl(choosers, spec, locals_d, custom_chooser,
              trace_label=None, trace_choice_name=None):
     """
     Run a simulation for when the model spec does not involve alternative
@@ -419,8 +419,12 @@ def eval_mnl(choosers, spec, locals_d,
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.utils_to_probs", t0, debug=True)
 
-    choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
-    t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
+    if custom_chooser:
+        choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,
+                                        trace_label=trace_label)
+    else:
+        choices, rands = logit.make_choices(probs, trace_label=trace_label)
+    t0 = tracing.print_elapsed_time("make_choices", t0, debug=True)
 
     cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
 
@@ -446,7 +450,7 @@ def eval_mnl(choosers, spec, locals_d,
     return choices
 
 
-def eval_nl(choosers, spec, nest_spec, locals_d,
+def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
             trace_label=None, trace_choice_name=None):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
@@ -527,8 +531,12 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
 
     t0 = tracing.print_elapsed_time("report_bad_choices", t0, debug=True)
 
-    choices, rands = logit.make_choices(base_probabilities, trace_label, trace_choosers=choosers)
-    t0 = tracing.print_elapsed_time("logit.make_choices", t0, debug=True)
+    if custom_chooser:
+        choices, rands = custom_chooser(probs=base_probabilities, choosers=choosers, spec=spec,
+                                        trace_label=trace_label)
+    else:
+        choices, rands = logit.make_choices(base_probabilities, trace_label=trace_label)
+    t0 = tracing.print_elapsed_time("make_choices", t0, debug=True)
 
     cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
     cum_size = chunk.log_df_size(trace_label, "expression_values", expression_values, cum_size)
@@ -559,7 +567,9 @@ def eval_nl(choosers, spec, nest_spec, locals_d,
 
 
 def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
-                     trace_label=None, trace_choice_name=None):
+                     custom_chooser=None,
+                     trace_label=None, trace_choice_name=None,
+                     ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -603,10 +613,10 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         add_skims(choosers, skims)
 
     if nest_spec is None:
-        choices = eval_mnl(choosers, spec, locals_d,
+        choices = eval_mnl(choosers, spec, locals_d, custom_chooser,
                            trace_label=trace_label, trace_choice_name=trace_choice_name)
     else:
-        choices = eval_nl(choosers, spec, nest_spec, locals_d,
+        choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
                           trace_label=trace_label, trace_choice_name=trace_choice_name)
 
     return choices
@@ -648,7 +658,8 @@ def simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
-def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_size=0,
+def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
+                    chunk_size=0, custom_chooser=None,
                     trace_label=None, trace_choice_name=None):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -677,6 +688,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None, chunk_
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
+            custom_chooser,
             chunk_trace_label,
             trace_choice_name)
 

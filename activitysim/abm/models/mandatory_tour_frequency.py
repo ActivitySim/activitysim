@@ -60,7 +60,7 @@ def mandatory_tour_frequency(persons, persons_merged,
     constants = config.get_model_constants(mandatory_tour_frequency_settings)
 
     choices = simulate.simple_simulate(
-        choosers,
+        choosers=choosers,
         spec=mandatory_tour_frequency_spec,
         nest_spec=nest_spec,
         locals_d=constants,

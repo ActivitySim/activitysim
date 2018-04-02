@@ -88,7 +88,7 @@ def joint_tour_frequency(
     constants = config.get_model_constants(joint_tour_frequency_settings)
 
     choices = simulate.simple_simulate(
-        multi_person_households,
+        choosers=multi_person_households,
         spec=joint_tour_frequency_spec,
         nest_spec=nest_spec,
         locals_d=constants,

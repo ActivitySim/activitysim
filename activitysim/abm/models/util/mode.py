@@ -235,9 +235,9 @@ def mode_choice_simulate(
         locals_dict.update(constants)
 
     choices = simulate.simple_simulate(
-        records,
-        spec,
-        nest_spec,
+        choosers=records,
+        spec=spec,
+        nest_spec=nest_spec,
         skims=list(skims.values()),
         locals_d=locals_dict,
         chunk_size=chunk_size,

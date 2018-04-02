@@ -12,6 +12,7 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import logit
 
 from .util import expressions
 from activitysim.core.util import reindex
@@ -72,13 +73,13 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     return candidates
 
 
-def get_tour_satisfaction(candidates):
+def get_tour_satisfaction(candidates, participate):
 
     joint_tour_ids = candidates.joint_tour_id.unique()
 
-    if candidates.participate.any():
+    if participate.any():
 
-        candidates = candidates[candidates.participate]
+        candidates = candidates[participate]
 
         # if this happens, we would need to filter them out!
         assert not ((candidates.composition == 'adults') & ~candidates.adult).any()
@@ -102,6 +103,62 @@ def get_tour_satisfaction(candidates):
     satisfaction = satisfaction.reindex(joint_tour_ids).fillna(False).astype(bool)
 
     return satisfaction
+
+
+def participants_chooser(probs, choosers, spec, trace_label):
+
+    # choice is boolean (participate or not)
+    model_settings = inject.get_injectable('joint_tour_participation_settings')
+    choice_col = model_settings.get('participation_choice', 'participate')
+    assert choice_col in spec.columns, \
+        "couldn't find participation choice column '%s' in spec"
+    PARTICIPATE_CHOICE = spec.columns.get_loc(choice_col)
+    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 20)
+
+    trace_label = tracing.extend_trace_label(trace_label, 'participants_chooser')
+
+    candidates = choosers.copy()
+    choices_list = []
+    rands_list = []
+    num_joint_tours = len(candidates.joint_tour_id.unique())
+
+    iter = 0
+    while candidates.shape[0] > 0:
+
+        iter += 1
+
+        if iter > MAX_ITERATIONS:
+            logger.warn('%s max iterations exceeded (%s).' % (trace_label, MAX_ITERATIONS))
+            assert False
+
+        choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+        participate = (choices == PARTICIPATE_CHOICE)
+
+        # satisfaction indexed by joint_tour_id
+        tour_satisfaction = get_tour_satisfaction(candidates, participate)
+        num_tours_satisfied = tour_satisfaction.sum()
+
+        if num_tours_satisfied > 0:
+
+            satisfied = reindex(tour_satisfaction, candidates.joint_tour_id)
+
+            choices_list.append(choices[satisfied])
+            rands_list.append(rands[satisfied])
+
+            # remove candidates of satisfied tours
+            probs = probs[~satisfied]
+            candidates = candidates[~satisfied]
+
+        logger.info('%s iteration %s : %s joint tours satisfied.' %
+                    (trace_label, iter, num_tours_satisfied,))
+
+    choices = pd.concat(choices_list)
+    rands = pd.concat(rands_list)
+
+    logger.info('%s %s iterations to satisfy %s joint tours.' %
+                (trace_label, iter, num_joint_tours,))
+
+    return choices, rands
 
 
 @inject.step()
@@ -149,63 +206,38 @@ def joint_tour_participation(
     nest_spec = config.get_logit_model_settings(joint_tour_participation_settings)
     constants = config.get_model_constants(joint_tour_participation_settings)
 
-    participants_list = []
-    iter = 0
-    MAX_ITERATIONS = 20
-    while candidates.shape[0] > 0:
+    choices = simulate.simple_simulate(
+        choosers=candidates,
+        spec=joint_tour_participation_spec,
+        nest_spec=nest_spec,
+        locals_d=constants,
+        chunk_size=chunk_size,
+        trace_label=trace_label,
+        trace_choice_name='participation',
+        custom_chooser=participants_chooser)
 
-        iter += 1
+    # choice is boolean (participate or not)
+    choice_col = joint_tour_participation_settings.get('participation_choice', 'participate')
+    assert choice_col in joint_tour_participation_spec.columns, \
+        "couldn't find participation choice column '%s' in spec"
+    PARTICIPATE_CHOICE = joint_tour_participation_spec.columns.get_loc(choice_col)
 
-        logger.info('iteration %s : %s tours (%s candidates).' %
-                    (iter, len(candidates.joint_tour_id.unique()), candidates.shape[0]))
+    participate = (choices == PARTICIPATE_CHOICE)
 
-        if iter > MAX_ITERATIONS:
-            logger.warn('giving up on remaining tours after %s iterations' % iter)
-            tracing.trace_df(candidates,
-                             label="joint_tour_participation.unsatisfied",
-                             slicer='NONE', transpose=False,
-                             warn_if_empty=True)
-            assert False
-            break
+    print "-------------------------"
+    print "participate\n", participate
 
-        choices = simulate.simple_simulate(
-            candidates,
-            spec=joint_tour_participation_spec,
-            nest_spec=nest_spec,
-            locals_d=constants,
-            chunk_size=chunk_size,
-            trace_label=tracing.extend_trace_label(trace_label, 'iter_%s' % iter),
-            trace_choice_name='participation')
+    # satisfaction indexed by joint_tour_id
+    tour_satisfaction = get_tour_satisfaction(candidates, participate)
 
-        # choice is boolean (participate or not)
-        choice_col = joint_tour_participation_settings.get('participation_choice', 'participate')
-        assert choice_col in joint_tour_participation_spec.columns, \
-            "couldn't find participation choice column '%s' in spec"
-        PARTICIPATE_CHOICE = joint_tour_participation_spec.columns.get_loc(choice_col)
-        choices = (choices.values == PARTICIPATE_CHOICE)
+    print "tour_satisfaction\n", tour_satisfaction
 
-        candidates['participate'] = choices
+    assert tour_satisfaction.all()
 
-        # satisfaction indexed by joint_tour_id
-        tour_satisfaction = get_tour_satisfaction(candidates)
-        num_tours_satisfied = tour_satisfaction.sum()
+    candidates['satisfied'] = reindex(tour_satisfaction, candidates.joint_tour_id)
 
-        if num_tours_satisfied > 0:
-
-            candidates['satisfied'] = reindex(tour_satisfaction, candidates.joint_tour_id)
-
-            PARTICIPANT_COLS = ['joint_tour_id', 'household_id', 'person_id']
-            participant = candidates.satisfied & candidates.participate
-            participants = candidates[participant][PARTICIPANT_COLS].copy()
-            participants_list.append(participants)
-
-            # remove candidates of satisfied tours
-            candidates = candidates[~candidates.satisfied]
-
-        num_tours_satisfied = tour_satisfaction.sum()
-        logger.info('iteration %s : %s joint tours satisfied.' % (iter, num_tours_satisfied,))
-
-    participants = pd.concat(participants_list)
+    PARTICIPANT_COLS = ['joint_tour_id', 'household_id', 'person_id']
+    participants = candidates[participate][PARTICIPANT_COLS].copy()
 
     # assign participant_num
     # FIXME do we want something smarter than the participant with the lowest person_id?

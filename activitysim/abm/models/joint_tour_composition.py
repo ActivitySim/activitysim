@@ -81,7 +81,7 @@ def joint_tour_composition(
     constants = config.get_model_constants(joint_tour_composition_settings)
 
     choices = simulate.simple_simulate(
-        joint_tours_merged,
+        choosers=joint_tours_merged,
         spec=joint_tour_composition_spec,
         nest_spec=nest_spec,
         locals_d=constants,

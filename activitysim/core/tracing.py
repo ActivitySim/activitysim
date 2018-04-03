@@ -509,6 +509,10 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     Nothing
     """
 
+    file_name = file_name.encode('ascii', 'ignore')
+
+    assert len(file_name) > 0
+
     file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
 
     if os.path.isfile(file_path):
@@ -880,7 +884,9 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
         # del df_target[slicer_column_name]
 
         target_label = '%s.%s.%s' % (label, slicer_column_name, target)
-        trace_df(df_target, target_label,
+
+        trace_df(df_target,
+                 label=target_label,
                  slicer="NONE",
                  transpose=True,
                  column_labels=['expression', None],

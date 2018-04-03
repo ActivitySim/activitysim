@@ -113,14 +113,16 @@ def participants_chooser(probs, choosers, spec, trace_label):
     assert choice_col in spec.columns, \
         "couldn't find participation choice column '%s' in spec"
     PARTICIPATE_CHOICE = spec.columns.get_loc(choice_col)
-    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 20)
+    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 100)
 
     trace_label = tracing.extend_trace_label(trace_label, 'participants_chooser')
 
     candidates = choosers.copy()
     choices_list = []
     rands_list = []
-    num_joint_tours = len(candidates.joint_tour_id.unique())
+
+    num_tours_remaining = len(candidates.joint_tour_id.unique())
+    logger.info('%s %s joint tours to satisfy.' % (trace_label, num_tours_remaining,))
 
     iter = 0
     while candidates.shape[0] > 0:
@@ -129,6 +131,11 @@ def participants_chooser(probs, choosers, spec, trace_label):
 
         if iter > MAX_ITERATIONS:
             logger.warn('%s max iterations exceeded (%s).' % (trace_label, MAX_ITERATIONS))
+            diagnostic_cols = ['joint_tour_id', 'household_id', 'composition', 'adult']
+            unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
+            tracing.write_csv(unsatisfied_candidates,
+                              file_name='%s.UNSATISFIED' % trace_label, transpose=False)
+            print unsatisfied_candidates.head(20)
             assert False
 
         choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
@@ -136,9 +143,11 @@ def participants_chooser(probs, choosers, spec, trace_label):
 
         # satisfaction indexed by joint_tour_id
         tour_satisfaction = get_tour_satisfaction(candidates, participate)
-        num_tours_satisfied = tour_satisfaction.sum()
+        num_tours_satisfied_this_iter = tour_satisfaction.sum()
 
-        if num_tours_satisfied > 0:
+        if num_tours_satisfied_this_iter > 0:
+
+            num_tours_remaining -= num_tours_satisfied_this_iter
 
             satisfied = reindex(tour_satisfaction, candidates.joint_tour_id)
 
@@ -149,14 +158,13 @@ def participants_chooser(probs, choosers, spec, trace_label):
             probs = probs[~satisfied]
             candidates = candidates[~satisfied]
 
-        logger.info('%s iteration %s : %s joint tours satisfied.' %
-                    (trace_label, iter, num_tours_satisfied,))
+        logger.info('%s iteration %s : %s joint tours satisfied %s remaining' %
+                    (trace_label, iter, num_tours_satisfied_this_iter, num_tours_remaining,))
 
     choices = pd.concat(choices_list)
     rands = pd.concat(rands_list)
 
-    logger.info('%s %s iterations to satisfy %s joint tours.' %
-                (trace_label, iter, num_joint_tours,))
+    logger.info('%s %s iterations to satisfy all joint tours.' % (trace_label, iter,))
 
     return choices, rands
 
@@ -224,13 +232,8 @@ def joint_tour_participation(
 
     participate = (choices == PARTICIPATE_CHOICE)
 
-    print "-------------------------"
-    print "participate\n", participate
-
     # satisfaction indexed by joint_tour_id
     tour_satisfaction = get_tour_satisfaction(candidates, participate)
-
-    print "tour_satisfaction\n", tour_satisfaction
 
     assert tour_satisfaction.all()
 

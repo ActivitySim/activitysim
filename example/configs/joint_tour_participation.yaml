@@ -1,5 +1,7 @@
 LOGIT_TYPE: MNL
 
+# max number of iterations participation_choice should try before raising error
+#max_participation_choice_iterations: 1000
 
 preprocessor_settings:
   SPEC: annotate_participants_joint_participation_preprocessor

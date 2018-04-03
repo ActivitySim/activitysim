@@ -17,6 +17,6 @@ Household is located in a suburban area type (dummy),~(home_is_urban | home_is_r
 Log of max pair-wise overlap of household adults time windows,log_time_window_overlap_adult,1.1920,,
 Log of max pair-wise overlap of household childrens time windows,log_time_window_overlap_child,,1.8410,
 Log of max pair-wise overlap of household adults and childrens time windows,log_time_window_overlap_adult_child,,,1.9580
-Two adults must have Mand or Non Mand activity patterns to have adult-only joint travel,num_travel_active_adults==0,-999,,
-Two children must have Mand or Non Mand activity patterns to have children-only joint travel,num_travel_active_children==0,,-999,
+Two adults must have Mand or Non Mand activity patterns to have adult-only joint travel,num_travel_active_adults<2,-999,,
+Two children must have Mand or Non Mand activity patterns to have children-only joint travel,num_travel_active_children<2,,-999,
 At least one adult and at least one child must have Mand or Non Mand activity patterns to have adult/child joint travel,(num_travel_active_adults == 0) | (num_travel_active_children == 0),,,-999

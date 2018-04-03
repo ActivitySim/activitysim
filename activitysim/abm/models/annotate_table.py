@@ -26,6 +26,8 @@ def annotate_table(configs_dir):
     # model_settings name should have been provided as a step argument
     model_name = inject.get_step_arg('model_name')
 
+    trace_label = 'annotate_table.%s' % model_name
+
     model_settings = config.read_model_settings(configs_dir, '%s.yaml' % model_name)
 
     df_name = model_settings['DF']
@@ -34,7 +36,7 @@ def annotate_table(configs_dir):
     results = expressions.compute_columns(
         df,
         model_settings=model_settings,
-        trace_label=None)
+        trace_label=trace_label)
 
     assign_in_place(df, results)
 

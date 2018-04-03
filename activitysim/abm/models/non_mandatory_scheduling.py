@@ -23,8 +23,8 @@ DUMP = False
 
 
 @inject.injectable()
-def tdd_non_mandatory_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_nonmandatory.csv')
+def tour_scheduling_nonmandatory_spec(configs_dir):
+    return asim.read_model_spec(configs_dir, 'tour_scheduling_nonmandatory.csv')
 
 
 @inject.injectable()
@@ -36,7 +36,7 @@ def non_mandatory_tour_scheduling_settings(configs_dir):
 def non_mandatory_tour_scheduling(tours,
                                   persons_merged,
                                   tdd_alts,
-                                  tdd_non_mandatory_spec,
+                                  tour_scheduling_nonmandatory_spec,
                                   non_mandatory_tour_scheduling_settings,
                                   chunk_size,
                                   trace_hh_id):
@@ -55,9 +55,24 @@ def non_mandatory_tour_scheduling(tours,
 
     constants = config.get_model_constants(non_mandatory_tour_scheduling_settings)
 
+    # - run preprocessor to annotate choosers
+    preprocessor_settings = \
+        non_mandatory_tour_scheduling_settings.get('preprocessor_settings', None)
+    if preprocessor_settings:
+
+        locals_d = {}
+        if constants is not None:
+            locals_d.update(constants)
+
+        expressions.assign_columns(
+            df=non_mandatory_tours,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_d,
+            trace_label=trace_label)
+
     tdd_choices = vectorize_tour_scheduling(
         non_mandatory_tours, persons_merged,
-        tdd_alts, tdd_non_mandatory_spec,
+        tdd_alts, tour_scheduling_nonmandatory_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)

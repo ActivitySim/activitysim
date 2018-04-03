@@ -88,11 +88,6 @@ def mandatory_tour_frequency(persons, persons_merged,
         mandatory_tour_frequency_alts=mandatory_tour_frequency_alternatives
     )
 
-    expressions.assign_columns(
-        df=mandatory_tours,
-        model_settings='annotate_tours_with_dest',
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_tours_with_dest'))
-
     tours = pipeline.extend_table("tours", mandatory_tours)
     tracing.register_traceable_table('tours', tours)
     pipeline.get_rn_generator().add_channel(mandatory_tours, 'tours')

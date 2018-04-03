@@ -28,21 +28,21 @@ def mandatory_tour_scheduling_settings(configs_dir):
 
 
 @inject.injectable()
-def tdd_work_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'tour_departure_and_duration_work.csv')
+def tour_scheduling_work_spec(configs_dir):
+    return simulate.read_model_spec(configs_dir, 'tour_scheduling_work.csv')
 
 
 @inject.injectable()
-def tdd_school_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'tour_departure_and_duration_school.csv')
+def tour_scheduling_school_spec(configs_dir):
+    return simulate.read_model_spec(configs_dir, 'tour_scheduling_school.csv')
 
 
 @inject.step()
 def mandatory_tour_scheduling(tours,
                               persons_merged,
                               tdd_alts,
-                              tdd_school_spec,
-                              tdd_work_spec,
+                              tour_scheduling_work_spec,
+                              tour_scheduling_school_spec,
                               mandatory_tour_scheduling_settings,
                               chunk_size,
                               trace_hh_id):
@@ -61,7 +61,7 @@ def mandatory_tour_scheduling(tours,
     tdd_choices = vectorize_tour_scheduling(
         mandatory_tours, persons_merged,
         tdd_alts,
-        spec={'work': tdd_work_spec, 'school': tdd_school_spec},
+        spec={'work': tour_scheduling_work_spec, 'school': tour_scheduling_school_spec},
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)

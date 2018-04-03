@@ -118,13 +118,7 @@ def non_mandatory_tour_destination(
 
     non_mandatory_tours['destination'] = choices
 
-    results = expressions.compute_columns(
-        df=non_mandatory_tours,
-        model_settings='annotate_tours_with_dest',
-        trace_label=trace_label)
-
     assign_in_place(tours, non_mandatory_tours[['destination']])
-    assign_in_place(tours, results)
 
     pipeline.replace_table("tours", tours)
 

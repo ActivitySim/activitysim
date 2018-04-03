@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable()
-def tdd_joint_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'tour_departure_and_duration_joint.csv')
+def joint_tour_scheduling_spec(configs_dir):
+    return simulate.read_model_spec(configs_dir, 'tour_scheduling_joint.csv')
 
 
 @inject.injectable()
@@ -35,7 +35,7 @@ def joint_tour_scheduling(
         joint_tours, joint_tour_participants,
         persons_merged,
         tdd_alts,
-        tdd_joint_spec,
+        joint_tour_scheduling_spec,
         joint_tour_scheduling_settings,
         configs_dir,
         chunk_size,
@@ -50,7 +50,7 @@ def joint_tour_scheduling(
     joint_tour_participants = joint_tour_participants.to_frame()
     persons_merged = persons_merged.to_frame()
 
-    logger.info("Running joint_tour_scheduling with %d joint tours" % joint_tours_df.shape[0])
+    logger.info("Running %s with %d joint tours" % (trace_label, joint_tours_df.shape[0]))
 
     # it may seem peculiar that we are concerned with persons rather than households
     # but every joint tour is (somewhat arbitrarily) assigned a "primary person"
@@ -87,7 +87,7 @@ def joint_tour_scheduling(
         joint_tours_df, joint_tour_participants,
         persons_merged,
         tdd_alts,
-        spec=tdd_joint_spec,
+        spec=joint_tour_scheduling_spec,
         constants=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label)
@@ -99,3 +99,9 @@ def joint_tour_scheduling(
     assign_in_place(joint_tours_df, tdd_choices)
 
     pipeline.replace_table("joint_tours", joint_tours_df)
+
+    if trace_hh_id:
+        tracing.trace_df(joint_tours_df,
+                         label="joint_tour_scheduling",
+                         slicer='household_id',
+                         warn_if_empty=True)

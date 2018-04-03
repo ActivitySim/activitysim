@@ -246,13 +246,7 @@ def atwork_subtour_destination_simulate(tours,
 
     subtours['destination'] = choices
 
-    results = expressions.compute_columns(
-        df=subtours,
-        model_settings='annotate_tours_with_dest',
-        trace_label=trace_label)
-
     assign_in_place(tours, subtours[['destination']])
-    assign_in_place(tours, results)
 
     pipeline.replace_table("tours", tours)
 

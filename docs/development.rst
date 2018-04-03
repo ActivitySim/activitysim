@@ -146,7 +146,7 @@ The script does the following:
 * runs ``make html``
 * copies the ``master`` branch ``../activitysim/docs/_build/html/*`` pages to the ``gh-pages`` branch
 
-GitHub automagically publishes the gh-pages branch at https://udst.github.io/activitysim.  
+GitHub automagically publishes the gh-pages branch at https://activitysim.github.io/activitysim.  
 
 Releases
 --------

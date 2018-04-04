@@ -49,8 +49,6 @@ NESTS:
               - DRIVE_COM
 
 
-VARIABLE_TEMPLATES:
-
 CONSTANTS:
     valueOfTime: 8.00
     costPerMile: 18.48

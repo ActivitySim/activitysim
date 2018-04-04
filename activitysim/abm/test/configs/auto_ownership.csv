@@ -2,11 +2,11 @@ Description,Expression,cars0,cars1,cars2,cars3,cars4
 2 Adults (age 16+),drivers==2,,0,3.0773,3.1962,2.6616
 3 Adults (age 16+),drivers==3,,0,3.5401,5.5131,5.208
 4+ Adults (age 16+),drivers>3,,2.0107,6.3662,8.5148,9.5807
-Persons age 16-17,num_adolescents,,0,-0.881,-1.7313,-1.7313
+Persons age 16-17,num_children_16_to_17,,0,-0.881,-1.7313,-1.7313
 Persons age 18-24,num_college_age,,-0.4087,-1.0095,-1.0107,-1.0107
 Persons age 35-34,num_young_adults,,0,-0.4849,-0.8596,-0.8596
 Presence of children age 0-4,num_young_children>0,,0.3669,0.7627,0.7627,0.7627
-Presence of children age 5-17,(num_children+num_adolescents)>0,,0.0158,0.2936,0.4769,0.4769
+Presence of children age 5-17,(num_children_5_to_15+num_children_16_to_17)>0,,0.0158,0.2936,0.4769,0.4769
 "Number of workers, capped at 3",@df.workers.clip(upper=3),,0,0.2936,0.6389,0.8797
 "Piecewise Linear household income, $0-30k","@df.income_in_thousands.clip(0, 30)",,0.0383,0.054,0.0559,0.0619
 "Piecewise Linear household income, $30-75k","@(df.income_in_thousands-30).clip(0, 45)",,0,0.0083,0.011,0.0147

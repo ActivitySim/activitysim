@@ -45,11 +45,11 @@ def handle_standard_args(parser=None):
         inject.add_injectable("configs_dir", args.config)
     if args.output:
         if not os.path.exists(args.output):
-            raise IOError("Could not find output dir '%s'." % args.config)
+            raise IOError("Could not find output dir '%s'." % args.output)
         inject.add_injectable("output_dir", args.output)
     if args.data:
         if not os.path.exists(args.data):
-            raise IOError("Could not find data dir '%s'." % args.config)
+            raise IOError("Could not find data dir '%s'." % args.data)
         inject.add_injectable("data_dir", args.data)
     if args.resume:
         inject.add_injectable("resume_after", args.resume)

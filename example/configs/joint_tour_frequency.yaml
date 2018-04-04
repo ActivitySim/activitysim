@@ -1,0 +1,8 @@
+LOGIT_TYPE: MNL
+
+preprocessor_settings:
+  SPEC: annotate_households_joint_frequency_preprocessor
+  DF: households
+  TABLES:
+    #- persons
+    - accessibility

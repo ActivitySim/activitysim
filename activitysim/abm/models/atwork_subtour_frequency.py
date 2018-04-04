@@ -85,11 +85,9 @@ def atwork_subtour_frequency(tours,
 
     tracing.print_summary('atwork_subtour_frequency', choices, value_counts=True)
 
-    # reindex since we are working with a subset of tours
-    choices = choices.reindex(tours.index)
-
     # add atwork_subtour_frequency column to tours
-    tours['atwork_subtour_frequency'] = choices
+    # reindex since we are working with a subset of tours
+    tours['atwork_subtour_frequency'] = choices.reindex(tours.index)
     pipeline.replace_table("tours", tours)
 
     # - create atwork_subtours based on atwork_subtour_frequency choice names
@@ -97,8 +95,6 @@ def atwork_subtour_frequency(tours,
     assert not work_tours.atwork_subtour_frequency.isnull().any()
 
     subtours = process_atwork_subtours(work_tours, atwork_subtour_frequency_alternatives)
-
-    print subtours
 
     tours = pipeline.extend_table("tours", subtours)
     tracing.register_traceable_table('tours', tours)

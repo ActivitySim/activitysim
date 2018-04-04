@@ -7,6 +7,8 @@ import os
 import numpy as np
 import pandas as pd
 
+from activitysim.core import util
+from activitysim.core import config
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +107,27 @@ class NumpyLogger(object):
                             (msg.rstrip(), str(self.target), str(self.expression)))
 
 
+def local_utilities():
+    """
+    Dict of useful modules and functions to provides as locals for use in eval of expressions
+
+    Returns
+    -------
+    utility_dict : dict
+        name, entity pairs of locals
+    """
+
+    utility_dict = {
+        'pd': pd,
+        'np': np,
+        'reindex': util.reindex,
+        'setting': config.setting,
+        'other_than': util.other_than,
+    }
+
+    return utility_dict
+
+
 def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, trace_rows=None):
     """
     Evaluate a set of variable expressions from a spec in the context
@@ -116,13 +139,13 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     targets as the assigned target name.
 
     lowercase variables starting with underscore are temp variables (e.g. _local_var)
-    and not returned except in trace_restults
+    and not returned except in trace_results
 
-    uppercase variables starting with underscore are temp variables (e.g. _LOCAL_SCALAR)
+    uppercase variables starting with underscore are temp scalar variables (e.g. _LOCAL_SCALAR)
     and not returned except in trace_assigned_locals
     This is useful for defining general purpose local constants in expression file
 
-    Users should take care that expressions should result in
+    Users should take care that expressions (other than temp scalar variables) should result in
     a Pandas Series (scalars will be automatically promoted to series.)
 
     Parameters
@@ -156,9 +179,11 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     def to_series(x, target=None):
         if x is None or np.isscalar(x):
             if target:
-                logger.warn("WARNING: assign_variables promoting scalar %s to series" % target)
+                logger.warn("assign_variables promoting scalar %s to series" % target)
             return pd.Series([x] * len(df.index), index=df.index)
         return x
+
+    assert assignment_expressions.shape[0] > 0
 
     trace_assigned_locals = trace_results = None
     if trace_rows is not None:
@@ -169,12 +194,14 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             trace_assigned_locals = {}
 
     # avoid touching caller's passed-in locals_d parameter (they may be looping)
-    locals_dict = locals_dict.copy() if locals_dict is not None else {}
+    _locals_dict = local_utilities()
+    if locals_dict is not None:
+        _locals_dict.update(locals_dict)
     if df_alias:
-        locals_dict[df_alias] = df
+        _locals_dict[df_alias] = df
     else:
-        locals_dict['df'] = df
-    local_keys = locals_dict.keys()
+        _locals_dict['df'] = df
+    local_keys = _locals_dict.keys()
 
     target_history = []
     # need to be able to identify which variables causes an error, which keeps
@@ -182,12 +209,15 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
         target, expression = e
 
+        assert isinstance(target, str), \
+            "expected target '%s' for expression '%s' to be string" % (target, expression)
+
         if target in local_keys:
             logger.warn("assign_variables target obscures local_d name '%s'" % str(target))
 
         if is_local(target):
-            x = eval(expression, globals(), locals_dict)
-            locals_dict[target] = x
+            x = eval(expression, globals(), _locals_dict)
+            _locals_dict[target] = x
             if trace_assigned_locals is not None:
                 trace_assigned_locals[target] = x
             continue
@@ -202,7 +232,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
             # FIXME should whitelist globals for security?
             globals_dict = {}
-            values = to_series(eval(expression, globals_dict, locals_dict), target=target)
+            values = to_series(eval(expression, globals_dict, _locals_dict), target=target)
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)
@@ -222,7 +252,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             trace_results.append((target, values[trace_rows]))
 
         # update locals to allows us to ref previously assigned targets
-        locals_dict[target] = values
+        _locals_dict[target] = values
 
     # build a dataframe of eval results for non-temp targets
     # since we allow targets to be recycled, we want to only keep the last usage
@@ -243,6 +273,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     if trace_results is not None:
 
         trace_results = pd.DataFrame.from_items(trace_results)
+
         trace_results.index = df[trace_rows].index
 
         trace_results = undupe_column_names(trace_results)

@@ -13,6 +13,7 @@ from activitysim.core import config
 from activitysim.core import inject
 
 from .util.cdap import run_cdap
+from .util import expressions
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ def cdap_fixed_relative_proportions(configs_dir):
 
 
 @inject.step()
-def cdap_simulate(persons_merged,
+def cdap_simulate(persons_merged, persons, households,
                   cdap_settings,
                   cdap_indiv_spec,
                   cdap_interaction_coefficients,
@@ -75,31 +76,47 @@ def cdap_simulate(persons_merged,
     simply applies those utilities using the simulation framework.
     """
 
-    persons_df = persons_merged.to_frame()
+    trace_label = 'cdap'
+
+    persons_merged = persons_merged.to_frame()
 
     constants = config.get_model_constants(cdap_settings)
 
-    logger.info("Running cdap_simulate with %d persons" % len(persons_df.index))
+    logger.info("Running cdap_simulate with %d persons" % len(persons_merged.index))
 
-    choices = run_cdap(persons=persons_df,
+    choices = run_cdap(persons=persons_merged,
                        cdap_indiv_spec=cdap_indiv_spec,
                        cdap_interaction_coefficients=cdap_interaction_coefficients,
                        cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
                        locals_d=constants,
                        chunk_size=chunk_size,
                        trace_hh_id=trace_hh_id,
-                       trace_label='cdap')
+                       trace_label=trace_label)
 
-    tracing.print_summary('cdap_activity', choices.cdap_activity, value_counts=True)
+    # - assign results to persons table and annotate
+    persons = persons.to_frame()
 
-    print pd.crosstab(persons_df.ptype, choices.cdap_activity, margins=True)
+    choices = choices.reindex(persons.index)
+    persons['cdap_activity'] = choices.cdap_activity
+    persons['cdap_rank'] = choices.cdap_rank
 
-    choices = choices.reindex(persons_merged.index)
-    inject.add_column("persons", "cdap_activity", choices.cdap_activity)
-    inject.add_column("persons", "cdap_rank", choices.cdap_rank)
+    expressions.assign_columns(
+        df=persons,
+        model_settings=cdap_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
-    pipeline.add_dependent_columns("persons", "persons_cdap")
-    pipeline.add_dependent_columns("households", "households_cdap")
+    pipeline.replace_table("persons", persons)
+
+    # - annotate households table
+    households = households.to_frame()
+    expressions.assign_columns(
+        df=households,
+        model_settings=cdap_settings.get('annotate_households'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
+    pipeline.replace_table("households", households)
+
+    tracing.print_summary('cdap_activity', persons.cdap_activity, value_counts=True)
+    print pd.crosstab(persons.ptype, persons.cdap_activity, margins=True)
 
     if trace_hh_id:
 

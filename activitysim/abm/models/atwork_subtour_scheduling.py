@@ -26,8 +26,8 @@ DUMP = False
 
 
 @inject.injectable()
-def tdd_subtour_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_departure_and_duration_subtour.csv')
+def tour_scheduling_subtour_spec(configs_dir):
+    return asim.read_model_spec(configs_dir, 'tour_scheduling_subtour.csv')
 
 
 @inject.injectable()
@@ -40,16 +40,15 @@ def atwork_subtour_scheduling(
         tours,
         persons_merged,
         tdd_alts,
-        tdd_subtour_spec,
+        tour_scheduling_subtour_spec,
         atwork_subtour_scheduling_settings,
-        configs_dir,
         chunk_size,
         trace_hh_id):
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
     """
 
-    trace_label = 'atwork_subtour_scheduling'
+    trace_label = 'tour_scheduling_subtour'
     constants = config.get_model_constants(atwork_subtour_scheduling_settings)
 
     persons_merged = persons_merged.to_frame()
@@ -57,7 +56,7 @@ def atwork_subtour_scheduling(
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'subtour']
 
-    logger.info("Running atwork_subtour_scheduling with %d tours" % len(subtours))
+    logger.info("Running %s with %d tours" % (trace_label, len(subtours)))
 
     # parent_tours table with columns ['tour_id', 'tdd'] index = tour_id
     parent_tour_ids = subtours.parent_tour_id.astype(int).unique()
@@ -76,19 +75,12 @@ def atwork_subtour_scheduling(
         parent_tours,
         subtours,
         persons_merged,
-        tdd_alts, tdd_subtour_spec,
+        tdd_alts, tour_scheduling_subtour_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)
-    assign_in_place(subtours, tdd_choices)
 
-    expressions.assign_columns(
-        df=subtours,
-        model_settings='annotate_tours',
-        configs_dir=configs_dir,
-        trace_label=trace_label)
-
-    assign_in_place(tours, subtours)
+    assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)
 
     tracing.dump_df(DUMP,
@@ -96,7 +88,7 @@ def atwork_subtour_scheduling(
                     trace_label, 'tour_map')
 
     if trace_hh_id:
-        tracing.trace_df(subtours,
+        tracing.trace_df(tours[tours.tour_category == 'subtour'],
                          label="atwork_subtour_scheduling",
                          slicer='person_id',
                          index_label='tour_id',

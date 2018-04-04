@@ -1,4 +1,4 @@
-id,household_id,ptype,age,PERSONS
+id,household_id,ptype,age,hhsize
 1,1,1,20,1
 2,2,3,21,1
 3,3,1,22,2

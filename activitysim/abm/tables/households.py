@@ -68,42 +68,6 @@ def chunk_id(households):
     return chunk_ids
 
 
-@inject.column('households')
-def work_tour_auto_time_savings(households):
-    # FIXME - fix this variable from auto ownership model
-    return pd.Series(0, households.index)
-
-
-# this is the placeholder for all the columns to update after the
-# workplace location choice model
-@inject.table()
-def households_cdap(households):
-    return pd.DataFrame(index=households.index)
-
-
-@inject.column("households_cdap")
-def num_under16_not_at_school(persons, households):
-    return persons.under16_not_at_school.groupby(persons.household_id).size().\
-        reindex(households.index).fillna(0)
-
-
-# this is a placeholder table for columns that get computed after the
-# auto ownership model
-@inject.table()
-def households_autoown(households):
-    return pd.DataFrame(index=households.index)
-
-
-@inject.column('households_autoown')
-def no_cars(households):
-    return (households.auto_ownership == 0)
-
-
-@inject.column('households_autoown')
-def car_sufficiency(households, persons):
-    return households.auto_ownership - persons.household_id.value_counts()
-
-
 # this is a common merge so might as well define it once here and use it
 @inject.table()
 def households_merged(households, land_use, accessibility):

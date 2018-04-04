@@ -1,0 +1,11 @@
+Description,Target,Expression
+#,, annotate persons table after joint_trips_participation model has run
+#,_JOINT_TOUR_COUNT,"lambda query, participants, persons: participants.query(query).groupby('person_id').size().reindex(persons.index).fillna(0)"
+,_JOINT_TOUR_TYPE_COUNT,"lambda tour_type, participants, persons: participants[participants.tour_type==tour_type].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)"
+#,, FIXME - these are my placeholder for joint trip generation
+num_shop_j,num_shop_j,"_JOINT_TOUR_TYPE_COUNT('shop', participants_merged, persons)"
+num_main_j,num_main_j,"_JOINT_TOUR_TYPE_COUNT('main', participants_merged, persons)"
+num_eat_j,num_eat_j,"_JOINT_TOUR_TYPE_COUNT('eat', participants_merged, persons)"
+num_visit_j,num_visit_j,"_JOINT_TOUR_TYPE_COUNT('visit', participants_merged, persons)"
+num_disc_j,num_disc_j,"_JOINT_TOUR_TYPE_COUNT('disc', participants_merged, persons)"
+num_joint_tours,num_joint_tours,num_shop_j + num_main_j + num_eat_j + num_visit_j + num_disc_j

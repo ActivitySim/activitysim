@@ -40,7 +40,8 @@ def test_channel():
         'households': {'max_steps': 4, 'index': 'HHID'},
         'persons': {'max_steps': 2, 'index': 'PERID'},
     }
-    rng = random.Random(channels)
+    rng = random.Random()
+    rng.set_channel_info(channels)
 
     persons = pd.DataFrame({
         "household_id": [1, 1, 2, 2, 2],

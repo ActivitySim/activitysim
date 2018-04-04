@@ -71,7 +71,7 @@ with Anaconda:
 * `numpy <http://numpy.org>`__ >= 1.13.0 \*
 * `pandas <http://pandas.pydata.org>`__ >= 0.20.3 \*
 * `pyyaml <http://pyyaml.org/wiki/PyYAML>`__ >= 3.0 \*
-* `tables <http://www.pytables.org/moin>`__ >= 3.3.0 \*
+* `tables <http://www.pytables.org>`__ >= 3.3.0 \*
 * `toolz <http://toolz.readthedocs.org/en/latest/>`__ or
   `cytoolz <https://github.com/pytoolz/cytoolz>`__ >= 0.7 \*
 * `psutil <https://pypi.python.org/pypi/psutil>`__ >= 4.1

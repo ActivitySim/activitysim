@@ -9,6 +9,8 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 
+from .util import expressions
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,9 +25,11 @@ def auto_ownership_settings(configs_dir):
 
 
 @inject.step()
-def auto_ownership_simulate(households_merged,
+def auto_ownership_simulate(households,
+                            households_merged,
                             auto_ownership_spec,
                             auto_ownership_settings,
+                            configs_dir,
                             chunk_size,
                             trace_hh_id):
     """
@@ -48,15 +52,21 @@ def auto_ownership_simulate(households_merged,
         trace_label=trace_label,
         trace_choice_name='auto_ownership')
 
-    tracing.print_summary('auto_ownership', choices, value_counts=True)
+    households = households.to_frame()
 
-    inject.add_column('households', 'auto_ownership', choices)
+    # no need to reindex as we used all households
+    households['auto_ownership'] = choices
 
-    pipeline.add_dependent_columns('households', 'households_autoown')
+    expressions.assign_columns(
+        df=households,
+        model_settings=auto_ownership_settings.get('annotate_households'),
+        trace_label=trace_label)
+
+    pipeline.replace_table("households", households)
+
+    tracing.print_summary('auto_ownership', households.auto_ownership, value_counts=True)
 
     if trace_hh_id:
-        trace_columns = ['auto_ownership'] + inject.get_table('households_autoown').columns
-        tracing.trace_df(inject.get_table('households').to_frame(),
+        tracing.trace_df(households,
                          label='auto_ownership',
-                         columns=trace_columns,
                          warn_if_empty=True)

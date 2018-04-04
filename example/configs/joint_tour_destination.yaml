@@ -1,0 +1,24 @@
+SAMPLE_SIZE: 30
+
+SIMULATE_CHOOSER_COLUMNS:
+  - tour_type
+  - TAZ
+  - household_id
+
+#LOGSUM_CHOOSER_COLUMNS:
+#  - tour_type
+#  - TAZ
+#  - hhsize
+#  - density_index
+#  - age
+#  - age_16_p
+#  - age_16_to_19
+#  - auto_ownership
+#  - number_of_participants
+#  - is_joint
+
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: TAZ
+ALT_DEST_COL_NAME: alt_dest
+IN_PERIOD: 12
+OUT_PERIOD: 12

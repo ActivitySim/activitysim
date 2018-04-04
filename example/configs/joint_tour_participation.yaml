@@ -1,0 +1,18 @@
+LOGIT_TYPE: MNL
+
+#max_participation_choice_iterations: 1000
+
+preprocessor_settings:
+  SPEC: annotate_participants_joint_participation_preprocessor
+  DF: participants
+#  TABLES:
+#    - persons
+#    - accessibility
+
+
+annotate_persons:
+  SPEC: annotate_persons_joint_participation
+  DF: persons
+  TABLES:
+    - participants_merged
+

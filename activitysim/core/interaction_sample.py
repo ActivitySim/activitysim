@@ -53,8 +53,6 @@ def make_sample_choices(
     assert isinstance(interaction_utilities, pd.DataFrame)
     assert interaction_utilities.shape == (len(choosers)*alternative_count, 1)
 
-    t0 = tracing.print_elapsed_time()
-
     # probs should sum to 1 across each row
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \
@@ -68,10 +66,7 @@ def make_sample_choices(
             msg="probabilities do not add up to 1",
             trace_choosers=choosers)
 
-    t0 = tracing.print_elapsed_time("make_choices bad_probs", t0, debug=True)
-
     cum_probs_arr = probs.as_matrix().cumsum(axis=1)
-    t0 = tracing.print_elapsed_time("make_choices cum_probs_arr", t0, debug=True)
 
     # alt probs in convenient layout to return prob of chose alternative
     # (same layout as cum_probs_arr and interaction_utilities)
@@ -83,7 +78,6 @@ def make_sample_choices(
     # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
     rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
     rands = rands.T.reshape(sample_size, -1, 1)
-    t0 = tracing.print_elapsed_time("make_choices random_for_df", t0, debug=True)
 
     # the alternative value chosen
     choices_array = np.empty([sample_size, len(choosers)]).astype(int)
@@ -103,7 +97,6 @@ def make_sample_choices(
         positions = np.argmax(cum_probs_arr > r, axis=1)
 
         # FIXME - leave positions as numpy array, not pandas series?
-
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
         positions = pd.Series(positions, index=probs.index)
@@ -256,7 +249,6 @@ def _interaction_sample(
 
     tracing.dump_df(DUMP, interaction_utilities, trace_label, 'interaction_utilities')
 
-    # FIXME - do this in numpy, not pandas?
     # reshape utilities (one utility column and one row per row in interaction_utilities)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
@@ -271,7 +263,6 @@ def _interaction_sample(
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
 
-    # FIXME - do this in numpy, not pandas?
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)

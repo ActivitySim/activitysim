@@ -118,6 +118,29 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
 
 
 def create_timetable_windows(rows, tdd_alts):
+    """
+    create an empty (all available) timetable with one window row per rows.index
+
+    Parameters
+    ----------
+    rows - pd.DataFrame or Series or orca.DataFrameWrapper
+        all we care about is the index
+    tdd_alts - pd.DataFrame
+        We expect a start and end column, and create a timetable to accomodate all alts
+        (with on window of padding at each end)
+
+    so if start is 5 and end is 23, we return something like this:
+
+             4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24
+    PERID
+    30       0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+    109      0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+
+    Returns
+    -------
+    pd.DataFrame indexed by rows.index, and one column of int8 for each time window (plus padding)
+
+    """
 
     # want something with an index to
     assert rows.index is not None
@@ -132,7 +155,8 @@ def create_timetable_windows(rows, tdd_alts):
 
     df = pd.DataFrame(data=UNSCHEDULED,
                       index=rows.index,
-                      columns=window_cols)
+                      columns=window_cols,
+                      dtype=np.int8)
 
     return df
 
@@ -185,7 +209,10 @@ class TimeTable(object):
         # print "\tdd_footprints_df\n", self.tdd_footprints_df
 
     def slice_windows_by_row_id(self, window_row_ids):
-
+        """
+        return windows array slice containing rows for specified window_row_ids
+        (in window_row_ids order)
+        """
         row_ixs = window_row_ids.map(self.window_row_ix).values
         windows = self.windows[row_ixs]
 
@@ -235,7 +262,7 @@ class TimeTable(object):
 
         Parameters
         ----------
-        row_ids : pandas Series
+        window_row_ids : pandas Series
             series of window_row_ids indexed by tour_id
         tdds : pandas series
             series of tdd_alt ids, index irrelevant
@@ -274,7 +301,7 @@ class TimeTable(object):
         """
         Assign tours (represented by tdd alt ids) to persons
 
-        Updates self.windows numpy array. Assignments will no 'take' outside this object
+        Updates self.windows numpy array. Assignments will not 'take' outside this object
         until/unless replace_table called or updated timetable retrieved by get_windows_df
 
         Parameters
@@ -340,6 +367,45 @@ class TimeTable(object):
         row_ixs = window_row_ids.map(self.window_row_ix).values
 
         self.windows[row_ixs] = (tour_footprints == 0) * I_MIDDLE
+
+    def assign_footprints(self, window_row_ids, footprints):
+        """
+        assign footprints for specified window_row_ids
+
+        This method is used for initialization of joint_tour timetables based on the
+        combined availability of the joint tour participants
+
+        Parameters
+        ----------
+        window_row_ids : pandas Series
+            series of window_row_ids index irrelevant, but we want to use map()
+        footprints : numpy array
+            with one row per window_row_id and one column per time period
+        """
+
+        assert len(window_row_ids) == footprints.shape[0]
+
+        # require same number of periods in footprints
+        assert self.windows.shape[1] == footprints.shape[1]
+
+        # vectorization doesn't work with duplicate row_ids
+        assert len(window_row_ids.values) == len(np.unique(window_row_ids.values))
+
+        # row idxs of windows to assign to
+        row_ixs = window_row_ids.map(self.window_row_ix).values
+
+        self.windows[row_ixs] = np.bitwise_or(self.windows[row_ixs], footprints)
+
+    def pairwise_available(self, window1_row_ids, window2_row_ids):
+
+        available1 = (self.slice_windows_by_row_id(window1_row_ids) != I_MIDDLE) * 1
+        available2 = (self.slice_windows_by_row_id(window2_row_ids) != I_MIDDLE) * 1
+
+        return (available1 * available2)
+
+    def individually_available(self, window_row_ids):
+
+        return (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
 
     def adjacent_window_run_length(self, window_row_ids, periods, before):
         """
@@ -446,7 +512,7 @@ class TimeTable(object):
         window_row_ids : pandas Series int
             series of window_row_ids indexed by tour_id
         periods : pandas series int
-            series of tdd_alt ids, index irrelevant
+            series of tdd_alt ids, index irrelevant (one period per window_row_id)
         states : list of int
             presumably (e.g. I_EMPTY, I_START...)
 
@@ -455,6 +521,8 @@ class TimeTable(object):
         pandas Series boolean
             indexed by window_row_ids.index
         """
+
+        assert len(window_row_ids) == len(periods)
 
         window = self.slice_windows_by_row_id_and_period(window_row_ids, periods)
 
@@ -471,7 +539,7 @@ class TimeTable(object):
         window_row_ids : pandas Series int
             series of window_row_ids indexed by tour_id
         periods : pandas series int
-            series of tdd_alt ids, index irrelevant
+            series of tdd_alt ids, index irrelevant (one period per window_row_id)
 
         Returns
         -------
@@ -517,15 +585,18 @@ class TimeTable(object):
         window_row_ids : pandas Series int
             series of window_row_ids indexed by tour_id
         starts : pandas series int
-            series of tdd_alt ids, index irrelevant
+            series of tdd_alt ids, index irrelevant (one per window_row_id)
         ends : pandas series int
-            series of tdd_alt ids, index irrelevant
+            series of tdd_alt ids, index irrelevant (one per window_row_id)
 
         Returns
         -------
         available : pandas Series int
             number periods available indexed by window_row_ids.index
         """
+
+        assert len(window_row_ids) == len(starts)
+        assert len(window_row_ids) == len(ends)
 
         available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE).sum(axis=1)
 

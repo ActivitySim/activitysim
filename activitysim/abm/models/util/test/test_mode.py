@@ -3,17 +3,8 @@
 
 import pandas as pd
 import pandas.util.testing as pdt
-from ..mode import pre_process_expressions, evaluate_expression_list, \
+from ..mode import evaluate_expression_list, \
     expand_alternatives, _mode_choice_spec
-
-
-def test_ppe():
-    ret = pre_process_expressions(
-        ['1', '$expr.format(var="bar")'],
-        {'expr': '@foo * {var}'}
-    )
-    assert ret[0] == '1'
-    assert ret[1] == '@foo * bar'
 
 
 def test_eel():
@@ -72,9 +63,6 @@ def test_mode_choice_spec():
     settings = {
         "CONSTANTS": {
             "COST": 2.0
-        },
-        "VARIABLE_TEMPLATES": {
-            'expr': '@foo * {var}'
         }
     }
 
@@ -94,9 +82,3 @@ def test_mode_choice_spec():
         df.reset_index()["Work"],
         pd.Series(
             [.7, .98, .98], index=[0, 1, 2], name='Work'))
-
-    pdt.assert_series_equal(
-        df.reset_index()["Expression"],
-        pd.Series(
-            ["1", "@foo * bar", "@foo * bar"],
-            index=[0, 1, 2], name='Expression'))

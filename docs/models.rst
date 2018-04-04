@@ -456,8 +456,8 @@ Dependent tables: skims, size terms, household, person, land use, accessibility,
 Outputs: at-work tour mode
 
 The main interface to the at-work subtour mode choice model is the 
-:py:func:`~activitysim.abm.models.mode_choice.atwork_subtour_mode_choice_simulate` 
-function.  This function is called in the orca step ``atwork_subtour_mode_choice_simulate`` and 
+:py:func:`~activitysim.abm.models.mode_choice.atwork_subtour_mode_choice`
+function.  This function is called in the orca step ``atwork_subtour_mode_choice`` and
 is registered as an orca step in the example Pipeline.
 
 Core Table: ``trips`` | Result Field: ``mode`` | Skims od_skims Keys: ``workplace_taz,destination`` |

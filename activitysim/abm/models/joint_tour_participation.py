@@ -107,13 +107,15 @@ def get_tour_satisfaction(candidates, participate):
 
 def participants_chooser(probs, choosers, spec, trace_label):
 
+    assert probs.index.equals(choosers.index)
+
     # choice is boolean (participate or not)
     model_settings = inject.get_injectable('joint_tour_participation_settings')
     choice_col = model_settings.get('participation_choice', 'participate')
     assert choice_col in spec.columns, \
         "couldn't find participation choice column '%s' in spec"
     PARTICIPATE_CHOICE = spec.columns.get_loc(choice_col)
-    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 100)
+    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 1000)
 
     trace_label = tracing.extend_trace_label(trace_label, 'participants_chooser')
 
@@ -162,7 +164,13 @@ def participants_chooser(probs, choosers, spec, trace_label):
                     (trace_label, iter, num_tours_satisfied_this_iter, num_tours_remaining,))
 
     choices = pd.concat(choices_list)
-    rands = pd.concat(rands_list)
+    rands = pd.concat(rands_list).reindex(choosers.index)
+
+    # reindex choices and rands to match probs and v index
+    choices = choices.reindex(choosers.index)
+    rands = rands.reindex(choosers.index)
+    assert choices.index.equals(choosers.index)
+    assert rands.index.equals(choosers.index)
 
     logger.info('%s %s iterations to satisfy all joint tours.' % (trace_label, iter,))
 

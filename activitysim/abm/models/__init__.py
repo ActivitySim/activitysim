@@ -19,12 +19,15 @@ import school_location
 import workplace_location
 import tour_mode_choice
 import cdap
-import create_trips
-import trip_mode_choice
+
 import atwork_subtour_frequency
 import atwork_subtour_destination
 import atwork_subtour_scheduling
 import atwork_subtour_mode_choice
+
+import stop_frequency
+import create_trips
+import trip_mode_choice
 
 import utility_steps
 

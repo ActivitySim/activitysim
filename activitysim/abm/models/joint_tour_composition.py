@@ -92,7 +92,7 @@ def joint_tour_composition(
     # convert indexes to alternative names
     choices = pd.Series(joint_tour_composition_spec.columns[choices.values], index=choices.index)
 
-    # - annotate households
+
     # add joint_tour_frequency column to households
     # (reindex since choices were made on a subset of households)
     joint_tours['composition'] = choices.reindex(joint_tours.index)

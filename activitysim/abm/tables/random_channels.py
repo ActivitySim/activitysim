@@ -19,7 +19,7 @@ CHANNEL_INFO = {
         'index': 'PERID'
     },
     'tours': {
-        'max_steps': 9,
+        'max_steps': 10,
         'index': 'tour_id'
     },
     'joint_tours': {

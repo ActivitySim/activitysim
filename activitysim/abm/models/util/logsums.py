@@ -32,7 +32,7 @@ def get_omnibus_logsum_spec(logsum_settings, selector, configs_dir, want_tracing
     assert selector in logsums_spec_df
     logsums_spec_df = logsums_spec_df[logsums_spec_df[selector] > 0]
 
-    # - drop all sselector columns (all columns before Alternative - Expression was set to index)
+    # - drop all selector columns (all columns before Alternative - Expression was set to index)
     for c in logsums_spec_df.columns:
         if c == 'Alternative':
             break

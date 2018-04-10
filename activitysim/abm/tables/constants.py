@@ -31,6 +31,8 @@ PTYPE_DRIVING = 6
 PTYPE_SCHOOL = 7
 PTYPE_PRESCHOOL = 8
 
+PTYPE_WORKERS = [1, 2]
+
 # these appear as column headers in non_mandatory_tour_frequency.csv
 PTYPE_NAME = {
     PTYPE_FULL: 'PTYPE_FULL',

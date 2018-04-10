@@ -57,10 +57,11 @@ def auto_ownership_simulate(households,
     # no need to reindex as we used all households
     households['auto_ownership'] = choices
 
-    expressions.assign_columns(
-        df=households,
-        model_settings=auto_ownership_settings.get('annotate_households'),
-        trace_label=trace_label)
+    #remove this and spec
+    # expressions.assign_columns(
+    #     df=households,
+    #     model_settings=auto_ownership_settings.get('annotate_households'),
+    #     trace_label=trace_label)
 
     pipeline.replace_table("households", households)
 

@@ -59,17 +59,17 @@ def joint_tour_frequency(
     households = households.to_frame()
     multi_person_households = households[households.num_travel_active > 1].copy()
 
+    # - only interested in persons in multi_person_households
+    # FIXME - gratuitous pathological efficiency move, just let yaml specify persons?
+    persons = persons.to_frame()
+    persons = persons[persons.household_id.isin(multi_person_households.index)]
+
     logger.info("Running joint_tour_frequency with %d multi-person households" %
                 multi_person_households.shape[0])
 
     # - preprocessor
     preprocessor_settings = joint_tour_frequency_settings.get('preprocessor_settings', None)
     if preprocessor_settings:
-
-        # - only interested in persons in multi_person_households
-        # FIXME - gratuitous pathological efficiency move, just let yaml specify persons?
-        persons = persons.to_frame()
-        persons = persons[persons.household_id.isin(multi_person_households.index)]
 
         locals_dict = {
             'persons': persons,
@@ -100,10 +100,28 @@ def joint_tour_frequency(
     choices = pd.Series(joint_tour_frequency_spec.columns[choices.values], index=choices.index)
 
     # - create joint_tours based on joint_tour_frequency choices
-    joint_tours = process_joint_tours(choices, joint_tour_frequency_alternatives)
+
+    # - we need a person_id in order to generate the tour index,
+    # - but we don't know the tour participants yet
+    # - so we arbitrarily choose the first person in the household
+    # - to be point person for the purpose of generating an index
+    temp_point_persons = persons.loc[persons.PNUM == 1]
+    temp_point_persons['person_id'] = temp_point_persons.index
+    temp_point_persons = temp_point_persons.set_index('household_id').person_id
+
+    joint_tours = \
+        process_joint_tours(choices, joint_tour_frequency_alternatives, temp_point_persons)
+
     pipeline.replace_table('joint_tours', joint_tours)
-    tracing.register_traceable_table('joint_tours', joint_tours)
-    pipeline.get_rn_generator().add_channel(joint_tours, 'joint_tours')
+    #tracing.register_traceable_table('joint_tours', joint_tours)
+    #pipeline.get_rn_generator().add_channel(joint_tours, 'joint_tours')
+
+    #tours = pipeline.extend_table("tours", joint_tours)
+    tracing.register_traceable_table('tours', joint_tours)
+    pipeline.get_rn_generator().add_channel(joint_tours, 'tours')
+
+    #bug - get rid of this so nobody is confused?
+    del joint_tours['person_id']
 
     # - annotate households
     # add joint_tour_frequency and num_hh_joint_tours columns to households

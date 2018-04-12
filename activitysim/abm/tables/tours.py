@@ -36,4 +36,4 @@ def participants_merged(joint_tour_participants, joint_tours):
         joint_tour_participants, joint_tours])
 
 
-inject.broadcast('joint_tours', 'joint_tour_participants', cast_index=True, onto_on='joint_tour_id')
+inject.broadcast('joint_tours', 'joint_tour_participants', cast_index=True, onto_on='tour_id')

@@ -526,7 +526,7 @@ def build_joint_tour_timetables(joint_tours, joint_tour_participants, persons_ti
         participant_windows = persons_timetable.slice_windows_by_row_id(nth_participants.person_id)
 
         # assign them joint_tour_timetable
-        joint_tour_timetable.assign_footprints(nth_participants.joint_tour_id, participant_windows)
+        joint_tour_timetable.assign_footprints(nth_participants.tour_id, participant_windows)
 
     return joint_tour_timetable
 
@@ -594,7 +594,7 @@ def vectorize_joint_tour_scheduling(
         assert not nth_tours.household_id.duplicated().any()
 
         nth_participants = \
-            joint_tour_participants[joint_tour_participants.joint_tour_id.isin(nth_tours.index)]
+            joint_tour_participants[joint_tour_participants.tour_id.isin(nth_tours.index)]
 
         timetable = build_joint_tour_timetables(
             nth_tours, nth_participants,
@@ -611,7 +611,7 @@ def vectorize_joint_tour_scheduling(
         # - update timetables of all joint tour participants
         persons_timetable.assign(
             nth_participants.person_id,
-            reindex(choices, nth_participants.joint_tour_id))
+            reindex(choices, nth_participants.tour_id))
 
         choice_list.append(choices)
 

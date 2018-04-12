@@ -71,7 +71,7 @@ def joint_tour_destination_sample(
     adds 'joint_tour_destination_sample' table to pipeline
 
                    alt_dest      prob  pick_count  tour_type_id  household_id
-    joint_tour_id
+    tour_id
     1605124              14  0.043873           1             3        160512
     1605124              18  0.034979           2             3        160512
     1605124              16  0.105658           9             3        160512
@@ -157,7 +157,7 @@ def joint_tour_destination_sample(
 
         if len(choosers_segment.index) > 0:
             # want named index so tracing knows how to slice
-            assert choosers_segment.index.name == 'joint_tour_id'
+            assert choosers_segment.index.name == 'tour_id'
 
             choices = interaction_sample(
                 choosers_segment,
@@ -172,7 +172,7 @@ def joint_tour_destination_sample(
 
             choices['tour_type_id'] = tour_type_id
 
-            # sample is sorted by TOUR_TYPE_ID, joint_tour_id
+            # sample is sorted by TOUR_TYPE_ID, tour_id
             choices.sort_index(inplace=True)
 
             choices_list.append(choices)
@@ -232,7 +232,7 @@ def joint_tour_destination_logsums(
             logger.info("skipping tour_type %s: no joint tours" % tour_type)
             continue
 
-        # sample is sorted by TOUR_TYPE_ID, joint_tour_id
+        # sample is sorted by TOUR_TYPE_ID, tour_id
         # merge order is stable because left join on ordered index
         choosers = pd.merge(
             choosers,

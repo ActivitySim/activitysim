@@ -95,7 +95,7 @@ def joint_tour_mode_choice(
                     (tour_type, len(segment.index), ))
 
         # named index so tracing knows how to slice
-        assert segment.index.name == 'joint_tour_id'
+        assert segment.index.name == 'tour_id'
 
         spec = get_segment_and_unstack(tour_mode_choice_spec, tour_type)
 
@@ -128,7 +128,13 @@ def joint_tour_mode_choice(
 
     # replace_table rather than add_columns as we want table for tracing.
     joint_tours['mode'] = choices
-    pipeline.replace_table("joint_tours", joint_tours)
+    #pipeline.replace_table("joint_tours", joint_tours)
+    pipeline.drop_table('joint_tours')
+
+    #bug
+    tours = pipeline.extend_table("tours", joint_tours)
+    #tracing.register_traceable_table('tours', tours)
+    #pipeline.get_rn_generator().add_channel(tours, 'tours')
 
     if trace_hh_id:
         tracing.trace_df(joint_tours,

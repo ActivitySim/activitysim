@@ -49,7 +49,7 @@ def non_mandatory_tour_scheduling(tours,
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
 
-    non_mandatory_tours = tours[tours.non_mandatory]
+    non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
 
     logger.info("Running non_mandatory_tour_scheduling with %d tours" % len(tours))
 
@@ -81,7 +81,7 @@ def non_mandatory_tour_scheduling(tours,
     pipeline.replace_table("tours", tours)
 
     # updated df for tracing
-    non_mandatory_tours = tours[tours.non_mandatory]
+    non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
 
     tracing.dump_df(DUMP,
                     tt.tour_map(persons_merged, non_mandatory_tours, tdd_alts),

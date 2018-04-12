@@ -18,8 +18,6 @@ from .util import expressions
 from activitysim.core.util import reindex
 from .util.overlap import person_time_window_overlap
 
-from ..tables import constants as ccc
-
 logger = logging.getLogger(__name__)
 
 
@@ -52,7 +50,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
         left_on=['household_id'], right_on=['household_id'])
 
     # should have all joint_tours
-    assert len(candidates['joint_tour_id'].unique()) == joint_tours.shape[0]
+    assert len(candidates['tour_id'].unique()) == joint_tours.shape[0]
 
     # - filter out ineligible candidates (adults for children-only tours, and vice-versa)
     eligible = ~(
@@ -75,7 +73,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
 
 def get_tour_satisfaction(candidates, participate):
 
-    joint_tour_ids = candidates.joint_tour_id.unique()
+    tour_ids = candidates.tour_id.unique()
 
     if participate.any():
 
@@ -85,22 +83,22 @@ def get_tour_satisfaction(candidates, participate):
         assert not ((candidates.composition == 'adults') & ~candidates.adult).any()
         assert not ((candidates.composition == 'children') & candidates.adult).any()
 
-        cols = ['joint_tour_id', 'composition', 'adult']
+        cols = ['tour_id', 'composition', 'adult']
 
         # tour satisfaction
-        x = candidates[cols].groupby(['joint_tour_id', 'composition']).adult.agg(['size', 'sum']).\
+        x = candidates[cols].groupby(['tour_id', 'composition']).adult.agg(['size', 'sum']).\
             reset_index('composition').rename(columns={'size': 'participants', 'sum': 'adults'})
 
         satisfaction = (x.composition != 'mixed') & (x.participants > 1) | \
                        (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
 
-        satisfaction = satisfaction.reindex(joint_tour_ids).fillna(False).astype(bool)
+        satisfaction = satisfaction.reindex(tour_ids).fillna(False).astype(bool)
 
     else:
         satisfaction = pd.Series([])
 
     # ensure we return a result for every joint tour, even if no participants
-    satisfaction = satisfaction.reindex(joint_tour_ids).fillna(False).astype(bool)
+    satisfaction = satisfaction.reindex(tour_ids).fillna(False).astype(bool)
 
     return satisfaction
 
@@ -123,7 +121,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
     choices_list = []
     rands_list = []
 
-    num_tours_remaining = len(candidates.joint_tour_id.unique())
+    num_tours_remaining = len(candidates.tour_id.unique())
     logger.info('%s %s joint tours to satisfy.' % (trace_label, num_tours_remaining,))
 
     iter = 0
@@ -133,7 +131,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
 
         if iter > MAX_ITERATIONS:
             logger.warn('%s max iterations exceeded (%s).' % (trace_label, MAX_ITERATIONS))
-            diagnostic_cols = ['joint_tour_id', 'household_id', 'composition', 'adult']
+            diagnostic_cols = ['tour_id', 'household_id', 'composition', 'adult']
             unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
             tracing.write_csv(unsatisfied_candidates,
                               file_name='%s.UNSATISFIED' % trace_label, transpose=False)
@@ -143,7 +141,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
         choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
         participate = (choices == PARTICIPATE_CHOICE)
 
-        # satisfaction indexed by joint_tour_id
+        # satisfaction indexed by tour_id
         tour_satisfaction = get_tour_satisfaction(candidates, participate)
         num_tours_satisfied_this_iter = tour_satisfaction.sum()
 
@@ -151,7 +149,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
 
             num_tours_remaining -= num_tours_satisfied_this_iter
 
-            satisfied = reindex(tour_satisfaction, candidates.joint_tour_id)
+            satisfied = reindex(tour_satisfaction, candidates.tour_id)
 
             choices_list.append(choices[satisfied])
             rands_list.append(rands[satisfied])
@@ -240,21 +238,21 @@ def joint_tour_participation(
 
     participate = (choices == PARTICIPATE_CHOICE)
 
-    # satisfaction indexed by joint_tour_id
+    # satisfaction indexed by tour_id
     tour_satisfaction = get_tour_satisfaction(candidates, participate)
 
     assert tour_satisfaction.all()
 
-    candidates['satisfied'] = reindex(tour_satisfaction, candidates.joint_tour_id)
+    candidates['satisfied'] = reindex(tour_satisfaction, candidates.tour_id)
 
-    PARTICIPANT_COLS = ['joint_tour_id', 'household_id', 'person_id']
+    PARTICIPANT_COLS = ['tour_id', 'household_id', 'person_id']
     participants = candidates[participate][PARTICIPANT_COLS].copy()
 
     # assign participant_num
     # FIXME do we want something smarter than the participant with the lowest person_id?
     participants['participant_num'] = \
-        participants.sort_values(by=['joint_tour_id', 'person_id']).\
-        groupby('joint_tour_id').cumcount() + 1
+        participants.sort_values(by=['tour_id', 'person_id']).\
+        groupby('tour_id').cumcount() + 1
 
     pipeline.replace_table("joint_tour_participants", participants)
 
@@ -271,11 +269,11 @@ def joint_tour_participation(
 
     # - assign joint tour 'point person' (participant_num == 1)
     point_persons = participants[participants.participant_num == 1]
-    joint_tours['person_id'] = point_persons.set_index('joint_tour_id').person_id
+    joint_tours['person_id'] = point_persons.set_index('tour_id').person_id
 
-    # FIXME - shold annotate joint_tours?
-    joint_tours['number_of_participants'] = participants.groupby('joint_tour_id').size()
-    joint_tours['is_joint'] = True
+    # update number_of_participants which was initialized to 1
+    joint_tours['number_of_participants'] = participants.groupby('tour_id').size()
+
     pipeline.replace_table("joint_tours", joint_tours)
 
     if trace_hh_id:

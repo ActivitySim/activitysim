@@ -65,7 +65,7 @@ def joint_tour_scheduling(
     # since a households joint tours each potentially different participants
     # they may also have different joint tour masks (free time of all participants)
     # so we have to either chunk processing by joint_tour_num and build timetable by household
-    # or build timetables by unique joint_tour_id
+    # or build timetables by unique joint_tour
 
     constants = config.get_model_constants(joint_tour_scheduling_settings)
 

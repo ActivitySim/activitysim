@@ -17,6 +17,7 @@ from .util import expressions
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 from activitysim.core.util import assign_in_place
 
+
 logger = logging.getLogger(__name__)
 
 DUMP = False
@@ -52,17 +53,17 @@ def mandatory_tour_scheduling(tours,
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
-    mandatory_tours = tours[tours.mandatory]
+    mandatory_tours = tours[tours.tour_category == 'mandatory']
 
     trace_label = 'mandatory_tour_scheduling'
-    constants = config.get_model_constants(mandatory_tour_scheduling_settings)
+    model_constants = config.get_model_constants(mandatory_tour_scheduling_settings)
 
     logger.info("Running mandatory_tour_scheduling with %d tours" % len(tours))
     tdd_choices = vectorize_tour_scheduling(
         mandatory_tours, persons_merged,
         tdd_alts,
         spec={'work': tour_scheduling_work_spec, 'school': tour_scheduling_school_spec},
-        constants=constants,
+        constants=model_constants,
         chunk_size=chunk_size,
         trace_label=trace_label)
 
@@ -70,7 +71,7 @@ def mandatory_tour_scheduling(tours,
     pipeline.replace_table("tours", tours)
 
     # updated df for tracing
-    mandatory_tours = tours[tours.mandatory]
+    mandatory_tours = tours[tours.tour_category == 'mandatory']
 
     tracing.dump_df(DUMP,
                     tt.tour_map(persons_merged, mandatory_tours, tdd_alts),

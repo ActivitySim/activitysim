@@ -56,6 +56,18 @@ def mandatory_tour_frequency(persons, persons_merged,
     choosers = choosers[choosers.cdap_activity == 'M']
     logger.info("Running mandatory_tour_frequency with %d persons" % len(choosers))
 
+    # - preprocessor
+    preprocessor_settings = mandatory_tour_frequency_settings.get('preprocessor_settings', None)
+    if preprocessor_settings:
+
+        locals_dict = {}
+
+        expressions.assign_columns(
+            df=choosers,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_dict,
+            trace_label=trace_label)
+
     nest_spec = config.get_logit_model_settings(mandatory_tour_frequency_settings)
     constants = config.get_model_constants(mandatory_tour_frequency_settings)
 

@@ -19,6 +19,14 @@ from activitysim.core.util import assign_in_place
 from activitysim.core import util
 
 
+def reindex_i(series1, series2, dtype=np.int8):
+    """
+    version of reindex that replaces missing na values and converts to int
+    helpful in expression files that compute counts (e.g. num_work_tours)
+    """
+    return util.reindex(series1, series2).fillna(0).astype(dtype)
+
+
 def local_utilities():
     """
     Dict of useful modules and functions to provides as locals for use in eval of expressions
@@ -34,6 +42,7 @@ def local_utilities():
         'np': np,
         'constants': constants,
         'reindex': util.reindex,
+        'reindex_i': reindex_i,
         'setting': config.setting,
         'skim_time_period_label': skim_time_period_label,
         'other_than': other_than,
@@ -103,6 +112,9 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     # if df was passed in, df might be a slice, or any other table, but DF is it's local alias
     assert df_name not in tables, "Did not expect to find df '%s' in TABLES" % df_name
     tables[df_name] = df
+
+    # be nice and also give it to them as df?
+    tables['df'] = df
 
     _locals_dict = local_utilities()
     _locals_dict.update(locals_dict)

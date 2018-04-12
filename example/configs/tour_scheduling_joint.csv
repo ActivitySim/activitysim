@@ -27,13 +27,13 @@ Discretionary tour - duration < 2 hours,"(tour_type == 'othdisc') & (duration < 
 Adult with children in HH - arrive 19 - 21,adult & (num_children > 0) & ( end > 18 ) & ( end < 22 ),0.336
 #Mode Choice Logsum,mode_choice_logsum,0
 #,,
-#,, FIXME - pathological knowledge that joint_tour_id is timetable window_id
-Some previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.joint_tour_id, df.start)",-0.4562
-Some previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.joint_tour_id, df.end)",-0.3992
+#,, FIXME - pathological knowledge that tour_id is timetable window_id
+Some previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.tour_id, df.start)",-0.4562
+Some previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.tour_id, df.end)",-0.3992
 Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_type_count>1) & (df.tour_type_num == 1) & tt.adjacent_window_before(df.joint_tour_id, df.start)",0.008442
 Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_type_count>1) & (df.tour_type_num == 1) & tt.adjacent_window_after(df.joint_tour_id, df.end)",-0.0257
-Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_type_num > 1) & tt.adjacent_window_before(df.joint_tour_id, df.start)",-0.0593
-Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_type_num > 1) & tt.adjacent_window_after(df.joint_tour_id, df.end)",-0.02734
+Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_type_num > 1) & tt.adjacent_window_before(df.tour_id, df.start)",-0.0593
+Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_type_num > 1) & tt.adjacent_window_after(df.tour_id, df.end)",-0.02734
 #,,
 #,,
 Departure Constants -- Early (up to 5),"(tour_type != 'escort') & (start < 6)",-14.47708

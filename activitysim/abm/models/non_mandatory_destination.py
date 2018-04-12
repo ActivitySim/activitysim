@@ -56,7 +56,7 @@ def non_mandatory_tour_destination(
     spec = non_mandatory_tour_destination_spec
 
     # choosers are tours - in a sense tours are choosing their destination
-    non_mandatory_tours = tours[tours.non_mandatory]
+    non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
 
     # FIXME - don't need all persons_merged columns...
     choosers = pd.merge(non_mandatory_tours, persons_merged, left_on='person_id', right_index=True)
@@ -123,7 +123,7 @@ def non_mandatory_tour_destination(
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(tours[tours.non_mandatory],
+        tracing.trace_df(tours[tours.tour_category == 'non_mandatory'],
                          label="non_mandatory_tour_destination",
                          slicer='person_id',
                          index_label='tour',

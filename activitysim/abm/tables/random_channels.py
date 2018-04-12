@@ -19,19 +19,15 @@ CHANNEL_INFO = {
         'index': 'PERID'
     },
     'tours': {
-        'max_steps': 10,
+        'max_steps': 15,
         'index': 'tour_id'
-    },
-    'joint_tours': {
-        'max_steps': 5,
-        'index': 'joint_tour_id'
     },
     'joint_tour_participants': {
         'max_steps': 1,
         'index': 'participant_id'
     },
     'trips': {
-        'max_steps': 5,
+        'max_steps': 1,
         'index': 'trip_id'
     },
 }

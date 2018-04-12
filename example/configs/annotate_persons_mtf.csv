@@ -4,5 +4,5 @@ Description,Target,Expression
 ,_Q,lambda s: "'{}'".format(s)
 work_and_school_and_worker,work_and_school_and_worker,(persons.mandatory_tour_frequency == 'work_and_school') & persons.is_worker
 work_and_school_and_student,work_and_school_and_student,(persons.mandatory_tour_frequency == 'work_and_school') & persons.is_student
-number of mandatory tours for each person,num_mand,"_PERSON_TOUR_COUNT('mandatory', persons, tours).fillna(0)"
-number of work tours for each person,num_work_tours,"_PERSON_TOUR_COUNT('tour_type==%s' % _Q('work'), persons, tours).fillna(0)"
+number of mandatory tours for each person,num_mand,"_PERSON_TOUR_COUNT('mandatory', persons, tours)"
+number of work tours for each person,num_work_tours,"_PERSON_TOUR_COUNT('tour_type==%s' % _Q('work'), persons, tours)"

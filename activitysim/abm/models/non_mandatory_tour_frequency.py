@@ -15,7 +15,6 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 
-
 from .util import expressions
 from .util.overlap import person_max_window
 
@@ -130,8 +129,8 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     """
     del non_mandatory_tour_frequency_alts['tot_tours']  # del tot_tours column we added above
     non_mandatory_tours = process_non_mandatory_tours(
-        persons.non_mandatory_tour_frequency.dropna(),
-        non_mandatory_tour_frequency_alts
+        persons[~persons.mandatory_tour_frequency.isnull()],
+        non_mandatory_tour_frequency_alts,
     )
 
     tours = pipeline.extend_table("tours", non_mandatory_tours)

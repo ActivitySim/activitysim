@@ -327,38 +327,6 @@ def register_trips(df, trace_hh_id):
     logger.debug("register_trips injected trace_tour_ids %s" % trace_trip_ids)
 
 
-def register_joint_tours(df, trace_hh_id):
-    """
-    Register with inject for tracing
-
-    create an injectable 'trace_joint_tour_ids' with a list of tour_ids in household we are tracing.
-    This allows us to slice by joint_tour_id without requiring presence of household_id column
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    trace_hh_id: int
-        household id we are tracing
-
-    Returns
-    -------
-    Nothing
-    """
-
-    # but if household_id is in households, then we may have some tours
-    traced_joint_tours_df = slice_ids(df, trace_hh_id, column='household_id')
-    trace_tour_ids = traced_joint_tours_df.index.tolist()
-    if len(trace_tour_ids) == 0:
-        logger.info("register_joint_tours: no joint tours found for household_id %s." % trace_hh_id)
-    else:
-        logger.info("tracing joint_tour_ids %s in %s joint tours" % (trace_tour_ids, len(df.index)))
-
-    inject.add_injectable("trace_joint_tour_ids", trace_tour_ids)
-    logger.debug("register_joint_tours injected trace_joint_tour_ids %s" % trace_tour_ids)
-
-
 def register_participants(df, trace_hh_id):
     """
     Register with inject for tracing
@@ -422,7 +390,7 @@ def register_traceable_table(table_name, df):
     elif table_name == 'tours':
         register_tours(df, trace_hh_id)
     elif table_name == 'joint_tours':
-        register_joint_tours(df, trace_hh_id)
+        register_tours(df, trace_hh_id)
     elif table_name == 'participants':
         register_participants(df, trace_hh_id)
     else:
@@ -710,7 +678,7 @@ def hh_id_for_chooser(id, choosers):
     elif 'household_id' in choosers.columns:
         hh_id = choosers.loc[id]['household_id']
     else:
-        raise RuntimeError("don't grok chooser with index %s" % choosers.index.name)
+        hh_id = None
 
     return hh_id
 

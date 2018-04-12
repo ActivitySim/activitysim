@@ -76,6 +76,12 @@ def read_model_spec(fpath, fname,
 
     spec = spec.set_index(expression_name).fillna(0)
 
+    # drop any rows with all zeros since they won't have any effect (0 marginal utility)
+    zero_rows = (spec == 0).all(axis=1)
+    if zero_rows.any():
+        logger.info("dropping %s all-zero rows from %s" % (zero_rows.sum(), fname))
+        spec = spec.loc[~zero_rows]
+
     return spec
 
 
@@ -419,6 +425,16 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.utils_to_probs", t0, debug=True)
 
+    if have_trace_targets:
+        # report these now in case make_choices throws error on bad_choices
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+        tracing.trace_df(utilities, '%s.utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+        tracing.trace_df(probs, '%s.probs' % trace_label,
+                         column_labels=['alternative', 'probability'])
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
+
     if custom_chooser:
         choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,
                                         trace_label=trace_label)
@@ -434,18 +450,10 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     chunk.log_chunk_size(trace_label, cum_size)
 
     if have_trace_targets:
-
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(utilities, '%s.utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
-        tracing.trace_df(probs, '%s.probs' % trace_label,
-                         column_labels=['alternative', 'probability'])
         tracing.trace_df(choices, '%s.choices' % trace_label,
                          columns=[None, trace_choice_name])
         tracing.trace_df(rands, '%s.rands' % trace_label,
                          columns=[None, 'rand'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
     return choices
 
@@ -515,6 +523,20 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
     t0 = tracing.print_elapsed_time("compute_base_probabilities", t0, debug=True)
 
+    if have_trace_targets:
+        # report these now in case of no_choices
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+        tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+        tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'])
+        tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'])
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
+
     # note base_probabilities could all be zero since we allowed all probs for nests to be zero
     # check here to print a clear message but make_choices will raise error if probs don't sum to 1
     BAD_PROB_THRESHOLD = 0.001
@@ -547,21 +569,10 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     chunk.log_chunk_size(trace_label, cum_size)
 
     if have_trace_targets:
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
-        tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
-        tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
-                         column_labels=['alternative', 'probability'])
-        tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
-                         column_labels=['alternative', 'probability'])
         tracing.trace_df(choices, '%s.choices' % trace_label,
                          columns=[None, trace_choice_name])
         tracing.trace_df(rands, '%s.rands' % trace_label,
                          columns=[None, 'rand'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
     return choices
 

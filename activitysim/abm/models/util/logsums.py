@@ -80,6 +80,10 @@ def filter_chooser_columns(choosers, logsum_settings):
 
     chooser_columns = logsum_settings['LOGSUM_CHOOSER_COLUMNS']
 
+    missing_columns = [c for c in chooser_columns if c not in choosers]
+    if missing_columns:
+        logger.info("filter_chooser_columns missing_columns %s" % missing_columns)
+
     # ignore any columns not appearing in choosers df
     chooser_columns = [c for c in chooser_columns if c in choosers]
 

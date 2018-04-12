@@ -164,7 +164,9 @@ def _schedule_tours(
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
     # merge persons into tours
-    tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
+    # avoid dual suffix for redundant columns names (e.g. household_id) that appear in both
+    tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True,
+                     suffixes=('', '_y'))
 
     # if no timetable window_id_col specified, then add index as an explicit column
     if window_id_col is None:
@@ -542,7 +544,6 @@ def vectorize_joint_tour_scheduling(
     joint tours have a few peculiarities necessitating separate treatment:
 
     Timetable has to be initialized to set all timeperiods...
-
 
     Parameters
     ----------

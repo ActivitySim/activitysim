@@ -58,10 +58,6 @@ def joint_tour_scheduling(
     # and we get household attributes along with person attributes in persons_merged
     persons_merged = persons_merged[persons_merged.num_hh_joint_tours > 0]
 
-    # drop the household_id column from persons as it also occurs in joint_tours_df
-    # and we don't want it to get re-named when joint_tours_df and persons_merged are joined
-    del persons_merged['household_id']
-
     # since a households joint tours each potentially different participants
     # they may also have different joint tour masks (free time of all participants)
     # so we have to either chunk processing by joint_tour_num and build timetable by household

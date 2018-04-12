@@ -93,13 +93,18 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
         name = PTYPE_NAME[ptype]
 
+        # pick the spec column for the segment
+        spec = non_mandatory_tour_frequency_spec[[name]]
+
+        # drop any zero-valued rows
+        spec = spec[spec[name] != 0]
+
         logger.info("Running segment '%s' of size %d" % (name, len(segment)))
 
         choices = interaction_simulate(
             segment,
             non_mandatory_tour_frequency_alts,
-            # notice that we pick the column for the segment for each segment we run
-            spec=non_mandatory_tour_frequency_spec[[name]],
+            spec=spec,
             locals_d=constants,
             chunk_size=chunk_size,
             trace_label='non_mandatory_tour_frequency.%s' % name,

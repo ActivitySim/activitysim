@@ -4,9 +4,13 @@ Description,Target,Expression
 #,,FIXME households.income can be negative, so we clip?
 income_in_thousands,income_in_thousands,(households.income / 1000).clip(lower=0)
 income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"
-number of non_workers,non_workers,households.hhsize - households.workers
+#,,
+#num_workers was renamed in import,,
+#,num_workers,households.workers
+number of non_workers,num_non_workers,households.hhsize - households.num_workers
+#,,
 #,,we assume that everyone 16 and older is a potential driver
-number of drivers,drivers,"_PERSON_COUNT('16 <= age', persons, households)"
+number of drivers,num_drivers,"_PERSON_COUNT('16 <= age', persons, households)"
 num_adults,num_adults,"_PERSON_COUNT('adult', persons, households)"
 num_children,num_children,"_PERSON_COUNT('~adult', persons, households)"
 #,,FIXME num_young_children is under 5 here but used in mandatory_tour_frequency where CTRAMP uec wants num_preschool which java code has as under 6

@@ -14,7 +14,7 @@ School child age under 16 - departure shift effects,(ptype == 7) * start,0.04657
 School child age under 16 - duration shift effects,(ptype == 7) * duration,0.3272
 Destination in CBD - duration shift effects,destination_in_cbd * duration,0.1067
 Number of mandatory tours - departure shift effects,num_mand  * start,0.04673
-Number of joint tours - departure shift effects,num_joint_tours * start,0.05208
+Number of joint tours - departure shift effects,num_person_joint_tours * start,0.05208
 First of 2+ tours for same purpose - departure shift effect,((tour_type_count>1) & (tour_type_num == 1)) * start,-0.2364
 subsequent of 2+ tours for same purpose - duration shift effect,(tour_type_num > 1) * duration,-0.1731
 Maintenance tour - depart before 7,"(tour_type == 'othmaint') & (start < 7)",-0.8826
@@ -30,8 +30,8 @@ Adult with children in HH - arrive 19 - 21,adult & (num_children > 0) & ( end > 
 #,, FIXME - pathological knowledge that tour_id is timetable window_id
 Some previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.tour_id, df.start)",-0.4562
 Some previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.tour_id, df.end)",-0.3992
-Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_type_count>1) & (df.tour_type_num == 1) & tt.adjacent_window_before(df.joint_tour_id, df.start)",0.008442
-Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_type_count>1) & (df.tour_type_num == 1) & tt.adjacent_window_after(df.joint_tour_id, df.end)",-0.0257
+Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_type_count>1) & (df.tour_type_num == 1) & tt.adjacent_window_before(df.tour_id, df.start)",0.008442
+Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_type_count>1) & (df.tour_type_num == 1) & tt.adjacent_window_after(df.tour_id, df.end)",-0.0257
 Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_type_num > 1) & tt.adjacent_window_before(df.tour_id, df.start)",-0.0593
 Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_type_num > 1) & tt.adjacent_window_after(df.tour_id, df.end)",-0.02734
 #,,

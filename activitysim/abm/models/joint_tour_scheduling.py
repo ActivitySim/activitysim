@@ -32,7 +32,7 @@ def joint_tour_scheduling_settings(configs_dir):
 
 @inject.step()
 def joint_tour_scheduling(
-        joint_tours, joint_tour_participants,
+        tours, joint_tour_participants,
         persons_merged,
         tdd_alts,
         joint_tour_scheduling_spec,
@@ -46,11 +46,13 @@ def joint_tour_scheduling(
      """
     trace_label = 'joint_tour_scheduling'
 
-    joint_tours_df = joint_tours.to_frame()
+    tours = tours.to_frame()
+    joint_tours = tours[tours.tour_category == 'joint']
+
     joint_tour_participants = joint_tour_participants.to_frame()
     persons_merged = persons_merged.to_frame()
 
-    logger.info("Running %s with %d joint tours" % (trace_label, joint_tours_df.shape[0]))
+    logger.info("Running %s with %d joint tours" % (trace_label, joint_tours.shape[0]))
 
     # it may seem peculiar that we are concerned with persons rather than households
     # but every joint tour is (somewhat arbitrarily) assigned a "primary person"
@@ -74,13 +76,13 @@ def joint_tour_scheduling(
             locals_d.update(constants)
 
         expressions.assign_columns(
-            df=joint_tours_df,
+            df=joint_tours,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label)
 
     tdd_choices = vectorize_joint_tour_scheduling(
-        joint_tours_df, joint_tour_participants,
+        joint_tours, joint_tour_participants,
         persons_merged,
         tdd_alts,
         spec=joint_tour_scheduling_spec,
@@ -88,16 +90,14 @@ def joint_tour_scheduling(
         chunk_size=chunk_size,
         trace_label=trace_label)
 
-    if preprocessor_settings:
-        # if we annotated joint_tours, then we want a fresh copy before replace_table
-        joint_tours_df = joint_tours.to_frame()
+    assign_in_place(tours, tdd_choices)
+    pipeline.replace_table("tours", tours)
 
-    assign_in_place(joint_tours_df, tdd_choices)
-
-    pipeline.replace_table("joint_tours", joint_tours_df)
+    # updated df for tracing
+    joint_tours = tours[tours.tour_category == 'joint']
 
     if trace_hh_id:
-        tracing.trace_df(joint_tours_df,
+        tracing.trace_df(joint_tours,
                          label="joint_tour_scheduling",
                          slicer='household_id',
                          warn_if_empty=True)

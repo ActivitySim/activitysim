@@ -269,8 +269,25 @@ def assign_in_place(df, df2):
     assert (len(df2.index.difference(df.index)) == 0)
 
     # update common columns in place
-    if len(df2.columns.intersection(df.columns)) > 0:
+    common_columns = df2.columns.intersection(df.columns)
+    if len(common_columns) > 0:
+        old_dtypes = [df[c].dtype for c in common_columns]
         df.update(df2)
+
+        # avoid needlessly changing int columns to float
+        # this is a hack fix for a bug in pandas.update
+        # github.com/pydata/pandas/issues/4094
+        for c, old_dtype in zip(common_columns, old_dtypes):
+
+            # if both df and df2 column were ints, but result is not
+            if np.issubdtype(old_dtype, np.integer) \
+                    and np.issubdtype(df2[c].dtype, np.integer) \
+                    and not np.issubdtype(df[c].dtype, np.integer):
+                try:
+                    df[c] = df[c].astype(old_dtype)
+                except ValueError:
+                    logger.warn("assign_in_place changed dtype %s of column %s to %s" %
+                                (old_dtype, c, df[c].dtype))
 
     # add new columns (in order they appear in df2)
     new_columns = [c for c in df2.columns if c not in df.columns]

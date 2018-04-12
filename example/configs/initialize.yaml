@@ -29,6 +29,7 @@ annotate_tables:
       #TOTEMP: total_employment
       #TOTACRE: total_acres
       PERSONS: hhsize
+      workers: num_workers
 #      hwork_f: num_workers_full
 #      hwork_p: num_workers_part
 #      huniv: num_univ

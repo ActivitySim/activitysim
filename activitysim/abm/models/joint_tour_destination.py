@@ -16,15 +16,14 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-from activitysim.core import simulate
 
-from .util import expressions
 from activitysim.core.util import reindex
+from activitysim.core.util import assign_in_place
 
 from .util import logsums as logsum
 from .util.tour_destination import tour_destination_size_terms
 
-from .util.mode import _mode_choice_spec
+
 from .util.mode import get_segment_and_unstack
 
 
@@ -52,7 +51,7 @@ def joint_tour_destination_sample_spec(configs_dir):
 
 @inject.step()
 def joint_tour_destination_sample(
-        joint_tours,
+        tours,
         households_merged,
         joint_tour_destination_sample_spec,
         skim_dict,
@@ -79,7 +78,7 @@ def joint_tour_destination_sample(
 
     Parameters
     ----------
-    joint_tours: pipeline table
+    tours: pipeline table
     households_merged : pipeline table
         injected merge table created on the fly
     skim_dict
@@ -100,7 +99,9 @@ def joint_tour_destination_sample(
     trace_label = 'joint_tour_destination_sample'
     model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
 
-    joint_tours = joint_tours.to_frame()
+    joint_tours = tours.to_frame()
+    joint_tours = joint_tours[joint_tours.tour_category == 'joint']
+
     households_merged = households_merged.to_frame()
 
     # same size terms as non_mandatory
@@ -190,7 +191,7 @@ def joint_tour_destination_sample(
 
 @inject.step()
 def joint_tour_destination_logsums(
-        joint_tours,
+        tours,
         persons_merged,
         skim_dict, skim_stack,
         joint_tour_destination_sample,
@@ -209,7 +210,9 @@ def joint_tour_destination_logsums(
     model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
     logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
 
-    joint_tours = joint_tours.to_frame()
+    joint_tours = tours.to_frame()
+    joint_tours = joint_tours[joint_tours.tour_category == 'joint']
+
     persons_merged = persons_merged.to_frame()
     joint_tours_merged = pd.merge(joint_tours, persons_merged,
                                   left_on='person_id', right_index=True, how='left')
@@ -279,7 +282,7 @@ def joint_tour_destination_settings(configs_dir):
 
 @inject.step()
 def joint_tour_destination_simulate(
-        joint_tours,
+        tours,
         households_merged,
         joint_tour_destination_sample,
         joint_tour_destination_spec,
@@ -294,7 +297,9 @@ def joint_tour_destination_simulate(
     trace_label = 'joint_tour_destination_simulate'
     model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
 
-    joint_tours = joint_tours.to_frame()
+    tours = tours.to_frame()
+    joint_tours = tours[tours.tour_category == 'joint']
+
     households_merged = households_merged.to_frame()
     location_sample = joint_tour_destination_sample.to_frame()
 
@@ -365,9 +370,11 @@ def joint_tour_destination_simulate(
 
     choices = pd.concat(choices_list)
 
-    # replace_table rather than add_columns as we want table for tracing.
+    # add column as we want joint_tours table for tracing.
     joint_tours['destination'] = choices
-    pipeline.replace_table("joint_tours", joint_tours)
+
+    assign_in_place(tours, joint_tours[['destination']])
+    pipeline.replace_table("tours", tours)
 
     # drop bulky joint_tour_destination_sample table as we don't use it further
     pipeline.drop_table('joint_tour_destination_sample')

@@ -103,13 +103,10 @@ def atwork_subtour_mode_choice(
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
-        subtours = tours[tours.tour_category == 'subtour']
-        trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num', 'parent_tour_id']
-        tracing.trace_df(subtours,
+        tracing.trace_df(tours[tours.tour_category == 'subtour'],
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour_id',
-                         columns=trace_columns,
                          warn_if_empty=True)
 
     force_garbage_collect()

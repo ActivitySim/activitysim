@@ -13,9 +13,12 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core.util import force_garbage_collect
 
+from activitysim.core.util import assign_in_place
+
 from .util.mode import get_segment_and_unstack
 from .util.mode import mode_choice_simulate
 from .util.mode import annotate_preprocessors
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +30,7 @@ def joint_tour_mode_choice_settings(configs_dir):
 
 @inject.step()
 def joint_tour_mode_choice(
-        joint_tours,
+        tours,
         persons_merged,
         tour_mode_choice_spec,
         joint_tour_mode_choice_settings,
@@ -41,7 +44,8 @@ def joint_tour_mode_choice(
 
     trace_label = 'joint_tour_mode_choice'
 
-    joint_tours = joint_tours.to_frame()
+    tours = tours.to_frame()
+    joint_tours = tours[tours.tour_category == 'joint']
     persons_merged = persons_merged.to_frame()
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
@@ -126,15 +130,10 @@ def joint_tour_mode_choice(
     tracing.print_summary('joint_tour_mode_choice all tour type choices',
                           choices, value_counts=True)
 
-    # replace_table rather than add_columns as we want table for tracing.
     joint_tours['mode'] = choices
-    #pipeline.replace_table("joint_tours", joint_tours)
-    pipeline.drop_table('joint_tours')
 
-    #bug
-    tours = pipeline.extend_table("tours", joint_tours)
-    #tracing.register_traceable_table('tours', tours)
-    #pipeline.get_rn_generator().add_channel(tours, 'tours')
+    assign_in_place(tours, joint_tours[['mode']])
+    pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
         tracing.trace_df(joint_tours,

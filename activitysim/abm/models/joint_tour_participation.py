@@ -14,6 +14,8 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import logit
 
+from activitysim.core.util import assign_in_place
+
 from .util import expressions
 from activitysim.core.util import reindex
 from .util.overlap import person_time_window_overlap
@@ -45,7 +47,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
 
     # - create candidates table
     candidates = pd.merge(
-        joint_tours.reset_index(),
+        joint_tours.reset_index().rename(columns={'person_id': 'point_person_id'}),
         persons_merged.reset_index().rename(columns={persons_merged.index.name: 'person_id'}),
         left_on=['household_id'], right_on=['household_id'])
 
@@ -177,10 +179,9 @@ def participants_chooser(probs, choosers, spec, trace_label):
 
 @inject.step()
 def joint_tour_participation(
-        joint_tours, persons, persons_merged,
+        tours, persons, persons_merged,
         joint_tour_participation_spec,
         joint_tour_participation_settings,
-        configs_dir,
         chunk_size,
         trace_hh_id):
     """
@@ -189,7 +190,8 @@ def joint_tour_participation(
     """
     trace_label = 'joint_tour_participation'
 
-    joint_tours = joint_tours.to_frame()
+    tours = tours.to_frame()
+    joint_tours = tours[tours.tour_category == 'joint']
     persons_merged = persons_merged.to_frame()
 
     # - create joint_tour_participation_candidates table
@@ -259,14 +261,6 @@ def joint_tour_participation(
     # FIXME drop channel if we aren't using any more?
     # pipeline.get_rn_generator().drop_channel('joint_tours_participants')
 
-    # - annotate persons table
-    persons = persons.to_frame()
-    expressions.assign_columns(
-        df=persons,
-        model_settings=joint_tour_participation_settings.get('annotate_persons'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
-    pipeline.replace_table("persons", persons)
-
     # - assign joint tour 'point person' (participant_num == 1)
     point_persons = participants[participants.participant_num == 1]
     joint_tours['person_id'] = point_persons.set_index('tour_id').person_id
@@ -274,14 +268,15 @@ def joint_tour_participation(
     # update number_of_participants which was initialized to 1
     joint_tours['number_of_participants'] = participants.groupby('tour_id').size()
 
-    pipeline.replace_table("joint_tours", joint_tours)
+    assign_in_place(tours, joint_tours[['person_id', 'number_of_participants']])
+
+    pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(inject.get_table('participants_merged').to_frame(),
-                         label="joint_tour_participation.participants_merged",
+        tracing.trace_df(participants,
+                         label="joint_tour_participation.participants",
                          warn_if_empty=True)
 
-        tracing.trace_df(persons,
-                         label="joint_tour_participation.persons",
-                         slicer='household_id',
+        tracing.trace_df(joint_tours,
+                         label="joint_tour_participation.joint_tours",
                          warn_if_empty=True)

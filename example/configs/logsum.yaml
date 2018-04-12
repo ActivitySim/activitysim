@@ -72,7 +72,7 @@ CONSTANTS:
 
 
 preprocessor_settings:
-  SPEC: annotate_choosers_logsums_preprocessor
+  SPEC: logsums_annotate_choosers_preprocessor
   DF: choosers
   TABLES:
     - land_use
@@ -87,5 +87,4 @@ LOGSUM_CHOOSER_COLUMNS:
   - age_16_to_19
   - auto_ownership
   - number_of_participants
-  - is_joint
-
+  - tour_category

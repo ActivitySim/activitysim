@@ -71,13 +71,13 @@ CONSTANTS:
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor_settings:
-  - SPEC: annotate_tours_mode_choice_preprocessor1
+  - SPEC: tour_mode_choice_annotate_tours_preprocessor1
     DF: df
     TABLES:
       - land_use
       - tours
 
-  - SPEC: annotate_tours_mode_choice_preprocessor2
+  - SPEC: tour_mode_choice_annotate_tours_preprocessor2
     DF: tours
     TABLES:
       - land_use

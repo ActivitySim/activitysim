@@ -22,3 +22,5 @@ logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time
 ,home_is_suburban,~(participants.home_is_urban | participants.home_is_rural)
 ,high_income,participants.income_in_thousands > 60
 #,person_stays_home,participants.cdap_activity == constants.CDAP_ACTIVITY_HOME
+#,,
+,more_cars_than_workers,participants.auto_ownership > participants.num_workers

@@ -27,8 +27,8 @@ logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,,0.1086,,,,,0
 # incomeGreaterThan100,income_greater_than_100,,0,,,,,0,0,0,0,0,,,,,,,,,,
 # incomeMissing (dummy always zero),income_missing,,0,,,,,0,0,0,0,0,,,,,,,,,,
 # zeroAutomobiles,auto_ownership == 0,,0,,,,,0,0,0,0,0,,,,,,,,,,
-fewerCarsThanDrivers,auto_ownership < drivers,,0.2523,,,,,0.5046,0.2523,0.2523,0.2523,0.2523,,,,,,,,,,
-moreCarsThanWorkers,auto_ownership > workers,,-0.3027,,,,,-0.6054,-0.3027,-0.3027,-0.3027,-0.3027,,,,,,,,,,
+fewerCarsThanDrivers,auto_ownership < num_drivers,,0.2523,,,,,0.5046,0.2523,0.2523,0.2523,0.2523,,,,,,,,,,
+moreCarsThanWorkers,auto_ownership > num_workers,,-0.3027,,,,,-0.6054,-0.3027,-0.3027,-0.3027,-0.3027,,,,,,,,,,
 # walkRetailAccessibility,non_motorized_retail_accessibility,,0,,,,,0,0,0,0,0,,,,,,,,,,
 # Maintenance,,,,,,,,,,,,,,,,,,,,,,
 fullTimeNonMandMaxThree,cdap_nonmand_full_max3,,,0.3173,,,,,0.3173,,,,0.6346,0.3173,0.3173,0.3173,,,,,,
@@ -50,8 +50,8 @@ logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,,,0.2443,,,,,
 # incomeGreaterThan100,income_greater_than_100,,,0.0000,,,,,0.0000,,,,0.0000,0.0000,0.0000,0.0000,,,,,,
 # incomeMissing (dummy always zero),income_missing,,,0.0000,,,,,0.0000,,,,0.0000,0.0000,0.0000,0.0000,,,,,,
 # zeroAutomobiles,auto_ownership == 0,,,0.0000,,,,,0.0000,,,,0.0000,0.0000,0.0000,0.0000,,,,,,
-fewerCarsThanDrivers,auto_ownership < drivers,,,0.4611,,,,,0.4611,,,,0.9222,0.4611,0.4611,0.4611,,,,,,
-moreCarsThanWorkers,auto_ownership > workers,,,0.0000,,,,,0.0000,,,,0.0000,0.0000,0.0000,0.0000,,,,,,
+fewerCarsThanDrivers,auto_ownership < num_drivers,,,0.4611,,,,,0.4611,,,,0.9222,0.4611,0.4611,0.4611,,,,,,
+moreCarsThanWorkers,auto_ownership > num_workers,,,0.0000,,,,,0.0000,,,,0.0000,0.0000,0.0000,0.0000,,,,,,
 # walkRetailAccessibility,non_motorized_retail_accessibility,,,0.0000,,,,,0.0000,,,,0.0000,0.0000,0.0000,0.0000,,,,,,
 # eating out,,,,,,,,,,,,,,,,,,,,,,
 fullTimeNonMandMaxThree,cdap_nonmand_full_max3,,,,0.2275,,,,,0.2275,,,,0.2275,,,0.4550,0.2275,0.2275,,,
@@ -73,8 +73,8 @@ incomeBetween50And100,income_between_50_and_100,,,,0.2977,,,,,0.2977,,,,0.2977,,
 incomeGreaterThan100,income_greater_than_100,,,,0.4492,,,,,0.4492,,,,0.4492,,,0.8984,0.4492,0.4492,,,
 incomeMissing (dummy always zero),income_missing,,,,0.2780,,,,,0.2780,,,,0.2780,,,0.5560,0.2780,0.2780,,,
 # zeroAutomobiles,auto_ownership == 0,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,0.0000,0.0000,,,
-fewerCarsThanDrivers,auto_ownership < drivers,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,0.0000,0.0000,,,
-moreCarsThanWorkers,auto_ownership > workers,,,,0.3825,,,,,0.3825,,,,0.3825,,,0.7650,0.3825,0.3825,,,
+fewerCarsThanDrivers,auto_ownership < num_drivers,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,0.0000,0.0000,,,
+moreCarsThanWorkers,auto_ownership > num_workers,,,,0.3825,,,,,0.3825,,,,0.3825,,,0.7650,0.3825,0.3825,,,
 walkRetailAccessibility,non_motorized_retail_accessibility,,,,0.0623,,,,,0.0623,,,,0.0623,,,0.1246,0.0623,0.0623,,,
 # visiting,,,,,,,,,,,,,,,,,,,,,,
 fullTimeNonMandMaxThree,cdap_nonmand_full_max3,,,,,0.6445,,,,,0.6445,,,,0.6445,,,0.6445,,1.2890,0.6445,
@@ -96,8 +96,8 @@ timeWindowOverlapAdultChild,time_window_overlap_adult_child,,,,,0.0256,,,,,0.025
 # incomeGreaterThan100,income_greater_than_100,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000,
 # incomeMissing (dummy always zero),income_missing,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000,
 # zeroAutomobiles,auto_ownership == 0,,,,,-0.9802,,,,,-0.9802,,,,-0.9802,,,-0.9802,,-1.9604,-0.9802,
-fewerCarsThanDrivers,auto_ownership < drivers,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000,
-moreCarsThanWorkers,auto_ownership > workers,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000,
+fewerCarsThanDrivers,auto_ownership < num_drivers,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000,
+moreCarsThanWorkers,auto_ownership > num_workers,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000,
 # walkRetailAccessibility,non_motorized_retail_accessibility,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000,
 # discretionary,,,,,,,,,,,,,,,,,,,,,,
 fullTimeNonMandMaxThree,cdap_nonmand_full_max3,,,,,,0.1275,,,,,0.1275,,,,0.1275,,,0.1275,,0.1275,0.2550
@@ -119,6 +119,6 @@ incomeBetween50And100,income_between_50_and_100,,,,,,0.3167,,,,,0.3167,,,,0.3167
 incomeGreaterThan100,income_greater_than_100,,,,,,0.4860,,,,,0.4860,,,,0.4860,,,0.4860,,0.4860,0.9720
 incomeMissing (dummy always zero),income_missing,,,,,,0.3723,,,,,0.3723,,,,0.3723,,,0.3723,,0.3723,0.7446
 zeroAutomobiles,auto_ownership == 0,,,,,,-0.9094,,,,,-0.9094,,,,-0.9094,,,-0.9094,,-0.9094,-1.8188
-fewerCarsThanDrivers,auto_ownership < drivers,,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000
-moreCarsThanWorkers,auto_ownership > workers,,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000
+fewerCarsThanDrivers,auto_ownership < num_drivers,,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000
+moreCarsThanWorkers,auto_ownership > num_workers,,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000
 # walkRetailAccessibility,non_motorized_retail_accessibility,,,,,,0.0000,,,,,0.0000,,,,0.0000,,,0.0000,,0.0000,0.0000

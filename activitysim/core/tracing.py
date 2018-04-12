@@ -389,8 +389,6 @@ def register_traceable_table(table_name, df):
         register_trips(df, trace_hh_id)
     elif table_name == 'tours':
         register_tours(df, trace_hh_id)
-    elif table_name == 'joint_tours':
-        register_tours(df, trace_hh_id)
     elif table_name == 'participants':
         register_participants(df, trace_hh_id)
     else:

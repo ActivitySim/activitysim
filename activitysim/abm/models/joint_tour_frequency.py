@@ -101,7 +101,7 @@ def joint_tour_frequency(
 
     # - create joint_tours based on joint_tour_frequency choices
 
-    # - we need a person_id in order to generate the tour index,
+    # - we need a person_id in order to generate the tour index (and for register_traceable_table)
     # - but we don't know the tour participants yet
     # - so we arbitrarily choose the first person in the household
     # - to be point person for the purpose of generating an index
@@ -112,16 +112,10 @@ def joint_tour_frequency(
     joint_tours = \
         process_joint_tours(choices, joint_tour_frequency_alternatives, temp_point_persons)
 
-    pipeline.replace_table('joint_tours', joint_tours)
-    #tracing.register_traceable_table('joint_tours', joint_tours)
-    #pipeline.get_rn_generator().add_channel(joint_tours, 'joint_tours')
+    tours = pipeline.extend_table("tours", joint_tours)
 
-    #tours = pipeline.extend_table("tours", joint_tours)
     tracing.register_traceable_table('tours', joint_tours)
     pipeline.get_rn_generator().add_channel(joint_tours, 'tours')
-
-    #bug - get rid of this so nobody is confused?
-    del joint_tours['person_id']
 
     # - annotate households
     # add joint_tour_frequency and num_hh_joint_tours columns to households

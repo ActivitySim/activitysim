@@ -5,8 +5,8 @@ annotate_persons:
     - tours
 
 preprocessor_settings:
-  SPEC: annotate_persons_non_mandatory_frequency_preprocessor
+  SPEC: non_mandatory_tour_frequency_annotate_persons_preprocessor
   DF: persons
-#  TABLES:
-#    - persons
+  TABLES:
+    - tours
 #    - accessibility

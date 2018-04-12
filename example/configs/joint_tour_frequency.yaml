@@ -1,7 +1,7 @@
 LOGIT_TYPE: MNL
 
 preprocessor_settings:
-  SPEC: annotate_households_joint_frequency_preprocessor
+  SPEC: joint_tour_frequency_annotate_households_preprocessor
   DF: households
   TABLES:
     #- persons

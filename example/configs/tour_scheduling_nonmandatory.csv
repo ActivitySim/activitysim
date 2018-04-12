@@ -13,8 +13,8 @@ School child age 16+ - duration shift effects,(ptype == 6) * duration,0.2095
 School child age under 16 - departure shift effects,(ptype == 7) * start,0.04657
 School child age under 16 - duration shift effects,(ptype == 7) * duration,0.3272
 Destination in CBD - duration shift effects,destination_in_cbd * duration,0.1067
-Number of mandatory tours - departure shift effects,num_mand  * start,0.04673
-Number of joint tours - departure shift effects,num_joint_tours * start,0.05208
+Number of mandatory tours - departure shift effects,num_mand * start,0.04673
+Number of joint tours - departure shift effects,num_person_joint_tours * start,0.05208
 Number of escort tours - departure shift effects,num_escort_tours * start,0.02013
 Number of idividual non-mandatory tours (excluding escort) - departure shift effects,num_non_escort_tours * start,0.03896
 First of 2+ tours for same purpose - departure shift effect,((tour_type_count>1) & (tour_type_num == 1)) * start,-0.2364

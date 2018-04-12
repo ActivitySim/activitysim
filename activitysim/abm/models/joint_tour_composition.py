@@ -14,7 +14,7 @@ from activitysim.core import config
 from activitysim.core import inject
 
 from .util import expressions
-from activitysim.core.util import reindex
+from activitysim.core.util import assign_in_place
 
 
 from .util.overlap import hh_time_window_overlap
@@ -35,7 +35,7 @@ def joint_tour_composition_settings(configs_dir):
 
 @inject.step()
 def joint_tour_composition(
-        joint_tours, households, persons,
+        tours, households, persons,
         joint_tour_composition_spec,
         joint_tour_composition_settings,
         configs_dir,
@@ -47,7 +47,8 @@ def joint_tour_composition(
     """
     trace_label = 'joint_tour_composition'
 
-    joint_tours = joint_tours.to_frame()
+    tours = tours.to_frame()
+    joint_tours = tours[tours.tour_category == 'joint']
     households = households.to_frame()
     persons = persons.to_frame()
 
@@ -95,7 +96,9 @@ def joint_tour_composition(
     # add joint_tour_frequency column to households
     # (reindex since choices were made on a subset of households)
     joint_tours['composition'] = choices.reindex(joint_tours.index)
-    pipeline.replace_table("joint_tours", joint_tours)
+
+    assign_in_place(tours, joint_tours[['composition']])
+    pipeline.replace_table("tours", tours)
 
     tracing.print_summary('joint_tour_composition', joint_tours.composition,
                           value_counts=True)

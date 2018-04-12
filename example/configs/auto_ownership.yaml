@@ -1,8 +1,2 @@
 #LOGIT_TYPE: NL
 LOGIT_TYPE: MNL
-
-annotate_households:
-  SPEC: annotate_households_autoown
-  DF: households
-  TABLES:
-    - persons

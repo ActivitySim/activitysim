@@ -51,11 +51,9 @@ models:
   - atwork_subtour_destination_simulate
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
-  - create_simple_trips
-  - trip_mode_choice_simulate
+  - stop_frequency
   - write_data_dictionary
   - write_tables
-
 
 #resume_after: joint_tour_scheduling
 

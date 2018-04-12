@@ -11,7 +11,7 @@ Number of Pre-driving Age Children in the household,num_school_max3,,0.7306,0.35
 Number of Driving-age Children in the household,num_driving_max3,,-0.2667,-0.9399
 Low income households (dummy),income_in_thousands<30,1.2480,,0.5755
 Medium income households (dummy),(income_in_thousands>=30) & (income_in_thousands<60),0.8369,,
-Household has more automobiles than workers (dummy),car_sufficiency>0,1.3860,,0.7510
+Household has more cars than workers (dummy),more_cars_than_workers,1.3860,,0.7510
 Household is located in an urban area type (dummy),home_is_urban,0.5741,,
 Household is located in a suburban area type (dummy),~(home_is_urban | home_is_rural),0.5105,,0.1283
 Log of max pair-wise overlap of household adults time windows,log_time_window_overlap_adult,1.1920,,

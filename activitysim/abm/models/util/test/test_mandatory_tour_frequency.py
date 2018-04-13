@@ -23,6 +23,7 @@ def test_mtf():
         "mandatory_tour_frequency": ["work1", "work_and_school", "work_and_school", "school2"],
         "school_taz": [1, 2, 3, 4],
         "workplace_taz": [10, 20, 30, 40],
+        "household_id": [1, 2, 2, 4]
     }, index=[10, 20, 30, 40])
 
     tour_frequency_alternatives = mandatory_tour_frequency_alternatives()

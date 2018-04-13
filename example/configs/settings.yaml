@@ -6,9 +6,8 @@ skims_file: skims.omx
 households_sample_size: 100
 
 #trace household id; comment out for no trace
-# 2591315 IS a household with both subtours and joint tours
-trace_hh_id: 2591315
-
+# household with all tour categories
+trace_hh_id: 286805
 
 # trace origin, destination in accessibility calculation
 #trace_od: [5, 11]

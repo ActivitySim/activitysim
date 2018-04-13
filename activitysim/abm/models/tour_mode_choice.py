@@ -168,10 +168,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
     pipeline.replace_table("tours", all_tours)
 
     if trace_hh_id:
-        trace_columns = ['mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
         tracing.trace_df(primary_tours,
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour_id',
-                         columns=trace_columns,
                          warn_if_empty=True)

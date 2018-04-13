@@ -220,7 +220,7 @@ def stop_frequency(
                          columns=None,
                          warn_if_empty=True)
 
-        tracing.trace_df(tours,
+        tracing.trace_df(trips,
                          label="stop_frequency.trips",
                          slicer='person_id',
                          columns=None,

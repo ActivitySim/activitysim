@@ -4,15 +4,6 @@ SIMULATE_CHOOSER_COLUMNS:
   - income_segment
   - TAZ
 
-#LOGSUM_CHOOSER_COLUMNS:
-#  - TAZ
-#  - hhsize
-#  - age
-#  - age_16_p
-#  - age_16_to_19
-#  - density_index
-## dont know auto_ownership since model has not been run yet
-##  - auto_ownership
 
 # model-specific logsum-related settings
 CHOOSER_ORIG_COL_NAME: TAZ

@@ -20,3 +20,4 @@ Description,Target,Expression
 ,walk_heavyrail_available,(odt_skims['WLK_HVY_WLK_TOTIVT']>0) & (dot_skims['WLK_HVY_WLK_TOTIVT']>0) & ((odt_skims['WLK_HVY_WLK_KEYIVT']>0) | (dot_skims['WLK_HVY_WLK_KEYIVT']>0))
 ,walk_local_available,(odt_skims['WLK_LOC_WLK_TOTIVT']>0) & (dot_skims['WLK_LOC_WLK_TOTIVT']>0)
 ,walk_lrf_available,(odt_skims['WLK_LRF_WLK_TOTIVT']>0) & (dot_skims['WLK_LRF_WLK_TOTIVT']>0) & ((odt_skims['WLK_LRF_WLK_KEYIVT']>0) | (dot_skims['WLK_LRF_WLK_KEYIVT']>0))
+,is_joint,(choosers.tour_category=='joint') if 'tour_category' in choosers.columns else False

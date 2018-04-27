@@ -254,6 +254,7 @@ def write_df(df, table_name, checkpoint_name=None):
         key = table_name
 
     store = get_pipeline_store()
+
     store[key] = df
 
 

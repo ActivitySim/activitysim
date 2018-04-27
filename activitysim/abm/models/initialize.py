@@ -13,6 +13,9 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 
+from activitysim.core.steps.output import write_data_dictionary
+from activitysim.core.steps.output import write_tables
+
 from .util import expressions
 
 
@@ -20,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 @inject.step()
-def initialize(store, configs_dir):
+def initialize(configs_dir):
     """
     Because random seed is set differently for each step, the sampling of households depends
     on which step they are initially loaded in so we force them to load here and they get
@@ -66,10 +69,13 @@ def initialize(store, configs_dir):
 @inject.injectable(cache=True)
 def preload_injectables():
     """
-    preload bulky injectables up front - stuff that isn't inserted into eh pipeline
+    preload bulky injectables up front - stuff that isn't inserted into the pipeline
     """
 
     logger.info("preload_injectables")
+
+    inject.add_step('write_data_dictionary', write_data_dictionary)
+    inject.add_step('write_tables', write_tables)
 
     t0 = tracing.print_elapsed_time()
 

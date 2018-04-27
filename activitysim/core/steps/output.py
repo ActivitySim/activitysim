@@ -13,7 +13,6 @@ from activitysim.core.config import setting
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
 def write_data_dictionary(output_dir):
     """
     Write table_name, number of rows, columns, and bytes for each checkpointed table
@@ -47,7 +46,6 @@ def write_data_dictionary(output_dir):
     df.to_csv(os.path.join(output_dir, 'data_dict.csv'))
 
 
-@inject.step()
 def write_tables(output_dir):
     """
     Write pipeline tables as csv files (in output directory) as specified by output_tables list
@@ -118,7 +116,10 @@ def write_tables(output_dir):
         file_name = "%s%s.csv" % (prefix, table_name)
         logger.info("writing output file %s" % file_name)
         file_path = os.path.join(output_dir, file_name)
-        write_index = df.index.name is not None
+
+        # include the index if it has a name or is a MultiIndex
+        write_index = df.index.name is not None or isinstance(df.index, pd.core.index.MultiIndex)
+
         df.to_csv(file_path, index=write_index)
 
     if (action == 'include') == ('checkpoints' in tables):

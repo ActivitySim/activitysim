@@ -46,6 +46,10 @@ def households(store, households_sample_size, trace_hh_id):
 
     logger.info("loaded households %s" % (df.shape,))
 
+    # FIXME - pathological knowledge of name of chunk_id column used by hh_chunked_choosers
+    assert 'chunk_id' not in df.columns
+    df['chunk_id'] = pd.Series(range(len(df)), df.index)
+
     # replace table function with dataframe
     inject.add_table('households', df)
 
@@ -56,16 +60,6 @@ def households(store, households_sample_size, trace_hh_id):
         tracing.trace_df(df, "households", warn_if_empty=True)
 
     return df
-
-
-# this assigns a chunk_id to each household so we can iterate over persons by whole households
-@inject.column("households", cache=True)
-def chunk_id(households):
-
-    # FIXME - pathological knowledge of name of chunk_id column used by hh_chunked_choosers
-
-    chunk_ids = pd.Series(range(len(households)), households.index)
-    return chunk_ids
 
 
 # this is a common merge so might as well define it once here and use it

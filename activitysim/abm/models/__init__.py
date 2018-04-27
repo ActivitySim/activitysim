@@ -27,7 +27,5 @@ import atwork_subtour_mode_choice
 
 import stop_frequency
 
-import utility_steps
-
 # parameterized models
 import annotate_table

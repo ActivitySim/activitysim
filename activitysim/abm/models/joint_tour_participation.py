@@ -115,7 +115,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
     assert choice_col in spec.columns, \
         "couldn't find participation choice column '%s' in spec"
     PARTICIPATE_CHOICE = spec.columns.get_loc(choice_col)
-    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 1000)
+    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 5000)
 
     trace_label = tracing.extend_trace_label(trace_label, 'participants_chooser')
 

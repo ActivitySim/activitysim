@@ -67,30 +67,6 @@ def trace_hh_id(settings):
     return id
 
 
-@inject.injectable()
-def trace_person_ids():
-    # overridden by register_persons if trace_hh_id is defined
-    return []
-
-
-@inject.injectable()
-def trace_tour_ids():
-    # overridden by register_tours if trace_hh_id is defined
-    return []
-
-
-@inject.injectable(cache=True)
-def hh_index_name(settings):
-    # overridden by register_households if trace_hh_id is defined
-    return None
-
-
-@inject.injectable(cache=True)
-def persons_index_name(settings):
-    # overridden by register_persons if trace_hh_id is defined
-    return None
-
-
 @inject.injectable(cache=True)
 def trace_od(settings):
 
@@ -101,8 +77,3 @@ def trace_od(settings):
         od = None
 
     return od
-
-
-@inject.injectable(cache=True)
-def enable_trace_log(trace_hh_id, trace_od):
-    return (trace_hh_id or trace_od)

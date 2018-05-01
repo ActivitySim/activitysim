@@ -1,7 +1,6 @@
 LOGIT_TYPE: MNL
 
-#max_participation_choice_iterations: 1000
-max_participation_choice_iterations: 1000
+#max_participation_choice_iterations: 5000
 
 preprocessor_settings:
   SPEC: joint_tour_participation_annotate_participants_preprocessor

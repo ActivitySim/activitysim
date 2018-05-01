@@ -572,9 +572,9 @@ def get_trace_target(df, slicer):
 
     if len(df.index) == 0:
         target_ids = None
-    elif slicer == 'PERID' or slicer == inject.get_injectable('persons_index_name'):
+    elif slicer == 'PERID' or slicer == inject.get_injectable('persons_index_name', None):
         target_ids = inject.get_injectable('trace_person_ids', [])
-    elif slicer == 'HHID' or slicer == inject.get_injectable('hh_index_name'):
+    elif slicer == 'HHID' or slicer == inject.get_injectable('hh_index_name', None):
         target_ids = inject.get_injectable('trace_hh_id', [])
     elif slicer == 'person_id':
         target_ids = inject.get_injectable('trace_person_ids', [])
@@ -751,7 +751,7 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     # currently we only ever slice by person_id, but that could change, so we check here...
 
     if choosers.index.name == 'PERID' \
-            or choosers.index.name == inject.get_injectable('persons_index_name'):
+            or choosers.index.name == inject.get_injectable('persons_index_name', None):
         slicer_column_name = choosers.index.name
         targets = inject.get_injectable('trace_person_ids', [])
     elif ('household_id' in choosers.columns and inject.get_injectable('trace_hh_id', False)):

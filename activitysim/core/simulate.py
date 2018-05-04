@@ -422,18 +422,21 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     utilities = compute_utilities(expression_values, spec)
     t0 = tracing.print_elapsed_time("expression_values.dot", t0, debug=True)
 
+    if have_trace_targets:
+        # report these now in case utils_to_probs throws error on zero-probs
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+        tracing.trace_df(utilities, '%s.utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
+
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
     t0 = tracing.print_elapsed_time("logit.utils_to_probs", t0, debug=True)
 
     if have_trace_targets:
         # report these now in case make_choices throws error on bad_choices
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(utilities, '%s.utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
         tracing.trace_df(probs, '%s.probs' % trace_label,
                          column_labels=['alternative', 'probability'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
     if custom_chooser:
         choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,

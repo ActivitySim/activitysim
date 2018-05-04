@@ -96,9 +96,11 @@ def process_trips(tours, stop_frequency_alts):
 
     trips['person_id'] = reindex(tours.person_id, trips.tour_id)
     trips['household_id'] = reindex(tours.household_id, trips.tour_id)
+    trips['primary_purpose'] = reindex(tours.segment_type, trips.tour_id)
 
     # reorder columns and drop 'direction'
-    trips = trips[['person_id', 'household_id', 'tour_id', 'trip_num', 'outbound', 'trip_count']]
+    trips = trips[['person_id', 'household_id', 'primary_purpose', 'tour_id',
+                   'trip_num', 'outbound', 'trip_count']]
 
     trips['first'] = (trips.trip_num == 1)
     trips['last'] = (trips.trip_num == trips.trip_count) & (trips.trip_num > 1)
@@ -106,14 +108,14 @@ def process_trips(tours, stop_frequency_alts):
     # trips['intermediate'] = (trips.trip_num>1) & (trips.trip_num<trips.trip_count)
 
     """
-      person_id  household_id  tour_id  trip_num  outbound  trip_count  first  last
-    0     32927         32927   954910         1      True           2   True False
-    1     32927         32927   954910         2      True           2  False  True
-    2     32927         32927   954910         1     False           2   True False
-    3     32927         32927   954910         2     False           2  False  True
-    4     33993         33993   985824         1      True           1   True False
-    5     33993         33993   985824         1     False           2   True False
-    6     33993         33993   985824         2     False           2  False  True
+      person_id  household_id  primary_purpose tour_id  trip_num  outbound  trip_count  first  last
+    0     32927         32927             work  954910         1      True           2   True False
+    1     32927         32927             work  954910         2      True           2  False  True
+    2     32927         32927             work  954910         1     False           2   True False
+    3     32927         32927             work  954910         2     False           2  False  True
+    4     33993         33993             univ  985824         1      True           1   True False
+    5     33993         33993             univ  985824         1     False           2   True False
+    6     33993         33993             univ  985824         2     False           2  False  True
 
     """
 
@@ -205,6 +207,10 @@ def stop_frequency(
 
     # add stop_frequency choices to tours table
     assign_in_place(tours, choices.to_frame('stop_frequency'))
+
+    if 'segment_type' not in tours.columns:
+        assign_in_place(tours, tours_merged[['segment_type']])
+
     pipeline.replace_table("tours", tours)
 
     # create trips table

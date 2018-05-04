@@ -66,7 +66,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
             SPEC - name of expressions file (csv suffix optional) if different from model_settings
             TABLES - list of pipeline tables to load and make available as (read only) locals
         str:
-            name of yaml file in confirs_dir to load dict from
+            name of yaml file in configs_dir to load dict from
     locals_dict : dict
         dict of locals (e.g. utility functions) to add to the execution environment
     trace_label

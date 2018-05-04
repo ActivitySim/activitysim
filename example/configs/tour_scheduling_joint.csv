@@ -23,7 +23,7 @@ Shopping tour - arrive after 22,"(tour_type == 'shopping') & (end > 22)",-0.6027
 School child under 16 - arrive after 22,(ptype == 7) & (end > 22),-1.18
 University student - arrive after 22,(ptype == 3) & (end > 22),0.5466
 Shopping tour - duration < 2 hours,"(tour_type == 'shopping') & (duration < 2)",0.5168
-Discretionary tour - duration < 2 hours,"(tour_type == 'othdisc') & (duration < 2)",-0.6974
+Discretionary tour - duration < 2 hours,"(tour_type == 'othdiscr') & (duration < 2)",-0.6974
 Adult with children in HH - arrive 19 - 21,adult & (num_children > 0) & ( end > 18 ) & ( end < 22 ),0.336
 #Mode Choice Logsum,mode_choice_logsum,0
 #,,

@@ -1,0 +1,7 @@
+
+preprocessor_settings:
+  SPEC: trip_purpose_annotate_tours_preprocessor
+  DF: trips
+  TABLES:
+    - persons
+    - tours

@@ -24,7 +24,7 @@ from activitysim.core import inject
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 286805
+HH_ID = 815149
 
 SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
@@ -292,9 +292,9 @@ def full_run(resume_after=None, chunk_size=0,
     tours = pipeline.get_table('tours')
     tour_count = len(tours.index)
 
-    pipeline.close_pipeline()
-
-    orca.clear_cache()
+    # pipeline.close_pipeline()
+    #
+    # orca.clear_cache()
 
     return tour_count
 
@@ -320,7 +320,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 176
+EXPECT_TOUR_COUNT = 172
 
 
 def regress_mode_df(mode_df):
@@ -332,10 +332,10 @@ def regress_mode_df(mode_df):
     print "mand mode_df\n", mand_mode_df[mode_cols]
     """
               tour_id  mode person_id tour_type tour_num tour_category
-    value_1  13321728  WALK    459369      work        1     mandatory
+    value_1  44828459  WALK   1545808      work        1     mandatory
     """
 
-    EXPECT_MAND_PERSON_IDS = ['459369']
+    EXPECT_MAND_PERSON_IDS = ['1545808']
     EXPECT_MAND_TOUR_TYPES = ['work']
     EXPECT_MAND_MODES = ['WALK']
 
@@ -347,16 +347,16 @@ def regress_mode_df(mode_df):
     non_mand_mode_df = mode_df[mode_df.tour_category == 'non_mandatory']
     print "non_mand mode_df\n", non_mand_mode_df[mode_cols]
     """
-              tour_id         mode person_id tour_type tour_num  tour_category
-    value_3  13321726  SHARED2FREE    459369  shopping        1  non_mandatory
+              tour_id  mode person_id tour_type tour_num  tour_category
+    value_3  44828453  WALK   1545808  othdiscr        1  non_mandatory
     """
 
     EXPECT_NON_MAND_PERSON_IDS = [
-        '459369']
+        '1545808']
     EXPECT_NON_MAND_TOUR_TYPES = [
-        'shopping']
+        'othdiscr']
     EXPECT_NON_MAND_MODES = [
-        'SHARED2FREE']
+        'WALK']
 
     assert len(non_mand_mode_df.person_id) == len(EXPECT_NON_MAND_PERSON_IDS)
     assert (non_mand_mode_df.person_id.values == EXPECT_NON_MAND_PERSON_IDS).all()
@@ -372,13 +372,13 @@ def regress_joint_mode_df(mode_df):
 
     print "joint mode_df\n", mode_df[mode_cols]
     """
-            tour_id         mode person_id tour_type tour_num tour_category
-    value  13321714  SHARED2FREE    459369  othmaint        1         joint
+            tour_id  mode person_id tour_type tour_num tour_category
+    value  44828443  WALK   1545808  othdiscr        1         joint
     """
 
-    EXPECT_JOINT_PERSON_IDS = ['459369']
-    EXPECT_JOINT_TOUR_TYPES = ['othmaint']
-    EXPECT_JOINT_MODES = ['SHARED2FREE']
+    EXPECT_JOINT_PERSON_IDS = ['1545808']
+    EXPECT_JOINT_TOUR_TYPES = ['othdiscr']
+    EXPECT_JOINT_MODES = ['WALK']
 
     assert len(mode_df.person_id) == len(EXPECT_JOINT_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_JOINT_PERSON_IDS).all()
@@ -395,13 +395,13 @@ def regress_subtour_mode_df(mode_df):
 
     """
             tour_id  mode person_id tour_type tour_num parent_tour_id
-    value  13321720  WALK    459369     maint        1     13321728.0
+    value  44828436  WALK   1545808       eat        1     44828459.0
     """
 
-    EXPECT_SUBTOUR_PERSON_IDS = ['459369']
-    EXPECT_SUBTOUR_TYPES = ['maint']
+    EXPECT_SUBTOUR_PERSON_IDS = ['1545808']
+    EXPECT_SUBTOUR_TYPES = ['eat']
     EXPECT_SUBTOUR_MODES = ['WALK']
-    EXPECT_PARENT_TOUR_IDS = ['13321728.0']
+    EXPECT_PARENT_TOUR_IDS = ['44828459.0']
 
     assert len(mode_df.person_id) == len(EXPECT_SUBTOUR_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_SUBTOUR_PERSON_IDS).all()
@@ -424,6 +424,11 @@ def regress_traced_hh(primary=True, subtour=True, joint=True):
         mode_df = get_trace_csv('joint_tour_mode_choice.mode.csv')
         regress_joint_mode_df(mode_df)
 
+    trips_df = pipeline.get_table('trips')
+
+    assert trips_df.shape[0] > 0
+    assert not trips_df.purpose.isnull().any()
+
 
 def test_full_run1():
 
@@ -439,6 +444,8 @@ def test_full_run1():
 
     regress_traced_hh()
 
+    pipeline.close_pipeline()
+
 
 def test_full_run2():
 
@@ -452,6 +459,8 @@ def test_full_run2():
     assert(tour_count == EXPECT_TOUR_COUNT)
 
     regress_traced_hh(joint=False)
+
+    pipeline.close_pipeline()
 
 
 def test_full_run_with_chunks():
@@ -469,6 +478,8 @@ def test_full_run_with_chunks():
 
     regress_traced_hh()
 
+    pipeline.close_pipeline()
+
 
 def test_full_run_stability():
 
@@ -481,6 +492,8 @@ def test_full_run_stability():
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE+10)
 
     regress_traced_hh()
+
+    pipeline.close_pipeline()
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ households_sample_size: 100
 
 #trace household id; comment out for no trace
 # household with all tour categories
-trace_hh_id: 286805
+trace_hh_id: 815149
 
 # trace origin, destination in accessibility calculation
 #trace_od: [5, 11]
@@ -51,6 +51,7 @@ models:
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
   - stop_frequency
+  - trip_purpose
   - write_data_dictionary
   - write_tables
 

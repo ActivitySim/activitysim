@@ -233,8 +233,10 @@ def workplace_location_simulate(persons_merged, persons,
 
     persons = persons.to_frame()
 
-    # FIXME no need to reindex since we didn't slice choosers?
-    persons['workplace_taz'] = choices.reindex(persons.index)
+    # persons['workplace_taz'] = choices.reindex(persons.index)
+    # FIXME only assign workplace_location for workers
+    choices = choices[persons.is_worker]
+    persons['workplace_taz'] = choices.reindex(persons.index).fillna(-1).astype(int)
 
     expressions.assign_columns(
         df=persons,

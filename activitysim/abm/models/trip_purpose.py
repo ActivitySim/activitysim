@@ -111,6 +111,24 @@ def trip_purpose(
     trips_df = trips.to_frame()
     probs_spec = trip_purpose_probs
 
+    result_list = []
+
+    # - last trip of outbound tour gets primary_purpose
+    purpose = trips_df.primary_purpose[trips_df['last'] & trips_df.outbound]
+    result_list.append(purpose)
+    logger.info("assign purpose to %s last outbound trips" % purpose.shape[0])
+
+    # - last trip of inbound tour gets home (or work for atwork subtours)
+    purpose = trips_df.primary_purpose[trips_df['last'] & ~trips_df.outbound]
+    purpose = pd.Series(np.where(purpose == 'subtour', 'Work', 'Home'), index=purpose.index)
+    result_list.append(purpose)
+    logger.info("assign purpose to %s last inbound trips" % purpose.shape[0])
+
+    # - intermediate stops (non-last trips) purpose assigned by probability table
+
+    trips_df = trips_df[~trips_df['last']]
+    logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
+
     preprocessor_settings = trip_purpose_settings.get('preprocessor_settings', None)
     if preprocessor_settings:
         locals_dict = config.get_model_constants(trip_purpose_settings)
@@ -126,8 +144,6 @@ def trip_purpose(
     logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
                 (rows_per_chunk, len(trips_df.index)))
 
-    result_list = []
-    # segment by person type and pick the right spec for each person type
     for i, num_chunks, trips_chunk in chunk.chunked_choosers(trips_df, rows_per_chunk):
 
         logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(trips_chunk)))
@@ -147,4 +163,8 @@ def trip_purpose(
 
     trips_df = trips.to_frame()
     trips_df['purpose'] = choices.reindex(trips_df.index)
+
+    # we should have assigned a purpose to all trips
+    assert not trips_df.purpose.isnull().any()
+
     pipeline.replace_table("trips", trips_df)

@@ -96,14 +96,17 @@ def process_trips(tours, stop_frequency_alts):
 
     trips['person_id'] = reindex(tours.person_id, trips.tour_id)
     trips['household_id'] = reindex(tours.household_id, trips.tour_id)
-    trips['primary_purpose'] = reindex(tours.segment_type, trips.tour_id)
+
+    trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
+    trips['subtour'] = reindex(tours.tour_category, trips.tour_id) == 'subtour'
 
     # reorder columns and drop 'direction'
-    trips = trips[['person_id', 'household_id', 'primary_purpose', 'tour_id',
+    trips = trips[['person_id', 'household_id', 'tour_id',
+                   'primary_purpose', 'subtour',
                    'trip_num', 'outbound', 'trip_count']]
 
     trips['first'] = (trips.trip_num == 1)
-    trips['last'] = (trips.trip_num == trips.trip_count) & (trips.trip_num > 1)
+    trips['last'] = (trips.trip_num == trips.trip_count)
     # omit because redundant?
     # trips['intermediate'] = (trips.trip_num>1) & (trips.trip_num<trips.trip_count)
 
@@ -113,7 +116,7 @@ def process_trips(tours, stop_frequency_alts):
     1     32927         32927             work  954910         2      True           2  False  True
     2     32927         32927             work  954910         1     False           2   True False
     3     32927         32927             work  954910         2     False           2  False  True
-    4     33993         33993             univ  985824         1      True           1   True False
+    4     33993         33993             univ  985824         1      True           1   True True
     5     33993         33993             univ  985824         1     False           2   True False
     6     33993         33993             univ  985824         2     False           2  False  True
 
@@ -174,10 +177,11 @@ def stop_frequency(
 
         assign_in_place(tours_merged, annotations)
 
-    tracing.print_summary('stop_frequency segments', tours_merged.segment_type, value_counts=True)
+    tracing.print_summary('stop_frequency segments',
+                          tours_merged.primary_purpose, value_counts=True)
 
     choices_list = []
-    for segment_type, choosers in tours_merged.groupby('segment_type'):
+    for segment_type, choosers in tours_merged.groupby('primary_purpose'):
 
         logging.info("%s running segment %s with %s chooser rows" %
                      (trace_label, segment_type, choosers.shape[0]))
@@ -208,8 +212,8 @@ def stop_frequency(
     # add stop_frequency choices to tours table
     assign_in_place(tours, choices.to_frame('stop_frequency'))
 
-    if 'segment_type' not in tours.columns:
-        assign_in_place(tours, tours_merged[['segment_type']])
+    if 'primary_purpose' not in tours.columns:
+        assign_in_place(tours, tours_merged[['primary_purpose']])
 
     pipeline.replace_table("tours", tours)
 

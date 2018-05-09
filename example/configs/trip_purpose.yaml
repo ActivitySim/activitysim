@@ -1,6 +1,6 @@
 
 preprocessor_settings:
-  SPEC: trip_purpose_annotate_tours_preprocessor
+  SPEC: trip_purpose_annotate_trips_preprocessor
   DF: trips
   TABLES:
     - persons

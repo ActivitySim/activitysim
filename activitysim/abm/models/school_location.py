@@ -181,8 +181,9 @@ def school_location_logsums(
     logger.info("Running school_location_logsums with %s rows" % location_sample.shape[0])
 
     persons_merged = persons_merged.to_frame()
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings)
+    # - only include columns actually used in spec
+    persons_merged = \
+        logsum.filter_chooser_columns(persons_merged, logsum_settings, school_location_settings)
 
     omnibus_logsum_spec = \
         logsum.get_omnibus_logsum_spec(logsum_settings, selector='nontour',
@@ -191,7 +192,7 @@ def school_location_logsums(
     logsums_list = []
     for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
 
-        segment = 'university' if school_type == 'university' else 'school'
+        segment = 'univ' if school_type == 'university' else 'school'
         logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)
 
         choosers = location_sample[location_sample['school_type'] == school_type_id]

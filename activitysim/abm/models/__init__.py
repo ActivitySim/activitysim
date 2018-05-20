@@ -27,6 +27,7 @@ import atwork_subtour_mode_choice
 
 import stop_frequency
 import trip_purpose
+import trip_destination
 
 # parameterized models
 import annotate_table

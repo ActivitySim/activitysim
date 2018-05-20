@@ -4,10 +4,8 @@ Description,Target,Expression
 # e.g. univ segment means there will be a spec called stop_frequency_univ.csv,,
 # so the 'school' tour_type can treat univ and non-univ school tours differently,,
 ,primary_purpose,"df.tour_type.where((df.tour_type != 'school') | ~df.is_university, 'univ')"
-,primary_purpose,"primary_purpose.where(df.tour_category!='subtour', 'subtour')"
+,primary_purpose,"primary_purpose.where(df.tour_category!='atwork', 'atwork')"
 #,,
-#insert origin column in place if it does not exist already
-,_ORIGIN,"df.insert(0,'origin', df.workplace_taz.where((df.tour_category == 'subtour'), df.TAZ))"
 ,distance_in_miles,od_skims['DIST']
 #,,
 ,is_joint,"df.tour_category=='joint'"

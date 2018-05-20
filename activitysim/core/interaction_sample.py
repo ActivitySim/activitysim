@@ -200,7 +200,7 @@ def _interaction_sample(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims:
+    if skims is not None:
         alternatives[alternatives.index.name] = alternatives.index
 
     # cross join choosers and alternatives (cartesian product)
@@ -214,7 +214,7 @@ def _interaction_sample(
 
     assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
-    if skims:
+    if skims is not None:
         add_skims(interaction_df, skims)
 
     # evaluate expressions from the spec multiply by coefficients and sum

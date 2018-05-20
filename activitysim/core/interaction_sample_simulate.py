@@ -85,7 +85,7 @@ def _interaction_sample_simulate(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims:
+    if skims is not None:
         alternatives[alternatives.index.name] = alternatives.index
 
     # in vanilla interaction_simulate interaction_df is cross join of choosers and alternatives
@@ -102,7 +102,7 @@ def _interaction_sample_simulate(
 
     tracing.dump_df(DUMP, interaction_df, trace_label, 'interaction_df')
 
-    if skims:
+    if skims is not None:
         add_skims(interaction_df, skims)
 
     # evaluate expressions from the spec multiply by coefficients and sum

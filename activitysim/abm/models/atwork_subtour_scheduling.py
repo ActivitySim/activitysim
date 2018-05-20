@@ -26,8 +26,8 @@ DUMP = False
 
 
 @inject.injectable()
-def tour_scheduling_subtour_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_scheduling_subtour.csv')
+def tour_scheduling_atwork_spec(configs_dir):
+    return asim.read_model_spec(configs_dir, 'tour_scheduling_atwork.csv')
 
 
 @inject.injectable()
@@ -40,7 +40,7 @@ def atwork_subtour_scheduling(
         tours,
         persons_merged,
         tdd_alts,
-        tour_scheduling_subtour_spec,
+        tour_scheduling_atwork_spec,
         atwork_subtour_scheduling_settings,
         chunk_size,
         trace_hh_id):
@@ -54,7 +54,7 @@ def atwork_subtour_scheduling(
     persons_merged = persons_merged.to_frame()
 
     tours = tours.to_frame()
-    subtours = tours[tours.tour_category == 'subtour']
+    subtours = tours[tours.tour_category == 'atwork']
 
     logger.info("Running %s with %d tours" % (trace_label, len(subtours)))
 
@@ -75,7 +75,7 @@ def atwork_subtour_scheduling(
         parent_tours,
         subtours,
         persons_merged,
-        tdd_alts, tour_scheduling_subtour_spec,
+        tdd_alts, tour_scheduling_atwork_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)
@@ -88,7 +88,7 @@ def atwork_subtour_scheduling(
                     trace_label, 'tour_map')
 
     if trace_hh_id:
-        tracing.trace_df(tours[tours.tour_category == 'subtour'],
+        tracing.trace_df(tours[tours.tour_category == 'atwork'],
                          label="atwork_subtour_scheduling",
                          slicer='person_id',
                          index_label='tour_id',

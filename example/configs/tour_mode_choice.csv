@@ -1,4 +1,4 @@
-Description,Expression,Alternative,eatout,escort,othdiscr,othmaint,school,shopping,social,university,work,workbased
+Description,Expression,Alternative,eatout,escort,othdiscr,othmaint,school,shopping,social,university,work,atwork
 Drive alone - Unavailable,sov_available == False,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

@@ -7,7 +7,7 @@ SIMULATE_CHOOSER_COLUMNS:
 
 # model-specific logsum-related settings
 CHOOSER_ORIG_COL_NAME: workplace_taz
-ALT_DEST_COL_NAME: dest_TAZ
+ALT_DEST_COL_NAME: alt_dest
 IN_PERIOD: 12
 OUT_PERIOD: 12
 

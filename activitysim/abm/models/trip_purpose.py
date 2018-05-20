@@ -68,6 +68,13 @@ def choose_trip_purpose(trips, probs_spec, trace_label):
     num_trips = len(trips.index)
     have_trace_targets = trace_label and tracing.has_trace_targets(trips)
 
+    # probs shold sum to 1 across rows
+    # FIXME - patched file suppressing work univ stops
+    # FIXME - because MTC chooses univ trip purpose for work tour with WALK mode and
+    # FIXME - when there are no univ destination TAZ alternatives withing walking distance
+    sum_probs = probs_spec[purpose_cols].sum(axis=1)
+    probs_spec.loc[:, purpose_cols] = probs_spec.loc[:, purpose_cols].div(sum_probs, axis=0)
+
     # left join trips to probs (there may be multiple rows per trip for multiple depart ranges)
     choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
                         how='left').set_index('trip_id')
@@ -120,7 +127,7 @@ def trip_purpose(
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
     purpose = trips_df.primary_purpose[trips_df['last'] & ~trips_df.outbound]
-    purpose = pd.Series(np.where(purpose == 'subtour', 'Work', 'Home'), index=purpose.index)
+    purpose = pd.Series(np.where(purpose == 'atwork', 'Work', 'Home'), index=purpose.index)
     result_list.append(purpose)
     logger.info("assign purpose to %s last inbound trips" % purpose.shape[0])
 

@@ -98,11 +98,11 @@ def process_trips(tours, stop_frequency_alts):
     trips['household_id'] = reindex(tours.household_id, trips.tour_id)
 
     trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
-    trips['subtour'] = reindex(tours.tour_category, trips.tour_id) == 'subtour'
+    trips['atwork'] = reindex(tours.tour_category, trips.tour_id) == 'atwork'
 
     # reorder columns and drop 'direction'
     trips = trips[['person_id', 'household_id', 'tour_id',
-                   'primary_purpose', 'subtour',
+                   'primary_purpose', 'atwork',
                    'trip_num', 'outbound', 'trip_count']]
 
     trips['first'] = (trips.trip_num == 1)
@@ -125,6 +125,9 @@ def process_trips(tours, stop_frequency_alts):
     # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
     canonical_trip_num = (~trips.outbound * MAX_TRIPS_PER_LEG) + trips.trip_num
     trips['trip_id'] = trips.tour_id * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
+
+    # id of next trip in inbound or outbound leg
+    trips['next_trip_id'] = np.where(trips['last'], 0, trips.trip_id + 1)
 
     trips.set_index('trip_id', inplace=True, verify_integrity=True)
 
@@ -202,12 +205,11 @@ def stop_frequency(
         # convert indexes to alternative names
         choices = pd.Series(spec.columns[choices.values], index=choices.index)
 
-        tracing.print_summary('stop_frequency %s choices' % segment_type,
-                              choices, value_counts=True)
-
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
+
+    tracing.print_summary('stop_frequency', choices, value_counts=True)
 
     # add stop_frequency choices to tours table
     assign_in_place(tours, choices.to_frame('stop_frequency'))

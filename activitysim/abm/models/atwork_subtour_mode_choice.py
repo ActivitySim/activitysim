@@ -41,7 +41,7 @@ def atwork_subtour_mode_choice(
     tours = tours.to_frame()
 
     subtours_merged = tours_merged.to_frame()
-    subtours_merged = subtours_merged[subtours_merged.tour_category == 'subtour']
+    subtours_merged = subtours_merged[subtours_merged.tour_category == 'atwork']
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
     constants = config.get_model_constants(tour_mode_choice_settings)
@@ -81,7 +81,7 @@ def atwork_subtour_mode_choice(
         subtours_merged, locals_dict, skims,
         tour_mode_choice_settings, trace_label)
 
-    spec = get_segment_and_unstack(tour_mode_choice_spec, segment='workbased')
+    spec = get_segment_and_unstack(tour_mode_choice_spec, segment='atwork')
 
     if trace_hh_id:
         tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec'),
@@ -103,7 +103,7 @@ def atwork_subtour_mode_choice(
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(tours[tours.tour_category == 'subtour'],
+        tracing.trace_df(tours[tours.tour_category == 'atwork'],
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
                          index_label='tour_id',

@@ -217,13 +217,14 @@ def joint_tour_destination_logsums(
     joint_tours_merged = pd.merge(joint_tours, persons_merged,
                                   left_on='person_id', right_index=True, how='left')
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    joint_tours_merged = logsum.filter_chooser_columns(joint_tours_merged, logsum_settings)
+    # - only include columns actually used in spec
+    joint_tours_merged = \
+        logsum.filter_chooser_columns(joint_tours_merged, logsum_settings, model_settings)
 
     destination_sample = joint_tour_destination_sample.to_frame()
 
     omnibus_logsum_spec = \
-        logsum.get_omnibus_logsum_spec(logsum_settings, selector='joint',
+        logsum.get_omnibus_logsum_spec(logsum_settings, selector='joint_tour',
                                        configs_dir=configs_dir, want_tracing=trace_hh_id)
 
     logsums_list = []

@@ -188,7 +188,7 @@ def add_skims(df, skims):
     df : pandas.DataFrame
         Table to which to add skim data as new columns.
         `df` is modified in-place.
-    skims : SkimDictWrapper object
+    skims : SkimDictWrapper or SkimStackWrapper object, or a list or dict of skims
         The skims object is used to contain multiple matrices of
         origin-destination impedances.  Make sure to also add it to the
         locals_d below in order to access it in expressions.  The *only* job
@@ -197,13 +197,19 @@ def add_skims(df, skims):
         alternatives.  See the skims module for more documentation on how
         the skims object is intended to be used.
     """
-    if not isinstance(skims, list):
-        assert isinstance(skims, SkimDictWrapper) or isinstance(skims, SkimStackWrapper)
-        skims.set_df(df)
-    else:
+
+    if isinstance(skims, list):
         for skim in skims:
             assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
             skim.set_df(df)
+    elif isinstance(skims, dict):
+        # it it is a dice, then check for known types, ignore anything we don't recognize as a skim
+        for skim in skims.values():
+            assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
+            skim.set_df(df)
+    else:
+        assert isinstance(skims, SkimDictWrapper) or isinstance(skims, SkimStackWrapper)
+        skims.set_df(df)
 
 
 def _check_for_variability(expression_values, trace_label):
@@ -623,7 +629,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         of `spec`.
     """
 
-    if skims:
+    if skims is not None:
         add_skims(choosers, skims)
 
     if nest_spec is None:
@@ -839,7 +845,7 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    if skims:
+    if skims is not None:
         add_skims(choosers, skims)
 
     if nest_spec is None:

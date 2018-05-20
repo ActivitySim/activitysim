@@ -70,7 +70,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     trace_label = 'tour_mode_choice'
 
     primary_tours = tours.to_frame()
-    primary_tours = primary_tours[primary_tours.tour_category != 'subtour']
+    primary_tours = primary_tours[primary_tours.tour_category != 'atwork']
 
     persons_merged = persons_merged.to_frame()
 

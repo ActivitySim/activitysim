@@ -104,10 +104,11 @@ def joint_tour_frequency(
     # - we need a person_id in order to generate the tour index (and for register_traceable_table)
     # - but we don't know the tour participants yet
     # - so we arbitrarily choose the first person in the household
-    # - to be point person for the purpose of generating an index
+    # - to be point person for the purpose of generating an index and setting origin
     temp_point_persons = persons.loc[persons.PNUM == 1]
     temp_point_persons['person_id'] = temp_point_persons.index
-    temp_point_persons = temp_point_persons.set_index('household_id').person_id
+    temp_point_persons = temp_point_persons.set_index('household_id')
+    temp_point_persons = temp_point_persons[['person_id', 'home_taz']]
 
     joint_tours = \
         process_joint_tours(choices, joint_tour_frequency_alternatives, temp_point_persons)

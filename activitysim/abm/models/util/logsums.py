@@ -58,9 +58,9 @@ def get_logsum_spec(logsum_settings, selector, segment, configs_dir, want_tracin
     ----------
     logsum_settings
     selector - str
-        one of nontour, joint, subtour
+        one of nontour, joint, atwork
     segment - str
-        one of eatout escort othdiscr othmaint school shopping social university work workbased
+        one of eatout escort othdiscr othmaint school shopping social university work atwork
     configs_dir
     want_tracing
 
@@ -73,12 +73,21 @@ def get_logsum_spec(logsum_settings, selector, segment, configs_dir, want_tracin
         get_omnibus_logsum_spec(logsum_settings, selector, configs_dir, want_tracing)
     logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)
 
+    if want_tracing:
+        trace_label = 'get_logsum_spec_%s_%s' % (selector, segment)
+        tracing.trace_df(logsum_spec,
+                         trace_label,
+                         slicer='NONE', transpose=False)
+
     return logsum_spec
 
 
-def filter_chooser_columns(choosers, logsum_settings):
+def filter_chooser_columns(choosers, logsum_settings, model_settings):
 
-    chooser_columns = logsum_settings['LOGSUM_CHOOSER_COLUMNS']
+    chooser_columns = logsum_settings.get('LOGSUM_CHOOSER_COLUMNS', [])
+
+    if 'CHOOSER_ORIG_COL_NAME' in model_settings:
+        chooser_columns.append(model_settings['CHOOSER_ORIG_COL_NAME'])
 
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:

@@ -27,7 +27,7 @@ CHANNEL_INFO = {
         'index': 'participant_id'
     },
     'trips': {
-        'max_steps': 1,
+        'max_steps': 2,
         'index': 'trip_id'
     },
 }

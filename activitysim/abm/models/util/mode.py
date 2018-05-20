@@ -147,7 +147,7 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs, mode_choice_setti
         A new spec DataFrame which is exactly like all of the other models.
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, '_mode_choice_spec')
+    trace_label = tracing.extend_trace_label(trace_label, 'mode_choice_spec')
 
     constants = mode_choice_settings['CONSTANTS']
     df = mode_choice_spec_df
@@ -159,11 +159,6 @@ def _mode_choice_spec(mode_choice_spec_df, mode_choice_coeffs, mode_choice_setti
 
     # set index to ['Expression', 'Alternative']
     df = df.set_index('Alternative', append=True)
-
-    if trace_spec:
-        tracing.trace_df(df,
-                         tracing.extend_trace_label(trace_label, 'pre_process_expressions'),
-                         slicer='NONE', transpose=False)
 
     # for each segment - e.g. eatout vs social vs work vs ...
     for col in df.columns:

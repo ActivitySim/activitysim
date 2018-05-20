@@ -616,7 +616,7 @@ def run(models, resume_after=None):
     for model in models:
         t1 = print_elapsed_time()
         run_model(model)
-        t1 = print_elapsed_time("run_model %s)" % model, t1)
+        t1 = print_elapsed_time("run_model %s" % model, t1)
 
         logger.debug('#mem after %s, %s' % (model, memory_info()))
 

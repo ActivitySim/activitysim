@@ -79,7 +79,6 @@ preprocessor_settings:
 
 LOGSUM_CHOOSER_COLUMNS:
   - tour_type
-  - TAZ
   - hhsize
   - density_index
   - age

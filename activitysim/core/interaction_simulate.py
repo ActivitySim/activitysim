@@ -58,6 +58,9 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
         Will have the index of `df` and a single column of utilities
 
     """
+    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utilities")
+    logger.info("Running %s on %s rows" % (trace_label, df.shape[0]))
+
     assert(len(spec.columns) == 1)
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
@@ -206,7 +209,7 @@ def _interaction_simulate(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims:
+    if skims is not None:
         alternatives[alternatives.index.name] = alternatives.index
 
     # cross join choosers and alternatives (cartesian product)
@@ -214,7 +217,7 @@ def _interaction_simulate(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
 
-    if skims:
+    if skims is not None:
         add_skims(interaction_df, skims)
 
     cum_size = chunk.log_df_size(trace_label, 'interaction_df', interaction_df, cum_size=None)

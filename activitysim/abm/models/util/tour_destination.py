@@ -7,8 +7,6 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +57,7 @@ def tour_destination_size_terms(land_use, size_terms, selector):
 
     df = pd.DataFrame({key: size_term(land_use, row) for key, row in size_terms.iterrows()},
                       index=land_use.index)
-    df.index.name = "TAZ"
+    df.index.name = 'TAZ'
 
     if not (df.dtypes == 'float64').all():
         logger.warn('Surprised to find that not all size_terms were float64!')

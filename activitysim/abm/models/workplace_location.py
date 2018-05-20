@@ -136,7 +136,7 @@ def workplace_location_logsums(persons_merged,
 
     persons_merged = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
-    persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings)
+    persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
     location_sample = workplace_location_sample.to_frame()
 

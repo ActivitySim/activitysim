@@ -5,6 +5,7 @@ import os
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -37,8 +38,29 @@ def mandatory_tour_frequency_alternatives(configs_dir):
     return df
 
 
+def add_null_results(trace_label, mandatory_tour_frequency_settings):
+    logger.info("Skipping %s: add_null_results" % trace_label)
+
+    persons = inject.get_table('persons').to_frame()
+    persons['mandatory_tour_frequency'] = ''
+
+    tours = pd.DataFrame()
+    tours['tour_category'] = None
+    tours['tour_type'] = None
+    tours['person_id'] = None
+    tours.index.name = 'tour_id'
+    pipeline.replace_table("tours", tours)
+
+    expressions.assign_columns(
+        df=persons,
+        model_settings=mandatory_tour_frequency_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+
+    pipeline.replace_table("persons", persons)
+
+
 @inject.step()
-def mandatory_tour_frequency(persons, persons_merged,
+def mandatory_tour_frequency(persons_merged,
                              mandatory_tour_frequency_spec,
                              mandatory_tour_frequency_settings,
                              mandatory_tour_frequency_alternatives,
@@ -48,13 +70,17 @@ def mandatory_tour_frequency(persons, persons_merged,
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.
     """
-
     trace_label = 'mandatory_tour_frequency'
 
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'M']
     logger.info("Running mandatory_tour_frequency with %d persons" % len(choosers))
+
+    # - if no mandatory tours
+    if choosers.shape[0] == 0:
+        add_null_results(trace_label, mandatory_tour_frequency_settings)
+        return
 
     # - preprocessor
     preprocessor_settings = mandatory_tour_frequency_settings.get('preprocessor_settings', None)
@@ -85,24 +111,27 @@ def mandatory_tour_frequency(persons, persons_merged,
         mandatory_tour_frequency_spec.columns[choices.values],
         index=choices.index).reindex(persons_merged.local.index)
 
-    persons = persons.to_frame()
-
-    # need to reindex as we only handled persons with cdap_activity == 'M'
-    persons['mandatory_tour_frequency'] = choices.reindex(persons.index)
-
+    # - create mandatory tours
     """
     This reprocesses the choice of index of the mandatory tour frequency
     alternatives into an actual dataframe of tours.  Ending format is
     the same as got non_mandatory_tours except trip types are "work" and "school"
     """
+    choosers['mandatory_tour_frequency'] = choices
     mandatory_tours = process_mandatory_tours(
-        persons=persons[~persons.mandatory_tour_frequency.isnull()],
+        persons=choosers,
         mandatory_tour_frequency_alts=mandatory_tour_frequency_alternatives
     )
 
     tours = pipeline.extend_table("tours", mandatory_tours)
     tracing.register_traceable_table('tours', tours)
     pipeline.get_rn_generator().add_channel(mandatory_tours, 'tours')
+
+    # - annotate persons
+    persons = inject.get_table('persons').to_frame()
+
+    # need to reindex as we only handled persons with cdap_activity == 'M'
+    persons['mandatory_tour_frequency'] = choices.reindex(persons.index)
 
     expressions.assign_columns(
         df=persons,
@@ -119,6 +148,6 @@ def mandatory_tour_frequency(persons, persons_merged,
                          label="mandatory_tour_frequency.mandatory_tours",
                          warn_if_empty=True)
 
-        tracing.trace_df(inject.get_table('persons').to_frame(),
+        tracing.trace_df(persons,
                          label="mandatory_tour_frequency.persons",
                          warn_if_empty=True)

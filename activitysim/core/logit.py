@@ -39,21 +39,25 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None):
     msg_with_count = "%s for %s rows" % (msg, bad_row_map.sum())
     logger.critical(msg_with_count)
 
+    df = df[bad_row_map]
+    if trace_choosers is None:
+        hh_ids = tracing.hh_id_for_chooser(df.index, df)
+    else:
+        hh_ids = tracing.hh_id_for_chooser(df.index, trace_choosers)
+    df['household_id'] = hh_ids
+
     if trace_label:
         logger.critical("dumping %s" % trace_label)
-        tracing.write_csv(df[bad_row_map][:MAX_DUMP],
+        tracing.write_csv(df[:MAX_DUMP],
                           file_name=trace_label,
                           transpose=False)
 
     # log the indexes of the first MAX_DUMP offending rows
-    for idx in df.index[bad_row_map][:MAX_PRINT].values:
+    for idx in df.index[:MAX_PRINT].values:
 
-        if trace_choosers is None:
-            hh_id = tracing.hh_id_for_chooser(idx, df)
-        else:
-            hh_id = tracing.hh_id_for_chooser(idx, trace_choosers)
+        row_msg = "%s : %s in: %s = %s (hh_id = %s)" % \
+                  (trace_label, msg, df.index.name, idx, df.household_id.loc[idx])
 
-        row_msg = "%s : %s in: %s = %s (hh_id = %s)" % (trace_label, msg, df.index.name, idx, hh_id)
         logger.critical(row_msg)
 
     raise RuntimeError(msg_with_count)

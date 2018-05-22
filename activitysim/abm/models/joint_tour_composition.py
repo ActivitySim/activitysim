@@ -33,6 +33,12 @@ def joint_tour_composition_settings(configs_dir):
     return config.read_model_settings(configs_dir, 'joint_tour_composition.yaml')
 
 
+def add_null_results(trace_label, tours):
+    logger.info("Skipping %s: add_null_results" % trace_label)
+    tours['composition'] = np.nan
+    pipeline.replace_table("tours", tours)
+
+
 @inject.step()
 def joint_tour_composition(
         tours, households, persons,
@@ -49,14 +55,20 @@ def joint_tour_composition(
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
-    households = households.to_frame()
-    persons = persons.to_frame()
 
-    logger.info("Running joint_tour_composition with %d joint tours" % joint_tours.shape[0])
+    # - if no joint tours
+    if joint_tours.shape[0] == 0:
+        add_null_results(trace_label, tours)
+        return
 
     # - only interested in households with joint_tours
+    households = households.to_frame()
     households = households[households.num_hh_joint_tours > 0]
+
+    persons = persons.to_frame()
     persons = persons[persons.household_id.isin(households.index)]
+
+    logger.info("Running joint_tour_composition with %d joint tours" % joint_tours.shape[0])
 
     # - run preprocessor
     preprocessor_settings = joint_tour_composition_settings.get('preprocessor_settings', None)
@@ -93,9 +105,8 @@ def joint_tour_composition(
     # convert indexes to alternative names
     choices = pd.Series(joint_tour_composition_spec.columns[choices.values], index=choices.index)
 
-    # add joint_tour_frequency column to households
-    # (reindex since choices were made on a subset of households)
-    joint_tours['composition'] = choices.reindex(joint_tours.index)
+    # add composition column to tours
+    joint_tours['composition'] = choices
 
     assign_in_place(tours, joint_tours[['composition']])
     pipeline.replace_table("tours", tours)

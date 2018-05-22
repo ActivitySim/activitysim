@@ -177,6 +177,14 @@ def participants_chooser(probs, choosers, spec, trace_label):
     return choices, rands
 
 
+def add_null_results(trace_label):
+    logger.info("Skipping %s: joint tours" % trace_label)
+    # participants table is used downstream in non-joint tour expressions
+    participants = pd.DataFrame()
+    participants['person_id'] = 0
+    pipeline.replace_table("joint_tour_participants", participants)
+
+
 @inject.step()
 def joint_tour_participation(
         tours, persons, persons_merged,
@@ -192,6 +200,12 @@ def joint_tour_participation(
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
+
+    # - if no joint tours
+    if joint_tours.shape[0] == 0:
+        add_null_results(trace_label)
+        return
+
     persons_merged = persons_merged.to_frame()
 
     # - create joint_tour_participation_candidates table

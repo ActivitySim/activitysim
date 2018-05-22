@@ -102,6 +102,11 @@ def joint_tour_destination_sample(
     joint_tours = tours.to_frame()
     joint_tours = joint_tours[joint_tours.tour_category == 'joint']
 
+    # - if no joint tours
+    if joint_tours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     households_merged = households_merged.to_frame()
 
     # same size terms as non_mandatory
@@ -144,7 +149,7 @@ def joint_tour_destination_sample(
         choosers_segment = choosers[choosers.tour_type == tour_type]
 
         if choosers_segment.shape[0] == 0:
-            logger.info("skipping tour_type %s: no joint tours" % tour_type)
+            logger.info("%s skipping tour_type %s: no tours" % (trace_label, tour_type))
             continue
 
         # alts indexed by taz with one column containing size_term for  this tour_type
@@ -194,11 +199,10 @@ def joint_tour_destination_logsums(
         tours,
         persons_merged,
         skim_dict, skim_stack,
-        joint_tour_destination_sample,
         configs_dir, chunk_size, trace_hh_id):
 
     """
-    add logsum column to existing joint_tour_destination_sample able
+    add logsum column to existing joint_tour_destination_sample table
 
     logsum is calculated by computing the mode_choice model utilities for each
     sampled (joint_tour, dest_taz) destination alternative in joint_tour_destination_sample,
@@ -206,6 +210,14 @@ def joint_tour_destination_logsums(
     """
 
     trace_label = 'joint_tour_destination_logsums'
+
+    # use inject.get_table as this won't exist if there are no joint_tours
+    destination_sample = inject.get_table('joint_tour_destination_sample', default=None)
+    if destination_sample is None:
+        tracing.no_results(trace_label)
+        return
+
+    destination_sample = destination_sample.to_frame()
 
     model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
     logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
@@ -221,8 +233,6 @@ def joint_tour_destination_logsums(
     joint_tours_merged = \
         logsum.filter_chooser_columns(joint_tours_merged, logsum_settings, model_settings)
 
-    destination_sample = joint_tour_destination_sample.to_frame()
-
     omnibus_logsum_spec = \
         logsum.get_omnibus_logsum_spec(logsum_settings, selector='joint_tour',
                                        configs_dir=configs_dir, want_tracing=trace_hh_id)
@@ -233,7 +243,7 @@ def joint_tour_destination_logsums(
         choosers = destination_sample[destination_sample['tour_type_id'] == tour_type_id]
 
         if choosers.shape[0] == 0:
-            logger.info("skipping tour_type %s: no joint tours" % tour_type)
+            logger.info("%s skipping tour_type %s: no tours" % (trace_label, tour_type))
             continue
 
         # sample is sorted by TOUR_TYPE_ID, tour_id
@@ -285,7 +295,6 @@ def joint_tour_destination_settings(configs_dir):
 def joint_tour_destination_simulate(
         tours,
         households_merged,
-        joint_tour_destination_sample,
         joint_tour_destination_spec,
         skim_dict,
         land_use, size_terms,
@@ -296,13 +305,20 @@ def joint_tour_destination_simulate(
     """
 
     trace_label = 'joint_tour_destination_simulate'
+
+    # use inject.get_table as this won't exist if there are no joint_tours
+    destination_sample = inject.get_table('joint_tour_destination_sample', default=None)
+    if destination_sample is None:
+        tracing.no_results(trace_label)
+        return
+
     model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
 
+    destination_sample = destination_sample.to_frame()
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
 
     households_merged = households_merged.to_frame()
-    location_sample = joint_tour_destination_sample.to_frame()
 
     destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'non_mandatory')
 
@@ -341,10 +357,10 @@ def joint_tour_destination_simulate(
 
         # - skip empty segments
         if choosers_segment.shape[0] == 0:
-            logger.info("skipping tour_type %s: no joint tours" % tour_type)
+            logger.info("%s skipping tour_type %s: no tours" % (trace_label, tour_type))
             continue
 
-        alts_segment = location_sample[location_sample.tour_type_id == tour_type_id]
+        alts_segment = destination_sample[destination_sample.tour_type_id == tour_type_id]
 
         assert tour_type not in alts_segment
 

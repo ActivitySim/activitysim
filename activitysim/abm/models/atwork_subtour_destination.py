@@ -51,6 +51,11 @@ def atwork_subtour_destination_sample(tours,
     tours = tours.to_frame()
     tours = tours[tours.tour_category == 'atwork']
 
+    # - if no atwork subtours
+    if tours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     # merge persons into tours
     choosers = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -96,7 +101,6 @@ def atwork_subtour_destination_sample(tours,
 @inject.step()
 def atwork_subtour_destination_logsums(persons_merged,
                                        skim_dict, skim_stack,
-                                       atwork_subtour_destination_sample,
                                        configs_dir, chunk_size, trace_hh_id):
     """
     add logsum column to existing workplace_location_sample able
@@ -121,6 +125,13 @@ def atwork_subtour_destination_logsums(persons_merged,
     """
 
     trace_label = 'atwork_subtour_destination_logsums'
+
+    # use inject.get_table as this won't exist if there are no atwork subtours
+    destination_sample = inject.get_table('atwork_subtour_destination_sample', default=None)
+    if destination_sample is None:
+        tracing.no_results(trace_label)
+        return
+
     model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
 
     logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
@@ -129,14 +140,14 @@ def atwork_subtour_destination_logsums(persons_merged,
         logsum_settings, selector='atwork_subtour', segment='atwork',
         configs_dir=configs_dir, want_tracing=trace_hh_id)
 
+    destination_sample = destination_sample.to_frame()
     persons_merged = persons_merged.to_frame()
-    atwork_subtour_destination_sample = atwork_subtour_destination_sample.to_frame()
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
     # merge persons into tours
-    choosers = pd.merge(atwork_subtour_destination_sample,
+    choosers = pd.merge(destination_sample,
                         persons_merged,
                         left_on='person_id',
                         right_index=True,
@@ -169,7 +180,6 @@ def atwork_subtour_destination_spec(configs_dir):
 @inject.step()
 def atwork_subtour_destination_simulate(tours,
                                         persons_merged,
-                                        atwork_subtour_destination_sample,
                                         atwork_subtour_destination_spec,
                                         skim_dict,
                                         land_use, size_terms,
@@ -180,10 +190,25 @@ def atwork_subtour_destination_simulate(tours,
     """
 
     trace_label = 'atwork_subtour_destination_simulate'
+
+    # use inject.get_table as this won't exist if there are no atwork subtours
+    destination_sample = inject.get_table('atwork_subtour_destination_sample', default=None)
+    if destination_sample is None:
+        tracing.no_results(trace_label)
+        return
+
+    destination_sample = destination_sample.to_frame()
+
     model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
 
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']
+
+    # - if no atwork subtours
+    if subtours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     # merge persons into tours
     choosers = pd.merge(subtours,
                         persons_merged.to_frame(),
@@ -197,12 +222,10 @@ def atwork_subtour_destination_simulate(tours,
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge additional alt columns into alt sample list
-    atwork_subtour_destination_sample = atwork_subtour_destination_sample.to_frame()
-
     destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'atwork')
 
     alternatives = \
-        pd.merge(atwork_subtour_destination_sample, destination_size_terms,
+        pd.merge(destination_sample, destination_size_terms,
                  left_on=alt_dest_col_name, right_index=True, how="left")
 
     tracing.dump_df(DUMP, alternatives, trace_label, 'alternatives')

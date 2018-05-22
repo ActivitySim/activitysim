@@ -517,8 +517,9 @@ def slice_ids(df, ids, column=None):
         sliced dataframe
     """
 
-    if not isinstance(ids, (list, tuple)):
+    if np.isscalar(ids):
         ids = [ids]
+
     try:
         if column is None:
             df = df[df.index.isin(ids)]
@@ -669,9 +670,20 @@ def has_trace_targets(df, slicer=None):
 
 
 def hh_id_for_chooser(id, choosers):
+    """
+
+    Parameters
+    ----------
+    id - scalar id (or list of ids) from chooser index
+    choosers - pandas dataframe whose index contains ids
+
+    Returns
+    -------
+        scalar household_id or series of household_ids
+    """
 
     if choosers.index.name == 'HHID' or \
-                    choosers.index.name == inject.get_injectable('hh_index_name', 'HHID'):
+            choosers.index.name == inject.get_injectable('hh_index_name', 'HHID'):
         hh_id = id
     elif 'household_id' in choosers.columns:
         hh_id = choosers.loc[id]['household_id']
@@ -857,3 +869,11 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
                  transpose=True,
                  column_labels=['expression', None],
                  warn_if_empty=False)
+
+
+def no_results(trace_label):
+    """
+    standard no-op to write tracing when a model produces no results
+
+    """
+    logger.info("Skipping %s: no_results" % trace_label)

@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def atwork_subtour_mode_choice(
-        tours, tours_merged,
+        tours,
         persons_merged,
         tour_mode_choice_spec,
         tour_mode_choice_settings,
@@ -39,9 +39,16 @@ def atwork_subtour_mode_choice(
     trace_label = 'atwork_subtour_mode_choice'
 
     tours = tours.to_frame()
+    subtours = tours[tours.tour_category == 'atwork']
 
-    subtours_merged = tours_merged.to_frame()
-    subtours_merged = subtours_merged[subtours_merged.tour_category == 'atwork']
+    # - if no atwork subtours
+    if subtours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
+    subtours_merged = \
+        pd.merge(subtours, persons_merged.to_frame(),
+                 left_on='person_id', right_index=True, how='left')
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)
     constants = config.get_model_constants(tour_mode_choice_settings)

@@ -107,7 +107,7 @@ def school_location_sample(
         choosers_segment = choosers[choosers["is_" + school_type]]
 
         if choosers_segment.shape[0] == 0:
-            logger.info("skipping school_type %s: no persons" % tour_type)
+            logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
             continue
 
         # alts indexed by taz with one column containing size_term for  this tour_type
@@ -133,10 +133,13 @@ def school_location_sample(
         choices['school_type'] = school_type_id
         choices_list.append(choices)
 
-    choices = pd.concat(choices_list)
-
-    # - # NARROW
-    choices['school_type'] = choices['school_type'].astype(np.uint8)
+    if len(choices_list) > 0:
+        choices = pd.concat(choices_list)
+        # - # NARROW
+        choices['school_type'] = choices['school_type'].astype(np.uint8)
+    else:
+        logger.info("Skipping %s: add_null_results" % trace_label)
+        choices = pd.DataFrame()
 
     inject.add_table('school_location_sample', choices)
 
@@ -178,6 +181,10 @@ def school_location_logsums(
 
     location_sample = school_location_sample.to_frame()
 
+    if location_sample.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     logger.info("Running school_location_logsums with %s rows" % location_sample.shape[0])
 
     persons_merged = persons_merged.to_frame()
@@ -196,6 +203,10 @@ def school_location_logsums(
         logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)
 
         choosers = location_sample[location_sample['school_type'] == school_type_id]
+
+        if choosers.shape[0] == 0:
+            logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
+            continue
 
         choosers = pd.merge(
             choosers,
@@ -239,12 +250,23 @@ def school_location_simulate(persons_merged, persons,
     School location model on school_location_sample annotated with mode_choice logsum
     to select a school_taz from sample alternatives
     """
+    trace_label = 'school_location_simulate'
+    NO_SCHOOL_TAZ = -1
+
+    location_sample = school_location_sample.to_frame()
+
+    if location_sample.shape[0] == 0:
+        logger.info("Skipping %s: add_null_results" % trace_label)
+        pipeline.drop_table('school_location_sample')
+
+        persons = persons.to_frame()
+        persons['school_taz'] = NO_SCHOOL_TAZ
+        pipeline.replace_table("persons", persons)
+        return
 
     choosers = persons_merged.to_frame()
-    location_sample = school_location_sample.to_frame()
     destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
 
-    trace_label = 'school_location_simulate'
     alt_dest_col_name = school_location_settings["ALT_DEST_COL_NAME"]
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
@@ -269,6 +291,11 @@ def school_location_simulate(persons_merged, persons,
         locals_d['segment'] = school_type
 
         choosers_segment = choosers[choosers["is_" + school_type]]
+
+        if choosers_segment.shape[0] == 0:
+            logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
+            continue
+
         alts_segment = \
             location_sample[location_sample['school_type'] == school_type_id]
 
@@ -296,7 +323,7 @@ def school_location_simulate(persons_merged, persons,
 
     # We only chose school locations for the subset of persons who go to school
     # so we backfill the empty choices with -1 to code as no school location
-    persons['school_taz'] = choices.reindex(persons.index).fillna(-1).astype(int)
+    persons['school_taz'] = choices.reindex(persons.index).fillna(NO_SCHOOL_TAZ).astype(int)
 
     expressions.assign_columns(
         df=persons,

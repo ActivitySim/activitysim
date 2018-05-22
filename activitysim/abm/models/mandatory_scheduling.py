@@ -50,12 +50,17 @@ def mandatory_tour_scheduling(tours,
     """
     This model predicts the departure time and duration of each activity for mandatory tours
     """
+    trace_label = 'mandatory_tour_scheduling'
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
     mandatory_tours = tours[tours.tour_category == 'mandatory']
 
-    trace_label = 'mandatory_tour_scheduling'
+    # - if no mandatory_tours
+    if mandatory_tours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     model_constants = config.get_model_constants(mandatory_tour_scheduling_settings)
 
     logger.info("Running mandatory_tour_scheduling with %d tours" % len(tours))

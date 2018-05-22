@@ -41,7 +41,7 @@ def tour_mode_choice_spec_df(configs_dir):
 @inject.injectable()
 def tour_mode_choice_coeffs(configs_dir):
     with open(os.path.join(configs_dir, 'tour_mode_choice_coeffs.csv')) as f:
-        return pd.read_csv(f, index_col='Expression')
+        return pd.read_csv(f, comment='#', index_col='Expression')
 
 
 @inject.injectable()

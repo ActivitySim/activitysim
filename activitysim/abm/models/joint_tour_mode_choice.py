@@ -46,6 +46,12 @@ def joint_tour_mode_choice(
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
+
+    # - if no joint tours
+    if joint_tours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     persons_merged = persons_merged.to_frame()
 
     nest_spec = config.get_logit_model_settings(tour_mode_choice_settings)

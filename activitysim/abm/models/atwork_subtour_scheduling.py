@@ -56,6 +56,11 @@ def atwork_subtour_scheduling(
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']
 
+    # - if no atwork subtours
+    if subtours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     logger.info("Running %s with %d tours" % (trace_label, len(subtours)))
 
     # parent_tours table with columns ['tour_id', 'tdd'] index = tour_id

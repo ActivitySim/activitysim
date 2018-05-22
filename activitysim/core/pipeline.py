@@ -135,10 +135,12 @@ def set_rn_generator_channel_info(channel_info):
 
     channel_info is a dict with keys and value of the form:
 
-    <channel_name>: {
-        'max_steps': <num_max_steps>,
-        'index': <table_index_name>
-    }
+    ::
+
+      <channel_name>: {
+          'max_steps': <num_max_steps>,
+          'index': <table_index_name>
+      }
 
     channel_name: str
         The channel name is just the table name used by the pipeline and inject.
@@ -149,18 +151,19 @@ def set_rn_generator_channel_info(channel_info):
 
     e.g.:
 
-    channel_info = {
-        'households': {
-            'max_steps': 3,
-            'index': 'HHID'
-        },
-        'persons': {
-            'max_steps': 8,
-            'index': 'PERID'
-        },
+    ::
 
-        ...
-    }
+      channel_info = {
+          'households': {
+              'max_steps': 3,
+              'index': 'HHID'
+          },
+          'persons': {
+              'max_steps': 8,
+              'index': 'PERID'
+          },
+          ...
+      }
     """
 
     _PIPELINE.rng().set_channel_info(channel_info)

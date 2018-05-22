@@ -29,7 +29,8 @@ def trip_purpose_settings(configs_dir):
 @inject.injectable()
 def trip_purpose_probs(configs_dir):
 
-    f = os.path.join(configs_dir, 'trip_purpose_probs.csv')
+    # f = os.path.join(configs_dir, 'trip_purpose_probs.csv')
+    f = os.path.join(configs_dir, 'trip_purpose_probs_original.csv')
     df = pd.read_csv(f, comment='#')
     return df
 

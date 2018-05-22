@@ -38,7 +38,7 @@ def non_mandatory_tour_frequency_spec(configs_dir):
 @inject.injectable()
 def non_mandatory_tour_frequency_alts(configs_dir):
     f = os.path.join(configs_dir, 'non_mandatory_tour_frequency_alternatives.csv')
-    df = pd.read_csv(f)
+    df = pd.read_csv(f, comment='#')
     return df
 
 
@@ -118,9 +118,6 @@ def non_mandatory_tour_frequency(persons, persons_merged,
         # force_garbage_collect()
 
     choices = pd.concat(choices_list)
-
-    # FIXME del when done with choosers dataframe?
-    # del choosers
 
     persons = persons.to_frame()
 

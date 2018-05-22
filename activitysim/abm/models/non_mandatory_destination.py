@@ -58,6 +58,11 @@ def non_mandatory_tour_destination(
     # choosers are tours - in a sense tours are choosing their destination
     non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
 
+    # - if no mandatory_tours
+    if non_mandatory_tours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     # FIXME - don't need all persons_merged columns...
     choosers = pd.merge(non_mandatory_tours, persons_merged, left_on='person_id', right_index=True)
 

@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 
 import logging
+import os
 
 import pandas as pd
 
@@ -15,17 +16,24 @@ logger = logging.getLogger(__name__)
 
 
 @inject.table()
-def households(store, households_sample_size, trace_hh_id):
+def households(store, households_sample_size, trace_hh_id, override_hh_ids):
 
     df_full = store["households"]
 
+    # only using households listed in override_hh_ids
+    if override_hh_ids is not None:
+
+        # trace_hh_id will not used if it is not in list of override_hh_ids
+        logger.info("override household list containing %s households" % len(override_hh_ids))
+        df = tracing.slice_ids(df_full, override_hh_ids)
+
     # if we are tracing hh exclusively
-    if trace_hh_id and households_sample_size == 1:
+    elif trace_hh_id and households_sample_size == 1:
 
         # df contains only trace_hh (or empty if not in full store)
         df = tracing.slice_ids(df_full, trace_hh_id)
 
-    # if we need sample a subset of full store
+    # if we need a subset of full store
     elif households_sample_size > 0 and df_full.shape[0] > households_sample_size:
 
         logger.info("sampling %s of %s households" % (households_sample_size, df_full.shape[0]))

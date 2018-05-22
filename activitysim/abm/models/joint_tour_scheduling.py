@@ -32,7 +32,7 @@ def joint_tour_scheduling_settings(configs_dir):
 
 @inject.step()
 def joint_tour_scheduling(
-        tours, joint_tour_participants,
+        tours,
         persons_merged,
         tdd_alts,
         joint_tour_scheduling_spec,
@@ -49,7 +49,14 @@ def joint_tour_scheduling(
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
 
-    joint_tour_participants = joint_tour_participants.to_frame()
+    # - if no joint tours
+    if joint_tours.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
+    # use inject.get_table as this won't exist if there are no joint_tours
+    joint_tour_participants = inject.get_table('joint_tour_participants').to_frame()
+
     persons_merged = persons_merged.to_frame()
 
     logger.info("Running %s with %d joint tours" % (trace_label, joint_tours.shape[0]))

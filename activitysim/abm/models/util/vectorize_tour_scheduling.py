@@ -370,17 +370,17 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
 
             for tour_type in spec:
 
-                tour_trace_label = tracing.extend_trace_label(trace_label, tour_type)
+                if (nth_tours.tour_type == tour_type).any():
+                    choices = \
+                        schedule_tours(nth_tours[nth_tours.tour_type == tour_type],
+                                       persons_merged, alts,
+                                       spec[tour_type], constants,
+                                       timetable, 'person_id',
+                                       previous_tour_by_personid, 'person_id',
+                                       chunk_size,
+                                       tracing.extend_trace_label(tour_trace_label, tour_type))
 
-                choices = \
-                    schedule_tours(nth_tours[nth_tours.tour_type == tour_type],
-                                   persons_merged, alts,
-                                   spec[tour_type], constants,
-                                   timetable, 'person_id',
-                                   previous_tour_by_personid, 'person_id',
-                                   chunk_size, tour_trace_label)
-
-                choice_list.append(choices)
+                    choice_list.append(choices)
 
         else:
 

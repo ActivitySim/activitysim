@@ -24,7 +24,10 @@ from activitysim.core import inject
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 815149
+HH_ID = 1062094
+
+# households with all tour types
+# [1062094 1115269 1227640 1482947 1624721 2122797 2201571 2204679]
 
 SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
@@ -131,7 +134,7 @@ def test_mini_pipeline_run():
 
     # regression test: these are among the first 10 households in households table
     hh_ids = [464138, 1918238, 2201602]
-    choices = [0, 2, 1]
+    choices = [1, 2, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
@@ -143,7 +146,7 @@ def test_mini_pipeline_run():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    # these choices are nonsensical as the test mandatory_tour_frequency spec is very truncated
+    # these choices are for pure regression - their appropriateness has not been checked
     per_ids = [92233, 172595, 524152]
     choices = ['work1', 'school1', 'work_and_school']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
@@ -225,7 +228,7 @@ def test_mini_pipeline_run2():
 
     # regression test: these are the same as in test_mini_pipeline_run1
     hh_ids = [464138, 1918238, 2201602]
-    choices = [0, 2, 1]
+    choices = [1, 2, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
@@ -320,7 +323,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 172
+EXPECT_TOUR_COUNT = 196
 
 
 def regress_mode_df(mode_df):
@@ -331,13 +334,24 @@ def regress_mode_df(mode_df):
     mand_mode_df = mode_df[mode_df.tour_category == 'mandatory']
     print "mand mode_df\n", mand_mode_df[mode_cols]
     """
-              tour_id  mode person_id tour_type tour_num tour_category
-    value_1  44828459  WALK   1545808      work        1     mandatory
+     tour_id            mode person_id tour_type tour_num tour_category
+    67567442            WALK   2329911    school        1     mandatory
+    67567471            WALK   2329912    school        1     mandatory
+    67567504  DRIVEALONEFREE   2329913      work        1     mandatory
     """
 
-    EXPECT_MAND_PERSON_IDS = ['1545808']
-    EXPECT_MAND_TOUR_TYPES = ['work']
-    EXPECT_MAND_MODES = ['WALK']
+    EXPECT_MAND_PERSON_IDS = [
+        '2329911',
+        '2329912',
+        '2329913']
+    EXPECT_MAND_TOUR_TYPES = [
+        'school',
+        'school',
+        'work']
+    EXPECT_MAND_MODES = [
+        'WALK',
+        'WALK',
+        'DRIVEALONEFREE']
 
     assert len(mand_mode_df.person_id) == len(EXPECT_MAND_PERSON_IDS)
     assert (mand_mode_df.person_id.values == EXPECT_MAND_PERSON_IDS).all()
@@ -347,16 +361,29 @@ def regress_mode_df(mode_df):
     non_mand_mode_df = mode_df[mode_df.tour_category == 'non_mandatory']
     print "non_mand mode_df\n", non_mand_mode_df[mode_cols]
     """
-              tour_id  mode person_id tour_type tour_num  tour_category
-    value_3  44828453  WALK   1545808  othdiscr        1  non_mandatory
+          tour_id         mode person_id tour_type tour_num  tour_category
+         67567441  SHARED2FREE   2329911  othmaint        1  non_mandatory
+         67567455  SHARED2FREE   2329912    escort        1  non_mandatory
+         67567456  SHARED2FREE   2329912    escort        2  non_mandatory
+         67567473  SHARED2FREE   2329912  shopping        3  non_mandatory
+
     """
 
     EXPECT_NON_MAND_PERSON_IDS = [
-        '1545808']
+        '2329911',
+        '2329912',
+        '2329912',
+        '2329912']
     EXPECT_NON_MAND_TOUR_TYPES = [
-        'othdiscr']
+        'othmaint',
+        'escort',
+        'escort',
+        'shopping']
     EXPECT_NON_MAND_MODES = [
-        'WALK']
+        'SHARED2FREE',
+        'SHARED2FREE',
+        'SHARED2FREE',
+        'SHARED2FREE']
 
     assert len(non_mand_mode_df.person_id) == len(EXPECT_NON_MAND_PERSON_IDS)
     assert (non_mand_mode_df.person_id.values == EXPECT_NON_MAND_PERSON_IDS).all()
@@ -373,11 +400,11 @@ def regress_joint_mode_df(mode_df):
     print "joint mode_df\n", mode_df[mode_cols]
     """
             tour_id  mode person_id tour_type tour_num tour_category
-    value  44828443  WALK   1545808  othdiscr        1         joint
+    value   67567407  WALK   2329910    social        1         joint
     """
 
-    EXPECT_JOINT_PERSON_IDS = ['1545808']
-    EXPECT_JOINT_TOUR_TYPES = ['othdiscr']
+    EXPECT_JOINT_PERSON_IDS = ['2329910']
+    EXPECT_JOINT_TOUR_TYPES = ['social']
     EXPECT_JOINT_MODES = ['WALK']
 
     assert len(mode_df.person_id) == len(EXPECT_JOINT_PERSON_IDS)
@@ -395,13 +422,13 @@ def regress_subtour_mode_df(mode_df):
 
     """
             tour_id  mode person_id tour_type tour_num parent_tour_id
-    value  44828436  WALK   1545808       eat        1     44828459.0
+    value  67567481  BIKE   2329913       eat        1     67567504.0
     """
 
-    EXPECT_SUBTOUR_PERSON_IDS = ['1545808']
+    EXPECT_SUBTOUR_PERSON_IDS = ['2329913']
     EXPECT_SUBTOUR_TYPES = ['eat']
-    EXPECT_SUBTOUR_MODES = ['WALK']
-    EXPECT_PARENT_TOUR_IDS = ['44828459.0']
+    EXPECT_SUBTOUR_MODES = ['BIKE']
+    EXPECT_PARENT_TOUR_IDS = ['67567504.0']
 
     assert len(mode_df.person_id) == len(EXPECT_SUBTOUR_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_SUBTOUR_PERSON_IDS).all()

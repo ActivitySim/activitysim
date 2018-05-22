@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 # (which are also columns in the checkpoints dataframe stored in hte pipeline store)
 TIMESTAMP = 'timestamp'
 CHECKPOINT_NAME = 'checkpoint_name'
-PRNG_CHANNELS = 'prng_channels'
-NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP, PRNG_CHANNELS]
+PRNG_STEP_NUM = 'prng_step_num'
+NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP, PRNG_STEP_NUM]
 
 # name used for storing the checkpoints dataframe to the pipeline store
 CHECKPOINT_TABLE_NAME = 'checkpoints'
@@ -73,13 +73,6 @@ def close_open_files():
     _PIPELINE.open_files.clear()
 
 
-# def add_dependent_columns(base_dfname, new_dfname):
-#     tbl = orca.get_table(new_dfname)
-#     for col in tbl.columns:
-#         logger.debug("Adding dependent column %s" % col)
-#         orca.add_column(base_dfname, col, tbl[col])
-
-
 def open_pipeline_store(overwrite=False):
     """
     Open the pipeline checkpoint store
@@ -126,47 +119,6 @@ def get_rn_generator():
     """
 
     return _PIPELINE.rng()
-
-
-def set_rn_generator_channel_info(channel_info):
-    """
-    We expect that the random number channel can be determined by the name of the index of the
-    dataframe accompanying the request.
-
-    channel_info is a dict with keys and value of the form:
-
-    ::
-
-      <channel_name>: {
-          'max_steps': <num_max_steps>,
-          'index': <table_index_name>
-      }
-
-    channel_name: str
-        The channel name is just the table name used by the pipeline and inject.
-    index: str
-        name of the table index (so we can deduce the channel for a dataframe by index name)
-    max_steps: int
-        the max number os steps that will request random numbers for the channel
-
-    e.g.:
-
-    ::
-
-      channel_info = {
-          'households': {
-              'max_steps': 3,
-              'index': 'HHID'
-          },
-          'persons': {
-              'max_steps': 8,
-              'index': 'PERID'
-          },
-          ...
-      }
-    """
-
-    _PIPELINE.rng().set_channel_info(channel_info)
 
 
 def set_rn_generator_base_seed(seed):
@@ -355,7 +307,7 @@ def add_checkpoint(checkpoint_name):
     _PIPELINE.last_checkpoint[TIMESTAMP] = timestamp
 
     # current state of the random number generator
-    _PIPELINE.last_checkpoint[PRNG_CHANNELS] = cPickle.dumps(_PIPELINE.rng().get_channels())
+    _PIPELINE.last_checkpoint[PRNG_STEP_NUM] = _PIPELINE.rng().step_num
 
     # append to the array of checkpoint history
     _PIPELINE.checkpoints.append(_PIPELINE.last_checkpoint.copy())
@@ -369,9 +321,6 @@ def add_checkpoint(checkpoint_name):
 
     # write it to the store, overwriting any previous version (no way to simply extend)
     write_df(checkpoints, CHECKPOINT_TABLE_NAME)
-
-    for channel_state in _PIPELINE.rng().get_channels():
-        logger.debug("channel_name '%s', step_name '%s', offset: %s" % channel_state)
 
 
 def orca_dataframe_tables():
@@ -457,7 +406,7 @@ def load_checkpoint(checkpoint_name):
 
     # set random state to pickled state at end of last checkpoint
     logger.debug("resetting random state")
-    _PIPELINE.rng().load_channels(cPickle.loads(_PIPELINE.last_checkpoint[PRNG_CHANNELS]))
+    _PIPELINE.rng().load_channels(_PIPELINE.last_checkpoint[PRNG_STEP_NUM])
 
 
 def split_arg(s, sep, default=''):
@@ -707,9 +656,6 @@ def get_checkpoints():
 
     # non-table columns first (column order in df is random because created from a dict)
     table_names = [name for name in df.columns.values if name not in NON_TABLE_COLUMNS]
-
-    # omit human-illegible PRNG_CHANNELS
-    df = df[[CHECKPOINT_NAME, TIMESTAMP] + table_names]
 
     df.index.name = 'step_num'
 

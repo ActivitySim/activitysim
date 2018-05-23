@@ -269,6 +269,8 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
     # DataFrame from list of tuples [<target_name>, <eval results>), ...]
     variables = pd.DataFrame.from_items(variables)
+    # in case items were numpy arrays not pandas series, fix index
+    variables.index = df.index
 
     if trace_results is not None:
 

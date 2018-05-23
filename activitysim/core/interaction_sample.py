@@ -24,8 +24,10 @@ DUMP = False
 
 
 def make_sample_choices(
-        choosers, probs, interaction_utilities,
+        choosers, probs,
+        alternatives,
         sample_size, alternative_count, alt_col_name,
+        allow_zero_probs,
         trace_label):
     """
 
@@ -34,8 +36,8 @@ def make_sample_choices(
     choosers
     probs : pandas DataFrame
         one row per chooser and one column per alternative
-    interaction_utilities
-        dataframe  with len(interaction_df) rows and one utility column
+    alternatives
+        dataframe with index containing alt ids
     sample_size : int
         number of samples/choices to make
     alternative_count
@@ -50,9 +52,16 @@ def make_sample_choices(
     assert isinstance(probs, pd.DataFrame)
     assert probs.shape == (len(choosers), alternative_count)
 
-    assert isinstance(interaction_utilities, pd.DataFrame)
-    assert interaction_utilities.shape == (len(choosers)*alternative_count, 1)
+    assert isinstance(alternatives, pd.DataFrame)
+    assert len(alternatives) == alternative_count
 
+    if allow_zero_probs:
+        zero_probs = (probs.sum(axis=1) == 0)
+        if zero_probs.any():
+            probs = probs[~zero_probs]
+            choosers = choosers[~zero_probs]
+
+    # FIXME - this shouldn't happen?
     # probs should sum to 1 across each row
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \
@@ -62,14 +71,14 @@ def make_sample_choices(
     if bad_probs.any():
         logit.report_bad_choices.report_bad_choices(
             bad_probs, probs,
-            tracing.extend_trace_label(trace_label, 'bad_probs'),
+            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
             msg="probabilities do not add up to 1",
             trace_choosers=choosers)
 
     cum_probs_arr = probs.as_matrix().cumsum(axis=1)
 
     # alt probs in convenient layout to return prob of chose alternative
-    # (same layout as cum_probs_arr and interaction_utilities)
+    # (same layout as cum_probs_arr)
     alt_probs_array = probs.as_matrix().flatten()
 
     # get sample_size rands for each chooser
@@ -84,6 +93,8 @@ def make_sample_choices(
 
     # the probability of the chosen alternative
     choice_probs_array = np.empty([sample_size, len(choosers)])
+
+    alts = np.tile(alternatives.index.values, len(choosers))
 
     # FIXME - do this all at once rather than iterate?
     for i in range(sample_size):
@@ -108,9 +119,8 @@ def make_sample_choices(
         # offsets is the offset into model_design df of first row of chooser alternatives
         offsets = np.arange(len(positions)) * alternative_count
 
-        # resulting pandas Int64Index has one element per chooser and is in same order as choosers
-        choices_array[i] = interaction_utilities.index.take(positions + offsets)
-
+        # choices and choice_probs have one element per chooser and is in same order as choosers
+        choices_array[i] = np.take(alts, positions + offsets)
         choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
 
     # explode to one row per chooser.index, alt_TAZ
@@ -125,7 +135,8 @@ def make_sample_choices(
 
 
 def _interaction_sample(
-        choosers, alternatives, spec, sample_size, alt_col_name,
+        choosers, alternatives,
+        spec, sample_size, alt_col_name, allow_zero_probs,
         skims=None, locals_d=None,
         trace_label=None):
     """
@@ -265,7 +276,8 @@ def _interaction_sample(
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
+                                 trace_label=trace_label, trace_choosers=choosers)
 
     cum_size = chunk.log_df_size(trace_label, 'probs', probs, cum_size)
 
@@ -274,8 +286,10 @@ def _interaction_sample(
                          column_labels=['alternative', 'probability'])
 
     choices_df = make_sample_choices(
-        choosers, probs, interaction_utilities,
-        sample_size, alternative_count, alt_col_name, trace_label)
+        choosers, probs, alternatives,
+        sample_size, alternative_count, alt_col_name,
+        allow_zero_probs=allow_zero_probs,
+        trace_label=trace_label)
 
     # make_sample_choices should return choosers index as choices_df column
     assert choosers.index.name in choices_df.columns
@@ -352,7 +366,7 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
 
 def interaction_sample(
         choosers, alternatives, spec, sample_size,
-        alt_col_name=None,
+        alt_col_name=None, allow_zero_probs=False,
         skims=None, locals_d=None, chunk_size=0,
         trace_label=None):
 
@@ -396,13 +410,20 @@ def interaction_sample(
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
 
-
     Returns
     -------
-    ret : pandas.Series
-        A series where index should match the index of the choosers DataFrame
-        and values will match the index of the alternatives DataFrame -
-        choices are simulated in the standard Monte Carlo fashion
+    choices_df : pandas.DataFrame
+
+        A DataFrame where index should match the index of the choosers DataFrame
+        (except with sample_size rows for each choser row, one row for each alt sample)
+        and columns alt_col_name, prob, rand, pick_count
+
+        prob: float
+            the probability of the chosen alternative
+        rand: float
+            the rand that did the choosing
+        pick_count : int
+            number of duplicate picks for chooser, alt
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample')
@@ -423,7 +444,8 @@ def interaction_sample(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
-        choices = _interaction_sample(chooser_chunk, alternatives, spec, sample_size, alt_col_name,
+        choices = _interaction_sample(chooser_chunk, alternatives,
+                                      spec, sample_size, alt_col_name, allow_zero_probs,
                                       skims, locals_d,
                                       chunk_trace_label)
 
@@ -437,6 +459,6 @@ def interaction_sample(
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 
-    assert len(choosers.index) == len(np.unique(choices.index.values))
+    assert allow_zero_probs or (len(choosers.index) == len(np.unique(choices.index.values)))
 
     return choices

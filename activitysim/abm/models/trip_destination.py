@@ -70,6 +70,7 @@ def trip_destination_sample(
         alternatives=alternatives,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
+        allow_zero_probs=True,
         spec=spec,
         skims=skims,
         locals_d=locals_dict,
@@ -249,6 +250,12 @@ def choose_trip_destination(
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
         trace_label=trace_label)
 
+    dropped_trips = ~trips.index.isin(destination_sample.index.unique())
+    if dropped_trips.any():
+        logger.warn("%s suppressing %s trips without viable destination alternatives\n"
+                    % (trace_label, dropped_trips.sum()))
+        trips = trips[~dropped_trips]
+
     # - compute logsums
     compute_logsums(
         primary_purpose=primary_purpose,
@@ -336,6 +343,7 @@ def trip_destination(trips,
     tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(int)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
     trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
+    trips['bad'] = False
 
     # - filter tours_merged
     # tours_merged is used for logsums, we filter it here upfront to save space and time
@@ -390,11 +398,30 @@ def trip_destination(trips,
 
                 choices_list.append(choices)
 
-            # - assign choices to these trips destinations and to next trips origin
             destinations = pd.concat(choices_list)
-            assign_in_place(trips, destinations.to_frame('destination'))
 
+            failed = ~nth_trips.index.isin(destinations.index)
+            if failed.any():
+                logger.warn("%s sidelining %s trips without viable destination alternatives\n"
+                            % (nth_trace_label, failed.sum()))
+
+                failed_trip_ids = nth_trips.index[failed]
+                next_trip_ids = nth_trips.next_trip_id.reindex(failed_trip_ids)
+
+                trips.loc[failed_trip_ids, 'bad'] = True
+                trips.loc[failed_trip_ids, 'destination'] = -1
+                trips.loc[next_trip_ids, 'origin'] = trips.loc[failed_trip_ids].origin.values
+
+                # print "dropped trips\n", trips.loc[dropped_trip_ids]
+                # print "next trips\n", trips.loc[next_trip_ids]
+
+            # - assign choices to these trips destinations and to next trips origin
+            assign_in_place(trips, destinations.to_frame('destination'))
             destinations.index = nth_trips.next_trip_id.reindex(destinations.index)
             assign_in_place(trips, destinations.to_frame('origin'))
 
     pipeline.replace_table("trips", trips)
+
+    if trips.bad.any():
+        logger.warn("%s %s failed trips" % (trace_label, trips.bad.sum()))
+        # print trips[trips.bad]

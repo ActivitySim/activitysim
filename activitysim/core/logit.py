@@ -14,7 +14,7 @@ import pipeline
 logger = logging.getLogger(__name__)
 
 
-def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None):
+def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, raise_error=True):
     """
 
     Parameters
@@ -60,7 +60,8 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None):
 
         logger.critical(row_msg)
 
-    raise RuntimeError(msg_with_count)
+    if raise_error:
+        raise RuntimeError(msg_with_count)
 
 
 def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_probs=False,
@@ -82,7 +83,7 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     allow_zero_probs : bool
         if True value rows in which all utility alts are EXP_UTIL_MIN will result
         in rows in probs to have all zero probability (and not sum to 1.0)
-        This si for hte benefit of calculating probabilities of nested logit nests
+        This is for the benefit of calculating probabilities of nested logit nests
 
     trace_choosers : pandas.dataframe
         the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
@@ -114,14 +115,14 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     if zero_probs.any() and not allow_zero_probs:
 
         report_bad_choices(zero_probs, utils,
-                           tracing.extend_trace_label(trace_label, 'zero_prob_utils'),
+                           trace_label=tracing.extend_trace_label(trace_label, 'zero_prob_utils'),
                            msg="all probabilities are zero",
                            trace_choosers=trace_choosers)
 
     inf_utils = np.isinf(arr_sum)
     if inf_utils.any():
         report_bad_choices(inf_utils, utils,
-                           tracing.extend_trace_label(trace_label, 'inf_exp_utils'),
+                           trace_label=tracing.extend_trace_label(trace_label, 'inf_exp_utils'),
                            msg="infinite exponentiated utilities",
                            trace_choosers=trace_choosers)
 
@@ -180,7 +181,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
     if bad_probs.any():
 
         report_bad_choices(bad_probs, probs,
-                           tracing.extend_trace_label(trace_label, 'bad_probs'),
+                           trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
                            msg="probabilities do not add up to 1",
                            trace_choosers=trace_choosers)
 

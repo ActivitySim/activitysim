@@ -64,7 +64,15 @@ def workplace_location_sample(persons_merged,
     trace_label = 'workplace_location_sample'
     model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
 
+    # FIXME - only choose workplace_location of workers? is this the right criteria?
     choosers = persons_merged.to_frame()
+    choosers = choosers[choosers.is_worker]
+
+    if choosers.shape[0] == 0:
+        logger.info("Skipping %s: no workers" % trace_label)
+        inject.add_table('workplace_location_sample', pd.DataFrame())
+        return
+
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
@@ -131,14 +139,17 @@ def workplace_location_logsums(persons_merged,
 
     trace_label = 'workplace_location_logsums'
 
+    location_sample = workplace_location_sample.to_frame()
+    if location_sample.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
+
     model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
     logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
 
     persons_merged = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
     persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
-
-    location_sample = workplace_location_sample.to_frame()
 
     logger.info("Running workplace_location_logsums with %s rows" % len(location_sample))
 
@@ -183,60 +194,64 @@ def workplace_location_simulate(persons_merged, persons,
     """
 
     trace_label = 'workplace_location_simulate'
-
     model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
+    NO_WORKPLACE_TAZ = -1
 
-    # for now I'm going to generate a workplace location for everyone -
-    # presumably it will not get used in downstream models for everyone -
-    # it should depend on CDAP and mandatory tour generation as to whether
-    # it gets used
-    choosers = persons_merged.to_frame()
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
-    choosers = choosers[chooser_columns]
-
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
-
-    # alternatives are pre-sampled and annotated with logsums and pick_count
-    # but we have to merge additional alt columns into alt sample list
     location_sample = workplace_location_sample.to_frame()
-    destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'work')
-
-    alternatives = \
-        pd.merge(location_sample, destination_size_terms,
-                 left_on=alt_dest_col_name, right_index=True, how="left")
-
-    logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
-
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
-    # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap("TAZ", alt_dest_col_name)
-
-    locals_d = {
-        'skims': skims,
-    }
-    constants = config.get_model_constants(model_settings)
-    if constants is not None:
-        locals_d.update(constants)
-
-    choices = interaction_sample_simulate(
-        choosers,
-        alternatives,
-        spec=workplace_location_spec,
-        choice_column=alt_dest_col_name,
-        skims=skims,
-        locals_d=locals_d,
-        chunk_size=chunk_size,
-        trace_label=trace_label,
-        trace_choice_name='workplace_location')
-
     persons = persons.to_frame()
 
-    # persons['workplace_taz'] = choices.reindex(persons.index)
-    # FIXME only assign workplace_location for workers
-    choices = choices[persons.is_worker]
-    persons['workplace_taz'] = choices.reindex(persons.index).fillna(-1).astype(int)
+    if location_sample.shape[0] > 0:
+
+        choosers = persons_merged.to_frame()
+        choosers = choosers[choosers.is_worker]
+
+        # FIXME - MEMORY HACK - only include columns actually used in spec
+        chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
+        choosers = choosers[chooser_columns]
+
+        alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+
+        # alternatives are pre-sampled and annotated with logsums and pick_count
+        # but we have to merge additional alt columns into alt sample list
+        location_sample = workplace_location_sample.to_frame()
+        destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'work')
+
+        alternatives = \
+            pd.merge(location_sample, destination_size_terms,
+                     left_on=alt_dest_col_name, right_index=True, how="left")
+
+        logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
+
+        # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
+        # and a TAZ in the alternatives which get merged during interaction
+        # the skims will be available under the name "skims" for any @ expressions
+        skims = skim_dict.wrap("TAZ", alt_dest_col_name)
+
+        locals_d = {
+            'skims': skims,
+        }
+        constants = config.get_model_constants(model_settings)
+        if constants is not None:
+            locals_d.update(constants)
+
+        choices = interaction_sample_simulate(
+            choosers,
+            alternatives,
+            spec=workplace_location_spec,
+            choice_column=alt_dest_col_name,
+            skims=skims,
+            locals_d=locals_d,
+            chunk_size=chunk_size,
+            trace_label=trace_label,
+            trace_choice_name='workplace_location')
+
+        persons['workplace_taz'] = \
+            choices.reindex(persons.index).fillna(NO_WORKPLACE_TAZ).astype(int)
+
+    else:
+
+        # no workers (but we still want to annotate persons)
+        persons['workplace_taz'] = NO_WORKPLACE_TAZ
 
     expressions.assign_columns(
         df=persons,

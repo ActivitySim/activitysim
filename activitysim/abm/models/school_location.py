@@ -254,76 +254,74 @@ def school_location_simulate(persons_merged, persons,
     NO_SCHOOL_TAZ = -1
 
     location_sample = school_location_sample.to_frame()
-
-    if location_sample.shape[0] == 0:
-        logger.info("Skipping %s: add_null_results" % trace_label)
-        pipeline.drop_table('school_location_sample')
-
-        persons = persons.to_frame()
-        persons['school_taz'] = NO_SCHOOL_TAZ
-        pipeline.replace_table("persons", persons)
-        return
-
-    choosers = persons_merged.to_frame()
-    destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
-
-    alt_dest_col_name = school_location_settings["ALT_DEST_COL_NAME"]
-
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
-    # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap("TAZ", alt_dest_col_name)
-
-    locals_d = {
-        'skims': skims,
-    }
-    constants = config.get_model_constants(school_location_settings)
-    if constants is not None:
-        locals_d.update(constants)
-
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = school_location_settings['SIMULATE_CHOOSER_COLUMNS']
-    choosers = choosers[chooser_columns]
-
-    choices_list = []
-    for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
-
-        locals_d['segment'] = school_type
-
-        choosers_segment = choosers[choosers["is_" + school_type]]
-
-        if choosers_segment.shape[0] == 0:
-            logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
-            continue
-
-        alts_segment = \
-            location_sample[location_sample['school_type'] == school_type_id]
-
-        # alternatives are pre-sampled and annotated with logsums and pick_count
-        # but we have to merge size_terms column into alt sample list
-        alts_segment[school_type] = \
-            reindex(destination_size_terms[school_type], alts_segment[alt_dest_col_name])
-
-        choices = interaction_sample_simulate(
-            choosers_segment,
-            alts_segment,
-            spec=school_location_spec[[school_type]],
-            choice_column=alt_dest_col_name,
-            skims=skims,
-            locals_d=locals_d,
-            chunk_size=chunk_size,
-            trace_label=tracing.extend_trace_label(trace_label, school_type),
-            trace_choice_name='school_location')
-
-        choices_list.append(choices)
-
-    choices = pd.concat(choices_list)
-
     persons = persons.to_frame()
 
-    # We only chose school locations for the subset of persons who go to school
-    # so we backfill the empty choices with -1 to code as no school location
-    persons['school_taz'] = choices.reindex(persons.index).fillna(NO_SCHOOL_TAZ).astype(int)
+    # if there are any school-goers
+    if location_sample.shape[0] > 0:
+
+        choosers = persons_merged.to_frame()
+        destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
+
+        alt_dest_col_name = school_location_settings["ALT_DEST_COL_NAME"]
+
+        # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
+        # and a TAZ in the alternatives which get merged during interaction
+        # the skims will be available under the name "skims" for any @ expressions
+        skims = skim_dict.wrap("TAZ", alt_dest_col_name)
+
+        locals_d = {
+            'skims': skims,
+        }
+        constants = config.get_model_constants(school_location_settings)
+        if constants is not None:
+            locals_d.update(constants)
+
+        # FIXME - MEMORY HACK - only include columns actually used in spec
+        chooser_columns = school_location_settings['SIMULATE_CHOOSER_COLUMNS']
+        choosers = choosers[chooser_columns]
+
+        choices_list = []
+        for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
+
+            locals_d['segment'] = school_type
+
+            choosers_segment = choosers[choosers["is_" + school_type]]
+
+            if choosers_segment.shape[0] == 0:
+                logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
+                continue
+
+            alts_segment = \
+                location_sample[location_sample['school_type'] == school_type_id]
+
+            # alternatives are pre-sampled and annotated with logsums and pick_count
+            # but we have to merge size_terms column into alt sample list
+            alts_segment[school_type] = \
+                reindex(destination_size_terms[school_type], alts_segment[alt_dest_col_name])
+
+            choices = interaction_sample_simulate(
+                choosers_segment,
+                alts_segment,
+                spec=school_location_spec[[school_type]],
+                choice_column=alt_dest_col_name,
+                skims=skims,
+                locals_d=locals_d,
+                chunk_size=chunk_size,
+                trace_label=tracing.extend_trace_label(trace_label, school_type),
+                trace_choice_name='school_location')
+
+            choices_list.append(choices)
+
+        choices = pd.concat(choices_list)
+
+        # We only chose school locations for the subset of persons who go to school
+        # so we backfill the empty choices with -1 to code as no school location
+        persons['school_taz'] = choices.reindex(persons.index).fillna(NO_SCHOOL_TAZ).astype(int)
+
+    else:
+
+        # no school-goers (but we still want to annotate persons)
+        persons['school_taz'] = NO_SCHOOL_TAZ
 
     expressions.assign_columns(
         df=persons,

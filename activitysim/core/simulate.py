@@ -556,8 +556,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     if no_choices.any():
         logit.report_bad_choices(
             no_choices, base_probabilities,
-            tracing.extend_trace_label(trace_label, 'eval_nl'),
-            tag='bad_probs',
+            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
             msg="base_probabilities all zero")
 
     t0 = tracing.print_elapsed_time("report_bad_choices", t0, debug=True)

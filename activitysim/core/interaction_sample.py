@@ -58,22 +58,9 @@ def make_sample_choices(
     if allow_zero_probs:
         zero_probs = (probs.sum(axis=1) == 0)
         if zero_probs.any():
+            # remove from sample
             probs = probs[~zero_probs]
             choosers = choosers[~zero_probs]
-
-    # FIXME - this shouldn't happen?
-    # probs should sum to 1 across each row
-    BAD_PROB_THRESHOLD = 0.001
-    bad_probs = \
-        probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
-        > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
-
-    if bad_probs.any():
-        logit.report_bad_choices.report_bad_choices(
-            bad_probs, probs,
-            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
-            msg="probabilities do not add up to 1",
-            trace_choosers=choosers)
 
     cum_probs_arr = probs.as_matrix().cumsum(axis=1)
 

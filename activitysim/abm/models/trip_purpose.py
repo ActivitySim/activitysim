@@ -21,12 +21,6 @@ from activitysim.core.util import reindex
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def trip_purpose_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'trip_purpose.yaml')
-
-
-@inject.injectable()
 def trip_purpose_probs(configs_dir):
 
     f = os.path.join(configs_dir, 'trip_purpose_probs.csv')
@@ -59,14 +53,14 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
-def choose_trip_purpose(trips, probs_spec, trace_label):
+def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label):
 
     probs_join_cols = ['primary_purpose', 'outbound', 'person_type']
     non_purpose_cols = probs_join_cols + ['depart_range_start', 'depart_range_end']
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
 
     num_trips = len(trips.index)
-    have_trace_targets = trace_label and tracing.has_trace_targets(trips)
+    have_trace_targets = trace_hh_id and tracing.has_trace_targets(trips)
 
     # probs shold sum to 1 across rows
     # FIXME - patched file suppressing work univ stops
@@ -102,21 +96,19 @@ def choose_trip_purpose(trips, probs_spec, trace_label):
     return choices
 
 
-@inject.step()
-def trip_purpose(
-        trips,
-        trip_purpose_settings,
-        trip_purpose_probs,
+def run_trip_purpose(
+        trips_df,
+        configs_dir,
         chunk_size,
-        trace_hh_id):
+        trace_hh_id,
+        trace_label):
+
     """
     trip purpose
     """
 
-    trace_label = "trip_purpose"
-
-    trips_df = trips.to_frame()
-    probs_spec = trip_purpose_probs
+    model_settings = config.read_model_settings(configs_dir, 'trip_purpose.yaml')
+    probs_spec = trip_purpose_probs(configs_dir)
 
     result_list = []
 
@@ -136,9 +128,9 @@ def trip_purpose(
     trips_df = trips_df[~trips_df['last']]
     logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
 
-    preprocessor_settings = trip_purpose_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor_settings', None)
     if preprocessor_settings:
-        locals_dict = config.get_model_constants(trip_purpose_settings)
+        locals_dict = config.get_model_constants(model_settings)
         expressions.assign_columns(
             df=trips_df,
             model_settings=preprocessor_settings,
@@ -148,8 +140,8 @@ def trip_purpose(
     rows_per_chunk = \
         trip_purpose_rpc(chunk_size, trips_df, probs_spec, trace_label=trace_label)
 
-    logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
-                (rows_per_chunk, len(trips_df.index)))
+    logger.info("%s rows_per_chunk %s num_choosers %s" %
+                (trace_label, rows_per_chunk, len(trips_df.index)))
 
     for i, num_chunks, trips_chunk in chunk.chunked_choosers(trips_df, rows_per_chunk):
 
@@ -158,9 +150,10 @@ def trip_purpose(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
-        choices = choose_trip_purpose(
+        choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,
+            trace_hh_id,
             trace_label=chunk_trace_label)
 
         result_list.append(choices)
@@ -168,8 +161,29 @@ def trip_purpose(
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 
+    return choices
+
+
+@inject.step()
+def trip_purpose(
+        trips,
+        configs_dir,
+        chunk_size,
+        trace_hh_id):
+
+    trace_label = "trip_purpose"
+
     trips_df = trips.to_frame()
-    trips_df['purpose'] = choices.reindex(trips_df.index)
+
+    choices = run_trip_purpose(
+        trips_df,
+        configs_dir=configs_dir,
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
+        trace_label=trace_label
+    )
+
+    trips_df['purpose'] = choices
 
     # we should have assigned a purpose to all trips
     assert not trips_df.purpose.isnull().any()

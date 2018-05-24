@@ -238,7 +238,7 @@ def choose_trip_destination(
         chunk_size, trace_hh_id,
         trace_label):
 
-    logger.info("%s with %d trips" % (trace_label, trips.shape[0]))
+    logger.info("choose_trip_destination %s with %d trips" % (trace_label, trips.shape[0]))
 
     # - trip_destination_sample
     destination_sample = trip_destination_sample(
@@ -280,7 +280,7 @@ def choose_trip_destination(
     return destinations
 
 
-def wrap_skims(skim_dict, skim_stack, model_settings):
+def wrap_skims(model_settings):
     """
     wrap skims of trip destination using origin, dest column names from model settings.
     Various of these are used by destination_sample, compute_logsums, and destination_simulate
@@ -298,14 +298,15 @@ def wrap_skims(skim_dict, skim_stack, model_settings):
 
     Parameters
     ----------
-    skim_dict
-    skim_stack
     model_settings
 
     Returns
     -------
         dict containing skims, keyed by canonical names relative to tour orientation
     """
+
+    skim_dict = inject.get_injectable('skim_dict')
+    skim_stack = inject.get_injectable('skim_stack')
 
     o = model_settings['TRIP_ORIGIN']
     d = model_settings['ALT_DEST']
@@ -322,20 +323,18 @@ def wrap_skims(skim_dict, skim_stack, model_settings):
     return skims
 
 
-@inject.step()
-def trip_destination(trips,
-                     tours_merged,
-                     land_use, size_terms,
-                     skim_dict, skim_stack,
-                     configs_dir, chunk_size, trace_hh_id):
+def run_trip_destination(
+        trips,
+        tours_merged,
+        configs_dir, chunk_size, trace_hh_id,
+        trace_label):
 
-    trace_label = 'trip_destination'
     model_settings = config.read_model_settings(configs_dir, 'trip_destination.yaml')
     preprocessor_settings = model_settings.get('preprocessor_settings', None)
     logsum_settings = config.read_model_settings(configs_dir, model_settings['LOGSUM_SETTINGS'])
 
-    trips = trips.to_frame()
-    tours_merged = tours_merged.to_frame()
+    land_use = inject.get_table('land_use')
+    size_terms = inject.get_table('size_terms')
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
@@ -345,13 +344,12 @@ def trip_destination(trips,
     trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
     trips['bad'] = False
 
-    # - filter tours_merged
+    # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
-    # (after copying destination and origin columns to trips)
     tours_merged = logsums.filter_chooser_columns(tours_merged, logsum_settings, model_settings)
 
     # - skims
-    skims = wrap_skims(skim_dict, skim_stack, model_settings)
+    skims = wrap_skims(model_settings)
 
     # - size_terms and alternatives
     alternatives = tour_destination_size_terms(land_use, size_terms, 'trip')
@@ -415,13 +413,41 @@ def trip_destination(trips,
                 # print "dropped trips\n", trips.loc[dropped_trip_ids]
                 # print "next trips\n", trips.loc[next_trip_ids]
 
+            print "trips\n", trips
+            print "destinations\n", destinations.to_frame('destination')
+
             # - assign choices to these trips destinations and to next trips origin
             assign_in_place(trips, destinations.to_frame('destination'))
             destinations.index = nth_trips.next_trip_id.reindex(destinations.index)
             assign_in_place(trips, destinations.to_frame('origin'))
 
-    pipeline.replace_table("trips", trips)
+    return trips
 
-    if trips.bad.any():
-        logger.warn("%s %s failed trips" % (trace_label, trips.bad.sum()))
+
+@inject.step()
+def trip_destination(
+        trips,
+        tours_merged,
+        configs_dir, chunk_size, trace_hh_id):
+
+    trace_label = 'trip_destination'
+
+    trips_df = trips.to_frame()
+    tours_merged_df = tours_merged.to_frame()
+
+    trips_df = run_trip_destination(
+        trips_df,
+        tours_merged_df,
+        configs_dir, chunk_size, trace_hh_id,
+        trace_label)
+
+    # destination, origin, bad
+    pipeline.replace_table("trips", trips_df)
+
+    if trips_df.bad.any():
+        logger.warn("%s %s failed trips" % (trace_label, trips_df.bad.sum()))
         # print trips[trips.bad]
+
+        tracing.write_csv(trips_df[trips_df.bad], file_name="%s_bad_trips" % trace_label)
+
+    bug

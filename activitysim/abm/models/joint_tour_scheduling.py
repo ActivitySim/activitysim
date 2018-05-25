@@ -106,5 +106,4 @@ def joint_tour_scheduling(
     if trace_hh_id:
         tracing.trace_df(joint_tours,
                          label="joint_tour_scheduling",
-                         slicer='household_id',
-                         warn_if_empty=True)
+                         slicer='household_id')

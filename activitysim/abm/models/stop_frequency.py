@@ -229,22 +229,18 @@ def stop_frequency(
         tracing.trace_df(tours,
                          label="stop_frequency.tours",
                          slicer='person_id',
-                         columns=None,
-                         warn_if_empty=True)
+                         columns=None)
 
         tracing.trace_df(trips,
                          label="stop_frequency.trips",
                          slicer='person_id',
-                         columns=None,
-                         warn_if_empty=True)
+                         columns=None)
 
         tracing.trace_df(annotations,
                          label="stop_frequency.annotations",
-                         columns=None,
-                         warn_if_empty=True)
+                         columns=None)
 
         tracing.trace_df(tours_merged,
                          label="stop_frequency.tours_merged",
                          slicer='person_id',
-                         columns=None,
-                         warn_if_empty=True)
+                         columns=None)

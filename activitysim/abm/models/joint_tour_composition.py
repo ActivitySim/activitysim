@@ -117,5 +117,4 @@ def joint_tour_composition(
     if trace_hh_id:
         tracing.trace_df(joint_tours,
                          label="joint_tour_composition.joint_tours",
-                         slicer='household_id',
-                         warn_if_empty=True)
+                         slicer='household_id')

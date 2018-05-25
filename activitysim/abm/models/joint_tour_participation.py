@@ -288,9 +288,7 @@ def joint_tour_participation(
 
     if trace_hh_id:
         tracing.trace_df(participants,
-                         label="joint_tour_participation.participants",
-                         warn_if_empty=True)
+                         label="joint_tour_participation.participants")
 
         tracing.trace_df(joint_tours,
-                         label="joint_tour_participation.joint_tours",
-                         warn_if_empty=True)
+                         label="joint_tour_participation.joint_tours")

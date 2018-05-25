@@ -133,10 +133,8 @@ def joint_tour_frequency(
 
     if trace_hh_id:
         tracing.trace_df(households,
-                         label="joint_tour_frequency.households",
-                         warn_if_empty=True)
+                         label="joint_tour_frequency.households")
 
         tracing.trace_df(joint_tours,
                          label="joint_tour_frequency.joint_tours",
-                         slicer='household_id',
-                         warn_if_empty=True)
+                         slicer='household_id')

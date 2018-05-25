@@ -46,9 +46,9 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
 
     row_size = chooser_row_size + extra_columns
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
-    logger.debug("%s #chunk_calc extra_columns %s" % (trace_label, extra_columns))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    # logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
+    # logger.debug("%s #chunk_calc extra_columns %s" % (trace_label, extra_columns))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 

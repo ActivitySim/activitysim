@@ -113,7 +113,6 @@ def atwork_subtour_mode_choice(
         tracing.trace_df(tours[tours.tour_category == 'atwork'],
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
-                         index_label='tour_id',
-                         warn_if_empty=True)
+                         index_label='tour_id')
 
     force_garbage_collect()

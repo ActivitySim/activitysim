@@ -28,8 +28,8 @@ def log_df_size(trace_label, table_name, df, cum_size):
     else:
         assert False
 
-    logger.debug("%s #chunk log_df_size %s %s %s %s" %
-                 (trace_label, table_name, df.shape, elements, util.GB(bytes)))
+    # logger.debug("%s #chunk log_df_size %s %s %s %s" %
+    #              (trace_label, table_name, df.shape, elements, util.GB(bytes)))
 
     if cum_size:
         elements += cum_size[0]
@@ -44,7 +44,7 @@ def log_chunk_size(trace_label, cum):
     bytes = cum[1]
 
     logger.debug("%s #chunk CUM %s %s" % (trace_label, elements, util.GB(bytes)))
-    logger.debug("%s %s" % (trace_label, util.memory_info()))
+    # logger.debug("%s %s" % (trace_label, util.memory_info()))
 
 
 def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
@@ -54,16 +54,15 @@ def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
     rpc = max(rpc, 1)
     rpc = min(rpc, num_choosers)
 
-    chunks = int(ceil(num_choosers / float(rpc)))
-    effective_chunk_size = row_size * rpc
+    # chunks = int(ceil(num_choosers / float(rpc)))
+    # effective_chunk_size = row_size * rpc
 
-    logger.debug("%s #chunk_calc chunk_size %s" % (trace_label, chunk_size))
-    logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
-
-    logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))
-    logger.debug("%s #chunk_calc rows_per_chunk %s" % (trace_label, rpc))
-    logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
-    logger.debug("%s #chunk_calc chunks %s" % (trace_label, chunks))
+    # logger.debug("%s #chunk_calc chunk_size %s" % (trace_label, chunk_size))
+    # logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
+    # logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))
+    # logger.debug("%s #chunk_calc rows_per_chunk %s" % (trace_label, rpc))
+    # logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
+    # logger.debug("%s #chunk_calc chunks %s" % (trace_label, chunks))
 
     return rpc
 

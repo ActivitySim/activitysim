@@ -129,8 +129,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     if trace_results is not None:
         tracing.trace_df(trace_results,
                          label=trace_label,
-                         slicer='NONE',
-                         warn_if_empty=True)
+                         slicer='NONE')
 
     if trace_assigned_locals:
         tracing.write_csv(trace_assigned_locals, file_name="%s_locals" % trace_label)

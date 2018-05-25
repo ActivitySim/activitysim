@@ -149,9 +149,6 @@ class SimpleChannel(object):
         # standard constant to use for choice_for_df instead of fast-forwarding rand stream
         self.multi_choice_offset = None
 
-        logger.info("begin_step %s for channel '%s'"
-                    % (self.step_num, self.name, ))
-
     def _generators_for_df(self, df):
         """
         Python generator function for iterating over numpy prngs (nomenclature collision!)
@@ -166,7 +163,7 @@ class SimpleChannel(object):
         """
 
         # assert no dupes
-        assert len(df.index.unique() == len(df.index))
+        assert len(df.index.unique()) == len(df.index)
 
         df_row_states = self.row_states.loc[df.index]
 
@@ -404,16 +401,16 @@ class Random(object):
 
         assert channel_name == self.get_channel_name_for_df(domain_df)
 
-        logger.debug("Random: add_channel '%s'" % (channel_name,))
-
         if channel_name in self.channels:
-            logger.debug("extending channel '%s' %s ids" % (channel_name, len(domain_df.index)))
+            logger.debug("Random: extending channel '%s' %s ids" %
+                         (channel_name, len(domain_df.index)))
             channel = self.channels[channel_name]
 
             channel.extend_domain(domain_df)
 
         else:
-            logger.debug("adding channel '%s' %s ids" % (channel_name, len(domain_df.index)))
+            logger.debug("Random: adding channel '%s' %s ids" %
+                         (channel_name, len(domain_df.index)))
 
             channel = SimpleChannel(channel_name,
                                     self.base_seed,

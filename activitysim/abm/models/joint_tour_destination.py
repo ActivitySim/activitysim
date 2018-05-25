@@ -400,5 +400,4 @@ def joint_tour_destination_simulate(
 
     if trace_hh_id:
         tracing.trace_df(joint_tours,
-                         label="joint_tour_destination.joint_tours",
-                         warn_if_empty=True)
+                         label="joint_tour_destination.joint_tours")

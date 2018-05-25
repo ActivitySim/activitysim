@@ -232,10 +232,10 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
 
     row_size = (chooser_row_size + extra_chooser_columns + alt_row_size) * sample_size
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
-    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
+    # logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 

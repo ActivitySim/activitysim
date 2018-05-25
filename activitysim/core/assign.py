@@ -179,7 +179,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     def to_series(x, target=None):
         if x is None or np.isscalar(x):
             if target:
-                logger.warn("assign_variables promoting scalar %s to series" % target)
+                logger.debug("assign_variables promoting scalar %s to series" % target)
             return pd.Series([x] * len(df.index), index=df.index)
         return x
 

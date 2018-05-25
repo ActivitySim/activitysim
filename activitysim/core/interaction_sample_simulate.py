@@ -161,14 +161,6 @@ def _interaction_sample_simulate(
         padded_utilities,
         index=choosers.index)
 
-    # print "\nsample_counts\n", sample_counts
-    # print "\nmax_sample_count\n", max_sample_count
-    # print "\nlast_row_offsets\n", last_row_offsets
-    # print "\ninserts\n", inserts
-    # print "\nsparse utilities\n", interaction_utilities.utility.values
-    # print "\npadded_utilities\n", padded_utilities
-    # print "\nreshaped padded_utilities\n", padded_utilities
-
     tracing.dump_df(DUMP, utilities_df, trace_label, 'utilities_df')
 
     if have_trace_targets:
@@ -242,11 +234,11 @@ def calc_rows_per_chunk(chunk_size, choosers, alt_sample, spec, trace_label=None
 
     row_size = (chooser_row_size + alt_row_size) * sample_size
 
-    logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
-    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
-    logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
-    logger.debug("%s #chunk_calc alt_sample %s" % (trace_label, alt_sample.shape))
+    # logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
+    # logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    # logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
+    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # logger.debug("%s #chunk_calc alt_sample %s" % (trace_label, alt_sample.shape))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 

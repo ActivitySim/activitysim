@@ -145,5 +145,4 @@ def joint_tour_mode_choice(
         tracing.trace_df(joint_tours,
                          label=tracing.extend_trace_label(trace_label, 'mode'),
                          slicer='tour_id',
-                         index_label='tour_id',
-                         warn_if_empty=True)
+                         index_label='tour_id')

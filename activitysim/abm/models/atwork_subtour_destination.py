@@ -271,5 +271,4 @@ def atwork_subtour_destination_simulate(tours,
     if trace_hh_id:
         tracing.trace_df(tours,
                          label=trace_label,
-                         columns=['destination'],
-                         warn_if_empty=True)
+                         columns=['destination'])

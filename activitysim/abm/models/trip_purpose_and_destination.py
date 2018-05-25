@@ -88,6 +88,9 @@ def trip_purpose_and_destination(
 
         logger.warn("%s %s failed trips in iteration %s" % (trace_label, num_bad_trips, i))
 
+        failed_trips = trips_df.bad
+        tracing.write_csv(trips_df[failed_trips], file_name="tpd_failed_trips_%d" % i)
+
         # if max iterations reached, add remaining trips to results and give up
         if i >= MAX_ITERATIONS:
             logger.warn("%s too many iterations %s" % (trace_label, i))
@@ -112,8 +115,14 @@ def trip_purpose_and_destination(
         trips_df = trips_df[trips_df.bad]
         tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
 
+        for c in RESULT_COLUMNS:
+            del trips_df[c]
+
+        tracing.write_csv(trips_df, file_name="tpd_bad_trips_%d" % i)
+
     # - assign result columns to trips
     results = pd.concat(results)
+
     trips_df = trips.to_frame()
     assign_in_place(trips_df, results)
     pipeline.replace_table("trips", trips_df)

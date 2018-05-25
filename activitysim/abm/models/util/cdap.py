@@ -834,7 +834,7 @@ def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
     rows_per_chunk_id = choosers.shape[0] / float(num_choosers)
     row_size = int(rows_per_chunk_id * chooser_row_size)
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 

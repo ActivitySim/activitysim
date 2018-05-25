@@ -241,11 +241,11 @@ def rewrap(table_name, df=None):
     if orca.is_table(table_name):
 
         if df is None:
-            logger.debug("rewrap - orca.get_table(%s)" % (table_name,))
+            # logger.debug("rewrap - orca.get_table(%s)" % (table_name,))
             t = orca.get_table(table_name)
             df = t.to_frame()
         else:
-            logger.debug("rewrap - orca.get_raw_table(%s)" % (table_name,))
+            # logger.debug("rewrap - orca.get_raw_table(%s)" % (table_name,))
             # don't trigger function call of TableFuncWrapper
             t = orca.get_raw_table(table_name)
 
@@ -260,7 +260,6 @@ def rewrap(table_name, df=None):
 
     assert df is not None
 
-    logger.debug("rewrap - orca.add_table(%s)" % (table_name,))
     orca.add_table(table_name, df)
 
     return df

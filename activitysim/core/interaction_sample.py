@@ -57,6 +57,8 @@ def make_sample_choices(
 
     if allow_zero_probs:
         zero_probs = (probs.sum(axis=1) == 0)
+        if zero_probs.all():
+            return pd.DataFrame(columns=[alt_col_name, 'rand', 'prob', choosers.index.name])
         if zero_probs.any():
             # remove from sample
             probs = probs[~zero_probs]
@@ -313,7 +315,7 @@ def _interaction_sample(
 
     # - #NARROW
     choices_df['prob'] = choices_df['prob'].astype(np.float32)
-    assert choices_df['pick_count'].max() < 4294967295
+    assert (choices_df['pick_count'].max() < 4294967295) or (choices_df.empty)
     choices_df['pick_count'] = choices_df['pick_count'].astype(np.uint32)
 
     chunk.log_chunk_size(trace_label, cum_size)
@@ -344,9 +346,9 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
     # utilities and probs have one row per chooser and one column per alternative row
     row_size += 2 * alternatives.shape[0]
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -436,7 +438,9 @@ def interaction_sample(
                                       skims, locals_d,
                                       chunk_trace_label)
 
-        result_list.append(choices)
+        if choices.shape[0] > 0:
+            # might not be any if allow_zero_probs
+            result_list.append(choices)
 
         force_garbage_collect()
 

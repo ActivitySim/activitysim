@@ -59,7 +59,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
 
     """
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utilities")
-    logger.info("Running %s on %s rows" % (trace_label, df.shape[0]))
+    logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     assert(len(spec.columns) == 1)
 
@@ -315,11 +315,11 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, skims, 
     sample_size = sample_size or alternatives.shape[0]
     row_size = (chooser_row_size + alt_row_size) * sample_size
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
-    logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    # logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    # logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
+    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 

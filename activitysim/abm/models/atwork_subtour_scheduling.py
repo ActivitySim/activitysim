@@ -97,5 +97,4 @@ def atwork_subtour_scheduling(
                          label="atwork_subtour_scheduling",
                          slicer='person_id',
                          index_label='tour_id',
-                         columns=None,
-                         warn_if_empty=True)
+                         columns=None)

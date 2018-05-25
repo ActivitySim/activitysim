@@ -116,5 +116,4 @@ def atwork_subtour_frequency(tours,
 
     if trace_hh_id:
         tracing.trace_df(tours,
-                         label='atwork_subtour_frequency.tours',
-                         warn_if_empty=True)
+                         label='atwork_subtour_frequency.tours')

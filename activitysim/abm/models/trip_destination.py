@@ -126,8 +126,6 @@ def compute_logsums(
                         how="left").set_index('trip_id')
     assert choosers.index.equals(destination_sample.index)
 
-    logger.info("Running %s with %s sample rows" % (trace_label, choosers.shape[0]))
-
     # - od_logsums
     locals_dict['dest_col_name'] = model_settings['ALT_DEST']
     od_skims = {
@@ -145,7 +143,7 @@ def compute_logsums(
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
-            trace_label=trace_label)
+            trace_label=tracing.extend_trace_label(trace_label, 'od'))
 
     od_logsums = simulate.simple_simulate_logsums(
         choosers,
@@ -154,7 +152,7 @@ def compute_logsums(
         skims=od_skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
-        trace_label=trace_label)
+        trace_label=tracing.extend_trace_label(trace_label, 'od'))
 
     assert od_logsums.index.equals(choosers.index)
 
@@ -174,7 +172,7 @@ def compute_logsums(
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
-            trace_label=trace_label)
+            trace_label=tracing.extend_trace_label(trace_label, 'dp'))
 
     dp_logsums = simulate.simple_simulate_logsums(
         choosers,
@@ -183,7 +181,7 @@ def compute_logsums(
         skims=od_skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
-        trace_label=trace_label)
+        trace_label=tracing.extend_trace_label(trace_label, 'dp'))
 
     assert dp_logsums.index.equals(choosers.index)
 
@@ -255,6 +253,9 @@ def choose_trip_destination(
         logger.warn("%s suppressing %s trips without viable destination alternatives\n"
                     % (trace_label, dropped_trips.sum()))
         trips = trips[~dropped_trips]
+
+    if trips.empty:
+        return pd.Series(index=trips.index)
 
     # - compute logsums
     compute_logsums(
@@ -410,12 +411,6 @@ def run_trip_destination(
                 trips.loc[failed_trip_ids, 'destination'] = -1
                 trips.loc[next_trip_ids, 'origin'] = trips.loc[failed_trip_ids].origin.values
 
-                # print "dropped trips\n", trips.loc[dropped_trip_ids]
-                # print "next trips\n", trips.loc[next_trip_ids]
-
-            print "trips\n", trips
-            print "destinations\n", destinations.to_frame('destination')
-
             # - assign choices to these trips destinations and to next trips origin
             assign_in_place(trips, destinations.to_frame('destination'))
             destinations.index = nth_trips.next_trip_id.reindex(destinations.index)
@@ -446,7 +441,6 @@ def trip_destination(
 
     if trips_df.bad.any():
         logger.warn("%s %s failed trips" % (trace_label, trips_df.bad.sum()))
-        # print trips[trips.bad]
 
         tracing.write_csv(trips_df[trips_df.bad], file_name="%s_bad_trips" % trace_label)
 

@@ -250,7 +250,7 @@ def choose_trip_destination(
 
     dropped_trips = ~trips.index.isin(destination_sample.index.unique())
     if dropped_trips.any():
-        logger.warn("%s suppressing %s trips without viable destination alternatives\n"
+        logger.warn("%s suppressing %s trips without viable destination alternatives"
                     % (trace_label, dropped_trips.sum()))
         trips = trips[~dropped_trips]
 
@@ -440,8 +440,9 @@ def trip_destination(
     pipeline.replace_table("trips", trips_df)
 
     if trips_df.bad.any():
+
         logger.warn("%s %s failed trips" % (trace_label, trips_df.bad.sum()))
 
-        tracing.write_csv(trips_df[trips_df.bad], file_name="%s_bad_trips" % trace_label)
-
-    bug
+        file_name = "%s_failed_trips" % trace_label
+        logger.info("writing failed trips to %s" % file_name)
+        tracing.write_csv(trips_df[trips_df.bad], file_name=file_name)

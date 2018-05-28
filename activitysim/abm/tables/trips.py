@@ -17,12 +17,3 @@ def trips_merged(trips, tours):
 
 
 inject.broadcast('tours', 'trips', cast_index=True, onto_on='tour_id')
-
-
-@inject.table()
-def bad_trips(trips):
-    trips = trips.to_frame()
-    if 'bad' in trips:
-        return trips[trips.bad]
-    else:
-        return pd.DataFrame()

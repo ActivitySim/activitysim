@@ -68,6 +68,9 @@ def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
 
 
 def chunked_choosers(choosers, rows_per_chunk):
+
+    assert choosers.shape[0] > 0
+
     # generator to iterate over choosers in chunk_size chunks
     num_choosers = len(choosers.index)
     num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
@@ -113,6 +116,7 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
         chunk of alternatives for chooser chunk
     """
 
+    assert choosers.shape[0] > 0
     assert 'pick_count' in alternatives.columns or choosers.index.name == alternatives.index.name
 
     num_choosers = len(choosers.index)
@@ -174,6 +178,8 @@ def hh_chunked_choosers(choosers, rows_per_chunk):
     # (the presumption is that choosers has multiple rows with the same chunk_id that
     # all have to be included in the same chunk)
     # FIXME - we pathologically know name of chunk_id col in households table
+
+    assert choosers.shape[0] > 0
 
     num_choosers = choosers['chunk_id'].max() + 1
     num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)

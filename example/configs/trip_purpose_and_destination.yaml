@@ -1,3 +1,7 @@
 
 
 max_iterations: 5
+
+# remove any sidelined failed trips remaining after max_iterations
+cleanup: True
+

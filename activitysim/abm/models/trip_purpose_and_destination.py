@@ -75,8 +75,15 @@ def trip_purpose_and_destination(
     trace_label = "trip_purpose_and_destination"
     model_settings = config.read_model_settings(configs_dir, 'trip_purpose_and_destination.yaml')
 
+    MAX_ITERATIONS = model_settings.get('max_iterations', 5)
+    CLEANUP = model_settings.get('cleanup', True)
+
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
+
+    # FIXME could allow MAX_ITERATIONS=0 to allow for cleanup-only run
+    # in which case, we would need to drop bad trips, WITHOUT failing bad_trip leg_mates
+    assert (MAX_ITERATIONS > 0)
 
     # if trip_destination has been run before, keep only bad trips (and leg_mates) to retry
     if 'bad' in trips_df:
@@ -86,14 +93,12 @@ def trip_purpose_and_destination(
         tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
 
     if trips_df.empty:
-        logger.info("%s - no trips. Nothing to do.")
+        logger.info("%s - no trips. Nothing to do." % trace_label)
         return
 
     results = []
     i = 0
-    MAX_ITERATIONS = model_settings.get('max_iterations', 5)
     RESULT_COLUMNS = ['purpose', 'destination', 'origin', 'bad']
-
     while True:
 
         i += 1
@@ -148,7 +153,13 @@ def trip_purpose_and_destination(
 
     trips_df = trips.to_frame()
     assign_in_place(trips_df, results)
-    pipeline.replace_table("trips", trips_df)
 
     if trips_df.bad.any():
-        logger.warn("%s %s failed trips" % (trace_label, trips_df.bad.sum()))
+        logger.info("cleanup setting is '%s'" % CLEANUP)
+        if CLEANUP:
+            logger.warn("%s dropping %s sidelined failed trips" % (trace_label, trips_df.bad.sum()))
+            trips_df = trips_df[~trips_df.bad]
+        else:
+            logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.bad.sum()))
+
+    pipeline.replace_table("trips", trips_df)

@@ -1,7 +1,6 @@
 
+MAX_ITERATIONS: 5
 
-max_iterations: 5
-
-# remove any sidelined failed trips remaining after max_iterations
-cleanup: True
-
+# drop failed trips and cleanup failed trip leg_mates for consistency
+# (i.e. adjust trip_count, trip_num, first, next_trip_ids for missing failed trips)
+CLEANUP: True

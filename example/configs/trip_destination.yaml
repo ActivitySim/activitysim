@@ -30,3 +30,7 @@ preprocessor_settings:
   TABLES:
     - tours
     - persons
+
+# drop failed trips and cleanup failed trip leg_mates for consistency
+# (i.e. adjust trip_count, trip_num, first, next_trip_ids for missing failed trips)
+CLEANUP: False

@@ -180,8 +180,8 @@ def participants_chooser(probs, choosers, spec, trace_label):
 def add_null_results(trace_label):
     logger.info("Skipping %s: joint tours" % trace_label)
     # participants table is used downstream in non-joint tour expressions
-    participants = pd.DataFrame()
-    participants['person_id'] = 0
+    participants = pd.DataFrame(columns=['person_id'])
+    participants.index.name = 'participant_id'
     pipeline.replace_table("joint_tour_participants", participants)
 
 

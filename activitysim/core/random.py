@@ -88,17 +88,12 @@ class SimpleChannel(object):
         """
 
         # dataframe to hold state for every df row
-        row_states = pd.DataFrame(index=domain_df.index)
+        row_states = pd.DataFrame(columns=['row_seed', 'offset'], index=domain_df.index)
 
-        # ensure that every channel is different, even for the same df index values and max_steps
-        unique_channel_seed = hash(self.name) % _MAX_SEED
-
-        # I'm not sure how to do this in a way that avoids collisions using a single seed
-        # Unfortunately seeding from an array is currently A LOT slower than using a single seed
-        # without knowing either MAX_STEPS or max_index or with support for jump/offset
-        row_states['row_seed'] = (self.base_seed + self.unique_channel_seed +
-                                  row_states.index * MAX_STEPS) % _MAX_SEED
-        row_states['offset'] = 0
+        if not row_states.empty:
+            row_states['row_seed'] = (self.base_seed + self.unique_channel_seed +
+                                      row_states.index * MAX_STEPS) % _MAX_SEED
+            row_states['offset'] = 0
 
         return row_states
 

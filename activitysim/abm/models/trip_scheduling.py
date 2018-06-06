@@ -187,7 +187,7 @@ def schedule_nth_trips(
     assert len(choosers.index) == len(trips.index)
 
     # zero out probs outside earliest-latest window and rescale to sum to 1
-    chooser_probs = clip_probs_and_rescale(trips, choosers[probs_cols], depart_alt_base)
+    chooser_probs = clip_probs_and_rescale(trips, choosers[probs_cols], model_settings)
 
     zero_probs = chooser_probs.sum(axis=1) == 0
     if zero_probs.any():

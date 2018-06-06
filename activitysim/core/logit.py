@@ -37,7 +37,10 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
     MAX_PRINT = 10
 
     msg_with_count = "%s for %s rows" % (msg, bad_row_map.sum())
-    logger.critical(msg_with_count)
+    if raise_error:
+        logger.critical(msg_with_count)
+    else:
+        logger.info(msg_with_count)
 
     df = df[bad_row_map]
     if trace_choosers is None:
@@ -47,7 +50,7 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
     df['household_id'] = hh_ids
 
     if trace_label:
-        logger.critical("dumping %s" % trace_label)
+        logger.info("dumping %s" % trace_label)
         tracing.write_csv(df[:MAX_DUMP],
                           file_name=trace_label,
                           transpose=False)

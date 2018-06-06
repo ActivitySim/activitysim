@@ -18,8 +18,9 @@ from activitysim.core.util import assign_in_place
 
 from activitysim.abm.models.trip_purpose import run_trip_purpose
 from activitysim.abm.models.trip_destination import run_trip_destination
-from activitysim.abm.models.trip_destination import flag_failed_trip_leg_mates
-from activitysim.abm.models.trip_destination import cleanup_failed_trips
+
+from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
+from activitysim.abm.models.util.trip import cleanup_failed_trips
 
 
 logger = logging.getLogger(__name__)
@@ -139,12 +140,9 @@ def trip_purpose_and_destination(
     trips_df = trips.to_frame()
     assign_in_place(trips_df, results)
 
-    if trips_df.failed.any():
-        logger.info("cleanup setting is '%s'" % CLEANUP)
-        if CLEANUP:
-            cleanup_failed_trips(trips_df)
-        else:
-            logger.warn("%s keeping %s sidelined failed trips" %
-                        (trace_label, trips_df.failed.sum()))
+    if CLEANUP:
+        trips_df = cleanup_failed_trips(trips_df)
+    elif trips_df.failed.any():
+        logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
 
     pipeline.replace_table("trips", trips_df)

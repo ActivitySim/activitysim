@@ -63,9 +63,6 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     have_trace_targets = trace_hh_id and tracing.has_trace_targets(trips)
 
     # probs shold sum to 1 across rows
-    # FIXME - patched file suppressing work univ stops
-    # FIXME - because MTC chooses univ trip purpose for work tour with WALK mode and
-    # FIXME - when there are no univ destination TAZ alternatives withing walking distance
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
     probs_spec.loc[:, purpose_cols] = probs_spec.loc[:, purpose_cols].div(sum_probs, axis=0)
 
@@ -124,7 +121,6 @@ def run_trip_purpose(
     logger.info("assign purpose to %s last inbound trips" % purpose.shape[0])
 
     # - intermediate stops (non-last trips) purpose assigned by probability table
-
     trips_df = trips_df[~trips_df['last']]
     logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
 

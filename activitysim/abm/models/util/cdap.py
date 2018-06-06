@@ -891,7 +891,7 @@ def run_cdap(
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, num_chunks, persons_chunk in chunk.hh_chunked_choosers(persons, rows_per_chunk):
+    for i, num_chunks, persons_chunk in chunk.chunked_choosers_by_chunk_id(persons, rows_per_chunk):
 
         logger.info("Running chunk %s of %s with %d persons" % (i, num_chunks, len(persons_chunk)))
 

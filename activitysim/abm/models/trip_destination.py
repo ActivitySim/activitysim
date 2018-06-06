@@ -17,13 +17,15 @@ from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
 from .util import logsums
-
 from .util import expressions
+
 from .util.tour_destination import tour_destination_size_terms
 from activitysim.core.skim import DataFrameMatrix
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
+
+from activitysim.abm.models.util.trip import cleanup_failed_trips
 
 
 logger = logging.getLogger(__name__)
@@ -345,6 +347,10 @@ def run_trip_destination(
     trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
     trips['failed'] = False
 
+    trips = trips.sort_index()
+    trips['next_trip_id'] = np.roll(trips.index, -1)
+    trips.next_trip_id = trips.next_trip_id.where(~trips['last'], 0)
+
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
     tours_merged = logsums.filter_chooser_columns(tours_merged, logsum_settings, model_settings)
@@ -399,7 +405,7 @@ def run_trip_destination(
 
             destinations = pd.concat(choices_list)
 
-            failed_trip_ids = nth_trips.index[~nth_trips.index.isin(destinations.index)]
+            failed_trip_ids = nth_trips.index.difference(destinations.index)
             if failed_trip_ids.any():
                 logger.warn("%s sidelining %s trips without viable destination alternatives\n"
                             % (nth_trace_label, failed_trip_ids.shape[0]))
@@ -413,59 +419,9 @@ def run_trip_destination(
             destinations.index = nth_trips.next_trip_id.reindex(destinations.index)
             assign_in_place(trips, destinations.to_frame('origin'))
 
+    del trips['next_trip_id']
+
     return trips
-
-
-def flag_failed_trip_leg_mates(trips_df, col_name):
-    """
-    set boolean flag column of specified name to identify failed trip leg_mates in place
-    """
-
-    # handle outbound and inbound legs independently
-    for ob in [True, False]:
-        same_leg = (trips_df.outbound == ob)
-        # tour_ids of all tours with a failed trip in this (outbound or inbound) leg direction
-        bad_tours = trips_df.tour_id[trips_df.failed & same_leg].unique()
-        # not-failed leg_mates of all failed trips in this (outbound or inbound) leg direction
-        failed_trip_leg_mates = same_leg & (trips_df.tour_id.isin(bad_tours)) & ~trips_df.failed
-        # set the flag column
-        trips_df.loc[failed_trip_leg_mates, col_name] = True
-
-
-def cleanup_failed_trips(trips):
-    """
-    drop failed trips and cleanup fields in leg_mates:
-
-    trip_num        assign new ordinal trip num after failed trips are dropped
-    trip_count      assign new count of trips in leg, sans failed trips
-    first           update first flag as we may have dropped first trip (last trip can't fail)
-    next_trip_id    assign id of next trip in leg after failed trips are dropped
-    """
-
-    logger.info("cleanup_failed_trips dropping %s sidelined failed trips" % trips.failed.sum())
-
-    trips['patch'] = False
-    flag_failed_trip_leg_mates(trips, 'patch')
-
-    # drop the original failures
-    trips = trips[~trips.failed]
-
-    # increasing trip_id order
-    patch_trips = trips[trips.patch].sort_index()
-
-    # recompute fields dependent on trip_num sequence
-    grouped = patch_trips.groupby(['tour_id', 'outbound'])
-    patch_trips['trip_num'] = grouped.cumcount() + 1
-    patch_trips['trip_count'] = patch_trips['trip_num'] + grouped.cumcount(ascending=False)
-    patch_trips['first'] = (patch_trips.trip_num == 1)
-
-    patch_trips.next_trip_id = patch_trips.index
-    patch_trips.next_trip_id = patch_trips.next_trip_id.where(~patch_trips['last'], 0)
-
-    assign_in_place(trips, patch_trips[['trip_num', 'trip_count', 'first', 'next_trip_id']])
-
-    del trips['failed']
-    del trips['patch']
 
 
 @inject.step()
@@ -488,18 +444,14 @@ def trip_destination(
         trace_label)
 
     if trips_df.failed.any():
-
         logger.warn("%s %s failed trips" % (trace_label, trips_df.failed.sum()))
         file_name = "%s_failed_trips" % trace_label
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name)
 
-        logger.info("cleanup setting is '%s'" % CLEANUP)
-        if CLEANUP:
-            cleanup_failed_trips(trips_df)
-        else:
-            logger.warn("%s keeping %s sidelined failed trips" %
-                        (trace_label, trips_df.failed.sum()))
+    if CLEANUP:
+        trips_df = cleanup_failed_trips(trips_df)
+    elif trips_df.failed.any():
+        logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
 
-    # destination, origin, fail
     pipeline.replace_table("trips", trips_df)

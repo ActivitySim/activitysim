@@ -126,9 +126,6 @@ def process_trips(tours, stop_frequency_alts):
     canonical_trip_num = (~trips.outbound * MAX_TRIPS_PER_LEG) + trips.trip_num
     trips['trip_id'] = trips.tour_id * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
 
-    # id of next trip in inbound or outbound leg
-    trips['next_trip_id'] = np.where(trips['last'], 0, trips.trip_id + 1)
-
     trips.set_index('trip_id', inplace=True, verify_integrity=True)
 
     return trips
@@ -150,7 +147,11 @@ def stop_frequency(
 
     tours = tours.to_frame()
     tours_merged = tours_merged.to_frame()
+
     assert not tours_merged.household_id.isnull().any()
+
+    assert not (tours_merged.origin == -1).any()
+    assert not (tours_merged.destination == -1).any()
 
     nest_spec = config.get_logit_model_settings(stop_frequency_settings)
     constants = config.get_model_constants(stop_frequency_settings)

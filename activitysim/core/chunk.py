@@ -172,7 +172,7 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
         alt_offset = alt_end
 
 
-def hh_chunked_choosers(choosers, rows_per_chunk):
+def chunked_choosers_by_chunk_id(choosers, rows_per_chunk):
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
     # (the presumption is that choosers has multiple rows with the same chunk_id that

@@ -318,10 +318,14 @@ def school_location_simulate(persons_merged, persons,
         # so we backfill the empty choices with -1 to code as no school location
         persons['school_taz'] = choices.reindex(persons.index).fillna(NO_SCHOOL_TAZ).astype(int)
 
+        tracing.print_summary('school_taz', choices, describe=True)
+
     else:
 
         # no school-goers (but we still want to annotate persons)
         persons['school_taz'] = NO_SCHOOL_TAZ
+
+        logger.info("%s no school-goers" % trace_label)
 
     expressions.assign_columns(
         df=persons,
@@ -331,8 +335,6 @@ def school_location_simulate(persons_merged, persons,
     pipeline.replace_table("persons", persons)
 
     pipeline.drop_table('school_location_sample')
-
-    tracing.print_summary('school_taz', choices, describe=True)
 
     if trace_hh_id:
         tracing.trace_df(persons,

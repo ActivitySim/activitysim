@@ -54,7 +54,7 @@ def households(store, households_sample_size, trace_hh_id, override_hh_ids):
 
     logger.info("loaded households %s" % (df.shape,))
 
-    # FIXME - pathological knowledge of name of chunk_id column used by hh_chunked_choosers
+    # FIXME - pathological knowledge of name of chunk_id column used by chunked_choosers_by_chunk_id
     assert 'chunk_id' not in df.columns
     df['chunk_id'] = pd.Series(range(len(df)), df.index)
 

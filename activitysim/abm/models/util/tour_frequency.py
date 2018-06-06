@@ -439,6 +439,9 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
                      atwork         80893019       2135503
     """
 
+    # don't need this once we have computed index
+    del tours['parent_tour_num']
+
     return tours
 
 

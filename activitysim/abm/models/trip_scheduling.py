@@ -94,7 +94,6 @@ def set_tour_hour(trips, tours):
 def clip_probs(trips, probs, model_settings):
     """
     zero out probs before trips.earliest or after trips.latest
-    and adjust probs to sum to 1.0 (unless all probs are zero, in which case leave as all zero)
 
     Parameters
     ----------
@@ -109,7 +108,7 @@ def clip_probs(trips, probs, model_settings):
     Returns
     -------
     probs: pd.DataFrame
-        clipped and rescaled version of probs
+        clipped version of probs
 
     """
 
@@ -118,7 +117,7 @@ def clip_probs(trips, probs, model_settings):
     # there should be one row in probs per trip
     assert trips.shape[0] == probs.shape[0]
 
-    # probs should sum to 1 across rows
+    # probs should sum to 1 across rows before clipping
     probs = probs.div(probs.sum(axis=1), axis=0)
 
     num_rows, num_cols = probs.shape
@@ -179,6 +178,7 @@ def schedule_nth_trips(
         trips,
         probs_spec,
         model_settings,
+        first_trip_in_leg,
         report_failed_trips,
         trace_hh_id,
         trace_label):
@@ -222,6 +222,11 @@ def schedule_nth_trips(
     # zero out probs outside earliest-latest window
     chooser_probs = clip_probs(trips, choosers[probs_cols], model_settings)
 
+    if first_trip_in_leg:
+        # probs should sum to 1 unless all zero
+        chooser_probs = chooser_probs.div(chooser_probs.sum(axis=1), axis=0).fillna(0)
+
+    # probs should sum to 1 with residual probs resulting in choice of 'fail'
     chooser_probs['fail'] = 1 - chooser_probs.sum(axis=1).clip(0, 1)
 
     choices, rands = logit.make_choices(
@@ -318,6 +323,7 @@ def schedule_trips_in_leg(
 
     # iterate over outbound trips in ascending trip_num order, skipping the initial trip
     # iterate over inbound trips in descending trip_num order, skipping the finial trip
+    first_trip_in_leg = True
     for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
 
         if outbound:
@@ -331,6 +337,7 @@ def schedule_trips_in_leg(
             nth_trips,
             probs_spec,
             model_settings,
+            first_trip_in_leg=first_trip_in_leg,
             report_failed_trips=last_iteration,
             trace_hh_id=trace_hh_id,
             trace_label=nth_trace_label)
@@ -351,6 +358,8 @@ def schedule_trips_in_leg(
             trips.loc[next_trip_ids, ADJUST_NEXT] = adjusted_depart.values
 
         result_list.append(choices)
+
+        first_trip_in_leg = False
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)

@@ -82,6 +82,7 @@ def trip_purpose_and_destination(
         flag_failed_trip_leg_mates(trips_df, 'failed')
         trips_df = trips_df[trips_df.failed]
         tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
+        logger.info('Rerunning %s failed trips and leg-mates' % trips_df.shape[0])
 
     if trips_df.empty:
         logger.info("%s - no trips. Nothing to do." % trace_label)
@@ -115,7 +116,7 @@ def trip_purpose_and_destination(
         logger.warn("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
         file_name = "%s_failed_trips_%s" % (trace_label, i)
         logger.info("writing failed trips to %s" % file_name)
-        tracing.write_csv(trips_df[trips_df.failed], file_name=file_name)
+        tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 
         # if max iterations reached, add remaining trips to results and give up
         # note that we do this BEFORE failing leg_mates so resulting trip legs are complete
@@ -136,6 +137,8 @@ def trip_purpose_and_destination(
 
     # - assign result columns to trips
     results = pd.concat(results)
+
+    logger.info("%s %s failed trips after %s iterations" % (trace_label, results.failed.sum(), i))
 
     trips_df = trips.to_frame()
     assign_in_place(trips_df, results)

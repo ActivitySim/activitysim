@@ -4,6 +4,4 @@ DEPART_ALT_BASE: 5
 
 MAX_ITERATIONS: 10
 
-# FAILFIX: near_zero_probs
-FAILFIX: choose_most_initial
-# FAILFIX: drop_and_cleanup
+

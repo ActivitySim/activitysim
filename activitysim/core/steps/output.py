@@ -27,8 +27,6 @@ def write_data_dictionary(output_dir):
 
     output_tables = pipeline.checkpointed_tables()
 
-    records = []
-
     # write data dictionary for all checkpointed_tables
     with open(os.path.join(output_dir, 'data_dict.txt'), 'w') as file:
         for table_name in output_tables:
@@ -39,11 +37,6 @@ def write_data_dictionary(output_dir):
 
             rows, columns = df.shape
             bytes = df.memory_usage(index=True).sum()
-            records.append((table_name, rows, columns, bytes))
-
-    df = pd.DataFrame.from_records(records, columns=['table_name', 'rows', 'columns', 'bytes'])
-    df.sort_values(by='table_name', inplace=True)
-    df.to_csv(os.path.join(output_dir, 'data_dict.csv'))
 
 
 def write_tables(output_dir):

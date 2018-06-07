@@ -447,7 +447,7 @@ def trip_destination(
         logger.warn("%s %s failed trips" % (trace_label, trips_df.failed.sum()))
         file_name = "%s_failed_trips" % trace_label
         logger.info("writing failed trips to %s" % file_name)
-        tracing.write_csv(trips_df[trips_df.failed], file_name=file_name)
+        tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 
     if CLEANUP:
         trips_df = cleanup_failed_trips(trips_df)

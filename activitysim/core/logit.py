@@ -36,11 +36,8 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
     MAX_DUMP = 1000
     MAX_PRINT = 10
 
-    msg_with_count = "%s for %s rows" % (msg, bad_row_map.sum())
-    if raise_error:
-        logger.critical(msg_with_count)
-    else:
-        logger.info(msg_with_count)
+    msg_with_count = "%s %s for %s rows" % (trace_label, msg, bad_row_map.sum())
+    logger.warning(msg_with_count)
 
     df = df[bad_row_map]
     if trace_choosers is None:
@@ -61,7 +58,7 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
         row_msg = "%s : %s in: %s = %s (hh_id = %s)" % \
                   (trace_label, msg, df.index.name, idx, df.household_id.loc[idx])
 
-        logger.critical(row_msg)
+        logger.warning(row_msg)
 
     if raise_error:
         raise RuntimeError(msg_with_count)

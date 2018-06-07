@@ -279,6 +279,14 @@ def assign_in_place(df, df2):
         # github.com/pydata/pandas/issues/4094
         for c, old_dtype in zip(common_columns, old_dtypes):
 
+            # if both df and df2 column were same type, but result is not
+            if (old_dtype == df2[c].dtype) and (df[c].dtype != old_dtype):
+                try:
+                    df[c] = df[c].astype(old_dtype)
+                except ValueError:
+                    logger.warn("assign_in_place changed dtype %s of column %s to %s" %
+                                (old_dtype, c, df[c].dtype))
+
             # if both df and df2 column were ints, but result is not
             if np.issubdtype(old_dtype, np.integer) \
                     and np.issubdtype(df2[c].dtype, np.integer) \

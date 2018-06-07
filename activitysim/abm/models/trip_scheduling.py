@@ -35,10 +35,12 @@ tourpurp,isInbound,interval,trip,p1,p2,p3,p4,p5...p40
 NO_TRIP_ID = 0
 NO_DEPART = 0
 
-# FIXME should only use near_zero_probs on final iteration if we use it at all
-# FAILFIX_DEFAULT = 'near_zero_probs'
-FAILFIX_DEFAULT = 'choose_most_initial'
-# FAILFIX_DEFAULT = 'drop_and_cleanup'
+DEPART_ALT_BASE = 'DEPART_ALT_BASE'
+
+FAILFIX = 'FAILFIX'
+FAILFIX_CHOOSE_MOST_INITIAL = 'choose_most_initial'
+FAILFIX_DROP_AND_CLEANUP = 'drop_and_cleanup'
+FAILFIX_DEFAULT = FAILFIX_CHOOSE_MOST_INITIAL
 
 
 def trip_scheduling_probs(configs_dir):
@@ -89,7 +91,7 @@ def set_tour_hour(trips, tours):
         reindex(subtours[subtours.tour_num == subtours.tour_count]['end'], trips[inbound].tour_id)
 
 
-def clip_probs_and_rescale(trips, probs, model_settings):
+def clip_probs(trips, probs, model_settings):
     """
     zero out probs before trips.earliest or after trips.latest
     and adjust probs to sum to 1.0 (unless all probs are zero, in which case leave as all zero)
@@ -111,11 +113,13 @@ def clip_probs_and_rescale(trips, probs, model_settings):
 
     """
 
-    failfix = model_settings.get('FAILFIX', FAILFIX_DEFAULT)
-    depart_alt_base = model_settings.get('DEPART_ALT_BASE')
+    depart_alt_base = model_settings.get(DEPART_ALT_BASE)
 
     # there should be one row in probs per trip
     assert trips.shape[0] == probs.shape[0]
+
+    # probs should sum to 1 across rows
+    probs = probs.div(probs.sum(axis=1), axis=0)
 
     num_rows, num_cols = probs.shape
     ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols) + depart_alt_base
@@ -129,22 +133,53 @@ def clip_probs_and_rescale(trips, probs, model_settings):
     #  [0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0]
     #  [0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0]...
 
-    if failfix == 'near_zero_probs':
-        probs += 0.0001
-
     probs = probs*clip_mask
 
-    # probs should sum to 1 across rows
-    probs = probs.div(probs.sum(axis=1), axis=0)
-
     return probs
+
+
+def report_bad_choices(bad_row_map, df, filename, trace_label, trace_choosers=None):
+    """
+
+    Parameters
+    ----------
+    bad_row_map
+    df : pandas.DataFrame
+        utils or probs dataframe
+    trace_choosers : pandas.dataframe
+        the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+        because we  can't deduce hh_id from the interaction_dataset which is indexed on index
+        values from alternatives df
+
+    """
+
+    df = df[bad_row_map]
+    if trace_choosers is None:
+        hh_ids = tracing.hh_id_for_chooser(df.index, df)
+    else:
+        hh_ids = tracing.hh_id_for_chooser(df.index, trace_choosers)
+    df['household_id'] = hh_ids
+
+    filename = "%s.%s" % (trace_label, filename)
+
+    logger.info("dumping %s" % filename)
+    tracing.write_csv(df, file_name=filename, transpose=False)
+
+    # log the indexes of the first MAX_PRINT offending rows
+    MAX_PRINT = 0
+    for idx in df.index[:MAX_PRINT].values:
+
+        row_msg = "%s : failed %s = %s (hh_id = %s)" % \
+                  (trace_label, df.index.name, idx, df.household_id.loc[idx])
+
+        logger.warning(row_msg)
 
 
 def schedule_nth_trips(
         trips,
         probs_spec,
         model_settings,
-        report_zero_probs,
+        report_failed_trips,
         trace_hh_id,
         trace_label):
     """
@@ -161,7 +196,7 @@ def schedule_nth_trips(
     depart_alt_base: int
         int to add to probs column index to get time period it represents.
         e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
-    report_zero_probs : bool
+    report_failed_trips : bool
     trace_hh_id
     trace_label
 
@@ -170,8 +205,6 @@ def schedule_nth_trips(
     choices: pd.Series
         time periods depart choices, one per trip (except for trips with zero probs)
     """
-
-    logger.debug("%s scheduling %s trips" % (trace_label, trips.shape[0]))
 
     depart_alt_base = model_settings.get('DEPART_ALT_BASE')
 
@@ -186,41 +219,41 @@ def schedule_nth_trips(
     assert choosers.index.is_unique
     assert len(choosers.index) == len(trips.index)
 
-    # zero out probs outside earliest-latest window and rescale to sum to 1
-    chooser_probs = clip_probs_and_rescale(trips, choosers[probs_cols], model_settings)
+    # zero out probs outside earliest-latest window
+    chooser_probs = clip_probs(trips, choosers[probs_cols], model_settings)
 
-    zero_probs = chooser_probs.sum(axis=1) == 0
-    if zero_probs.any():
-
-        # report zero_probs while we have the best diagnostic info
-        if report_zero_probs:
-            logit.report_bad_choices(
-                bad_row_map=zero_probs,
-                df=choosers,
-                trace_label="%s.zero_probs" % trace_label,
-                msg='zero probs',
-                trace_choosers=None,
-                raise_error=False)
-
-        # remove zero_prob rows (so we return no choices for these choosers)
-        chooser_probs = chooser_probs[~zero_probs]
-
-    # if all rows had zero_probs, return empty integer series with trip_id index
-    if chooser_probs.empty:
-        return trips.tour_hour[0:0]
+    chooser_probs['fail'] = 1 - chooser_probs.sum(axis=1).clip(0, 1)
 
     choices, rands = logit.make_choices(
         chooser_probs,
         trace_label=trace_label, trace_choosers=choosers)
 
-    choices += depart_alt_base
+    # convert alt choice index to depart time (setting failed choices to -1)
+    failed = (choices == chooser_probs.columns.get_loc('fail'))
+    choices = (choices + depart_alt_base).where(~failed, -1)
 
-    assert (choices >= trips.earliest[~zero_probs]).all()
-    assert (choices <= trips.latest[~zero_probs]).all()
+    # report zero_probs while we have the best diagnostic info
+    if report_failed_trips and failed.any():
+        report_bad_choices(
+            bad_row_map=failed,
+            df=choosers,
+            filename='failed_choosers',
+            trace_label=trace_label,
+            trace_choosers=None)
 
+    # trace before removing failures
     if trace_hh_id and tracing.has_trace_targets(trips):
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+        tracing.trace_df(chooser_probs, '%s.chooser_probs' % trace_label)
         tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'depart'])
         tracing.trace_df(rands, '%s.rands' % trace_label, columns=[None, 'rand'])
+
+    # remove any failed choices
+    if failed.any():
+        choices = choices[~failed]
+
+    assert (choices >= trips.earliest[~failed]).all()
+    assert (choices <= trips.latest[~failed]).all()
 
     return choices
 
@@ -250,7 +283,7 @@ def schedule_trips_in_leg(
         depart choice for trips, indexed by trip_id
     """
 
-    failfix = model_settings.get('FAILFIX', FAILFIX_DEFAULT)
+    failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
 
     if outbound:
         INITIAL = 'first'
@@ -298,12 +331,12 @@ def schedule_trips_in_leg(
             nth_trips,
             probs_spec,
             model_settings,
-            report_zero_probs=last_iteration,
+            report_failed_trips=last_iteration,
             trace_hh_id=trace_hh_id,
             trace_label=nth_trace_label)
 
         # most initial departure (when no choice was made because all probs were zero)
-        if last_iteration and (failfix == 'choose_most_initial'):
+        if last_iteration and (failfix == FAILFIX_CHOOSE_MOST_INITIAL):
             choices = choices.reindex(nth_trips.index)
             logger.warn("%s coercing %s depart choices to most initial" %
                         (nth_trace_label, choices.isna().sum()))
@@ -369,18 +402,17 @@ def run_trip_scheduling(
 
     rows_per_chunk = trip_scheduling_rpc(chunk_size, trips, probs_spec, trace_label)
 
-    logger.info("%s rows_per_chunk %s num_choosers %s" %
-                (trace_label, rows_per_chunk, len(trips.index)))
+    # logger.info("%s rows_per_chunk %s num_choosers %s" %
+    #             (trace_label, rows_per_chunk, len(trips.index)))
 
     result_list = []
     for i, num_chunks, trips_chunk in chunk.chunked_choosers_by_chunk_id(trips, rows_per_chunk):
 
         if num_chunks > 1:
             chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i)
+            logger.info("%s of %s size %d" % (chunk_trace_label, num_chunks, len(trips_chunk)))
         else:
             chunk_trace_label = trace_label
-
-        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(trips_chunk)))
 
         choices = \
             schedule_trips_in_leg(
@@ -446,22 +478,17 @@ def trip_scheduling(
     a tour is very short (e.g. one time period) and the prob spec having a zero probability for
     that tour hour.
 
-    Therefor we need to handle trips that could not be scheduled. There are three ways (at least)
+    Therefor we need to handle trips that could not be scheduled. There are two ways (at least)
     to solve this problem:
 
-    1) FAILFIX = 'choose_most_initial'
+    1) CHOOSE_MOST_INITIAL
     simply assign a depart time to the trip, even if it has a zero probability. It makes
     most sense, in this case, to assign the 'most initial' depart time, so that subsequent trips
     are minimally impacted. This can be done in the final iteration, thus affecting only the
     trips that could no be scheduled by the standard approach
 
-    2) FAILFIX = 'near_zero_probs'
-    choose randomly from all the zero prob departs available for that trip. This is easily
-    accomplished by converting all zero probabilities a very small number, so that when the
-    probabilities are rescaled, they 'near zero prob' time periods are rescaled to equal probs.
-
-    3) FAILFIX = 'drop_and_cleanup'
-    drop trips that cold no be scheduled, and adjust their leg mates, as is done for failed
+    2) drop_and_cleanup
+    drop trips that could no be scheduled, and adjust their leg mates, as is done for failed
     trips in trip_destination.
 
     For now we are choosing among these approaches with a manifest constant, but this could
@@ -473,8 +500,7 @@ def trip_scheduling(
     model_settings = config.read_model_settings(configs_dir, 'trip_scheduling.yaml')
     assert 'DEPART_ALT_BASE' in model_settings
 
-    # note - this is also accessed by callees
-    failfix = model_settings.get('model_settings', FAILFIX_DEFAULT)
+    failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
 
     probs_spec = trip_scheduling_probs(configs_dir)
 
@@ -494,7 +520,8 @@ def trip_scheduling(
         i += 1
         last_iteration = (i == max_iterations)
 
-        logger.info("%s iteration %s" % (trace_label, i))
+        trace_label_i = tracing.extend_trace_label(trace_label, "i%s" % i)
+        logger.info("%s scheduling %s trips" % (trace_label_i, trips_df.shape[0]))
 
         choices = \
             run_trip_scheduling(
@@ -505,22 +532,17 @@ def trip_scheduling(
                 last_iteration=last_iteration,
                 trace_hh_id=trace_hh_id,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(trace_label, "i%s" % i))
+                trace_label=trace_label_i)
 
         # boolean series of trips whose individual trip scheduling failed
         failed = choices.reindex(trips_df.index).isnull()
-        logger.info("%s %s failed in iteration %s" %
-                    (trace_label, failed.sum(), i))
+        logger.info("%s %s failed" % (trace_label_i, failed.sum()))
 
         if not last_iteration:
             # boolean series of trips whose leg scheduling failed
             failed_cohorts = failed_trip_cohorts(trips_df, failed)
-
             trips_df = trips_df[failed_cohorts]
             choices = choices[~failed_cohorts]
-
-            logger.info("%s %s to reschedule after iteration %s" %
-                        (trace_label, trips_df.shape[0], i))
 
         choices_list.append(choices)
 
@@ -532,10 +554,13 @@ def trip_scheduling(
         logger.warn("%s of %s trips could not be scheduled after %s iterations" %
                     (choices.isnull().sum(), trips_df.shape[0], i))
 
-        if failfix == 'drop_and_cleanup':
-            trips_df['failed'] = choices.isnull()
-            trips_df = cleanup_failed_trips(trips_df)
-            choices = choices.reindex(trips_df.index)
+        if failfix != FAILFIX_DROP_AND_CLEANUP:
+            raise RuntimeError("%s setting '%' not enabled in settings" %
+                               (FAILFIX, FAILFIX_DROP_AND_CLEANUP))
+
+        trips_df['failed'] = choices.isnull()
+        trips_df = cleanup_failed_trips(trips_df)
+        choices = choices.reindex(trips_df.index)
 
     trips_df['depart'] = choices
 

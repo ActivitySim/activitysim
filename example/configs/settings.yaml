@@ -54,6 +54,7 @@ models:
   - trip_purpose
   - trip_destination
   - trip_purpose_and_destination
+  - trip_scheduling
   - write_data_dictionary
   - write_tables
 

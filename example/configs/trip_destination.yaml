@@ -32,5 +32,5 @@ preprocessor_settings:
     - persons
 
 # drop failed trips and cleanup failed trip leg_mates for consistency
-# (i.e. adjust trip_count, trip_num for missing failed trips)
+# (i.e. adjust trip_count, trip_num, first for missing failed trips)
 CLEANUP: False

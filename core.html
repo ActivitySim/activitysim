@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core Components &mdash; ActivitySim 0.5.2
+  <title>Core Components &mdash; ActivitySim 0.6
  documentation</title>
   
 
@@ -25,30 +25,20 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.2
- documentation" href="index.html"/>
-        <link rel="next" title="Models" href="models.html"/>
-        <link rel="prev" title="Data Schema" href="dataschema.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Software Development" href="development.html" />
+    <link rel="prev" title="How the System Works" href="howitworks.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -70,7 +60,7 @@
             
             
               <div class="version">
-                0.5.2
+                0.6
 
               </div>
             
@@ -98,8 +88,8 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Core Components</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#data-management">Data Management</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#skim">Skim</a><ul>
@@ -177,13 +167,16 @@
 <li class="toctree-l4"><a class="reference internal" href="#id18">API</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#output">Output</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id19">API</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
             
@@ -195,7 +188,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ActivitySim</a>
@@ -203,9 +196,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -263,6 +257,50 @@ evaluators, choice models, timetable, and helper functions.</p>
 <div class="section" id="module-activitysim.core.skim">
 <span id="api"></span><h4>API<a class="headerlink" href="#module-activitysim.core.skim" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
+<dt id="activitysim.core.skim.DataFrameMatrix">
+<em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">DataFrameMatrix</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.DataFrameMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility class to allow a pandas dataframe to be treated like a 2-D array,
+indexed by rowid, colname</p>
+<p>For use in vectorized expressions where the desired values depend on both a row column selector
+e.g. size_terms.get(df.dest_taz, df.purpose)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">40</span><span class="p">,</span><span class="mi">50</span><span class="p">]},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="mi">101</span><span class="p">,</span><span class="mi">102</span><span class="p">,</span><span class="mi">103</span><span class="p">,</span><span class="mi">104</span><span class="p">])</span>
+
+<span class="n">dfm</span> <span class="o">=</span> <span class="n">DataFrameMatrix</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+<span class="n">dfm</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">row_ids</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">103</span><span class="p">],</span> <span class="n">col_ids</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">])</span>
+
+<span class="n">returns</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span>  <span class="mi">4</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="activitysim.core.skim.DataFrameMatrix.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>row_ids</em>, <em>col_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.DataFrameMatrix.get" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>row_ids - list of row_ids (df index values)</strong></dt>
+<dd></dd>
+<dt><strong>col_ids - list of column names, one per row_id,</strong></dt>
+<dd><p class="first last">specifying column from which the value for that row should be retrieved</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>series with one row per row_id, with the value from the column specified in col_ids</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="activitysim.core.skim.SkimDict">
 <em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">SkimDict</code><a class="headerlink" href="#activitysim.core.skim.SkimDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SkimDict object is a wrapper around a dict of multiple skim objects,
@@ -277,16 +315,18 @@ dictionary - i.e. use brackets to add and get skim objects.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : hashable</p>
-<blockquote>
-<div><p>The key (identifier) for this skim object</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">hashable</span></dt>
+<dd><p class="first last">The key (identifier) for this skim object</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">skim: Skim</p>
-<blockquote class="last">
-<div><p>The skim object</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>skim: Skim</strong></dt>
+<dd><p class="first last">The skim object</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -301,17 +341,20 @@ dictionary - i.e. use brackets to add and get skim objects.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : hashable</p>
-<blockquote>
-<div><p>The key (identifier) for this skim object</p>
-</div></blockquote>
-<p><strong>skim_data</strong> : Skim</p>
-<blockquote>
-<div><p>The skim object</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">hashable</span></dt>
+<dd><p class="first last">The key (identifier) for this skim object</p>
+</dd>
+<dt><strong>skim_data</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Skim</span></dt>
+<dd><p class="first last">The skim object</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -354,17 +397,19 @@ to use in the expressions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : hashable</p>
-<blockquote>
-<div><p>The key (identifier) for this skim object</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">hashable</span></dt>
+<dd><p class="first last">The key (identifier) for this skim object</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">impedances: pd.Series</p>
-<blockquote class="last">
-<div><p>A Series of impedances which are elements of the Skim object and
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>impedances: pd.Series</strong></dt>
+<dd><p class="first last">A Series of impedances which are elements of the Skim object and
 with the same index as df</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -379,13 +424,17 @@ with the same index as df</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : DataFrame</p>
-<blockquote>
-<div><p>The dataframe which contains the origin and destination ids</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
+<dd><p class="first last">The dataframe which contains the origin and destination ids</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -428,16 +477,16 @@ using origin, destination, and time of day.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>skims: Skims</strong></p>
-<blockquote>
-<div><p>This is the Skims object to wrap</p>
-</div></blockquote>
-<p><strong>skim_key</strong> : str</p>
-<blockquote class="last">
-<div><p>This identifies the column in the dataframe which is used to
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>skims: Skims</strong></dt>
+<dd><p class="first last">This is the Skims object to wrap</p>
+</dd>
+<dt><strong>skim_key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">This identifies the column in the dataframe which is used to
 select among Skim object using the SECOND item in each tuple (see
 above for a more complete description)</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -450,13 +499,17 @@ above for a more complete description)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : DataFrame</p>
-<blockquote>
-<div><p>The dataframe which contains the origin and destination ids</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
+<dd><p class="first last">The dataframe which contains the origin and destination ids</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -473,14 +526,16 @@ above for a more complete description)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : 2D array</p>
-<p><strong>offset</strong> : int, optional</p>
-<blockquote class="last">
-<div><p>An optional offset that will be added to origin/destination
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>data</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2D array</span></dt>
+<dd></dd>
+<dt><strong>offset</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">An optional offset that will be added to origin/destination
 values to turn them into array indices.
 For example, if zone IDs are 1-based, an offset of -1
 would turn them into 0-based array indices.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -493,11 +548,18 @@ would turn them into 0-based array indices.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>orig</strong> : 1D array</p>
-<p><strong>dest</strong> : 1D array</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>orig</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1D array</span></dt>
+<dd></dd>
+<dt><strong>dest</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1D array</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>values</strong> : 1D array</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>values</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1D array</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -526,7 +588,11 @@ Write the current state of the random number generator.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>checkpoint_name</strong> : str</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>checkpoint_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -552,11 +618,13 @@ Write the current state of the random number generator.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table_name</strong> : str</p>
-<blockquote>
-<div><p>orca/inject table name</p>
-</div></blockquote>
-<p class="last"><strong>df</strong> : pandas DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>table_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">orca/inject table name</p>
+</dd>
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -571,7 +639,11 @@ Write the current state of the random number generator.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>checkpoints_df</strong> : pandas.DataFrame</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>checkpoints_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -591,7 +663,11 @@ Write the current state of the random number generator.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">activitysim.random.Random</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>activitysim.random.Random</strong></dt>
+<dd></dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -609,11 +685,18 @@ The table can be a checkpointed table or any registered orca table (e.g. functio
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table_name</strong> : str</p>
-<p><strong>checkpoint_name</strong> : str or None</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>table_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+<dt><strong>checkpoint_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>df</strong> : pandas.DataFrame</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -630,10 +713,11 @@ This allows us to resume the simulation after the specified checkpoint</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>checkpoint_name</strong> : str</p>
-<blockquote class="last">
-<div><p>model_name of checkpoint to load (resume_after argument to open_pipeline)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>checkpoint_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">model_name of checkpoint to load (resume_after argument to open_pipeline)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -650,10 +734,11 @@ checkpoints from a previous run, including a checkpoint with name specified in r
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>resume_after</strong> : str or None</p>
-<blockquote class="last">
-<div><p>name of checkpoint to load from pipeline store</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>resume_after</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd><p class="first last">name of checkpoint to load from pipeline store</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -668,10 +753,11 @@ checkpoints from a previous run, including a checkpoint with name specified in r
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>overwrite</strong> : bool</p>
-<blockquote class="last">
-<div><p>delete file before opening (unless resuming)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>overwrite</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">delete file before opening (unless resuming)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -696,14 +782,19 @@ so we need to know both the table_name and the checkpoint_name of hte desired ta
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table_name</strong> : str</p>
-<p><strong>checkpoint_name</strong> : str</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>table_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+<dt><strong>checkpoint_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>the dataframe read from the store</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">the dataframe read from the store</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -724,11 +815,13 @@ risks pipeline to failing to detect that it has changed, and thus not checkpoint
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table_name</strong> : str</p>
-<blockquote>
-<div><p>orca/pipeline table name</p>
-</div></blockquote>
-<p class="last"><strong>df</strong> : pandas DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>table_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">orca/pipeline table name</p>
+</dd>
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -749,11 +842,18 @@ computed or added columns.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>table_name</strong></p>
-<p><strong>df</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>table_name</strong></dt>
+<dd></dd>
+<dt><strong>df</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the underlying df of the rewrapped table</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>the underlying df of the rewrapped table</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -773,14 +873,14 @@ the same list of models, but specify a resume_after point if desired.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>models</strong> : [str]</p>
-<blockquote>
-<div><p>list of model_names</p>
-</div></blockquote>
-<p><strong>resume_after</strong> : str or None</p>
-<blockquote class="last">
-<div><p>model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>models</strong> <span class="classifier-delimiter">:</span> <span class="classifier">[str]</span></dt>
+<dd><p class="first last">list of model_names</p>
+</dd>
+<dt><strong>resume_after</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd><p class="first last">model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -796,10 +896,11 @@ the same list of models, but specify a resume_after point if desired.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>model_name</strong> : str</p>
-<blockquote class="last">
-<div><p>model_name is assumed to be the name of a registered orca step</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>model_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">model_name is assumed to be the name of a registered orca step</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -821,7 +922,11 @@ and so provides “fully pseudo random” non-repeatable streams with different 
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>seed</strong> : int or None</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>seed</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or None</span></dt>
+<dd></dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -844,18 +949,17 @@ so we need to know both the table_name and the checkpoint_name to label the save
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe to store</p>
-</div></blockquote>
-<p><strong>table_name</strong> : str</p>
-<blockquote>
-<div><p>also conventionally the orca table name</p>
-</div></blockquote>
-<p><strong>checkpoint_name</strong> : str</p>
-<blockquote class="last">
-<div><p>the checkpoint at which the table was created/modified</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">dataframe to store</p>
+</dd>
+<dt><strong>table_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">also conventionally the orca table name</p>
+</dd>
+<dt><strong>checkpoint_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">the checkpoint at which the table was created/modified</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -898,39 +1002,8 @@ possible across alternative scenarios.  This is done for trips as well, by direc
 <div class="section" id="id2">
 <h4>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.random"></span><dl class="class">
-<dt id="activitysim.core.random.SavedChannelState">
-<em class="property">class </em><code class="descclassname">activitysim.core.random.</code><code class="descname">SavedChannelState</code><a class="headerlink" href="#activitysim.core.random.SavedChannelState" title="Permalink to this definition">¶</a></dt>
-<dd><p>We expect that the random number channel can be determined by the name of the index of the
-dataframe accompanying the request. This function encapsulates the knowledge of that mapping.</p>
-<p>Generally, the channel name is just the table name used by the pipeline and orca.
-The exception is the ‘tours’ channel, which is messy because the mandatory and non-mandatory
-tours tables are originally created separately and later combined in to a single ‘tours’
-table. But during a few model steps before they are combined, they actually exist as two
-distinct tables. We only need to know this dirty secret about tables when we reload
-checkpointed channels.</p>
-<dl class="attribute">
-<dt id="activitysim.core.random.SavedChannelState.channel_name">
-<code class="descname">channel_name</code><a class="headerlink" href="#activitysim.core.random.SavedChannelState.channel_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="activitysim.core.random.SavedChannelState.step_name">
-<code class="descname">step_name</code><a class="headerlink" href="#activitysim.core.random.SavedChannelState.step_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="activitysim.core.random.SavedChannelState.step_num">
-<code class="descname">step_num</code><a class="headerlink" href="#activitysim.core.random.SavedChannelState.step_num" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="activitysim.core.random.SimpleChannel">
-<em class="property">class </em><code class="descclassname">activitysim.core.random.</code><code class="descname">SimpleChannel</code><span class="sig-paren">(</span><em>channel_name</em>, <em>base_seed</em>, <em>domain_df</em>, <em>max_steps</em>, <em>step_name</em>, <em>step_num</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.core.random.</code><code class="descname">SimpleChannel</code><span class="sig-paren">(</span><em>channel_name</em>, <em>base_seed</em>, <em>domain_df</em>, <em>step_num</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel" title="Permalink to this definition">¶</a></dt>
 <dd><p>We need to ensure that we generate the same random streams (when re-run or even across
 different simulations.) We do this by generating a random seed for each domain_df row
 that is based on the domain_df index (which implies that generated tables like tours
@@ -956,16 +1029,17 @@ max index values. But we might then want a way to ensure stability between the t
 and full datasets. I am punting on this for now.</p>
 <dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.begin_step">
-<code class="descname">begin_step</code><span class="sig-paren">(</span><em>step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.begin_step" title="Permalink to this definition">¶</a></dt>
+<code class="descname">begin_step</code><span class="sig-paren">(</span><em>step_num</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.begin_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset channel state for a new state</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>step_name</strong> : str</p>
-<blockquote class="last">
-<div><p>pipeline step name for this step</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>step_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">pipeline step name for this step</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -982,42 +1056,37 @@ The resulting array will be of length: size * len(df.index)
 This method is designed to support creation of a interaction_dataset</p>
 <p>The columns in df are ignored; the index name and values are used to determine
 which random number sequence to to use.</p>
-<p>We pass the multi_choice_offset to _generators_for_df as override_offset so that,
-if multi_choice_offset has been set (by a call to set_multi_choice_offset method, q,v,)
-_generators_for_df will EITHER use the same rand sequence for choosing values
-OR use fresh random values for choices.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>df with index name and values corresponding to a registered channel</p>
-</div></blockquote>
-<p><strong>step_name</strong> : str</p>
-<blockquote>
-<div><p>current step name so we can update row_states seed info</p>
-</div></blockquote>
-<p><strong>The remaining parameters are passed through as arguments to numpy.random.choice</strong></p>
-<p><strong>a</strong> : 1-D array-like or int</p>
-<blockquote>
-<div><p>If an ndarray, a random sample is generated from its elements.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">df with index name and values corresponding to a registered channel</p>
+</dd>
+<dt><strong>step_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">current step name so we can update row_states seed info</p>
+</dd>
+<dt><strong>The remaining parameters are passed through as arguments to numpy.random.choice</strong></dt>
+<dd></dd>
+<dt><strong>a</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D array-like or int</span></dt>
+<dd><p class="first last">If an ndarray, a random sample is generated from its elements.
 If an int, the random sample is generated as if a was np.arange(n)</p>
-</div></blockquote>
-<p><strong>size</strong> : int or tuple of ints</p>
-<blockquote>
-<div><p>Output shape</p>
-</div></blockquote>
-<p><strong>replace</strong> : boolean</p>
-<blockquote>
-<div><p>Whether the sample is with or without replacement</p>
-</div></blockquote>
+</dd>
+<dt><strong>size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or tuple of ints</span></dt>
+<dd><p class="first last">Output shape</p>
+</dd>
+<dt><strong>replace</strong> <span class="classifier-delimiter">:</span> <span class="classifier">boolean</span></dt>
+<dd><p class="first last">Whether the sample is with or without replacement</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : 1-D ndarray of length: size * len(df.index)</p>
-<blockquote class="last">
-<div><p>The generated random samples for each row concatenated into a single (flat) array</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D ndarray of length: size * len(df.index)</span></dt>
+<dd><p class="first last">The generated random samples for each row concatenated into a single (flat) array</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1034,13 +1103,17 @@ with stable, predictable, repeatable row_seeds for that domain_df index value</p
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domain_df</strong> : pandas.dataframe</p>
-<blockquote>
-<div><p>domain dataframe with index values for which random streams are to be generated</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>domain_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.dataframe</span></dt>
+<dd><p class="first last">domain dataframe with index values for which random streams are to be generated</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>row_states</strong> : pandas.DataFrame</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>row_states</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1057,16 +1130,17 @@ there will be no ambiguity/collisions between them</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domain_df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>domain dataframe with index values for which random streams are to be generated
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domain_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">domain dataframe with index values for which random streams are to be generated
 and well-known index name corresponding to the channel</p>
-</div></blockquote>
-<p><strong>step_name</strong> : str or None</p>
-<blockquote>
-<div><p>provided when reloading so we can restore step_name and step_num</p>
-</div></blockquote>
-<p class="last"><strong>step_num</strong> : int or None</p>
+</dd>
+<dt><strong>step_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd><p class="first last">provided when reloading so we can restore step_name and step_num</p>
+</dd>
+<dt><strong>step_num</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or None</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1089,50 +1163,21 @@ method (q.v.) may be used to globally reseed all random streams.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>df with index name and values corresponding to a registered channel</p>
-</div></blockquote>
-<p><strong>n</strong> : int</p>
-<blockquote>
-<div><p>number of rands desired per df row</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">df with index name and values corresponding to a registered channel</p>
+</dd>
+<dt><strong>n</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">number of rands desired per df row</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>rands</strong> : 2-D ndarray</p>
-<blockquote class="last">
-<div><p>array the same length as df, with n floats in range [0, 1) for each df row</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="activitysim.core.random.SimpleChannel.set_multi_choice_offset">
-<code class="descname">set_multi_choice_offset</code><span class="sig-paren">(</span><em>offset</em>, <em>step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.set_multi_choice_offset" title="Permalink to this definition">¶</a></dt>
-<dd><p>setting multi_choice_offset ensures that multiple calls for the same row_state will yield
-the same choices (assuming that choice array is the same length). It also permits avoiding
-collisions with the rand() stream if multi_choice_offset is an integer larger than the
-max number of random_for_df calls made in the same step.</p>
-<p>choice_for_df passes multi_choice_offset to _generators_for_df as override_offset so that,
-if multi_choice_offset has been set, _generators_for_df will
-EITHER use the same rand sequence for choosing values
-OR use fresh random values for choices.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>offset</strong> : int</p>
-<blockquote>
-<div><p>the offset into the current step’s random number stream at which to begin taking
-rands for each choice_for_df row_state row</p>
-</div></blockquote>
-<p><strong>step_name</strong> : str</p>
-<blockquote class="last">
-<div><p>this allows us to ensure that this method is only ever called BEFORE the step begins</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>rands</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-D ndarray</span></dt>
+<dd><p class="first last">array the same length as df, with n floats in range [0, 1) for each df row</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1165,17 +1210,20 @@ help debug data and/or logic errors.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>custom_config_file: str</strong></p>
-<blockquote>
-<div><p>custom config filename</p>
-</div></blockquote>
-<p><strong>basic: boolean</strong></p>
-<blockquote>
-<div><p>basic setup</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>custom_config_file: str</strong></dt>
+<dd><p class="first last">custom config filename</p>
+</dd>
+<dt><strong>basic: boolean</strong></dt>
+<dd><p class="first last">basic setup</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1190,13 +1238,17 @@ help debug data and/or logic errors.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>output_dir: str</strong></p>
-<blockquote>
-<div><p>Directory of trace output CSVs</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>output_dir: str</strong></dt>
+<dd><p class="first last">Directory of trace output CSVs</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1211,25 +1263,51 @@ help debug data and/or logic errors.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>dataframe to slice</p>
-</div></blockquote>
-<p><strong>slicer: str</strong></p>
-<blockquote>
-<div><p>name of column or index to use for slicing</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">dataframe to slice</p>
+</dd>
+<dt><strong>slicer: str</strong></dt>
+<dd><p class="first last">name of column or index to use for slicing</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(target, column) tuple</p>
-<p><strong>target</strong> : int or list of ints</p>
-<blockquote>
-<div><p>id or ids that identify tracer target rows</p>
-</div></blockquote>
-<p><strong>column</strong> : str</p>
-<blockquote class="last">
-<div><p>name of column to search for targets or None to search index</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>(target, column) tuple</strong></dt>
+<dd></dd>
+<dt><strong>target</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or list of ints</span></dt>
+<dd><p class="first last">id or ids that identify tracer target rows</p>
+</dd>
+<dt><strong>column</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">name of column to search for targets or None to search index</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.tracing.hh_id_for_chooser">
+<code class="descclassname">activitysim.core.tracing.</code><code class="descname">hh_id_for_chooser</code><span class="sig-paren">(</span><em>id</em>, <em>choosers</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.hh_id_for_chooser" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>id - scalar id (or list of ids) from chooser index</strong></dt>
+<dd></dd>
+<dt><strong>choosers - pandas dataframe whose index contains ids</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>scalar household_id or series of household_ids</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1244,31 +1322,30 @@ help debug data and/or logic errors.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>interaction_df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced model_design dataframe</p>
-</div></blockquote>
-<p><strong>choosers: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>interaction_simulate choosers
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>interaction_df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced model_design dataframe</p>
+</dd>
+<dt><strong>choosers: pandas.DataFrame</strong></dt>
+<dd><p class="first last">interaction_simulate choosers
 (needed to filter the model_design dataframe by traced hh or person id)</p>
-</div></blockquote>
-<p><strong>sample_size int or None</strong></p>
-<blockquote>
-<div><p>int for constant sample size, or None if choosers have different numbers of alternatives</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>——-</strong></p>
-<p><strong>trace_rows</strong> : numpy.ndarray</p>
-<blockquote>
-<div><p>array of booleans to flag which rows in interaction_df to trace</p>
-</div></blockquote>
-<p><strong>trace_ids</strong> : tuple (str,  numpy.ndarray)</p>
-<blockquote class="last">
-<div><p>column name and array of trace_ids mapping trace_rows to their target_id
+</dd>
+<dt><strong>sample_size int or None</strong></dt>
+<dd><p class="first last">int for constant sample size, or None if choosers have different numbers of alternatives</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>trace_rows</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray</span></dt>
+<dd><p class="first last">array of booleans to flag which rows in interaction_df to trace</p>
+</dd>
+<dt><strong>trace_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple (str,  numpy.ndarray)</span></dt>
+<dd><p class="first last">column name and array of trace_ids mapping trace_rows to their target_id
 for use by trace_interaction_eval_results which needs to know target_id
 so it can create separate tables for each distinct target for readability</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1284,20 +1361,28 @@ so it can create separate tables for each distinct target for readability</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name: str</strong></p>
-<blockquote>
-<div><p>output folder name</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>name: str</strong></dt>
+<dd><p class="first last">output folder name</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">f: str</p>
-<blockquote class="last">
-<div><p>output folder name</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>f: str</strong></dt>
+<dd><p class="first last">output folder name</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.tracing.no_results">
+<code class="descclassname">activitysim.core.tracing.</code><code class="descname">no_results</code><span class="sig-paren">(</span><em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.no_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>standard no-op to write tracing when a model produces no results</p>
 </dd></dl>
 
 <dl class="function">
@@ -1308,25 +1393,26 @@ so it can create separate tables for each distinct target for readability</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-<p><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>describe: boolean</strong></p>
-<blockquote>
-<div><p>print describe?</p>
-</div></blockquote>
-<p><strong>value_counts: boolean</strong></p>
-<blockquote>
-<div><p>print value counts?</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>label: str</strong></dt>
+<dd><p class="first last">tracer name</p>
+</dd>
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>describe: boolean</strong></dt>
+<dd><p class="first last">print describe?</p>
+</dd>
+<dt><strong>value_counts: boolean</strong></dt>
+<dd><p class="first last">print value counts?</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1341,17 +1427,51 @@ so it can create separate tables for each distinct target for readability</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>trace_hh_id: int</strong></p>
-<blockquote>
-<div><p>household id we are tracing</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>trace_hh_id: int</strong></dt>
+<dd><p class="first last">household id we are tracing</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.tracing.register_participants">
+<code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_participants</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_participants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register with inject for tracing</p>
+<p>create an injectable ‘trace_participant_ids’ with a list of participant_ids in
+household we are tracing.
+This allows us to slice by participant_ids without requiring presence of household_id column</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>trace_hh_id: int</strong></dt>
+<dd><p class="first last">household id we are tracing</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1366,17 +1486,20 @@ so it can create separate tables for each distinct target for readability</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>trace_hh_id: int</strong></p>
-<blockquote>
-<div><p>household id we are tracing</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>trace_hh_id: int</strong></dt>
+<dd><p class="first last">household id we are tracing</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1393,17 +1516,20 @@ This allows us to slice by tour_id without requiring presence of person_id colum
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>trace_hh_id: int</strong></p>
-<blockquote>
-<div><p>household id we are tracing</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>trace_hh_id: int</strong></dt>
+<dd><p class="first last">household id we are tracing</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1418,13 +1544,17 @@ This allows us to slice by tour_id without requiring presence of person_id colum
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1441,17 +1571,20 @@ This allows us to slice by trip_id without requiring presence of person_id colum
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>trace_hh_id: int</strong></p>
-<blockquote>
-<div><p>household id we are tracin</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>trace_hh_id: int</strong></dt>
+<dd><p class="first last">household id we are tracin</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1466,21 +1599,23 @@ This allows us to slice by trip_id without requiring presence of person_id colum
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>dataframe to slice</p>
-</div></blockquote>
-<p><strong>slicer: str</strong></p>
-<blockquote>
-<div><p>name of column or index to use for slicing</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name - only used to report bad slicer</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">dataframe to slice</p>
+</dd>
+<dt><strong>slicer: str</strong></dt>
+<dd><p class="first last">name of column or index to use for slicing</p>
+</dd>
+<dt><strong>label: str</strong></dt>
+<dd><p class="first last">tracer name - only used to report bad slicer</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">sliced subset of dataframe</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>sliced subset of dataframe</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1495,24 +1630,24 @@ This allows us to slice by trip_id without requiring presence of person_id colum
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>ids: int or list of ints</strong></p>
-<blockquote>
-<div><p>slice ids</p>
-</div></blockquote>
-<p><strong>column: str</strong></p>
-<blockquote>
-<div><p>column to slice (slice using index if None)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>ids: int or list of ints</strong></dt>
+<dd><p class="first last">slice ids</p>
+</dd>
+<dt><strong>column: str</strong></dt>
+<dd><p class="first last">column to slice (slice using index if None)</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">df: pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>sliced dataframe</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">sliced dataframe</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1527,41 +1662,38 @@ This allows us to slice by trip_id without requiring presence of person_id colum
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
-<p><strong>slicer: Object</strong></p>
-<blockquote>
-<div><p>slicer for subsetting</p>
-</div></blockquote>
-<p><strong>columns: list</strong></p>
-<blockquote>
-<div><p>columns to write</p>
-</div></blockquote>
-<p><strong>index_label: str</strong></p>
-<blockquote>
-<div><p>index name</p>
-</div></blockquote>
-<p><strong>column_labels: [str, str]</strong></p>
-<blockquote>
-<div><p>labels for columns in csv</p>
-</div></blockquote>
-<p><strong>transpose: boolean</strong></p>
-<blockquote>
-<div><p>whether to transpose file for legibility</p>
-</div></blockquote>
-<p><strong>warn_if_empty: boolean</strong></p>
-<blockquote>
-<div><p>write warning if sliced df is empty</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>label: str</strong></dt>
+<dd><p class="first last">tracer name</p>
+</dd>
+<dt><strong>slicer: Object</strong></dt>
+<dd><p class="first last">slicer for subsetting</p>
+</dd>
+<dt><strong>columns: list</strong></dt>
+<dd><p class="first last">columns to write</p>
+</dd>
+<dt><strong>index_label: str</strong></dt>
+<dd><p class="first last">index name</p>
+</dd>
+<dt><strong>column_labels: [str, str]</strong></dt>
+<dd><p class="first last">labels for columns in csv</p>
+</dd>
+<dt><strong>transpose: boolean</strong></dt>
+<dd><p class="first last">whether to transpose file for legibility</p>
+</dd>
+<dt><strong>warn_if_empty: boolean</strong></dt>
+<dd><p class="first last">write warning if sliced df is empty</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1576,22 +1708,24 @@ This allows us to slice by trip_id without requiring presence of person_id colum
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>trace_results: pandas.DataFrame</strong></p>
-<blockquote>
-<div><p>traced model_design dataframe</p>
-</div></blockquote>
-<p><strong>trace_ids</strong> : tuple (str,  numpy.ndarray)</p>
-<blockquote>
-<div><p>column name and array of trace_ids from interaction_trace_rows()
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>trace_results: pandas.DataFrame</strong></dt>
+<dd><p class="first last">traced model_design dataframe</p>
+</dd>
+<dt><strong>trace_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple (str,  numpy.ndarray)</span></dt>
+<dd><p class="first last">column name and array of trace_ids from interaction_trace_rows()
 used to filter the trace_results dataframe by traced hh or person id</p>
-</div></blockquote>
-<p><strong>label: str</strong></p>
-<blockquote>
-<div><p>tracer name</p>
-</div></blockquote>
+</dd>
+<dt><strong>label: str</strong></dt>
+<dd><p class="first last">tracer name</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Nothing</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1606,29 +1740,29 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df: pandas.DataFrame or pandas.Series</strong></p>
-<blockquote>
-<div><p>traced dataframe</p>
-</div></blockquote>
-<p><strong>file_name: str</strong></p>
-<blockquote>
-<div><p>output file name</p>
-</div></blockquote>
-<p><strong>index_label: str</strong></p>
-<blockquote>
-<div><p>index name</p>
-</div></blockquote>
-<p><strong>columns: list</strong></p>
-<blockquote>
-<div><p>columns to write</p>
-</div></blockquote>
-<p><strong>transpose: bool</strong></p>
-<blockquote>
-<div><p>whether to transpose dataframe (ignored for series)</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>——-</strong></p>
-<p class="last"><strong>Nothing</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df: pandas.DataFrame or pandas.Series</strong></dt>
+<dd><p class="first last">traced dataframe</p>
+</dd>
+<dt><strong>file_name: str</strong></dt>
+<dd><p class="first last">output file name</p>
+</dd>
+<dt><strong>index_label: str</strong></dt>
+<dd><p class="first last">index name</p>
+</dd>
+<dt><strong>columns: list</strong></dt>
+<dd><p class="first last">columns to write</p>
+</dd>
+<dt><strong>transpose: bool</strong></dt>
+<dd><p class="first last">whether to transpose dataframe (ignored for series)</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>Nothing</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1714,10 +1848,10 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 <ul class="simple">
 <li>Simple <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> choice model - select from a fixed set of choices defined in the specification file, such as the example above.</li>
 <li><a class="reference internal" href="#simulate-with-interaction"><span class="std std-ref">Simulate with Interaction</span></a> choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The <a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a> model implements this approach.</li>
-<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a> models are examples of this and are illustrated below.</li>
+<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#man-non-man-tour-mode-choice"><span class="std std-ref">Mandatory and Individual Non-Mandatory Tour Mode</span></a> models are examples of this and are illustrated below.</li>
 <li>Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a> model implements this approach.</li>
 </ul>
-<p>The <a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
+<p>The <a class="reference internal" href="models.html#man-non-man-tour-mode-choice"><span class="std std-ref">Mandatory and Individual Non-Mandatory Tour Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
 Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.
 In the example below, the <code class="docutils literal notranslate"><span class="pre">&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME']</span></code> expression is travel time for the tour origin to desination at the tour start time plus the tour
 destination to tour origin at the tour end time.  The <code class="docutils literal notranslate"><span class="pre">odt_skims</span></code> and <code class="docutils literal notranslate"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.
@@ -1790,7 +1924,7 @@ included in the utility.</p>
 <h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample"></span><dl class="function">
 <dt id="activitysim.core.interaction_sample.interaction_sample">
-<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">interaction_sample</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>sample_size</em>, <em>alt_col_name=None</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">interaction_sample</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>sample_size</em>, <em>alt_col_name=None</em>, <em>allow_zero_probs=False</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation in the situation in which alternatives must
 be merged with choosers because there are interaction terms or
 because alternatives are being sampled.</p>
@@ -1799,62 +1933,67 @@ because alternatives are being sampled.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of choosers</p>
-</div></blockquote>
-<p><strong>alternatives</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of alternatives - will be merged with choosers and sampled</p>
-</div></blockquote>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A Pandas DataFrame that gives the specification of the variables to
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">DataFrame of choosers</p>
+</dd>
+<dt><strong>alternatives</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">DataFrame of alternatives - will be merged with choosers and sampled</p>
+</dd>
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">A Pandas DataFrame that gives the specification of the variables to
 compute and the coefficients for each variable.
 Variable specifications must be in the table index and the
 table should have only one column of coefficients.</p>
-</div></blockquote>
-<p><strong>sample_size</strong> : int, optional</p>
-<blockquote>
-<div><p>Sample alternatives with sample of given size.  By default is None,
+</dd>
+<dt><strong>sample_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">Sample alternatives with sample of given size.  By default is None,
 which does not sample alternatives.</p>
-</div></blockquote>
-<p><strong>alt_col_name: str or None</strong></p>
-<blockquote>
-<div><p>name to give the sampled_alternative column</p>
-</div></blockquote>
-<p><strong>skims</strong> : Skims object</p>
-<blockquote>
-<div><p>The skims object is used to contain multiple matrices of
+</dd>
+<dt><strong>alt_col_name: str or None</strong></dt>
+<dd><p class="first last">name to give the sampled_alternative column</p>
+</dd>
+<dt><strong>skims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Skims object</span></dt>
+<dd><p class="first last">The skims object is used to contain multiple matrices of
 origin-destination impedances.  Make sure to also add it to the
 locals_d below in order to access it in expressions.  The <em>only</em> job
 of this method in regards to skims is to call set_df with the
 dataframe that comes back from interacting choosers with
 alternatives.  See the skims module for more documentation on how
 the skims object is intended to be used.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
+</dd>
+<dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict</span></dt>
+<dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>chunk_size</strong> : int</p>
-<blockquote>
-<div><p>if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
+</dd>
+<dt><strong>chunk_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
+</dd>
+<dt><strong>trace_label: str</strong></dt>
+<dd><p class="first last">This is the label to be used  for trace log file entries and dump file names
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ret</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>A series where index should match the index of the choosers DataFrame
-and values will match the index of the alternatives DataFrame -
-choices are simulated in the standard Monte Carlo fashion</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first">A DataFrame where index should match the index of the choosers DataFrame
+(except with sample_size rows for each choser row, one row for each alt sample)
+and columns alt_col_name, prob, rand, pick_count</p>
+<dl class="last docutils">
+<dt>prob: float</dt>
+<dd><p class="first last">the probability of the chosen alternative</p>
+</dd>
+<dt>rand: float</dt>
+<dd><p class="first last">the rand that did the choosing</p>
+</dd>
+<dt>pick_count <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">number of duplicate picks for chooser, alt</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1863,27 +2002,30 @@ choices are simulated in the standard Monte Carlo fashion</p>
 
 <dl class="function">
 <dt id="activitysim.core.interaction_sample.make_sample_choices">
-<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">make_sample_choices</code><span class="sig-paren">(</span><em>choosers</em>, <em>probs</em>, <em>interaction_utilities</em>, <em>sample_size</em>, <em>alternative_count</em>, <em>alt_col_name</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.make_sample_choices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">make_sample_choices</code><span class="sig-paren">(</span><em>choosers</em>, <em>probs</em>, <em>alternatives</em>, <em>sample_size</em>, <em>alternative_count</em>, <em>alt_col_name</em>, <em>allow_zero_probs</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.make_sample_choices" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong></p>
-<p><strong>probs</strong> : pandas DataFrame</p>
-<blockquote>
-<div><p>one row per chooser and one column per alternative</p>
-</div></blockquote>
-<p><strong>interaction_utilities</strong></p>
-<blockquote>
-<div><p>dataframe  with len(interaction_df) rows and one utility column</p>
-</div></blockquote>
-<p><strong>sample_size</strong> : int</p>
-<blockquote>
-<div><p>number of samples/choices to make</p>
-</div></blockquote>
-<p><strong>alternative_count</strong></p>
-<p><strong>alt_col_name</strong> : str</p>
-<p class="last"><strong>trace_label</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choosers</strong></dt>
+<dd></dd>
+<dt><strong>probs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span></dt>
+<dd><p class="first last">one row per chooser and one column per alternative</p>
+</dd>
+<dt><strong>alternatives</strong></dt>
+<dd><p class="first last">dataframe with index containing alt ids</p>
+</dd>
+<dt><strong>sample_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">number of samples/choices to make</p>
+</dd>
+<dt><strong>alternative_count</strong></dt>
+<dd></dd>
+<dt><strong>alt_col_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+<dt><strong>trace_label</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1907,21 +2049,21 @@ using the parameters of the skims object.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Table to which to add skim data as new columns.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Table to which to add skim data as new columns.
 <cite>df</cite> is modified in-place.</p>
-</div></blockquote>
-<p><strong>skims</strong> : SkimDictWrapper object</p>
-<blockquote class="last">
-<div><p>The skims object is used to contain multiple matrices of
+</dd>
+<dt><strong>skims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SkimDictWrapper or SkimStackWrapper object, or a list or dict of skims</span></dt>
+<dd><p class="first last">The skims object is used to contain multiple matrices of
 origin-destination impedances.  Make sure to also add it to the
 locals_d below in order to access it in expressions.  The <em>only</em> job
 of this method in regards to skims is to call set_df with the
 dataframe that comes back from interacting choosers with
 alternatives.  See the skims module for more documentation on how
 the skims object is intended to be used.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1930,7 +2072,7 @@ the skims object is intended to be used.</p>
 
 <dl class="function">
 <dt id="activitysim.core.simulate.compute_base_probabilities">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em>, <em>spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>compute base probabilities for nest leaves
 Base probabilities will be the nest-adjusted probabilities of all leaves
 This flattens or normalizes all the nested probabilities so that they have the proper global
@@ -1939,20 +2081,24 @@ relative values (the leaf probabilities sum to 1 for each row.)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_probabilities</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe with the nested probabilities for nest leafs and nodes</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>——-</strong></p>
-<p><strong>base_probabilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>nested_probabilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">dataframe with the nested probabilities for nest leafs and nodes</p>
+</dd>
+<dt><strong>nest_spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Nest tree dict from the model spec yaml file</p>
+</dd>
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Dataframe</span></dt>
+<dd><p class="first last">simple simulate spec so we can return columns in appropriate order</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>base_probabilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Will have the index of <cite>nested_probabilities</cite> and columns for leaf base probabilities</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1970,21 +2116,22 @@ nest &lt;- exp( ln(sum of exponentiated raw_utility of leaves) * nest_coefficien
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>raw_utilities</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe with the raw alternative utilities of all leaves
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>raw_utilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">dataframe with the raw alternative utilities of all leaves
 (what in non-nested logit would be the utilities of all the alternatives)</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
+</dd>
+<dt><strong>nest_spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Nest tree dict from the model spec yaml file</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nested_utilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>raw_utilities</cite> and columns for exponentiated leaf and node utilities</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>nested_utilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Will have the index of <cite>raw_utilities</cite> and columns for exponentiated leaf and node utilities</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2003,20 +2150,21 @@ except in nested logit, its sib group is restricted to the nest</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nested_exp_utilities</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe with the exponentiated nested utilities of all leaves and nodes</p>
-</div></blockquote>
-<p><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>——-</strong></p>
-<p><strong>nested_probabilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>nested_exp_utilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">dataframe with the exponentiated nested utilities of all leaves and nodes</p>
+</dd>
+<dt><strong>nest_spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Nest tree dict from the model spec yaml file</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>nested_probabilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Will have the index of <cite>nested_exp_utilities</cite> and columns for leaf and node probabilities</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2025,7 +2173,7 @@ except in nested logit, its sib group is restricted to the nest</p>
 
 <dl class="function">
 <dt id="activitysim.core.simulate.eval_mnl">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_mnl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>locals_d</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_mnl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>locals_d</em>, <em>custom_chooser</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -2039,34 +2187,34 @@ yielding one row per chooser and one column per alternative</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A table of variable specifications and coefficient values.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">A table of variable specifications and coefficient values.
 Variable expressions should be in the table index and the table
 should have a column for each alternative.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict or None</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
+</dd>
+<dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict or None</span></dt>
+<dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
+</dd>
+<dt><strong>trace_label: str</strong></dt>
+<dd><p class="first last">This is the label to be used  for trace log file entries and dump file names
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
+</dd>
+<dt><strong>trace_choice_name: str</strong></dt>
+<dd><p class="first last">This is the column label to be used in trace file csv dump of choices</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">Index will be that of <cite>choosers</cite>, values will match the columns
 of <cite>spec</cite>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2081,10 +2229,11 @@ of <cite>spec</cite>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logsums</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will be logsum across spec column values</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>logsums</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">Index will be that of <cite>choosers</cite>, values will be logsum across spec column values</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2093,7 +2242,7 @@ of <cite>spec</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.core.simulate.eval_nl">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_nl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>locals_d</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_nl</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>locals_d</em>, <em>custom_chooser</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a nested-logit simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -2101,39 +2250,38 @@ properties and no need to sample from alternatives.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A table of variable specifications and coefficient values.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">A table of variable specifications and coefficient values.
 Variable expressions should be in the table index and the table
 should have a column for each alternative.</p>
-</div></blockquote>
-<p><strong>nest_spec:</strong></p>
-<blockquote>
-<div><p>dictionary specifying nesting structure and nesting coefficients
+</dd>
+<dt><strong>nest_spec:</strong></dt>
+<dd><p class="first last">dictionary specifying nesting structure and nesting coefficients
 (from the model spec yaml file)</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict or None</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
+</dd>
+<dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict or None</span></dt>
+<dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
+</dd>
+<dt><strong>trace_label: str</strong></dt>
+<dd><p class="first last">This is the label to be used  for trace log file entries and dump file names
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
+</dd>
+<dt><strong>trace_choice_name: str</strong></dt>
+<dd><p class="first last">This is the column label to be used in trace file csv dump of choices</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will match the columns
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">Index will be that of <cite>choosers</cite>, values will match the columns
 of <cite>spec</cite>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2148,10 +2296,11 @@ of <cite>spec</cite>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logsums</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will be nest logsum based on spec column values</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>logsums</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">Index will be that of <cite>choosers</cite>, values will be nest logsum based on spec column values</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2176,23 +2325,26 @@ a Pandas Series.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>exprs</strong> : sequence of str</p>
-<p><strong>df</strong> : pandas.DataFrame</p>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>exprs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">sequence of str</span></dt>
+<dd></dd>
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+<dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict</span></dt>
+<dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>target_type: dtype or None</strong></p>
-<blockquote>
-<div><p>type to coerce results or None if no coercion desired</p>
-</div></blockquote>
+</dd>
+<dt><strong>target_type: dtype or None</strong></dt>
+<dd><p class="first last">type to coerce results or None if no coercion desired</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>df</cite> and columns of eval results of <cite>exprs</cite>.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>variables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Will have the index of <cite>df</cite> and columns of eval results of <cite>exprs</cite>.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2212,29 +2364,28 @@ and expressions, plus one or more alternatives.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fpath</strong> : str</p>
-<blockquote>
-<div><p>path to directory containing file.</p>
-</div></blockquote>
-<p><strong>fname</strong> : str</p>
-<blockquote>
-<div><p>Name of a CSV spec file</p>
-</div></blockquote>
-<p><strong>description_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
-</div></blockquote>
-<p><strong>expression_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Name of the column in <cite>fname</cite> that contains the component expression.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>fpath</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">path to directory containing file.</p>
+</dd>
+<dt><strong>fname</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of a CSV spec file</p>
+</dd>
+<dt><strong>description_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Name of the column in <cite>fname</cite> that contains the component description.</p>
+</dd>
+<dt><strong>expression_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Name of the column in <cite>fname</cite> that contains the component expression.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>The description column is dropped from the returned data and the
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">The description column is dropped from the returned data and the
 expression values are set as the table index.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2243,7 +2394,7 @@ expression values are set as the table index.</p>
 
 <dl class="function">
 <dt id="activitysim.core.simulate.simple_simulate">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">simple_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>custom_chooser=None</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run an MNL or NL simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -2257,14 +2408,21 @@ properties and no need to sample from alternatives.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logsums</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>Index will be that of <cite>choosers</cite>, values will be nest logsum based on spec column values</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>logsums</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">Index will be that of <cite>choosers</cite>, values will be nest logsum based on spec column values</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.simple_simulate_logsums_rpc">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">simple_simulate_logsums_rpc</code><span class="sig-paren">(</span><em>chunk_size</em>, <em>choosers</em>, <em>spec</em>, <em>nest_spec</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_logsums_rpc" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate rows_per_chunk for simple_simulate_logsums</p>
 </dd></dl>
 
 <dl class="function">
@@ -2313,10 +2471,11 @@ having the same index as interaction_df (non-unique values from alternatives df)
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>utilities</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the index of <cite>df</cite> and a single column of utilities</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>utilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Will have the index of <cite>df</cite> and a single column of utilities</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2334,63 +2493,57 @@ because alternatives are being sampled.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of choosers</p>
-</div></blockquote>
-<p><strong>alternatives</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of alternatives - will be merged with choosers, currently
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">DataFrame of choosers</p>
+</dd>
+<dt><strong>alternatives</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">DataFrame of alternatives - will be merged with choosers, currently
 without sampling</p>
-</div></blockquote>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A Pandas DataFrame that gives the specification of the variables to
+</dd>
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">A Pandas DataFrame that gives the specification of the variables to
 compute and the coefficients for each variable.
 Variable specifications must be in the table index and the
 table should have only one column of coefficients.</p>
-</div></blockquote>
-<p><strong>skims</strong> : Skims object</p>
-<blockquote>
-<div><p>The skims object is used to contain multiple matrices of
+</dd>
+<dt><strong>skims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Skims object</span></dt>
+<dd><p class="first last">The skims object is used to contain multiple matrices of
 origin-destination impedances.  Make sure to also add it to the
 locals_d below in order to access it in expressions.  The <em>only</em> job
 of this method in regards to skims is to call set_df with the
 dataframe that comes back from interacting choosers with
 alternatives.  See the skims module for more documentation on how
 the skims object is intended to be used.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
+</dd>
+<dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict</span></dt>
+<dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>sample_size</strong> : int, optional</p>
-<blockquote>
-<div><p>Sample alternatives with sample of given size.  By default is None,
+</dd>
+<dt><strong>sample_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">Sample alternatives with sample of given size.  By default is None,
 which does not sample alternatives.</p>
-</div></blockquote>
-<p><strong>chunk_size</strong> : int</p>
-<blockquote>
-<div><p>if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
+</dd>
+<dt><strong>chunk_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
+</dd>
+<dt><strong>trace_label: str</strong></dt>
+<dd><p class="first last">This is the label to be used  for trace log file entries and dump file names
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
+</dd>
+<dt><strong>trace_choice_name: str</strong></dt>
+<dd><p class="first last">This is the column label to be used in trace file csv dump of choices</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>A series where index should match the index of the choosers DataFrame
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">A series where index should match the index of the choosers DataFrame
 and values will match the index of the alternatives DataFrame -
 choices are simulated in the standard Monte Carlo fashion</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2416,58 +2569,53 @@ because alternatives are being sampled.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of choosers</p>
-</div></blockquote>
-<p><strong>alternatives</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>DataFrame of alternatives - will be merged with choosers
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">DataFrame of choosers</p>
+</dd>
+<dt><strong>alternatives</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">DataFrame of alternatives - will be merged with choosers
 index domain same as choosers, but repeated for each alternative</p>
-</div></blockquote>
-<p><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>A Pandas DataFrame that gives the specification of the variables to
+</dd>
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">A Pandas DataFrame that gives the specification of the variables to
 compute and the coefficients for each variable.
 Variable specifications must be in the table index and the
 table should have only one column of coefficients.</p>
-</div></blockquote>
-<p><strong>skims</strong> : Skims object</p>
-<blockquote>
-<div><p>The skims object is used to contain multiple matrices of
+</dd>
+<dt><strong>skims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Skims object</span></dt>
+<dd><p class="first last">The skims object is used to contain multiple matrices of
 origin-destination impedances.  Make sure to also add it to the
 locals_d below in order to access it in expressions.  The <em>only</em> job
 of this method in regards to skims is to call set_df with the
 dataframe that comes back from interacting choosers with
 alternatives.  See the skims module for more documentation on how
 the skims object is intended to be used.</p>
-</div></blockquote>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
+</dd>
+<dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict</span></dt>
+<dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
-</div></blockquote>
-<p><strong>chunk_size</strong> : int</p>
-<blockquote>
-<div><p>if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
-</div></blockquote>
-<p><strong>trace_label: str</strong></p>
-<blockquote>
-<div><p>This is the label to be used  for trace log file entries and dump file names
+</dd>
+<dt><strong>chunk_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">if chunk_size &gt; 0 iterates over choosers in chunk_size chunks</p>
+</dd>
+<dt><strong>trace_label: str</strong></dt>
+<dd><p class="first last">This is the label to be used  for trace log file entries and dump file names
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
-</div></blockquote>
-<p><strong>trace_choice_name: str</strong></p>
-<blockquote>
-<div><p>This is the column label to be used in trace file csv dump of choices</p>
-</div></blockquote>
+</dd>
+<dt><strong>trace_choice_name: str</strong></dt>
+<dd><p class="first last">This is the column label to be used in trace file csv dump of choices</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>A series where index should match the index of the choosers DataFrame
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">A series where index should match the index of the choosers DataFrame
 and values will match the index of the alternatives DataFrame -
 choices are simulated in the standard Monte Carlo fashion</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2493,39 +2641,60 @@ Python expressions have access to variables in locals_d (and df being
 accessible as variable df.) They also have access to previously assigned
 targets as the assigned target name.</p>
 <p>lowercase variables starting with underscore are temp variables (e.g. _local_var)
-and not returned except in trace_restults</p>
-<p>uppercase variables starting with underscore are temp variables (e.g. _LOCAL_SCALAR)
+and not returned except in trace_results</p>
+<p>uppercase variables starting with underscore are temp scalar variables (e.g. _LOCAL_SCALAR)
 and not returned except in trace_assigned_locals
 This is useful for defining general purpose local constants in expression file</p>
-<p>Users should take care that expressions should result in
+<p>Users should take care that expressions (other than temp scalar variables) should result in
 a Pandas Series (scalars will be automatically promoted to series.)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>assignment_expressions</strong> : pandas.DataFrame of target assignment expressions</p>
-<blockquote>
-<div><p>target: target column names
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>assignment_expressions</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame of target assignment expressions</span></dt>
+<dd><p class="first last">target: target column names
 expression: pandas or python expression to evaluate</p>
-</div></blockquote>
-<p><strong>df</strong> : pandas.DataFrame</p>
-<p><strong>locals_d</strong> : Dict</p>
-<blockquote>
-<div><p>This is a dictionary of local variables that will be the environment
+</dd>
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+<dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict</span></dt>
+<dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of “python” expression.</p>
-</div></blockquote>
-<p><strong>trace_rows: series or array of bools to use as mask to select target rows to trace</strong></p>
+</dd>
+<dt><strong>trace_rows: series or array of bools to use as mask to select target rows to trace</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>variables</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Will have the index of <cite>df</cite> and columns named by target and containing
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>variables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Will have the index of <cite>df</cite> and columns named by target and containing
 the result of evaluating expression</p>
-</div></blockquote>
-<p><strong>trace_df</strong> : pandas.DataFrame or None</p>
-<blockquote class="last">
-<div><p>a dataframe containing the eval result values for each assignment expression</p>
-</div></blockquote>
+</dd>
+<dt><strong>trace_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame or None</span></dt>
+<dd><p class="first last">a dataframe containing the eval result values for each assignment expression</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.assign.local_utilities">
+<code class="descclassname">activitysim.core.assign.</code><code class="descname">local_utilities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.local_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dict of useful modules and functions to provides as locals for use in eval of expressions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>utility_dict</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">name, entity pairs of locals</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2545,28 +2714,27 @@ targets, and expressions,</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fname</strong> : str</p>
-<blockquote>
-<div><p>Name of a CSV spec file.</p>
-</div></blockquote>
-<p><strong>description_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
-</div></blockquote>
-<p><strong>target_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Name of the column in <cite>fname</cite> that contains the component target.</p>
-</div></blockquote>
-<p><strong>expression_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Name of the column in <cite>fname</cite> that contains the component expression.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>fname</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of a CSV spec file.</p>
+</dd>
+<dt><strong>description_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Name of the column in <cite>fname</cite> that contains the component description.</p>
+</dd>
+<dt><strong>target_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Name of the column in <cite>fname</cite> that contains the component target.</p>
+</dd>
+<dt><strong>expression_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Name of the column in <cite>fname</cite> that contains the component expression.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>spec</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>dataframe with three columns: [‘description’ ‘target’ ‘expression’]</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">dataframe with three columns: [‘description’ ‘target’ ‘expression’]</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2582,17 +2750,20 @@ targets, and expressions,</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>dataframe whose column names should be de-duplicated</p>
-</div></blockquote>
-<p><strong>template</strong> : template taking two arguments (old_name, int) to use to rename columns</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">dataframe whose column names should be de-duplicated</p>
+</dd>
+<dt><strong>template</strong> <span class="classifier-delimiter">:</span> <span class="classifier">template taking two arguments (old_name, int) to use to rename columns</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>df</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>dataframe that was renamed in place, for convenience in chaining</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">dataframe that was renamed in place, for convenience in chaining</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2647,28 +2818,28 @@ return 0 if nest_spec is none</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nest_spec</strong> : dict</p>
-<blockquote>
-<div><p>Nest tree dict from the model spec yaml file</p>
-</div></blockquote>
-<p><strong>type</strong> : str</p>
-<blockquote>
-<div><p>Nest class type to yield
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>nest_spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Nest tree dict from the model spec yaml file</p>
+</dd>
+<dt><strong>type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Nest class type to yield
 None yields all nests
 ‘leaf’ yields only leaf nodes
 ‘branch’ yields only branch nodes</p>
-</div></blockquote>
-<p><strong>post_order</strong> : Bool</p>
-<blockquote>
-<div><p>Should we iterate over the nodes of the tree in post-order or pre-order?
+</dd>
+<dt><strong>post_order</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Bool</span></dt>
+<dd><p class="first last">Should we iterate over the nodes of the tree in post-order or pre-order?
 (post-order means we yield the alternatives sub-tree before current node.)</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>nest</strong> : Nest</p>
-<blockquote class="last">
-<div><p>Nest object with info about the current node (nest or leaf)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>nest</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Nest</span></dt>
+<dd><p class="first last">Nest object with info about the current node (nest or leaf)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2686,20 +2857,24 @@ of creating interaction variables and/or sampling alternatives.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong> : pandas.DataFrame</p>
-<p><strong>alternatives</strong> : pandas.DataFrame</p>
-<p><strong>sample_size</strong> : int, optional</p>
-<blockquote>
-<div><p>If sampling from alternatives for each chooser, this is
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+<dt><strong>alternatives</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
+<dt><strong>sample_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">If sampling from alternatives for each chooser, this is
 how many to sample.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>alts_sample</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Merged choosers and alternatives with data repeated either
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>alts_sample</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Merged choosers and alternatives with data repeated either
 len(alternatives) or <cite>sample_size</cite> times.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2714,29 +2889,29 @@ len(alternatives) or <cite>sample_size</cite> times.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Rows for choosers and columns for the alternatives from which they
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>probs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Rows for choosers and columns for the alternatives from which they
 are choosing. Values are expected to be valid probabilities across
 each row, e.g. they should sum to 1.</p>
-</div></blockquote>
-<p><strong>trace_choosers</strong> : pandas.dataframe</p>
-<blockquote>
-<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+</dd>
+<dt><strong>trace_choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.dataframe</span></dt>
+<dd><p class="first last">the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
 by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
 which is indexed on index values from alternatives df</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>choices</strong> : pandas.Series</p>
-<blockquote>
-<div><p>Maps chooser IDs (from <cite>probs</cite> index) to a choice, where the choice
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">Maps chooser IDs (from <cite>probs</cite> index) to a choice, where the choice
 is an index into the columns of <cite>probs</cite>.</p>
-</div></blockquote>
-<p><strong>rands</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>The random numbers used to make the choices (for debugging, tracing)</p>
-</div></blockquote>
+</dd>
+<dt><strong>rands</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">The random numbers used to make the choices (for debugging, tracing)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2745,29 +2920,32 @@ is an index into the columns of <cite>probs</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.core.logit.report_bad_choices">
-<code class="descclassname">activitysim.core.logit.</code><code class="descname">report_bad_choices</code><span class="sig-paren">(</span><em>bad_row_map</em>, <em>df</em>, <em>trace_label</em>, <em>msg</em>, <em>trace_choosers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.report_bad_choices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.logit.</code><code class="descname">report_bad_choices</code><span class="sig-paren">(</span><em>bad_row_map</em>, <em>df</em>, <em>trace_label</em>, <em>msg</em>, <em>trace_choosers=None</em>, <em>raise_error=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.report_bad_choices" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bad_row_map</strong></p>
-<p><strong>df</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>utils or probs dataframe</p>
-</div></blockquote>
-<p><strong>msg</strong> : str</p>
-<blockquote>
-<div><p>message describing the type of bad choice that necessitates error being thrown</p>
-</div></blockquote>
-<p><strong>trace_choosers</strong> : pandas.dataframe</p>
-<blockquote>
-<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bad_row_map</strong></dt>
+<dd></dd>
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">utils or probs dataframe</p>
+</dd>
+<dt><strong>msg</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">message describing the type of bad choice that necessitates error being thrown</p>
+</dd>
+<dt><strong>trace_choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.dataframe</span></dt>
+<dd><p class="first last">the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
 because we  can’t deduce hh_id from the interaction_dataset which is indexed on index
 values from alternatives df</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">raises RuntimeError</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>raises RuntimeError</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2782,36 +2960,34 @@ values from alternatives df</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>utils</strong> : pandas.DataFrame</p>
-<blockquote>
-<div><p>Rows should be choosers and columns should be alternatives.</p>
-</div></blockquote>
-<p><strong>trace_label</strong> : str</p>
-<blockquote>
-<div><p>label for tracing bad utility or probability values</p>
-</div></blockquote>
-<p><strong>exponentiated</strong> : bool</p>
-<blockquote>
-<div><p>True if utilities have already been exponentiated</p>
-</div></blockquote>
-<p><strong>allow_zero_probs</strong> : bool</p>
-<blockquote>
-<div><p>if True value rows in which all utility alts are EXP_UTIL_MIN will result
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>utils</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Rows should be choosers and columns should be alternatives.</p>
+</dd>
+<dt><strong>trace_label</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">label for tracing bad utility or probability values</p>
+</dd>
+<dt><strong>exponentiated</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if utilities have already been exponentiated</p>
+</dd>
+<dt><strong>allow_zero_probs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">if True value rows in which all utility alts are EXP_UTIL_MIN will result
 in rows in probs to have all zero probability (and not sum to 1.0)
-This si for hte benefit of calculating probabilities of nested logit nests</p>
-</div></blockquote>
-<p><strong>trace_choosers</strong> : pandas.dataframe</p>
-<blockquote>
-<div><p>the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
+This is for the benefit of calculating probabilities of nested logit nests</p>
+</dd>
+<dt><strong>trace_choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.dataframe</span></dt>
+<dd><p class="first last">the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
 by report_bad_choices because it can’t deduce hh_id from the interaction_dataset
 which is indexed on index values from alternatives df</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probs</strong> : pandas.DataFrame</p>
-<blockquote class="last">
-<div><p>Will have the same index and columns as <cite>utils</cite>.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>probs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Will have the same index and columns as <cite>utils</cite>.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2859,20 +3035,21 @@ Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>periods</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>periods</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series int</p>
-<blockquote class="last">
-<div><p>Number of adjacent windows indexed by window_row_ids.index</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pandas Series int</strong></dt>
+<dd><p class="first last">Number of adjacent windows indexed by window_row_ids.index</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2890,20 +3067,21 @@ Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>periods</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>periods</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series int</p>
-<blockquote class="last">
-<div><p>Number of adjacent windows indexed by window_row_ids.index</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pandas Series int</strong></dt>
+<dd><p class="first last">Number of adjacent windows indexed by window_row_ids.index</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2920,18 +3098,17 @@ that are available (not in the middle of another tour.)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>periods</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
-<p><strong>before</strong> : bool</p>
-<blockquote class="last">
-<div><p>Specify desired run length is of adjacent window before (True) or after (False)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>periods</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant</p>
+</dd>
+<dt><strong>before</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Specify desired run length is of adjacent window before (True) or after (False)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2942,20 +3119,44 @@ that are available (not in the middle of another tour.)</p>
 <dt id="activitysim.core.timetable.TimeTable.assign">
 <code class="descname">assign</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assign tours (represented by tdd alt ids) to persons</p>
-<p>Updates self.windows numpy array. Assignments will no ‘take’ outside this object
+<p>Updates self.windows numpy array. Assignments will not ‘take’ outside this object
 until/unless replace_table called or updated timetable retrieved by get_windows_df</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>tdds</strong> : pandas series</p>
-<blockquote class="last">
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>tdds</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.assign_footprints">
+<code class="descname">assign_footprints</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>footprints</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign_footprints" title="Permalink to this definition">¶</a></dt>
+<dd><p>assign footprints for specified window_row_ids</p>
+<p>This method is used for initialization of joint_tour timetables based on the
+combined availability of the joint tour participants</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series</span></dt>
+<dd><p class="first last">series of window_row_ids index irrelevant, but we want to use map()</p>
+</dd>
+<dt><strong>footprints</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy array</span></dt>
+<dd><p class="first last">with one row per window_row_id and one column per time period</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2992,20 +3193,21 @@ until/unless replace_table called or updated timetable retrieved by get_windows_
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>periods</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>periods</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series boolean</p>
-<blockquote class="last">
-<div><p>indexed by window_row_ids.index</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pandas Series boolean</strong></dt>
+<dd><p class="first last">indexed by window_row_ids.index</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3021,20 +3223,21 @@ until/unless replace_table called or updated timetable retrieved by get_windows_
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>periods</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>periods</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant (one period per window_row_id)</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series boolean</p>
-<blockquote class="last">
-<div><p>indexed by window_row_ids.index</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pandas Series boolean</strong></dt>
+<dd><p class="first last">indexed by window_row_ids.index</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3054,24 +3257,24 @@ unavailable after scheduling this window.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>starts</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
-<p><strong>ends</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>starts</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant (one per window_row_id)</p>
+</dd>
+<dt><strong>ends</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant (one per window_row_id)</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>available</strong> : pandas Series int</p>
-<blockquote class="last">
-<div><p>number periods available indexed by window_row_ids.index</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>available</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">number periods available indexed by window_row_ids.index</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3089,6 +3292,13 @@ checkpoint the table in another context where it does not know that name.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="activitysim.core.timetable.TimeTable.slice_windows_by_row_id">
+<code class="descname">slice_windows_by_row_id</code><span class="sig-paren">(</span><em>window_row_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.slice_windows_by_row_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>return windows array slice containing rows for specified window_row_ids
+(in window_row_ids order)</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.tour_available">
 <code class="descname">tour_available</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.tour_available" title="Permalink to this definition">¶</a></dt>
 <dd><p>test whether time window allows tour with specific tdd alt’s time window</p>
@@ -3096,20 +3306,21 @@ checkpoint the table in another context where it does not know that name.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row_ids</strong> : pandas Series</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>tdds</strong> : pandas series</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>tdds</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>available</strong> : pandas Series of bool</p>
-<blockquote class="last">
-<div><p>with same index as window_row_ids.index (presumably tour_id, but we don’t care)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>available</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series of bool</span></dt>
+<dd><p class="first last">with same index as window_row_ids.index (presumably tour_id, but we don’t care)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3125,30 +3336,68 @@ checkpoint the table in another context where it does not know that name.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_row_ids</strong> : pandas Series int</p>
-<blockquote>
-<div><p>series of window_row_ids indexed by tour_id</p>
-</div></blockquote>
-<p><strong>periods</strong> : pandas series int</p>
-<blockquote>
-<div><p>series of tdd_alt ids, index irrelevant</p>
-</div></blockquote>
-<p><strong>states</strong> : list of int</p>
-<blockquote>
-<div><p>presumably (e.g. I_EMPTY, I_START…)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>window_row_ids</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series int</span></dt>
+<dd><p class="first last">series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>periods</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas series int</span></dt>
+<dd><p class="first last">series of tdd_alt ids, index irrelevant (one period per window_row_id)</p>
+</dd>
+<dt><strong>states</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of int</span></dt>
+<dd><p class="first last">presumably (e.g. I_EMPTY, I_START…)</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pandas Series boolean</p>
-<blockquote class="last">
-<div><p>indexed by window_row_ids.index</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pandas Series boolean</strong></dt>
+<dd><p class="first last">indexed by window_row_ids.index</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.timetable.create_timetable_windows">
+<code class="descclassname">activitysim.core.timetable.</code><code class="descname">create_timetable_windows</code><span class="sig-paren">(</span><em>rows</em>, <em>tdd_alts</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.create_timetable_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>create an empty (all available) timetable with one window row per rows.index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>rows - pd.DataFrame or Series or orca.DataFrameWrapper</strong></dt>
+<dd><p class="first last">all we care about is the index</p>
+</dd>
+<dt><strong>tdd_alts - pd.DataFrame</strong></dt>
+<dd><p class="first last">We expect a start and end column, and create a timetable to accomodate all alts
+(with on window of padding at each end)</p>
+</dd>
+<dt><strong>so if start is 5 and end is 23, we return something like this:</strong></dt>
+<dd><p class="first last">4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24</p>
+</dd>
+<dt><strong>PERID</strong></dt>
+<dd></dd>
+<dt><strong>30       0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0</strong></dt>
+<dd></dd>
+<dt><strong>109      0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pd.DataFrame indexed by rows.index, and one column of int8 for each time window (plus padding)</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -3176,30 +3425,31 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>choosers</strong></p>
-<p><strong>alternatives</strong> : pandas DataFrame</p>
-<blockquote>
-<div><p>sample alternatives including pick_count column in same order as choosers</p>
-</div></blockquote>
-<p><strong>rows_per_chunk</strong> : int</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>choosers</strong></dt>
+<dd></dd>
+<dt><strong>alternatives</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span></dt>
+<dd><p class="first last">sample alternatives including pick_count column in same order as choosers</p>
+</dd>
+<dt><strong>rows_per_chunk</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>i</strong> : int</p>
-<blockquote>
-<div><p>one-based index of current chunk</p>
-</div></blockquote>
-<p><strong>num_chunks</strong> : int</p>
-<blockquote>
-<div><p>total number of chunks that will be yielded</p>
-</div></blockquote>
-<p><strong>choosers</strong> : pandas DataFrame slice</p>
-<blockquote>
-<div><p>chunk of choosers</p>
-</div></blockquote>
-<p><strong>alternatives</strong> : pandas DataFrame slice</p>
-<blockquote class="last">
-<div><p>chunk of alternatives for chooser chunk</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>i</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">one-based index of current chunk</p>
+</dd>
+<dt><strong>num_chunks</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">total number of chunks that will be yielded</p>
+</dd>
+<dt><strong>choosers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame slice</span></dt>
+<dd><p class="first last">chunk of choosers</p>
+</dd>
+<dt><strong>alternatives</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame slice</span></dt>
+<dd><p class="first last">chunk of alternatives for chooser chunk</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3216,21 +3466,23 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 <span class="target" id="module-activitysim.core.util"></span><dl class="function">
 <dt id="activitysim.core.util.assign_in_place">
 <code class="descclassname">activitysim.core.util.</code><code class="descname">assign_in_place</code><span class="sig-paren">(</span><em>df</em>, <em>df2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.assign_in_place" title="Permalink to this definition">¶</a></dt>
-<dd><p>update existing row values in df from df2, adding columns to df if they are not tehre</p>
+<dd><p>update existing row values in df from df2, adding columns to df if they are not there</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>df</strong> : pd.DataFrame</p>
-<blockquote>
-<div><p>assignment left-hand-side (dest)</p>
-</div></blockquote>
-<p><strong>df2: pd.DataFrame</strong></p>
-<blockquote>
-<div><p>assignment right-hand-side (source)</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p class="last"><strong>——-</strong></p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pd.DataFrame</span></dt>
+<dd><p class="first last">assignment left-hand-side (dest)</p>
+</dd>
+<dt><strong>df2: pd.DataFrame</strong></dt>
+<dd><p class="first last">assignment right-hand-side (source)</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3246,30 +3498,29 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>left_df</strong> : pandas DataFrame</p>
-<blockquote>
-<div><p>index name assumed to be same as that of right_df</p>
-</div></blockquote>
-<p><strong>right_df</strong> : pandas DataFrame</p>
-<blockquote>
-<div><p>index name assumed to be same as that of left_df</p>
-</div></blockquote>
-<p><strong>join_col</strong> : str</p>
-<blockquote>
-<div><p>name of column to join on (in addition to index values)
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>left_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span></dt>
+<dd><p class="first last">index name assumed to be same as that of right_df</p>
+</dd>
+<dt><strong>right_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span></dt>
+<dd><p class="first last">index name assumed to be same as that of left_df</p>
+</dd>
+<dt><strong>join_col</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">name of column to join on (in addition to index values)
 should have same name in both dataframes</p>
-</div></blockquote>
-<p><strong>target_col</strong> : str</p>
-<blockquote>
-<div><p>name of column from right_df whose joined values should be returned as series</p>
-</div></blockquote>
+</dd>
+<dt><strong>target_col</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">name of column from right_df whose joined values should be returned as series</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>target_series</strong> : pandas Series</p>
-<blockquote class="last">
-<div><p>series of target_col values with same index as left_df
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>target_series</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas Series</span></dt>
+<dd><p class="first last">series of target_col values with same index as left_df
 i.e. values joined to left_df from right_df with index of left_df</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3285,25 +3536,26 @@ something- or someone-else with a certain property within a group.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>groups</strong> : pandas.Series</p>
-<blockquote>
-<div><p>A column with the same index as <cite>bools</cite> that defines the grouping
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>groups</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">A column with the same index as <cite>bools</cite> that defines the grouping
 of <cite>bools</cite>. The <cite>bools</cite> Series will be used to index <cite>groups</cite> and
 then the grouped values will be counted.</p>
-</div></blockquote>
-<p><strong>bools</strong> : pandas.Series</p>
-<blockquote>
-<div><p>A boolean Series indicating where the property of interest is present.
+</dd>
+<dt><strong>bools</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">A boolean Series indicating where the property of interest is present.
 Should have the same index as <cite>groups</cite>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>others</strong> : pandas.Series</p>
-<blockquote class="last">
-<div><p>A boolean Series with the same index as <cite>groups</cite> and <cite>bools</cite>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>others</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd><p class="first last">A boolean Series with the same index as <cite>groups</cite> and <cite>bools</cite>
 indicating whether there is something- or something-else within
 a group with some property (as indicated by <cite>bools</cite>).</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3319,12 +3571,20 @@ a group with some property (as indicated by <cite>bools</cite>).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>loc_list</strong> : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)</p>
-<p><strong>target_df</strong> : pandas.DataFrame containing column named attribute</p>
-<p><strong>attribute</strong> : name of column from loc_list to return (or none for all columns)</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>loc_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)</span></dt>
+<dd></dd>
+<dt><strong>target_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame containing column named attribute</span></dt>
+<dd></dd>
+<dt><strong>attribute</strong> <span class="classifier-delimiter">:</span> <span class="classifier">name of column from loc_list to return (or none for all columns)</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas.DataFrame or, if attribbute specified, pandas.Series</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pandas.DataFrame or, if attribbute specified, pandas.Series</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3340,11 +3600,18 @@ a group with some property (as indicated by <cite>bools</cite>).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>loc_list</strong> : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)</p>
-<p><strong>target_series</strong> : pandas.Series</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>loc_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)</span></dt>
+<dd></dd>
+<dt><strong>target_series</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas.Series</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pandas.Series</strong></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3377,9 +3644,17 @@ table and would require a second step to change the index.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>series1, series2</strong> : pandas.Series</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>series1, series2</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd></dd>
+</dl>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>reindexed</strong> : pandas.Series</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>reindexed</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Series</span></dt>
+<dd></dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3400,14 +3675,14 @@ table and would require a second step to change the index.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nests</strong> : dict</p>
-<blockquote>
-<div><p>dictionary specifying nesting structure and nesting coefficients</p>
-</div></blockquote>
-<p><strong>constants</strong> : dict</p>
-<blockquote class="last">
-<div><p>dictionary of constants to add to locals for use by expressions in model spec</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>nests</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">dictionary specifying nesting structure and nesting coefficients</p>
+</dd>
+<dt><strong>constants</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">dictionary of constants to add to locals for use by expressions in model spec</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3422,10 +3697,11 @@ table and would require a second step to change the index.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>constants</strong> : dict</p>
-<blockquote class="last">
-<div><p>dictionary of constants to add to locals for use by expressions in model spec</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>constants</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">dictionary of constants to add to locals for use by expressions in model spec</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3445,14 +3721,18 @@ table and would require a second step to change the index.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>parser</strong> : argparse.ArgumentParser or None</p>
-<blockquote>
-<div><p>to  custom argument handling, pass in a parser with arguments added
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>parser</strong> <span class="classifier-delimiter">:</span> <span class="classifier">argparse.ArgumentParser or None</span></dt>
+<dd><p class="first last">to  custom argument handling, pass in a parser with arguments added
 and handle them based on returned args. This method will hand the args it adds</p>
-</div></blockquote>
-<p><strong>Returns</strong></p>
-<p><strong>——-</strong></p>
-<p class="last"><strong>args</strong> : parser.parse_args() result</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>args</strong> <span class="classifier-delimiter">:</span> <span class="classifier">parser.parse_args() result</span></dt>
+<dd></dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -3463,7 +3743,7 @@ and handle them based on returned args. This method will hand the args it adds</
 </div>
 <div class="section" id="inject">
 <span id="id16"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
-<p>ORCA wrapper class to make it easier to track and manage interaction with the data pipeline.</p>
+<p>Wrap orca class to make it easier to track and manage interaction with the data pipeline.</p>
 <div class="section" id="id17">
 <h4>API<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject"></span><dl class="function">
@@ -3487,6 +3767,67 @@ and handle them based on returned args. This method will hand the args it adds</
 
 </div>
 </div>
+<div class="section" id="output">
+<h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
+<p>Write output files.</p>
+<div class="section" id="id19">
+<h4>API<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.steps.output"></span><dl class="function">
+<dt id="activitysim.core.steps.output.write_data_dictionary">
+<code class="descclassname">activitysim.core.steps.output.</code><code class="descname">write_data_dictionary</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.steps.output.write_data_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write table_name, number of rows, columns, and bytes for each checkpointed table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>output_dir: str</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.steps.output.write_tables">
+<code class="descclassname">activitysim.core.steps.output.</code><code class="descname">write_tables</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.steps.output.write_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write pipeline tables as csv files (in output directory) as specified by output_tables list
+in settings file.</p>
+<p>‘output_tables’ can specify either a list of output tables to include or to skip
+if no output_tables list is specified, then no checkpointed tables will be written</p>
+<p>To write all output tables EXCEPT the households and persons tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_tables</span><span class="p">:</span>
+  <span class="n">action</span><span class="p">:</span> <span class="n">skip</span>
+  <span class="n">tables</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">households</span>
+    <span class="o">-</span> <span class="n">persons</span>
+</pre></div>
+</div>
+<p>To write ONLY the households table:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_tables</span><span class="p">:</span>
+  <span class="n">action</span><span class="p">:</span> <span class="n">include</span>
+  <span class="n">tables</span><span class="p">:</span>
+     <span class="o">-</span> <span class="n">households</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>output_dir: str</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="tests">
 <h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
 <p>See activitysim.core.test</p>
@@ -3496,18 +3837,16 @@ and handle them based on returned args. This method will hand the args it adds</
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="development.html" class="btn btn-neutral float-right" title="Software Development" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="dataschema.html" class="btn btn-neutral" title="Data Schema" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="howitworks.html" class="btn btn-neutral" title="How the System Works" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -3520,7 +3859,7 @@ and handle them based on returned args. This method will hand the args it adds</
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -3538,7 +3877,8 @@ and handle them based on returned args. This method will hand the args it adds</
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.2',
+            VERSION:'0.6',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -3552,19 +3892,13 @@ and handle them based on returned args. This method will hand the args it adds</
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

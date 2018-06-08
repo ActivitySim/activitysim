@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; ActivitySim 0.5.2
+  <title>Getting Started &mdash; ActivitySim 0.6
  documentation</title>
   
 
@@ -25,30 +25,20 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="ActivitySim 0.5.2
- documentation" href="index.html"/>
-        <link rel="next" title="Example" href="abmexample.html"/>
-        <link rel="prev" title="ActivitySim" href="index.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Example" href="abmexample.html" />
+    <link rel="prev" title="ActivitySim" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -70,7 +60,7 @@
             
             
               <div class="version">
-                0.5.2
+                0.6
 
               </div>
             
@@ -99,28 +89,17 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#activitysim">ActivitySim</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#release">Release</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#development">Development</a></li>
 </ul>
 </li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#run-the-example">Run the Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hardware">Hardware</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#expressions">Expressions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#conventions">Conventions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-expressions-file">Example Expressions File</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dataschema.html">Data Schema</a></li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
             
@@ -132,7 +111,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ActivitySim</a>
@@ -140,9 +119,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -193,66 +173,31 @@
 </div>
 <div class="section" id="installation">
 <span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>The following installation instructions are for Windows or Mac users.  ActivitySim is built
-to run on one machine with sufficient available RAM to fit all required data and calculations
-in memory.</p>
-<div class="section" id="anaconda">
-<h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim is a 64bit Python 2.7 library that uses a number of packages from the
-scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
-and <a class="reference external" href="http://numpy.org">numpy</a>. ActivitySim does not currently support Python 3.</p>
-<p>The recommended way to get your own scientific Python installation is to
-install <a class="reference external" href="http://docs.continuum.io/anaconda/index.html">Anaconda</a> 2 64bit, which contains many of the libraries upon which
-ActivitySim depends + some handy Python installation management tools.</p>
-<p>Anaconda includes the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command line tool, which does a number of useful
-things, including creating <a class="reference external" href="http://conda.pydata.org/docs/using/envs.html">environments</a>
-(i.e. stand-alone Python installations/instances/sandboxes) that are the recommended
-way to work with multiple versions of Python on one machine.  Using conda
-environments keeps multiple Python setups from conflicting with one another.</p>
-<p>After installing Anaconda, create an ActivitySim test environment
-with the following commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#Windows</span>
-<span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">2.7</span>
-<span class="n">activate</span> <span class="n">asimtest</span>
-
-<span class="c1">#Mac</span>
-<span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">2.7</span>
-<span class="n">source</span> <span class="n">activate</span> <span class="n">asimtest</span>
-</pre></div>
-</div>
-<p>If you access the internet from behind a firewall, then you will need to configure your proxy
-server. To do so, create a <code class="docutils literal notranslate"><span class="pre">.condarc</span></code> file in your Anaconda installation folder, such as:</p>
+<ol class="arabic simple">
+<li>Install <a class="reference external" href="https://www.continuum.io/downloads">Anaconda 64bit Python 2.7</a>.  It is best to use <a class="reference internal" href="#anaconda-notes"><span class="std std-ref">Anaconda</span></a> with ActivitySim.</li>
+<li>If you access the internet from behind a firewall, then you need to configure your proxy server. To do so, create a .condarc file in your Anaconda installation folder, such as:</li>
+</ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
   <span class="n">http</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
   <span class="n">https</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
 <span class="n">ssl_verify</span><span class="p">:</span> <span class="n">false</span>
 </pre></div>
 </div>
-<p>This will create a new conda environment named <code class="docutils literal notranslate"><span class="pre">asimtest</span></code> and set it as the
-active conda environment.  You need to activate the environment each time you
-start a new command session.  You can remove an environment with
-<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asimtest</span> <span class="pre">--all</span></code> and check the current active environment with
-<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
+<ol class="arabic simple" start="3">
+<li>Create and activate an Anaconda environment (basically a Python install just for this project)</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">2.7</span>
+
+<span class="c1">#Windows</span>
+<span class="n">activate</span> <span class="n">asimtest</span>
+
+<span class="c1">#Mac</span>
+<span class="n">source</span> <span class="n">activate</span> <span class="n">asimtest</span>
+</pre></div>
 </div>
-<div class="section" id="dependencies">
-<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim depends on the following libraries, some of which* are pre-installed
-with Anaconda:</p>
-<ul class="simple">
-<li><a class="reference external" href="http://numpy.org">numpy</a> &gt;= 1.13.0 *</li>
-<li><a class="reference external" href="http://pandas.pydata.org">pandas</a> &gt;= 0.20.3 *</li>
-<li><a class="reference external" href="http://pyyaml.org/wiki/PyYAML">pyyaml</a> &gt;= 3.0 *</li>
-<li><a class="reference external" href="http://www.pytables.org/moin">tables</a> &gt;= 3.3.0 *</li>
-<li><a class="reference external" href="http://toolz.readthedocs.org/en/latest/">toolz</a> or
-<a class="reference external" href="https://github.com/pytoolz/cytoolz">cytoolz</a> &gt;= 0.7 *</li>
-<li><a class="reference external" href="https://pypi.python.org/pypi/psutil">psutil</a> &gt;= 4.1</li>
-<li><a class="reference external" href="https://pypi.python.org/pypi/zbox">zbox</a> &gt;= 1.2</li>
-<li><a class="reference external" href="https://udst.github.io/orca">orca</a> &gt;= 1.1</li>
-<li><a class="reference external" href="https://pypi.python.org/pypi/OpenMatrix">openmatrix</a> &gt;= 0.2.4</li>
-</ul>
-<p>To install the dependencies with conda, first make sure to activate the correct
-conda environment and then install each package using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.  Pip will
-attempt to install any dependencies that are not already installed.</p>
+<ol class="arabic simple" start="4">
+<li>Get and install other required libraries on the activated conda Python environment using <a class="reference external" href="https://pypi.org/project/pip">pip</a>:</li>
+</ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#required packages for running ActivitySim</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">tables</span> <span class="n">pyyaml</span> <span class="n">psutil</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
@@ -262,21 +207,15 @@ attempt to install any dependencies that are not already installed.</p>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
 </pre></div>
 </div>
-<p>If numexpr (which numpy requires) fails to install, you may need
-the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visual C++ Compiler for Python</a>.</p>
-<p>If you access the internet from behind a firewall, then you will need to configure
-your proxy server when downloading packages.  For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">trusted</span><span class="o">-</span><span class="n">host</span> <span class="n">pypi</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">org</span> <span class="o">--</span><span class="n">proxy</span><span class="o">=</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>  <span class="n">cytoolz</span>
+<ol class="arabic simple" start="5">
+<li>If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages. For example:</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">trusted</span><span class="o">-</span><span class="n">host</span> <span class="n">pypi</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">org</span> <span class="o">--</span><span class="n">proxy</span><span class="o">=</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>  <span class="n">openmatrix</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="activitysim">
-<h3>ActivitySim<a class="headerlink" href="#activitysim" title="Permalink to this headline">¶</a></h3>
-<p>The current <code class="docutils literal notranslate"><span class="pre">release</span></code> version of ActivitySim can be installed
-from <a class="reference external" href="https://pypi.python.org/pypi/activitysim">PyPI</a>  as well using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.
-The development version can be installed directly from the source.</p>
-<div class="section" id="release">
-<h4>Release<a class="headerlink" href="#release" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic simple" start="6">
+<li>Get and install the ActivitySim package on the activated conda Python environment:</li>
+</ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#new install</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
 
@@ -284,25 +223,53 @@ The development version can be installed directly from the source.</p>
 <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">activitysim</span>
 </pre></div>
 </div>
+<div class="section" id="anaconda">
+<span id="anaconda-notes"></span><h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>ActivitySim is a 64bit Python 2.7 library that uses a number of packages from the
+scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
+and <a class="reference external" href="http://numpy.org">numpy</a>. ActivitySim does not currently support Python 3.</p>
+<p>The recommended way to get your own scientific Python installation is to
+install Anaconda 2 64bit, which contains many of the libraries upon which
+ActivitySim depends + some handy Python installation management tools.</p>
+<p>Anaconda includes the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command line tool, which does a number of useful
+things, including creating <a class="reference external" href="http://conda.pydata.org/docs/using/envs.html">environments</a>
+(i.e. stand-alone Python installations/instances/sandboxes) that are the recommended
+way to work with multiple versions of Python on one machine.  Using conda
+environments keeps multiple Python setups from conflicting with one another.</p>
+<p>You need to activate the activitysim environment each time you start a new command
+session.  You can remove an environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asimtest</span> <span class="pre">--all</span></code> and
+check the current active environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
+<p class="last">If numexpr (which numpy requires) fails to install, you may need
+the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visual C++ Compiler for Python</a>.</p>
 </div>
-<div class="section" id="development">
-<h4>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h4>
-<p>The development version of ActivitySim can be installed as follows:</p>
+</div>
+</div>
+<div class="section" id="run-the-example">
+<h2>Run the Example<a class="headerlink" href="#run-the-example" title="Permalink to this headline">¶</a></h2>
+<p>To setup and run the <a class="reference internal" href="abmexample.html#example"><span class="std std-ref">Example</span></a>, do the following:</p>
 <ul class="simple">
-<li>Clone or fork the source from the <a class="reference external" href="https://github.com/udst/activitysim">GitHub repository</a></li>
-<li>Activate the correct conda environment if needed</li>
-<li>Navigate to your local activitysim git directory</li>
-<li>Run the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></li>
+<li>Copy <code class="docutils literal notranslate"><span class="pre">mtc_asim.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">skims.omx</span></code> from <code class="docutils literal notranslate"><span class="pre">activitysim\abm\test\data</span></code> to <code class="docutils literal notranslate"><span class="pre">example\data</span></code>.</li>
+<li>Open a command prompt in the <code class="docutils literal notranslate"><span class="pre">example</span></code> folder</li>
+<li>Run the following commands:</li>
 </ul>
-<p>The <code class="docutils literal notranslate"><span class="pre">develop</span></code> command is required in order to make changes to the
-source and see the results without reinstalling.  You may need to first uninstall the
-the pip installed version before installing the development version from source.  This is
-done with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">uninstall</span> <span class="pre">activitysim</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#Windows</span>
+<span class="n">activate</span> <span class="n">asimtest</span>
+
+<span class="c1">#Mac</span>
+<span class="n">source</span> <span class="n">activate</span> <span class="n">asimtest</span>
+
+<span class="c1">#run example</span>
+<span class="n">python</span> <span class="n">run_populationsim</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
 </div>
-</div>
+<ul class="simple">
+<li>Review the outputs in the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder</li>
+</ul>
 </div>
 <div class="section" id="hardware">
-<span id="expressions-in-detail"></span><h2>Hardware<a class="headerlink" href="#hardware" title="Permalink to this headline">¶</a></h2>
+<h2>Hardware<a class="headerlink" href="#hardware" title="Permalink to this headline">¶</a></h2>
 <p>The computing hardware required to run an ActivitySim-based model generally depends on:</p>
 <ul class="simple">
 <li>the number of households to be simulated</li>
@@ -310,89 +277,14 @@ done with <code class="docutils literal notranslate"><span class="pre">pip</span
 <li>the desired runtimes</li>
 </ul>
 <p>ActivitySim requires a substantial amount of RAM since it stores data in-memory in order to minimize runtimes.
-For example, the example model is tested on a Windows server with 256GB of RAM and 48 threads.  ActivitySim
-is NOT currently multi-threaded/processed, but this improvement is in the development roadmap.</p>
-</div>
-<div class="section" id="expressions">
-<h2>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h2>
-<p>Much of the power of ActivitySim comes from being able to specify Python, pandas, and
-numpy expressions for calculations. Refer to the pandas help for a general
-introduction to expressions.  ActivitySim provides two ways to evaluate expressions:</p>
-<ul class="simple">
-<li>Simple table expressions are evaluated using <code class="docutils literal notranslate"><span class="pre">DataFrame.eval()</span></code>.  <a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html">pandas’ eval</a> operates on the current table.</li>
-<li>Python expressions, denoted by beginning with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python’s eval()</a>.</li>
-</ul>
-<p>Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects
-currently in memory.</p>
-<div class="section" id="conventions">
-<h3>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h3>
-<p>There are a few conventions for writing expressions in ActivitySim:</p>
-<ul class="simple">
-<li>each expression is applied to all rows in the table being operated on</li>
-<li>expressions must be vectorized expressions and can use most numpy and pandas expressions</li>
-<li>global constants are specified in the settings file</li>
-<li>comments are specified with <code class="docutils literal notranslate"><span class="pre">#</span></code></li>
-<li>you can refer to the current table being operated on as <code class="docutils literal notranslate"><span class="pre">df</span></code></li>
-<li>often an object called <code class="docutils literal notranslate"><span class="pre">skims</span></code>, <code class="docutils literal notranslate"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information.</li>
-<li>when editing the CSV files in Excel, use single quote ‘ or space at the start of a cell to get Excel to accept the expression</li>
-</ul>
-</div>
-<div class="section" id="example-expressions-file">
-<h3>Example Expressions File<a class="headerlink" href="#example-expressions-file" title="Permalink to this headline">¶</a></h3>
-<p>An expressions file has the following basic form:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="39%" />
-<col width="36%" />
-<col width="13%" />
-<col width="12%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Description</th>
-<th class="head">Expression</th>
-<th class="head">cars0</th>
-<th class="head">cars1</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>2 Adults (age 16+)</td>
-<td>drivers==2</td>
-<td>0</td>
-<td>3.0773</td>
-</tr>
-<tr class="row-odd"><td>Persons age 35-34</td>
-<td>num_young_adults</td>
-<td>0</td>
-<td>-0.4849</td>
-</tr>
-<tr class="row-even"><td>Number of workers, capped at 3</td>
-<td>&#64;df.workers.clip(upper=3)</td>
-<td>0</td>
-<td>0.2936</td>
-</tr>
-<tr class="row-odd"><td>Distance, from 0 to 1 miles</td>
-<td>&#64;skims[‘DIST’].clip(1)</td>
-<td>-3.2451</td>
-<td>-0.9523</td>
-</tr>
-</tbody>
-</table>
-<ul class="simple">
-<li>Rows are vectorized expressions that will be calculated for every record in the current table being operated on</li>
-<li>The Description column describes the expression</li>
-<li>The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, <code class="docutils literal notranslate"><span class="pre">drivers</span></code> is a column in the current table.  Use <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> to refer to data outside the current table</li>
-<li>There is a column for each alternative and its relevant coefficient</li>
-</ul>
-<p>See <a class="reference internal" href="core.html#expressions"><span class="std std-ref">Utility Expressions</span></a> for more information.</p>
-</div>
+For example, the example model is tested on a Windows server with 256GB of RAM and 48 threads.  Multi-threading/processing
+is <strong>NOT YET IMPLEMENTED</strong>, but is planned for an upcoming release.</p>
 </div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -414,7 +306,7 @@ currently in memory.</p>
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -432,7 +324,8 @@ currently in memory.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.2',
+            VERSION:'0.6',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -446,19 +339,13 @@ currently in memory.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

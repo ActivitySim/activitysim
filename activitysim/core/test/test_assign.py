@@ -16,6 +16,7 @@ import orca
 
 from .. import assign
 from .. import tracing
+from .. import inject
 
 
 def close_handlers():
@@ -26,6 +27,11 @@ def close_handlers():
         logger.handlers = []
         logger.propagate = True
         logger.setLevel(logging.NOTSET)
+
+
+def teardown_function(func):
+    orca.clear_cache()
+    inject.reinject_decorated_tables()
 
 
 @pytest.fixture(scope='module')

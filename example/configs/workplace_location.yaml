@@ -1,20 +1,19 @@
 SAMPLE_SIZE: 30
 
-ALT_COL_NAME: dest_TAZ
-
 SIMULATE_CHOOSER_COLUMNS:
   - income_segment
   - TAZ
 
-LOGSUM_CHOOSER_COLUMNS:
-  - TAZ
-  - hhsize
-  - age
-  - age_16_p
-  - age_16_to_19
-  - density_index
-# dont know auto_ownership since model has not been run yet
-#  - auto_ownership
 
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: TAZ
+ALT_DEST_COL_NAME: alt_dest
 IN_PERIOD: 8
 OUT_PERIOD: 17
+
+
+annotate_persons:
+  SPEC: annotate_persons_workplace
+  DF: persons
+  TABLES:
+    - land_use

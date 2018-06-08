@@ -50,9 +50,9 @@ No cars in household - Non-working adult interaction,(ptype == 4) & (auto_owners
 No cars in household - Retired interaction,(ptype == 5) & (auto_ownership == 0),,-1.306,,,
 No cars in household - Driving-age student interaction,(ptype == 6) & (auto_ownership == 0),,,,-1.413,-1.302
 No cars in household - Pre-driving age child who is in school interaction,(ptype == 7) & (auto_ownership == 0),,,,-1.413,
-Fewer cars than drivers in household - University student interaction,(ptype == 3) & (auto_ownership < drivers),,,,-0.5759,
-Fewer cars than drivers in household - Driving-age student interaction,(ptype == 6) & (auto_ownership < drivers),,,,-0.5759,
-Fewer cars than drivers in household - Pre-driving age child who is in school interaction,(ptype == 7) & (auto_ownership < drivers),,,,-0.5759,
+Fewer cars than drivers in household - University student interaction,(ptype == 3) & (auto_ownership < num_drivers),,,,-0.5759,
+Fewer cars than drivers in household - Driving-age student interaction,(ptype == 6) & (auto_ownership < num_drivers),,,,-0.5759,
+Fewer cars than drivers in household - Pre-driving age child who is in school interaction,(ptype == 7) & (auto_ownership < num_drivers),,,,-0.5759,
 Number of preschool children in household - Full-time worker interaction,(ptype == 1) * (num_young_children),0,-0.1478,-0.1335,,-0.1251
 Number of preschool children in household - Part-time worker interaction,(ptype == 2) * (num_young_children),0,-0.1478,-0.1335,,-0.1251
 Number of preschool children in household - University student interaction,(ptype == 3) * (num_young_children),0.2191,-0.1478,0,-0.5577,-0.1251
@@ -60,8 +60,8 @@ Number of preschool children in household - Non-working adult interaction,(ptype
 Number of preschool children in household - Retired interaction,(ptype == 5) * (num_young_children),0,-0.1478,-0.1335,,
 Number of preschool children in household - Driving-age student interaction,(ptype == 6) * (num_young_children),0.2191,,0,-0.5577,-0.1251
 Number of preschool children in household - Pre-driving age child who is in school interaction,(ptype == 7) * (num_young_children),0.2191,,0,-0.5577,
-Number of non-workers in the household - Full-time worker interaction,(ptype == 1) * non_workers,,,0.2574,,
-Number of non-workers in the household - Part-time worker interaction,(ptype == 2) * non_workers,,,0.2574,,
+Number of non-workers in the household - Full-time worker interaction,(ptype == 1) * num_non_workers,,,0.2574,,
+Number of non-workers in the household - Part-time worker interaction,(ptype == 2) * num_non_workers,,,0.2574,,
 Household income higher than $50k - Full-time worker interaction,(ptype == 1) & (income_in_thousands > 50),0,,0.0347,,0.0347
 Household income higher than $50k - Part-time worker interaction,(ptype == 2) & (income_in_thousands > 50),0,,0.0347,,0.0347
 Household income higher than $50k - University student interaction,(ptype == 3) & (income_in_thousands > 50),-0.0528,-0.0528,0,,-0.0528
@@ -96,5 +96,6 @@ Unavailable: Non-working adult,ptype == 4,,,,-999,-999
 Unavailable: Retired,ptype == 5,,,,-999,-999
 Unavailable: Driving-age child,ptype == 6,-999,-999,,,
 Unavailable: Pre-driving age child who is in school,ptype == 7,,-999,,,-999
+Unavailable: Pre-driving age child who is not in school,ptype == 8,-999,-999,,,-999
 Unavailable: Work tours for those with no usual work location,~(workplace_taz > -1),-999,-999,,,-999
-Unavailalbe: School tours for those with no usual school location,~(school_taz > -1),,,-999,-999,-999
+Unavailable: School tours for those with no usual school location,~(school_taz > -1),,,-999,-999,-999

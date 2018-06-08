@@ -17,39 +17,7 @@ _MAX_SEED = (1 << 32)
 # not arbitrary, as we count on incrementing step_num from NULL_STEP_NUM to 0
 NULL_STEP_NUM = -1
 
-SavedChannelState = collections.namedtuple('SavedChannelState', 'channel_name step_num step_name')
-
-
-"""
-We expect that the random number channel can be determined by the name of the index of the
-dataframe accompanying the request. This function encapsulates the knowledge of that mapping.
-
-Generally, the channel name is just the table name used by the pipeline and orca.
-The exception is the 'tours' channel, which is messy because the mandatory and non-mandatory
-tours tables are originally created separately and later combined in to a single 'tours'
-table. But during a few model steps before they are combined, they actually exist as two
-distinct tables. We only need to know this dirty secret about tables when we reload
-checkpointed channels.
-"""
-
-_CHANNELS = {
-    'households': {
-        'max_steps': 2,
-        'index': 'HHID'
-    },
-    'persons': {
-        'max_steps': 8,
-        'index': 'PERID'
-    },
-    'tours': {
-        'max_steps': 9,
-        'index': 'tour_id'
-    },
-    'trips': {
-        'max_steps': 5,
-        'index': 'trip_id'
-    },
-}
+MAX_STEPS = 100
 
 
 class SimpleChannel(object):
@@ -86,7 +54,7 @@ class SimpleChannel(object):
     and full datasets. I am punting on this for now.
     """
 
-    def __init__(self, channel_name, base_seed, domain_df, max_steps, step_name, step_num):
+    def __init__(self, channel_name, base_seed, domain_df, step_num):
 
         self.name = channel_name
         self.base_seed = base_seed
@@ -94,14 +62,10 @@ class SimpleChannel(object):
         # ensure that every channel is different, even for the same df index values and max_steps
         self.unique_channel_seed = hash(self.name) % _MAX_SEED
 
-        self.step_name = step_name
-
         assert (step_num == NULL_STEP_NUM) or step_num >= 0
         self.step_num = step_num
 
-        self.max_steps = max_steps
-
-        assert (self.step_num < self.max_steps)
+        assert (self.step_num < MAX_STEPS)
 
         # create dataframe to hold state for every df row
         self.row_states = self.create_row_states_for_domain(domain_df)
@@ -124,17 +88,12 @@ class SimpleChannel(object):
         """
 
         # dataframe to hold state for every df row
-        row_states = pd.DataFrame(index=domain_df.index)
+        row_states = pd.DataFrame(columns=['row_seed', 'offset'], index=domain_df.index)
 
-        # ensure that every channel is different, even for the same df index values and max_steps
-        unique_channel_seed = hash(self.name) % _MAX_SEED
-
-        # FIXME - irksome that we need to know max_steps to avoid collisions
-        # I'm not sure how to do this in a way that avoids collisions using a single seed
-        # Unfortunately seeding from an array is currently A LOT slower than using a single seed
-        # without knowing either max_steps or max_index or with support for jump/offset
-        row_states['row_seed'] = (self.base_seed + self.unique_channel_seed +
-                                  row_states.index * self.max_steps) % _MAX_SEED
+        if not row_states.empty:
+            row_states['row_seed'] = (self.base_seed + self.unique_channel_seed +
+                                      row_states.index * MAX_STEPS) % _MAX_SEED
+            row_states['offset'] = 0
 
         return row_states
 
@@ -163,7 +122,7 @@ class SimpleChannel(object):
         new_row_states = self.create_row_states_for_domain(domain_df)
         self.row_states = pd.concat([self.row_states, new_row_states])
 
-    def begin_step(self, step_name):
+    def begin_step(self, step_num):
         """
         Reset channel state for a new state
 
@@ -173,15 +132,11 @@ class SimpleChannel(object):
             pipeline step name for this step
         """
 
-        if self.step_name == step_name:
-            return
+        self.step_num = step_num
 
-        self.step_name = step_name
-        self.step_num += 1
-
-        if self.step_num >= self.max_steps:
-            raise RuntimeError("Too many steps (%s) maxstep %s for channel '%s'"
-                               % (self.step_num, self.max_steps, self.name))
+        if self.step_num >= MAX_STEPS:
+            raise RuntimeError("Too many steps: %s (max %s) for channel '%s'"
+                               % (self.step_num, MAX_STEPS, self.name))
 
         # number of rands pulled this step
         self.row_states['offset'] = 0
@@ -189,31 +144,21 @@ class SimpleChannel(object):
         # standard constant to use for choice_for_df instead of fast-forwarding rand stream
         self.multi_choice_offset = None
 
-        logger.info("begin_step '%s' step_num %s for channel '%s'"
-                    % (step_name, self.step_num, self.name, ))
-
-    def _generators_for_df(self, df, override_offset=None):
+    def _generators_for_df(self, df):
         """
         Python generator function for iterating over numpy prngs (nomenclature collision!)
         seeded and fast-forwarded on-the-fly to the appropriate position in the channel's
         random number stream for each row in df.
-
-        if override_offset is truthy, it contains an offset to fast-forward by INSTEAD of the
-        the current random_state row offset for that df row. This is passed by choice_for_df
-        when set_multi_choice_offset has been set, so that multiple choice_for_df calls for the
-        same row will yield the same choices (assuming that choice array is the same length)
 
         Parameters
         ----------
         df : pandas.DataFrame
             dataframe with index values for which random streams are to be generated
             and well-known index name corresponding to the channel
-        override_offset
-
         """
 
         # assert no dupes
-        assert len(df.index.unique() == len(df.index))
+        assert len(df.index.unique()) == len(df.index)
 
         df_row_states = self.row_states.loc[df.index]
 
@@ -223,45 +168,11 @@ class SimpleChannel(object):
             seed = (row.row_seed + self.step_num) % _MAX_SEED
             prng.seed(seed)
 
-            offset = override_offset or row.offset
-            if offset:
+            if row.offset:
                 # consume rands
-                prng.rand(offset)
+                prng.rand(row.offset)
 
             yield prng
-
-    def set_multi_choice_offset(self, offset, step_name):
-        """
-        setting multi_choice_offset ensures that multiple calls for the same row_state will yield
-        the same choices (assuming that choice array is the same length). It also permits avoiding
-        collisions with the rand() stream if multi_choice_offset is an integer larger than the
-        max number of random_for_df calls made in the same step.
-
-        choice_for_df passes multi_choice_offset to _generators_for_df as override_offset so that,
-        if multi_choice_offset has been set, _generators_for_df will
-        EITHER use the same rand sequence for choosing values
-        OR use fresh random values for choices.
-
-        Parameters
-        ----------
-        offset : int
-            the offset into the current step's random number stream at which to begin taking
-            rands for each choice_for_df row_state row
-        step_name : str
-            this allows us to ensure that this method is only ever called BEFORE the step begins
-
-        Returns
-        -------
-
-        """
-        # must do this before step begins
-        assert self.step_name != step_name
-
-        # expect an int or None
-        assert offset is None or type(offset) == int
-
-        self.begin_step(step_name)
-        self.multi_choice_offset = offset
 
     def random_for_df(self, df, step_name, n=1):
         """
@@ -292,7 +203,6 @@ class SimpleChannel(object):
         rands : 2-D ndarray
             array the same length as df, with n floats in range [0, 1) for each df row
         """
-        self.begin_step(step_name)
         generators = self._generators_for_df(df)
         rands = np.asanyarray([prng.rand(n) for prng in generators])
         # update offset for rows we handled
@@ -310,11 +220,6 @@ class SimpleChannel(object):
 
         The columns in df are ignored; the index name and values are used to determine
         which random number sequence to to use.
-
-        We pass the multi_choice_offset to _generators_for_df as override_offset so that,
-        if multi_choice_offset has been set (by a call to set_multi_choice_offset method, q,v,)
-        _generators_for_df will EITHER use the same rand sequence for choosing values
-        OR use fresh random values for choices.
 
         Parameters
         ----------
@@ -339,11 +244,9 @@ class SimpleChannel(object):
         choices : 1-D ndarray of length: size * len(df.index)
             The generated random samples for each row concatenated into a single (flat) array
         """
-        self.begin_step(step_name)
 
         # initialize the generator iterator
-        # note: if multi_choice_offset is set, it will be used to INSTEAD of current offset
-        generators = self._generators_for_df(df, override_offset=self.multi_choice_offset)
+        generators = self._generators_for_df(df)
 
         sample = np.concatenate(tuple(prng.choice(a, size, replace) for prng in generators))
 
@@ -359,32 +262,26 @@ class SimpleChannel(object):
 
 class Random(object):
 
-    def __init__(self, channel_info=_CHANNELS):
+    def __init__(self):
 
-        self.channel_info = channel_info.copy()
-
-        # for map index name to channel name
-        self.index_map = {info['index']: channel_name
-                          for channel_name, info in self.channel_info.iteritems()}
+        # dict mapping df index_name to channel (table) name
+        self.index_to_channel_map = {}
 
         self.channels = {}
         self.step_name = None
+        self.step_num = NULL_STEP_NUM
         self.step_seed = None
         self.base_seed = 0
         self.global_rng = np.random.RandomState()
 
-    def get_channel_info(self, channel_name, property_name):
+    def set_channel_info(self, channel_info):
 
-        info = self.channel_info.get(channel_name, None)
-        if info is None:
-            raise RuntimeError("Unknown channel '%s'" % channel_name)
+        assert len(self.channels) == 0
+        assert len(self.index_to_channel_map) == 0
 
-        property = info.get(property_name, None)
-        if property is None:
-            raise RuntimeError("Unknown property '%s' for channel '%s'"
-                               % (property_name, channel_name))
-
-        return property
+        # for mapping index name to channel name
+        self.index_to_channel_map = \
+            {index_name: channel_name for channel_name, index_name in channel_info.iteritems()}
 
     def get_channel_name_for_df(self, df):
         """
@@ -404,7 +301,7 @@ class Random(object):
         -------
             channel_name : str
         """
-        channel_name = self.index_map.get(df.index.name, None)
+        channel_name = self.index_to_channel_map.get(df.index.name, None)
         if channel_name is None:
             raise RuntimeError("No channel with index name '%s'" % df.index.name)
         return channel_name
@@ -442,10 +339,15 @@ class Random(object):
         assert step_name != self.step_name
 
         self.step_name = step_name
+        self.step_num += 1
+
         self.step_seed = hash(step_name) % _MAX_SEED
 
         seed = [self.base_seed, self.step_seed]
         self.global_rng = np.random.RandomState(seed)
+
+        for c in self.channels:
+            self.channels[c].begin_step(self.step_num)
 
     def end_step(self, step_name):
         """
@@ -466,7 +368,7 @@ class Random(object):
 
     # channel management
 
-    def add_channel(self, domain_df, channel_name, step_name=None, step_num=NULL_STEP_NUM):
+    def add_channel(self, domain_df, channel_name):
         """
         Create or extend a channel for generating random number streams for domain_df.
 
@@ -491,94 +393,55 @@ class Random(object):
             for channels being loaded (resumed) we need the step_name and step_num to maintain
             consistent step numbering
         """
+
         assert channel_name == self.get_channel_name_for_df(domain_df)
 
-        logger.debug("Random: add_channel step_num %s step_name '%s'" % (step_num, step_name))
-
-        assert (step_name is None) == (step_num == NULL_STEP_NUM)
-
         if channel_name in self.channels:
-            logger.debug("extending channel '%s' %s ids" % (channel_name, len(domain_df.index)))
+            logger.debug("Random: extending channel '%s' %s ids" %
+                         (channel_name, len(domain_df.index)))
             channel = self.channels[channel_name]
 
-            assert step_name is None
             channel.extend_domain(domain_df)
 
         else:
-            logger.debug("adding channel '%s' %s ids" % (channel_name, len(domain_df.index)))
-
-            max_steps = self.get_channel_info(channel_name, 'max_steps')
+            logger.debug("Random: adding channel '%s' %s ids" %
+                         (channel_name, len(domain_df.index)))
 
             channel = SimpleChannel(channel_name,
                                     self.base_seed,
                                     domain_df,
-                                    max_steps,
-                                    step_name,
-                                    step_num
+                                    self.step_num
                                     )
 
             self.channels[channel_name] = channel
 
-    def get_channels(self):
+    def load_channels(self, step_num):
         """
-        Return channel state in a form to be pickled and checkpointed by the pipeline manager and
-        later read, unpickled and passed back to the load_channels method to restore channel states
-
-        Returns
-        -------
-        salvable_channel_state : SavedChannelState
-        """
-
-        salvable_channel_state =\
-            [SavedChannelState(channel_name=channel_name,
-                               step_num=c.step_num,
-                               step_name=c.step_name)
-             for channel_name, c in self.channels.iteritems()]
-
-        return salvable_channel_state
-
-    def load_channels(self, saved_channels):
-        """
-        Load the channels listed in saved_channels
-
-        The saved_channels list is a list of channel states created by get_channels and
-        saved by the pipeline manager at a checkpoint.
-
-        This channel state information allows us to restore the channels to the same state
-        as they were when checkpointed so that the random number streams will can be resumed.
-
-        Note that we assume that the channel names correspond to orca table names, so that
-        we can get the domain_df for that channel from orca.
+        Called on resume to initialize channels for existing saved tables
+        All channels should have been registered by a call to set_channel_info.
+        This method checks to see if any of them have an injectable table
 
         Parameters
         ----------
-        saved_channels : array of SavedChannelState
+        step_num
+
+        Returns
+        -------
+
         """
 
-        for channel_state in saved_channels:
+        self.step_num = step_num
+        for index_name in self.index_to_channel_map:
 
-            channel_name = channel_state.channel_name
-            assert channel_name in self.channel_info
+            channel_name = self.index_to_channel_map[index_name]
+            df = inject.get_table(channel_name, None)
 
-            logger.debug("loading channel %s" % (channel_name,))
-
-            logger.debug("channel_state %s" % (channel_state, ))
-
-            df = inject.get_table(channel_name).local
-            self.add_channel(df,
-                             channel_name=channel_state.channel_name,
-                             step_num=channel_state.step_num,
-                             step_name=channel_state.step_name)
-
-            # why would this not be the case?
-            # if orca.is_table(channel_name):
-            #     df = orca.get_table(channel_name).local
-            #     self.add_channel(df,
-            #                      channel_name=channel_state.channel_name,
-            #                      step_num=channel_state.step_num,
-            #                      step_name=channel_state.step_name)
-
-    # random number generation
+            if df is not None:
+                logger.debug("loading channel %s" % (channel_name,))
+                self.add_channel(df, channel_name=channel_name)
+                self.channels[channel_name].begin_step(step_num)
+            else:
+                logger.debug("skipping channel %s" % (channel_name,))
 
     def set_base_seed(self, seed=None):
         """
@@ -634,40 +497,6 @@ class Random(object):
         assert self.step_name is not None
         return self.global_rng
 
-    def set_multi_choice_offset(self, df, offset):
-        """
-        Specify a fixed offset into the df channel's random number streams to use for all calls
-        made to choice_for_df for the duration of the current step.
-
-        A value of None means that a different set of random values should be used for each
-        subsequent call to choice_for_df (for the same df row index)
-
-        Recall that since each row in the df has its own distinct random stream,
-        this means that each random stream is offset by the specified amount.
-
-        This method has no particular utility if choice_for_df is only called once for each
-        domain_df row, other than to (potentially) make subsequent calls to random_for_df
-        faster if choice_for_df consumes a large number of random numbers, as random_for_df
-        will not need to fast-forward as much.
-
-        This method must be invoked before any random numbers are consumed in hte current step.
-        The multi_choice_offset is reset to the default (None) at the beginning of each step.
-
-        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
-        method (q.v.) may be used to globally reseed all random streams.
-
-        Parameters
-        ----------
-        df : pandas.dataframe
-        offset : int or None
-            absolute integer offset to fast-forward to in random streams in choice_for_df
-        """
-
-        channel = self.get_channel_for_df(df)
-        channel.set_multi_choice_offset(offset, self.step_name)
-        logging.info("set_multi_choice_offset to %s for channel %s"
-                     % (channel.multi_choice_offset, channel.name))
-
     def random_for_df(self, df, n=1):
         """
         Return a single floating point random number in range [0, 1) for each row in df
@@ -722,12 +551,6 @@ class Random(object):
 
         The columns in df are ignored; the index name and values are used to determine
         which random number sequence to to use.
-
-        Depending on the value of the multi_choice_offset setting
-        (set by calling set_multi_choice_offset method, q,v,)
-        for subsequent calls in the same step, this routine will
-        EITHER use the same rand sequence for choosing values
-        OR use fresh random values for choices.
 
         We assume that we can identify the channel to used based on the name of df.index
         This channel should have already been registered by a call to add_channel (q.v.)

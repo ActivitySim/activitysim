@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 # (which are also columns in the checkpoints dataframe stored in hte pipeline store)
 TIMESTAMP = 'timestamp'
 CHECKPOINT_NAME = 'checkpoint_name'
-PRNG_CHANNELS = 'prng_channels'
-NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP, PRNG_CHANNELS]
+PRNG_STEP_NUM = 'prng_step_num'
+NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP, PRNG_STEP_NUM]
 
 # name used for storing the checkpoints dataframe to the pipeline store
 CHECKPOINT_TABLE_NAME = 'checkpoints'
@@ -47,11 +47,15 @@ class Pipeline(object):
 
         self.replaced_tables = {}
 
-        self.prng = random.Random()
+        self._rng = random.Random()
 
         self.open_files = {}
 
         self.pipeline_store = None
+
+    def rng(self):
+
+        return self._rng
 
 
 _PIPELINE = Pipeline()
@@ -67,13 +71,6 @@ def close_open_files():
         print "Closing %s" % name
         file.close()
     _PIPELINE.open_files.clear()
-
-
-def add_dependent_columns(base_dfname, new_dfname):
-    tbl = orca.get_table(new_dfname)
-    for col in tbl.columns:
-        logger.debug("Adding dependent column %s" % col)
-        orca.add_column(base_dfname, col, tbl[col])
 
 
 def open_pipeline_store(overwrite=False):
@@ -121,7 +118,7 @@ def get_rn_generator():
     activitysim.random.Random
     """
 
-    return _PIPELINE.prng
+    return _PIPELINE.rng()
 
 
 def set_rn_generator_base_seed(seed):
@@ -147,7 +144,7 @@ def set_rn_generator_base_seed(seed):
     if _PIPELINE.last_checkpoint:
         raise RuntimeError("Can only call set_rn_generator_base_seed before the first step.")
 
-    _PIPELINE.prng.set_base_seed(seed)
+    _PIPELINE.rng().set_base_seed(seed)
 
 
 def read_df(table_name, checkpoint_name=None):
@@ -212,6 +209,7 @@ def write_df(df, table_name, checkpoint_name=None):
         key = table_name
 
     store = get_pipeline_store()
+
     store[key] = df
 
 
@@ -243,11 +241,11 @@ def rewrap(table_name, df=None):
     if orca.is_table(table_name):
 
         if df is None:
-            logger.debug("rewrap - orca.get_table(%s)" % (table_name,))
+            # logger.debug("rewrap - orca.get_table(%s)" % (table_name,))
             t = orca.get_table(table_name)
             df = t.to_frame()
         else:
-            logger.debug("rewrap - orca.get_raw_table(%s)" % (table_name,))
+            # logger.debug("rewrap - orca.get_raw_table(%s)" % (table_name,))
             # don't trigger function call of TableFuncWrapper
             t = orca.get_raw_table(table_name)
 
@@ -262,7 +260,6 @@ def rewrap(table_name, df=None):
 
     assert df is not None
 
-    logger.debug("rewrap - orca.add_table(%s)" % (table_name,))
     orca.add_table(table_name, df)
 
     return df
@@ -309,7 +306,7 @@ def add_checkpoint(checkpoint_name):
     _PIPELINE.last_checkpoint[TIMESTAMP] = timestamp
 
     # current state of the random number generator
-    _PIPELINE.last_checkpoint[PRNG_CHANNELS] = cPickle.dumps(_PIPELINE.prng.get_channels())
+    _PIPELINE.last_checkpoint[PRNG_STEP_NUM] = _PIPELINE.rng().step_num
 
     # append to the array of checkpoint history
     _PIPELINE.checkpoints.append(_PIPELINE.last_checkpoint.copy())
@@ -323,9 +320,6 @@ def add_checkpoint(checkpoint_name):
 
     # write it to the store, overwriting any previous version (no way to simply extend)
     write_df(checkpoints, CHECKPOINT_TABLE_NAME)
-
-    for channel_state in _PIPELINE.prng.get_channels():
-        logger.debug("channel_name '%s', step_name '%s', offset: %s" % channel_state)
 
 
 def orca_dataframe_tables():
@@ -411,7 +405,7 @@ def load_checkpoint(checkpoint_name):
 
     # set random state to pickled state at end of last checkpoint
     logger.debug("resetting random state")
-    _PIPELINE.prng.load_channels(cPickle.loads(_PIPELINE.last_checkpoint[PRNG_CHANNELS]))
+    _PIPELINE.rng().load_channels(_PIPELINE.last_checkpoint[PRNG_STEP_NUM])
 
 
 def split_arg(s, sep, default=''):
@@ -451,7 +445,7 @@ def run_model(model_name):
     if model_name in [checkpoint[CHECKPOINT_NAME] for checkpoint in _PIPELINE.checkpoints]:
         raise RuntimeError("Cannot run model '%s' more than once" % model_name)
 
-    _PIPELINE.prng.begin_step(model_name)
+    _PIPELINE.rng().begin_step(model_name)
 
     # check for args
     if '.' in model_name:
@@ -476,7 +470,7 @@ def run_model(model_name):
 
     inject.set_step_args(None)
 
-    _PIPELINE.prng.end_step(model_name)
+    _PIPELINE.rng().end_step(model_name)
     if checkpoint:
         t0 = print_elapsed_time()
         add_checkpoint(model_name)
@@ -499,6 +493,12 @@ def open_pipeline(resume_after=None):
     """
 
     logger.info("open_pipeline...")
+
+    if orca.is_injectable('channel_info'):
+        channel_info = inject.get_injectable('channel_info', None)
+        if channel_info:
+            logger.info("initialize ran_generator channel_info")
+            get_rn_generator().set_channel_info(channel_info)
 
     if resume_after:
         # open existing pipeline
@@ -567,7 +567,7 @@ def run(models, resume_after=None):
     for model in models:
         t1 = print_elapsed_time()
         run_model(model)
-        t1 = print_elapsed_time("run_model %s)" % model, t1)
+        t1 = print_elapsed_time("run_model %s" % model, t1)
 
         logger.debug('#mem after %s, %s' % (model, memory_info()))
 
@@ -655,9 +655,6 @@ def get_checkpoints():
 
     # non-table columns first (column order in df is random because created from a dict)
     table_names = [name for name in df.columns.values if name not in NON_TABLE_COLUMNS]
-
-    # omit human-illegible PRNG_CHANNELS
-    df = df[[CHECKPOINT_NAME, TIMESTAMP] + table_names]
 
     df.index.name = 'step_num'
 

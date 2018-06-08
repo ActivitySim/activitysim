@@ -1,8 +1,12 @@
 ActivitySim
 ===========
 
-ActivitySim is an open platform for activity-based travel modeling.  It emerged
-from a consortium of Metropolitan Planning Organizations (MPOs) and other
-transportation planning agencies that wanted to build a shared, open, platform
-that could be easily adapted to their individual needs, but would share a
-robust, efficient, and well-maintained common core.
+The mission of the ActivitySim project is to create and maintain advanced, open-source, 
+activity-based travel behavior modeling software based on best software development 
+practices for distribution at no charge to the public.
+
+The ActivitySim project is led by a consortium of Metropolitan Planning Organizations 
+(MPOs) and other transportation planning agencies, which provides technical direction 
+and resources to support project development. New member agencies are welcome to join 
+the consortium. All member agencies help make decisions about development priorities 
+and benefit from contributions of other agency partners. 

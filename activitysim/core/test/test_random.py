@@ -7,8 +7,8 @@ import numpy.testing as npt
 import pandas.util.testing as pdt
 import pytest
 
-from .. import random
-from .. import pipeline
+from activitysim.core import random
+from activitysim.core import pipeline
 
 
 def test_basic():
@@ -37,10 +37,11 @@ def test_basic():
 def test_channel():
 
     channels = {
-        'households': {'max_steps': 4, 'index': 'HHID'},
-        'persons': {'max_steps': 2, 'index': 'PERID'},
+        'households': 'HHID',
+        'persons': 'PERID',
     }
-    rng = random.Random(channels)
+    rng = random.Random()
+    rng.set_channel_info(channels)
 
     persons = pd.DataFrame({
         "household_id": [1, 1, 2, 2, 2],
@@ -54,65 +55,46 @@ def test_channel():
 
     rng.begin_step('test_step')
 
-    rng.add_channel(persons, channel_name='persons', step_name='last', step_num=0)
+    rng.add_channel(persons, channel_name='persons')
     rng.add_channel(households, channel_name='households')
 
     rands = rng.random_for_df(persons)
 
     assert rands.shape == (5, 1)
-    expected_rands = [0.9374985, 0.0206057, 0.4684723,  0.246012, 0.700952]
+    expected_rands = [0.0305274, 0.6452407, 0.1686045, 0.9529088, 0.1994755]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
     # second call should return something different
     rands = rng.random_for_df(persons)
-    expected_rands = [0.719677, 0.1214514, 0.7015227, 0.8206436, 0.6126977]
+    expected_rands = [0.9912599, 0.5523497, 0.4580549, 0.3668453, 0.134653]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
     rng.end_step('test_step')
 
     rng.begin_step('test_step2')
 
-    # should raise if max_steps exceeded
-    with pytest.raises(RuntimeError) as excinfo:
-        rands = rng.random_for_df(persons)
-    assert "Too many steps" in str(excinfo.value)
-
     rands = rng.random_for_df(households)
-    expected_rands = [0.122587, 0.7472187, 0.4623908, 0.4600264, 0.8385861]
+    expected_rands = [0.7992435, 0.5682545, 0.8956348, 0.6326098, 0.630408]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    expected_choices = [1, 2, 1, 1, 3, 1, 3, 1, 1, 4]
+    expected_choices = [1, 3, 3, 2, 1, 1, 1, 3, 1, 3]
     npt.assert_almost_equal(choices, expected_choices)
 
     # should be DIFFERENT the second time
     choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    expected_choices = [1, 4, 2, 2, 1, 1, 3, 2, 2, 2]
+    expected_choices = [2, 3, 3, 3, 2, 2, 2, 2, 2, 4]
     npt.assert_almost_equal(choices, expected_choices)
 
     rng.end_step('test_step2')
 
     rng.begin_step('test_step3')
 
-    rng.set_multi_choice_offset(households, 10)
-
-    choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    expected_choices = [3, 4, 2, 4, 1, 2, 3, 3, 1, 2]
-    npt.assert_almost_equal(choices, expected_choices)
-
-    # should be SAME second time
-    choices = rng.choice_for_df(households, [1, 2, 3, 4], 2, replace=True)
-    npt.assert_almost_equal(choices, expected_choices)
-
-    rng.end_step('test_step3')
-
-    rng.begin_step('test_step4')
-
     rands = rng.random_for_df(households, n=2)
 
-    expected_rands = [0.7375634, 0.7714111, 0.8960886, 0.6161022, 0.833949,
-                      0.3427474, 0.9498073, 0.1408251, 0.1759239, 0.6410704]
+    expected_rands = [0.4633051, 0.4924085, 0.8627697, 0.854059, 0.0689231,
+                      0.3818341, 0.0301041, 0.7765588, 0.2082694, 0.4542789]
 
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
-    rng.end_step('test_step4')
+    rng.end_step('test_step3')

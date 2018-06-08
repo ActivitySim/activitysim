@@ -13,9 +13,8 @@ import pytest
 import yaml
 import openmatrix as omx
 
-from .. import __init__
-from ..tables import size_terms
-from . import extensions
+from activitysim.abm import __init__
+from activitysim.abm.tables import size_terms
 
 from activitysim.core import tracing
 from activitysim.core import pipeline
@@ -23,7 +22,12 @@ from activitysim.core import inject
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
-HH_ID = 961042
+
+# household with mandatory, non mandatory, atwork_subtours, and joint tours
+HH_ID = 1062094
+
+# households with all tour types
+# [1062094 1115269 1227640 1482947 1624721 2122797 2201571 2204679]
 
 SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
@@ -130,7 +134,7 @@ def test_mini_pipeline_run():
 
     # regression test: these are among the first 10 households in households table
     hh_ids = [464138, 1918238, 2201602]
-    choices = [0, 1, 2]
+    choices = [1, 2, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
@@ -142,36 +146,38 @@ def test_mini_pipeline_run():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    # these choices are nonsensical as the test mandatory_tour_frequency spec is very truncated
-    per_ids = [24375, 92744, 172491]
-    choices = ['school2', 'work_and_school', 'work1']
+    # these choices are for pure regression - their appropriateness has not been checked
+    per_ids = [92233, 172595, 524152]
+    choices = ['work1', 'school1', 'work_and_school']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
-    print "mtf_choice\n", mtf_choice.head(20)
-    # mtf_choice
-    # PERID
-    # 23647                 NaN
-    # 24203                 NaN
-    # 24375             school2
-    # 24687                 NaN
-    # 24824                 NaN
-    # 24975                 NaN
-    # 25027                 NaN
-    # 25117                 NaN
-    # 25772                 NaN
-    # 25871                 NaN
-    # 26284                 NaN
-    # 26863                 NaN
-    # 27059                 NaN
-    # 92233                 NaN
-    # 92382             school1
-    # 92744     work_and_school
-    # 92823                 NaN
-    # 93172             school2
-    # 93774                 NaN
-    # 172491              work1
-    # Name: mandatory_tour_frequency, dtype: object
+    print "mtf_choice\n", mtf_choice.dropna().head(20)
+    """
+    mtf_choice
+    PERID
+    92233               work1
+    92382               work1
+    92744               work2
+    92823               work1
+    93172               work1
+    172491              work2
+    172595            school1
+    172596            school1
+    327171              work1
+    327172              work1
+    327912              work1
+    481948            school1
+    481949            school1
+    481959              work1
+    481961              work1
+    523907              work2
+    524151            school1
+    524152    work_and_school
+    524153            school1
+    821808              work1
+    Name: mandatory_tour_frequency, dtype: object
+    """
     pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
 
     # try to get a non-existant table
@@ -222,7 +228,7 @@ def test_mini_pipeline_run2():
 
     # regression test: these are the same as in test_mini_pipeline_run1
     hh_ids = [464138, 1918238, 2201602]
-    choices = [0, 1, 2]
+    choices = [1, 2, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
                                 name='auto_ownership')
 
@@ -240,8 +246,9 @@ def test_mini_pipeline_run2():
 
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
-    per_ids = [24375, 92744, 172491]
-    choices = ['school2', 'work_and_school', 'work1']
+    # this is what we got in run 1
+    per_ids = [92233, 172595, 524152]
+    choices = ['work1', 'school1', 'work_and_school']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
                                 name='mandatory_tour_frequency')
 
@@ -288,9 +295,9 @@ def full_run(resume_after=None, chunk_size=0,
     tours = pipeline.get_table('tours')
     tour_count = len(tours.index)
 
-    pipeline.close_pipeline()
-
-    orca.clear_cache()
+    # pipeline.close_pipeline()
+    #
+    # orca.clear_cache()
 
     return tour_count
 
@@ -316,10 +323,138 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_PERSON_IDS = ['1888694', '1888695', '1888696']
-EXPECT_TOUR_TYPES = ['work', 'school', 'othdiscr']
-EXPECT_MODES = ['DRIVE_LOC', 'DRIVE_LOC', 'DRIVEALONEPAY']
-EXPECT_TOUR_COUNT = 177
+EXPECT_TOUR_COUNT = 196
+
+
+def regress_mode_df(mode_df):
+
+    mode_cols = ['tour_id', 'mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
+
+    mode_df = mode_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
+    mand_mode_df = mode_df[mode_df.tour_category == 'mandatory']
+    print "mand mode_df\n", mand_mode_df[mode_cols]
+    """
+     tour_id            mode person_id tour_type tour_num tour_category
+    67567442            WALK   2329911    school        1     mandatory
+    67567471            WALK   2329912    school        1     mandatory
+    67567504  DRIVEALONEFREE   2329913      work        1     mandatory
+    """
+
+    EXPECT_MAND_PERSON_IDS = [
+        '2329911',
+        '2329912',
+        '2329913']
+    EXPECT_MAND_TOUR_TYPES = [
+        'school',
+        'school',
+        'work']
+    EXPECT_MAND_MODES = [
+        'WALK',
+        'WALK',
+        'DRIVEALONEFREE']
+
+    assert len(mand_mode_df.person_id) == len(EXPECT_MAND_PERSON_IDS)
+    assert (mand_mode_df.person_id.values == EXPECT_MAND_PERSON_IDS).all()
+    assert (mand_mode_df.tour_type.values == EXPECT_MAND_TOUR_TYPES).all()
+    assert (mand_mode_df['mode'].values == EXPECT_MAND_MODES).all()
+
+    non_mand_mode_df = mode_df[mode_df.tour_category == 'non_mandatory']
+    print "non_mand mode_df\n", non_mand_mode_df[mode_cols]
+    """
+          tour_id         mode person_id tour_type tour_num  tour_category
+         67567441  SHARED2FREE   2329911  othmaint        1  non_mandatory
+         67567455  SHARED2FREE   2329912    escort        1  non_mandatory
+         67567456  SHARED2FREE   2329912    escort        2  non_mandatory
+         67567473  SHARED2FREE   2329912  shopping        3  non_mandatory
+
+    """
+
+    EXPECT_NON_MAND_PERSON_IDS = [
+        '2329911',
+        '2329912',
+        '2329912',
+        '2329912']
+    EXPECT_NON_MAND_TOUR_TYPES = [
+        'othmaint',
+        'escort',
+        'escort',
+        'shopping']
+    EXPECT_NON_MAND_MODES = [
+        'SHARED2FREE',
+        'SHARED2FREE',
+        'SHARED2FREE',
+        'SHARED2FREE']
+
+    assert len(non_mand_mode_df.person_id) == len(EXPECT_NON_MAND_PERSON_IDS)
+    assert (non_mand_mode_df.person_id.values == EXPECT_NON_MAND_PERSON_IDS).all()
+    assert (non_mand_mode_df.tour_type.values == EXPECT_NON_MAND_TOUR_TYPES).all()
+    assert (non_mand_mode_df['mode'].values == EXPECT_NON_MAND_MODES).all()
+
+
+def regress_joint_mode_df(mode_df):
+
+    mode_cols = ['tour_id', 'mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
+
+    mode_df = mode_df.sort_values(by=['person_id', 'tour_num'])
+
+    print "joint mode_df\n", mode_df[mode_cols]
+    """
+            tour_id  mode person_id tour_type tour_num tour_category
+    value   67567407  WALK   2329910    social        1         joint
+    """
+
+    EXPECT_JOINT_PERSON_IDS = ['2329910']
+    EXPECT_JOINT_TOUR_TYPES = ['social']
+    EXPECT_JOINT_MODES = ['WALK']
+
+    assert len(mode_df.person_id) == len(EXPECT_JOINT_PERSON_IDS)
+    assert (mode_df.person_id.values == EXPECT_JOINT_PERSON_IDS).all()
+    assert (mode_df.tour_type.values == EXPECT_JOINT_TOUR_TYPES).all()
+    assert (mode_df['mode'].values == EXPECT_JOINT_MODES).all()
+
+
+def regress_subtour_mode_df(mode_df):
+
+    mode_df = mode_df.sort_values(by=['person_id', 'tour_num'])
+
+    print "subtour mode_df\n",\
+        mode_df[['tour_id', 'mode', 'person_id', 'tour_type', 'tour_num', 'parent_tour_id']]
+
+    """
+            tour_id  mode person_id tour_type tour_num parent_tour_id
+    value  67567481  BIKE   2329913       eat        1     67567504.0
+    """
+
+    EXPECT_SUBTOUR_PERSON_IDS = ['2329913']
+    EXPECT_SUBTOUR_TYPES = ['eat']
+    EXPECT_SUBTOUR_MODES = ['BIKE']
+    EXPECT_PARENT_TOUR_IDS = ['67567504.0']
+
+    assert len(mode_df.person_id) == len(EXPECT_SUBTOUR_PERSON_IDS)
+    assert (mode_df.person_id.values == EXPECT_SUBTOUR_PERSON_IDS).all()
+    assert (mode_df.tour_type.values == EXPECT_SUBTOUR_TYPES).all()
+    assert (mode_df['mode'].values == EXPECT_SUBTOUR_MODES).all()
+    assert (mode_df.parent_tour_id.values == EXPECT_PARENT_TOUR_IDS).all()
+
+
+def regress_traced_hh(primary=True, subtour=True, joint=True):
+
+    if primary:
+        mode_df = get_trace_csv('tour_mode_choice.mode.csv')
+        regress_mode_df(mode_df)
+
+    if subtour:
+        mode_df = get_trace_csv('atwork_subtour_mode_choice.mode.csv')
+        regress_subtour_mode_df(mode_df)
+
+    if joint:
+        mode_df = get_trace_csv('joint_tour_mode_choice.mode.csv')
+        regress_joint_mode_df(mode_df)
+
+    trips_df = pipeline.get_table('trips')
+
+    assert trips_df.shape[0] > 0
+    assert not trips_df.purpose.isnull().any()
 
 
 def test_full_run1():
@@ -330,21 +465,13 @@ def test_full_run1():
     tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
+    print "tour_count", tour_count
+
     assert(tour_count == EXPECT_TOUR_COUNT)
 
-    mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
+    regress_traced_hh()
 
-    print mode_df
-    #           tour_id       mode person_id tour_type tour_num
-    # value_1  28330423  DRIVE_LOC   1888694      work        1
-    # value_2  28330434  DRIVE_LOC   1888695    school        1
-    # value_3  28330447  DRIVE_LOC   1888696  othdiscr        1
-
-    assert len(mode_df.person_id) == len(EXPECT_PERSON_IDS)
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_MODES).all()
+    pipeline.close_pipeline()
 
 
 def test_full_run2():
@@ -358,12 +485,9 @@ def test_full_run2():
 
     assert(tour_count == EXPECT_TOUR_COUNT)
 
-    mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
+    regress_traced_hh(joint=False)
 
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_MODES).all()
+    pipeline.close_pipeline()
 
 
 def test_full_run_with_chunks():
@@ -379,12 +503,9 @@ def test_full_run_with_chunks():
 
     assert(tour_count == EXPECT_TOUR_COUNT)
 
-    mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
+    regress_traced_hh()
 
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).all()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_MODES).all()
+    pipeline.close_pipeline()
 
 
 def test_full_run_stability():
@@ -397,18 +518,13 @@ def test_full_run_stability():
     tour_count = full_run(trace_hh_id=HH_ID,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE+10)
 
-    mode_df = get_trace_csv('tour_mode_choice.mode.csv')
-    mode_df.sort_values(by=['person_id', 'tour_type', 'tour_num'], inplace=True)
+    regress_traced_hh()
 
-    print mode_df
-
-    assert (mode_df.person_id.values == EXPECT_PERSON_IDS).any()
-    assert (mode_df.tour_type.values == EXPECT_TOUR_TYPES).any()
-    assert (mode_df['mode'].values == EXPECT_MODES).any()
+    pipeline.close_pipeline()
 
 
-# if __name__ == "__main__":
-#
-#     print "\n\ntest_mini_pipeline_run"
-#     test_mini_pipeline_run()
-#     teardown_function(None)
+if __name__ == "__main__":
+
+    print "running test_full_run1"
+    test_full_run1()
+    # teardown_function(None)

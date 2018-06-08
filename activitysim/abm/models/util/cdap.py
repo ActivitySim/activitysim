@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 _persons_index_ = 'PERID'
 _hh_index_ = 'HHID'
-_hh_size_ = 'PERSONS'
+_hh_size_ = 'hhsize'
 
 _hh_id_ = 'household_id'
 _ptype_ = 'ptype'
@@ -207,7 +207,7 @@ def preprocess_interaction_coefficients(interaction_coefficients):
 
     interaction_ptypes
         List of ptypes in the interaction (in order of increasing ptype)
-        Stars (\***) instead of ptypes means the interaction applies to all ptypes in that size hh
+        Stars `(***)` instead of ptypes means the interaction applies to all ptypes in that size hh.
 
     coefficient
         The coefficient to apply for all hh interactions for this activity and set of ptypes
@@ -437,7 +437,7 @@ def add_interaction_column(choosers, p_tup):
 
     """
 
-    # Since pytpes are always between 1 and 8, we represent the interaction as an integer (24)
+    # Since ptypes are always between 1 and 8, we represent the interaction as an integer (24)
     # rather than as a string ('24')
     # FIXME - check that coding interactions as integers is in fact faster then coding as strings
 
@@ -834,7 +834,7 @@ def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
     rows_per_chunk_id = choosers.shape[0] / float(num_choosers)
     row_size = int(rows_per_chunk_id * chooser_row_size)
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -891,7 +891,7 @@ def run_cdap(
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, num_chunks, persons_chunk in chunk.hh_chunked_choosers(persons, rows_per_chunk):
+    for i, num_chunks, persons_chunk in chunk.chunked_choosers_by_chunk_id(persons, rows_per_chunk):
 
         logger.info("Running chunk %s of %s with %d persons" % (i, num_chunks, len(persons_chunk)))
 

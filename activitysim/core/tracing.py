@@ -172,10 +172,10 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.error("print_summary neither value_counts nor describe")
 
     if value_counts:
-        print "\n%s value counts:\n%s\n" % (label, df.value_counts())
+        logger.info("%s value counts:\n%s" % (label, df.value_counts()))
 
     if describe:
-        print "\n%s summary:\n%s\n" % (label, df.describe())
+        logger.info("%s summary:\n%s" % (label, df.describe()))
 
 
 def register_households(df, trace_hh_id):
@@ -327,6 +327,41 @@ def register_trips(df, trace_hh_id):
     logger.debug("register_trips injected trace_tour_ids %s" % trace_trip_ids)
 
 
+def register_participants(df, trace_hh_id):
+    """
+    Register with inject for tracing
+
+    create an injectable 'trace_participant_ids' with a list of participant_ids in
+    household we are tracing.
+    This allows us to slice by participant_ids without requiring presence of household_id column
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+
+    trace_hh_id: int
+        household id we are tracing
+
+    Returns
+    -------
+    Nothing
+    """
+
+    # but if household_id is in households, then we may have some tours
+    traced_participants_df = slice_ids(df, trace_hh_id, column='household_id')
+    trace_participant_ids = traced_participants_df.index.tolist()
+    if len(trace_participant_ids) == 0:
+        logger.info("register_participants: no participants found for household_id %s." %
+                    trace_hh_id)
+    else:
+        logger.info("tracing participant_ids %s in %s participants" %
+                    (trace_participant_ids, len(df.index)))
+
+    inject.add_injectable("trace_participant_ids", trace_participant_ids)
+    logger.debug("register_participants injected trace_participant_ids %s" % trace_participant_ids)
+
+
 def register_traceable_table(table_name, df):
     """
     Register traceable table
@@ -354,6 +389,10 @@ def register_traceable_table(table_name, df):
         register_trips(df, trace_hh_id)
     elif table_name == 'tours':
         register_tours(df, trace_hh_id)
+    elif table_name == 'participants':
+        register_participants(df, trace_hh_id)
+    else:
+        logger.warn("register_traceable_table - don't grok '%s'" % table_name)
 
 
 def traceable_tables():
@@ -361,7 +400,7 @@ def traceable_tables():
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
 
-    return ['households', 'persons', 'tours', 'trips']
+    return ['households', 'persons', 'tours', 'trips', 'joint_tours', 'participants']
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
@@ -436,20 +475,24 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     Nothing
     """
 
+    file_name = file_name.encode('ascii', 'ignore')
+
+    assert len(file_name) > 0
+
     file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
 
     if os.path.isfile(file_path):
         logger.error("write_csv file exists %s %s" % (type(df).__name__, file_name))
 
     if isinstance(df, pd.DataFrame):
-        logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
+        # logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
         write_df_csv(df, file_path, index_label, columns, column_labels, transpose=transpose)
     elif isinstance(df, pd.Series):
-        logger.debug("dumping %s element series to %s" % (len(df.index), file_name))
+        # logger.debug("dumping %s element series to %s" % (len(df.index), file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     elif isinstance(df, dict):
         df = pd.Series(data=df)
-        logger.debug("dumping %s element dict to %s" % (len(df.index), file_name))
+        # logger.debug("dumping %s element dict to %s" % (len(df.index), file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
         logger.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
@@ -474,8 +517,9 @@ def slice_ids(df, ids, column=None):
         sliced dataframe
     """
 
-    if not isinstance(ids, (list, tuple)):
+    if np.isscalar(ids):
         ids = [ids]
+
     try:
         if column is None:
             df = df[df.index.isin(ids)]
@@ -510,41 +554,50 @@ def get_trace_target(df, slicer):
         name of column to search for targets or None to search index
     """
 
-    if slicer is None:
-        slicer = df.index.name
-
     target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
     column = None  # column name to slice on or None to slice on index
 
+    # special do-not-slice code for dumping entire df
+    if slicer == 'NONE':
+        return target_ids, column
+
+    if slicer is None:
+        slicer = df.index.name
+
+    # always slice by household id if we can
+    if isinstance(df, pd.DataFrame):
+        if ('household_id' in df.columns):
+            slicer = 'household_id'
+        elif ('person_id' in df.columns):
+            slicer = 'person_id'
+
     if len(df.index) == 0:
         target_ids = None
-    elif slicer == 'PERID' or slicer == inject.get_injectable('persons_index_name'):
+    elif slicer == 'PERID' or slicer == inject.get_injectable('persons_index_name', None):
         target_ids = inject.get_injectable('trace_person_ids', [])
-    elif slicer == 'HHID' or slicer == inject.get_injectable('hh_index_name'):
+    elif slicer == 'HHID' or slicer == inject.get_injectable('hh_index_name', None):
         target_ids = inject.get_injectable('trace_hh_id', [])
     elif slicer == 'person_id':
         target_ids = inject.get_injectable('trace_person_ids', [])
         column = slicer
-    elif slicer == 'hh_id':
+    elif slicer == 'household_id':
         target_ids = inject.get_injectable('trace_hh_id', [])
         column = slicer
     elif slicer == 'tour_id':
-        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target_ids = inject.get_injectable('trace_person_ids', [])
-            column = 'person_id'
-        else:
-            target_ids = inject.get_injectable('trace_tour_ids', [])
-    elif slicer == 'trip_id':  # FIX ME
-        if isinstance(df, pd.DataFrame) and ('person_id' in df.columns):
-            target_ids = inject.get_injectable('trace_person_ids', [])
-            column = 'person_id'
-        else:
-            target_ids = inject.get_injectable('trace_trip_ids', [])
+        target_ids = inject.get_injectable('trace_tour_ids', [])
+    elif slicer == 'trip_id':
+        target_ids = inject.get_injectable('trace_trip_ids', [])
+    elif slicer == 'joint_tour_id':
+        target_ids = inject.get_injectable('trace_tour_ids', [])
+    elif slicer == 'participant_id':
+        target_ids = inject.get_injectable('trace_participant_ids', [])
     elif slicer == 'TAZ' or slicer == 'ZONE':
         target_ids = inject.get_injectable('trace_od', [])
     elif slicer == 'NONE':
         target_ids = None
     else:
+        print df.head()
+        return None, 'NONE'
         raise RuntimeError("slice_canonically: bad slicer '%s'" % (slicer, ))
 
     if target_ids and not isinstance(target_ids, (list, tuple)):
@@ -617,14 +670,25 @@ def has_trace_targets(df, slicer=None):
 
 
 def hh_id_for_chooser(id, choosers):
+    """
+
+    Parameters
+    ----------
+    id - scalar id (or list of ids) from chooser index
+    choosers - pandas dataframe whose index contains ids
+
+    Returns
+    -------
+        scalar household_id or series of household_ids
+    """
 
     if choosers.index.name == 'HHID' or \
-                    choosers.index.name == inject.get_injectable('hh_index_name', 'HHID'):
+            choosers.index.name == inject.get_injectable('hh_index_name', 'HHID'):
         hh_id = id
     elif 'household_id' in choosers.columns:
         hh_id = choosers.loc[id]['household_id']
     else:
-        raise RuntimeError("don't grok chooser with index %s" % choosers.index.name)
+        hh_id = None
 
     return hh_id
 
@@ -699,13 +763,17 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     # currently we only ever slice by person_id, but that could change, so we check here...
 
     if choosers.index.name == 'PERID' \
-            or choosers.index.name == inject.get_injectable('persons_index_name'):
+            or choosers.index.name == inject.get_injectable('persons_index_name', None):
         slicer_column_name = choosers.index.name
         targets = inject.get_injectable('trace_person_ids', [])
-    elif (choosers.index.name == 'tour_id' and 'person_id' in choosers.columns):
+    elif ('household_id' in choosers.columns and inject.get_injectable('trace_hh_id', False)):
+        slicer_column_name = 'household_id'
+        targets = inject.get_injectable('trace_hh_id', [])
+    elif ('person_id' in choosers.columns and inject.get_injectable('trace_person_ids', False)):
         slicer_column_name = 'person_id'
         targets = inject.get_injectable('trace_person_ids', [])
     else:
+        print choosers.columns
         raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
                            % choosers.index.name)
 
@@ -726,9 +794,14 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
         if slicer_column_name == choosers.index.name:
             trace_rows = np.in1d(choosers.index, targets)
             trace_ids = np.asanyarray(choosers[trace_rows].index)
-        else:
+        elif slicer_column_name == 'person_id':
             trace_rows = np.in1d(choosers['person_id'], targets)
             trace_ids = np.asanyarray(choosers[trace_rows].person_id)
+        elif slicer_column_name == 'household_id':
+            trace_rows = np.in1d(choosers['household_id'], targets)
+            trace_ids = np.asanyarray(choosers[trace_rows].household_id)
+        else:
+            assert False
 
         # simply repeat if sample size is constant across choosers
         assert sample_size == len(interaction_df.index) / len(choosers.index)
@@ -765,6 +838,7 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
     assert type(trace_ids[1]) == np.ndarray
 
     slicer_column_name = trace_ids[0]
+
     trace_results[slicer_column_name] = trace_ids[1]
 
     targets = np.unique(trace_ids[1])
@@ -788,8 +862,18 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
         # del df_target[slicer_column_name]
 
         target_label = '%s.%s.%s' % (label, slicer_column_name, target)
-        trace_df(df_target, target_label,
+
+        trace_df(df_target,
+                 label=target_label,
                  slicer="NONE",
                  transpose=True,
                  column_labels=['expression', None],
                  warn_if_empty=False)
+
+
+def no_results(trace_label):
+    """
+    standard no-op to write tracing when a model produces no results
+
+    """
+    logger.info("Skipping %s: no_results" % trace_label)

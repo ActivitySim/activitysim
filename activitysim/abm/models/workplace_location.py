@@ -17,9 +17,14 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.core.util import reindex
 
+from .util import expressions
 from .util.logsums import compute_logsums
 from .util.expressions import skim_time_period_label
-from .util.logsums import mode_choice_logsums_spec
+
+from .util import logsums as logsum
+
+from .util.tour_destination import tour_destination_size_terms
+
 
 """
 The workplace location model predicts the zones in which various people will
@@ -32,7 +37,6 @@ it gets used
 """
 
 logger = logging.getLogger(__name__)
-DUMP = False
 
 
 @inject.injectable()
@@ -40,19 +44,12 @@ def workplace_location_sample_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'workplace_location_sample.csv')
 
 
-@inject.injectable()
-def workplace_location_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'workplace_location.yaml')
-
-
 @inject.step()
 def workplace_location_sample(persons_merged,
                               workplace_location_sample_spec,
-                              workplace_location_settings,
                               skim_dict,
-                              destination_size_terms,
-                              chunk_size,
-                              trace_hh_id):
+                              land_use, size_terms,
+                              configs_dir, chunk_size, trace_hh_id):
     """
     build a table of workers * all zones in order to select a sample of alternative work locations.
 
@@ -65,14 +62,25 @@ def workplace_location_sample(persons_merged,
     """
 
     trace_label = 'workplace_location_sample'
+    model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
 
+    # FIXME - only choose workplace_location of workers? is this the right criteria?
     choosers = persons_merged.to_frame()
-    alternatives = destination_size_terms.to_frame()
+    choosers = choosers[choosers.is_worker]
 
-    constants = config.get_model_constants(workplace_location_settings)
+    if choosers.shape[0] == 0:
+        logger.info("Skipping %s: no workers" % trace_label)
+        inject.add_table('workplace_location_sample', pd.DataFrame())
+        return
 
-    sample_size = workplace_location_settings["SAMPLE_SIZE"]
-    alt_col_name = workplace_location_settings["ALT_COL_NAME"]
+    # FIXME - MEMORY HACK - only include columns actually used in spec
+    chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
+    choosers = choosers[chooser_columns]
+
+    alternatives = tour_destination_size_terms(land_use, size_terms, 'work')
+
+    sample_size = model_settings["SAMPLE_SIZE"]
+    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     logger.info("Running workplace_location_sample with %d persons" % len(choosers))
 
@@ -84,18 +92,15 @@ def workplace_location_sample(persons_merged,
     locals_d = {
         'skims': skims
     }
+    constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
-
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = workplace_location_settings['SIMULATE_CHOOSER_COLUMNS']
-    choosers = choosers[chooser_columns]
 
     choices = interaction_sample(
         choosers,
         alternatives,
         sample_size=sample_size,
-        alt_col_name=alt_col_name,
+        alt_col_name=alt_dest_col_name,
         spec=workplace_location_sample_spec,
         skims=skims,
         locals_d=locals_d,
@@ -110,10 +115,7 @@ def workplace_location_logsums(persons_merged,
                                land_use,
                                skim_dict, skim_stack,
                                workplace_location_sample,
-                               workplace_location_settings,
-                               configs_dir,
-                               chunk_size,
-                               trace_hh_id):
+                               configs_dir, chunk_size, trace_hh_id):
     """
     add logsum column to existing workplace_location_sample able
 
@@ -137,48 +139,41 @@ def workplace_location_logsums(persons_merged,
 
     trace_label = 'workplace_location_logsums'
 
-    logsums_spec = mode_choice_logsums_spec(configs_dir, 'work')
+    location_sample = workplace_location_sample.to_frame()
+    if location_sample.shape[0] == 0:
+        tracing.no_results(trace_label)
+        return
 
-    alt_col_name = workplace_location_settings["ALT_COL_NAME"]
-    chooser_col_name = 'TAZ'
-
-    # FIXME - just using settings from tour_mode_choice
-    logsum_settings = config.read_model_settings(configs_dir, 'tour_mode_choice.yaml')
+    model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
+    logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
 
     persons_merged = persons_merged.to_frame()
-    workplace_location_sample = workplace_location_sample.to_frame()
-
-    logger.info("Running workplace_location_logsums with %s rows" % len(workplace_location_sample))
-
     # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = workplace_location_settings['LOGSUM_CHOOSER_COLUMNS']
-    persons_merged = persons_merged[chooser_columns]
+    persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
-    choosers = pd.merge(workplace_location_sample,
+    logger.info("Running workplace_location_logsums with %s rows" % len(location_sample))
+
+    logsum_spec = logsum.get_logsum_spec(logsum_settings, selector='nontour', segment='work',
+                                         configs_dir=configs_dir, want_tracing=trace_hh_id)
+
+    choosers = pd.merge(location_sample,
                         persons_merged,
                         left_index=True,
                         right_index=True,
                         how="left")
 
-    choosers['in_period'] = skim_time_period_label(workplace_location_settings['IN_PERIOD'])
-    choosers['out_period'] = skim_time_period_label(workplace_location_settings['OUT_PERIOD'])
-
-    # FIXME - should do this in expression file?
-    choosers['dest_topology'] = reindex(land_use.TOPOLOGY, choosers[alt_col_name])
-    choosers['dest_density_index'] = reindex(land_use.density_index, choosers[alt_col_name])
-
-    tracing.dump_df(DUMP, persons_merged, trace_label, 'persons_merged')
-    tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
-
-    logsums = compute_logsums(
-        choosers, logsums_spec, logsum_settings,
-        skim_dict, skim_stack, chooser_col_name, alt_col_name, chunk_size, trace_hh_id, trace_label)
+    logsums = logsum.compute_logsums(
+        choosers, logsum_spec,
+        logsum_settings, model_settings,
+        skim_dict, skim_stack,
+        chunk_size, trace_hh_id,
+        trace_label)
 
     # "add_column series should have an index matching the table to which it is being added"
     # when the index has duplicates, however, in the special case that the series index exactly
     # matches the table index, then the series value order is preserved
     # logsums now does, since workplace_location_sample was on left side of merge de-dup merge
-    inject.add_column("workplace_location_sample", "mode_choice_logsum", logsums)
+    inject.add_column('workplace_location_sample', 'mode_choice_logsum', logsums)
 
 
 @inject.injectable()
@@ -187,88 +182,89 @@ def workplace_location_spec(configs_dir):
 
 
 @inject.step()
-def workplace_location_simulate(persons_merged,
+def workplace_location_simulate(persons_merged, persons,
                                 workplace_location_sample,
                                 workplace_location_spec,
-                                workplace_location_settings,
                                 skim_dict,
-                                destination_size_terms,
-                                chunk_size,
-                                trace_hh_id):
+                                land_use, size_terms,
+                                configs_dir, chunk_size, trace_hh_id):
     """
     Workplace location model on workplace_location_sample annotated with mode_choice logsum
     to select a work_taz from sample alternatives
     """
 
     trace_label = 'workplace_location_simulate'
+    model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
+    NO_WORKPLACE_TAZ = -1
 
-    # for now I'm going to generate a workplace location for everyone -
-    # presumably it will not get used in downstream models for everyone -
-    # it should depend on CDAP and mandatory tour generation as to whether
-    # it gets used
-    choosers = persons_merged.to_frame()
+    location_sample = workplace_location_sample.to_frame()
+    persons = persons.to_frame()
 
-    alt_col_name = workplace_location_settings["ALT_COL_NAME"]
+    if location_sample.shape[0] > 0:
 
-    # alternatives are pre-sampled and annotated with logsums and pick_count
-    # but we have to merge additional alt columns into alt sample list
-    workplace_location_sample = workplace_location_sample.to_frame()
-    destination_size_terms = destination_size_terms.to_frame()
-    alternatives = \
-        pd.merge(workplace_location_sample, destination_size_terms,
-                 left_on=alt_col_name, right_index=True, how="left")
+        choosers = persons_merged.to_frame()
+        choosers = choosers[choosers.is_worker]
 
-    tracing.dump_df(DUMP, alternatives, 'workplace_location_simulate', 'alternatives')
+        # FIXME - MEMORY HACK - only include columns actually used in spec
+        chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
+        choosers = choosers[chooser_columns]
 
-    constants = config.get_model_constants(workplace_location_settings)
+        alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
-    sample_pool_size = len(destination_size_terms.index)
+        # alternatives are pre-sampled and annotated with logsums and pick_count
+        # but we have to merge additional alt columns into alt sample list
+        location_sample = workplace_location_sample.to_frame()
+        destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'work')
 
-    logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
+        alternatives = \
+            pd.merge(location_sample, destination_size_terms,
+                     left_on=alt_dest_col_name, right_index=True, how="left")
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
-    # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap("TAZ", alt_col_name)
+        logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
 
-    locals_d = {
-        'skims': skims,
-        'sample_pool_size': float(sample_pool_size)
-    }
-    if constants is not None:
-        locals_d.update(constants)
+        # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
+        # and a TAZ in the alternatives which get merged during interaction
+        # the skims will be available under the name "skims" for any @ expressions
+        skims = skim_dict.wrap("TAZ", alt_dest_col_name)
 
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = workplace_location_settings['SIMULATE_CHOOSER_COLUMNS']
-    choosers = choosers[chooser_columns]
+        locals_d = {
+            'skims': skims,
+        }
+        constants = config.get_model_constants(model_settings)
+        if constants is not None:
+            locals_d.update(constants)
 
-    tracing.dump_df(DUMP, choosers, 'workplace_location_simulate', 'choosers')
+        choices = interaction_sample_simulate(
+            choosers,
+            alternatives,
+            spec=workplace_location_spec,
+            choice_column=alt_dest_col_name,
+            skims=skims,
+            locals_d=locals_d,
+            chunk_size=chunk_size,
+            trace_label=trace_label,
+            trace_choice_name='workplace_location')
 
-    choices = interaction_sample_simulate(
-        choosers,
-        alternatives,
-        spec=workplace_location_spec,
-        choice_column=alt_col_name,
-        skims=skims,
-        locals_d=locals_d,
-        chunk_size=chunk_size,
-        trace_label=trace_label,
-        trace_choice_name='workplace_location')
+        persons['workplace_taz'] = \
+            choices.reindex(persons.index).fillna(NO_WORKPLACE_TAZ).astype(int)
 
-    # FIXME - no need to reindex since we didn't slice choosers
-    # choices = choices.reindex(persons_merged.index)
+    else:
 
-    tracing.print_summary('workplace_taz', choices, describe=True)
+        # no workers (but we still want to annotate persons)
+        persons['workplace_taz'] = NO_WORKPLACE_TAZ
 
-    inject.add_column("persons", "workplace_taz", choices)
+    expressions.assign_columns(
+        df=persons,
+        model_settings=model_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
-    pipeline.add_dependent_columns("persons", "persons_workplace")
+    pipeline.replace_table("persons", persons)
 
     pipeline.drop_table('workplace_location_sample')
 
+    tracing.print_summary('workplace_taz', persons.workplace_taz, describe=True)
+
     if trace_hh_id:
-        trace_columns = ['workplace_taz'] + inject.get_table('persons_workplace').columns
-        tracing.trace_df(inject.get_table('persons_merged').to_frame(),
+        tracing.trace_df(persons,
                          label="workplace_location",
-                         columns=trace_columns,
                          warn_if_empty=True)

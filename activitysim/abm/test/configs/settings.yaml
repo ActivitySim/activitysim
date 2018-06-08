@@ -27,37 +27,6 @@ county_map:
     Sonoma: 8
     Marin: 9
 
-employment_map:
-    1: full
-    2: part
-    3: not
-    4: child
-
-student_map:
-    1: grade_or_high
-    2: university
-    3: not
-
-person_type_map:
-    1: full
-    2: part
-    3: university
-    4: nonwork
-    5: retired
-    6: driving
-    7: school
-    8: preschool
-
-household_type_map:
-    0: null
-    1: family_married
-    2: family_male
-    3: family_female
-    4: nonfamily_male_alone
-    5: nonfamily_male_notalone
-    6: nonfamily_female_alone
-    7: nonfamily_female_notalone
-
 skim_time_periods:
     hours:
         - 0
@@ -68,5 +37,3 @@ skim_time_periods:
         - AM
         - MD
         - PM
-
-time_windows: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]

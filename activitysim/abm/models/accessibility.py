@@ -11,6 +11,7 @@ from activitysim.core import assign
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -138,7 +139,8 @@ def compute_accessibility(settings, accessibility_spec,
         data.shape = (zone_count, zone_count)
         accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
 
-        inject.add_column("accessibility", column, accessibility_df[column])
+    # - write table to pipeline
+    pipeline.replace_table("accessibility", accessibility_df)
 
     if trace_od:
 

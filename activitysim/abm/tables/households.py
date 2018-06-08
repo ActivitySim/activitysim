@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 
 import logging
+import os
 
 import pandas as pd
 
@@ -15,17 +16,24 @@ logger = logging.getLogger(__name__)
 
 
 @inject.table()
-def households(store, households_sample_size, trace_hh_id):
+def households(store, households_sample_size, trace_hh_id, override_hh_ids):
 
     df_full = store["households"]
 
+    # only using households listed in override_hh_ids
+    if override_hh_ids is not None:
+
+        # trace_hh_id will not used if it is not in list of override_hh_ids
+        logger.info("override household list containing %s households" % len(override_hh_ids))
+        df = tracing.slice_ids(df_full, override_hh_ids)
+
     # if we are tracing hh exclusively
-    if trace_hh_id and households_sample_size == 1:
+    elif trace_hh_id and households_sample_size == 1:
 
         # df contains only trace_hh (or empty if not in full store)
         df = tracing.slice_ids(df_full, trace_hh_id)
 
-    # if we need sample a subset of full store
+    # if we need a subset of full store
     elif households_sample_size > 0 and df_full.shape[0] > households_sample_size:
 
         logger.info("sampling %s of %s households" % (households_sample_size, df_full.shape[0]))
@@ -46,6 +54,10 @@ def households(store, households_sample_size, trace_hh_id):
 
     logger.info("loaded households %s" % (df.shape,))
 
+    # FIXME - pathological knowledge of name of chunk_id column used by chunked_choosers_by_chunk_id
+    assert 'chunk_id' not in df.columns
+    df['chunk_id'] = pd.Series(range(len(df)), df.index)
+
     # replace table function with dataframe
     inject.add_table('households', df)
 
@@ -58,52 +70,6 @@ def households(store, households_sample_size, trace_hh_id):
     return df
 
 
-# this assigns a chunk_id to each household so we can iterate over persons by whole households
-@inject.column("households", cache=True)
-def chunk_id(households):
-
-    # FIXME - pathological knowledge of name of chunk_id column used by hh_chunked_choosers
-
-    chunk_ids = pd.Series(range(len(households)), households.index)
-    return chunk_ids
-
-
-@inject.column('households')
-def work_tour_auto_time_savings(households):
-    # FIXME - fix this variable from auto ownership model
-    return pd.Series(0, households.index)
-
-
-# this is the placeholder for all the columns to update after the
-# workplace location choice model
-@inject.table()
-def households_cdap(households):
-    return pd.DataFrame(index=households.index)
-
-
-@inject.column("households_cdap")
-def num_under16_not_at_school(persons, households):
-    return persons.under16_not_at_school.groupby(persons.household_id).size().\
-        reindex(households.index).fillna(0)
-
-
-# this is a placeholder table for columns that get computed after the
-# auto ownership model
-@inject.table()
-def households_autoown(households):
-    return pd.DataFrame(index=households.index)
-
-
-@inject.column('households_autoown')
-def no_cars(households):
-    return (households.auto_ownership == 0)
-
-
-@inject.column('households_autoown')
-def car_sufficiency(households, persons):
-    return households.auto_ownership - persons.household_id.value_counts()
-
-
 # this is a common merge so might as well define it once here and use it
 @inject.table()
 def households_merged(households, land_use, accessibility):
@@ -112,3 +78,7 @@ def households_merged(households, land_use, accessibility):
 
 
 inject.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
+
+# this would be accessibility around the household location - be careful with
+# this one as accessibility at some other location can also matter
+inject.broadcast('accessibility', 'households', cast_index=True, onto_on='TAZ')

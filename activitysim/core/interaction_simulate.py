@@ -58,6 +58,9 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
         Will have the index of `df` and a single column of utilities
 
     """
+    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utilities")
+    logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
+
     assert(len(spec.columns) == 1)
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
@@ -206,7 +209,7 @@ def _interaction_simulate(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims:
+    if skims is not None:
         alternatives[alternatives.index.name] = alternatives.index
 
     # cross join choosers and alternatives (cartesian product)
@@ -214,7 +217,7 @@ def _interaction_simulate(
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
 
-    if skims:
+    if skims is not None:
         add_skims(interaction_df, skims)
 
     cum_size = chunk.log_df_size(trace_label, 'interaction_df', interaction_df, cum_size=None)
@@ -312,11 +315,11 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, skims, 
     sample_size = sample_size or alternatives.shape[0]
     row_size = (chooser_row_size + alt_row_size) * sample_size
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
-    logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    # logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    # logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
+    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 

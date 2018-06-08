@@ -448,3 +448,69 @@ class SkimStackWrapper(object):
         skim_values = self.stack.lookup(orig, dest, dim3, key)
 
         return pd.Series(skim_values, self.df.index)
+
+
+class DataFrameMatrix(object):
+    """
+    Utility class to allow a pandas dataframe to be treated like a 2-D array,
+    indexed by rowid, colname
+
+    For use in vectorized expressions where the desired values depend on both a row column selector
+    e.g. size_terms.get(df.dest_taz, df.purpose)
+
+    ::
+
+      df = pd.DataFrame({'a': [1,2,3,4,5], 'b': [10,20,30,40,50]}, index=[100,101,102,103,104])
+
+      dfm = DataFrameMatrix(df)
+
+      dfm.get(row_ids=[100,100,103], col_ids=['a', 'b', 'a'])
+
+      returns [1, 10,  4]
+
+    """
+
+    def __init__(self, df):
+        """
+
+        Parameters
+        ----------
+        df - pandas dataframe of uniform type
+        """
+
+        self.df = df
+        self.data = df.as_matrix()
+
+        self.offset_mapper = OffsetMapper()
+        self.offset_mapper.set_offset_list(list(df.index))
+
+        self.cols_to_indexes = {k: v for v, k in enumerate(df.columns)}
+
+    def get(self, row_ids, col_ids):
+        """
+
+        Parameters
+        ----------
+        row_ids - list of row_ids (df index values)
+        col_ids - list of column names, one per row_id,
+                  specifying column from which the value for that row should be retrieved
+
+        Returns
+        -------
+
+        series with one row per row_id, with the value from the column specified in col_ids
+
+        """
+        # col_indexes = segments.map(self.cols_to_indexes).astype('int')
+        # this should be faster than map
+        col_indexes = np.vectorize(self.cols_to_indexes.get)(col_ids)
+
+        row_indexes = self.offset_mapper.map(np.asanyarray(row_ids))
+
+        result = self.data[row_indexes, col_indexes]
+
+        # FIXME - if ids (or col_ids?) is a series, return series with same index?
+        if isinstance(row_ids, pd.Series):
+            result = pd.Series(result, index=row_ids.index)
+
+        return result

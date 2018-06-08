@@ -1,0 +1,36 @@
+SAMPLE_SIZE: 30
+
+DESTINATION_SAMPLE_SPEC: trip_destination_sample.csv
+DESTINATION_SPEC: trip_destination.csv
+LOGSUM_SETTINGS: logsum.yaml
+
+#SIMULATE_CHOOSER_COLUMNS:
+#  - person_id
+#  - income_segment
+#  - workplace_taz
+
+# model-specific logsum-related settings
+#CHOOSER_ORIG_COL_NAME: origin
+TRIP_ORIGIN: origin
+ALT_DEST: dest_taz
+PRIMARY_DEST: destination
+
+LOGSUM_TRIP_COLUMNS:
+  - origin
+  - destination
+  - time_period
+
+CONSTANTS:
+    max_walk_distance: 3
+    max_bike_distance: 8
+
+preprocessor_settings:
+  SPEC: trip_destination_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+    - persons
+
+# drop failed trips and cleanup failed trip leg_mates for consistency
+# (i.e. adjust trip_count, trip_num, first for missing failed trips)
+CLEANUP: False

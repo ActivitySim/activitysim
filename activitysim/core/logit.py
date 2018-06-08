@@ -14,7 +14,7 @@ import pipeline
 logger = logging.getLogger(__name__)
 
 
-def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None):
+def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, raise_error=True):
     """
 
     Parameters
@@ -36,27 +36,32 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None):
     MAX_DUMP = 1000
     MAX_PRINT = 10
 
-    msg_with_count = "%s for %s rows" % (msg, bad_row_map.sum())
-    logger.critical(msg_with_count)
+    msg_with_count = "%s %s for %s rows" % (trace_label, msg, bad_row_map.sum())
+    logger.warning(msg_with_count)
+
+    df = df[bad_row_map]
+    if trace_choosers is None:
+        hh_ids = tracing.hh_id_for_chooser(df.index, df)
+    else:
+        hh_ids = tracing.hh_id_for_chooser(df.index, trace_choosers)
+    df['household_id'] = hh_ids
 
     if trace_label:
-        logger.critical("dumping %s" % trace_label)
-        tracing.write_csv(df[bad_row_map][:MAX_DUMP],
+        logger.info("dumping %s" % trace_label)
+        tracing.write_csv(df[:MAX_DUMP],
                           file_name=trace_label,
                           transpose=False)
 
     # log the indexes of the first MAX_DUMP offending rows
-    for idx in df.index[bad_row_map][:MAX_PRINT].values:
+    for idx in df.index[:MAX_PRINT].values:
 
-        if trace_choosers is None:
-            hh_id = tracing.hh_id_for_chooser(idx, df)
-        else:
-            hh_id = tracing.hh_id_for_chooser(idx, trace_choosers)
+        row_msg = "%s : %s in: %s = %s (hh_id = %s)" % \
+                  (trace_label, msg, df.index.name, idx, df.household_id.loc[idx])
 
-        row_msg = "%s : %s in: %s = %s (hh_id = %s)" % (trace_label, msg, df.index.name, idx, hh_id)
-        logger.critical(row_msg)
+        logger.warning(row_msg)
 
-    raise RuntimeError(msg_with_count)
+    if raise_error:
+        raise RuntimeError(msg_with_count)
 
 
 def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_probs=False,
@@ -78,7 +83,7 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     allow_zero_probs : bool
         if True value rows in which all utility alts are EXP_UTIL_MIN will result
         in rows in probs to have all zero probability (and not sum to 1.0)
-        This si for hte benefit of calculating probabilities of nested logit nests
+        This is for the benefit of calculating probabilities of nested logit nests
 
     trace_choosers : pandas.dataframe
         the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
@@ -110,14 +115,14 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     if zero_probs.any() and not allow_zero_probs:
 
         report_bad_choices(zero_probs, utils,
-                           tracing.extend_trace_label(trace_label, 'zero_prob_utils'),
+                           trace_label=tracing.extend_trace_label(trace_label, 'zero_prob_utils'),
                            msg="all probabilities are zero",
                            trace_choosers=trace_choosers)
 
     inf_utils = np.isinf(arr_sum)
     if inf_utils.any():
         report_bad_choices(inf_utils, utils,
-                           tracing.extend_trace_label(trace_label, 'inf_exp_utils'),
+                           trace_label=tracing.extend_trace_label(trace_label, 'inf_exp_utils'),
                            msg="infinite exponentiated utilities",
                            trace_choosers=trace_choosers)
 
@@ -176,7 +181,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
     if bad_probs.any():
 
         report_bad_choices(bad_probs, probs,
-                           tracing.extend_trace_label(trace_label, 'bad_probs'),
+                           trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
                            msg="probabilities do not add up to 1",
                            trace_choosers=trace_choosers)
 

@@ -77,7 +77,7 @@ def test_simple_simulate(data, spec):
 
     orca.add_injectable("check_for_variability", False)
 
-    choices = simulate.simple_simulate(data, spec, nest_spec=None)
+    choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)
 
@@ -86,6 +86,6 @@ def test_simple_simulate_chunked(data, spec):
 
     orca.add_injectable("check_for_variability", False)
 
-    choices = simulate.simple_simulate(data, spec, nest_spec=None, chunk_size=2)
+    choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None, chunk_size=2)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected)

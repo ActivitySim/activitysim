@@ -5,6 +5,7 @@ import os
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.core.simulate import read_model_spec
 from activitysim.core.interaction_simulate import interaction_simulate
@@ -41,6 +42,12 @@ def atwork_subtour_frequency_alternatives(configs_dir):
     return df
 
 
+def add_null_results(trace_label, tours):
+    logger.info("Skipping %s: add_null_results" % trace_label)
+    tours['atwork_subtour_frequency'] = np.nan
+    pipeline.replace_table("tours", tours)
+
+
 @inject.step()
 def atwork_subtour_frequency(tours,
                              persons_merged,
@@ -59,9 +66,15 @@ def atwork_subtour_frequency(tours,
     trace_label = 'atwork_subtour_frequency'
 
     tours = tours.to_frame()
+
     persons_merged = persons_merged.to_frame()
 
     work_tours = tours[tours.tour_type == 'work']
+
+    # - if no work_tours
+    if work_tours.shape[0] == 0:
+        add_null_results(trace_label, tours)
+        return
 
     # merge persons into work_tours
     work_tours = pd.merge(work_tours, persons_merged, left_on='person_id', right_index=True)
@@ -85,11 +98,9 @@ def atwork_subtour_frequency(tours,
 
     tracing.print_summary('atwork_subtour_frequency', choices, value_counts=True)
 
-    # reindex since we are working with a subset of tours
-    choices = choices.reindex(tours.index)
-
     # add atwork_subtour_frequency column to tours
-    tours['atwork_subtour_frequency'] = choices
+    # reindex since we are working with a subset of tours
+    tours['atwork_subtour_frequency'] = choices.reindex(tours.index)
     pipeline.replace_table("tours", tours)
 
     # - create atwork_subtours based on atwork_subtour_frequency choice names
@@ -98,13 +109,11 @@ def atwork_subtour_frequency(tours,
 
     subtours = process_atwork_subtours(work_tours, atwork_subtour_frequency_alternatives)
 
-    print subtours
-
     tours = pipeline.extend_table("tours", subtours)
+
     tracing.register_traceable_table('tours', tours)
     pipeline.get_rn_generator().add_channel(subtours, 'tours')
 
     if trace_hh_id:
         tracing.trace_df(tours,
-                         label='atwork_subtour_frequency.tours',
-                         warn_if_empty=True)
+                         label='atwork_subtour_frequency.tours')

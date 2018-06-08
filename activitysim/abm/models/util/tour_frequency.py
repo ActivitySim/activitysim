@@ -1,12 +1,24 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import itertools
+import logging
+
 import numpy as np
 import pandas as pd
 
+from activitysim.core.util import reindex
+from activitysim.abm.tables import constants
 
-TOUR_CATEGORIES = ['mandatory', 'non_mandatory', 'subtour']
+logger = logging.getLogger(__name__)
+
+
+def enumerate_tour_types(tour_flavors):
+    # tour_flavors: {'eat': 1, 'business': 2, 'maint': 1}
+    # channels:      ['eat1', 'business1', 'business2', 'maint1']
+    channels = [tour_type + str(tour_num)
+                for tour_type, max_count in tour_flavors.iteritems()
+                for tour_num in range(1, max_count + 1)]
+    return channels
 
 
 def canonical_tours():
@@ -17,54 +29,63 @@ def canonical_tours():
     -------
         list of canonical tour labels in alphabetical order
     """
-    # the problem is we don't know what the possible tour_types and their max tour_nums are
 
-    # FIXME - should get this from alts table
+    # FIXME we pathalogically know what the possible tour_types and their max tour_nums are
+    # FIXME instead, should get flavors from alts tables (but we would have to know their names...)
     # alts = orca.get_table('non_mandatory_tour_frequency_alts').local
-    # non_mandatory_tour_flavors = {c : alts[alts].max() for c in alts.columns.names}
+    # non_mandatory_tour_flavors = {c : alts[c].max() for c in alts.columns}
+
+    # - non_mandatory_channels
     non_mandatory_tour_flavors = {'escort': 2, 'shopping': 1, 'othmaint': 1, 'othdiscr': 1,
                                   'eatout': 1, 'social': 1}
+    non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)
 
-    # FIXME - this logic is hardwired in process_mandatory_tours()
+    # - mandatory_channels
     mandatory_tour_flavors = {'work': 2, 'school': 2}
+    mandatory_channels = enumerate_tour_types(mandatory_tour_flavors)
 
-    tour_flavors = dict(non_mandatory_tour_flavors)
-    tour_flavors.update(mandatory_tour_flavors)
-
-    sub_channels = [tour_type + str(tour_num)
-                    for tour_type, max_count in tour_flavors.iteritems()
-                    for tour_num in range(1, max_count + 1)]
-
-    # FIXME - should get this from alts table
+    # - atwork_subtour_channels
     # we need to distinguish between subtours of different work tours
     # (e.g. eat1_1 is eat subtour for parent work tour 1 and eat1_2 is for work tour 2)
+    atwork_subtour_flavors = {'eat': 1, 'business': 2, 'maint': 1}
+    atwork_subtour_channels = enumerate_tour_types(atwork_subtour_flavors)
     max_work_tours = mandatory_tour_flavors['work']
-    atwork_subtour_channels = ['eat1', 'business1', 'business2', 'maint1']
     atwork_subtour_channels = ['%s_%s' % (c, i+1)
                                for c in atwork_subtour_channels
                                for i in range(max_work_tours)]
 
-    sub_channels = sub_channels + atwork_subtour_channels
+    # - joint_tour_channels
+    joint_tour_flavors = {'shopping': 2, 'othmaint': 2, 'othdiscr': 2, 'eatout': 2, 'social': 2}
+    joint_tour_channels = enumerate_tour_types(joint_tour_flavors)
+    joint_tour_channels = ['j_%s' % c for c in joint_tour_channels]
+
+    sub_channels = \
+        non_mandatory_channels + mandatory_channels + atwork_subtour_channels + joint_tour_channels
 
     sub_channels.sort()
+
     return sub_channels
 
 
-def set_tour_index(tours, tour_num_col, parent_tour_num_col=None):
+def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
     """
+    The new index values are stable based on the person_id, tour_type, and tour_num.
+    The existing index is ignored and replaced.
+
+    This gives us a stable (predictable) tour_id with tours in canonical order
+    (when tours are sorted by tour_id, tours for each person
+    of the same type will be adjacent and in increasing tour_type_num order)
+
+    It also simplifies attaching random number streams to tours that are stable
+    (even across simulations)
 
     Parameters
     ----------
     tours : DataFrame
         Tours dataframe to reindex.
-        The new index values are stable based on the person_id, tour_type, and tour_num.
-        The existing index is ignored and replaced.
-
-        This gives us a stable (predictable) tour_id
-        It also simplifies attaching random number streams to tours that are stable
-        (even across simulations)
     """
 
+    tour_num_col = 'tour_type_num'
     possible_tours = canonical_tours()
     possible_tours_count = len(possible_tours)
 
@@ -75,7 +96,17 @@ def set_tour_index(tours, tour_num_col, parent_tour_num_col=None):
     if parent_tour_num_col:
         # we need to distinguish between subtours of different work tours
         # (e.g. eat1_1 is eat subtour for parent work tour 1 and eat1_2 is for work tour 2)
-        tours['tour_id'] = tours['tour_id'] + '_' + tours[parent_tour_num_col].map(str)
+
+        parent_tour_num = tours[parent_tour_num_col]
+        if parent_tour_num.dtype != 'int64':
+            # might get converted to float if non-subtours rows are None (but we try to avoid this)
+            logger.error('parent_tour_num.dtype: %s' % parent_tour_num.dtype)
+            parent_tour_num = parent_tour_num.astype(int)
+
+        tours['tour_id'] = tours['tour_id'] + '_' + parent_tour_num.map(str)
+
+    if is_joint:
+        tours['tour_id'] = 'j_' + tours['tour_id']
 
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(to_replace=possible_tours,
@@ -112,7 +143,9 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
         social, etc.  A row would be an alternative which might be to take
         one shopping trip and zero trips of other purposes, etc.
     tour_category : str
-        one of 'mandatory', 'non_mandatory' or 'subtour'
+        one of 'mandatory', 'non_mandatory', 'atwork', or 'joint'
+        to add consistent tour_category columns
+        or None (as in the case of joint tours) if no tour_category fields should be added to tours
 
     Returns
     -------
@@ -122,12 +155,14 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
         a person_id column, and a tour type column which comes from the
         column names of the alternatives DataFrame supplied above.
 
-    tours.tour_type       - tour type (e.g. school, worl, shopping, eat)
+    tours.tour_type       - tour type (e.g. school, work, shopping, eat)
     tours.tour_type_num   - if there are two 'school' type tours, they will be numbered 1 and 2
     tours.tour_type_count - number of tours of tour_type parent has (parent's max tour_type_num)
     tours.tour_num        - index of tour (of any type) for parent
     tours.tour_count      - number of tours of any type) for parent (parent's max tour_num)
     """
+
+    # FIXME - document requirement to ensure adjacent tour_type_nums in tour_num order
 
     # get the actual alternatives for each person - have to go back to the
     # non_mandatory_tour_frequency_alts dataframe to get this - the choice
@@ -183,10 +218,13 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
     """
 
     # set these here to ensure consistency across different tour categories
-    assert tour_category in ['mandatory', 'non_mandatory', 'subtour']
-    tours['mandatory'] = (tour_category == 'mandatory')
-    tours['non_mandatory'] = (tour_category == 'non_mandatory')
+    assert tour_category in ['mandatory', 'non_mandatory', 'atwork', 'joint']
+    # tours['mandatory'] = (tour_category == 'mandatory')
+    # tours['non_mandatory'] = (tour_category == 'non_mandatory')
     tours['tour_category'] = tour_category
+
+    # for joint tours, the correct number will be filled in after participation step
+    tours['number_of_participants'] = 1
 
     return tours
 
@@ -219,6 +257,8 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
         depends on the is_worker column: work tours first for workers, second for non-workers
     """
 
+    PERSON_COLUMNS = ['mandatory_tour_frequency', 'is_worker',
+                      'school_taz', 'workplace_taz', 'home_taz', 'household_id']
     assert not persons.mandatory_tour_frequency.isnull().any()
 
     tours = process_tours(persons.mandatory_tour_frequency.dropna(),
@@ -226,7 +266,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
                           tour_category='mandatory')
 
     tours_merged = pd.merge(tours[['person_id', 'tour_type']],
-                            persons,
+                            persons[PERSON_COLUMNS],
                             left_on='person_id', right_index=True)
 
     # by default work tours are first for work_and_school tours
@@ -241,28 +281,31 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
         tours_merged.workplace_taz.where((tours_merged.tour_type == 'work'),
                                          tours_merged.school_taz)
 
+    tours['origin'] = tours_merged.home_taz
+
+    tours['household_id'] = tours_merged.household_id
+
     # assign stable (predictable) tour_id
-    set_tour_index(tours, 'tour_num')
+    set_tour_index(tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
     tour_id
-    12413245      827549    school                2              1         2           2
-    12413244      827549    school                2              2         1           2
+    12413245      827549    school                2              1         1           2
+    12413244      827549    school                2              2         2           2
     12413264      827550      work                1              1         1           2
-    12413265      827550    school                1              1         2           2
+    12413266      827550    school                1              1         2           2
     ...
-               mandatory  non_mandatory tour_category  destination
-
-                    True          False     mandatory          102
-                    True          False     mandatory          102
-                    True          False     mandatory            9
-                    True          False     mandatory          102
+               tour_category  destination   household_id
+                   mandatory          102         103992
+                   mandatory          102         103992
+                   mandatory            9         103992
+                   mandatory          102         103992
     """
     return tours
 
 
-def process_non_mandatory_tours(non_mandatory_tour_frequency,
+def process_non_mandatory_tours(persons,
                                 non_mandatory_tour_frequency_alts):
     """
     This method processes the non_mandatory_tour_frequency column that comes
@@ -271,9 +314,9 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
 
     Parameters
     ----------
-    non_mandatory_tour_frequency: Series
-        A series which has person id as the index and the chosen alternative
-        index as the value
+    persons: pandas.DataFrame
+        persons table containing a non_mandatory_tour_frequency column
+        which has the index of the chosen alternative as the value
     non_mandatory_tour_frequency_alts: DataFrame
         A DataFrame which has as a unique index which relates to the values
         in the series above typically includes columns which are named for trip
@@ -290,12 +333,15 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
         a person_id column, and a tour type column which comes from the
         column names of the alternatives DataFrame supplied above.
     """
-    tours = process_tours(non_mandatory_tour_frequency,
+    tours = process_tours(persons.non_mandatory_tour_frequency.dropna(),
                           non_mandatory_tour_frequency_alts,
                           tour_category='non_mandatory')
 
+    tours['household_id'] = reindex(persons.household_id, tours.person_id)
+    tours['origin'] = reindex(persons.home_taz, tours.person_id)
+
     # assign stable (predictable) tour_id
-    set_tour_index(tours, 'tour_type_num')
+    set_tour_index(tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num   tour_count
@@ -304,11 +350,11 @@ def process_non_mandatory_tours(non_mandatory_tour_frequency,
     17008283     1133885  othmaint                1              1         2            3
     17008282     1133885  othdiscr                1              1         3            3
     ...
-               mandatory  non_mandatory  tour_category
+               tour_category
 
-                   False           True  non_mandatory
-                   False           True  non_mandatory
-                   False           True  non_mandatory
+               non_mandatory
+               non_mandatory
+               non_mandatory
     """
 
     return tours
@@ -354,7 +400,7 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     parent_col = 'parent_tour_id'
     tours = process_tours(work_tours.atwork_subtour_frequency.dropna(),
                           atwork_subtour_frequency_alts,
-                          tour_category='subtour',
+                          tour_category='atwork',
                           parent_col=parent_col)
 
     # print tours
@@ -365,19 +411,20 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     77401056         77147984     maint                1              1         2           2
     80893007         80893019       eat                1              1         1           1
 
-              mandatory  non_mandatory tour_category
-                  False          False       subtour
-                  False          False       subtour
-                  False          False       subtour
+              tour_category
+                     atwork
+                     atwork
+                     atwork
     """
 
-    # merge person_id from parent work_tours
-    work_tours = work_tours[["person_id", "tour_num"]]
-    work_tours.rename(columns={'tour_num': 'parent_tour_num'}, inplace=True)
+    # merge fields from parent work_tours (note parent tour destination becomes subtour origin)
+    work_tours = work_tours[['person_id', 'household_id', 'tour_num', 'destination']]
+    work_tours.rename(columns={'tour_num': 'parent_tour_num',
+                               'destination': 'origin'}, inplace=True)
     tours = pd.merge(tours, work_tours, left_on=parent_col, right_index=True)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, tour_num_col='tour_type_num', parent_tour_num_col='parent_tour_num')
+    set_tour_index(tours, parent_tour_num_col='parent_tour_num')
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -386,11 +433,71 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     77401056     5143198     maint                1              1         2           2
     80893007     5392867       eat                1              1         1           1
 
-              mandatory  non_mandatory tour_category   parent_tour_id
-
-                  False          False       subtour         77147984
-                  False          False       subtour         77147984
-                  False          False       subtour         80893019
+              tour_category   parent_tour_id  household_id
+                     atwork         77147984       1625435
+                     atwork         77147984       1625435
+                     atwork         80893019       2135503
     """
 
+    # don't need this once we have computed index
+    del tours['parent_tour_num']
+
+    return tours
+
+
+def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_persons):
+    """
+    This method processes the joint_tour_frequency column that comes out of
+    the model of the same name and turns into a DataFrame that represents the
+    joint tours that were generated
+
+    Parameters
+    ----------
+    joint_tour_frequency : pandas.Series
+        household joint_tour_frequency (which came out of the joint tour frequency model)
+        indexed by household_id
+    joint_tour_frequency_alts: DataFrame
+        A DataFrame which has as a unique index with joint_tour_frequency values
+        and frequency counts for the tours to be generated for that choice
+    point_persons : pandas DataFrame
+        table with columns for (at least) person_ids and home_taz indexed by household_id
+
+    Returns
+    -------
+    tours : DataFrame
+        An example of a tours DataFrame is supplied as a comment in the
+        source code - it has an index which is a tour identifier, a household_id
+        column, a tour_type column and tour_type_num and tour_num columns
+        which is set to 1 or 2 depending whether it is the first or second joint tour
+        made by the household.
+    """
+
+    assert not joint_tour_frequency.isnull().any()
+
+    tours = process_tours(joint_tour_frequency.dropna(),
+                          joint_tour_frequency_alts,
+                          tour_category='joint',
+                          parent_col='household_id')
+
+    # - assign a temp point person to tour so we can create stable index
+    tours['person_id'] = reindex(point_persons.person_id, tours.household_id)
+    tours['origin'] = reindex(point_persons.home_taz, tours.household_id)
+
+    # assign stable (predictable) tour_id
+    set_tour_index(tours, is_joint=True)
+
+    """
+                   household_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
+    joint_tour_id
+    3209530              320953      disc                1              1         1           2
+    3209531              320953      disc                2              2         2           2
+    23267026            2326702      shop                1              1         1           1
+    17978574            1797857      main                1              1         1           1
+
+                   tour_category  tour_category_id  person_id
+    3209530                joint                 4     577234
+    3209531                joint                 4     577234
+    23267026               joint                 4    1742708
+    17978574               joint                 4    5143198
+    """
     return tours

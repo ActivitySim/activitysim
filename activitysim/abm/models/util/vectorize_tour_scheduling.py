@@ -9,10 +9,13 @@ import pandas as pd
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core import tracing
 from activitysim.core import inject
+
 from activitysim.core import timetable as tt
+
 from activitysim.core.util import memory_info
 from activitysim.core.util import df_size
 from activitysim.core.util import force_garbage_collect
+from activitysim.core.util import reindex
 
 from activitysim.core import chunk
 
@@ -89,11 +92,11 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 
     alts_ids = np.tile(alts.index, len(tours.index))
     tour_ids = np.repeat(tours.index, len(alts.index))
-    window_row_id_ids = np.repeat(tours[window_id_col], len(alts.index))
+    window_row_ids = np.repeat(tours[window_id_col], len(alts.index))
 
     alt_tdd = alts.take(alts_ids).copy()
     alt_tdd.index = tour_ids
-    alt_tdd[window_id_col] = window_row_id_ids
+    alt_tdd[window_id_col] = window_row_ids
     alt_tdd[choice_column] = alts_ids
 
     # slice out all non-available tours
@@ -110,8 +113,10 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 
 
 def _schedule_tours(
-        tours, persons_merged, alts, spec, constants, timetable,
-        previous_tour, window_id_col, tour_trace_label):
+        tours, persons_merged, alts, spec, constants,
+        timetable, window_id_col,
+        previous_tour, tour_owner_id_col,
+        tour_trace_label):
     """
     previous_tour stores values used to add columns that can be used in the spec
     which have to do with the previous tours per person.  Every column in the
@@ -125,7 +130,7 @@ def _schedule_tours(
     Parameters
     ----------
     tours : DataFrame
-        chunk of tours to schedule with unique window_id_col (person_id or parent_tour_id)
+        chunk of tours to schedule with unique timetable window_id_col
     persons_merged : DataFrame
         DataFrame of persons to be merged with tours containing attributes referenced
         by expressions in spec
@@ -139,11 +144,16 @@ def _schedule_tours(
         dict of model-specific constants for eval
     timetable : TimeTable
         timetable of timewidows for person (or subtour) with rows for tours[window_id_col]
+    window_id_col : str
+        column name from tours that identifies timetable owner (or None if tours index)
+        person_id for non/mandatory tours, parent_tour_id for subtours,
+        None (tours index) for joint_tours since every tour potentially has different participants)
     previous_tour: Series
         series with value of tdd_alt choice for last previous tour scheduled for
-    window_id_col : str
+    tour_owner_id_col : str
         column name from tours that identifies 'owner' of this tour
-        (person_id for non/mandatory tours or parent_tout_id for subtours)
+        (person_id for non/mandatory tours, parent_tour_id for subtours,
+        household_id for joint_tours)
     tour_trace_label
 
     Returns
@@ -153,19 +163,22 @@ def _schedule_tours(
 
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
-    if tours[window_id_col].duplicated().any():
-        print "\ntours.person_id not unique\n", tours[tours[window_id_col].duplicated(keep=False)]
+    # merge persons into tours
+    # avoid dual suffix for redundant columns names (e.g. household_id) that appear in both
+    tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True,
+                     suffixes=('', '_y'))
+
+    # if no timetable window_id_col specified, then add index as an explicit column
+    if window_id_col is None:
+        window_id_col = tours.index.name
+        tours[window_id_col] = tours.index
 
     # timetable can't handle multiple tours per window_id
     assert not tours[window_id_col].duplicated().any()
 
-    # merge persons into tours
-    tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
-
-    # merge previous tour columns
-    tours = tours.join(
-        get_previous_tour_by_tourid(tours[window_id_col], previous_tour, alts)
-    )
+    # merge previous tour columns (join on index)
+    previous_tour_info = get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts)
+    tours = tours.join(previous_tour_info)
 
     # build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
@@ -189,7 +202,7 @@ def _schedule_tours(
         trace_label=tour_trace_label
     )
 
-    previous_tour.loc[tours[window_id_col]] = choices.values
+    previous_tour.loc[tours[tour_owner_id_col]] = choices.values
 
     timetable.assign(tours[window_id_col], choices)
 
@@ -219,17 +232,19 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
 
     row_size = (chooser_row_size + extra_chooser_columns + alt_row_size) * sample_size
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
-    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
+    # logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def schedule_tours(
-        tours, persons_merged, alts, spec, constants, timetable,
-        previous_tour, window_id_col, chunk_size, tour_trace_label):
+        tours, persons_merged, alts, spec, constants,
+        timetable, timetable_window_id_col,
+        previous_tour, tour_owner_id_col,
+        chunk_size, tour_trace_label):
     """
     chunking wrapper for _schedule_tours
 
@@ -239,10 +254,14 @@ def schedule_tours(
     and pass a chunk_size of 0 to interaction_sample_simulate to disable its chunking support.
 
     """
-    # return _schedule_tours(tours, persons_merged, alts, spec, constants, timetable,
-    #                        previous_tour, window_id_col, chunk_size, tour_trace_label)
 
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
+
+    # no more than one tour per timetable_window per call
+    if timetable_window_id_col is None:
+        assert not tours.index.duplicated().any()
+    else:
+        assert not tours[timetable_window_id_col].duplicated().any()
 
     # persons_merged columns plus 2 previous tour columns
     extra_chooser_columns = persons_merged.shape[1] + 2
@@ -263,8 +282,8 @@ def schedule_tours(
 
         choices = _schedule_tours(chooser_chunk, persons_merged,
                                   alts, spec, constants,
-                                  timetable,
-                                  previous_tour, window_id_col,
+                                  timetable, timetable_window_id_col,
+                                  previous_tour, tour_owner_id_col,
                                   tour_trace_label=chunk_trace_label)
 
         result_list.append(choices)
@@ -327,6 +346,10 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     assert 'tour_num' in tours.columns
     assert 'tour_type' in tours.columns
 
+    # tours must be scheduled in increasing trip_num order
+    # second trip of type must be in group immediately following first
+    # this ought to have been ensured when tours are created (tour_frequency.process_tours)
+
     timetable = inject.get_injectable("timetable")
     choice_list = []
 
@@ -347,25 +370,25 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
 
             for tour_type in spec:
 
-                tour_trace_label = tracing.extend_trace_label(trace_label, tour_type)
+                if (nth_tours.tour_type == tour_type).any():
+                    choices = \
+                        schedule_tours(nth_tours[nth_tours.tour_type == tour_type],
+                                       persons_merged, alts,
+                                       spec[tour_type], constants,
+                                       timetable, 'person_id',
+                                       previous_tour_by_personid, 'person_id',
+                                       chunk_size,
+                                       tracing.extend_trace_label(tour_trace_label, tour_type))
 
-                choices = \
-                    schedule_tours(nth_tours[nth_tours.tour_type == tour_type],
-                                   persons_merged, alts,
-                                   spec[tour_type],
-                                   constants, timetable,
-                                   previous_tour_by_personid, 'person_id',
-                                   chunk_size, tour_trace_label)
-
-                choice_list.append(choices)
+                    choice_list.append(choices)
 
         else:
 
             choices = \
                 schedule_tours(nth_tours,
                                persons_merged, alts,
-                               spec,
-                               constants, timetable,
+                               spec, constants,
+                               timetable, 'person_id',
                                previous_tour_by_personid, 'person_id',
                                chunk_size, tour_trace_label)
 
@@ -449,20 +472,22 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     previous_tour_by_parent_tour_id = \
         pd.Series(alts.index[0], index=subtours['parent_tour_id'].unique())
 
-    # no more than one tour per person per call to schedule_tours
     # tours must be scheduled in increasing trip_num order
     # second trip of type must be in group immediately following first
-    # segregate scheduling by tour_type if multiple specs passed in dict keyed by tour_type
+    # this ought to have been ensured when tours are created (tour_frequency.process_tours)
 
     for tour_num, nth_tours in subtours.groupby('tour_num', sort=True):
 
         tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
 
+        # no more than one tour per timetable window per call to schedule_tours
+        assert not nth_tours.parent_tour_id.duplicated().any()
+
         choices = \
             schedule_tours(nth_tours,
                            persons_merged, alts,
-                           spec,
-                           constants, timetable,
+                           spec, constants,
+                           timetable, 'parent_tour_id',
                            previous_tour_by_parent_tour_id, 'parent_tour_id',
                            chunk_size, tour_trace_label)
 
@@ -483,5 +508,125 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
      [7 7 7 7 7 2 4 0 0 0 0 0 0 0 0 7 7 7 7 7 7]
      [7 7 0 2 7 7 4 0 0 7 7 7 7 7 7 7 7 7 7 7 7]]
     """
+
+    # we dont need to call replace_table() for this nonce timetable
+    # because subtours are occuring during persons timetable scheduled time
+
+    return tdd
+
+
+def build_joint_tour_timetables(joint_tours, joint_tour_participants, persons_timetable, alts):
+
+    # timetable with a window for each joint tour
+    joint_tour_windows_df = tt.create_timetable_windows(joint_tours, alts)
+    joint_tour_timetable = tt.TimeTable(joint_tour_windows_df, alts)
+
+    for participant_num, nth_participants in \
+            joint_tour_participants.groupby('participant_num', sort=True):
+
+        # nth_participant windows from persons_timetable
+        participant_windows = persons_timetable.slice_windows_by_row_id(nth_participants.person_id)
+
+        # assign them joint_tour_timetable
+        joint_tour_timetable.assign_footprints(nth_participants.tour_id, participant_windows)
+
+    return joint_tour_timetable
+
+
+def vectorize_joint_tour_scheduling(
+        joint_tours, joint_tour_participants,
+        persons_merged, alts, spec,
+        constants={},
+        chunk_size=0, trace_label=None):
+    """
+    Like vectorize_tour_scheduling but specifically for joint tours
+
+    joint tours have a few peculiarities necessitating separate treatment:
+
+    Timetable has to be initialized to set all timeperiods...
+
+    Parameters
+    ----------
+    tours : DataFrame
+        DataFrame of tours containing tour attributes, as well as a person_id
+        column to define the nth tour for each person.
+    persons_merged : DataFrame
+        DataFrame of persons containing attributes referenced by expressions in spec
+    alts : DataFrame
+        DataFrame of alternatives which represent time slots.  Will be passed to
+        interaction_simulate in batches for each nth tour.
+    spec : DataFrame
+        The spec which will be passed to interaction_simulate.
+        (or dict of specs keyed on tour_type if tour_types is not None)
+    constants : dict
+        dict of model-specific constants for eval
+    Returns
+    -------
+    choices : Series
+        A Series of choices where the index is the index of the tours
+        DataFrame and the values are the index of the alts DataFrame.
+    """
+
+    trace_label = tracing.extend_trace_label(trace_label, 'vectorize_joint_tour_scheduling')
+
+    assert len(joint_tours.index) > 0
+    assert 'tour_num' in joint_tours.columns
+    assert 'tour_type' in joint_tours.columns
+
+    persons_timetable = inject.get_injectable("timetable")
+    choice_list = []
+
+    # keep a series of the the most recent tours for each person
+    # initialize with first trip from alts
+    previous_tour_by_householdid = pd.Series(alts.index[0], index=joint_tours.household_id.unique())
+
+    # tours must be scheduled in increasing trip_num order
+    # second trip of type must be in group immediately following first
+    # this ought to have been ensured when tours are created (tour_frequency.process_tours)
+
+    # print "participant windows before scheduling\n", \
+    #     persons_timetable.slice_windows_by_row_id(joint_tour_participants.person_id)
+
+    for tour_num, nth_tours in joint_tours.groupby('tour_num', sort=True):
+
+        tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
+
+        # no more than one tour per household per call to schedule_tours
+        assert not nth_tours.household_id.duplicated().any()
+
+        nth_participants = \
+            joint_tour_participants[joint_tour_participants.tour_id.isin(nth_tours.index)]
+
+        timetable = build_joint_tour_timetables(
+            nth_tours, nth_participants,
+            persons_timetable, alts)
+
+        choices = \
+            schedule_tours(nth_tours,
+                           persons_merged, alts,
+                           spec, constants,
+                           timetable, None,
+                           previous_tour_by_householdid, 'household_id',
+                           chunk_size, tour_trace_label)
+
+        # - update timetables of all joint tour participants
+        persons_timetable.assign(
+            nth_participants.person_id,
+            reindex(choices, nth_participants.tour_id))
+
+        choice_list.append(choices)
+
+    choices = pd.concat(choice_list)
+
+    # add the start, end, and duration from tdd_alts
+    tdd = alts.loc[choices]
+    tdd.index = choices.index
+    # include the index of the choice in the tdd alts table
+    tdd['tdd'] = choices
+
+    persons_timetable.replace_table()
+
+    # print "participant windows after scheduling\n", \
+    #     persons_timetable.slice_windows_by_row_id(joint_tour_participants.person_id)
 
     return tdd

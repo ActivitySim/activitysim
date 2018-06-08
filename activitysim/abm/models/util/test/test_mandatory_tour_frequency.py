@@ -23,6 +23,8 @@ def test_mtf():
         "mandatory_tour_frequency": ["work1", "work_and_school", "work_and_school", "school2"],
         "school_taz": [1, 2, 3, 4],
         "workplace_taz": [10, 20, 30, 40],
+        "home_taz": [100, 200, 300, 400],
+        "household_id": [1, 2, 2, 4]
     }, index=[10, 20, 30, 40])
 
     tour_frequency_alternatives = mandatory_tour_frequency_alternatives()
@@ -48,3 +50,7 @@ def test_mtf():
     pdt.assert_series_equal(
         mandatory_tours.destination,
         pd.Series([10, 20, 2, 30, 3, 4, 4], index=idx, name='destination'))
+
+    pdt.assert_series_equal(
+        mandatory_tours.origin,
+        pd.Series([100, 200, 200, 300, 300, 400, 400], index=idx, name='origin'))

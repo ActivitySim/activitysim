@@ -43,10 +43,6 @@ def test_misc():
     settings = orca.get_injectable("settings")
     assert isinstance(settings, dict)
 
-    assert orca.get_injectable("trace_person_ids") == []
-
-    assert orca.get_injectable("trace_tour_ids") == []
-
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     orca.add_injectable("data_dir", data_dir)
 
@@ -59,10 +55,6 @@ def test_misc():
     with pytest.raises(RuntimeError) as excinfo:
         orca.get_injectable("store")
     assert "store file not found" in str(excinfo.value)
-
-    # these should be None until overridden
-    assert orca.get_injectable("hh_index_name") is None
-    assert orca.get_injectable("persons_index_name") is None
 
     # default values if not specified in settings
     assert orca.get_injectable("chunk_size") == 0

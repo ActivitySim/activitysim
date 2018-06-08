@@ -10,7 +10,6 @@ from activitysim.core.config import handle_standard_args
 from activitysim.core.config import setting
 
 from activitysim.core import pipeline
-import extensions
 
 handle_standard_args()
 

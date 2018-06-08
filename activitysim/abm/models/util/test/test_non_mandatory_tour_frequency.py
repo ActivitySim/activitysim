@@ -11,7 +11,14 @@ from ..tour_frequency import process_non_mandatory_tours
 
 def test_nmtf():
 
-    non_mandatory_tour_frequency = pd.Series([0, 3, 2, 1])
+    persons = pd.DataFrame(
+        {
+            'non_mandatory_tour_frequency': [0, 3, 2, 1],
+            'household_id': [1, 1, 2, 4],
+            'home_taz': [100, 100, 200, 400]
+        },
+        index=[0, 1, 2, 3]
+    )
 
     non_mandatory_tour_frequency_alts = pd.DataFrame(
         {
@@ -22,7 +29,7 @@ def test_nmtf():
         index=[0, 1, 2, 3]
     )
 
-    nmt = process_non_mandatory_tours(non_mandatory_tour_frequency,
+    nmt = process_non_mandatory_tours(persons,
                                       non_mandatory_tour_frequency_alts)
 
     idx = nmt.index

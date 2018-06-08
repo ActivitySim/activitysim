@@ -62,11 +62,11 @@ def test_vts():
 
     orca.add_injectable("check_for_variability", True)
 
-    tdd = vectorize_tour_scheduling(tours, persons, alts, spec)
+    tdd_choices = vectorize_tour_scheduling(tours, persons, alts, spec)
 
     # FIXME - dead reckoning regression
     # there's no real logic here - this is just what came out of the monte carlo
     # note that the result comes out ordered by the nth trips and not ordered
     # by the trip index.  shrug?
     expected = [2, 2, 2, 0, 0]
-    assert (tdd.tdd.values == expected).all()
+    assert (tdd_choices.tdd.values == expected).all()

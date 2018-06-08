@@ -1,4 +1,6 @@
 
+# rst doesn't support image maps, so we'll add one after the html has been built
+
 fileName = "_build/html/abmexample.html"
 line = 'src="_images/abmexample.jpg" />'
 lineWithMap = 'src="_images/abmexample.jpg" usemap="#image-map" />'
@@ -34,13 +36,15 @@ imageMap = """\n   <map name="image-map">
     </map>
     """  # noqa
 
+print("add image map to " + fileName)
+
 with open(fileName) as file:
     lines = file.readlines()
 
 with open(fileName, 'w') as file:
     for l in lines:
         if line in l:
-            print(fileName + " updated")
+            print("updated " + fileName)
             file.writelines("%s" % l.replace(line, lineWithMap))
             file.writelines("%s" % imageMap)
         else:

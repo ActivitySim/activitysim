@@ -41,9 +41,8 @@ def joint_tour_scheduling(
         chunk_size,
         trace_hh_id):
     """
-     This model predicts the frequency of making mandatory trips (see the
-     alternatives above) - these trips include work and school in some combination.
-     """
+    This model predicts the departure time and duration of each joint tour
+    """
     trace_label = 'joint_tour_scheduling'
 
     tours = tours.to_frame()

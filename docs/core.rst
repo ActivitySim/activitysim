@@ -100,6 +100,7 @@ API
 .. automodule:: activitysim.core.tracing
    :members:
 
+
 .. _expressions:
 
 Utility Expressions
@@ -156,10 +157,10 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 
 * Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
 * :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The :ref:`non_mandatory_tour_destination_choice` model implements this approach.
-* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`tour_mode_choice` models are examples of this and are illustrated below.
+* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`man_non-man_tour_mode_choice` models are examples of this and are illustrated below.
 * Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
 
-The :ref:`tour_mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
+The :ref:`man_non-man_tour_mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
 Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.  
 In the example below, the ``@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']`` expression is travel time for the tour origin to desination at the tour start time plus the tour
 destination to tour origin at the tour end time.  The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.
@@ -358,7 +359,7 @@ API
 Inject
 ~~~~~~
 
-ORCA wrapper class to make it easier to track and manage interaction with the data pipeline.
+Wrap orca class to make it easier to track and manage interaction with the data pipeline.
 
 API
 ^^^
@@ -376,6 +377,18 @@ API
 
 .. automodule:: activitysim.core.inject_defaults
    :members:
+   
+Output
+~~~~~~
+
+Write output files.
+
+API
+^^^
+
+.. automodule:: activitysim.core.steps.output
+   :members:
+   
 
 Tests
 ~~~~~

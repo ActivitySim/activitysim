@@ -48,8 +48,7 @@ def joint_tour_composition(
         chunk_size,
         trace_hh_id):
     """
-    This model predicts the frequency of making mandatory trips (see the
-    alternatives above) - these trips include work and school in some combination.
+    This model predicts the makeup of the travel party (adults, children, or mixed).
     """
     trace_label = 'joint_tour_composition'
 

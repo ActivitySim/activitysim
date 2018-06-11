@@ -114,7 +114,7 @@ def trip_purpose_and_destination(
             break
 
         logger.warn("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
-        file_name = "%s_failed_trips_%s" % (trace_label, i)
+        file_name = "%s_i%s_failed_trips" % (trace_label, i)
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 

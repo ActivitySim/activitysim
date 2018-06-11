@@ -407,7 +407,7 @@ def run_trip_destination(
 
             failed_trip_ids = nth_trips.index.difference(destinations.index)
             if failed_trip_ids.any():
-                logger.warn("%s sidelining %s trips without viable destination alternatives\n"
+                logger.warn("%s sidelining %s trips without viable destination alternatives"
                             % (nth_trace_label, failed_trip_ids.shape[0]))
                 next_trip_ids = nth_trips.next_trip_id.reindex(failed_trip_ids)
                 trips.loc[failed_trip_ids, 'failed'] = True

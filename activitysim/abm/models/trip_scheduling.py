@@ -237,7 +237,7 @@ def schedule_nth_trips(
     failed = (choices == chooser_probs.columns.get_loc('fail'))
     choices = (choices + depart_alt_base).where(~failed, -1)
 
-    # report zero_probs while we have the best diagnostic info
+    # report failed trips while we have the best diagnostic info
     if report_failed_trips and failed.any():
         report_bad_choices(
             bad_row_map=failed,

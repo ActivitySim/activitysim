@@ -25,7 +25,15 @@ def households(store, households_sample_size, trace_hh_id, override_hh_ids):
 
         # trace_hh_id will not used if it is not in list of override_hh_ids
         logger.info("override household list containing %s households" % len(override_hh_ids))
-        df = tracing.slice_ids(df_full, override_hh_ids)
+
+        df = df_full[df_full.index.isin(override_hh_ids)]
+
+        if df.shape[0] < len(override_hh_ids):
+            logger.info("found %s of %s households in override household list" %
+                        (df.shape[0], len(override_hh_ids)))
+
+        if df.shape[0] == 0:
+            raise RuntimeError('No override households found in store')
 
     # if we are tracing hh exclusively
     elif trace_hh_id and households_sample_size == 1:

@@ -67,7 +67,7 @@ def override_hh_ids(settings, configs_dir):
         logger.error("No 'household_id' column in hh_ids file %s" % hh_ids_filename)
         return None
 
-    household_ids = df.household_id.unique()
+    household_ids = df.household_id.astype(int).unique()
 
     if len(household_ids) == 0:
         logger.error("No households in hh_ids file %s" % hh_ids_filename)

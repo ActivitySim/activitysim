@@ -455,6 +455,7 @@ def regress_traced_hh(primary=True, subtour=True, joint=True):
 
     assert trips_df.shape[0] > 0
     assert not trips_df.purpose.isnull().any()
+    assert not trips_df.depart.isnull().any()
 
 
 def test_full_run1():

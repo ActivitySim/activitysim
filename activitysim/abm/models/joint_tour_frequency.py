@@ -50,8 +50,8 @@ def joint_tour_frequency(
         chunk_size,
         trace_hh_id):
     """
-    This model predicts the frequency of making mandatory trips (see the
-    alternatives above) - these trips include work and school in some combination.
+    This model predicts the frequency of making fully joint trips (see the
+    alternatives above).
     """
     trace_label = 'joint_tour_frequency'
 

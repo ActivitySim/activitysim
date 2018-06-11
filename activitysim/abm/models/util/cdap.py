@@ -207,7 +207,7 @@ def preprocess_interaction_coefficients(interaction_coefficients):
 
     interaction_ptypes
         List of ptypes in the interaction (in order of increasing ptype)
-        Stars (***) instead of ptypes means the interaction applies to all ptypes in that size hh.
+        Stars `(***)` instead of ptypes means the interaction applies to all ptypes in that size hh.
 
     coefficient
         The coefficient to apply for all hh interactions for this activity and set of ptypes

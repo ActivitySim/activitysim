@@ -39,7 +39,7 @@ def joint_tour_mode_choice(
         chunk_size,
         trace_hh_id):
     """
-    Tour mode choice simulate
+    Joint tour mode choice simulate
     """
 
     trace_label = 'joint_tour_mode_choice'

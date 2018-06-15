@@ -328,13 +328,13 @@ EXPECT_TOUR_COUNT = 196
 
 def regress_mode_df(mode_df):
 
-    mode_cols = ['tour_id', 'mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
+    mode_cols = ['tour_id', 'tour_mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
 
     mode_df = mode_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
     mand_mode_df = mode_df[mode_df.tour_category == 'mandatory']
     print "mand mode_df\n", mand_mode_df[mode_cols]
     """
-     tour_id            mode person_id tour_type tour_num tour_category
+     tour_id       tour_mode person_id tour_type tour_num tour_category
     67567442            WALK   2329911    school        1     mandatory
     67567471            WALK   2329912    school        1     mandatory
     67567504  DRIVEALONEFREE   2329913      work        1     mandatory
@@ -356,7 +356,7 @@ def regress_mode_df(mode_df):
     assert len(mand_mode_df.person_id) == len(EXPECT_MAND_PERSON_IDS)
     assert (mand_mode_df.person_id.values == EXPECT_MAND_PERSON_IDS).all()
     assert (mand_mode_df.tour_type.values == EXPECT_MAND_TOUR_TYPES).all()
-    assert (mand_mode_df['mode'].values == EXPECT_MAND_MODES).all()
+    assert (mand_mode_df.tour_mode.values == EXPECT_MAND_MODES).all()
 
     non_mand_mode_df = mode_df[mode_df.tour_category == 'non_mandatory']
     print "non_mand mode_df\n", non_mand_mode_df[mode_cols]
@@ -388,19 +388,19 @@ def regress_mode_df(mode_df):
     assert len(non_mand_mode_df.person_id) == len(EXPECT_NON_MAND_PERSON_IDS)
     assert (non_mand_mode_df.person_id.values == EXPECT_NON_MAND_PERSON_IDS).all()
     assert (non_mand_mode_df.tour_type.values == EXPECT_NON_MAND_TOUR_TYPES).all()
-    assert (non_mand_mode_df['mode'].values == EXPECT_NON_MAND_MODES).all()
+    assert (non_mand_mode_df.tour_mode.values == EXPECT_NON_MAND_MODES).all()
 
 
 def regress_joint_mode_df(mode_df):
 
-    mode_cols = ['tour_id', 'mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
+    mode_cols = ['tour_id', 'tour_mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
 
     mode_df = mode_df.sort_values(by=['person_id', 'tour_num'])
 
     print "joint mode_df\n", mode_df[mode_cols]
     """
-            tour_id  mode person_id tour_type tour_num tour_category
-    value   67567407  WALK   2329910    social        1         joint
+            tour_id  tour_mode person_id tour_type tour_num tour_category
+    value   67567407      WALK   2329910    social        1         joint
     """
 
     EXPECT_JOINT_PERSON_IDS = ['2329910']
@@ -410,7 +410,7 @@ def regress_joint_mode_df(mode_df):
     assert len(mode_df.person_id) == len(EXPECT_JOINT_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_JOINT_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_JOINT_TOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_JOINT_MODES).all()
+    assert (mode_df.tour_mode.values == EXPECT_JOINT_MODES).all()
 
 
 def regress_subtour_mode_df(mode_df):
@@ -418,11 +418,11 @@ def regress_subtour_mode_df(mode_df):
     mode_df = mode_df.sort_values(by=['person_id', 'tour_num'])
 
     print "subtour mode_df\n",\
-        mode_df[['tour_id', 'mode', 'person_id', 'tour_type', 'tour_num', 'parent_tour_id']]
+        mode_df[['tour_id', 'tour_mode', 'person_id', 'tour_type', 'tour_num', 'parent_tour_id']]
 
     """
-            tour_id  mode person_id tour_type tour_num parent_tour_id
-    value  67567481  BIKE   2329913       eat        1     67567504.0
+            tour_id  tour_mode person_id tour_type tour_num parent_tour_id
+    value  67567481  BIKE        2329913       eat        1     67567504.0
     """
 
     EXPECT_SUBTOUR_PERSON_IDS = ['2329913']
@@ -433,29 +433,36 @@ def regress_subtour_mode_df(mode_df):
     assert len(mode_df.person_id) == len(EXPECT_SUBTOUR_PERSON_IDS)
     assert (mode_df.person_id.values == EXPECT_SUBTOUR_PERSON_IDS).all()
     assert (mode_df.tour_type.values == EXPECT_SUBTOUR_TYPES).all()
-    assert (mode_df['mode'].values == EXPECT_SUBTOUR_MODES).all()
+    assert (mode_df.tour_mode.values == EXPECT_SUBTOUR_MODES).all()
     assert (mode_df.parent_tour_id.values == EXPECT_PARENT_TOUR_IDS).all()
 
 
 def regress_traced_hh(primary=True, subtour=True, joint=True):
 
     if primary:
-        mode_df = get_trace_csv('tour_mode_choice.mode.csv')
+        mode_df = get_trace_csv('tour_mode_choice.tour_mode.csv')
         regress_mode_df(mode_df)
 
     if subtour:
-        mode_df = get_trace_csv('atwork_subtour_mode_choice.mode.csv')
+        mode_df = get_trace_csv('atwork_subtour_mode_choice.tour_mode.csv')
         regress_subtour_mode_df(mode_df)
 
     if joint:
-        mode_df = get_trace_csv('joint_tour_mode_choice.mode.csv')
+        mode_df = get_trace_csv('joint_tour_mode_choice.tour_mode.csv')
         regress_joint_mode_df(mode_df)
 
-    trips_df = pipeline.get_table('trips')
+    tours_df = pipeline.get_table('tours')
+    assert tours_df.shape[0] > 0
+    assert not tours_df.tour_mode.isnull().any()
 
+    trips_df = pipeline.get_table('trips')
     assert trips_df.shape[0] > 0
     assert not trips_df.purpose.isnull().any()
     assert not trips_df.depart.isnull().any()
+    assert not trips_df.trip_mode.isnull().any()
+
+    # should be at least two tours per trip
+    assert trips_df.shape[0] >= 2*tours_df.shape[0]
 
 
 def test_full_run1():

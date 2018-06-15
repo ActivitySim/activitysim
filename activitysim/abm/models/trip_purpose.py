@@ -110,18 +110,19 @@ def run_trip_purpose(
     result_list = []
 
     # - last trip of outbound tour gets primary_purpose
-    purpose = trips_df.primary_purpose[trips_df['last'] & trips_df.outbound]
+    last_trip = (trips_df.trip_num == trips_df.trip_count)
+    purpose = trips_df.primary_purpose[last_trip & trips_df.outbound]
     result_list.append(purpose)
     logger.info("assign purpose to %s last outbound trips" % purpose.shape[0])
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
-    purpose = trips_df.primary_purpose[trips_df['last'] & ~trips_df.outbound]
+    purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
     purpose = pd.Series(np.where(purpose == 'atwork', 'Work', 'Home'), index=purpose.index)
     result_list.append(purpose)
     logger.info("assign purpose to %s last inbound trips" % purpose.shape[0])
 
     # - intermediate stops (non-last trips) purpose assigned by probability table
-    trips_df = trips_df[~trips_df['last']]
+    trips_df = trips_df[~last_trip]
     logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
 
     preprocessor_settings = model_settings.get('preprocessor_settings', None)

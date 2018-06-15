@@ -349,7 +349,7 @@ def run_trip_destination(
 
     trips = trips.sort_index()
     trips['next_trip_id'] = np.roll(trips.index, -1)
-    trips.next_trip_id = trips.next_trip_id.where(~trips['last'], 0)
+    trips.next_trip_id = trips.next_trip_id.where(trips.trip_num < trips.trip_count, 0)
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
@@ -366,7 +366,7 @@ def run_trip_destination(
     alternatives.index.name = model_settings['ALT_DEST']
 
     # - process intermediate trips in ascending trip_num order
-    intermediate = ~trips['last']
+    intermediate = trips.trip_num < trips.trip_count
     if intermediate.any():
 
         first_trip_num = trips[intermediate].trip_num.min()

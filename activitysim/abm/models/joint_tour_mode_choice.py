@@ -90,7 +90,7 @@ def joint_tour_mode_choice(
     }
     locals_dict.update(constants)
 
-    annotations = annotate_preprocessors(
+    annotate_preprocessors(
         joint_tours_merged, locals_dict, skims,
         joint_tour_mode_choice_settings, trace_label)
 
@@ -136,13 +136,13 @@ def joint_tour_mode_choice(
     tracing.print_summary('joint_tour_mode_choice all tour type choices',
                           choices, value_counts=True)
 
-    joint_tours['mode'] = choices
+    joint_tours['tour_mode'] = choices
 
-    assign_in_place(tours, joint_tours[['mode']])
+    assign_in_place(tours, joint_tours[['tour_mode']])
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
         tracing.trace_df(joint_tours,
-                         label=tracing.extend_trace_label(trace_label, 'mode'),
+                         label=tracing.extend_trace_label(trace_label, 'tour_mode'),
                          slicer='tour_id',
                          index_label='tour_id')

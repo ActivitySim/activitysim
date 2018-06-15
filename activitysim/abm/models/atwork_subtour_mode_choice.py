@@ -84,7 +84,7 @@ def atwork_subtour_mode_choice(
     }
     locals_dict.update(constants)
 
-    annotations = annotate_preprocessors(
+    annotate_preprocessors(
         subtours_merged, locals_dict, skims,
         tour_mode_choice_settings, trace_label)
 
@@ -106,12 +106,12 @@ def atwork_subtour_mode_choice(
 
     tracing.print_summary('%s choices' % trace_label, choices, value_counts=True)
 
-    assign_in_place(tours, choices.to_frame('mode'))
+    assign_in_place(tours, choices.to_frame('tour_mode'))
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
         tracing.trace_df(tours[tours.tour_category == 'atwork'],
-                         label=tracing.extend_trace_label(trace_label, 'mode'),
+                         label=tracing.extend_trace_label(trace_label, 'tour_mode'),
                          slicer='tour_id',
                          index_label='tour_id')
 

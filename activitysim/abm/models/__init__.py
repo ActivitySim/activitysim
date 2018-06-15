@@ -30,6 +30,7 @@ import trip_purpose
 import trip_destination
 import trip_purpose_and_destination
 import trip_scheduling
+import trip_mode_choice
 
 # parameterized models
 import annotate_table

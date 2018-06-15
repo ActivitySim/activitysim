@@ -14,7 +14,7 @@ Drive alone toll - Unavailable,sovtoll_available == False,DRIVEALONEPAY,-999,-99
 Drive alone toll - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for persons less than 16,age < 16,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - Unavailable for joint tours,(is_joint == True),DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone toll - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone toll - Unavailable if didn't drive to work,~work_tour_is_drive,DRIVEALONEPAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone toll - In-vehicle time,@odt_skims['SOVTOLL_TIME'] + dot_skims['SOVTOLL_TIME'],DRIVEALONEPAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Drive alone toll - Terminal time,2 * terminal_time,DRIVEALONEPAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Drive alone toll - Operating cost ,@costPerMile * (odt_skims['SOVTOLL_DIST'] + dot_skims['SOVTOLL_DIST']),DRIVEALONEPAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
@@ -52,7 +52,7 @@ Shared ride 3+ - Bridge toll ,@(odt_skims['HOV3_BTOLL'] + dot_skims['HOV3_BTOLL'
 Shared ride 3+ - One person household,hhsize == 1,SHARED3FREE,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
 Shared ride 3+ - Two person household,hhsize == 2,SHARED3FREE,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
 Shared ride 3+ - Person is 16 years old or older,age_16_p,SHARED3FREE,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
-Shared ride 3+ toll - Unavailable,hov3_available == False,SHARED3PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Shared ride 3+ toll - Unavailable,hov3toll_available == False,SHARED3PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Shared ride 3+ toll - In-vehicle time,@odt_skims['HOV3TOLL_TIME'] + dot_skims['HOV3TOLL_TIME'],SHARED3PAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Shared ride 3+ - Terminal time,2 * terminal_time,SHARED3PAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Shared ride 3+ toll - Operating cost ,@costPerMile * (odt_skims['HOV3TOLL_DIST'] + dot_skims['HOV3TOLL_DIST']),SHARED3PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
@@ -62,16 +62,6 @@ Shared ride 3+ toll - Value toll ,@(odt_skims['HOV3TOLL_VTOLL'] + dot_skims['HOV
 Shared ride 3+ toll - One person household,hhsize == 1,SHARED3PAY,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
 Shared ride 3+ toll - Two person household,hhsize == 2,SHARED3PAY,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
 Shared ride 3+ toll - Person is 16 years old or older,age_16_p,SHARED3PAY,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
-# Walk - Time up to 2 miles,"min((DISTWALK+DISTWALK)*60/walkSpeed, walkThresh*2*60/walkSpeed)",WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
-# Walk - Time beyond 2 of a miles,"max((DISTWALK+DISTWALK)*60/walkSpeed - walkThresh*2*60/walkSpeed, 0)",WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
-# Walk - Destination zone densityIndex,densityIndex,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
-# Walk - Topology,destTopology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
-# Bike - Unavailable if didn't bike to work,,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-# Bike - Time up to 2 miles,"min((DISTBIKE+DISTBIKE)*60/bikeSpeed, bikeThresh*2*60/bikeSpeed)",BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
-# Bike - Time beyond 2 of a miles,"max((DISTBIKE+DISTBIKE)*60/bikeSpeed - bikeThresh*2*60/bikeSpeed, 0)",BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
-# Bike - Destination zone densityIndex,densityIndex,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
-# Bike - Topology,destTopology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
-# FIXME - jwd - my stab at the correct code for the above,,,,,,,,,,,,
 Walk - Time up to 2 miles,@od_skims['DISTWALK'].clip(upper=walkThresh)*2*60/walkSpeed,WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Walk - Time beyond 2 of a miles,@(od_skims['DISTWALK'] - walkThresh).clip(lower=0)*2*60/walkSpeed,WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
 Walk - Destination zone densityIndex,density_index,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
@@ -81,7 +71,6 @@ Bike - Time up to 2 miles,@od_skims['DISTBIKE'].clip(upper=bikeThresh)*2*60/bike
 Bike - Time beyond 2 of a miles,@(od_skims['DISTBIKE']-bikeThresh).clip(lower=0)*2*60/bikeSpeed,BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
 Bike - Destination zone densityIndex,density_index,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
 Bike - Topology,dest_topology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
-#,,,,,,,,,,,,
 Walk to Local - Unavailable,walk_local_available == False,WALK_LOC,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Walk to Local - In-vehicle time,@odt_skims['WLK_LOC_WLK_TOTIVT']/100 + dot_skims['WLK_LOC_WLK_TOTIVT']/100,WALK_LOC,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Walk to Local - Short iwait time,@(odt_skims['WLK_LOC_WLK_IWAIT']/100).clip(upper=waitThresh)+ (dot_skims['WLK_LOC_WLK_IWAIT']/100).clip(upper=waitThresh),WALK_LOC,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait,short_i_wait
@@ -289,5 +278,5 @@ Commuter rail - Alternative-specific constant ,1,"WALK_COM,DRIVE_COM",0.72701850
 Walk to Transit - CBD dummy,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,0.804,0.564
 Drive to Transit  - CBD dummy,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,1.1,0.564
 # Drive to Transit - distance penalty,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))"
-# Walk not available for long distances,walk_available == False,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-# Bike not available for long distances,bike_available == False,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Walk not available for long distances,@od_skims['DISTWALK'] > 3,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Bike not available for long distances,@od_skims['DISTBIKE'] > 8,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

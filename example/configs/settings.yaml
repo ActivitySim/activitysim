@@ -55,6 +55,7 @@ models:
   - trip_destination
   - trip_purpose_and_destination
   - trip_scheduling
+  - trip_mode_choice
   - write_data_dictionary
   - write_tables
 
@@ -65,8 +66,8 @@ output_tables:
   prefix: final_
   tables:
     - checkpoints
-    - tours
-
+#    - tours
+#    - trips
 
 # area_types less than this are considered urban
 urban_threshold: 4

@@ -53,7 +53,7 @@ comment,trip,nontour,joint_tour,atwork_subtour,Description,Expression,Alternativ
  ,1,1,1,1,Shared ride 3+ - One person household,hhsize == 1,SHARED3FREE,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
  ,1,1,1,1,Shared ride 3+ - Two person household,hhsize == 2,SHARED3FREE,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
  ,1,1,1,1,Shared ride 3+ - Person is 16 years old or older,age_16_p,SHARED3FREE,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
- ,1,1,1,1,Shared ride 3+ toll - Unavailable,hov3_available == False,SHARED3PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+ ,1,1,1,1,Shared ride 3+ toll - Unavailable,hov3toll_available == False,SHARED3PAY,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
  ,1,1,1,1,Shared ride 3+ toll - In-vehicle time,@odt_skims['HOV3TOLL_TIME'] + dot_skims['HOV3TOLL_TIME'],SHARED3PAY,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
  ,1,1,1,1,Shared ride 3+ - Terminal time,2 * terminal_time,SHARED3PAY,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
  ,1,1,1,1,Shared ride 3+ toll - Operating cost ,@costPerMile * (odt_skims['HOV3TOLL_DIST'] + dot_skims['HOV3TOLL_DIST']),SHARED3PAY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
@@ -279,5 +279,5 @@ comment,trip,nontour,joint_tour,atwork_subtour,Description,Expression,Alternativ
  ,1,1,1,1,Walk to Transit - CBD dummy,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,0.804,0.564
  ,1,1,1,1,Drive to Transit  - CBD dummy,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,1.1,0.564
 #,1,1,1,1,Drive to Transit - distance penalty,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))"
-#,1,1,1,1,Walk not available for long distances,walk_available == False,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-#,1,1,1,1,Bike not available for long distances,bike_available == False,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+,1,1,1,1,Walk not available for long distances,@od_skims['DISTWALK'] > 3,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+,1,1,1,1,Bike not available for long distances,@od_skims['DISTBIKE'] > 8,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

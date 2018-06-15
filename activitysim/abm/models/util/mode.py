@@ -253,8 +253,6 @@ def annotate_preprocessors(
     locals_d.update(locals_dict)
     locals_d.update(skims)
 
-    annotations = []
-
     preprocessor_settings = model_settings.get('preprocessor_settings', [])
     if not isinstance(preprocessor_settings, list):
         assert isinstance(preprocessor_settings, dict)
@@ -272,10 +270,3 @@ def annotate_preprocessors(
             trace_label=trace_label)
 
         assign_in_place(tours_df, results)
-
-        if annotations is None:
-            annotations = results
-        else:
-            annotations = pd.concat([annotations, results], axis=1)
-
-    return annotations

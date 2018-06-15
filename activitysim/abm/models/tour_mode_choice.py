@@ -70,6 +70,9 @@ def tour_mode_choice_simulate(tours, persons_merged,
     trace_label = 'tour_mode_choice'
 
     primary_tours = tours.to_frame()
+
+    assert not (primary_tours.tour_category == 'atwork').any()
+
     primary_tours = primary_tours[primary_tours.tour_category != 'atwork']
 
     persons_merged = persons_merged.to_frame()
@@ -111,15 +114,12 @@ def tour_mode_choice_simulate(tours, persons_merged,
     }
     locals_dict.update(constants)
 
-    annotations = annotate_preprocessors(
+    annotate_preprocessors(
         primary_tours_merged, locals_dict, skims,
         tour_mode_choice_settings, trace_label)
 
     choices_list = []
     for tour_type, segment in primary_tours_merged.groupby('tour_type'):
-
-        # if tour_type != 'work':
-        #     continue
 
         logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
                     (tour_type, len(segment.index), ))
@@ -157,19 +157,19 @@ def tour_mode_choice_simulate(tours, persons_merged,
                           choices, value_counts=True)
 
     # so we can trace with annotations
-    primary_tours['mode'] = choices
+    primary_tours['tour_mode'] = choices
 
     # but only keep mode choice col
     all_tours = tours.to_frame()
     # uncomment to save annotations to table
     # assign_in_place(all_tours, annotations)
-    assign_in_place(all_tours, choices.to_frame('mode'))
+    assign_in_place(all_tours, choices.to_frame('tour_mode'))
 
     pipeline.replace_table("tours", all_tours)
 
     if trace_hh_id:
         tracing.trace_df(primary_tours,
-                         label=tracing.extend_trace_label(trace_label, 'mode'),
+                         label=tracing.extend_trace_label(trace_label, 'tour_mode'),
                          slicer='tour_id',
                          index_label='tour_id',
                          warn_if_empty=True)

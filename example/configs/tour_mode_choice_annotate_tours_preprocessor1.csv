@@ -12,4 +12,4 @@ in_period skim label(as string not categorical),in_period,"pd.cut(df.start, _SKI
 dest_density_index,dest_density_index,"reindex(land_use.density_index, df.destination)"
 dest_topology,dest_topology,"reindex(land_use.TOPOLOGY, df.destination)"
 #,, attention! mode is a dataframe method so we cant say tours.mode
-,parent_tour_mode,"reindex(tours['mode'], df.parent_tour_id) if _HAVE_PARENT else ''"
+,parent_tour_mode,"reindex(tours['tour_mode'], df.parent_tour_id) if _HAVE_PARENT else ''"

@@ -105,20 +105,15 @@ def process_trips(tours, stop_frequency_alts):
                    'primary_purpose', 'atwork',
                    'trip_num', 'outbound', 'trip_count']]
 
-    trips['first'] = (trips.trip_num == 1)
-    trips['last'] = (trips.trip_num == trips.trip_count)
-    # omit because redundant?
-    # trips['intermediate'] = (trips.trip_num>1) & (trips.trip_num<trips.trip_count)
-
     """
-      person_id  household_id  primary_purpose tour_id  trip_num  outbound  trip_count  first  last
-    0     32927         32927             work  954910         1      True           2   True False
-    1     32927         32927             work  954910         2      True           2  False  True
-    2     32927         32927             work  954910         1     False           2   True False
-    3     32927         32927             work  954910         2     False           2  False  True
-    4     33993         33993             univ  985824         1      True           1   True True
-    5     33993         33993             univ  985824         1     False           2   True False
-    6     33993         33993             univ  985824         2     False           2  False  True
+      person_id  household_id  primary_purpose tour_id  trip_num  outbound  trip_count
+    0     32927         32927             work  954910         1      True           2
+    1     32927         32927             work  954910         2      True           2
+    2     32927         32927             work  954910         1     False           2
+    3     32927         32927             work  954910         2     False           2
+    4     33993         33993             univ  985824         1      True           1
+    5     33993         33993             univ  985824         1     False           2
+    6     33993         33993             univ  985824         2     False           2
 
     """
 

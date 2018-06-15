@@ -290,23 +290,13 @@ def schedule_trips_in_leg(
 
     failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
 
-    if outbound:
-        INITIAL = 'first'
-        FINAL = 'last'
-        NEXT_TRIP_ROLL_DIR = -1
-        ADJUST_NEXT = 'earliest'
-    else:
-        INITIAL = 'last'
-        FINAL = 'first'
-        NEXT_TRIP_ROLL_DIR = 1
-        ADJUST_NEXT = 'latest'
-
     # logger.debug("%s scheduling %s trips" % (trace_label, trips.shape[0]))
 
     assert (trips.outbound == outbound).all()
 
     # initial trip of leg and all atwork trips get tour_hour
-    no_scheduling = trips[INITIAL] | (trips.primary_purpose == 'atwork')
+    is_initial = (trips.trip_num == 1) if outbound else (trips.trip_num == trips.trip_count)
+    no_scheduling = is_initial | (trips.primary_purpose == 'atwork')
     choices = trips.tour_hour[no_scheduling]
 
     if no_scheduling.all():
@@ -318,8 +308,9 @@ def schedule_trips_in_leg(
 
     # add next_trip_id temp column (temp as trips is now a copy, as result of slicing)
     trips = trips.sort_index()
-    trips['next_trip_id'] = np.roll(trips.index, NEXT_TRIP_ROLL_DIR)
-    trips.next_trip_id = trips.next_trip_id.where(~trips[FINAL], NO_TRIP_ID)
+    trips['next_trip_id'] = np.roll(trips.index, -1 if outbound else 1)
+    is_final = (trips.trip_num == trips.trip_count) if outbound else (trips.trip_num == 1)
+    trips.next_trip_id = trips.next_trip_id.where(is_final, NO_TRIP_ID)
 
     # iterate over outbound trips in ascending trip_num order, skipping the initial trip
     # iterate over inbound trips in descending trip_num order, skipping the finial trip
@@ -342,20 +333,24 @@ def schedule_trips_in_leg(
             trace_hh_id=trace_hh_id,
             trace_label=nth_trace_label)
 
+        # if outbound, this trip's depart constrains next trip's earliest depart option
+        # if inbound, we are handling in reverse order, so it constrains latest depart instead
+        ADJUST_NEXT_DEPART_COL = 'earliest' if outbound else 'latest'
+
         # most initial departure (when no choice was made because all probs were zero)
         if last_iteration and (failfix == FAILFIX_CHOOSE_MOST_INITIAL):
             choices = choices.reindex(nth_trips.index)
             logger.warn("%s coercing %s depart choices to most initial" %
                         (nth_trace_label, choices.isna().sum()))
-            choices = choices.fillna(trips[ADJUST_NEXT])
+            choices = choices.fillna(trips[ADJUST_NEXT_DEPART_COL])
 
         # adjust allowed depart range of next trip
         has_next_trip = (nth_trips.next_trip_id != NO_TRIP_ID)
         if has_next_trip.any():
             next_trip_ids = nth_trips.next_trip_id[has_next_trip]
             # patch choice any trips with next_trips that weren't scheduled
-            adjusted_depart = choices.reindex(next_trip_ids.index).fillna(trips[ADJUST_NEXT])
-            trips.loc[next_trip_ids, ADJUST_NEXT] = adjusted_depart.values
+            trips.loc[next_trip_ids, ADJUST_NEXT_DEPART_COL] = \
+                choices.reindex(next_trip_ids.index).fillna(trips[ADJUST_NEXT_DEPART_COL]).values
 
         result_list.append(choices)
 

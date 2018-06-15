@@ -540,9 +540,11 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         > BAD_PROB_THRESHOLD * np.ones(len(base_probabilities.index))
 
     if no_choices.any():
+
         logit.report_bad_choices(
             no_choices, base_probabilities,
             trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
+            trace_choosers=choosers,
             msg="base_probabilities all zero")
 
     if custom_chooser:

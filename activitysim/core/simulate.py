@@ -203,10 +203,11 @@ def add_skims(df, skims):
             assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
             skim.set_df(df)
     elif isinstance(skims, dict):
-        # it it is a dice, then check for known types, ignore anything we don't recognize as a skim
+        # it it is a dict, then check for known types, ignore anything we don't recognize as a skim
+        # (this allows putting skim column names in same dict as skims for use in locals_dicts)
         for skim in skims.values():
-            assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
-            skim.set_df(df)
+            if isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper):
+                skim.set_df(df)
     else:
         assert isinstance(skims, SkimDictWrapper) or isinstance(skims, SkimStackWrapper)
         skims.set_df(df)

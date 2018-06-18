@@ -1,7 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+
 import logging
 
 import pandas as pd
@@ -15,62 +15,16 @@ from activitysim.core import pipeline
 from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
-from .util.mode import expand_alternatives
-from .util.mode import get_segment_and_unstack
-
 from .util.mode import mode_choice_simulate
 from .util.mode import annotate_preprocessors
+
+from .util.trip_mode import trip_mode_choice_spec
+from .util.trip_mode import trip_mode_choice_coeffs
+from .util.trip_mode import evaluate_constants
 
 from .util.expressions import skim_time_period_label
 
 logger = logging.getLogger(__name__)
-
-
-def evaluate_constants(expressions, constants):
-    """
-    Evaluate a list of constant expressions - each one can depend on the one before
-    it.  These are usually used for the coefficients which have relationships
-    to each other.  So ivt=.7 and then ivt_lr=ivt*.9.
-
-    Parameters
-    ----------
-    expressions : Series
-        the index are the names of the expressions which are
-        used in subsequent evals - thus naming the expressions is required.
-    constants : dict
-        will be passed as the scope of eval - usually a separate set of
-        constants are passed in here
-
-    Returns
-    -------
-    d : dict
-
-    """
-
-    # FIXME why copy?
-    d = {}
-    for k, v in expressions.iteritems():
-        d[k] = eval(str(v), d.copy(), constants)
-
-    return d
-
-
-def trip_mode_choice_spec(model_settings, configs_dir):
-
-    spec = simulate.read_model_spec(configs_dir, 'trip_mode_choice.csv')
-    return spec
-
-    # set index to ['Expression', 'Alternative']
-    spec = spec.set_index('Alternative', append=True)
-
-    spec = expand_alternatives(spec)
-
-    return spec
-
-
-def trip_mode_choice_coeffs(configs_dir):
-    with open(os.path.join(configs_dir, 'trip_mode_choice_coeffs.csv')) as f:
-        return pd.read_csv(f, comment='#', index_col='Expression')
 
 
 @inject.step()
@@ -83,8 +37,8 @@ def trip_mode_choice(
     trace_label = 'trip_mode_choice'
     model_settings = config.read_model_settings(configs_dir, 'trip_mode_choice.yaml')
 
-    spec = trip_mode_choice_spec(model_settings, configs_dir)
-    omnibus_coefficients = trip_mode_choice_coeffs(configs_dir)
+    spec = trip_mode_choice_spec(model_settings)
+    omnibus_coefficients = trip_mode_choice_coeffs(model_settings)
 
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips" % (trace_label, trips_df.shape[0]))
@@ -111,11 +65,11 @@ def trip_mode_choice(
     assert trips_merged.index.equals(trips.index)
 
     # setup skim keys
-    orig_col = 'origin'
-    dest_col = 'destination'
-
     assert ('trip_period' not in trips_merged)
     trips_merged['trip_period'] = skim_time_period_label(trips_merged.depart)
+
+    orig_col = 'origin'
+    dest_col = 'destination'
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col, right_key=dest_col,
                                              skim_key='trip_period')

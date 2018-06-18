@@ -233,7 +233,7 @@ def mode_choice_simulate(
         choosers=records,
         spec=spec,
         nest_spec=nest_spec,
-        skims=list(skims.values()),
+        skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
         trace_label=trace_label,
@@ -258,7 +258,7 @@ def annotate_preprocessors(
         assert isinstance(preprocessor_settings, dict)
         preprocessor_settings = [preprocessor_settings]
 
-    simulate.add_skims(tours_df, list(skims.values()))
+    simulate.add_skims(tours_df, skims)
 
     annotations = None
     for model_settings in preprocessor_settings:

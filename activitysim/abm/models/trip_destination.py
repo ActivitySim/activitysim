@@ -19,6 +19,11 @@ from activitysim.core.util import assign_in_place
 from .util import logsums
 from .util import expressions
 
+from .util.mode import annotate_preprocessors
+from .util.trip_mode import trip_mode_choice_spec
+from .util.trip_mode import trip_mode_choice_coeffs
+from .util.trip_mode import evaluate_constants
+
 from .util.tour_destination import tour_destination_size_terms
 from activitysim.core.skim import DataFrameMatrix
 
@@ -82,6 +87,45 @@ def trip_destination_sample(
     return destination_sample
 
 
+def compute_ood_logsums(
+        choosers,
+        logsum_settings,
+        od_skims,
+        locals_dict,
+        chunk_size,
+        trace_label):
+    """
+
+    Compute one (of two) out-of-direction logsums for destination alternatives
+
+    Will either be trip_origin -> alt_dest or alt_dest -> primary_dest
+
+    """
+
+    locals_dict.update(od_skims)
+
+    annotate_preprocessors(
+        choosers, locals_dict, od_skims,
+        logsum_settings,
+        trace_label)
+
+    nest_spec = config.get_logit_model_settings(logsum_settings)
+    logsum_spec = trip_mode_choice_spec(logsum_settings)
+
+    logsums = simulate.simple_simulate_logsums(
+        choosers,
+        logsum_spec,
+        nest_spec,
+        skims=od_skims,
+        locals_d=locals_dict,
+        chunk_size=chunk_size,
+        trace_label=trace_label)
+
+    assert logsums.index.equals(choosers.index)
+
+    return logsums
+
+
 def compute_logsums(
         primary_purpose,
         trips,
@@ -95,24 +139,9 @@ def compute_logsums(
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     logger.info("Running %s with %d samples" % (trace_label, destination_sample.shape[0]))
 
-    configs_dir = inject.get_injectable('configs_dir')
-    logsum_settings = config.read_model_settings(configs_dir, model_settings['LOGSUM_SETTINGS'])
-    preprocessor_settings = logsum_settings.get('preprocessor_settings', None)
-
-    nest_spec = config.get_logit_model_settings(logsum_settings)
-    locals_dict = config.get_model_constants(logsum_settings)
-
-    logsum_spec = logsums.get_logsum_spec(
-        logsum_settings,
-        selector='trip',
-        segment=primary_purpose,
-        configs_dir=configs_dir,
-        want_tracing=trace_hh_id)
-
     # - trips_merged - merge trips and tours_merged
-    trip_chooser_columns = model_settings['LOGSUM_TRIP_COLUMNS'] + ['tour_id']
     trips_merged = pd.merge(
-        trips[trip_chooser_columns],
+        trips,
         tours_merged,
         left_on='tour_id',
         right_index=True,
@@ -125,70 +154,47 @@ def compute_logsums(
                         trips_merged.reset_index(),
                         left_index=True,
                         right_on='trip_id',
-                        how="left").set_index('trip_id')
+                        how="left",
+                        suffixes=('', '_r')).set_index('trip_id')
     assert choosers.index.equals(destination_sample.index)
 
+    configs_dir = inject.get_injectable('configs_dir')
+    logsum_settings = config.read_model_settings(configs_dir, model_settings['LOGSUM_SETTINGS'])
+    omnibus_coefficients = trip_mode_choice_coeffs(logsum_settings)
+
+    constants = config.get_model_constants(logsum_settings)
+    locals_dict = evaluate_constants(omnibus_coefficients[primary_purpose], constants=constants)
+    locals_dict.update(constants)
+
     # - od_logsums
-    locals_dict['dest_col_name'] = model_settings['ALT_DEST']
     od_skims = {
+        'ORIGIN': model_settings['TRIP_ORIGIN'],
+        'DESTINATION': model_settings['ALT_DEST'],
         "odt_skims": skims['odt_skims'],
-        "dot_skims": skims['dot_skims'],
         "od_skims": skims['od_skims'],
     }
-    locals_dict.update(od_skims)
-
-    if preprocessor_settings:
-
-        simulate.add_skims(choosers, od_skims)
-
-        expressions.assign_columns(
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=tracing.extend_trace_label(trace_label, 'od'))
-
-    od_logsums = simulate.simple_simulate_logsums(
+    destination_sample['od_logsum'] = compute_ood_logsums(
         choosers,
-        logsum_spec,
-        nest_spec,
-        skims=od_skims,
-        locals_d=locals_dict,
-        chunk_size=chunk_size,
+        logsum_settings,
+        od_skims,
+        locals_dict,
+        chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, 'od'))
 
-    assert od_logsums.index.equals(choosers.index)
-
     # - dp_logsums
-    locals_dict['dest_col_name'] = model_settings['PRIMARY_DEST']
-    od_skims = {
+    dp_skims = {
+        'ORIGIN': model_settings['ALT_DEST'],
+        'DESTINATION': model_settings['PRIMARY_DEST'],
         "odt_skims": skims['dpt_skims'],
-        "dot_skims": skims['pdt_skims'],
         "od_skims": skims['dp_skims'],
     }
-    locals_dict.update(od_skims)
-
-    if preprocessor_settings:
-        simulate.add_skims(choosers, od_skims)
-
-        expressions.assign_columns(
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=tracing.extend_trace_label(trace_label, 'dp'))
-
-    dp_logsums = simulate.simple_simulate_logsums(
+    destination_sample['dp_logsum'] = compute_ood_logsums(
         choosers,
-        logsum_spec,
-        nest_spec,
-        skims=od_skims,
-        locals_d=locals_dict,
-        chunk_size=chunk_size,
+        logsum_settings,
+        dp_skims,
+        locals_dict,
+        chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, 'dp'))
-
-    assert dp_logsums.index.equals(choosers.index)
-
-    destination_sample['od_logsum'] = od_logsums
-    destination_sample['dp_logsum'] = dp_logsums
 
 
 def trip_destination_simulate(
@@ -316,13 +322,14 @@ def wrap_skims(model_settings):
     p = model_settings['PRIMARY_DEST']
 
     skims = {
-        "odt_skims": skim_stack.wrap(left_key=o, right_key=d, skim_key='time_period'),
-        "dot_skims": skim_stack.wrap(left_key=d, right_key=o, skim_key='time_period'),
-        "dpt_skims": skim_stack.wrap(left_key=d, right_key=p, skim_key='time_period'),
-        "pdt_skims": skim_stack.wrap(left_key=p, right_key=d, skim_key='time_period'),
+        "odt_skims": skim_stack.wrap(left_key=o, right_key=d, skim_key='trip_period'),
+        "dot_skims": skim_stack.wrap(left_key=d, right_key=o, skim_key='trip_period'),
+        "dpt_skims": skim_stack.wrap(left_key=d, right_key=p, skim_key='trip_period'),
+        "pdt_skims": skim_stack.wrap(left_key=p, right_key=d, skim_key='trip_period'),
         "od_skims": skim_dict.wrap(o, d),
         "dp_skims": skim_dict.wrap(d, p),
     }
+
     return skims
 
 
@@ -353,7 +360,11 @@ def run_trip_destination(
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
-    tours_merged = logsums.filter_chooser_columns(tours_merged, logsum_settings, model_settings)
+    tours_merged_cols = logsum_settings['TOURS_MERGED_CHOOSER_COLUMNS']
+    if 'REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS' in model_settings:
+        redundant_cols = model_settings['REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS']
+        tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]
+    tours_merged = tours_merged[tours_merged_cols]
 
     # - skims
     skims = wrap_skims(model_settings)

@@ -1,3 +1,6 @@
+SPEC: trip_mode_choice.csv
+COEFFS: trip_mode_choice_coeffs.csv
+
 LOGIT_TYPE: NL
 
 NESTS:
@@ -123,6 +126,5 @@ TOURS_MERGED_CHOOSER_COLUMNS:
   - tour_category
   - parent_tour_id
   - tour_mode
-
-
+  - duration
 

@@ -19,27 +19,21 @@ Description,Target,Expression
 ,tour_mode_is_walk_transit,i_tour_mode.isin(I_WALK_TRANSIT_MODES)
 ,tour_mode_is_drive_transit,i_tour_mode.isin(I_DRIVE_TRANSIT_MODES)
 #,,
-#free_parking_available,,
+FIXME,free_parking_available,False
 ,inbound,~df.outbound
 ,first_trip,df.trip_num == 1
 ,last_trip,df.trip_num == df.trip_count
-#,origin terminal time not counted at home,,
-,_origin_terminal_time,"np.where(df.outbound & first_trip, 0, reindex(land_use.TERMINAL, df[ORIGIN]))"
-#,dest terminal time not counted at home,,
-,_dest_terminal_time,"np.where(inbound & last_trip, 0, reindex(land_use.TERMINAL, df[DESTINATION]))"
+origin terminal time not counted at home,_origin_terminal_time,"np.where(df.outbound & first_trip, 0, reindex(land_use.TERMINAL, df[ORIGIN]))"
+dest terminal time not counted at home,_dest_terminal_time,"np.where(inbound & last_trip, 0, reindex(land_use.TERMINAL, df[DESTINATION]))"
 ,total_terminal_time,_origin_terminal_time + _dest_terminal_time
-#originHourlyParkingCost,,
-#destHourlyParkingCost,,
+FIXME,origin_hourly_parking_cost,0
+FIXME,dest_hourly_parking_cost,0
 #tourDuration,,
-#originDuration,,
-#originDuration,,
-#originDuration,,
-#destDuration,,
-#destDuration,,
-#destDuration,,
-#originParkingCost,,
-#destParkingCost,,
-FIXME,total_parking_cost,0
+,origin_duration,"np.where(first_trip, np.where(inbound,df.duration * ~free_parking_available,0), 1)"
+,dest_duration,"np.where(last_trip, np.where(inbound, df.duration * ~free_parking_available, 0), 1)"
+,origin_parking_cost,origin_duration*origin_hourly_parking_cost
+,dest_parking_cost,dest_duration*dest_hourly_parking_cost
+,total_parking_cost,(origin_parking_cost + dest_parking_cost) / 2.0
 ,trip_topology,"np.where(df.outbound, reindex(land_use.TOPOLOGY, df[DESTINATION]), reindex(land_use.TOPOLOGY, df[ORIGIN]))"
 ,density_index,"np.where(df.outbound, reindex(land_use.density_index, df[DESTINATION]), reindex(land_use.density_index, df[ORIGIN]))"
 ,origin_density_index,"np.where(df.outbound, reindex(land_use.density_index, df[ORIGIN]), reindex(land_use.density_index, df[DESTINATION]))"

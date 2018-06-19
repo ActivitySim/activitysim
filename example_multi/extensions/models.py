@@ -24,10 +24,6 @@ def best_transit_path_spec(configs_dir):
     return assign.read_assignment_spec(f)
 
 
-@inject.injectable()
-def best_transit_path_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'best_transit_path.yaml')
-
 
 VECTOR_TEST_SIZE = 100000
 VECTOR_TEST_SIZE = 1014699
@@ -36,8 +32,9 @@ VECTOR_TEST_SIZE = 1014699
 @inject.step()
 def best_transit_path(set_random_seed,
                       network_los,
-                      best_transit_path_spec,
-                      best_transit_path_settings):
+                      best_transit_path_spec):
+
+    model_settings = config.read_model_settings('best_transit_path.yaml')
 
     logger.info("best_transit_path VECTOR_TEST_SIZE %s" % VECTOR_TEST_SIZE)
 
@@ -75,7 +72,7 @@ def best_transit_path(set_random_seed,
     else:
         trace_oabd_rows = None
 
-    constants = config.get_model_constants(best_transit_path_settings)
+    constants = config.get_model_constants(model_settings)
     locals_d = {
         'np': np,
         'network_los': network_los

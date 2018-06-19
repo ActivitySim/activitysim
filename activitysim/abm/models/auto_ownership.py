@@ -19,16 +19,10 @@ def auto_ownership_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'auto_ownership.csv')
 
 
-@inject.injectable()
-def auto_ownership_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'auto_ownership.yaml')
-
-
 @inject.step()
 def auto_ownership_simulate(households,
                             households_merged,
                             auto_ownership_spec,
-                            auto_ownership_settings,
                             configs_dir,
                             chunk_size,
                             trace_hh_id):
@@ -37,11 +31,12 @@ def auto_ownership_simulate(households,
     with given characteristics owns
     """
     trace_label = 'auto_ownership_simulate'
+    model_settings = config.read_model_settings('auto_ownership.yaml')
 
     logger.info("Running auto_ownership_simulate with %d households" % len(households_merged))
 
-    nest_spec = config.get_logit_model_settings(auto_ownership_settings)
-    constants = config.get_model_constants(auto_ownership_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     choices = simulate.simple_simulate(
         choosers=households_merged.to_frame(),

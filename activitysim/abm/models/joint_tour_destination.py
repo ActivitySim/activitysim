@@ -103,7 +103,7 @@ def joint_tour_destination_sample(
     """
 
     trace_label = 'joint_tour_destination_sample'
-    model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
+    model_settings = config.read_model_settings('joint_tour_destination.yaml')
 
     joint_tours = tours.to_frame()
     joint_tours = joint_tours[joint_tours.tour_category == 'joint']
@@ -225,8 +225,8 @@ def joint_tour_destination_logsums(
 
     destination_sample = destination_sample.to_frame()
 
-    model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
-    logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
+    model_settings = config.read_model_settings('joint_tour_destination.yaml')
+    logsum_settings = config.read_model_settings('logsum.yaml')
 
     joint_tours = tours.to_frame()
     joint_tours = joint_tours[joint_tours.tour_category == 'joint']
@@ -292,11 +292,6 @@ def joint_tour_destination_spec(configs_dir):
     return read_model_spec(configs_dir, 'non_mandatory_tour_destination.csv')
 
 
-@inject.injectable()
-def joint_tour_destination_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
-
-
 @inject.step()
 def joint_tour_destination_simulate(
         tours,
@@ -318,7 +313,7 @@ def joint_tour_destination_simulate(
         tracing.no_results(trace_label)
         return
 
-    model_settings = config.read_model_settings(configs_dir, 'joint_tour_destination.yaml')
+    model_settings = config.read_model_settings('joint_tour_destination.yaml')
 
     destination_sample = destination_sample.to_frame()
     tours = tours.to_frame()

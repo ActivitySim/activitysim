@@ -77,7 +77,10 @@ def setting(key, default=None):
     return s
 
 
-def read_model_settings(configs_dir, file_name):
+def read_model_settings(file_name):
+
+    configs_dir = inject.get_injectable('configs_dir')
+
     settings = None
     file_path = os.path.join(configs_dir,  file_name)
     if os.path.isfile(file_path):

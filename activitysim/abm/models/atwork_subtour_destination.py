@@ -41,10 +41,10 @@ def atwork_subtour_destination_sample(tours,
                                       atwork_subtour_destination_sample_spec,
                                       skim_dict,
                                       land_use, size_terms,
-                                      configs_dir, chunk_size, trace_hh_id):
+                                      chunk_size, trace_hh_id):
 
     trace_label = 'atwork_subtour_location_sample'
-    model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
+    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
 
     persons_merged = persons_merged.to_frame()
 
@@ -132,9 +132,9 @@ def atwork_subtour_destination_logsums(persons_merged,
         tracing.no_results(trace_label)
         return
 
-    model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
+    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
 
-    logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
+    logsum_settings = config.read_model_settings('logsum.yaml')
 
     logsum_spec = logsum.get_logsum_spec(
         logsum_settings, selector='atwork_subtour', segment='atwork',
@@ -183,7 +183,7 @@ def atwork_subtour_destination_simulate(tours,
                                         atwork_subtour_destination_spec,
                                         skim_dict,
                                         land_use, size_terms,
-                                        configs_dir, chunk_size, trace_hh_id):
+                                        chunk_size, trace_hh_id):
     """
     atwork_subtour_destination model on atwork_subtour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
@@ -199,7 +199,7 @@ def atwork_subtour_destination_simulate(tours,
 
     destination_sample = destination_sample.to_frame()
 
-    model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
+    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
 
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']

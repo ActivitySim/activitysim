@@ -27,17 +27,11 @@ def tour_scheduling_nonmandatory_spec(configs_dir):
     return asim.read_model_spec(configs_dir, 'tour_scheduling_nonmandatory.csv')
 
 
-@inject.injectable()
-def non_mandatory_tour_scheduling_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'non_mandatory_tour_scheduling.yaml')
-
-
 @inject.step()
 def non_mandatory_tour_scheduling(tours,
                                   persons_merged,
                                   tdd_alts,
                                   tour_scheduling_nonmandatory_spec,
-                                  non_mandatory_tour_scheduling_settings,
                                   chunk_size,
                                   trace_hh_id):
     """
@@ -45,6 +39,7 @@ def non_mandatory_tour_scheduling(tours,
     """
 
     trace_label = 'non_mandatory_tour_scheduling'
+    model_settinsg = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
@@ -53,11 +48,10 @@ def non_mandatory_tour_scheduling(tours,
 
     logger.info("Running non_mandatory_tour_scheduling with %d tours" % len(tours))
 
-    constants = config.get_model_constants(non_mandatory_tour_scheduling_settings)
+    constants = config.get_model_constants(model_settinsg)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = \
-        non_mandatory_tour_scheduling_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settinsg.get('preprocessor_settings', None)
     if preprocessor_settings:
 
         locals_d = {}

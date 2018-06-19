@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 def run_trip_purpose_and_destination(
         trips_df,
         tours_merged_df,
-        configs_dir,
         chunk_size,
         trace_hh_id,
         trace_label):
@@ -38,7 +37,6 @@ def run_trip_purpose_and_destination(
 
     choices = run_trip_purpose(
         trips_df,
-        configs_dir=configs_dir,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'purpose')
@@ -49,7 +47,7 @@ def run_trip_purpose_and_destination(
     trips_df = run_trip_destination(
         trips_df,
         tours_merged_df,
-        configs_dir, chunk_size, trace_hh_id,
+        chunk_size, trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'destination'))
 
     return trips_df
@@ -59,12 +57,11 @@ def run_trip_purpose_and_destination(
 def trip_purpose_and_destination(
         trips,
         tours_merged,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
     trace_label = "trip_purpose_and_destination"
-    model_settings = config.read_model_settings(configs_dir, 'trip_purpose_and_destination.yaml')
+    model_settings = config.read_model_settings('trip_purpose_and_destination.yaml')
 
     MAX_ITERATIONS = model_settings.get('MAX_ITERATIONS', 5)
     CLEANUP = model_settings.get('cleanup', True)
@@ -101,7 +98,6 @@ def trip_purpose_and_destination(
         trips_df = run_trip_purpose_and_destination(
             trips_df,
             tours_merged_df,
-            configs_dir,
             chunk_size,
             trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % i))

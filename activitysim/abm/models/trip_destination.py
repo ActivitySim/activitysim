@@ -56,7 +56,22 @@ def trip_destination_sample(
         size_term_matrix, skims,
         chunk_size, trace_hh_id,
         trace_label):
+    """
 
+    Returns
+    -------
+    destination_sample: pandas.dataframe
+        choices_df from interaction_sample with (up to) sample_size alts for each chooser row
+        index (non unique) is trip_id from trips (duplicated for each alt)
+        and columns dest_taz, prob, and pick_count
+
+        dest_taz: int
+            alt identifier (dest_taz) from alternatives[<alt_col_name>]
+        prob: float
+            the probability of the chosen alternative
+        pick_count : int
+            number of duplicate picks for chooser, alt
+    """
     trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_sample')
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SAMPLE_SPEC', primary_purpose)
@@ -95,11 +110,9 @@ def compute_ood_logsums(
         chunk_size,
         trace_label):
     """
-
     Compute one (of two) out-of-direction logsums for destination alternatives
 
     Will either be trip_origin -> alt_dest or alt_dest -> primary_dest
-
     """
 
     locals_dict.update(od_skims)
@@ -135,7 +148,15 @@ def compute_logsums(
         skims,
         chunk_size, trace_hh_id,
         trace_label):
+    """
+    Calculate mode choice logsums using the same recipe as for trip_mode_choice, but do it twice
+    for each alternative since we need out-of-direction logsum
+    (i.e . origin to alt_dest, and alt_dest to half-tour destination)
 
+    Returns
+    -------
+        adds od_logsum and dp_logsum columns to trips (in place)
+    """
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     logger.info("Running %s with %d samples" % (trace_label, destination_sample.shape[0]))
 
@@ -158,8 +179,7 @@ def compute_logsums(
                         suffixes=('', '_r')).set_index('trip_id')
     assert choosers.index.equals(destination_sample.index)
 
-    configs_dir = inject.get_injectable('configs_dir')
-    logsum_settings = config.read_model_settings(configs_dir, model_settings['LOGSUM_SETTINGS'])
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
     omnibus_coefficients = trip_mode_choice_coeffs(logsum_settings)
 
     constants = config.get_model_constants(logsum_settings)
@@ -205,7 +225,15 @@ def trip_destination_simulate(
         size_term_matrix, skims,
         chunk_size, trace_hh_id,
         trace_label):
+    """
+    Chose destination from destination_sample (with od_logsum and dp_logsum columns added)
 
+
+    Returns
+    -------
+    choices - pandas.Series
+        destination alt chosen
+    """
     trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_simulate')
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SPEC', primary_purpose)
@@ -336,12 +364,31 @@ def wrap_skims(model_settings):
 def run_trip_destination(
         trips,
         tours_merged,
-        configs_dir, chunk_size, trace_hh_id,
+        chunk_size, trace_hh_id,
         trace_label):
+    """
+    Run the trip_destination model, assigning destinations for each (intermediate) trip
+    (last trips already have a destination - either the tour primary destination or Home)
 
-    model_settings = config.read_model_settings(configs_dir, 'trip_destination.yaml')
+    Set trip destination and origin columns, and a boolean failed flag for any failed trips
+    (destination for flagged failed trips will be set to -1)
+
+    Parameters
+    ----------
+    trips
+    tours_merged
+    chunk_size
+    trace_hh_id
+    trace_label
+
+    Returns
+    -------
+
+    """
+
+    model_settings = config.read_model_settings('trip_destination.yaml')
     preprocessor_settings = model_settings.get('preprocessor_settings', None)
-    logsum_settings = config.read_model_settings(configs_dir, model_settings['LOGSUM_SETTINGS'])
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     land_use = inject.get_table('land_use')
     size_terms = inject.get_table('size_terms')
@@ -371,7 +418,12 @@ def run_trip_destination(
 
     # - size_terms and alternatives
     alternatives = tour_destination_size_terms(land_use, size_terms, 'trip')
+
+    # DataFrameMatrix alows us to treat dataframe as virtual a 2-D array, indexed by TAZ, purpose
+    # e.g. size_terms.get(df.dest_taz, df.purpose)
+    # returns a series of size_terms for each chooser's dest_taz and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
+
     # don't need size terms in alternatives, just TAZ index
     alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = model_settings['ALT_DEST']
@@ -439,10 +491,17 @@ def run_trip_destination(
 def trip_destination(
         trips,
         tours_merged,
-        configs_dir, chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id):
+    """
+    Choose a destination for all 'intermediate' trips based on trip purpose.
 
+    Final trips already have a destination (the primary tour destination for outbound trips,
+    and home for inbound trips.)
+
+
+    """
     trace_label = 'trip_destination'
-    model_settings = config.read_model_settings(configs_dir, 'trip_destination.yaml')
+    model_settings = config.read_model_settings('trip_destination.yaml')
     CLEANUP = model_settings.get('CLEANUP', True)
 
     trips_df = trips.to_frame()
@@ -451,7 +510,7 @@ def trip_destination(
     trips_df = run_trip_destination(
         trips_df,
         tours_merged_df,
-        configs_dir, chunk_size, trace_hh_id,
+        chunk_size, trace_hh_id,
         trace_label)
 
     if trips_df.failed.any():

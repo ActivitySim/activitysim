@@ -21,8 +21,8 @@ from activitysim.core.util import reindex
 logger = logging.getLogger(__name__)
 
 
-def trip_purpose_probs(configs_dir):
-
+def trip_purpose_probs():
+    configs_dir = inject.get_injectable('configs_dir')
     f = os.path.join(configs_dir, 'trip_purpose_probs.csv')
     df = pd.read_csv(f, comment='#')
     return df
@@ -95,7 +95,6 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
 
 def run_trip_purpose(
         trips_df,
-        configs_dir,
         chunk_size,
         trace_hh_id,
         trace_label):
@@ -104,8 +103,8 @@ def run_trip_purpose(
     trip purpose
     """
 
-    model_settings = config.read_model_settings(configs_dir, 'trip_purpose.yaml')
-    probs_spec = trip_purpose_probs(configs_dir)
+    model_settings = config.read_model_settings('trip_purpose.yaml')
+    probs_spec = trip_purpose_probs()
 
     result_list = []
 
@@ -164,7 +163,6 @@ def run_trip_purpose(
 @inject.step()
 def trip_purpose(
         trips,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
@@ -174,7 +172,6 @@ def trip_purpose(
 
     choices = run_trip_purpose(
         trips_df,
-        configs_dir=configs_dir,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label

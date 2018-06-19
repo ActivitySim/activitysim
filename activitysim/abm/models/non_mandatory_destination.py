@@ -25,18 +25,12 @@ def non_mandatory_tour_destination_spec(configs_dir):
     return read_model_spec(configs_dir, 'non_mandatory_tour_destination_sample.csv')
 
 
-@inject.injectable()
-def non_mandatory_tour_destination_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'non_mandatory_tour_destination.yaml')
-
-
 @inject.step()
 def non_mandatory_tour_destination(
         tours,
         persons_merged,
         skim_dict,
         non_mandatory_tour_destination_spec,
-        non_mandatory_tour_destination_settings,
         land_use, size_terms,
         chunk_size,
         trace_hh_id):
@@ -48,6 +42,7 @@ def non_mandatory_tour_destination(
     """
 
     trace_label = 'non_mandatory_tour_destination'
+    model_settings = config.read_model_settings('non_mandatory_tour_destination.yaml')
 
     tours = tours.to_frame()
 
@@ -66,9 +61,9 @@ def non_mandatory_tour_destination(
     # FIXME - don't need all persons_merged columns...
     choosers = pd.merge(non_mandatory_tours, persons_merged, left_on='person_id', right_index=True)
 
-    constants = config.get_model_constants(non_mandatory_tour_destination_settings)
+    constants = config.get_model_constants(model_settings)
 
-    sample_size = non_mandatory_tour_destination_settings["SAMPLE_SIZE"]
+    sample_size = model_settings["SAMPLE_SIZE"]
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction

@@ -30,26 +30,22 @@ def tour_scheduling_atwork_spec(configs_dir):
     return asim.read_model_spec(configs_dir, 'tour_scheduling_atwork.csv')
 
 
-@inject.injectable()
-def atwork_subtour_scheduling_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'atwork_subtour_scheduling.yaml')
-
-
 @inject.step()
 def atwork_subtour_scheduling(
         tours,
         persons_merged,
         tdd_alts,
         tour_scheduling_atwork_spec,
-        atwork_subtour_scheduling_settings,
         chunk_size,
         trace_hh_id):
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
     """
 
-    trace_label = 'tour_scheduling_subtour'
-    constants = config.get_model_constants(atwork_subtour_scheduling_settings)
+    trace_label = 'atwork_subtour_scheduling'
+    model_settings = config.read_model_settings('atwork_subtour_scheduling.yaml')
+
+    constants = config.get_model_constants(model_settings)
 
     persons_merged = persons_merged.to_frame()
 

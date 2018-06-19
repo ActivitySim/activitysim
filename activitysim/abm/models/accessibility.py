@@ -69,14 +69,8 @@ def accessibility_spec(configs_dir):
     return assign.read_assignment_spec(f)
 
 
-@inject.injectable()
-def accessibility_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'accessibility.yaml')
-
-
 @inject.step()
-def compute_accessibility(settings, accessibility_spec,
-                          accessibility_settings,
+def compute_accessibility(accessibility_spec,
                           skim_dict, omx_file, land_use, trace_od):
 
     """
@@ -96,9 +90,10 @@ def compute_accessibility(settings, accessibility_spec,
     """
 
     logger.info("Running compute_accessibility")
+    model_settings = config.read_model_settings('accessibility.yaml')
 
-    constants = config.get_model_constants(accessibility_settings)
-    land_use_columns = accessibility_settings.get('land_use_columns', [])
+    constants = config.get_model_constants(model_settings)
+    land_use_columns = model_settings.get('land_use_columns', [])
 
     land_use_df = land_use.to_frame()
 

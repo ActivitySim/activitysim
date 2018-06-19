@@ -395,6 +395,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+        custom alternative to logit.make_choices
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
@@ -482,6 +484,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+        custom alternative to logit.make_choices
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
@@ -601,6 +605,8 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.

@@ -407,10 +407,10 @@ def interaction_sample(
         (except with sample_size rows for each choser row, one row for each alt sample)
         and columns alt_col_name, prob, rand, pick_count
 
+        <alt_col_name>:
+            alt identifier from alternatives[<alt_col_name>
         prob: float
             the probability of the chosen alternative
-        rand: float
-            the rand that did the choosing
         pick_count : int
             number of duplicate picks for chooser, alt
     """

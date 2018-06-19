@@ -24,11 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable()
-def atwork_subtour_frequency_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'atwork_subtour_frequency.yaml')
-
-
-@inject.injectable()
 def atwork_subtour_frequency_spec(configs_dir):
     return read_model_spec(configs_dir, 'atwork_subtour_frequency.csv')
 
@@ -52,11 +47,9 @@ def add_null_results(trace_label, tours):
 def atwork_subtour_frequency(tours,
                              persons_merged,
                              atwork_subtour_frequency_spec,
-                             atwork_subtour_frequency_settings,
                              atwork_subtour_frequency_alternatives,
                              chunk_size,
                              trace_hh_id):
-
     """
     This model predicts the frequency of making at-work subtour tours
     (alternatives for this model come from a separate csv file which is
@@ -64,6 +57,8 @@ def atwork_subtour_frequency(tours,
     """
 
     trace_label = 'atwork_subtour_frequency'
+
+    model_settings = config.read_model_settings('atwork_subtour_frequency.yaml')
 
     tours = tours.to_frame()
 
@@ -81,8 +76,8 @@ def atwork_subtour_frequency(tours,
 
     logger.info("Running atwork_subtour_frequency with %d work tours" % len(work_tours))
 
-    nest_spec = config.get_logit_model_settings(atwork_subtour_frequency_settings)
-    constants = config.get_model_constants(atwork_subtour_frequency_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     choices = simulate.simple_simulate(
         choosers=work_tours,

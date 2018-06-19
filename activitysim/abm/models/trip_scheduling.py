@@ -501,7 +501,7 @@ def trip_scheduling(
     """
     trace_label = "trip_scheduling"
 
-    model_settings = config.read_model_settings(configs_dir, 'trip_scheduling.yaml')
+    model_settings = config.read_model_settings('trip_scheduling.yaml')
     assert 'DEPART_ALT_BASE' in model_settings
 
     failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)

@@ -25,11 +25,6 @@ def mandatory_tour_frequency_spec(configs_dir):
 
 
 @inject.injectable()
-def mandatory_tour_frequency_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'mandatory_tour_frequency.yaml')
-
-
-@inject.injectable()
 def mandatory_tour_frequency_alternatives(configs_dir):
     # alt file for building tours even though simulation is simple_simulate not interaction_simulate
     f = os.path.join(configs_dir, 'mandatory_tour_frequency_alternatives.csv')
@@ -62,7 +57,6 @@ def add_null_results(trace_label, mandatory_tour_frequency_settings):
 @inject.step()
 def mandatory_tour_frequency(persons_merged,
                              mandatory_tour_frequency_spec,
-                             mandatory_tour_frequency_settings,
                              mandatory_tour_frequency_alternatives,
                              chunk_size,
                              trace_hh_id):
@@ -72,6 +66,8 @@ def mandatory_tour_frequency(persons_merged,
     """
     trace_label = 'mandatory_tour_frequency'
 
+    model_settings = config.read_model_settings('mandatory_tour_frequency.yaml')
+
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'M']
@@ -79,11 +75,11 @@ def mandatory_tour_frequency(persons_merged,
 
     # - if no mandatory tours
     if choosers.shape[0] == 0:
-        add_null_results(trace_label, mandatory_tour_frequency_settings)
+        add_null_results(trace_label, model_settings)
         return
 
     # - preprocessor
-    preprocessor_settings = mandatory_tour_frequency_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor_settings', None)
     if preprocessor_settings:
 
         locals_dict = {}
@@ -94,8 +90,8 @@ def mandatory_tour_frequency(persons_merged,
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    nest_spec = config.get_logit_model_settings(mandatory_tour_frequency_settings)
-    constants = config.get_model_constants(mandatory_tour_frequency_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     choices = simulate.simple_simulate(
         choosers=choosers,
@@ -135,7 +131,7 @@ def mandatory_tour_frequency(persons_merged,
 
     expressions.assign_columns(
         df=persons,
-        model_settings=mandatory_tour_frequency_settings.get('annotate_persons'),
+        model_settings=model_settings.get('annotate_persons'),
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
     pipeline.replace_table("persons", persons)

@@ -29,8 +29,8 @@ will be used for the tour
 
 
 @inject.injectable()
-def tour_mode_choice_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'tour_mode_choice.yaml')
+def tour_mode_choice_settings():
+    return config.read_model_settings('tour_mode_choice.yaml')
 
 
 @inject.injectable()

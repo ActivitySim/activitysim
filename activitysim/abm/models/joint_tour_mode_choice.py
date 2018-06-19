@@ -23,17 +23,11 @@ from .util.mode import annotate_preprocessors
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def joint_tour_mode_choice_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'joint_tour_mode_choice.yaml')
-
-
 @inject.step()
 def joint_tour_mode_choice(
         tours,
         persons_merged,
         tour_mode_choice_spec,
-        joint_tour_mode_choice_settings,
         tour_mode_choice_settings,
         skim_dict, skim_stack,
         chunk_size,
@@ -43,6 +37,7 @@ def joint_tour_mode_choice(
     """
 
     trace_label = 'joint_tour_mode_choice'
+    joint_tour_mode_choice_settings = config.read_model_settings('joint_tour_mode_choice.yaml')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']

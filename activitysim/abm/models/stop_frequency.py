@@ -32,11 +32,6 @@ def get_stop_frequency_spec(tour_type):
 
 
 @inject.injectable()
-def stop_frequency_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'stop_frequency.yaml')
-
-
-@inject.injectable()
 def stop_frequency_alts(configs_dir):
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
     f = os.path.join(configs_dir, 'stop_frequency_alternatives.csv')
@@ -130,8 +125,7 @@ def process_trips(tours, stop_frequency_alts):
 def stop_frequency(
         tours, tours_merged,
         stop_frequency_alts,
-        stop_frequency_settings,
-        skim_dict, skim_stack,
+        skim_dict,
         chunk_size,
         trace_hh_id):
     """
@@ -139,6 +133,7 @@ def stop_frequency(
     """
 
     trace_label = 'stop_frequency'
+    model_settings = config.read_model_settings('stop_frequency.yaml')
 
     tours = tours.to_frame()
     tours_merged = tours_merged.to_frame()
@@ -148,11 +143,11 @@ def stop_frequency(
     assert not (tours_merged.origin == -1).any()
     assert not (tours_merged.destination == -1).any()
 
-    nest_spec = config.get_logit_model_settings(stop_frequency_settings)
-    constants = config.get_model_constants(stop_frequency_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate tours_merged
-    preprocessor_settings = stop_frequency_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor_settings', None)
     if preprocessor_settings:
 
         # hack: preprocessor adds origin column in place if it does not exist already

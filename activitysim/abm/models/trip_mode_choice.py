@@ -32,10 +32,17 @@ def trip_mode_choice(
         trips,
         tours_merged,
         skim_dict, skim_stack,
-        configs_dir, chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id):
+    """
+    Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
 
+    Modes for each primary tour putpose are calculated separately because they have different
+    coefficient values (stored in trip_mode_choice_coeffs.csv coefficient file.)
+
+    Adds trip_mode column to trip table
+    """
     trace_label = 'trip_mode_choice'
-    model_settings = config.read_model_settings(configs_dir, 'trip_mode_choice.yaml')
+    model_settings = config.read_model_settings('trip_mode_choice.yaml')
 
     spec = trip_mode_choice_spec(model_settings)
     omnibus_coefficients = trip_mode_choice_coeffs(model_settings)

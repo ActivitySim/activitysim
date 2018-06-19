@@ -24,11 +24,6 @@ DUMP = False
 
 
 @inject.injectable()
-def mandatory_tour_scheduling_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'mandatory_tour_scheduling.yaml')
-
-
-@inject.injectable()
 def tour_scheduling_work_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'tour_scheduling_work.csv')
 
@@ -44,13 +39,13 @@ def mandatory_tour_scheduling(tours,
                               tdd_alts,
                               tour_scheduling_work_spec,
                               tour_scheduling_school_spec,
-                              mandatory_tour_scheduling_settings,
                               chunk_size,
                               trace_hh_id):
     """
     This model predicts the departure time and duration of each activity for mandatory tours
     """
     trace_label = 'mandatory_tour_scheduling'
+    model_settings = config.read_model_settings('mandatory_tour_scheduling.yaml')
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
@@ -61,7 +56,7 @@ def mandatory_tour_scheduling(tours,
         tracing.no_results(trace_label)
         return
 
-    model_constants = config.get_model_constants(mandatory_tour_scheduling_settings)
+    model_constants = config.get_model_constants(model_settings)
 
     logger.info("Running mandatory_tour_scheduling with %d tours" % len(tours))
     tdd_choices = vectorize_tour_scheduling(

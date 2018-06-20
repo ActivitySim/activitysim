@@ -109,7 +109,7 @@ def trip_mode_choice(
 
         annotate_preprocessors(
             trips_segment, locals_dict, skims,
-            model_settings, trace_label)
+            model_settings, segment_trace_label)
 
         choices = mode_choice_simulate(
             trips_segment,

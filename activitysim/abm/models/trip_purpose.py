@@ -54,6 +54,14 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
 
 
 def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label):
+    """
+    chose purpose for intermediate trips based on probs_spec
+    which assigns relative weights (summing to 1) to the possible purpose choices
+
+    Returns
+    -------
+    purpose: pandas.Series of purpose (str) indexed by trip_id
+    """
 
     probs_join_cols = ['primary_purpose', 'outbound', 'person_type']
     non_purpose_cols = probs_join_cols + ['depart_range_start', 'depart_range_end']
@@ -98,9 +106,18 @@ def run_trip_purpose(
         chunk_size,
         trace_hh_id,
         trace_label):
-
     """
-    trip purpose
+    trip purpose - main functionality separated from model step so it can be called iteratively
+
+    For each intermediate stop on a tour (i.e. trip other than the last trip outbound or inbound)
+    Each trip is assigned a purpose based on an observed frequency distribution
+
+    The distribution is segmented by tour purpose, tour direction, person type,
+    and, optionally, trip depart time .
+
+    Returns
+    -------
+    purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
     model_settings = config.read_model_settings('trip_purpose.yaml')
@@ -166,6 +183,11 @@ def trip_purpose(
         chunk_size,
         trace_hh_id):
 
+    """
+    trip purpose model step - calls run_trip_purpose to run the actual model
+
+    adds purpose column to trips
+    """
     trace_label = "trip_purpose"
 
     trips_df = trips.to_frame()

@@ -93,22 +93,20 @@ def process_trips(tours, stop_frequency_alts):
     trips['household_id'] = reindex(tours.household_id, trips.tour_id)
 
     trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
-    trips['atwork'] = reindex(tours.tour_category, trips.tour_id) == 'atwork'
 
     # reorder columns and drop 'direction'
-    trips = trips[['person_id', 'household_id', 'tour_id',
-                   'primary_purpose', 'atwork',
+    trips = trips[['person_id', 'household_id', 'tour_id', 'primary_purpose',
                    'trip_num', 'outbound', 'trip_count']]
 
     """
-      person_id  household_id  primary_purpose tour_id  trip_num  outbound  trip_count
-    0     32927         32927             work  954910         1      True           2
-    1     32927         32927             work  954910         2      True           2
-    2     32927         32927             work  954910         1     False           2
-    3     32927         32927             work  954910         2     False           2
-    4     33993         33993             univ  985824         1      True           1
-    5     33993         33993             univ  985824         1     False           2
-    6     33993         33993             univ  985824         2     False           2
+      person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count
+    0     32927         32927   954910             work        1      True           2
+    1     32927         32927   954910             work        2      True           2
+    2     32927         32927   954910             work        1     False           2
+    3     32927         32927   954910             work        2     False           2
+    4     33993         33993   985824             univ        1      True           1
+    5     33993         33993   985824             univ        1     False           2
+    6     33993         33993   985824             univ        2     False           2
 
     """
 
@@ -129,7 +127,25 @@ def stop_frequency(
         chunk_size,
         trace_hh_id):
     """
-    stop frequency
+    stop frequency model
+
+    For each tour, shoose a number of intermediate inbound stops and outbound stops.
+    Create a trip table with inbound and outbound trips.
+
+    Thus, a tour with stop_frequency '2out_0in' will have two outbound and zero inbound stops,
+    and four corresponding trips: three outbound, and one inbound.
+
+    Adds stop_frequency str column to trips, with fields
+    creates trips table with columns:
+        person_id
+        household_id
+        tour_id
+        primary_purpose
+        atwork
+        trip_num
+        outbound
+        trip_count
+
     """
 
     trace_label = 'stop_frequency'

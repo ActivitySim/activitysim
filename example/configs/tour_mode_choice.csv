@@ -62,13 +62,19 @@ Shared ride 3+ toll - Value toll ,@(odt_skims['HOV3TOLL_VTOLL'] + dot_skims['HOV
 Shared ride 3+ toll - One person household,hhsize == 1,SHARED3PAY,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr,hhsize1_sr
 Shared ride 3+ toll - Two person household,hhsize == 2,SHARED3PAY,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr,hhsize2_sr
 Shared ride 3+ toll - Person is 16 years old or older,age_16_p,SHARED3PAY,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr,age16p_sr
-Walk - Time up to 2 miles,@od_skims['DISTWALK'].clip(upper=walkThresh)*2*60/walkSpeed,WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
-Walk - Time beyond 2 of a miles,@(od_skims['DISTWALK'] - walkThresh).clip(lower=0)*2*60/walkSpeed,WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
+#FIXME - skims aren't symmetrical, so we have to make sure they can get back
+#Walk - Time up to 2 miles,@od_skims['DISTWALK'].clip(upper=walkThresh)*2*60/walkSpeed,WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+#Walk - Time beyond 2 of a miles,@(od_skims['DISTWALK'] - walkThresh).clip(lower=0)*2*60/walkSpeed,WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
+Walk - Time up to 2 miles,@((od_skims['DISTWALK'] - walkThresh).clip(lower=0) + (od_skims.reverse('DISTWALK') - walkThresh).clip(lower=0))*60/walkSpeed,WALK,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
+Walk - Time beyond 2 of a miles,@((od_skims['DISTWALK'] - walkThresh).clip(lower=0)+(od_skims.reverse('DISTWALK') - walkThresh).clip(lower=0))*60/walkSpeed,WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
 Walk - Destination zone densityIndex,density_index,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
 Walk - Topology,dest_topology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
 Bike - Unavailable if didn't bike to work,work_tour_is_bike,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Bike - Time up to 2 miles,@od_skims['DISTBIKE'].clip(upper=bikeThresh)*2*60/bikeSpeed,BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
-Bike - Time beyond 2 of a miles,@(od_skims['DISTBIKE']-bikeThresh).clip(lower=0)*2*60/bikeSpeed,BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
+#FIXME - skims aren't symmetrical, so we have to make sure they can get back
+#Bike - Time up to 2 miles,@od_skims['DISTBIKE'].clip(upper=bikeThresh)*2*60/bikeSpeed,BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
+#Bike - Time beyond 2 of a miles,@(od_skims['DISTBIKE']-bikeThresh).clip(lower=0)*2*60/bikeSpeed,BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
+Bike - Time up to 2 miles,@(od_skims['DISTBIKE'].clip(upper=bikeThresh) + od_skims.reverse('DISTBIKE').clip(upper=bikeThresh))*60/bikeSpeed,BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
+Bike - Time beyond 2 of a miles,@((od_skims['DISTBIKE']-bikeThresh).clip(lower=0) + (od_skims.reverse('DISTBIKE')-bikeThresh).clip(lower=0))*60/bikeSpeed,BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
 Bike - Destination zone densityIndex,density_index,BIKE,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
 Bike - Topology,dest_topology,BIKE,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike,topology_bike
 Walk to Local - Unavailable,walk_local_available == False,WALK_LOC,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
@@ -278,5 +284,8 @@ Commuter rail - Alternative-specific constant ,1,"WALK_COM,DRIVE_COM",0.72701850
 Walk to Transit - CBD dummy,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,0.804,0.564
 Drive to Transit  - CBD dummy,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,1.1,0.564
 # Drive to Transit - distance penalty,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))"
-Walk not available for long distances,@od_skims['DISTWALK'] > 3,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Bike not available for long distances,@od_skims['DISTBIKE'] > 8,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+#FIXME - skims aren't symmetrical, so we have to make sure they can get back
+#Walk not available for long distances,@od_skims['DISTWALK'] > 3,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+#Bike not available for long distances,@od_skims['DISTBIKE'] > 8,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Walk not available for long distances,@od_skims.max('DISTWALK') > 3,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Bike not available for long distances,@od_skims.max('DISTBIKE') > 8,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

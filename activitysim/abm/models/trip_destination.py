@@ -367,6 +367,8 @@ def run_trip_destination(
         chunk_size, trace_hh_id,
         trace_label):
     """
+    trip destination - main functionality separated from model step so it can be called iteratively
+
     Run the trip_destination model, assigning destinations for each (intermediate) trip
     (last trips already have a destination - either the tour primary destination or Home)
 

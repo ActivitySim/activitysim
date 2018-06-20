@@ -234,7 +234,7 @@ class SkimDictWrapper(object):
         """
         self.df = df
 
-    def lookup(self, key):
+    def lookup(self, key, reverse=False):
         """
         Generally not called by the user - use __getitem__ instead
 
@@ -242,6 +242,10 @@ class SkimDictWrapper(object):
         ----------
         key : hashable
              The key (identifier) for this skim object
+
+        od : bool (optional)
+            od=True means lookup standard origin-destination skim value
+            od=False means lookup destination-origin skim value
 
         Returns
         -------
@@ -262,8 +266,48 @@ class SkimDictWrapper(object):
         #     destinations = destinations + self.offset
 
         assert self.df is not None, "Call set_df first"
-        s = skim.get(self.df[self.left_key],
-                     self.df[self.right_key])
+
+        if reverse:
+            s = skim.get(self.df[self.right_key], self.df[self.left_key])
+        else:
+            s = skim.get(self.df[self.left_key], self.df[self.right_key])
+
+        return pd.Series(s, index=self.df.index)
+
+    def reverse(self, key):
+        """
+        return skim value in reverse (d-o) direction
+        """
+        return self.lookup(key, reverse=True)
+
+    def max(self, key):
+        """
+        return max skim value in either o-d or d-o direction
+        """
+
+        skim = self.skim_dict.get(key)
+
+        assert self.df is not None, "Call set_df first"
+
+        s = np.maximum(
+            skim.get(self.df[self.right_key], self.df[self.left_key]),
+            skim.get(self.df[self.left_key], self.df[self.right_key])
+        )
+
+        return pd.Series(s, index=self.df.index)
+
+    def roundtrip(self, key):
+        """
+        return roundtrip skim value in o-d and d-o directions
+        """
+
+        skim = self.skim_dict.get(key)
+
+        assert self.df is not None, "Call set_df first"
+
+        s = skim.get(self.df[self.right_key], self.df[self.left_key]) + \
+            skim.get(self.df[self.left_key], self.df[self.right_key])
+
         return pd.Series(s, index=self.df.index)
 
     def __getitem__(self, key):

@@ -4,9 +4,6 @@ Description,Target,Expression
 #FIXME - not sure terminal_time is right - should be both ends?,,
 ,terminal_time,"reindex(land_use.TERMINAL, choosers[dest_col_name])"
 ,dest_density_index,"reindex(land_use.density_index, choosers[dest_col_name])"
-#,,
-,_x,(odt_skims['DRV_COM_WLK_TOTIVT']>0)
-#,,
 ,drive_commuter_available,(odt_skims['DRV_COM_WLK_TOTIVT']>0) & (dot_skims['WLK_COM_DRV_TOTIVT']>0) & ((odt_skims['DRV_COM_WLK_KEYIVT']>0) | (dot_skims['WLK_COM_DRV_KEYIVT']>0))
 ,drive_express_available,(odt_skims['DRV_EXP_WLK_TOTIVT']>0) & (dot_skims['WLK_EXP_DRV_TOTIVT']>0) & ((odt_skims['DRV_EXP_WLK_KEYIVT']>0) | (dot_skims['WLK_EXP_DRV_KEYIVT']>0))
 ,drive_heavyrail_available,(odt_skims['DRV_HVY_WLK_TOTIVT']>0) & (dot_skims['WLK_HVY_DRV_TOTIVT']>0) & ((odt_skims['DRV_HVY_WLK_KEYIVT']>0) | (dot_skims['WLK_HVY_DRV_KEYIVT']>0))

@@ -296,20 +296,6 @@ class SkimDictWrapper(object):
 
         return pd.Series(s, index=self.df.index)
 
-    def roundtrip(self, key):
-        """
-        return roundtrip skim value in o-d and d-o directions
-        """
-
-        skim = self.skim_dict.get(key)
-
-        assert self.df is not None, "Call set_df first"
-
-        s = skim.get(self.df[self.right_key], self.df[self.left_key]) + \
-            skim.get(self.df[self.left_key], self.df[self.right_key])
-
-        return pd.Series(s, index=self.df.index)
-
     def __getitem__(self, key):
         """
         Get the (df implicit) lookup for an available skim object

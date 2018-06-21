@@ -821,6 +821,8 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
                          column_labels=['alternative', 'utility'])
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
 
     return logsums
 

@@ -35,6 +35,8 @@ from activitysim.abm.models.util.trip import cleanup_failed_trips
 
 logger = logging.getLogger(__name__)
 
+NO_DESTINATION = -1
+
 
 def get_spec_for_purpose(model_settings, spec_name, purpose):
     configs_dir = inject.get_injectable('configs_dir')
@@ -135,6 +137,9 @@ def compute_ood_logsums(
         trace_label=trace_label)
 
     assert logsums.index.equals(choosers.index)
+
+    # FIXME not strictly necessary, but would make trace files more legible?
+    # logsums = logsums.replace(-np.inf, -999)
 
     return logsums
 
@@ -248,18 +253,24 @@ def trip_destination_simulate(
     })
     locals_dict.update(skims)
 
-    choices = interaction_sample_simulate(
+    destinations = interaction_sample_simulate(
         choosers=trips,
         alternatives=destination_sample,
         spec=spec,
         choice_column=alt_dest_col_name,
+        allow_zero_probs=True, zero_prob_choice_val=NO_DESTINATION,
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='trip_dest')
 
-    return choices
+    # drop any failed zero_prob destinations
+    if (destinations == NO_DESTINATION).any():
+        # logger.debug("dropping %s failed destinations" % (destinations == NO_DESTINATION).sum())
+        destinations = destinations[destinations != NO_DESTINATION]
+
+    return destinations
 
 
 def choose_trip_destination(
@@ -286,7 +297,7 @@ def choose_trip_destination(
 
     dropped_trips = ~trips.index.isin(destination_sample.index.unique())
     if dropped_trips.any():
-        logger.warn("%s suppressing %s trips without viable destination alternatives"
+        logger.warn("%s trip_destination_ample %s trips without viable destination alternatives"
                     % (trace_label, dropped_trips.sum()))
         trips = trips[~dropped_trips]
 
@@ -313,6 +324,11 @@ def choose_trip_destination(
         size_term_matrix=size_term_matrix, skims=skims,
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
         trace_label=trace_label)
+
+    dropped_trips = ~trips.index.isin(destinations.index)
+    if dropped_trips.any():
+        logger.warn("%s trip_destination_simulate %s trips without viable destination alternatives"
+                    % (trace_label, dropped_trips.sum()))
 
     return destinations
 

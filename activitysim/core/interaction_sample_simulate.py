@@ -20,7 +20,9 @@ DUMP = False
 
 
 def _interaction_sample_simulate(
-        choosers, alternatives, spec, choice_column,
+        choosers, alternatives, spec,
+        choice_column,
+        allow_zero_probs, zero_prob_choice_val,
         skims, locals_d,
         trace_label=None, trace_choice_name=None):
     """
@@ -169,13 +171,20 @@ def _interaction_sample_simulate(
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(utilities_df, trace_label=trace_label, trace_choosers=choosers)
+    probs = logit.utils_to_probs(utilities_df, allow_zero_probs=allow_zero_probs,
+                                 trace_label=trace_label, trace_choosers=choosers)
 
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
 
     tracing.dump_df(DUMP, probs, trace_label, 'probs')
+
+    if allow_zero_probs:
+        zero_probs = (probs.sum(axis=1) == 0)
+        if zero_probs.any():
+            # FIXME this is kind of gnarly, but we force choice of first alt
+            probs.loc[zero_probs, 0] = 1.0
 
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
@@ -197,6 +206,10 @@ def _interaction_sample_simulate(
 
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
+
+    if allow_zero_probs and zero_probs.any():
+        # FIXME this is kind of gnarly, patch choice for zero_probs
+        choices.loc[zero_probs] = zero_prob_choice_val
 
     tracing.dump_df(DUMP, choices, trace_label, 'choices')
 
@@ -244,7 +257,8 @@ def calc_rows_per_chunk(chunk_size, choosers, alt_sample, spec, trace_label=None
 
 
 def interaction_sample_simulate(
-        choosers, alternatives, spec, choice_column=None,
+        choosers, alternatives, spec, choice_column,
+        allow_zero_probs=False, zero_prob_choice_val=None,
         skims=None, locals_d=None, chunk_size=0,
         trace_label=None, trace_choice_name=None):
 
@@ -313,6 +327,7 @@ def interaction_sample_simulate(
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
+            allow_zero_probs, zero_prob_choice_val,
             skims, locals_d,
             chunk_trace_label, trace_choice_name)
 

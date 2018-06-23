@@ -21,8 +21,8 @@ from .util import expressions
 
 from .util.mode import annotate_preprocessors
 from .util.trip_mode import trip_mode_choice_spec
-from .util.trip_mode import trip_mode_choice_coeffs
-from .util.trip_mode import evaluate_constants
+from .util.trip_mode import trip_mode_choice_coeffecients_spec
+from activitysim.core.assign import evaluate_constants
 
 from .util.tour_destination import tour_destination_size_terms
 from activitysim.core.skim import DataFrameMatrix
@@ -185,10 +185,11 @@ def compute_logsums(
     assert choosers.index.equals(destination_sample.index)
 
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
-    omnibus_coefficients = trip_mode_choice_coeffs(logsum_settings)
+    omnibus_coefficient_spec = trip_mode_choice_coeffecients_spec(logsum_settings)
+    coefficient_spec = omnibus_coefficient_spec[primary_purpose]
 
     constants = config.get_model_constants(logsum_settings)
-    locals_dict = evaluate_constants(omnibus_coefficients[primary_purpose], constants=constants)
+    locals_dict = evaluate_constants(coefficient_spec, constants=constants)
     locals_dict.update(constants)
 
     # - od_logsums
@@ -543,3 +544,9 @@ def trip_destination(
         logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
 
     pipeline.replace_table("trips", trips_df)
+
+    if trace_hh_id:
+        tracing.trace_df(trips_df,
+                         label=trace_label,
+                         slicer='trip_id',
+                         index_label='trip_id')

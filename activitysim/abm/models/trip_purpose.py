@@ -205,3 +205,10 @@ def trip_purpose(
     assert not trips_df.purpose.isnull().any()
 
     pipeline.replace_table("trips", trips_df)
+
+    if trace_hh_id:
+        tracing.trace_df(trips_df,
+                         label=trace_label,
+                         slicer='trip_id',
+                         index_label='trip_id',
+                         warn_if_empty=True)

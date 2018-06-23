@@ -15,12 +15,11 @@ from activitysim.core import pipeline
 from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
-from .util.mode import mode_choice_simulate
 from .util.mode import annotate_preprocessors
 
 from .util.trip_mode import trip_mode_choice_spec
-from .util.trip_mode import trip_mode_choice_coeffs
-from .util.trip_mode import evaluate_constants
+from .util.trip_mode import trip_mode_choice_coeffecients_spec
+from activitysim.core.assign import evaluate_constants
 
 from .util.expressions import skim_time_period_label
 
@@ -45,7 +44,7 @@ def trip_mode_choice(
     model_settings = config.read_model_settings('trip_mode_choice.yaml')
 
     spec = trip_mode_choice_spec(model_settings)
-    omnibus_coefficients = trip_mode_choice_coeffs(model_settings)
+    omnibus_coefficients = trip_mode_choice_coeffecients_spec(model_settings)
 
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips" % (trace_label, trips_df.shape[0]))
@@ -111,15 +110,19 @@ def trip_mode_choice(
             trips_segment, locals_dict, skims,
             model_settings, segment_trace_label)
 
-        choices = mode_choice_simulate(
-            trips_segment,
-            skims=skims,
+        locals_dict.update(skims)
+        choices = simulate.simple_simulate(
+            choosers=trips_segment,
             spec=spec,
-            constants=locals_dict,
             nest_spec=nest_spec,
+            skims=skims,
+            locals_d=locals_dict,
             chunk_size=chunk_size,
-            trace_label=segment_trace_label,
+            trace_label=trace_label,
             trace_choice_name='trip_mode_choice')
+
+        alts = spec.columns
+        choices = choices.map(dict(zip(range(len(alts)), alts)))
 
         tracing.print_summary('%s tour_modes' % primary_purpose,
                               trips_segment.tour_mode, value_counts=True)

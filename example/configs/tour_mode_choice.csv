@@ -3,7 +3,7 @@ Drive alone - Unavailable,sov_available == False,DRIVEALONEFREE,-999,-999,-999,-
 Drive alone - Unavailable for zero auto households,auto_ownership == 0,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for persons less than 16,age < 16,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - Unavailable for joint tours,(is_joint == True),DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Drive alone - Unavailable if didn't drive to work,work_tour_is_drive,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Drive alone - Unavailable if didn't drive to work,~work_tour_is_drive,DRIVEALONEFREE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Drive alone - In-vehicle time,@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'],DRIVEALONEFREE,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt,ivt
 Drive alone - Terminal time,2 * terminal_time,DRIVEALONEFREE,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort,walktimeshort
 Drive alone - Operating cost ,@costPerMile * (odt_skims['SOV_DIST'] + dot_skims['SOV_DIST']),DRIVEALONEFREE,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
@@ -69,7 +69,7 @@ Walk - Time up to 2 miles,@(od_skims['DISTWALK'].clip(upper=walkThresh) + od_ski
 Walk - Time beyond 2 of a miles,@((od_skims['DISTWALK'] - walkThresh).clip(lower=0) + (od_skims.reverse('DISTWALK') - walkThresh).clip(lower=0))*60/walkSpeed,WALK,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong,walktimelong
 Walk - Destination zone densityIndex,density_index,WALK,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index,density_index
 Walk - Topology,dest_topology,WALK,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk,topology_walk
-Bike - Unavailable if didn't bike to work,work_tour_is_bike,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Bike - Unavailable if didn't bike to work,~work_tour_is_bike,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 #FIXME - skims aren't symmetrical, so we have to make sure they can get back
 #Bike - Time up to 2 miles,@od_skims['DISTBIKE'].clip(upper=bikeThresh)*2*60/bikeSpeed,BIKE,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort,biketimeshort
 #Bike - Time beyond 2 of a miles,@(od_skims['DISTBIKE']-bikeThresh).clip(lower=0)*2*60/bikeSpeed,BIKE,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong,biketimelong
@@ -156,8 +156,8 @@ Drive to Local - Long iwait time,@(odt_skims['DRV_LOC_WLK_IWAIT']/100-waitThresh
 Drive to Local - transfer wait time,@odt_skims['DRV_LOC_WLK_XWAIT']/100 + dot_skims['WLK_LOC_DRV_XWAIT']/100,DRIVE_LOC,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait
 Drive to Local - number of transfers,@(odt_skims['DRV_LOC_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_LOC_DRV_BOARDS']-1).clip(0),DRIVE_LOC,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk
 Drive to Local - Drive time,@odt_skims['DRV_LOC_WLK_DTIM']/100 + dot_skims['WLK_LOC_DRV_DTIM']/100,DRIVE_LOC,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim
-Drive to Local - Walk access time (at attraction end),2 * origin_walk_time,DRIVE_LOC,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
-Drive to Local - Walk egress time (at attraction end),2 * destination_walk_time,DRIVE_LOC,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
+Drive to Local - Walk access time (at attraction end),destination_walk_time,DRIVE_LOC,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
+Drive to Local - Walk egress time (at attraction end),destination_walk_time,DRIVE_LOC,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
 Drive to Local - Walk other time,@odt_skims['DRV_LOC_WLK_WAUX']/100 + dot_skims['WLK_LOC_DRV_WAUX']/100,DRIVE_LOC,waux,waux,waux,waux,waux,waux,waux,waux,waux,waux
 Drive to Local - Fare and operating cost ,@(odt_skims['DRV_LOC_WLK_FAR']+dot_skims['WLK_LOC_DRV_FAR'])+ ((odt_skims['DRV_LOC_WLK_FAR']/100+dot_skims['WLK_LOC_DRV_FAR']/100) *costPerMile),DRIVE_LOC,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
 Drive to Local - Ratio of drive access distance to OD distance,@(odt_skims['DRV_LOC_WLK_DDIST']/100+ dot_skims['WLK_LOC_DRV_DDIST']/100)/ (od_skims['DIST']*2),DRIVE_LOC,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio
@@ -175,8 +175,8 @@ drive to Light rail/Ferry - Long iwait time,@(odt_skims['DRV_LRF_WLK_IWAIT']/100
 drive to Light rail/Ferry - transfer wait time,@odt_skims['DRV_LRF_WLK_XWAIT']/100 + dot_skims['WLK_LRF_DRV_XWAIT']/100,DRIVE_LRF,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait
 drive to Light rail/Ferry - number of transfers,@(odt_skims['DRV_LRF_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_LRF_DRV_BOARDS']-1).clip(0),DRIVE_LRF,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk
 Drive to Light rail/Ferry - Drive time,@odt_skims['DRV_LRF_WLK_DTIM']/100 + dot_skims['WLK_LRF_DRV_DTIM']/100,DRIVE_LRF,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim
-Drive to Light rail/Ferry - Walk access time (at attraction end),2 * origin_walk_time,DRIVE_LRF,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
-Drive to Light rail/Ferry - Walk egress time (at attraction end),2 * destination_walk_time,DRIVE_LRF,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
+Drive to Light rail/Ferry - Walk access time (at attraction end),destination_walk_time,DRIVE_LRF,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
+Drive to Light rail/Ferry - Walk egress time (at attraction end),destination_walk_time,DRIVE_LRF,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
 Drive to Light rail/Ferry - Walk other time,@odt_skims['DRV_LRF_WLK_WAUX']/100 + dot_skims['WLK_LRF_DRV_WAUX']/100,DRIVE_LRF,waux,waux,waux,waux,waux,waux,waux,waux,waux,waux
 Drive to Light rail/Ferry - Fare and operating cost ,@(odt_skims['DRV_LRF_WLK_FAR']+dot_skims['WLK_LRF_DRV_FAR'])+ ((odt_skims['DRV_LRF_WLK_FAR']/100+dot_skims['WLK_LRF_DRV_FAR']/100) *costPerMile),DRIVE_LRF,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
 Drive to Light rail/Ferry - Ratio of drive access distance to OD distance,@(odt_skims['DRV_LRF_WLK_DDIST']/100+ dot_skims['WLK_LRF_DRV_DDIST']/100)/ (od_skims['DIST']*2),DRIVE_LRF,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio
@@ -193,8 +193,8 @@ drive to Express bus - Long iwait time,@(odt_skims['DRV_EXP_WLK_IWAIT']/100-wait
 drive to Express bus - transfer wait time,@odt_skims['DRV_EXP_WLK_XWAIT']/100 + dot_skims['WLK_EXP_DRV_XWAIT']/100,DRIVE_EXP,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait
 drive to Express bus - number of transfers,@(odt_skims['DRV_EXP_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_EXP_DRV_BOARDS']-1).clip(0),DRIVE_EXP,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk
 Drive to Express bus - Drive time,@odt_skims['DRV_EXP_WLK_DTIM']/100 + dot_skims['WLK_EXP_DRV_DTIM']/100,DRIVE_EXP,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim
-Drive to Express bus - Walk access time (at attraction end),2 * origin_walk_time,DRIVE_EXP,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
-Drive to Express bus - Walk egress time (at attraction end),2 * destination_walk_time,DRIVE_EXP,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
+Drive to Express bus - Walk access time (at attraction end),destination_walk_time,DRIVE_EXP,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
+Drive to Express bus - Walk egress time (at attraction end),destination_walk_time,DRIVE_EXP,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
 Drive to Express bus - Walk other time,@odt_skims['DRV_EXP_WLK_WAUX']/100 + dot_skims['WLK_EXP_DRV_WAUX']/100,DRIVE_EXP,waux,waux,waux,waux,waux,waux,waux,waux,waux,waux
 Drive to Express bus - Fare and operating cost ,@(odt_skims['DRV_EXP_WLK_FAR']+dot_skims['WLK_EXP_DRV_FAR'])+ ((odt_skims['DRV_EXP_WLK_FAR']/100+dot_skims['WLK_EXP_DRV_FAR']/100) *costPerMile),DRIVE_EXP,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
 Drive to Express bus - Ratio of drive access distance to OD distance,@(odt_skims['DRV_EXP_WLK_DDIST']/100+ dot_skims['WLK_EXP_DRV_DDIST']/100)/ (od_skims['DIST']*2),DRIVE_EXP,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio
@@ -211,8 +211,8 @@ drive to heavy rail - Long iwait time,@(odt_skims['DRV_HVY_WLK_IWAIT']/100-waitT
 drive to heavy rail - transfer wait time,@odt_skims['DRV_HVY_WLK_XWAIT']/100 + dot_skims['WLK_HVY_DRV_XWAIT']/100,DRIVE_HVY,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait
 drive to heavy rail - number of transfers,@(odt_skims['DRV_HVY_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_HVY_DRV_BOARDS']-1).clip(0),DRIVE_HVY,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk
 Drive to heavy rail - Drive time,@odt_skims['DRV_HVY_WLK_DTIM']/100 + dot_skims['WLK_HVY_DRV_DTIM']/100,DRIVE_HVY,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim
-Drive to heavy rail - Walk access time (at attraction end),2 * origin_walk_time,DRIVE_HVY,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
-Drive to heavy rail - Walk egress time (at attraction end),2 * destination_walk_time,DRIVE_HVY,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
+Drive to heavy rail - Walk access time (at attraction end),destination_walk_time,DRIVE_HVY,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
+Drive to heavy rail - Walk egress time (at attraction end),destination_walk_time,DRIVE_HVY,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
 Drive to heavy rail - Walk other time,@odt_skims['DRV_HVY_WLK_WAUX']/100 + dot_skims['WLK_HVY_DRV_WAUX']/100,DRIVE_HVY,waux,waux,waux,waux,waux,waux,waux,waux,waux,waux
 Drive to heavy rail - Fare and operating cost ,@(odt_skims['DRV_HVY_WLK_FAR']+dot_skims['WLK_HVY_DRV_FAR'])+ ((odt_skims['DRV_HVY_WLK_FAR']/100+dot_skims['WLK_HVY_DRV_FAR']/100) *costPerMile),DRIVE_HVY,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
 Drive to heavy rail - Ratio of drive access distance to OD distance,@(odt_skims['DRV_HVY_WLK_DDIST']/100+ dot_skims['WLK_HVY_DRV_DDIST']/100)/ (od_skims['DIST']*2),DRIVE_HVY,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio
@@ -229,8 +229,8 @@ drive to Commuter rail - Long iwait time,@(odt_skims['DRV_COM_WLK_IWAIT']/100-wa
 drive to Commuter rail - transfer wait time,@odt_skims['DRV_COM_WLK_XWAIT']/100 + dot_skims['WLK_COM_DRV_XWAIT']/100,DRIVE_COM,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait,xwait
 drive to Commuter rail - number of transfers,@(odt_skims['DRV_COM_WLK_BOARDS']-1).clip(0)+ (dot_skims['WLK_COM_DRV_BOARDS']-1).clip(0),DRIVE_COM,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk,xfers_wlk
 Drive to Commuter rail - Drive time,@odt_skims['DRV_COM_WLK_DTIM']/100 + dot_skims['WLK_COM_DRV_DTIM']/100,DRIVE_COM,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim,dtim
-Drive to Commuter rail - Walk access time (at attraction end),2 * origin_walk_time,DRIVE_COM,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
-Drive to Commuter rail - Walk egress time (at attraction end),2 * destination_walk_time,DRIVE_COM,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
+Drive to Commuter rail - Walk access time (at attraction end),destination_walk_time,DRIVE_COM,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc,wacc
+Drive to Commuter rail - Walk egress time (at attraction end),destination_walk_time,DRIVE_COM,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr,wegr
 Drive to Commuter rail - Walk other time,@odt_skims['DRV_COM_WLK_WAUX']/100 + dot_skims['WLK_COM_DRV_WAUX']/100,DRIVE_COM,waux,waux,waux,waux,waux,waux,waux,waux,waux,waux
 Drive to Commuter rail - Fare and operating cost ,@(odt_skims['DRV_COM_WLK_FAR']+dot_skims['WLK_COM_DRV_FAR'])+ ((odt_skims['DRV_COM_WLK_FAR']/100+dot_skims['WLK_COM_DRV_FAR']/100) *costPerMile),DRIVE_COM,cost,cost,cost,cost,cost,cost,cost,cost,cost,cost
 Drive to Commuter rail - Ratio of drive access distance to OD distance,@(odt_skims['DRV_COM_WLK_DDIST']/100+ dot_skims['WLK_COM_DRV_DDIST']/100)/ (od_skims['DIST']*2),DRIVE_COM,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio,dacc_ratio
@@ -283,7 +283,7 @@ Heavy rail - Alternative-specific constant ,1,"WALK_HVY,DRIVE_HVY",0.770612112,0
 Commuter rail - Alternative-specific constant ,1,"WALK_COM,DRIVE_COM",0.727018505,0.727018505,0.727018505,0.727018505,1.033620595,0.727018505,0.727018505,1.033620595,0.725503039,0.727018505
 Walk to Transit - CBD dummy,1,"WALK_LOC,WALK_LRF,WALK_EXP,WALK_HVY,WALK_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,0.804,0.564
 Drive to Transit  - CBD dummy,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",0.525,0.525,0.525,0.525,0.672,0.525,0.525,0.672,1.1,0.564
-# Drive to Transit - distance penalty,1,"DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))","min(0,drvtrn_distpen_0*(1-DIST/drvtrn_distpen_max))"
+Drive to Transit - distance penalty,"@(drvtrn_distpen_0*(1-od_skims['DIST']/drvtrn_distpen_max)).clip(upper=0)","DRIVE_LOC,DRIVE_LRF,DRIVE_EXP,DRIVE_HVY,DRIVE_COM",1,1,1,1,1,1,1,1,1,1
 #FIXME - skims aren't symmetrical, so we have to make sure they can get back
 #Walk not available for long distances,@od_skims['DISTWALK'] > 3,WALK,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 #Bike not available for long distances,@od_skims['DISTBIKE'] > 8,BIKE,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

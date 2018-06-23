@@ -334,10 +334,10 @@ def regress_mode_df(mode_df):
     mand_mode_df = mode_df[mode_df.tour_category == 'mandatory']
     print "mand mode_df\n", mand_mode_df[mode_cols]
     """
-     tour_id       tour_mode person_id tour_type tour_num tour_category
-    67567442            WALK   2329911    school        1     mandatory
-    67567471            WALK   2329912    school        1     mandatory
-    67567504  DRIVEALONEFREE   2329913      work        1     mandatory
+     tour_id tour_mode person_id tour_type tour_num tour_category
+    67567442      WALK   2329911    school        1     mandatory
+    67567471      WALK   2329912    school        1     mandatory
+    67567504      WALK   2329913      work        1     mandatory
     """
 
     EXPECT_MAND_PERSON_IDS = [
@@ -351,7 +351,7 @@ def regress_mode_df(mode_df):
     EXPECT_MAND_MODES = [
         'WALK',
         'WALK',
-        'DRIVEALONEFREE']
+        'WALK']
 
     assert len(mand_mode_df.person_id) == len(EXPECT_MAND_PERSON_IDS)
     assert (mand_mode_df.person_id.values == EXPECT_MAND_PERSON_IDS).all()
@@ -421,13 +421,13 @@ def regress_subtour_mode_df(mode_df):
         mode_df[['tour_id', 'tour_mode', 'person_id', 'tour_type', 'tour_num', 'parent_tour_id']]
 
     """
-            tour_id  tour_mode person_id tour_type tour_num parent_tour_id
-    value  67567481  BIKE        2329913       eat        1     67567504.0
+     tour_id    tour_mode person_id tour_type tour_num parent_tour_id
+    67567481  SHARED2FREE   2329913       eat        1     67567504.0
     """
 
     EXPECT_SUBTOUR_PERSON_IDS = ['2329913']
     EXPECT_SUBTOUR_TYPES = ['eat']
-    EXPECT_SUBTOUR_MODES = ['BIKE']
+    EXPECT_SUBTOUR_MODES = ['SHARED2FREE']
     EXPECT_PARENT_TOUR_IDS = ['67567504.0']
 
     assert len(mode_df.person_id) == len(EXPECT_SUBTOUR_PERSON_IDS)

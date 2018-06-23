@@ -152,8 +152,10 @@ def workplace_location_logsums(persons_merged,
 
     logger.info("Running workplace_location_logsums with %s rows" % len(location_sample))
 
-    logsum_spec = logsum.get_logsum_spec(logsum_settings, selector='nontour', segment='work',
-                                         configs_dir=configs_dir, want_tracing=trace_hh_id)
+    tour_purpose = 'work'
+    logsum_spec = \
+        logsum.get_logsum_spec(logsum_settings, selector='nontour', tour_purpose=tour_purpose,
+                               configs_dir=configs_dir, want_tracing=trace_hh_id)
 
     choosers = pd.merge(location_sample,
                         persons_merged,
@@ -162,7 +164,8 @@ def workplace_location_logsums(persons_merged,
                         how="left")
 
     logsums = logsum.compute_logsums(
-        choosers, logsum_spec,
+        choosers,
+        logsum_spec, tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id,

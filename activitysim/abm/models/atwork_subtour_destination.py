@@ -136,8 +136,9 @@ def atwork_subtour_destination_logsums(persons_merged,
 
     logsum_settings = config.read_model_settings('logsum.yaml')
 
+    tour_purpose = 'atwork'
     logsum_spec = logsum.get_logsum_spec(
-        logsum_settings, selector='atwork_subtour', segment='atwork',
+        logsum_settings, selector='atwork_subtour', tour_purpose=tour_purpose,
         configs_dir=configs_dir, want_tracing=trace_hh_id)
 
     destination_sample = destination_sample.to_frame()
@@ -159,7 +160,8 @@ def atwork_subtour_destination_logsums(persons_merged,
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
 
     logsums = logsum.compute_logsums(
-        choosers, logsum_spec,
+        choosers,
+        logsum_spec, tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id,

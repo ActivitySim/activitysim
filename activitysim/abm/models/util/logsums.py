@@ -11,8 +11,11 @@ from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 
+from activitysim.core.assign import evaluate_constants
+
 from mode import _mode_choice_spec
 from mode import get_segment_and_unstack
+from mode import tour_mode_choice_coeffecients_spec
 
 
 from . import expressions
@@ -51,7 +54,7 @@ def get_omnibus_logsum_spec(logsum_settings, selector, configs_dir, want_tracing
     return spec
 
 
-def get_logsum_spec(logsum_settings, selector, segment, configs_dir, want_tracing):
+def get_logsum_spec(logsum_settings, selector, tour_purpose, configs_dir, want_tracing):
     """
 
     Parameters
@@ -71,10 +74,10 @@ def get_logsum_spec(logsum_settings, selector, segment, configs_dir, want_tracin
 
     omnibus_logsum_spec = \
         get_omnibus_logsum_spec(logsum_settings, selector, configs_dir, want_tracing)
-    logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)
+    logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment=tour_purpose)
 
     if want_tracing:
-        trace_label = 'get_logsum_spec_%s_%s' % (selector, segment)
+        trace_label = 'get_logsum_spec_%s_%s' % (selector, tour_purpose)
         tracing.trace_df(logsum_spec,
                          trace_label,
                          slicer='NONE', transpose=False)
@@ -100,7 +103,8 @@ def filter_chooser_columns(choosers, logsum_settings, model_settings):
     return choosers
 
 
-def compute_logsums(choosers, logsum_spec,
+def compute_logsums(choosers,
+                    logsum_spec, tour_purpose,
                     logsum_settings, model_settings,
                     skim_dict, skim_stack,
                     chunk_size, trace_hh_id, trace_label):
@@ -138,6 +142,10 @@ def compute_logsums(choosers, logsum_spec,
     nest_spec = config.get_logit_model_settings(logsum_settings)
     constants = config.get_model_constants(logsum_settings)
 
+    omnibus_coefficient_spec = tour_mode_choice_coeffecients_spec(logsum_settings)
+    locals_dict = evaluate_constants(omnibus_coefficient_spec[tour_purpose], constants=constants)
+    locals_dict.update(constants)
+
     logger.info("Running compute_logsums with %d choosers" % choosers.shape[0])
 
     if trace_hh_id:
@@ -152,9 +160,7 @@ def compute_logsums(choosers, logsum_spec,
                                              skim_key='in_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
-    skims = [odt_skim_stack_wrapper, dot_skim_stack_wrapper, od_skim_stack_wrapper]
-
-    locals_d = {
+    skims = {
         "odt_skims": odt_skim_stack_wrapper,
         "dot_skims": dot_skim_stack_wrapper,
         "od_skims": od_skim_stack_wrapper,
@@ -162,7 +168,7 @@ def compute_logsums(choosers, logsum_spec,
         'dest_col_name': dest_col_name
     }
     if constants is not None:
-        locals_d.update(constants)
+        locals_dict.update(skims)
 
     # - run preprocessor to annotate choosers
     preprocessor_settings = logsum_settings.get('preprocessor_settings', None)
@@ -173,7 +179,7 @@ def compute_logsums(choosers, logsum_spec,
         expressions.assign_columns(
             df=choosers,
             model_settings=preprocessor_settings,
-            locals_dict=locals_d,
+            locals_dict=locals_dict,
             trace_label=trace_label)
 
     logsums = simulate.simple_simulate_logsums(
@@ -181,7 +187,7 @@ def compute_logsums(choosers, logsum_spec,
         logsum_spec,
         nest_spec,
         skims=skims,
-        locals_d=locals_d,
+        locals_d=locals_dict,
         chunk_size=chunk_size,
         trace_label=trace_label)
 

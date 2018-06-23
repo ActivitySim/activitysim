@@ -145,3 +145,10 @@ def trip_purpose_and_destination(
         logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
 
     pipeline.replace_table("trips", trips_df)
+
+    if trace_hh_id:
+        tracing.trace_df(trips_df,
+                         label=trace_label,
+                         slicer='trip_id',
+                         index_label='trip_id',
+                         warn_if_empty=True)

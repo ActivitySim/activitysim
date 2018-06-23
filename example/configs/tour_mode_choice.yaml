@@ -48,6 +48,8 @@ NESTS:
               - DRIVE_HVY
               - DRIVE_COM
 
+#SPEC: tour_mode_choice.csv
+COEFFS: tour_mode_choice_coeffs.csv
 
 CONSTANTS:
     valueOfTime: 8.00

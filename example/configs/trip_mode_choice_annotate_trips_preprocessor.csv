@@ -74,3 +74,8 @@ FIXME,_short_walk_destination,True
 ,_drive_ferry_available_outbound,drive_lrf_available_outbound & (odt_skims['DRV_LRF_WLK_FERRYIVT']>0)
 ,_drive_ferry_available_inbound,drive_lrf_available_inbound & (odt_skims['WLK_LRF_DRV_FERRYIVT']>0)
 ,drive_ferry_available,"np.where(df.outbound, _drive_ferry_available_outbound, _drive_ferry_available_inbound)"
+#,od_dist_walk,od_skims['DISTWALK']
+#,do_dist_walk,od_skims.reverse('DISTWALK')
+#,max_dist_walk,od_skims.max('DISTWALK')
+#,dist_bike,od_skims['DISTBIKE']
+#,dist_only,od_skims['DIST']

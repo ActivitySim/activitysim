@@ -262,7 +262,8 @@ def joint_tour_destination_logsums(
             how="left",
             sort=False)
 
-        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, tour_type)
+        tour_purpose = tour_type
+        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, tour_purpose)
 
         tracing.trace_df(logsum_spec,
                          tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
@@ -271,7 +272,8 @@ def joint_tour_destination_logsums(
         logger.info("Running joint_tour_destination_logsums with %s rows" % len(choosers))
 
         logsums = logsum.compute_logsums(
-            choosers, logsum_spec,
+            choosers,
+            logsum_spec, tour_purpose,
             logsum_settings, model_settings,
             skim_dict, skim_stack,
             chunk_size, trace_hh_id,

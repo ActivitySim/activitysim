@@ -17,7 +17,7 @@ from activitysim.core.util import assign_in_place
 
 from .util.mode import _mode_choice_spec
 from .util.mode import get_segment_and_unstack
-from .util.mode import mode_choice_simulate
+from .util.mode import run_tour_mode_choice_simulate
 from .util.mode import annotate_preprocessors
 
 logger = logging.getLogger(__name__)
@@ -133,10 +133,10 @@ def tour_mode_choice_simulate(tours, persons_merged,
             tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
                              slicer='NONE', transpose=False)
 
-        choices = mode_choice_simulate(
+        choices = run_tour_mode_choice_simulate(
             segment,
+            spec, tour_type, tour_mode_choice_settings,
             skims=skims,
-            spec=spec,
             constants=constants,
             nest_spec=nest_spec,
             chunk_size=chunk_size,

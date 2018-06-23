@@ -1,9 +1,18 @@
 Description,Target,Expression
 #,,
+ local,_HAVE_PARENT,"'parent_tour_id' in df.columns"
+,parent_tour_mode,"reindex(tours.tour_mode, df.parent_tour_id) if _HAVE_PARENT else ''"
+,work_tour_is_drive,"parent_tour_mode.isin(['DRIVEALONEFREE','DRIVEALONEPAY'])"
+,work_tour_is_bike,"parent_tour_mode=='BIKE'"
+#,,
+,is_joint,(choosers.tour_category=='joint') if 'tour_category' in choosers.columns else False
 ,dest_topology,"reindex(land_use.TOPOLOGY, choosers[dest_col_name])"
-#FIXME - not sure terminal_time is right - should be both ends?,,
 ,terminal_time,"reindex(land_use.TERMINAL, choosers[dest_col_name])"
 ,dest_density_index,"reindex(land_use.density_index, choosers[dest_col_name])"
+FIXME,origin_walk_time,0
+FIXME,destination_walk_time,0
+FIXME,daily_parking_cost,0
+#,,
 ,drive_commuter_available,(odt_skims['DRV_COM_WLK_TOTIVT']>0) & (dot_skims['WLK_COM_DRV_TOTIVT']>0) & ((odt_skims['DRV_COM_WLK_KEYIVT']>0) | (dot_skims['WLK_COM_DRV_KEYIVT']>0))
 ,drive_express_available,(odt_skims['DRV_EXP_WLK_TOTIVT']>0) & (dot_skims['WLK_EXP_DRV_TOTIVT']>0) & ((odt_skims['DRV_EXP_WLK_KEYIVT']>0) | (dot_skims['WLK_EXP_DRV_KEYIVT']>0))
 ,drive_heavyrail_available,(odt_skims['DRV_HVY_WLK_TOTIVT']>0) & (dot_skims['WLK_HVY_DRV_TOTIVT']>0) & ((odt_skims['DRV_HVY_WLK_KEYIVT']>0) | (dot_skims['WLK_HVY_DRV_KEYIVT']>0))
@@ -20,4 +29,5 @@ Description,Target,Expression
 ,walk_heavyrail_available,(odt_skims['WLK_HVY_WLK_TOTIVT']>0) & (dot_skims['WLK_HVY_WLK_TOTIVT']>0) & ((odt_skims['WLK_HVY_WLK_KEYIVT']>0) | (dot_skims['WLK_HVY_WLK_KEYIVT']>0))
 ,walk_local_available,(odt_skims['WLK_LOC_WLK_TOTIVT']>0) & (dot_skims['WLK_LOC_WLK_TOTIVT']>0)
 ,walk_lrf_available,(odt_skims['WLK_LRF_WLK_TOTIVT']>0) & (dot_skims['WLK_LRF_WLK_TOTIVT']>0) & ((odt_skims['WLK_LRF_WLK_KEYIVT']>0) | (dot_skims['WLK_LRF_WLK_KEYIVT']>0))
-,is_joint,(choosers.tour_category=='joint') if 'tour_category' in choosers.columns else False
+#,is_joint,(choosers.tour_category=='joint') if 'tour_category' in choosers.columns else False
+#,,

@@ -16,7 +16,7 @@ from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 from .util.mode import get_segment_and_unstack
-from .util.mode import mode_choice_simulate
+from .util.mode import run_tour_mode_choice_simulate
 from .util.mode import annotate_preprocessors
 
 
@@ -108,10 +108,10 @@ def joint_tour_mode_choice(
             tracing.trace_df(spec, tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
                              slicer='NONE', transpose=False)
 
-        choices = mode_choice_simulate(
+        choices = run_tour_mode_choice_simulate(
             segment,
+            spec, tour_purpose=tour_type, model_settings=tour_mode_choice_settings,
             skims=skims,
-            spec=spec,
             constants=constants,
             nest_spec=nest_spec,
             chunk_size=chunk_size,

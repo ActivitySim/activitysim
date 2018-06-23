@@ -1,14 +1,17 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import os
 import copy
 import string
 import pandas as pd
 import numpy as np
 
 from activitysim.core import tracing
+from activitysim.core import inject
 from activitysim.core import simulate
 
+from activitysim.core.assign import evaluate_constants
 from activitysim.core.util import assign_in_place
 
 import expressions
@@ -19,6 +22,17 @@ At this time, these utilities are mostly for transforming the mode choice
 spec, which is more complicated than the other specs, into something that
 looks like the other specs.
 """
+
+
+def tour_mode_choice_coeffecients_spec(model_settings):
+
+    configs_dir = inject.get_injectable('configs_dir')
+
+    assert 'COEFFS' in model_settings
+    coeffs_file_name = model_settings['COEFFS']
+
+    with open(os.path.join(configs_dir, coeffs_file_name)) as f:
+        return pd.read_csv(f, comment='#', index_col='Expression')
 
 
 def evaluate_expression_list(expressions, constants):
@@ -210,10 +224,10 @@ def get_segment_and_unstack(omnibus_spec, segment):
     return spec
 
 
-def mode_choice_simulate(
-        records,
+def run_tour_mode_choice_simulate(
+        choosers,
+        spec, tour_purpose, model_settings,
         skims,
-        spec,
         constants,
         nest_spec,
         chunk_size,
@@ -225,12 +239,13 @@ def mode_choice_simulate(
     you want to use in the evaluation of variables.
     """
 
-    locals_dict = skims.copy()
-    if constants is not None:
-        locals_dict.update(constants)
+    omnibus_coefficient_spec = tour_mode_choice_coeffecients_spec(model_settings)
+    locals_dict = evaluate_constants(omnibus_coefficient_spec[tour_purpose], constants=constants)
+    locals_dict.update(constants)
+    locals_dict.update(skims)
 
     choices = simulate.simple_simulate(
-        choosers=records,
+        choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,
         skims=skims,

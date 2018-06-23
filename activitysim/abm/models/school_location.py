@@ -194,8 +194,8 @@ def school_location_logsums(
     logsums_list = []
     for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
 
-        segment = 'univ' if school_type == 'university' else 'school'
-        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)
+        tour_purpose = 'univ' if school_type == 'university' else 'school'
+        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, tour_purpose)
 
         choosers = location_sample[location_sample['school_type'] == school_type_id]
 
@@ -211,7 +211,8 @@ def school_location_logsums(
             how="left")
 
         logsums = logsum.compute_logsums(
-            choosers, logsum_spec,
+            choosers,
+            logsum_spec, tour_purpose,
             logsum_settings, model_settings,
             skim_dict, skim_stack,
             chunk_size, trace_hh_id,

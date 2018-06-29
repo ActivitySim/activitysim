@@ -243,7 +243,7 @@ def joint_tour_participation(
                 candidates.shape[0])
 
     # - preprocessor
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {

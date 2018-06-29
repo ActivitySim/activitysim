@@ -13,6 +13,8 @@ from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
 
+from activitysim.core.tracing import print_elapsed_time
+
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
@@ -286,6 +288,9 @@ def choose_trip_destination(
 
     logger.info("choose_trip_destination %s with %d trips" % (trace_label, trips.shape[0]))
 
+    # FIXME want timing?
+    t0 = print_elapsed_time()
+
     # - trip_destination_sample
     destination_sample = trip_destination_sample(
         primary_purpose=primary_purpose,
@@ -302,6 +307,8 @@ def choose_trip_destination(
                     % (trace_label, dropped_trips.sum()))
         trips = trips[~dropped_trips]
 
+    t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0)
+
     if trips.empty:
         return pd.Series(index=trips.index)
 
@@ -315,6 +322,8 @@ def choose_trip_destination(
         skims=skims,
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
         trace_label=trace_label)
+
+    t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
 
     # - trip_destination_simulate
     destinations = trip_destination_simulate(
@@ -330,6 +339,8 @@ def choose_trip_destination(
     if dropped_trips.any():
         logger.warn("%s trip_destination_simulate %s trips without viable destination alternatives"
                     % (trace_label, dropped_trips.sum()))
+
+    t0 = print_elapsed_time("%s.trip_destination_simulate" % trace_label, t0)
 
     return destinations
 
@@ -406,7 +417,7 @@ def run_trip_destination(
     """
 
     model_settings = config.read_model_settings('trip_destination.yaml')
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     land_use = inject.get_table('land_use')

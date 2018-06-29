@@ -1,5 +1,5 @@
 
-preprocessor_settings:
+preprocessor:
   SPEC: trip_purpose_annotate_trips_preprocessor
   DF: trips
   TABLES:

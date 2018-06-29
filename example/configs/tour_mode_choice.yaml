@@ -48,7 +48,7 @@ NESTS:
               - DRIVE_HVY
               - DRIVE_COM
 
-#SPEC: tour_mode_choice.csv
+SPEC: tour_mode_choice.csv
 COEFFS: tour_mode_choice_coeffs.csv
 
 CONSTANTS:
@@ -72,14 +72,27 @@ CONSTANTS:
 
 
 # so far, we can use the same spec as for non-joint tours
-preprocessor_settings:
-  - SPEC: tour_mode_choice_annotate_tours_preprocessor1
-    DF: df
-    TABLES:
-      - land_use
-      - tours
+preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - tours
 
-  - SPEC: tour_mode_choice_annotate_tours_preprocessor2
-    DF: tours
-    TABLES:
-      - land_use
+nontour_preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+
+LOGSUM_CHOOSER_COLUMNS:
+  - tour_type
+  - hhsize
+  - density_index
+  - age
+  - age_16_p
+  - age_16_to_19
+  - auto_ownership
+  - number_of_participants
+  - tour_category
+  - num_workers

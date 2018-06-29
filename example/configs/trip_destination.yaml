@@ -21,7 +21,7 @@ CONSTANTS:
     max_walk_distance: 3
     max_bike_distance: 8
 
-preprocessor_settings:
+preprocessor:
   SPEC: trip_destination_annotate_trips_preprocessor
   DF: trips
   TABLES:

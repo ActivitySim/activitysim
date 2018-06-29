@@ -9,7 +9,7 @@ import pandas as pd
 from . import logit
 from . import tracing
 from . import chunk
-from .simulate import add_skims
+from .simulate import set_skim_wrapper_targets
 
 from activitysim.core.util import force_garbage_collect
 from .interaction_simulate import eval_interaction_utilities
@@ -73,14 +73,22 @@ def _interaction_sample_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    assert len(choosers.index) == len(np.unique(alternatives.index.values))
+    # merge of alternatives, choosers on index requires increasing index
+    assert choosers.index.is_monotonic_increasing
+    assert alternatives.index.is_monotonic_increasing
+
+    # assert choosers.index.equals(alternatives.index[~alternatives.index.duplicated(keep='first')])
+
+    # this is the more general check (not requiring is_monotonic_increasing)
+    last_repeat = alternatives.index != np.roll(alternatives.index, -1)
+    assert (choosers.shape[0] == 1) or choosers.index.equals(alternatives.index[last_repeat])
 
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
         tracing.trace_df(alternatives, tracing.extend_trace_label(trace_label, 'alternatives'),
-                         slicer='NONE', transpose=False)
+                         transpose=False)
 
     if len(spec.columns) > 1:
         raise RuntimeError('spec must have only one column')
@@ -105,7 +113,7 @@ def _interaction_sample_simulate(
     tracing.dump_df(DUMP, interaction_df, trace_label, 'interaction_df')
 
     if skims is not None:
-        add_skims(interaction_df, skims)
+        set_skim_wrapper_targets(interaction_df, skims)
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
@@ -145,17 +153,19 @@ def _interaction_sample_simulate(
     # max number of alternatvies for any chooser
     max_sample_count = sample_counts.max()
 
-    # offset of the last row of each chooser in sparse interaction_utilities
-    row_offsets = np.insert(sample_counts.cumsum(), 0, 0)
+    # offsets of the first and last rows of each chooser in sparse interaction_utilities
+    last_row_offsets = sample_counts.cumsum()
+    first_row_offsets = np.insert(last_row_offsets[:-1], 0, 0)
 
     # repeat the row offsets once for each dummy utility to insert
     # (we want to insert dummy utilities at the END of the list of alternative utilities)
-    inserts = np.repeat(row_offsets[1:], max_sample_count - sample_counts)
+    # inserts is a list of the indices at which we want to do the insertions
+    inserts = np.repeat(last_row_offsets, max_sample_count - sample_counts)
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
 
-    # reshape to array with one row per chooser, on column per alternative
+    # reshape to array with one row per chooser, one column per alternative
     padded_utilities = padded_utilities.reshape(-1, max_sample_count)
 
     # convert to a dataframe with one row per chooser and one column per alternative
@@ -197,9 +207,6 @@ def _interaction_sample_simulate(
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
     # tranche of this choosers alternatives created by cross join of alternatives and choosers
-
-    # first_row_offsets is the offset into interaction_df df of first row of chooser alternatives
-    first_row_offsets = row_offsets[:-1]
 
     # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
     choices = interaction_df[choice_column].take(positions + first_row_offsets)

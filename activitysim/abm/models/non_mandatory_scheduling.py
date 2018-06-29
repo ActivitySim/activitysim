@@ -51,7 +51,7 @@ def non_mandatory_tour_scheduling(tours,
     constants = config.get_model_constants(model_settinsg)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settinsg.get('preprocessor_settings', None)
+    preprocessor_settings = model_settinsg.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_d = {}

@@ -4,7 +4,7 @@ annotate_persons:
   TABLES:
     - tours
 
-preprocessor_settings:
+preprocessor:
   SPEC: non_mandatory_tour_frequency_annotate_persons_preprocessor
   DF: persons
   TABLES:

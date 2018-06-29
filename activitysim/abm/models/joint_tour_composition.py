@@ -65,7 +65,7 @@ def joint_tour_composition(
     logger.info("Running joint_tour_composition with %d joint tours" % joint_tours.shape[0])
 
     # - run preprocessor
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {

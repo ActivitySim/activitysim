@@ -62,7 +62,7 @@ def joint_tour_frequency(
                 multi_person_households.shape[0])
 
     # - preprocessor
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {

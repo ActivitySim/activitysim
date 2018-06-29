@@ -79,7 +79,7 @@ def mandatory_tour_frequency(persons_merged,
         return
 
     # - preprocessor
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {}

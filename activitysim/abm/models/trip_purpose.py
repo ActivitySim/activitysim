@@ -141,7 +141,7 @@ def run_trip_purpose(
     trips_df = trips_df[~last_trip]
     logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
 
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
         locals_dict = config.get_model_constants(model_settings)
         expressions.assign_columns(

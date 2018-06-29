@@ -48,8 +48,8 @@ NESTS:
               - DRIVE_HVY
               - DRIVE_COM
 
-SPEC: logsum_spec.csv
-COEFFS: logsum_coeffs.csv
+SPEC: tour_mode_choice.csv
+COEFFS: tour_mode_choice_coeffs.csv
 
 CONSTANTS:
     valueOfTime: 8.00
@@ -71,8 +71,16 @@ CONSTANTS:
     upperPM: 19
 
 
-preprocessor_settings:
-  SPEC: logsums_annotate_choosers_preprocessor
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - tours
+
+nontour_preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
   DF: choosers
   TABLES:
     - land_use
@@ -87,3 +95,4 @@ LOGSUM_CHOOSER_COLUMNS:
   - auto_ownership
   - number_of_participants
   - tour_category
+  - num_workers

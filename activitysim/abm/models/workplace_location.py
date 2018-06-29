@@ -144,7 +144,7 @@ def workplace_location_logsums(persons_merged,
         return
 
     model_settings = config.read_model_settings('workplace_location.yaml')
-    logsum_settings = config.read_model_settings('logsum.yaml')
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     persons_merged = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -152,20 +152,16 @@ def workplace_location_logsums(persons_merged,
 
     logger.info("Running workplace_location_logsums with %s rows" % len(location_sample))
 
-    tour_purpose = 'work'
-    logsum_spec = \
-        logsum.get_logsum_spec(logsum_settings, selector='nontour', tour_purpose=tour_purpose,
-                               configs_dir=configs_dir, want_tracing=trace_hh_id)
-
     choosers = pd.merge(location_sample,
                         persons_merged,
                         left_index=True,
                         right_index=True,
                         how="left")
 
+    tour_purpose = 'work'
     logsums = logsum.compute_logsums(
         choosers,
-        logsum_spec, tour_purpose,
+        tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id,

@@ -1,6 +1,6 @@
 LOGIT_TYPE: MNL
 
-preprocessor_settings:
+preprocessor:
   SPEC: joint_tour_scheduling_annotate_tours_preprocessor
   DF: joint_tours
   TABLES:

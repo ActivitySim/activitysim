@@ -163,7 +163,7 @@ def stop_frequency(
     constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate tours_merged
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         # hack: preprocessor adds origin column in place if it does not exist already
@@ -176,7 +176,7 @@ def stop_frequency(
         if constants is not None:
             locals_dict.update(constants)
 
-        simulate.add_skims(tours_merged, skims)
+        simulate.set_skim_wrapper_targets(tours_merged, skims)
 
         # this should be pre-slice as some expressions may count tours by type
         annotations = expressions.compute_columns(

@@ -24,8 +24,6 @@ from .util.tour_destination import tour_destination_size_terms
 
 from .util import expressions
 
-from .util.mode import get_segment_and_unstack
-
 """
 The school location model predicts the zones in which various people will
 go to school.
@@ -144,7 +142,6 @@ def school_location_logsums(
         persons_merged,
         skim_dict, skim_stack,
         school_location_sample,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
@@ -172,7 +169,7 @@ def school_location_logsums(
     trace_label = 'school_location_logsums'
 
     model_settings = config.read_model_settings('school_location.yaml')
-    logsum_settings = config.read_model_settings('logsum.yaml')
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     location_sample = school_location_sample.to_frame()
 
@@ -184,18 +181,12 @@ def school_location_logsums(
 
     persons_merged = persons_merged.to_frame()
     # - only include columns actually used in spec
-    persons_merged = \
-        logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
-
-    omnibus_logsum_spec = \
-        logsum.get_omnibus_logsum_spec(logsum_settings, selector='nontour',
-                                       configs_dir=configs_dir, want_tracing=trace_hh_id)
+    persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
     logsums_list = []
     for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
 
         tour_purpose = 'univ' if school_type == 'university' else 'school'
-        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, tour_purpose)
 
         choosers = location_sample[location_sample['school_type'] == school_type_id]
 
@@ -212,7 +203,7 @@ def school_location_logsums(
 
         logsums = logsum.compute_logsums(
             choosers,
-            logsum_spec, tour_purpose,
+            tour_purpose,
             logsum_settings, model_settings,
             skim_dict, skim_stack,
             chunk_size, trace_hh_id,

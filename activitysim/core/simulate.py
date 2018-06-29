@@ -178,7 +178,7 @@ def compute_utilities(expression_values, spec):
     return utilities
 
 
-def add_skims(df, skims):
+def set_skim_wrapper_targets(df, skims):
     """
     Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
     using the parameters of the skims object.
@@ -621,7 +621,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     """
 
     if skims is not None:
-        add_skims(choosers, skims)
+        set_skim_wrapper_targets(choosers, skims)
 
     if nest_spec is None:
         choices = eval_mnl(choosers, spec, locals_d, custom_chooser,
@@ -839,7 +839,7 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
     """
 
     if skims is not None:
-        add_skims(choosers, skims)
+        set_skim_wrapper_targets(choosers, skims)
 
     if nest_spec is None:
         logsums = eval_mnl_logsums(choosers, spec, locals_d, trace_label=trace_label)

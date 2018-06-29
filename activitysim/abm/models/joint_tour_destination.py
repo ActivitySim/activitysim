@@ -24,9 +24,6 @@ from .util import logsums as logsum
 from .util.tour_destination import tour_destination_size_terms
 
 
-from .util.mode import get_segment_and_unstack
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -184,9 +181,6 @@ def joint_tour_destination_sample(
 
             choices['tour_type_id'] = tour_type_id
 
-            # sample is sorted by TOUR_TYPE_ID, tour_id
-            choices.sort_index(inplace=True)
-
             choices_list.append(choices)
 
     choices = pd.concat(choices_list)
@@ -194,10 +188,12 @@ def joint_tour_destination_sample(
     # - # NARROW
     choices['tour_type_id'] = choices['tour_type_id'].astype(np.uint8)
 
-    # so logsums doesn't have to joint through joint_tours
-    choices['household_id'] = choosers.household_id
-
     inject.add_table('joint_tour_destination_sample', choices)
+
+    if trace_hh_id:
+        tracing.trace_df(choices,
+                         label="joint_tour_destination_sample",
+                         transpose=True)
 
 
 @inject.step()
@@ -205,7 +201,7 @@ def joint_tour_destination_logsums(
         tours,
         persons_merged,
         skim_dict, skim_stack,
-        configs_dir, chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id):
 
     """
     add logsum column to existing joint_tour_destination_sample table
@@ -226,7 +222,7 @@ def joint_tour_destination_logsums(
     destination_sample = destination_sample.to_frame()
 
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
-    logsum_settings = config.read_model_settings('logsum.yaml')
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     joint_tours = tours.to_frame()
     joint_tours = joint_tours[joint_tours.tour_category == 'joint']
@@ -239,10 +235,6 @@ def joint_tour_destination_logsums(
     joint_tours_merged = \
         logsum.filter_chooser_columns(joint_tours_merged, logsum_settings, model_settings)
 
-    omnibus_logsum_spec = \
-        logsum.get_omnibus_logsum_spec(logsum_settings, selector='joint_tour',
-                                       configs_dir=configs_dir, want_tracing=trace_hh_id)
-
     logsums_list = []
     for tour_type, tour_type_id in TOUR_TYPE_ID.iteritems():
 
@@ -253,7 +245,8 @@ def joint_tour_destination_logsums(
             continue
 
         # sample is sorted by TOUR_TYPE_ID, tour_id
-        # merge order is stable because left join on ordered index
+        # merge order is stable only because left join on ordered index
+        assert choosers.index.is_monotonic_increasing
         choosers = pd.merge(
             choosers,
             joint_tours_merged,
@@ -262,30 +255,27 @@ def joint_tour_destination_logsums(
             how="left",
             sort=False)
 
+        logger.info("%s running %s with %s rows" % (trace_label, tour_type, len(choosers)))
+
         tour_purpose = tour_type
-        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, tour_purpose)
-
-        tracing.trace_df(logsum_spec,
-                         tracing.extend_trace_label(trace_label, 'spec.%s' % tour_type),
-                         slicer='NONE', transpose=False)
-
-        logger.info("Running joint_tour_destination_logsums with %s rows" % len(choosers))
-
         logsums = logsum.compute_logsums(
             choosers,
-            logsum_spec, tour_purpose,
+            tour_purpose,
             logsum_settings, model_settings,
             skim_dict, skim_stack,
             chunk_size, trace_hh_id,
-            trace_label)
+            trace_label=tracing.extend_trace_label(trace_label, tour_type))
 
         logsums_list.append(logsums)
 
     logsums = pd.concat(logsums_list)
 
-    # add_column series should have an index matching the table to which it is being added
-    # logsums does, since joint_tour_destination_sample was on left side of merge creating choosers
-    inject.add_column('joint_tour_destination_sample', 'mode_choice_logsum', logsums)
+    destination_sample['mode_choice_logsum'] = logsums
+    pipeline.replace_table("joint_tour_destination_sample", destination_sample)
+
+    if trace_hh_id:
+        tracing.trace_df(destination_sample,
+                         label="joint_tour_destination_logsums")
 
 
 @inject.injectable()
@@ -320,6 +310,9 @@ def joint_tour_destination_simulate(
     destination_sample = destination_sample.to_frame()
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
+
+    # interaction_sample_simulate insists choosers appear in same order as alts
+    joint_tours = joint_tours.sort_index()
 
     households_merged = households_merged.to_frame()
 
@@ -374,6 +367,9 @@ def joint_tour_destination_simulate(
 
         logger.info("Running segment '%s' of %d joint_tours %d alternatives" %
                     (tour_type, len(choosers_segment), len(alts_segment)))
+
+        assert choosers_segment.index.is_monotonic_increasing
+        assert alts_segment.index.is_monotonic_increasing
 
         choices = interaction_sample_simulate(
             choosers_segment,

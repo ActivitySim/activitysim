@@ -57,10 +57,6 @@ def trip_mode_choice(
     tracing.print_summary('primary_purpose',
                           trips_df.primary_purpose, value_counts=True)
 
-    tracing.trace_df(spec,
-                     tracing.extend_trace_label(trace_label, 'spec'),
-                     slicer='NONE', transpose=False)
-
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
         trips_df,
@@ -118,17 +114,14 @@ def trip_mode_choice(
             skims=skims,
             locals_d=locals_dict,
             chunk_size=chunk_size,
-            trace_label=trace_label,
+            trace_label=segment_trace_label,
             trace_choice_name='trip_mode_choice')
 
         alts = spec.columns
         choices = choices.map(dict(zip(range(len(alts)), alts)))
 
-        tracing.print_summary('%s tour_modes' % primary_purpose,
-                              trips_segment.tour_mode, value_counts=True)
-
-        tracing.print_summary('trip_mode_choice %s choices' % primary_purpose,
-                              choices, value_counts=True)
+        # tracing.print_summary('trip_mode_choice %s choices' % primary_purpose,
+        #                       choices, value_counts=True)
 
         if trace_hh_id:
             # trace the coefficients
@@ -152,14 +145,14 @@ def trip_mode_choice(
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('tour_mode_choice_simulate all tour type choices',
-                          choices, value_counts=True)
-
-    tracing.print_summary('trip_mode_choice_simulate all tour type choices',
-                          tours_merged.tour_mode, value_counts=True)
-
     trips_df = trips.to_frame()
     trips_df['trip_mode'] = choices
+
+    tracing.print_summary('tour_modes',
+                          trips_merged.tour_mode, value_counts=True)
+
+    tracing.print_summary('trip_mode_choice choices',
+                          choices, value_counts=True)
 
     assert not trips_df.trip_mode.isnull().any()
 

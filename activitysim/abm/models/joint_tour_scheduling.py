@@ -69,7 +69,7 @@ def joint_tour_scheduling(
     constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_d = {}

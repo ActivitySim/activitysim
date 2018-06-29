@@ -100,12 +100,12 @@ CONSTANTS:
   I_DRIVE_TRANSIT_MODES: [14, 15, 16, 17, 18]
 
 # so far, we can use the same spec as for non-joint tours
-preprocessor_settings:
-  - SPEC: trip_mode_choice_annotate_trips_preprocessor
-    DF: df
-    TABLES:
-      - land_use
-      - tours
+preprocessor:
+  SPEC: trip_mode_choice_annotate_trips_preprocessor
+  DF: df
+  TABLES:
+    - land_use
+    - tours
 
 #  - SPEC: trip_mode_choice_annotate_trips_preprocessor2
 #    DF: df

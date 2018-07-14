@@ -24,7 +24,6 @@ def best_transit_path_spec(configs_dir):
     return assign.read_assignment_spec(f)
 
 
-
 VECTOR_TEST_SIZE = 100000
 VECTOR_TEST_SIZE = 1014699
 

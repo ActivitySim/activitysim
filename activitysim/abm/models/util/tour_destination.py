@@ -59,7 +59,9 @@ def tour_destination_size_terms(land_use, size_terms, selector):
     Returns
     -------
 
-    pandas.dataframe
+   ::
+
+     pandas.dataframe
         one column per selector segment with index of land_use
         e.g. for selector 'work', columns will be work_low, work_med, work_high, work_veryhigh
         and for selector 'trip', columns will be eatout, escort, othdiscr, othmaint, ...

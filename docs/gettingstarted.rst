@@ -119,12 +119,16 @@ To setup and run the :ref:`example`, do the following:
 Hardware
 --------
 
-The computing hardware required to run an ActivitySim-based model generally depends on:
+The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:
 
-* the number of households to be simulated
-* the number and size of network skims (i.e. the number of model zones (for each zone system if applicable))
+* the number of households to be simulated for disaggregate model steps
+* the number of model zones (for each zone system) for aggregate model steps
+* the number and size of network skims by mode and time-of-day
 * the desired runtimes
 
-ActivitySim requires a substantial amount of RAM since it stores data in-memory in order to minimize runtimes.
-For example, the example model is tested on a Windows server with 256GB of RAM and 48 threads.  Multi-threading/processing 
-is **NOT YET IMPLEMENTED**, but is planned for an upcoming release.
+ActivitySim framework models utilize a significant amount of RAM since they store data in-memory to reduce 
+access time in order to minimize runtimes.  For example, the example MTC Travel Model One model has 2.7 million 
+households, 1475 zones, 826 skims and runs for approximately 19 hours in a single process/thread.  The full 
+scale (all households, zones, skims, and sub-models) Travel Model One example is run on a Windows 
+server with 164GB of RAM and 40 CPUs.  Parallelization is **NOT YET IMPLEMENTED** but is planned for 
+Fall 2018 and will make full use of the available CPUs.

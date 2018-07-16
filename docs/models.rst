@@ -376,49 +376,6 @@ Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: NA
 .. automodule:: activitysim.abm.models.joint_tour_scheduling
    :members:
    
-.. _joint_tour_mode_choice:
-
-Joint Tour Mode Choice
-----------------------
-
-The joint tour mode choice model assigns to each tour the "primary" mode that is used to get from the
-origin to the primary destination. The tour-based modeling approach requires a reconsideration
-of the conventional mode choice structure. Instead of a single mode choice model used in a fourstep
-structure, there are two different levels where the mode choice decision is modeled: (a) the
-tour mode level (upper-level choice); and, (b) the trip mode level (lower-level choice conditional
-upon the upper-level choice).
-
-The joint tour mode level represents the decisions that apply to the entire tour, and that will affect the
-alternatives available for each individual trip. These decisions include the choice to use a private
-car versus using public transit, walking, or biking; whether carpooling will be considered; and
-whether transit will be accessed by car or by foot. Trip-level decisions correspond to details of
-the exact mode used for each trip, which may or may not change over the trips in the tour.
-
-The joint tour mode choice structure is a nested logit model which separates similar modes into
-different nests to more accurately model the cross-elasticities between the alternatives. The
-eighteen modes are incorporated into the nesting structure specified in the model settings file. The 
-first level of nesting represents the use a private car, non-motorized
-means, or transit. In the second level of nesting, the auto nest is divided into vehicle occupancy
-categories, and transit is divided into walk access and drive access nests. The final level splits
-the auto nests into free or pay alternatives and the transit nests into the specific line-haul modes.
-
-The primary variables are in-vehicle time, other travel times, cost (the influence of which is derived
-from the automobile in-vehicle time coefficient and the persons' modeled value of time),
-characteristics of the destination zone, demographics, and the household's level of auto
-ownership.
-
-The main interface to the joint tour mode model is the 
-:py:func:`~activitysim.abm.models.joint_tour_mode_choice.joint_tour_mode_choice` function.  
-This function is called in the orca step ``joint_tour_mode_choice`` and is registered as an 
-orca step in the example Pipeline.
-
-Core Table: ``tours`` | Result Field: ``mode`` | Skims od_skims Keys: ``TAZ, destination`` | 
-SkimStackWrapper odt_skims Keys: ``TAZ, destination, in_period`` | SkimStackWrapper dot_skims Keys: 
-``destination, TAZ, out_period``
-
-
-.. automodule:: activitysim.abm.models.joint_tour_mode_choice
-   :members:
 
 .. _non_mandatory_tour_frequency:
 
@@ -479,26 +436,27 @@ Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: NA
 
 .. automodule:: activitysim.abm.models.non_mandatory_scheduling
    :members:
-   
-.. _man_non-man_tour_mode_choice:
 
-Mandatory and Individual Non-Mandatory Tour Mode
-------------------------------------------------
 
-The mandatory and individual non-mandatory tour mode choice model assigns to each tour the "primary" mode that 
+.. _tour_mode_choice:
+
+Tour Mode Choice
+----------------
+
+The mandatory, individual non-mandatory, at-work, and joint tour mode choice model assigns to each tour the "primary" mode that 
 is used to get from the origin to the primary destination. The tour-based modeling approach requires a reconsideration
 of the conventional mode choice structure. Instead of a single mode choice model used in a fourstep
 structure, there are two different levels where the mode choice decision is modeled: (a) the
 tour mode level (upper-level choice); and, (b) the trip mode level (lower-level choice conditional
 upon the upper-level choice).
 
-The mandatory and individual non-mandatory tour mode level represents the decisions that apply to the entire tour, and 
-that will affect the alternatives available for each individual trip. These decisions include the choice to use a private
+The mandatory, individual non-mandatory, at-work, and joint tour mode level represents the decisions that apply to the entire tour, and 
+that will affect the alternatives available for each individual trip or joint trip. These decisions include the choice to use a private
 car versus using public transit, walking, or biking; whether carpooling will be considered; and
 whether transit will be accessed by car or by foot. Trip-level decisions correspond to details of
 the exact mode used for each trip, which may or may not change over the trips in the tour.
 
-The mandatory and individual non-mandatory tour tour mode choice structure is a nested logit model which separates 
+The mandatory, individual non-mandatory, at-work, and joint tour mode choice structure is a nested logit model which separates 
 similar modes into different nests to more accurately model the cross-elasticities between the alternatives. The
 eighteen modes are incorporated into the nesting structure specified in the model settings file. The 
 first level of nesting represents the use a private car, non-motorized
@@ -511,7 +469,7 @@ from the automobile in-vehicle time coefficient and the persons' modeled value o
 characteristics of the destination zone, demographics, and the household's level of auto
 ownership.
 
-The main interface to the mandatory and individual non-mandatory tour tour mode model is the 
+The main interface to the mandatory, individual non-mandatory, at-work, and joint tour tour mode model is the 
 :py:func:`~activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate` function.  This function is 
 called in the orca step ``tour_mode_choice_simulate`` and is registered as an orca step in the example Pipeline.
 
@@ -602,24 +560,20 @@ Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: **NOT
 .. automodule:: activitysim.abm.models.atwork_subtour_scheduling
    :members:
 
+
 .. _atwork_subtour_mode_choice:
 
 At-work Subtour Mode
 --------------------
 
-The at-work subtour mode choice model assigns a travel mode to each at-work subtour.
-
-Choosers: at-work tours
-Alternatives: modes
-Dependent tables: skims, size terms, household, person, land use, accessibility, work tour
-Outputs: at-work tour mode
+The at-work subtour mode choice model assigns a travel mode to each at-work subtour using the :ref:`tour_mode_choice` model.
 
 The main interface to the at-work subtour mode choice model is the 
 :py:func:`~activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice`
 function.  This function is called in the orca step ``atwork_subtour_mode_choice`` and
-is registered as an orca step in the example Pipeline.
+is registered as an orca step in the example Pipeline.  
 
-Core Table: ``trips`` | Result Field: ``mode`` | Skims od_skims Keys: ``workplace_taz,destination`` |
+Core Table: ``tour`` | Result Field: ``tour_mode`` | Skims od_skims Keys: ``workplace_taz,destination`` |
 SkimStackWrapper odt_skims Keys: ``workplace_taz,destination,out_period`` | 
 SkimStackWrapper dot_skims Keys: ``destination,workplace_taz,in_period``
 
@@ -781,8 +735,6 @@ Core Table: ``trips`` | Result Field: ``depart`` | Skims Keys: NA
 Trip Mode Choice
 ----------------
 
-**NOT YET IMPLEMENTED**
-
 The trip mode choice model assigns a travel mode for each trip on a given tour. It
 operates similarly to the tour mode choice model, but only certain trip modes are available for
 each tour mode. The correspondence rules are defined according to the following principles:
@@ -798,11 +750,14 @@ between the trip origin and destination according to the time period for the tou
 variables, and alternative-specific constants segmented by tour mode.
 
 The main interface to the trip mode choice model is the 
-XXXXX function.  This function is registered as an orca step in the example Pipeline.
+:py:func:`~activitysim.abm.models.trip_mode_choice.trip_mode_choice` function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``trips`` | Result Field: ``mode`` | Skims Keys: NA
+Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims od_skims Keys: ``origin,destination`` |
+SkimStackWrapper odt_skims Keys: ``origin,destination,trip_period`` 
 
-
+.. automodule:: activitysim.abm.models.trip_mode_choice
+   :members:
+   
 .. _trip_cbd_parking:
 
 Trip CBD Parking

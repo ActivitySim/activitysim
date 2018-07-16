@@ -1,7 +1,0 @@
-Description,Target,Expression
-#,,
-local,_SKIM_TIME_PERIODS,"setting('skim_time_periods')"
-local,_SKIM_PERIODS,"_SKIM_TIME_PERIODS['hours']"
-local,_SKIM_LABELS,"_SKIM_TIME_PERIODS['labels']"
-out_period skim label(as string not categorical),out_period,"pd.cut(df.end, _SKIM_PERIODS, labels=_SKIM_LABELS).astype(str)"
-in_period skim label(as string not categorical),in_period,"pd.cut(df.start, _SKIM_PERIODS, labels=_SKIM_LABELS).astype(str)"

@@ -55,12 +55,15 @@ def process_trips(tours, stop_frequency_alts):
     trips.index = tours.index
 
     """
-          tours.stop_frequency    =>    proto trips table
-    ________________________________________________________
-              stop_frequency      |                out  in
-    tour_id                       |     tour_id
-    954910          1out_1in      |     954910       1   1
-    985824          0out_1in      |     985824       0   1
+
+    ::
+
+      tours.stop_frequency    =>    proto trips table
+      ________________________________________________________
+                stop_frequency      |                out  in
+      tour_id                       |     tour_id
+      954910          1out_1in      |     954910       1   1
+      985824          0out_1in      |     985824       0   1
     """
 
     # reformat with the columns given below
@@ -136,15 +139,19 @@ def stop_frequency(
     and four corresponding trips: three outbound, and one inbound.
 
     Adds stop_frequency str column to trips, with fields
+
     creates trips table with columns:
-        person_id
-        household_id
-        tour_id
-        primary_purpose
-        atwork
-        trip_num
-        outbound
-        trip_count
+
+    ::
+
+        - person_id
+        - household_id
+        - tour_id
+        - primary_purpose
+        - atwork
+        - trip_num
+        - outbound
+        - trip_count
 
     """
 

@@ -7,7 +7,7 @@ households_sample_size: 100
 
 #trace household id; comment out for no trace
 # household with all tour categories
-trace_hh_id: 815149
+trace_hh_id: 1269102
 
 # trace origin, destination in accessibility calculation
 #trace_od: [5, 11]
@@ -39,7 +39,6 @@ models:
   - joint_tour_destination_logsums
   - joint_tour_destination_simulate
   - joint_tour_scheduling
-  - joint_tour_mode_choice
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
@@ -55,18 +54,19 @@ models:
   - trip_destination
   - trip_purpose_and_destination
   - trip_scheduling
+  - trip_mode_choice
   - write_data_dictionary
   - write_tables
 
-#resume_after: joint_tour_scheduling
+#resume_after: joint_tour_destination_simulate
 
 output_tables:
   action: include
   prefix: final_
   tables:
     - checkpoints
-    - tours
-
+#    - tours
+#    - trips
 
 # area_types less than this are considered urban
 urban_threshold: 4

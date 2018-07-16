@@ -19,15 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable()
-def cdap_settings(configs_dir):
-    """
-    canonical model settings file to permit definition of local constants for by
-    cdap_indiv_spec and cdap_fixed_relative_proportions
-    """
-    return config.read_model_settings(configs_dir, 'cdap.yaml')
-
-
-@inject.injectable()
 def cdap_indiv_spec(configs_dir):
     """
     spec to compute the activity utilities for each individual hh member
@@ -61,7 +52,6 @@ def cdap_fixed_relative_proportions(configs_dir):
 
 @inject.step()
 def cdap_simulate(persons_merged, persons, households,
-                  cdap_settings,
                   cdap_indiv_spec,
                   cdap_interaction_coefficients,
                   cdap_fixed_relative_proportions,
@@ -77,10 +67,11 @@ def cdap_simulate(persons_merged, persons, households,
     """
 
     trace_label = 'cdap'
+    model_settings = config.read_model_settings('cdap.yaml')
 
     persons_merged = persons_merged.to_frame()
 
-    constants = config.get_model_constants(cdap_settings)
+    constants = config.get_model_constants(model_settings)
 
     logger.info("Running cdap_simulate with %d persons" % len(persons_merged.index))
 
@@ -102,7 +93,7 @@ def cdap_simulate(persons_merged, persons, households,
 
     expressions.assign_columns(
         df=persons,
-        model_settings=cdap_settings.get('annotate_persons'),
+        model_settings=model_settings.get('annotate_persons'),
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
     pipeline.replace_table("persons", persons)
@@ -111,7 +102,7 @@ def cdap_simulate(persons_merged, persons, households,
     households = households.to_frame()
     expressions.assign_columns(
         df=households,
-        model_settings=cdap_settings.get('annotate_households'),
+        model_settings=model_settings.get('annotate_households'),
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
     pipeline.replace_table("households", households)
 

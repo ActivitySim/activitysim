@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 def run_trip_purpose_and_destination(
         trips_df,
         tours_merged_df,
-        configs_dir,
         chunk_size,
         trace_hh_id,
         trace_label):
@@ -38,7 +37,6 @@ def run_trip_purpose_and_destination(
 
     choices = run_trip_purpose(
         trips_df,
-        configs_dir=configs_dir,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'purpose')
@@ -49,7 +47,7 @@ def run_trip_purpose_and_destination(
     trips_df = run_trip_destination(
         trips_df,
         tours_merged_df,
-        configs_dir, chunk_size, trace_hh_id,
+        chunk_size, trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'destination'))
 
     return trips_df
@@ -59,12 +57,11 @@ def run_trip_purpose_and_destination(
 def trip_purpose_and_destination(
         trips,
         tours_merged,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
     trace_label = "trip_purpose_and_destination"
-    model_settings = config.read_model_settings(configs_dir, 'trip_purpose_and_destination.yaml')
+    model_settings = config.read_model_settings('trip_purpose_and_destination.yaml')
 
     MAX_ITERATIONS = model_settings.get('MAX_ITERATIONS', 5)
     CLEANUP = model_settings.get('cleanup', True)
@@ -101,7 +98,6 @@ def trip_purpose_and_destination(
         trips_df = run_trip_purpose_and_destination(
             trips_df,
             tours_merged_df,
-            configs_dir,
             chunk_size,
             trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % i))
@@ -114,7 +110,7 @@ def trip_purpose_and_destination(
             break
 
         logger.warn("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
-        file_name = "%s_failed_trips_%s" % (trace_label, i)
+        file_name = "%s_i%s_failed_trips" % (trace_label, i)
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 
@@ -149,3 +145,10 @@ def trip_purpose_and_destination(
         logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
 
     pipeline.replace_table("trips", trips_df)
+
+    if trace_hh_id:
+        tracing.trace_df(trips_df,
+                         label=trace_label,
+                         slicer='trip_id',
+                         index_label='trip_id',
+                         warn_if_empty=True)

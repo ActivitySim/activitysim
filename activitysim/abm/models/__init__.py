@@ -11,7 +11,6 @@ import joint_tour_composition
 import joint_tour_participation
 import joint_tour_destination
 import joint_tour_scheduling
-import joint_tour_mode_choice
 import non_mandatory_tour_frequency
 import non_mandatory_destination
 import non_mandatory_scheduling
@@ -30,6 +29,7 @@ import trip_purpose
 import trip_destination
 import trip_purpose_and_destination
 import trip_scheduling
+import trip_mode_choice
 
 # parameterized models
 import annotate_table

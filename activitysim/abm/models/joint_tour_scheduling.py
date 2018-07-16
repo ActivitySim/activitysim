@@ -25,18 +25,12 @@ def joint_tour_scheduling_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'tour_scheduling_joint.csv')
 
 
-@inject.injectable()
-def joint_tour_scheduling_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'joint_tour_scheduling.yaml')
-
-
 @inject.step()
 def joint_tour_scheduling(
         tours,
         persons_merged,
         tdd_alts,
         joint_tour_scheduling_spec,
-        joint_tour_scheduling_settings,
         configs_dir,
         chunk_size,
         trace_hh_id):
@@ -44,6 +38,7 @@ def joint_tour_scheduling(
     This model predicts the departure time and duration of each joint tour
     """
     trace_label = 'joint_tour_scheduling'
+    model_settings = config.read_model_settings('joint_tour_scheduling.yaml')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -71,10 +66,10 @@ def joint_tour_scheduling(
     # so we have to either chunk processing by joint_tour_num and build timetable by household
     # or build timetables by unique joint_tour
 
-    constants = config.get_model_constants(joint_tour_scheduling_settings)
+    constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = joint_tour_scheduling_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_d = {}

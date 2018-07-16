@@ -24,8 +24,6 @@ from .util.tour_destination import tour_destination_size_terms
 
 from .util import expressions
 
-from .util.mode import get_segment_and_unstack
-
 """
 The school location model predicts the zones in which various people will
 go to school.
@@ -43,11 +41,6 @@ def school_location_sample_spec(configs_dir):
 
 
 @inject.injectable()
-def school_location_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'school_location.yaml')
-
-
-@inject.injectable()
 def school_location_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'school_location.csv')
 
@@ -56,7 +49,6 @@ def school_location_spec(configs_dir):
 def school_location_sample(
         persons_merged,
         school_location_sample_spec,
-        school_location_settings,
         skim_dict,
         land_use, size_terms,
         chunk_size,
@@ -74,16 +66,17 @@ def school_location_sample(
     """
 
     trace_label = 'school_location_sample'
+    model_settings = config.read_model_settings('school_location.yaml')
 
     choosers = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = school_location_settings['SIMULATE_CHOOSER_COLUMNS']
+    chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
     size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
 
-    sample_size = school_location_settings["SAMPLE_SIZE"]
-    alt_dest_col_name = school_location_settings["ALT_DEST_COL_NAME"]
+    sample_size = model_settings["SAMPLE_SIZE"]
+    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     logger.info("Running school_location_simulate with %d persons" % len(choosers))
 
@@ -95,7 +88,7 @@ def school_location_sample(
     locals_d = {
         'skims': skims
     }
-    constants = config.get_model_constants(school_location_settings)
+    constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
 
@@ -149,7 +142,6 @@ def school_location_logsums(
         persons_merged,
         skim_dict, skim_stack,
         school_location_sample,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
@@ -176,8 +168,8 @@ def school_location_logsums(
 
     trace_label = 'school_location_logsums'
 
-    school_location_settings = config.read_model_settings(configs_dir, 'school_location.yaml')
-    logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
+    model_settings = config.read_model_settings('school_location.yaml')
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     location_sample = school_location_sample.to_frame()
 
@@ -189,18 +181,12 @@ def school_location_logsums(
 
     persons_merged = persons_merged.to_frame()
     # - only include columns actually used in spec
-    persons_merged = \
-        logsum.filter_chooser_columns(persons_merged, logsum_settings, school_location_settings)
-
-    omnibus_logsum_spec = \
-        logsum.get_omnibus_logsum_spec(logsum_settings, selector='nontour',
-                                       configs_dir=configs_dir, want_tracing=trace_hh_id)
+    persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
     logsums_list = []
     for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
 
-        segment = 'univ' if school_type == 'university' else 'school'
-        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)
+        tour_purpose = 'univ' if school_type == 'university' else 'school'
 
         choosers = location_sample[location_sample['school_type'] == school_type_id]
 
@@ -216,8 +202,9 @@ def school_location_logsums(
             how="left")
 
         logsums = logsum.compute_logsums(
-            choosers, logsum_spec,
-            logsum_settings, school_location_settings,
+            choosers,
+            tour_purpose,
+            logsum_settings, model_settings,
             skim_dict, skim_stack,
             chunk_size, trace_hh_id,
             tracing.extend_trace_label(trace_label, school_type))
@@ -241,7 +228,6 @@ def school_location_logsums(
 def school_location_simulate(persons_merged, persons,
                              school_location_sample,
                              school_location_spec,
-                             school_location_settings,
                              skim_dict,
                              land_use, size_terms,
                              chunk_size,
@@ -251,6 +237,8 @@ def school_location_simulate(persons_merged, persons,
     to select a school_taz from sample alternatives
     """
     trace_label = 'school_location_simulate'
+    model_settings = config.read_model_settings('school_location.yaml')
+
     NO_SCHOOL_TAZ = -1
 
     location_sample = school_location_sample.to_frame()
@@ -262,7 +250,7 @@ def school_location_simulate(persons_merged, persons,
         choosers = persons_merged.to_frame()
         destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
 
-        alt_dest_col_name = school_location_settings["ALT_DEST_COL_NAME"]
+        alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
         # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
         # and a TAZ in the alternatives which get merged during interaction
@@ -272,12 +260,12 @@ def school_location_simulate(persons_merged, persons,
         locals_d = {
             'skims': skims,
         }
-        constants = config.get_model_constants(school_location_settings)
+        constants = config.get_model_constants(model_settings)
         if constants is not None:
             locals_d.update(constants)
 
         # FIXME - MEMORY HACK - only include columns actually used in spec
-        chooser_columns = school_location_settings['SIMULATE_CHOOSER_COLUMNS']
+        chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
         choosers = choosers[chooser_columns]
 
         choices_list = []
@@ -329,7 +317,7 @@ def school_location_simulate(persons_merged, persons,
 
     expressions.assign_columns(
         df=persons,
-        model_settings=school_location_settings.get('annotate_persons'),
+        model_settings=model_settings.get('annotate_persons'),
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
     pipeline.replace_table("persons", persons)

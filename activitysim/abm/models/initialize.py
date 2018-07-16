@@ -32,7 +32,7 @@ def initialize(configs_dir):
 
     trace_label = 'initialize'
 
-    model_settings = config.read_model_settings(configs_dir, 'initialize.yaml')
+    model_settings = config.read_model_settings('initialize.yaml')
 
     t0 = tracing.print_elapsed_time()
 

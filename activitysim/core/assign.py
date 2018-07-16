@@ -13,6 +13,35 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 
+def evaluate_constants(expressions, constants):
+    """
+    Evaluate a list of constant expressions - each one can depend on the one before
+    it.  These are usually used for the coefficients which have relationships
+    to each other.  So ivt=.7 and then ivt_lr=ivt*.9.
+
+    Parameters
+    ----------
+    expressions : Series
+        the index are the names of the expressions which are
+        used in subsequent evals - thus naming the expressions is required.
+    constants : dict
+        will be passed as the scope of eval - usually a separate set of
+        constants are passed in here
+
+    Returns
+    -------
+    d : dict
+
+    """
+
+    # FIXME why copy?
+    d = {}
+    for k, v in expressions.iteritems():
+        d[k] = eval(str(v), d.copy(), constants)
+
+    return d
+
+
 def undupe_column_names(df, template="{} ({})"):
     """
     rename df column names so there are no duplicates (in place)
@@ -178,8 +207,6 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
     def to_series(x, target=None):
         if x is None or np.isscalar(x):
-            if target:
-                logger.debug("assign_variables promoting scalar %s to series" % target)
             return pd.Series([x] * len(df.index), index=df.index)
         return x
 

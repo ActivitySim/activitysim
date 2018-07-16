@@ -178,7 +178,7 @@ def compute_utilities(expression_values, spec):
     return utilities
 
 
-def add_skims(df, skims):
+def set_skim_wrapper_targets(df, skims):
     """
     Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
     using the parameters of the skims object.
@@ -203,10 +203,11 @@ def add_skims(df, skims):
             assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
             skim.set_df(df)
     elif isinstance(skims, dict):
-        # it it is a dice, then check for known types, ignore anything we don't recognize as a skim
+        # it it is a dict, then check for known types, ignore anything we don't recognize as a skim
+        # (this allows putting skim column names in same dict as skims for use in locals_dicts)
         for skim in skims.values():
-            assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
-            skim.set_df(df)
+            if isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper):
+                skim.set_df(df)
     else:
         assert isinstance(skims, SkimDictWrapper) or isinstance(skims, SkimStackWrapper)
         skims.set_df(df)
@@ -394,6 +395,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+        custom alternative to logit.make_choices
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
@@ -481,6 +484,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+        custom alternative to logit.make_choices
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
@@ -540,9 +545,11 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         > BAD_PROB_THRESHOLD * np.ones(len(base_probabilities.index))
 
     if no_choices.any():
+
         logit.report_bad_choices(
             no_choices, base_probabilities,
             trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
+            trace_choosers=choosers,
             msg="base_probabilities all zero")
 
     if custom_chooser:
@@ -598,6 +605,8 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
+    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
@@ -612,7 +621,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     """
 
     if skims is not None:
-        add_skims(choosers, skims)
+        set_skim_wrapper_targets(choosers, skims)
 
     if nest_spec is None:
         choices = eval_mnl(choosers, spec, locals_d, custom_chooser,
@@ -812,6 +821,8 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
                          column_labels=['alternative', 'utility'])
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
 
     return logsums
 
@@ -828,7 +839,7 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
     """
 
     if skims is not None:
-        add_skims(choosers, skims)
+        set_skim_wrapper_targets(choosers, skims)
 
     if nest_spec is None:
         logsums = eval_mnl_logsums(choosers, spec, locals_d, trace_label=trace_label)

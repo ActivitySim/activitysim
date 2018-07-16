@@ -49,7 +49,7 @@ def workplace_location_sample(persons_merged,
                               workplace_location_sample_spec,
                               skim_dict,
                               land_use, size_terms,
-                              configs_dir, chunk_size, trace_hh_id):
+                              chunk_size, trace_hh_id):
     """
     build a table of workers * all zones in order to select a sample of alternative work locations.
 
@@ -62,7 +62,7 @@ def workplace_location_sample(persons_merged,
     """
 
     trace_label = 'workplace_location_sample'
-    model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
+    model_settings = config.read_model_settings('workplace_location.yaml')
 
     # FIXME - only choose workplace_location of workers? is this the right criteria?
     choosers = persons_merged.to_frame()
@@ -112,7 +112,6 @@ def workplace_location_sample(persons_merged,
 
 @inject.step()
 def workplace_location_logsums(persons_merged,
-                               land_use,
                                skim_dict, skim_stack,
                                workplace_location_sample,
                                configs_dir, chunk_size, trace_hh_id):
@@ -144,8 +143,8 @@ def workplace_location_logsums(persons_merged,
         tracing.no_results(trace_label)
         return
 
-    model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
-    logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
+    model_settings = config.read_model_settings('workplace_location.yaml')
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     persons_merged = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -153,17 +152,16 @@ def workplace_location_logsums(persons_merged,
 
     logger.info("Running workplace_location_logsums with %s rows" % len(location_sample))
 
-    logsum_spec = logsum.get_logsum_spec(logsum_settings, selector='nontour', segment='work',
-                                         configs_dir=configs_dir, want_tracing=trace_hh_id)
-
     choosers = pd.merge(location_sample,
                         persons_merged,
                         left_index=True,
                         right_index=True,
                         how="left")
 
+    tour_purpose = 'work'
     logsums = logsum.compute_logsums(
-        choosers, logsum_spec,
+        choosers,
+        tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id,
@@ -194,7 +192,7 @@ def workplace_location_simulate(persons_merged, persons,
     """
 
     trace_label = 'workplace_location_simulate'
-    model_settings = config.read_model_settings(configs_dir, 'workplace_location.yaml')
+    model_settings = config.read_model_settings('workplace_location.yaml')
     NO_WORKPLACE_TAZ = -1
 
     location_sample = workplace_location_sample.to_frame()

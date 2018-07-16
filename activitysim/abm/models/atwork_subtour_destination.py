@@ -41,10 +41,10 @@ def atwork_subtour_destination_sample(tours,
                                       atwork_subtour_destination_sample_spec,
                                       skim_dict,
                                       land_use, size_terms,
-                                      configs_dir, chunk_size, trace_hh_id):
+                                      chunk_size, trace_hh_id):
 
     trace_label = 'atwork_subtour_location_sample'
-    model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
+    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
 
     persons_merged = persons_merged.to_frame()
 
@@ -132,13 +132,8 @@ def atwork_subtour_destination_logsums(persons_merged,
         tracing.no_results(trace_label)
         return
 
-    model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
-
-    logsum_settings = config.read_model_settings(configs_dir, 'logsum.yaml')
-
-    logsum_spec = logsum.get_logsum_spec(
-        logsum_settings, selector='atwork_subtour', segment='atwork',
-        configs_dir=configs_dir, want_tracing=trace_hh_id)
+    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     destination_sample = destination_sample.to_frame()
     persons_merged = persons_merged.to_frame()
@@ -153,13 +148,15 @@ def atwork_subtour_destination_logsums(persons_merged,
                         right_index=True,
                         how="left")
 
-    logger.info("Running atwork_subtour_destination_logsums with %s rows" % len(choosers))
+    logger.info("Running %s with %s rows" % (trace_label, len(choosers)))
 
     tracing.dump_df(DUMP, persons_merged, trace_label, 'persons_merged')
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
 
+    tour_purpose = 'atwork'
     logsums = logsum.compute_logsums(
-        choosers, logsum_spec,
+        choosers,
+        tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id,
@@ -183,7 +180,7 @@ def atwork_subtour_destination_simulate(tours,
                                         atwork_subtour_destination_spec,
                                         skim_dict,
                                         land_use, size_terms,
-                                        configs_dir, chunk_size, trace_hh_id):
+                                        chunk_size, trace_hh_id):
     """
     atwork_subtour_destination model on atwork_subtour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
@@ -199,15 +196,13 @@ def atwork_subtour_destination_simulate(tours,
 
     destination_sample = destination_sample.to_frame()
 
-    model_settings = config.read_model_settings(configs_dir, 'atwork_subtour_destination.yaml')
+    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
 
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']
 
-    # - if no atwork subtours
-    if subtours.shape[0] == 0:
-        tracing.no_results(trace_label)
-        return
+    # interaction_sample_simulate insists choosers appear in same order as alts
+    subtours = subtours.sort_index()
 
     # merge persons into tours
     choosers = pd.merge(subtours,

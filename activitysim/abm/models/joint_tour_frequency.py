@@ -27,11 +27,6 @@ def joint_tour_frequency_spec(configs_dir):
 
 
 @inject.injectable()
-def joint_tour_frequency_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'joint_tour_frequency.yaml')
-
-
-@inject.injectable()
 def joint_tour_frequency_alternatives(configs_dir):
     # alt file for building tours even though simulation is simple_simulate not interaction_simulate
     f = os.path.join(configs_dir, 'joint_tour_frequency_alternatives.csv')
@@ -44,9 +39,7 @@ def joint_tour_frequency_alternatives(configs_dir):
 def joint_tour_frequency(
         households, persons,
         joint_tour_frequency_spec,
-        joint_tour_frequency_settings,
         joint_tour_frequency_alternatives,
-        configs_dir,
         chunk_size,
         trace_hh_id):
     """
@@ -54,6 +47,7 @@ def joint_tour_frequency(
     alternatives above).
     """
     trace_label = 'joint_tour_frequency'
+    model_settings = config.read_model_settings('joint_tour_frequency.yaml')
 
     # - only interested in households with more than one cdap travel_active person
     households = households.to_frame()
@@ -68,7 +62,7 @@ def joint_tour_frequency(
                 multi_person_households.shape[0])
 
     # - preprocessor
-    preprocessor_settings = joint_tour_frequency_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {
@@ -84,8 +78,8 @@ def joint_tour_frequency(
 
     # - simple_simulate
 
-    nest_spec = config.get_logit_model_settings(joint_tour_frequency_settings)
-    constants = config.get_model_constants(joint_tour_frequency_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     choices = simulate.simple_simulate(
         choosers=multi_person_households,

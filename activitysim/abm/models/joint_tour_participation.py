@@ -28,11 +28,6 @@ def joint_tour_participation_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'joint_tour_participation.csv')
 
 
-@inject.injectable()
-def joint_tour_participation_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'joint_tour_participation.yaml')
-
-
 def joint_tour_participation_candidates(joint_tours, persons_merged):
 
     # - only interested in persons from households with joint_tours
@@ -106,11 +101,43 @@ def get_tour_satisfaction(candidates, participate):
 
 
 def participants_chooser(probs, choosers, spec, trace_label):
+    """
+    custom alternative to logit.make_choices for simulate.simple_simulate
+
+    Choosing participants for mixed tours is trickier than adult or child tours becuase we
+    need at least one adult and one child participant in a mixed tour. We call logit.make_choices
+    and then check to see if the tour statisfies this requirement, and rechoose for any that
+    fail until all are satisfied.
+
+    In principal, this shold always occur eventually, but we fail after MAX_ITERATIONS,
+    just in case there is some failure in program logic (haven't seen this occur.)
+
+    Parameters
+    ----------
+    probs : pandas.DataFrame
+        Rows for choosers and columns for the alternatives from which they
+        are choosing. Values are expected to be valid probabilities across
+        each row, e.g. they should sum to 1.
+    choosers : pandas.dataframe
+        simple_simulate choosers df
+    spec : pandas.DataFrame
+        simple_simulate spec df
+        We only need spec so we can know the column index of the 'participate' alternative
+        indicating that the participant has been chosen to participate in the tour
+    trace_label : str
+
+    Returns - same as logit.make_choices
+    -------
+    choices, rands
+        choices, rands as returned by logit.make_choices (in same order as probs)
+
+    """
 
     assert probs.index.equals(choosers.index)
 
     # choice is boolean (participate or not)
-    model_settings = inject.get_injectable('joint_tour_participation_settings')
+    model_settings = config.read_model_settings('joint_tour_participation.yaml')
+
     choice_col = model_settings.get('participation_choice', 'participate')
     assert choice_col in spec.columns, \
         "couldn't find participation choice column '%s' in spec"
@@ -187,15 +214,15 @@ def add_null_results(trace_label):
 
 @inject.step()
 def joint_tour_participation(
-        tours, persons, persons_merged,
+        tours, persons_merged,
         joint_tour_participation_spec,
-        joint_tour_participation_settings,
         chunk_size,
         trace_hh_id):
     """
     Predicts for each eligible person to participate or not participate in each joint tour.
     """
     trace_label = 'joint_tour_participation'
+    model_settings = config.read_model_settings('joint_tour_participation.yaml')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -216,7 +243,7 @@ def joint_tour_participation(
                 candidates.shape[0])
 
     # - preprocessor
-    preprocessor_settings = joint_tour_participation_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {
@@ -232,8 +259,8 @@ def joint_tour_participation(
 
     # - simple_simulate
 
-    nest_spec = config.get_logit_model_settings(joint_tour_participation_settings)
-    constants = config.get_model_constants(joint_tour_participation_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     choices = simulate.simple_simulate(
         choosers=candidates,
@@ -246,7 +273,7 @@ def joint_tour_participation(
         custom_chooser=participants_chooser)
 
     # choice is boolean (participate or not)
-    choice_col = joint_tour_participation_settings.get('participation_choice', 'participate')
+    choice_col = model_settings.get('participation_choice', 'participate')
     assert choice_col in joint_tour_participation_spec.columns, \
         "couldn't find participation choice column '%s' in spec"
     PARTICIPATE_CHOICE = joint_tour_participation_spec.columns.get_loc(choice_col)

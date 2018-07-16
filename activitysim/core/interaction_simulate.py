@@ -8,7 +8,7 @@ import pandas as pd
 
 from . import logit
 from . import tracing
-from .simulate import add_skims
+from .simulate import set_skim_wrapper_targets
 from . import chunk
 
 from activitysim.core.util import force_garbage_collect
@@ -218,7 +218,7 @@ def _interaction_simulate(
     interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
 
     if skims is not None:
-        add_skims(interaction_df, skims)
+        set_skim_wrapper_targets(interaction_df, skims)
 
     cum_size = chunk.log_df_size(trace_label, 'interaction_df', interaction_df, cum_size=None)
 

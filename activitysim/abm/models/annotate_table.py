@@ -28,7 +28,7 @@ def annotate_table(configs_dir):
 
     trace_label = 'annotate_table.%s' % model_name
 
-    model_settings = config.read_model_settings(configs_dir, '%s.yaml' % model_name)
+    model_settings = config.read_model_settings('%s.yaml' % model_name)
 
     df_name = model_settings['DF']
     df = inject.get_table(df_name).to_frame()

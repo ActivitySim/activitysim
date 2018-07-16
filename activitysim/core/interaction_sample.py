@@ -12,7 +12,7 @@ from activitysim.core.util import force_garbage_collect
 from . import logit
 from . import tracing
 from . import chunk
-from .simulate import add_skims
+from .simulate import set_skim_wrapper_targets
 
 
 from .interaction_simulate import eval_interaction_utilities
@@ -215,7 +215,7 @@ def _interaction_sample(
     assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
     if skims is not None:
-        add_skims(interaction_df, skims)
+        set_skim_wrapper_targets(interaction_df, skims)
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
@@ -407,10 +407,10 @@ def interaction_sample(
         (except with sample_size rows for each choser row, one row for each alt sample)
         and columns alt_col_name, prob, rand, pick_count
 
+        <alt_col_name>:
+            alt identifier from alternatives[<alt_col_name>
         prob: float
             the probability of the chosen alternative
-        rand: float
-            the rand that did the choosing
         pick_count : int
             number of duplicate picks for chooser, alt
     """
@@ -451,5 +451,8 @@ def interaction_sample(
         choices = pd.concat(result_list)
 
     assert allow_zero_probs or (len(choosers.index) == len(np.unique(choices.index.values)))
+
+    # keep alts in canonical order so choices based on their probs are stable across runs
+    choices = choices.sort_values(by=alt_col_name).sort_index(kind='mergesort')
 
     return choices

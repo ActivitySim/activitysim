@@ -37,20 +37,22 @@ zones were further sub-divided into three categories of transit access: short wa
 However, support for transit subzones is not included in the activitysim implementation since the latest generation
 of activity-based models typically use multiple zone systems instead.  In brief, all households are assigned to microzones 
 (such as Census blocks) and trips are assigned to origin and destination microzones.  When considering network
-level-of-service (LOS) indicators, different spatial resolutions are used for different modes.  For example:
+level-of-service (LOS) indicators, different spatial resolutions can be used for different modes.  For example:
 
-  * TAZs are used for auto network modeling and skims
-  * Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims
-  * Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims
+  * TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model
+  * Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims and a set of nearby maz-to-maz skims is input to the demand model
+  * Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims and a set of tap-to-tap skims is input to the demand model
+  * Microzone to transit access point for transit access/egress LOS is input to the demand model 
 
-In the demand model, transit virtual path building (TVPB) is done to generate LOS measures from:
+Since trips are modeled in the demand model from microzone to microzone, but transit network LOS is split across
+two input data sets, transit virtual path building (TVPB) is done to generate LOS measures from:
 
   * the trip's origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures
   * boarding TAP to alighting TAP LOS measures (TAP to TAP skims)
   * alighting TAP to destination microzone using microzone to TAP LOS measures
 
 The resulting complete transit path LOS for the "best" or a "bundle" of paths is then used in the demand model
-for representing transit LOS at the microzone level.  This functionality is **NOT YET IMPLEMENTED**.
+for representing transit LOS at the microzone level.  This functionality is **NOT YET IMPLEMENTED**, but planned for a future release.
 
 Decision-making units
 ~~~~~~~~~~~~~~~~~~~~~
@@ -327,24 +329,14 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |   :ref:`school_location`                       |  - school_location.yaml                                            |
 |                                                |  - annotate_persons_school.csv                                     |
 |                                                |  - school_location_sample.csv                                      |
-|                                                |  - logsums.yaml                                                    |
-|                                                |                                                                    |
-|                                                |    - logsums_annotate_choosers_preprocessor.csv                    |
-|                                                |    - logsums_spec.csv                                              |
-|                                                |    - logsums_coeffs.csv                                            |
-|                                                |                                                                    |
+|                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - school_location.csv                                             |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 |    :ref:`work_location`                        |  - workplace_location.yaml                                         |
 |                                                |  - annotate_persons_workplace.csv                                  |
 |                                                |  - workplace_location_sample.csv                                   |
-|                                                |  - logsums.yaml                                                    |
-|                                                |                                                                    |
-|                                                |    - logsums_annotate_choosers_preprocessor.csv                    |
-|                                                |    - logsums_spec.csv                                              |
-|                                                |    - logsums_coeffs.csv                                            |
-|                                                |                                                                    |
+|                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - workplace_location.csv                                          |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
@@ -386,25 +378,13 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 | :ref:`joint_tour_destination_choice`           |  - joint_tour_destination.yaml                                     |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
 |                                                |  - non_mandatory_tour_destination.csv                              |
-|                                                |  - logsums.yaml                                                    |
-|                                                |                                                                    |
-|                                                |    - logsums_annotate_choosers_preprocessor.csv                    |
-|                                                |    - logsums_spec.csv                                              |
-|                                                |    - logsums_coeffs.csv                                            |
-|                                                |                                                                    |
+|                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_scheduling`                   |  - joint_tour_scheduling.yaml                                      |
 |                                                |  - joint_tour_scheduling_annotate_tours_preprocessor.csv           |
 |                                                |  - tour_scheduling_joint.csv                                       |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
-+------------------------------------------------+--------------------------------------------------------------------+
-| :ref:`joint_tour_mode_choice`                  |  - joint_tour_mode_choice.yaml                                     |
-|                                                |  - tour_mode_choice_annotate_tours_preprocessor1.csv               |
-|                                                |  - tour_mode_choice_annotate_tours_preprocessor2.csv               |
-|                                                |  - tour_mode_choice.yaml                                           |
-|                                                |  - tour_mode_choice.csv                                            |
-|                                                |  - tour_mode_choice_coeffs.csv                                     |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.yaml                               |
 |                                                |  - non_mandatory_tour_frequency.csv                                |
@@ -421,9 +401,8 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - tour_scheduling_nonmandatory.csv                                |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
-| :ref:`man_non-man_tour_mode_choice`            |  - tour_mode_choice.yaml                                           |
-|                                                |  - tour_mode_choice_annotate_tours_preprocessor1.csv               |
-|                                                |  - tour_mode_choice_annotate_tours_preprocessor2.csv               |
+| :ref:`tour_mode_choice`                        |  - tour_mode_choice.yaml                                           |
+|                                                |  - tour_mode_choice_annotate_choosers_preprocessor.csv             |
 |                                                |  - tour_mode_choice.csv                                            |
 |                                                |  - tour_mode_choice_coeffs.csv                                     |
 +------------------------------------------------+--------------------------------------------------------------------+
@@ -434,24 +413,14 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |   :ref:`atwork_subtour_destination`            |  - atwork_subtour_destination.yaml                                 |
 |                                                |  - atwork_subtour_destination_sample.csv                           |
 |                                                |  - atwork_subtour_destination.csv                                  |
-|                                                |  - logsums.yaml                                                    |
-|                                                |                                                                    |
-|                                                |    - logsums_annotate_choosers_preprocessor.csv                    |
-|                                                |    - logsums_spec.csv                                              |
-|                                                |    - logsums_coeffs.csv                                            |
-|                                                |                                                                    |
+|                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`atwork_subtour_scheduling`               |  - atwork_subtour_scheduling.yaml                                  |
 |                                                |  - tour_scheduling_atwork.csv                                      |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
-|  :ref:`atwork_subtour_mode_choice`             |  - atwork_subtour_mode_choice.yaml                                 |
-|                                                |  - tour_mode_choice_annotate_tours_preprocessor1.csv               |
-|                                                |  - tour_mode_choice_annotate_tours_preprocessor2.csv               |
-|                                                |  - tour_mode_choice.yaml                                           |
-|                                                |  - tour_mode_choice.csv                                            |
-|                                                |  - tour_mode_choice_coeffs.csv                                     |
+|  :ref:`atwork_subtour_mode_choice`             |  - tour_mode_choice.yaml (and related files)                       |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`intermediate_stop_frequency`            |  - stop_frequency.yaml                                             |
 |                                                |  - stop_frequency_annotate_tours_preprocessor.csv                  |
@@ -475,18 +444,16 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |  :ref:`trip_destination_choice`                |  - trip_destination.yaml (+ trip_purpose_and_destination.yaml)     |
 |                                                |  - trip_destination_annotate_trips_preprocessor.csv                |
 |                                                |  - trip_destination_sample.csv                                     |
-|                                                |  - logsums.yaml                                                    |
-|                                                |                                                                    |
-|                                                |    - logsums_annotate_choosers_preprocessor.csv                    |
-|                                                |    - logsums_spec.csv                                              |
-|                                                |    - logsums_coeffs.csv                                            |
-|                                                |                                                                    |
+|                                                |  - trip_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`trip_scheduling`                        |  - trip_scheduling.yaml                                            |
 |                                                |  - trip_scheduling_probs.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
-|  :ref:`trip_mode_choice`                       |  **NOT YET IMPLEMENTED**                                           |
+|  :ref:`trip_mode_choice`                       |  - trip_mode_choice.yaml                                           |
+|                                                |  - trip_mode_choice_annotate_trips_preprocessor.csv                |
+|                                                |  - trip_mode_choice_coeffs.csv                                     |
+|                                                |  - trip_mode_choice.csv                                            |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`trip_cbd_parking`                       |  **NOT YET IMPLEMENTED**                                           |
 +------------------------------------------------+--------------------------------------------------------------------+
@@ -559,7 +526,6 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - joint_tour_destination_logsums
     - joint_tour_destination_simulate
     - joint_tour_scheduling
-    - joint_tour_mode_choice
     - non_mandatory_tour_frequency
     - non_mandatory_tour_destination
     - non_mandatory_tour_scheduling
@@ -575,6 +541,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - trip_destination
     - trip_purpose_and_destination
     - trip_scheduling
+    - trip_mode_choice
     - write_data_dictionary
     - write_tables
 
@@ -609,9 +576,9 @@ restarting the pipeline at any step.
 +===================================+====================================+======+======+ 
 | accessibility                     | compute_accessibility              | 10   | 25   |
 +-----------------------------------+------------------------------------+------+------+
-| atwork_subtour_destination_sample | atwork_subtour_destination_sample  | 4    | 125  |
+| atwork_subtour_destination_sample | atwork_subtour_destination_sample  | 4    | 46   |
 +-----------------------------------+------------------------------------+------+------+
-| atwork_subtour_destination_sample | atwork_subtour_destination_logsums | 5    | 125  |
+| atwork_subtour_destination_sample | atwork_subtour_destination_logsums | 5    | 46   |
 +-----------------------------------+------------------------------------+------+------+
 | households                        | initialize                         | 64   | 100  |
 +-----------------------------------+------------------------------------+------+------+
@@ -619,55 +586,55 @@ restarting the pipeline at any step.
 +-----------------------------------+------------------------------------+------+------+
 | households                        | joint_tour_frequency               | 70   | 100  |
 +-----------------------------------+------------------------------------+------+------+
-| joint_tour_destination_sample     | joint_tour_destination_sample      | 5    | 29   |
+| joint_tour_destination_sample     | joint_tour_destination_sample      | 4    | 30   |
 +-----------------------------------+------------------------------------+------+------+
-| joint_tour_destination_sample     | joint_tour_destination_logsums     | 6    | 29   |
+| joint_tour_destination_sample     | joint_tour_destination_logsums     | 4    | 30   |
 +-----------------------------------+------------------------------------+------+------+
 | joint_tour_participants           | joint_tour_participation           | 4    | 4    |
 +-----------------------------------+------------------------------------+------+------+
 | land_use                          | initialize                         | 45   | 25   |
 +-----------------------------------+------------------------------------+------+------+
-| person_windows                    | initialize                         | 21   | 153  |
+| person_windows                    | initialize                         | 21   | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | initialize                         | 40   | 153  |
+| persons                           | initialize                         | 40   | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | school_location_simulate           | 43   | 153  |
+| persons                           | school_location_simulate           | 43   | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | workplace_location_simulate        | 48   | 153  |
+| persons                           | workplace_location_simulate        | 48   | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | cdap_simulate                      | 54   | 153  |
+| persons                           | cdap_simulate                      | 54   | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | mandatory_tour_frequency           | 59   | 153  |
+| persons                           | mandatory_tour_frequency           | 59   | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | non_mandatory_tour_frequency       | 64   | 153  |
+| persons                           | non_mandatory_tour_frequency       | 64   | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| school_location_sample            | school_location_sample             | 4    | 138  |
+| school_location_sample            | school_location_sample             | 4    | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| school_location_sample            | school_location_logsums            | 5    | 138  |
+| school_location_sample            | school_location_logsums            | 5    | 157  |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | mandatory_tour_frequency           | 11   | 68   |
+| tours                             | mandatory_tour_frequency           | 11   | 71   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | mandatory_tour_scheduling          | 15   | 68   |
+| tours                             | mandatory_tour_scheduling          | 15   | 71   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | joint_tour_composition             | 16   | 70   |
+| tours                             | joint_tour_composition             | 16   | 73   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | joint_tour_mode_choice             | 17   | 70   |
+| tours                             | atwork_subtour_frequency           | 19   | 186  |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | atwork_subtour_frequency           | 19   | 189  |
+| tours                             | stop_frequency                     | 21   | 186  |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | stop_frequency                     | 21   | 189  |
+| trips                             | stop_frequency                     | 7    | 428  |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | stop_frequency                     | 10   | 464  |
+| trips                             | trip_purpose                       | 8    | 428  |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | trip_purpose                       | 11   | 464  |
+| trips                             | trip_destination                   | 11   | 428  |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | trip_destination                   | 14   | 464  |
+| trips                             | trip_scheduling                    | 12   | 428  |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | trip_scheduling                    | 15   | 464  |
+| trips                             | trip_mode_choic                    | 13   | 428  |
 +-----------------------------------+------------------------------------+------+------+
-| workplace_location_sample         | workplace_location_sample          | 3    | 889  |
+| workplace_location_sample         | workplace_location_sample          | 3    | 916  |
 +-----------------------------------+------------------------------------+------+------+
-| workplace_location_sample         | workplace_location_logsums         | 4    | 889  |
+| workplace_location_sample         | workplace_location_logsums         | 4    | 916  |
 +-----------------------------------+------------------------------------+------+------+
 
 The example ``simulation.py`` run model script also writes the final tables to CSV files
@@ -684,7 +651,7 @@ Tracing
 ~~~~~~~
 
 There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID 
-is specified, then ActivitySim will output a comprehensive set of trace files for all 
+is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all 
 calculations for all household members:
 
 * ``hhtrace.log`` - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.

@@ -32,11 +32,6 @@ def get_stop_frequency_spec(tour_type):
 
 
 @inject.injectable()
-def stop_frequency_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'stop_frequency.yaml')
-
-
-@inject.injectable()
 def stop_frequency_alts(configs_dir):
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
     f = os.path.join(configs_dir, 'stop_frequency_alternatives.csv')
@@ -60,12 +55,15 @@ def process_trips(tours, stop_frequency_alts):
     trips.index = tours.index
 
     """
-          tours.stop_frequency    =>    proto trips table
-    ________________________________________________________
-              stop_frequency      |                out  in
-    tour_id                       |     tour_id
-    954910          1out_1in      |     954910       1   1
-    985824          0out_1in      |     985824       0   1
+
+    ::
+
+      tours.stop_frequency    =>    proto trips table
+      ________________________________________________________
+                stop_frequency      |                out  in
+      tour_id                       |     tour_id
+      954910          1out_1in      |     954910       1   1
+      985824          0out_1in      |     985824       0   1
     """
 
     # reformat with the columns given below
@@ -98,27 +96,20 @@ def process_trips(tours, stop_frequency_alts):
     trips['household_id'] = reindex(tours.household_id, trips.tour_id)
 
     trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
-    trips['atwork'] = reindex(tours.tour_category, trips.tour_id) == 'atwork'
 
     # reorder columns and drop 'direction'
-    trips = trips[['person_id', 'household_id', 'tour_id',
-                   'primary_purpose', 'atwork',
+    trips = trips[['person_id', 'household_id', 'tour_id', 'primary_purpose',
                    'trip_num', 'outbound', 'trip_count']]
 
-    trips['first'] = (trips.trip_num == 1)
-    trips['last'] = (trips.trip_num == trips.trip_count)
-    # omit because redundant?
-    # trips['intermediate'] = (trips.trip_num>1) & (trips.trip_num<trips.trip_count)
-
     """
-      person_id  household_id  primary_purpose tour_id  trip_num  outbound  trip_count  first  last
-    0     32927         32927             work  954910         1      True           2   True False
-    1     32927         32927             work  954910         2      True           2  False  True
-    2     32927         32927             work  954910         1     False           2   True False
-    3     32927         32927             work  954910         2     False           2  False  True
-    4     33993         33993             univ  985824         1      True           1   True True
-    5     33993         33993             univ  985824         1     False           2   True False
-    6     33993         33993             univ  985824         2     False           2  False  True
+      person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count
+    0     32927         32927   954910             work        1      True           2
+    1     32927         32927   954910             work        2      True           2
+    2     32927         32927   954910             work        1     False           2
+    3     32927         32927   954910             work        2     False           2
+    4     33993         33993   985824             univ        1      True           1
+    5     33993         33993   985824             univ        1     False           2
+    6     33993         33993   985824             univ        2     False           2
 
     """
 
@@ -135,15 +126,37 @@ def process_trips(tours, stop_frequency_alts):
 def stop_frequency(
         tours, tours_merged,
         stop_frequency_alts,
-        stop_frequency_settings,
-        skim_dict, skim_stack,
+        skim_dict,
         chunk_size,
         trace_hh_id):
     """
-    stop frequency
+    stop frequency model
+
+    For each tour, shoose a number of intermediate inbound stops and outbound stops.
+    Create a trip table with inbound and outbound trips.
+
+    Thus, a tour with stop_frequency '2out_0in' will have two outbound and zero inbound stops,
+    and four corresponding trips: three outbound, and one inbound.
+
+    Adds stop_frequency str column to trips, with fields
+
+    creates trips table with columns:
+
+    ::
+
+        - person_id
+        - household_id
+        - tour_id
+        - primary_purpose
+        - atwork
+        - trip_num
+        - outbound
+        - trip_count
+
     """
 
     trace_label = 'stop_frequency'
+    model_settings = config.read_model_settings('stop_frequency.yaml')
 
     tours = tours.to_frame()
     tours_merged = tours_merged.to_frame()
@@ -153,11 +166,11 @@ def stop_frequency(
     assert not (tours_merged.origin == -1).any()
     assert not (tours_merged.destination == -1).any()
 
-    nest_spec = config.get_logit_model_settings(stop_frequency_settings)
-    constants = config.get_model_constants(stop_frequency_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate tours_merged
-    preprocessor_settings = stop_frequency_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         # hack: preprocessor adds origin column in place if it does not exist already
@@ -170,7 +183,7 @@ def stop_frequency(
         if constants is not None:
             locals_dict.update(constants)
 
-        simulate.add_skims(tours_merged, skims)
+        simulate.set_skim_wrapper_targets(tours_merged, skims)
 
         # this should be pre-slice as some expressions may count tours by type
         annotations = expressions.compute_columns(

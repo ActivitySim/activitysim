@@ -1,5 +1,7 @@
+SPEC: trip_mode_choice.csv
+COEFFS: trip_mode_choice_coeffs.csv
+
 LOGIT_TYPE: NL
-#LOGIT_TYPE: MNL
 
 NESTS:
   name: root
@@ -48,51 +50,81 @@ NESTS:
               - DRIVE_HVY
               - DRIVE_COM
 
-SPEC: tour_mode_choice.csv
-COEFFS: tour_mode_choice_coeffs.csv
 
 CONSTANTS:
-    valueOfTime: 8.00
-    costPerMile: 18.48
-    costShareSr2: 1.75
-    costShareSr3: 2.50
-    waitThresh: 10.00
-    walkThresh: 1.50
-    shortWalk: 0.333
-    longWalk: 0.667
-    walkSpeed: 3.00
-    bikeThresh: 6.00
-    bikeSpeed: 12.00
-    maxCbdAreaTypeThresh: 2
-    indivTour: 1.00000
-    upperEA: 5
-    upperAM: 10
-    upperMD: 15
-    upperPM: 19
-
+  orig_col_name: origin
+  dest_col_name: destination
+#    valueOfTime: 8.00
+  costPerMile: 18.48
+  costShareSr2: 1.75
+  costShareSr3: 2.50
+  waitThresh: 10.00
+  walkThresh: 1.50
+  shortWalk: 0.333
+  longWalk: 0.667
+  walkSpeed: 3.00
+  bikeThresh: 6.00
+  bikeSpeed: 12.00
+#    maxCbdAreaTypeThresh: 2
+#    indivTour: 1.00000
+#    upperEA: 5
+#    upperAM: 10
+#    upperMD: 15
+#    upperPM: 19
+  I_MODE_MAP:
+    DRIVEALONEFREE: 1
+    DRIVEALONEPAY: 2
+    SHARED2FREE: 3
+    SHARED2PAY: 4
+    SHARED3FREE: 5
+    SHARED3PAY: 6
+    WALK: 7
+    BIKE: 8
+    WALK_LOC: 9
+    WALK_LRF: 10
+    WALK_EXP: 11
+    WALK_HVY: 12
+    WALK_COM: 13
+    DRIVE_LOC: 14
+    DRIVE_LRF: 15
+    DRIVE_EXP: 16
+    DRIVE_HVY: 17
+    DRIVE_COM: 18
+  I_SOV_MODES: [1, 2]
+  I_SR2_MODES: [3, 4]
+  I_SR3P_MODES: [5, 6]
+  I_AUTO_MODES: [1, 2, 3, 4, 5, 6]
+  I_WALK_MODE: 7
+  I_BIKE_MODE: 8
+  I_WALK_TRANSIT_MODES: [9, 10, 11, 12, 13]
+  I_DRIVE_TRANSIT_MODES: [14, 15, 16, 17, 18]
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor:
-  SPEC: tour_mode_choice_annotate_choosers_preprocessor
-  DF: choosers
+  SPEC: trip_mode_choice_annotate_trips_preprocessor
+  DF: df
   TABLES:
     - land_use
     - tours
 
-nontour_preprocessor:
-  SPEC: tour_mode_choice_annotate_choosers_preprocessor
-  DF: choosers
-  TABLES:
-    - land_use
+#  - SPEC: trip_mode_choice_annotate_trips_preprocessor2
+#    DF: df
+#    TABLES:
+#      - land_use
 
-LOGSUM_CHOOSER_COLUMNS:
-  - tour_type
+
+
+TOURS_MERGED_CHOOSER_COLUMNS:
+#  - tour_type
   - hhsize
-  - density_index
+#  - density_index
   - age
-  - age_16_p
-  - age_16_to_19
+#  - age_16_p
+#  - age_16_to_19
   - auto_ownership
   - number_of_participants
   - tour_category
-  - num_workers
+  - parent_tour_id
+  - tour_mode
+  - duration
+

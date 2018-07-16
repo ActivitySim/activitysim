@@ -116,41 +116,29 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
         chunk of alternatives for chooser chunk
     """
 
+    # if not choosers.index.is_monotonic_increasing:
+    #     logger.warn('chunked_choosers_and_alts sorting choosers because not monotonic increasing')
+    #     choosers = choosers.sort_index()
+
+    # alternatives index should match choosers (except with duplicate repeating alt rows)
+    assert choosers.index.equals(alternatives.index[~alternatives.index.duplicated(keep='first')])
+
+    last_repeat = alternatives.index != np.roll(alternatives.index, -1)
+    assert (choosers.shape[0] == 1) or choosers.index.equals(alternatives.index[last_repeat])
+
     assert choosers.shape[0] > 0
     assert 'pick_count' in alternatives.columns or choosers.index.name == alternatives.index.name
 
     num_choosers = len(choosers.index)
     num_chunks = (num_choosers // rows_per_chunk) + (num_choosers % rows_per_chunk > 0)
 
-    if choosers.index.name == alternatives.index.name:
-        assert choosers.index.name == alternatives.index.name
+    assert choosers.index.name == alternatives.index.name
 
-        # alt chunks boundaries are where index changes
-        alt_ids = alternatives.index.values
-        alt_chunk_end = np.where(alt_ids[:-1] != alt_ids[1:])[0] + 1
-        alt_chunk_end = np.append([0], alt_chunk_end)  # including the first...
-        alt_chunk_end = alt_chunk_end[rows_per_chunk::rows_per_chunk]
-
-    else:
-        # used to do it this way for school and workplace (which are sampled based on prob)
-        # since the utility expressions need to know pick_count for sample correction
-        # but for now the assumption that choosers and alternatives share indexes is more general
-        # leaving this (previously correct) code here for now in case that changes...
-        assert False
-
-        # assert 'pick_count' in alternatives.columns
-        # assert 'cum_pick_count' not in alternatives.columns
-        # alternatives['cum_pick_count'] = alternatives['pick_count'].cumsum()
-        #
-        # # currently no convenient way to remember sample_size across steps
-        # pick_count = alternatives.cum_pick_count.iat[-1]
-        # sample_size = pick_count / len(choosers.index)
-        # assert pick_count % sample_size == 0
-        #
-        # alt_chunk_size = rows_per_chunk * sample_size
-        #
-        # # array of indices of starts of alt chunks
-        # alt_chunk_end = np.where(alternatives['cum_pick_count'] % alt_chunk_size == 0)[0] + 1
+    # alt chunks boundaries are where index changes
+    alt_ids = alternatives.index.values
+    alt_chunk_end = np.where(alt_ids[:-1] != alt_ids[1:])[0] + 1
+    alt_chunk_end = np.append([0], alt_chunk_end)  # including the first...
+    alt_chunk_end = alt_chunk_end[rows_per_chunk::rows_per_chunk]
 
     # add index to end of array to capture any final partial chunk
     alt_chunk_end = np.append(alt_chunk_end, [len(alternatives.index)])

@@ -10,7 +10,6 @@ from activitysim.core.simulate import read_model_spec
 from activitysim.core.interaction_simulate import interaction_simulate
 
 from activitysim.core import tracing
-from activitysim.core.tracing import print_elapsed_time
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
@@ -23,11 +22,6 @@ from activitysim.abm.tables.constants import PTYPE_NAME
 from .util.tour_frequency import process_non_mandatory_tours
 
 logger = logging.getLogger(__name__)
-
-
-@inject.injectable()
-def non_mandatory_tour_frequency_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'non_mandatory_tour_frequency.yaml')
 
 
 @inject.injectable()
@@ -46,7 +40,6 @@ def non_mandatory_tour_frequency_alts(configs_dir):
 def non_mandatory_tour_frequency(persons, persons_merged,
                                  non_mandatory_tour_frequency_alts,
                                  non_mandatory_tour_frequency_spec,
-                                 non_mandatory_tour_frequency_settings,
                                  chunk_size,
                                  trace_hh_id):
 
@@ -57,9 +50,8 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     othdiscr, eatout, and social trips in various combination.
     """
 
-    t0 = print_elapsed_time()
-
     trace_label = 'non_mandatory_tour_frequency'
+    model_settings = config.read_model_settings('non_mandatory_tour_frequency.yaml')
 
     choosers = persons_merged.to_frame()
 
@@ -67,7 +59,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     non_mandatory_tour_frequency_alts['tot_tours'] = non_mandatory_tour_frequency_alts.sum(axis=1)
 
     # - preprocessor
-    preprocessor_settings = non_mandatory_tour_frequency_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {
@@ -85,7 +77,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
     logger.info("Running non_mandatory_tour_frequency with %d persons" % len(choosers))
 
-    constants = config.get_model_constants(non_mandatory_tour_frequency_settings)
+    constants = config.get_model_constants(model_settings)
 
     choices_list = []
     # segment by person type and pick the right spec for each person type
@@ -111,8 +103,6 @@ def non_mandatory_tour_frequency(persons, persons_merged,
             trace_choice_name='non_mandatory_tour_frequency')
 
         choices_list.append(choices)
-
-        t0 = print_elapsed_time("non_mandatory_tour_frequency.%s" % name, t0, debug=True)
 
         # FIXME - force garbage collection?
         # force_garbage_collect()
@@ -141,7 +131,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
     expressions.assign_columns(
         df=persons,
-        model_settings=non_mandatory_tour_frequency_settings.get('annotate_persons'),
+        model_settings=model_settings.get('annotate_persons'),
         trace_label=trace_label)
 
     pipeline.replace_table("persons", persons)

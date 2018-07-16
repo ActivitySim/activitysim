@@ -1,6 +1,6 @@
 LOGIT_TYPE: MNL
 
-preprocessor_settings:
+preprocessor:
   SPEC: stop_frequency_annotate_tours_preprocessor
   DF: tours_merged
   TABLES:

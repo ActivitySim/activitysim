@@ -157,26 +157,28 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 
 * Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
 * :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The :ref:`non_mandatory_tour_destination_choice` model implements this approach.
-* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`man_non-man_tour_mode_choice` models are examples of this and are illustrated below.
+* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`tour_mode_choice` models are examples of this and are illustrated below.
 * Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
 
-The :ref:`man_non-man_tour_mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
-Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.  
-In the example below, the ``@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']`` expression is travel time for the tour origin to desination at the tour start time plus the tour
-destination to tour origin at the tour end time.  The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.
-The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.
+The :ref:`tour_mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
+Each row is an expression for one of the alternatives, and each column contains either -999, 1, or blank.  The coefficients for each expression
+is in a separate file, with a separate column for each alternative.  In the example below, the ``@c_ivt*(@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'])`` 
+expression is travel time for the tour origin to desination at the tour start time plus the tour destination to tour origin at the tour end time.  
+The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.  The ``@c_ivt`` comes from the
+tour mode choice coefficient file.  The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting 
+coefficients) is specified in the YAML settings file.
 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+
-| Description                            |  Expression                                     |     Alternative      |   school  | shopping |
-+========================================+=================================================+======================+===========+==========+ 
-|DA - Unavailable                        | sov_available == False                          |  DRIVEALONEFREE      |         0 |   3.0773 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
-|DA - In-vehicle time                    | @odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']  |  DRIVEALONEFREE      |         0 |  -0.4849 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
-|DAP - Unavailable for age less than 16  | age < 16                                        |  DRIVEALONEPAY       |         0 |   0.2936 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
-|DAP - Unavailable for joint tours       | is_joint                                        |  DRIVEALONEPAY       | -3.2451   |  -0.9523 | 
-+----------------------------------------+-------------------------------------------------+----------------------+-----------+----------+ 
++----------------------------------------+----------------------------------------------------------+-----------------+---------------+
+| Description                            |  Expression                                              | DRIVEALONEFREE  | DRIVEALONEPAY |
++========================================+==========================================================+=================+===============+ 
+|DA - Unavailable                        | sov_available == False                                   |            -999 |               | 
++----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
+|DA - In-vehicle time                    | @c_ivt*(@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'])  |               1 |               | 
++----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
+|DAP - Unavailable for age less than 16  | age < 16                                                 |                 |   -999        | 
++----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
+|DAP - Unavailable for joint tours       | is_joint == True                                         |                 |   -999        | 
++----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
 
 Sampling with Interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -255,6 +255,10 @@ def schedule_tours(
 
     """
 
+    if not tours.index.is_monotonic_increasing:
+        logger.info("schedule_tours %s tours not monotonic_increasing - sorting df")
+        tours = tours.sort_index()
+
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
     # no more than one tour per timetable_window per call

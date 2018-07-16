@@ -28,11 +28,6 @@ def joint_tour_composition_spec(configs_dir):
     return simulate.read_model_spec(configs_dir, 'joint_tour_composition.csv')
 
 
-@inject.injectable()
-def joint_tour_composition_settings(configs_dir):
-    return config.read_model_settings(configs_dir, 'joint_tour_composition.yaml')
-
-
 def add_null_results(trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
     tours['composition'] = np.nan
@@ -43,14 +38,14 @@ def add_null_results(trace_label, tours):
 def joint_tour_composition(
         tours, households, persons,
         joint_tour_composition_spec,
-        joint_tour_composition_settings,
-        configs_dir,
         chunk_size,
         trace_hh_id):
     """
     This model predicts the makeup of the travel party (adults, children, or mixed).
     """
     trace_label = 'joint_tour_composition'
+
+    model_settings = config.read_model_settings('joint_tour_composition.yaml')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -70,7 +65,7 @@ def joint_tour_composition(
     logger.info("Running joint_tour_composition with %d joint tours" % joint_tours.shape[0])
 
     # - run preprocessor
-    preprocessor_settings = joint_tour_composition_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_dict = {
@@ -89,8 +84,8 @@ def joint_tour_composition(
 
     # - simple_simulate
 
-    nest_spec = config.get_logit_model_settings(joint_tour_composition_settings)
-    constants = config.get_model_constants(joint_tour_composition_settings)
+    nest_spec = config.get_logit_model_settings(model_settings)
+    constants = config.get_model_constants(model_settings)
 
     choices = simulate.simple_simulate(
         choosers=joint_tours_merged,

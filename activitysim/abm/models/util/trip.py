@@ -69,9 +69,8 @@ def cleanup_failed_trips(trips):
         grouped = patch_trips.groupby(['tour_id', 'outbound'])
         patch_trips['trip_num'] = grouped.cumcount() + 1
         patch_trips['trip_count'] = patch_trips['trip_num'] + grouped.cumcount(ascending=False)
-        patch_trips['first'] = (patch_trips.trip_num == 1)
 
-        assign_in_place(trips, patch_trips[['trip_num', 'trip_count', 'first']])
+        assign_in_place(trips, patch_trips[['trip_num', 'trip_count']])
 
         del trips['patch']
 

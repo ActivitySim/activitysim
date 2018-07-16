@@ -21,8 +21,8 @@ from activitysim.core.util import reindex
 logger = logging.getLogger(__name__)
 
 
-def trip_purpose_probs(configs_dir):
-
+def trip_purpose_probs():
+    configs_dir = inject.get_injectable('configs_dir')
     f = os.path.join(configs_dir, 'trip_purpose_probs.csv')
     df = pd.read_csv(f, comment='#')
     return df
@@ -54,6 +54,14 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
 
 
 def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label):
+    """
+    chose purpose for intermediate trips based on probs_spec
+    which assigns relative weights (summing to 1) to the possible purpose choices
+
+    Returns
+    -------
+    purpose: pandas.Series of purpose (str) indexed by trip_id
+    """
 
     probs_join_cols = ['primary_purpose', 'outbound', 'person_type']
     non_purpose_cols = probs_join_cols + ['depart_range_start', 'depart_range_end']
@@ -95,36 +103,45 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
 
 def run_trip_purpose(
         trips_df,
-        configs_dir,
         chunk_size,
         trace_hh_id,
         trace_label):
-
     """
-    trip purpose
+    trip purpose - main functionality separated from model step so it can be called iteratively
+
+    For each intermediate stop on a tour (i.e. trip other than the last trip outbound or inbound)
+    Each trip is assigned a purpose based on an observed frequency distribution
+
+    The distribution is segmented by tour purpose, tour direction, person type,
+    and, optionally, trip depart time .
+
+    Returns
+    -------
+    purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
-    model_settings = config.read_model_settings(configs_dir, 'trip_purpose.yaml')
-    probs_spec = trip_purpose_probs(configs_dir)
+    model_settings = config.read_model_settings('trip_purpose.yaml')
+    probs_spec = trip_purpose_probs()
 
     result_list = []
 
     # - last trip of outbound tour gets primary_purpose
-    purpose = trips_df.primary_purpose[trips_df['last'] & trips_df.outbound]
+    last_trip = (trips_df.trip_num == trips_df.trip_count)
+    purpose = trips_df.primary_purpose[last_trip & trips_df.outbound]
     result_list.append(purpose)
     logger.info("assign purpose to %s last outbound trips" % purpose.shape[0])
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
-    purpose = trips_df.primary_purpose[trips_df['last'] & ~trips_df.outbound]
+    purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
     purpose = pd.Series(np.where(purpose == 'atwork', 'Work', 'Home'), index=purpose.index)
     result_list.append(purpose)
     logger.info("assign purpose to %s last inbound trips" % purpose.shape[0])
 
     # - intermediate stops (non-last trips) purpose assigned by probability table
-    trips_df = trips_df[~trips_df['last']]
+    trips_df = trips_df[~last_trip]
     logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
 
-    preprocessor_settings = model_settings.get('preprocessor_settings', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
         locals_dict = config.get_model_constants(model_settings)
         expressions.assign_columns(
@@ -163,17 +180,20 @@ def run_trip_purpose(
 @inject.step()
 def trip_purpose(
         trips,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
+    """
+    trip purpose model step - calls run_trip_purpose to run the actual model
+
+    adds purpose column to trips
+    """
     trace_label = "trip_purpose"
 
     trips_df = trips.to_frame()
 
     choices = run_trip_purpose(
         trips_df,
-        configs_dir=configs_dir,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label
@@ -185,3 +205,10 @@ def trip_purpose(
     assert not trips_df.purpose.isnull().any()
 
     pipeline.replace_table("trips", trips_df)
+
+    if trace_hh_id:
+        tracing.trace_df(trips_df,
+                         label=trace_label,
+                         slicer='trip_id',
+                         index_label='trip_id',
+                         warn_if_empty=True)

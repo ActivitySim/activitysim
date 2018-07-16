@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How the System Works &mdash; ActivitySim 0.6
+  <title>How the System Works &mdash; ActivitySim 0.7
  documentation</title>
   
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6
+                0.7
 
               </div>
             
@@ -658,14 +658,14 @@ to origin zone and write them to the datastore.</p>
 the example model.  These tables and skims are defined in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.tables</span></code> package.</p>
 <span class="target" id="index-3"></span><span class="target" id="index-4"></span><span class="target" id="index-5"></span><span class="target" id="index-6"></span><span class="target" id="index-7"></span><span class="target" id="index-8"></span><span class="target" id="index-9"></span><span class="target" id="index-10"></span><div class="section" id="data-tables">
 <span id="index-11"></span><h3>Data Tables<a class="headerlink" href="#data-tables" title="Permalink to this headline">¶</a></h3>
-<p>The following tables are currently implemented, and some are extended in the example extensions tables.</p>
+<p>The following tables are currently implemented:</p>
 <blockquote>
 <div><ul class="simple">
 <li>households - household attributes for each household being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">HHID</span></code> (see <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code>)</li>
 <li>landuse - zonal land use (such as population and employment) attributes. Index: <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> (see <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code>)</li>
 <li>persons - person attributes for each person being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">PERID</span></code> (see <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code>)</li>
 <li>time windows - manages person time windows throughout the simulation.  See <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.  Index:  <code class="docutils literal notranslate"><span class="pre">PERID</span></code> (see the person_windows table create decorator in <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.time_windows.py</span></code>)</li>
-<li>tours - tour attributes for each tour (mandatory, joint, non-mandatory, and atwork-subtour) being simulated.  Index:  <code class="docutils literal notranslate"><span class="pre">TOURID</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.py</span></code>)</li>
+<li>tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  <code class="docutils literal notranslate"><span class="pre">TOURID</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.py</span></code>)</li>
 <li>trips - trip attributes for each trip being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">TRIPID</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.stop_frequency.py</span></code>)</li>
 </ul>
 </div></blockquote>
@@ -1513,847 +1513,833 @@ uses the information stored in the pipeline file to create the table below for a
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>5</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>6</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>7</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>8</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>9</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>10</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>11</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>12</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>13</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>14</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>15</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>16</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>17</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>18</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>19</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>20</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>21</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>22</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>person_windows</td>
 <td>23</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>person_windows</td>
 <td>24</td>
 <td>int8</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>household_id</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>age</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>RELATE</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>ESR</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>GRADE</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>PNUM</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>PAUG</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>DDP</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>sex</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>WEEKS</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>HOURS</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>MSP</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>POVERTY</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>EARNS</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>pagecat</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>pemploy</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>pstudent</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>ptype</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>padkid</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>age_16_to_19</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>age_16_p</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>adult</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>male</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>female</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>has_non_worker</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>has_retiree</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>has_preschool_kid</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>has_driving_kid</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>has_school_kid</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>has_full_time</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>has_part_time</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>has_university</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>student_is_employed</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>nonstudent_to_school</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>is_worker</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>is_student</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>is_gradeschool</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>is_highschool</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>is_university</td>
 <td>bool</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>home_taz</td>
 <td>int64</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>school_taz</td>
 <td>int32</td>
 <td>school_location_simulate</td>
 <td>43</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>distance_to_school</td>
 <td>float64</td>
 <td>school_location_simulate</td>
 <td>43</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>roundtrip_auto_time_to_school</td>
 <td>float64</td>
 <td>school_location_simulate</td>
 <td>43</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>workplace_taz</td>
 <td>int32</td>
 <td>workplace_location_simulate</td>
 <td>48</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>distance_to_work</td>
 <td>float64</td>
 <td>workplace_location_simulate</td>
 <td>48</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>roundtrip_auto_time_to_work</td>
 <td>float64</td>
 <td>workplace_location_simulate</td>
 <td>48</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>workplace_in_cbd</td>
 <td>bool</td>
 <td>workplace_location_simulate</td>
 <td>48</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>work_taz_area_type</td>
 <td>float64</td>
 <td>workplace_location_simulate</td>
 <td>48</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>cdap_activity</td>
 <td>object</td>
 <td>cdap_simulate</td>
 <td>54</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>cdap_rank</td>
 <td>int64</td>
 <td>cdap_simulate</td>
 <td>54</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>travel_active</td>
 <td>bool</td>
 <td>cdap_simulate</td>
 <td>54</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>under16_not_at_school</td>
 <td>bool</td>
 <td>cdap_simulate</td>
 <td>54</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>has_preschool_kid_at_home</td>
 <td>bool</td>
 <td>cdap_simulate</td>
 <td>54</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>has_school_kid_at_home</td>
 <td>bool</td>
 <td>cdap_simulate</td>
 <td>54</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>mandatory_tour_frequency</td>
 <td>object</td>
 <td>mandatory_tour_frequency</td>
 <td>59</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>work_and_school_and_worker</td>
 <td>bool</td>
 <td>mandatory_tour_frequency</td>
 <td>59</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>work_and_school_and_student</td>
 <td>bool</td>
 <td>mandatory_tour_frequency</td>
 <td>59</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>num_mand</td>
 <td>int8</td>
 <td>mandatory_tour_frequency</td>
 <td>59</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>num_work_tours</td>
 <td>int8</td>
 <td>mandatory_tour_frequency</td>
 <td>59</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>non_mandatory_tour_frequency</td>
 <td>float64</td>
 <td>non_mandatory_tour_frequency</td>
 <td>64</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>num_non_mand</td>
 <td>float64</td>
 <td>non_mandatory_tour_frequency</td>
 <td>64</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>num_escort_tours</td>
 <td>float64</td>
 <td>non_mandatory_tour_frequency</td>
 <td>64</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>num_non_escort_tours</td>
 <td>float64</td>
 <td>non_mandatory_tour_frequency</td>
 <td>64</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>num_eatout_tours</td>
 <td>float64</td>
 <td>non_mandatory_tour_frequency</td>
 <td>64</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>person_id</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>tour_type</td>
 <td>object</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>tour_type_count</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>tour_type_num</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>tour_num</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>tour_count</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>tour_category</td>
 <td>object</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>number_of_participants</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>destination</td>
 <td>int32</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>origin</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>household_id</td>
 <td>int64</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>start</td>
 <td>int64</td>
 <td>mandatory_tour_scheduling</td>
 <td>15</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>end</td>
 <td>int64</td>
 <td>mandatory_tour_scheduling</td>
 <td>15</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>duration</td>
 <td>int64</td>
 <td>mandatory_tour_scheduling</td>
 <td>15</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>tdd</td>
 <td>int64</td>
 <td>mandatory_tour_scheduling</td>
 <td>15</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>composition</td>
 <td>object</td>
 <td>joint_tour_composition</td>
 <td>16</td>
-<td>70</td>
+<td>73</td>
 </tr>
 <tr class="row-even"><td>tours</td>
-<td>mode</td>
+<td>tour_mode</td>
 <td>object</td>
 <td>joint_tour_mode_choice</td>
 <td>17</td>
-<td>70</td>
+<td>183</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>atwork_subtour_frequency</td>
 <td>object</td>
 <td>atwork_subtour_frequency</td>
 <td>19</td>
-<td>189</td>
+<td>186</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>parent_tour_id</td>
 <td>float64</td>
 <td>atwork_subtour_frequency</td>
 <td>19</td>
-<td>189</td>
+<td>186</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>stop_frequency</td>
 <td>object</td>
 <td>stop_frequency</td>
 <td>21</td>
-<td>189</td>
+<td>186</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>primary_purpose</td>
 <td>object</td>
 <td>stop_frequency</td>
 <td>21</td>
-<td>189</td>
+<td>186</td>
 </tr>
 <tr class="row-odd"><td>trips</td>
 <td>person_id</td>
 <td>int64</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
 <tr class="row-even"><td>trips</td>
 <td>household_id</td>
 <td>int64</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
 <tr class="row-odd"><td>trips</td>
 <td>tour_id</td>
 <td>int64</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
 <tr class="row-even"><td>trips</td>
 <td>primary_purpose</td>
 <td>object</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
 <tr class="row-odd"><td>trips</td>
-<td>atwork</td>
-<td>bool</td>
-<td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
-</tr>
-<tr class="row-even"><td>trips</td>
 <td>trip_num</td>
 <td>int64</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
-<tr class="row-odd"><td>trips</td>
+<tr class="row-even"><td>trips</td>
 <td>outbound</td>
 <td>bool</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
-<tr class="row-even"><td>trips</td>
+<tr class="row-odd"><td>trips</td>
 <td>trip_count</td>
 <td>int64</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
-</tr>
-<tr class="row-odd"><td>trips</td>
-<td>first</td>
-<td>bool</td>
-<td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
 <tr class="row-even"><td>trips</td>
-<td>last</td>
-<td>bool</td>
-<td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
-</tr>
-<tr class="row-odd"><td>trips</td>
 <td>purpose</td>
 <td>object</td>
 <td>trip_purpose</td>
-<td>11</td>
-<td>464</td>
+<td>8</td>
+<td>428</td>
 </tr>
-<tr class="row-even"><td>trips</td>
+<tr class="row-odd"><td>trips</td>
 <td>destination</td>
 <td>int32</td>
 <td>trip_destination</td>
-<td>14</td>
-<td>464</td>
+<td>11</td>
+<td>428</td>
 </tr>
-<tr class="row-odd"><td>trips</td>
+<tr class="row-even"><td>trips</td>
 <td>origin</td>
 <td>int32</td>
 <td>trip_destination</td>
-<td>14</td>
-<td>464</td>
+<td>11</td>
+<td>428</td>
 </tr>
-<tr class="row-even"><td>trips</td>
+<tr class="row-odd"><td>trips</td>
 <td>failed</td>
 <td>bool</td>
 <td>trip_destination</td>
-<td>14</td>
-<td>464</td>
+<td>11</td>
+<td>428</td>
 </tr>
-<tr class="row-odd"><td>trips</td>
+<tr class="row-even"><td>trips</td>
 <td>depart</td>
 <td>int64</td>
 <td>trip_scheduling</td>
-<td>15</td>
-<td>464</td>
+<td>12</td>
+<td>428</td>
+</tr>
+<tr class="row-odd"><td>trips</td>
+<td>trip_mode</td>
+<td>int64</td>
+<td>trip_mode_choice</td>
+<td>13</td>
+<td>428</td>
 </tr>
 </tbody>
 </table>
@@ -4936,7 +4922,7 @@ The skims are float64 matrix.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.6',
+            VERSION:'0.7',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

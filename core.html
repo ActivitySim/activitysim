@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core Components &mdash; ActivitySim 0.6
+  <title>Core Components &mdash; ActivitySim 0.7
  documentation</title>
   
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6
+                0.7
 
               </div>
             
@@ -391,7 +391,7 @@ to use in the expressions.</p>
 <p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
 <dl class="method">
 <dt id="activitysim.core.skim.SkimDictWrapper.lookup">
-<code class="descname">lookup</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.lookup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>key</em>, <em>reverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.lookup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generally not called by the user - use __getitem__ instead</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -400,6 +400,10 @@ to use in the expressions.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">hashable</span></dt>
 <dd><p class="first last">The key (identifier) for this skim object</p>
+</dd>
+<dt><strong>od</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool (optional)</span></dt>
+<dd><p class="first last">od=True means lookup standard origin-destination skim value
+od=False means lookup destination-origin skim value</p>
 </dd>
 </dl>
 </td>
@@ -414,6 +418,18 @@ with the same index as df</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.skim.SkimDictWrapper.max">
+<code class="descname">max</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>return max skim value in either o-d or d-o direction</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.skim.SkimDictWrapper.reverse">
+<code class="descname">reverse</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.reverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>return skim value in reverse (d-o) direction</p>
 </dd></dl>
 
 <dl class="method">
@@ -1848,54 +1864,50 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 <ul class="simple">
 <li>Simple <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> choice model - select from a fixed set of choices defined in the specification file, such as the example above.</li>
 <li><a class="reference internal" href="#simulate-with-interaction"><span class="std std-ref">Simulate with Interaction</span></a> choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The <a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a> model implements this approach.</li>
-<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#man-non-man-tour-mode-choice"><span class="std std-ref">Mandatory and Individual Non-Mandatory Tour Mode</span></a> models are examples of this and are illustrated below.</li>
+<li>Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The <a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode Choice</span></a> models are examples of this and are illustrated below.</li>
 <li>Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a> model implements this approach.</li>
 </ul>
-<p>The <a class="reference internal" href="models.html#man-non-man-tour-mode-choice"><span class="std std-ref">Mandatory and Individual Non-Mandatory Tour Mode</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
-Each row is an expression for one of the alternatives, and each column is the coefficient for a tour purpose.  The alternatives are specified in the YAML settings file for the model.
-In the example below, the <code class="docutils literal notranslate"><span class="pre">&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME']</span></code> expression is travel time for the tour origin to desination at the tour start time plus the tour
-destination to tour origin at the tour end time.  The <code class="docutils literal notranslate"><span class="pre">odt_skims</span></code> and <code class="docutils literal notranslate"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.
-The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting coefficients) is specified in the YAML settings file as well.</p>
+<p>The <a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode Choice</span></a> model is a complex choice model since the expressions file is structured a little bit differently, as shown below.
+Each row is an expression for one of the alternatives, and each column contains either -999, 1, or blank.  The coefficients for each expression
+is in a separate file, with a separate column for each alternative.  In the example below, the <code class="docutils literal notranslate"><span class="pre">&#64;c_ivt*(&#64;odt_skims['SOV_TIME']</span> <span class="pre">+</span> <span class="pre">dot_skims['SOV_TIME'])</span></code>
+expression is travel time for the tour origin to desination at the tour start time plus the tour destination to tour origin at the tour end time.
+The <code class="docutils literal notranslate"><span class="pre">odt_skims</span></code> and <code class="docutils literal notranslate"><span class="pre">dot_skims</span></code> objects are setup ahead-of-time to refer to the relevant skims for this model.  The <code class="docutils literal notranslate"><span class="pre">&#64;c_ivt</span></code> comes from the
+tour mode choice coefficient file.  The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting
+coefficients) is specified in the YAML settings file.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="30%" />
-<col width="37%" />
-<col width="17%" />
-<col width="8%" />
-<col width="8%" />
+<col width="31%" />
+<col width="45%" />
+<col width="13%" />
+<col width="12%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Description</th>
 <th class="head">Expression</th>
-<th class="head">Alternative</th>
-<th class="head">school</th>
-<th class="head">shopping</th>
+<th class="head">DRIVEALONEFREE</th>
+<th class="head">DRIVEALONEPAY</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>DA - Unavailable</td>
 <td>sov_available == False</td>
-<td>DRIVEALONEFREE</td>
-<td>0</td>
-<td>3.0773</td>
+<td>-999</td>
+<td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>DA - In-vehicle time</td>
-<td>&#64;odt_skims[‘SOV_TIME’] + dot_skims[‘SOV_TIME’]</td>
-<td>DRIVEALONEFREE</td>
-<td>0</td>
-<td>-0.4849</td>
+<td>&#64;c_ivt*(&#64;odt_skims[‘SOV_TIME’] + dot_skims[‘SOV_TIME’])</td>
+<td>1</td>
+<td>&#160;</td>
 </tr>
 <tr class="row-even"><td>DAP - Unavailable for age less than 16</td>
 <td>age &lt; 16</td>
-<td>DRIVEALONEPAY</td>
-<td>0</td>
-<td>0.2936</td>
+<td>&#160;</td>
+<td>-999</td>
 </tr>
 <tr class="row-odd"><td>DAP - Unavailable for joint tours</td>
-<td>is_joint</td>
-<td>DRIVEALONEPAY</td>
-<td>-3.2451</td>
-<td>-0.9523</td>
+<td>is_joint == True</td>
+<td>&#160;</td>
+<td>-999</td>
 </tr>
 </tbody>
 </table>
@@ -1982,11 +1994,11 @@ when household tracing enabled. No tracing occurs if label is empty or None.</p>
 (except with sample_size rows for each choser row, one row for each alt sample)
 and columns alt_col_name, prob, rand, pick_count</p>
 <dl class="last docutils">
+<dt>&lt;alt_col_name&gt;:</dt>
+<dd><p class="first last">alt identifier from alternatives[&lt;alt_col_name&gt;</p>
+</dd>
 <dt>prob: float</dt>
 <dd><p class="first last">the probability of the chosen alternative</p>
-</dd>
-<dt>rand: float</dt>
-<dd><p class="first last">the rand that did the choosing</p>
 </dd>
 <dt>pick_count <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
 <dd><p class="first last">number of duplicate picks for chooser, alt</p>
@@ -2041,36 +2053,6 @@ defined in the specification file.</p>
 <div class="section" id="id6">
 <h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.simulate"></span><dl class="function">
-<dt id="activitysim.core.simulate.add_skims">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">add_skims</code><span class="sig-paren">(</span><em>df</em>, <em>skims</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.add_skims" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
-using the parameters of the skims object.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
-<dd><p class="first last">Table to which to add skim data as new columns.
-<cite>df</cite> is modified in-place.</p>
-</dd>
-<dt><strong>skims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SkimDictWrapper or SkimStackWrapper object, or a list or dict of skims</span></dt>
-<dd><p class="first last">The skims object is used to contain multiple matrices of
-origin-destination impedances.  Make sure to also add it to the
-locals_d below in order to access it in expressions.  The <em>only</em> job
-of this method in regards to skims is to call set_df with the
-dataframe that comes back from interacting choosers with
-alternatives.  See the skims module for more documentation on how
-the skims object is intended to be used.</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.core.simulate.compute_base_probabilities">
 <code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em>, <em>spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>compute base probabilities for nest leaves
@@ -2199,6 +2181,9 @@ should have a column for each alternative.</p>
 <dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
 </dd>
+<dt><strong>custom_chooser</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function(probs, choosers, spec, trace_label) returns choices, rands</span></dt>
+<dd><p class="first last">custom alternative to logit.make_choices</p>
+</dd>
 <dt><strong>trace_label: str</strong></dt>
 <dd><p class="first last">This is the label to be used  for trace log file entries and dump file names
 when household tracing enabled. No tracing occurs if label is empty or None.</p>
@@ -2265,6 +2250,9 @@ should have a column for each alternative.</p>
 <dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict or None</span></dt>
 <dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
+</dd>
+<dt><strong>custom_chooser</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function(probs, choosers, spec, trace_label) returns choices, rands</span></dt>
+<dd><p class="first last">custom alternative to logit.make_choices</p>
 </dd>
 <dt><strong>trace_label: str</strong></dt>
 <dd><p class="first last">This is the label to be used  for trace log file entries and dump file names
@@ -2384,6 +2372,36 @@ and expressions, plus one or more alternatives.</p>
 <dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
 <dd><p class="first last">The description column is dropped from the returned data and the
 expression values are set as the table index.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.simulate.set_skim_wrapper_targets">
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">set_skim_wrapper_targets</code><span class="sig-paren">(</span><em>df</em>, <em>skims</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.set_skim_wrapper_targets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
+using the parameters of the skims object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">Table to which to add skim data as new columns.
+<cite>df</cite> is modified in-place.</p>
+</dd>
+<dt><strong>skims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SkimDictWrapper or SkimStackWrapper object, or a list or dict of skims</span></dt>
+<dd><p class="first last">The skims object is used to contain multiple matrices of
+origin-destination impedances.  Make sure to also add it to the
+locals_d below in order to access it in expressions.  The <em>only</em> job
+of this method in regards to skims is to call set_df with the
+dataframe that comes back from interacting choosers with
+alternatives.  See the skims module for more documentation on how
+the skims object is intended to be used.</p>
 </dd>
 </dl>
 </td>
@@ -2560,7 +2578,7 @@ and choosing (i.e. making choices), with interaction with the chooser table.</p>
 <h4>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample_simulate"></span><dl class="function">
 <dt id="activitysim.core.interaction_sample_simulate.interaction_sample_simulate">
-<code class="descclassname">activitysim.core.interaction_sample_simulate.</code><code class="descname">interaction_sample_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>choice_column=None</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.interaction_sample_simulate.</code><code class="descname">interaction_sample_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>choice_column</em>, <em>allow_zero_probs=False</em>, <em>zero_prob_choice_val=None</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation in the situation in which alternatives must
 be merged with choosers because there are interaction terms or
 because alternatives are being sampled.</p>
@@ -2675,6 +2693,38 @@ the result of evaluating expression</p>
 <dt><strong>trace_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame or None</span></dt>
 <dd><p class="first last">a dataframe containing the eval result values for each assignment expression</p>
 </dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.assign.evaluate_constants">
+<code class="descclassname">activitysim.core.assign.</code><code class="descname">evaluate_constants</code><span class="sig-paren">(</span><em>expressions</em>, <em>constants</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.evaluate_constants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a list of constant expressions - each one can depend on the one before
+it.  These are usually used for the coefficients which have relationships
+to each other.  So ivt=.7 and then ivt_lr=ivt*.9.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>expressions</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
+<dd><p class="first last">the index are the names of the expressions which are
+used in subsequent evals - thus naming the expressions is required.</p>
+</dd>
+<dt><strong>constants</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">will be passed as the scope of eval - usually a separate set of
+constants are passed in here</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
 </dl>
 </td>
 </tr>
@@ -3877,7 +3927,7 @@ if no output_tables list is specified, then no checkpointed tables will be writt
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.6',
+            VERSION:'0.7',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

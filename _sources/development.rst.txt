@@ -9,8 +9,8 @@ Software Design
 
 The core software components of ActivitySim are described below.  ActivitySim is
 implemented in Python, and makes heavy use of the vectorized backend C/C++ libraries in 
-`pandas <http://pandas.pydata.org>`__  and `numpy <http://numpy.org>`__.  The core design 
-principle of the system is vectorization of for loops, and this principle 
+`pandas <http://pandas.pydata.org>`__  and `numpy <http://numpy.org>`__ in order to be quite performant.  
+The core design principle of the system is vectorization of for loops, and this principle 
 is woven into the system wherever reasonable.  As a result, the Python portions of the software 
 can be thought of as more of an orchestrator, data processor, etc. that integrates a series of 
 C/C++ vectorized data table and matrix operations.  The model system formulates 
@@ -19,22 +19,6 @@ is responsible for setting up and providing expressions to operate on these larg
 
 In developing this software platform, we strive to adhere to a best practices approach to scientific computing, 
 as summarized in `this article. <http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745>`__
-
-Data Handling
-~~~~~~~~~~~~~
-
-ActivitySim works with three open data formats, `HDF5 <https://www.hdfgroup.org/HDF5/>`__ 
-, `Open Matrix (OMX) <https://github.com/osPlanning/omx>`__, and `CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__ . 
-The HDF5 binary data container is used for input tables such as land use inputs, synthetic 
-population files, and accessibility files. HDF5 is also used for the :ref:`pipeline_in_detail` data store.
-OMX, which is based on HDF5, is used for input and output matrices (skims and demand matrices).  CSV files 
-are used for various inputs and outputs as well.
-
-Three key data structures in ActivitySim are:
-
-* `pandas.DataFrame <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html>`__ - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table
-* `pandas.Series <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html>`__ - a vector of data, a column in a DataFrame table or a 1D array
-* `numpy.array <http://docs.scipy.org/doc/numpy/reference/arrays.html>`__ - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example
 
 Model Orchestrator
 ~~~~~~~~~~~~~~~~~~
@@ -53,11 +37,26 @@ adding a :ref:`pipeline_in_detail`, that runs a series of ORCA model steps, mana
 tables throughout the model run, allows for restarting at any model step, and integrates with the 
 random number generation procedures (see :ref:`random_in_detail`).
 
+Data Handling
+~~~~~~~~~~~~~
+
+ActivitySim works with three open data formats, `HDF5 <https://www.hdfgroup.org/HDF5/>`__ 
+, `Open Matrix (OMX) <https://github.com/osPlanning/omx>`__, and `CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__ . 
+The HDF5 binary data container is used for the :ref:`pipeline_in_detail` data store.
+OMX, which is based on HDF5, is used for input and output matrices (skims and demand matrices).  CSV files 
+are used for various inputs and outputs as well.
+
+Three key data structures in ActivitySim are:
+
+* `pandas.DataFrame <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html>`__ - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table
+* `pandas.Series <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html>`__ - a vector of data, a column in a DataFrame table or a 1D array
+* `numpy.array <http://docs.scipy.org/doc/numpy/reference/arrays.html>`__ - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example
+
 Expressions
 ~~~~~~~~~~~
 
-ActivitySim exposes most of its model expressions in CSV files.  These model expression CSV files
-contain Python expressions, mainly pandas/numpy expression, and reference various input data tables 
+ActivitySim exposes all model expressions in CSV files.  These model expression CSV files
+contain Python expressions, mainly pandas/numpy expression, and reference input data tables 
 and network skim matrices.  With this design, the Python code, which can be thought of as a generic expression 
 engine, and the specific model calculations, such as the utilities, are separate.  This helps to avoid 
 modifying the actual Python code when making changes to the models, such as during model calibration. An 
@@ -66,7 +65,7 @@ example of model expressions is found in the example auto ownership model specif
 Refer to the :ref:`expressions` section for more detail.
 
 Many of the models have pre- and post-processor table annotators, which read a CSV file of expression, calculate 
-a number of additional table fields, and join the fields to the target table.  An example table annotation expressions 
+required additional table fields, and join the fields to the target tables.  An example table annotation expressions 
 file is found in the example configuration files for households for the CDAP model - 
 `annotate_households_cdap.csv <https://github.com/UDST/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
 Refer to :ref:`table_annotation` for more information and the :func:`activitysim.abm.models.util.expressions.assign_columns` function.
@@ -155,11 +154,11 @@ our GitHub workflow are:
 
 * The master branch contains the latest working/release version of the ActivitySim resources
 * The master branch is protected and therefore can only be written to by the `Travis <https://travis-ci.org/>`__ CI system
-* Work is done in an issue/feature branch (or a fork) and then pushed to a new brach in the repo
-* The test system automatically runs the tests on the new branch
+* Work is done in an issue/feature branch (or a fork) and then pushed to a new brach
+* The test system automatically runs the tests for a subset of the model (a subset of zones, households, and models) on the new branch
 * If the tests pass, then a manual pull request can be approved to merge into master
-* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated
-* Every time a merge is made to master, the version should be incremented and a new package posted to PyPI
+* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository manager also runs the full scale model (all zones, households, and models) to ensure the example model runs successfully.  
+* Every time a merge is made to master, the version is incremented and a new package posted to `Python Package Index <https://pypi.org/>`__
 
 Versioning
 ~~~~~~~~~~

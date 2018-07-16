@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Software Development &mdash; ActivitySim 0.6
+  <title>Software Development &mdash; ActivitySim 0.7
  documentation</title>
   
 
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.6
+                0.7
 
               </div>
             
@@ -92,8 +92,8 @@
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Software Development</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#software-design">Software Design</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#data-handling">Data Handling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#model-orchestrator">Model Orchestrator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-handling">Data Handling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expressions">Expressions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#choice-models">Choice Models</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#person-time-windows">Person Time Windows</a></li>
@@ -185,8 +185,8 @@
 <h2>Software Design<a class="headerlink" href="#software-design" title="Permalink to this headline">¶</a></h2>
 <p>The core software components of ActivitySim are described below.  ActivitySim is
 implemented in Python, and makes heavy use of the vectorized backend C/C++ libraries in
-<a class="reference external" href="http://pandas.pydata.org">pandas</a>  and <a class="reference external" href="http://numpy.org">numpy</a>.  The core design
-principle of the system is vectorization of for loops, and this principle
+<a class="reference external" href="http://pandas.pydata.org">pandas</a>  and <a class="reference external" href="http://numpy.org">numpy</a> in order to be quite performant.
+The core design principle of the system is vectorization of for loops, and this principle
 is woven into the system wherever reasonable.  As a result, the Python portions of the software
 can be thought of as more of an orchestrator, data processor, etc. that integrates a series of
 C/C++ vectorized data table and matrix operations.  The model system formulates
@@ -194,21 +194,6 @@ each simulation as a series of vectorized table operations and the Python layer
 is responsible for setting up and providing expressions to operate on these large data tables.</p>
 <p>In developing this software platform, we strive to adhere to a best practices approach to scientific computing,
 as summarized in <a class="reference external" href="http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745">this article.</a></p>
-<div class="section" id="data-handling">
-<h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim works with three open data formats, <a class="reference external" href="https://www.hdfgroup.org/HDF5/">HDF5</a>
-, <a class="reference external" href="https://github.com/osPlanning/omx">Open Matrix (OMX)</a>, and <a class="reference external" href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a> .
-The HDF5 binary data container is used for input tables such as land use inputs, synthetic
-population files, and accessibility files. HDF5 is also used for the <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a> data store.
-OMX, which is based on HDF5, is used for input and output matrices (skims and demand matrices).  CSV files
-are used for various inputs and outputs as well.</p>
-<p>Three key data structures in ActivitySim are:</p>
-<ul class="simple">
-<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html">pandas.DataFrame</a> - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table</li>
-<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html">pandas.Series</a> - a vector of data, a column in a DataFrame table or a 1D array</li>
-<li><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.html">numpy.array</a> - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example</li>
-</ul>
-</div>
 <div class="section" id="model-orchestrator">
 <h3>Model Orchestrator<a class="headerlink" href="#model-orchestrator" title="Permalink to this headline">¶</a></h3>
 <p>An ActivitySim model is a sequence of model / data processing steps, commonly known as a data pipeline.
@@ -224,10 +209,24 @@ adding a <a class="reference internal" href="core.html#pipeline-in-detail"><span
 tables throughout the model run, allows for restarting at any model step, and integrates with the
 random number generation procedures (see <a class="reference internal" href="core.html#random-in-detail"><span class="std std-ref">Random</span></a>).</p>
 </div>
+<div class="section" id="data-handling">
+<h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">¶</a></h3>
+<p>ActivitySim works with three open data formats, <a class="reference external" href="https://www.hdfgroup.org/HDF5/">HDF5</a>
+, <a class="reference external" href="https://github.com/osPlanning/omx">Open Matrix (OMX)</a>, and <a class="reference external" href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a> .
+The HDF5 binary data container is used for the <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a> data store.
+OMX, which is based on HDF5, is used for input and output matrices (skims and demand matrices).  CSV files
+are used for various inputs and outputs as well.</p>
+<p>Three key data structures in ActivitySim are:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html">pandas.DataFrame</a> - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table</li>
+<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html">pandas.Series</a> - a vector of data, a column in a DataFrame table or a 1D array</li>
+<li><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.html">numpy.array</a> - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example</li>
+</ul>
+</div>
 <div class="section" id="expressions">
 <h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim exposes most of its model expressions in CSV files.  These model expression CSV files
-contain Python expressions, mainly pandas/numpy expression, and reference various input data tables
+<p>ActivitySim exposes all model expressions in CSV files.  These model expression CSV files
+contain Python expressions, mainly pandas/numpy expression, and reference input data tables
 and network skim matrices.  With this design, the Python code, which can be thought of as a generic expression
 engine, and the specific model calculations, such as the utilities, are separate.  This helps to avoid
 modifying the actual Python code when making changes to the models, such as during model calibration. An
@@ -235,7 +234,7 @@ example of model expressions is found in the example auto ownership model specif
 <a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv">auto_ownership.csv</a>.
 Refer to the <a class="reference internal" href="core.html#expressions"><span class="std std-ref">Utility Expressions</span></a> section for more detail.</p>
 <p>Many of the models have pre- and post-processor table annotators, which read a CSV file of expression, calculate
-a number of additional table fields, and join the fields to the target table.  An example table annotation expressions
+required additional table fields, and join the fields to the target tables.  An example table annotation expressions
 file is found in the example configuration files for households for the CDAP model -
 <a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/annotate_households_cdap.csv">annotate_households_cdap.csv</a>.
 Refer to <a class="reference internal" href="models.html#table-annotation"><span class="std std-ref">Expressions</span></a> for more information and the <a class="reference internal" href="models.html#activitysim.abm.models.util.expressions.assign_columns" title="activitysim.abm.models.util.expressions.assign_columns"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.expressions.assign_columns()</span></code></a> function.</p>
@@ -318,11 +317,11 @@ our GitHub workflow are:</p>
 <ul class="simple">
 <li>The master branch contains the latest working/release version of the ActivitySim resources</li>
 <li>The master branch is protected and therefore can only be written to by the <a class="reference external" href="https://travis-ci.org/">Travis</a> CI system</li>
-<li>Work is done in an issue/feature branch (or a fork) and then pushed to a new brach in the repo</li>
-<li>The test system automatically runs the tests on the new branch</li>
+<li>Work is done in an issue/feature branch (or a fork) and then pushed to a new brach</li>
+<li>The test system automatically runs the tests for a subset of the model (a subset of zones, households, and models) on the new branch</li>
 <li>If the tests pass, then a manual pull request can be approved to merge into master</li>
-<li>The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated</li>
-<li>Every time a merge is made to master, the version should be incremented and a new package posted to PyPI</li>
+<li>The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository manager also runs the full scale model (all zones, households, and models) to ensure the example model runs successfully.</li>
+<li>Every time a merge is made to master, the version is incremented and a new package posted to <a class="reference external" href="https://pypi.org/">Python Package Index</a></li>
 </ul>
 </div>
 <div class="section" id="versioning">
@@ -450,7 +449,7 @@ The script does the following:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.6',
+            VERSION:'0.7',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

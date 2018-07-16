@@ -553,13 +553,13 @@ the example model.  These tables and skims are defined in the :mod:`activitysim.
 Data Tables
 ~~~~~~~~~~~
 
-The following tables are currently implemented, and some are extended in the example extensions tables.
+The following tables are currently implemented:
 
   * households - household attributes for each household being simulated.  Index: ``HHID`` (see ``scripts\data_mover.ipynb``)
   * landuse - zonal land use (such as population and employment) attributes. Index: ``TAZ`` (see ``scripts\data_mover.ipynb``)
   * persons - person attributes for each person being simulated.  Index: ``PERID`` (see ``scripts\data_mover.ipynb``)
   * time windows - manages person time windows throughout the simulation.  See :ref:`time_windows`.  Index:  ``PERID`` (see the person_windows table create decorator in ``activitysim.abm.tables.time_windows.py``)
-  * tours - tour attributes for each tour (mandatory, joint, non-mandatory, and atwork-subtour) being simulated.  Index:  ``TOURID`` (see ``activitysim.abm.models.util.tour_frequency.py``)
+  * tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  ``TOURID`` (see ``activitysim.abm.models.util.tour_frequency.py``)
   * trips - trip attributes for each trip being simulated.  Index: ``TRIPID`` (see ``activitysim.abm.models.stop_frequency.py``)
 
 A few additional tables are also used, which are not really tables, but classes:
@@ -809,247 +809,243 @@ uses the information stored in the pipeline file to create the table below for a
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
 | land_use                          | county_name                   | object  | initialize                         | 45 | 25  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 4                             | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 4                             | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 5                             | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 5                             | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 6                             | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 6                             | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 7                             | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 7                             | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 8                             | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 8                             | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 9                             | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 9                             | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 10                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 10                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 11                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 11                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 12                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 12                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 13                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 13                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 14                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 14                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 15                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 15                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 16                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 16                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 17                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 17                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 18                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 18                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 19                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 19                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 20                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 20                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 21                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 21                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 22                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 22                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 23                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 23                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 24                            | int8    | initialize                         | 21 | 153 |
+| person_windows                    | 24                            | int8    | initialize                         | 21 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | household_id                  | int64   | initialize                         | 40 | 153 |
+| persons                           | household_id                  | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | age                           | int64   | initialize                         | 40 | 153 |
+| persons                           | age                           | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | RELATE                        | int64   | initialize                         | 40 | 153 |
+| persons                           | RELATE                        | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | ESR                           | int64   | initialize                         | 40 | 153 |
+| persons                           | ESR                           | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | GRADE                         | int64   | initialize                         | 40 | 153 |
+| persons                           | GRADE                         | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | PNUM                          | int64   | initialize                         | 40 | 153 |
+| persons                           | PNUM                          | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | PAUG                          | int64   | initialize                         | 40 | 153 |
+| persons                           | PAUG                          | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | DDP                           | int64   | initialize                         | 40 | 153 |
+| persons                           | DDP                           | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | sex                           | int64   | initialize                         | 40 | 153 |
+| persons                           | sex                           | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | WEEKS                         | int64   | initialize                         | 40 | 153 |
+| persons                           | WEEKS                         | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | HOURS                         | int64   | initialize                         | 40 | 153 |
+| persons                           | HOURS                         | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | MSP                           | int64   | initialize                         | 40 | 153 |
+| persons                           | MSP                           | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | POVERTY                       | int64   | initialize                         | 40 | 153 |
+| persons                           | POVERTY                       | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | EARNS                         | int64   | initialize                         | 40 | 153 |
+| persons                           | EARNS                         | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | pagecat                       | int64   | initialize                         | 40 | 153 |
+| persons                           | pagecat                       | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | pemploy                       | int64   | initialize                         | 40 | 153 |
+| persons                           | pemploy                       | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | pstudent                      | int64   | initialize                         | 40 | 153 |
+| persons                           | pstudent                      | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | ptype                         | int64   | initialize                         | 40 | 153 |
+| persons                           | ptype                         | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | padkid                        | int64   | initialize                         | 40 | 153 |
+| persons                           | padkid                        | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | age_16_to_19                  | bool    | initialize                         | 40 | 153 |
+| persons                           | age_16_to_19                  | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | age_16_p                      | bool    | initialize                         | 40 | 153 |
+| persons                           | age_16_p                      | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | adult                         | bool    | initialize                         | 40 | 153 |
+| persons                           | adult                         | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | male                          | bool    | initialize                         | 40 | 153 |
+| persons                           | male                          | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | female                        | bool    | initialize                         | 40 | 153 |
+| persons                           | female                        | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_non_worker                | bool    | initialize                         | 40 | 153 |
+| persons                           | has_non_worker                | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_retiree                   | bool    | initialize                         | 40 | 153 |
+| persons                           | has_retiree                   | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_preschool_kid             | bool    | initialize                         | 40 | 153 |
+| persons                           | has_preschool_kid             | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_driving_kid               | bool    | initialize                         | 40 | 153 |
+| persons                           | has_driving_kid               | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_school_kid                | bool    | initialize                         | 40 | 153 |
+| persons                           | has_school_kid                | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_full_time                 | bool    | initialize                         | 40 | 153 |
+| persons                           | has_full_time                 | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_part_time                 | bool    | initialize                         | 40 | 153 |
+| persons                           | has_part_time                 | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_university                | bool    | initialize                         | 40 | 153 |
+| persons                           | has_university                | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | student_is_employed           | bool    | initialize                         | 40 | 153 |
+| persons                           | student_is_employed           | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | nonstudent_to_school          | bool    | initialize                         | 40 | 153 |
+| persons                           | nonstudent_to_school          | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_worker                     | bool    | initialize                         | 40 | 153 |
+| persons                           | is_worker                     | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_student                    | bool    | initialize                         | 40 | 153 |
+| persons                           | is_student                    | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_gradeschool                | bool    | initialize                         | 40 | 153 |
+| persons                           | is_gradeschool                | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_highschool                 | bool    | initialize                         | 40 | 153 |
+| persons                           | is_highschool                 | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_university                 | bool    | initialize                         | 40 | 153 |
+| persons                           | is_university                 | bool    | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | home_taz                      | int64   | initialize                         | 40 | 153 |
+| persons                           | home_taz                      | int64   | initialize                         | 40 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | school_taz                    | int32   | school_location_simulate           | 43 | 153 |
+| persons                           | school_taz                    | int32   | school_location_simulate           | 43 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | distance_to_school            | float64 | school_location_simulate           | 43 | 153 |
+| persons                           | distance_to_school            | float64 | school_location_simulate           | 43 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | roundtrip_auto_time_to_school | float64 | school_location_simulate           | 43 | 153 |
+| persons                           | roundtrip_auto_time_to_school | float64 | school_location_simulate           | 43 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | workplace_taz                 | int32   | workplace_location_simulate        | 48 | 153 |
+| persons                           | workplace_taz                 | int32   | workplace_location_simulate        | 48 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | distance_to_work              | float64 | workplace_location_simulate        | 48 | 153 |
+| persons                           | distance_to_work              | float64 | workplace_location_simulate        | 48 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | roundtrip_auto_time_to_work   | float64 | workplace_location_simulate        | 48 | 153 |
+| persons                           | roundtrip_auto_time_to_work   | float64 | workplace_location_simulate        | 48 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | workplace_in_cbd              | bool    | workplace_location_simulate        | 48 | 153 |
+| persons                           | workplace_in_cbd              | bool    | workplace_location_simulate        | 48 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | work_taz_area_type            | float64 | workplace_location_simulate        | 48 | 153 |
+| persons                           | work_taz_area_type            | float64 | workplace_location_simulate        | 48 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | cdap_activity                 | object  | cdap_simulate                      | 54 | 153 |
+| persons                           | cdap_activity                 | object  | cdap_simulate                      | 54 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | cdap_rank                     | int64   | cdap_simulate                      | 54 | 153 |
+| persons                           | cdap_rank                     | int64   | cdap_simulate                      | 54 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | travel_active                 | bool    | cdap_simulate                      | 54 | 153 |
+| persons                           | travel_active                 | bool    | cdap_simulate                      | 54 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | under16_not_at_school         | bool    | cdap_simulate                      | 54 | 153 |
+| persons                           | under16_not_at_school         | bool    | cdap_simulate                      | 54 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_preschool_kid_at_home     | bool    | cdap_simulate                      | 54 | 153 |
+| persons                           | has_preschool_kid_at_home     | bool    | cdap_simulate                      | 54 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_school_kid_at_home        | bool    | cdap_simulate                      | 54 | 153 |
+| persons                           | has_school_kid_at_home        | bool    | cdap_simulate                      | 54 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | mandatory_tour_frequency      | object  | mandatory_tour_frequency           | 59 | 153 |
+| persons                           | mandatory_tour_frequency      | object  | mandatory_tour_frequency           | 59 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | work_and_school_and_worker    | bool    | mandatory_tour_frequency           | 59 | 153 |
+| persons                           | work_and_school_and_worker    | bool    | mandatory_tour_frequency           | 59 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | work_and_school_and_student   | bool    | mandatory_tour_frequency           | 59 | 153 |
+| persons                           | work_and_school_and_student   | bool    | mandatory_tour_frequency           | 59 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_mand                      | int8    | mandatory_tour_frequency           | 59 | 153 |
+| persons                           | num_mand                      | int8    | mandatory_tour_frequency           | 59 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_work_tours                | int8    | mandatory_tour_frequency           | 59 | 153 |
+| persons                           | num_work_tours                | int8    | mandatory_tour_frequency           | 59 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | non_mandatory_tour_frequency  | float64 | non_mandatory_tour_frequency       | 64 | 153 |
+| persons                           | non_mandatory_tour_frequency  | float64 | non_mandatory_tour_frequency       | 64 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_non_mand                  | float64 | non_mandatory_tour_frequency       | 64 | 153 |
+| persons                           | num_non_mand                  | float64 | non_mandatory_tour_frequency       | 64 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_escort_tours              | float64 | non_mandatory_tour_frequency       | 64 | 153 |
+| persons                           | num_escort_tours              | float64 | non_mandatory_tour_frequency       | 64 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_non_escort_tours          | float64 | non_mandatory_tour_frequency       | 64 | 153 |
+| persons                           | num_non_escort_tours          | float64 | non_mandatory_tour_frequency       | 64 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_eatout_tours              | float64 | non_mandatory_tour_frequency       | 64 | 153 |
+| persons                           | num_eatout_tours              | float64 | non_mandatory_tour_frequency       | 64 | 157 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | person_id                     | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | person_id                     | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_type                     | object  | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | tour_type                     | object  | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_type_count               | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | tour_type_count               | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_type_num                 | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | tour_type_num                 | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_num                      | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | tour_num                      | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_count                    | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | tour_count                    | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_category                 | object  | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | tour_category                 | object  | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | number_of_participants        | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | number_of_participants        | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | destination                   | int32   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | destination                   | int32   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | origin                        | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | origin                        | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | household_id                  | int64   | mandatory_tour_frequency           | 11 | 68  |
+| tours                             | household_id                  | int64   | mandatory_tour_frequency           | 11 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | start                         | int64   | mandatory_tour_scheduling          | 15 | 68  |
+| tours                             | start                         | int64   | mandatory_tour_scheduling          | 15 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | end                           | int64   | mandatory_tour_scheduling          | 15 | 68  |
+| tours                             | end                           | int64   | mandatory_tour_scheduling          | 15 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | duration                      | int64   | mandatory_tour_scheduling          | 15 | 68  |
+| tours                             | duration                      | int64   | mandatory_tour_scheduling          | 15 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tdd                           | int64   | mandatory_tour_scheduling          | 15 | 68  |
+| tours                             | tdd                           | int64   | mandatory_tour_scheduling          | 15 | 71  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | composition                   | object  | joint_tour_composition             | 16 | 70  |
+| tours                             | composition                   | object  | joint_tour_composition             | 16 | 73  |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | mode                          | object  | joint_tour_mode_choice             | 17 | 70  |
+| tours                             | tour_mode                     | object  | joint_tour_mode_choice             | 17 | 183 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | atwork_subtour_frequency      | object  | atwork_subtour_frequency           | 19 | 189 |
+| tours                             | atwork_subtour_frequency      | object  | atwork_subtour_frequency           | 19 | 186 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | parent_tour_id                | float64 | atwork_subtour_frequency           | 19 | 189 |
+| tours                             | parent_tour_id                | float64 | atwork_subtour_frequency           | 19 | 186 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | stop_frequency                | object  | stop_frequency                     | 21 | 189 |
+| tours                             | stop_frequency                | object  | stop_frequency                     | 21 | 186 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | primary_purpose               | object  | stop_frequency                     | 21 | 189 |
+| tours                             | primary_purpose               | object  | stop_frequency                     | 21 | 186 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | person_id                     | int64   | stop_frequency                     | 10 | 464 |
+| trips                             | person_id                     | int64   | stop_frequency                     | 7  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | household_id                  | int64   | stop_frequency                     | 10 | 464 |
+| trips                             | household_id                  | int64   | stop_frequency                     | 7  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | tour_id                       | int64   | stop_frequency                     | 10 | 464 |
+| trips                             | tour_id                       | int64   | stop_frequency                     | 7  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | primary_purpose               | object  | stop_frequency                     | 10 | 464 |
+| trips                             | primary_purpose               | object  | stop_frequency                     | 7  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | atwork                        | bool    | stop_frequency                     | 10 | 464 |
+| trips                             | trip_num                      | int64   | stop_frequency                     | 7  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | trip_num                      | int64   | stop_frequency                     | 10 | 464 |
+| trips                             | outbound                      | bool    | stop_frequency                     | 7  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | outbound                      | bool    | stop_frequency                     | 10 | 464 |
+| trips                             | trip_count                    | int64   | stop_frequency                     | 7  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | trip_count                    | int64   | stop_frequency                     | 10 | 464 |
+| trips                             | purpose                       | object  | trip_purpose                       | 8  | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | first                         | bool    | stop_frequency                     | 10 | 464 |
+| trips                             | destination                   | int32   | trip_destination                   | 11 | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | last                          | bool    | stop_frequency                     | 10 | 464 |
+| trips                             | origin                        | int32   | trip_destination                   | 11 | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | purpose                       | object  | trip_purpose                       | 11 | 464 |
+| trips                             | failed                        | bool    | trip_destination                   | 11 | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | destination                   | int32   | trip_destination                   | 14 | 464 |
+| trips                             | depart                        | int64   | trip_scheduling                    | 12 | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | origin                        | int32   | trip_destination                   | 14 | 464 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | failed                        | bool    | trip_destination                   | 14 | 464 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | depart                        | int64   | trip_scheduling                    | 15 | 464 |
+| trips                             | trip_mode                     | int64   | trip_mode_choice                   | 13 | 428 |
 +-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
 
 .. index:: skims

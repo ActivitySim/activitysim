@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example &mdash; ActivitySim 0.6
+  <title>Example &mdash; ActivitySim 0.7
  documentation</title>
   
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6
+                0.7
 
               </div>
             
@@ -211,15 +211,17 @@ zones were further sub-divided into three categories of transit access: short wa
 <p>However, support for transit subzones is not included in the activitysim implementation since the latest generation
 of activity-based models typically use multiple zone systems instead.  In brief, all households are assigned to microzones
 (such as Census blocks) and trips are assigned to origin and destination microzones.  When considering network
-level-of-service (LOS) indicators, different spatial resolutions are used for different modes.  For example:</p>
+level-of-service (LOS) indicators, different spatial resolutions can be used for different modes.  For example:</p>
 <blockquote>
 <div><ul class="simple">
-<li>TAZs are used for auto network modeling and skims</li>
-<li>Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims</li>
-<li>Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims</li>
+<li>TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model</li>
+<li>Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims and a set of nearby maz-to-maz skims is input to the demand model</li>
+<li>Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims and a set of tap-to-tap skims is input to the demand model</li>
+<li>Microzone to transit access point for transit access/egress LOS is input to the demand model</li>
 </ul>
 </div></blockquote>
-<p>In the demand model, transit virtual path building (TVPB) is done to generate LOS measures from:</p>
+<p>Since trips are modeled in the demand model from microzone to microzone, but transit network LOS is split across
+two input data sets, transit virtual path building (TVPB) is done to generate LOS measures from:</p>
 <blockquote>
 <div><ul class="simple">
 <li>the trip’s origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures</li>
@@ -228,7 +230,7 @@ level-of-service (LOS) indicators, different spatial resolutions are used for di
 </ul>
 </div></blockquote>
 <p>The resulting complete transit path LOS for the “best” or a “bundle” of paths is then used in the demand model
-for representing transit LOS at the microzone level.  This functionality is <strong>NOT YET IMPLEMENTED</strong>.</p>
+for representing transit LOS at the microzone level.  This functionality is <strong>NOT YET IMPLEMENTED</strong>, but planned for a future release.</p>
 </div>
 <div class="section" id="decision-making-units">
 <h3>Decision-making units<a class="headerlink" href="#decision-making-units" title="Permalink to this headline">¶</a></h3>
@@ -501,35 +503,32 @@ location for auto trips.</p>
 <img alt="_images/abmexample.jpg" src="_images/abmexample.jpg" usemap="#image-map" />
 
    <map name="image-map">
-      <area target="" alt="" title="" href="models.html#accessibility" coords="235,3,443,30" shape="rect">
-      <area target="" alt="" title="" href="models.html#school-location" coords="445,72,234,44" shape="rect">
-      <area target="" alt="" title="" href="models.html#auto-ownership" coords="238,84,445,112" shape="rect">
-      <area target="" alt="" title="" href="models.html#free-parking-eligibility" coords="239,124,442,151" shape="rect">
-      <area target="" alt="" title="" href="models.html#cdap" coords="236,163,442,192" shape="rect">
-      <area target="" alt="" title="" href="models.html#mandatory-tour-frequency" coords="163,269,7,241" shape="rect">
-      <area target="" alt="" title="" href="models.html#mandatory-tour-scheduling" coords="5,400,161,431" shape="rect">
-      <area target="" alt="" title="" href="models.html#tour-mode" coords="5,471,161,506" shape="rect">
-      <area target="" alt="" title="" href="models.html#joint-tour-frequency" coords="177,241,334,273" shape="rect">
-      <area target="" alt="" title="" href="models.html#joint-tour-composition" coords="178,284,327,311" shape="rect">
-      <area target="" alt="" title="" href="models.html#joint-tour-participation" coords="178,323,331,350" shape="rect">
-      <area target="" alt="" title="" href="models.html#joint-tour-destination-choice" coords="178,361,329,389" shape="rect">
-      <area target="" alt="" title="" href="models.html#joint-tour-scheduling" coords="179,403,332,430" shape="rect">
-      <area target="" alt="" title="" href="models.html#joint-tour-mode-choice" coords="173,443,331,465" shape="rect">
-      <area target="" alt="" title="" href="models.html#non-mandatory-tour-frequency" coords="346,245,496,268" shape="rect">
-      <area target="" alt="" title="" href="models.html#non-mandatory-tour-destination-choice" coords="344,361,496,389" shape="rect">
-      <area target="" alt="" title="" href="models.html#non-mandatory-tour-scheduling" coords="346,401,499,426" shape="rect">
-      <area target="" alt="" title="" href="models.html#man-non-man-tour-mode-choice" coords="344,476,501,500" shape="rect">
-      <area target="" alt="" title="" href="models.html#atwork-subtour-frequency" coords="518,243,668,269" shape="rect">
-      <area target="" alt="" title="" href="models.html#atwork-subtour-destination" coords="513,364,668,387" shape="rect">
-      <area target="" alt="" title="" href="models.html#atwork-subtour-scheduling" coords="517,402,667,428" shape="rect">
-      <area target="" alt="" title="" href="models.html#atwork-subtour-mode-choice" coords="516,443,669,468" shape="rect">
-      <area target="" alt="" title="" href="models.html#intermediate-stop-frequency" coords="669,549,8,522" shape="rect">
-      <area target="" alt="" title="" href="models.html#trip-purpose" coords="233,575,438,598" shape="rect">
-      <area target="" alt="" title="" href="models.html#trip-destination-choice" coords="236,617,436,641" shape="rect">
-      <area target="" alt="" title="" href="models.html#trip-scheduling" coords="236,657,437,680" shape="rect">
-      <area target="" alt="" title="" href="models.html#trip-mode-choice" coords="238,696,436,718" shape="rect">
-      <area target="" alt="" title="" href="models.html#trip-cbd-parking" coords="236,730,434,757" shape="rect">
-    </map>
+    <area target="" alt="" title="" href="models.html#trip-cbd-parking" coords="234,683,436,709" shape="rect">
+    <area target="" alt="" title="" href="models.html#trip-mode-choice" coords="438,670,235,646" shape="rect">
+    <area target="" alt="" title="" href="models.html#trip-scheduling" coords="235,607,434,630" shape="rect">
+    <area target="" alt="" title="" href="models.html#trip-destination-choice" coords="235,565,433,588" shape="rect">
+    <area target="" alt="" title="" href="models.html#trip-purpose" coords="236,524,436,550" shape="rect">
+    <area target="" alt="" title="" href="models.html#intermediate-stop-frequency" coords="5,481,663,505" shape="rect">
+    <area target="" alt="" title="" href="models.html#atwork-subtour-scheduling" coords="516,401,666,427" shape="rect">
+    <area target="" alt="" title="" href="models.html#atwork-subtour-destination" coords="517,361,667,385" shape="rect">
+    <area target="" alt="" title="" href="models.html#atwork-subtour-frequency" coords="515,243,667,265" shape="rect">
+    <area target="" alt="" title="" href="models.html#non-mandatory-tour-scheduling" coords="347,404,497,425" shape="rect">
+    <area target="" alt="" title="" href="models.html#non-mandatory-tour-destination-choice" coords="347,363,496,384" shape="rect">
+    <area target="" alt="" title="" href="models.html#non-mandatory-tour-frequency" coords="347,245,495,267" shape="rect">
+    <area target="" alt="" title="" href="models.html#joint-tour-scheduling" coords="175,402,327,424" shape="rect">
+    <area target="" alt="" title="" href="models.html#joint-tour-destination-choice" coords="175,361,326,386" shape="rect">
+    <area target="" alt="" title="" href="models.html#joint-tour-participation" coords="175,324,326,345" shape="rect">
+    <area target="" alt="" title="" href="models.html#joint-tour-composition" coords="176,282,326,307" shape="rect">
+    <area target="" alt="" title="" href="models.html#joint-tour-frequency" coords="176,243,327,266" shape="rect">
+    <area target="" alt="" title="" href="models.html#tour-mode" coords="5,442,667,464" shape="rect">
+    <area target="" alt="" title="" href="models.html#mandatory-tour-scheduling" coords="5,401,156,425" shape="rect">
+    <area target="" alt="" title="" href="models.html#mandatory-tour-frequency" coords="5,241,157,267" shape="rect">
+    <area target="" alt="" title="" href="models.html#cdap" coords="235,165,434,189" shape="rect">
+    <area target="" alt="" title="" href="models.html#free-parking-eligibility" coords="239,126,435,148" shape="rect">
+    <area target="" alt="" title="" href="models.html#auto-ownership" coords="237,86,433,109" shape="rect">
+    <area target="" alt="" title="" href="models.html#school-location" coords="237,43,435,67" shape="rect">
+    <area target="" alt="" title="" href="models.html#accessibility" coords="236,6,436,27" shape="rect">
+   </map>
     <p>The output of the model is a disggregate table of trips with individual attributes for custom analysis.  The trips
 can be aggregated into travel demand matrices for network loading.</p>
 </div>
@@ -642,12 +641,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <li>school_location.yaml</li>
 <li>annotate_persons_school.csv</li>
 <li>school_location_sample.csv</li>
-<li>logsums.yaml<ul>
-<li>logsums_annotate_choosers_preprocessor.csv</li>
-<li>logsums_spec.csv</li>
-<li>logsums_coeffs.csv</li>
-</ul>
-</li>
+<li>tour_mode_choice.yaml (and related files)</li>
 <li>school_location.csv</li>
 <li>destination_choice_size_terms.csv</li>
 </ul>
@@ -658,12 +652,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <li>workplace_location.yaml</li>
 <li>annotate_persons_workplace.csv</li>
 <li>workplace_location_sample.csv</li>
-<li>logsums.yaml<ul>
-<li>logsums_annotate_choosers_preprocessor.csv</li>
-<li>logsums_spec.csv</li>
-<li>logsums_coeffs.csv</li>
-</ul>
-</li>
+<li>tour_mode_choice.yaml (and related files)</li>
 <li>workplace_location.csv</li>
 <li>destination_choice_size_terms.csv</li>
 </ul>
@@ -737,12 +726,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <li>joint_tour_destination.yaml</li>
 <li>non_mandatory_tour_destination_sample.csv</li>
 <li>non_mandatory_tour_destination.csv</li>
-<li>logsums.yaml<ul>
-<li>logsums_annotate_choosers_preprocessor.csv</li>
-<li>logsums_spec.csv</li>
-<li>logsums_coeffs.csv</li>
-</ul>
-</li>
+<li>tour_mode_choice.yaml (and related files)</li>
 <li>destination_choice_size_terms.csv</li>
 </ul>
 </td>
@@ -756,18 +740,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#joint-tour-mode-choice"><span class="std std-ref">Joint Tour Mode Choice</span></a></td>
-<td><ul class="first last simple">
-<li>joint_tour_mode_choice.yaml</li>
-<li>tour_mode_choice_annotate_tours_preprocessor1.csv</li>
-<li>tour_mode_choice_annotate_tours_preprocessor2.csv</li>
-<li>tour_mode_choice.yaml</li>
-<li>tour_mode_choice.csv</li>
-<li>tour_mode_choice_coeffs.csv</li>
-</ul>
-</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></td>
 <td><ul class="first last simple">
 <li>non_mandatory_tour_frequency.yaml</li>
 <li>non_mandatory_tour_frequency.csv</li>
@@ -776,7 +749,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a></td>
 <td><ul class="first last simple">
 <li>non_mandatory_tour_destination_choice.yaml</li>
 <li>non_mandatory_tour_destination.csv (<strong>NOT YET IMPLEMENTED</strong>)</li>
@@ -785,7 +758,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></td>
 <td><ul class="first last simple">
 <li>non_mandatory_tour_scheduling.yaml</li>
 <li>non_mandatory_tour_scheduling_annotate_tours_preprocessor</li>
@@ -794,17 +767,16 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#man-non-man-tour-mode-choice"><span class="std std-ref">Mandatory and Individual Non-Mandatory Tour Mode</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode Choice</span></a></td>
 <td><ul class="first last simple">
 <li>tour_mode_choice.yaml</li>
-<li>tour_mode_choice_annotate_tours_preprocessor1.csv</li>
-<li>tour_mode_choice_annotate_tours_preprocessor2.csv</li>
+<li>tour_mode_choice_annotate_choosers_preprocessor.csv</li>
 <li>tour_mode_choice.csv</li>
 <li>tour_mode_choice_coeffs.csv</li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-frequency"><span class="std std-ref">At-work Subtours Frequency</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-frequency"><span class="std std-ref">At-work Subtours Frequency</span></a></td>
 <td><ul class="first last simple">
 <li>atwork_subtour_frequency.yaml</li>
 <li>atwork_subtour_frequency.csv</li>
@@ -812,22 +784,17 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-destination"><span class="std std-ref">At-work Subtours Destination Choice</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-destination"><span class="std std-ref">At-work Subtours Destination Choice</span></a></td>
 <td><ul class="first last simple">
 <li>atwork_subtour_destination.yaml</li>
 <li>atwork_subtour_destination_sample.csv</li>
 <li>atwork_subtour_destination.csv</li>
-<li>logsums.yaml<ul>
-<li>logsums_annotate_choosers_preprocessor.csv</li>
-<li>logsums_spec.csv</li>
-<li>logsums_coeffs.csv</li>
-</ul>
-</li>
+<li>tour_mode_choice.yaml (and related files)</li>
 <li>destination_choice_size_terms.csv</li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-scheduling"><span class="std std-ref">At-work Subtour Scheduling</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-scheduling"><span class="std std-ref">At-work Subtour Scheduling</span></a></td>
 <td><ul class="first last simple">
 <li>atwork_subtour_scheduling.yaml</li>
 <li>tour_scheduling_atwork.csv</li>
@@ -835,18 +802,13 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-mode-choice"><span class="std std-ref">At-work Subtour Mode</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-mode-choice"><span class="std std-ref">At-work Subtour Mode</span></a></td>
 <td><ul class="first last simple">
-<li>atwork_subtour_mode_choice.yaml</li>
-<li>tour_mode_choice_annotate_tours_preprocessor1.csv</li>
-<li>tour_mode_choice_annotate_tours_preprocessor2.csv</li>
-<li>tour_mode_choice.yaml</li>
-<li>tour_mode_choice.csv</li>
-<li>tour_mode_choice_coeffs.csv</li>
+<li>tour_mode_choice.yaml (and related files)</li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#intermediate-stop-frequency"><span class="std std-ref">Intermediate Stop Frequency</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#intermediate-stop-frequency"><span class="std std-ref">Intermediate Stop Frequency</span></a></td>
 <td><ul class="first last simple">
 <li>stop_frequency.yaml</li>
 <li>stop_frequency_annotate_tours_preprocessor.csv</li>
@@ -865,7 +827,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#trip-purpose"><span class="std std-ref">Trip Purpose</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#trip-purpose"><span class="std std-ref">Trip Purpose</span></a></td>
 <td><ul class="first last simple">
 <li>trip_purpose.yaml (+ trip_purpose_and_destination.yaml)</li>
 <li>trip_purpose_annotate_trips_preprocessor.csv</li>
@@ -873,32 +835,33 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#trip-destination-choice"><span class="std std-ref">Trip Destination Choice</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#trip-destination-choice"><span class="std std-ref">Trip Destination Choice</span></a></td>
 <td><ul class="first last simple">
 <li>trip_destination.yaml (+ trip_purpose_and_destination.yaml)</li>
 <li>trip_destination_annotate_trips_preprocessor.csv</li>
 <li>trip_destination_sample.csv</li>
-<li>logsums.yaml<ul>
-<li>logsums_annotate_choosers_preprocessor.csv</li>
-<li>logsums_spec.csv</li>
-<li>logsums_coeffs.csv</li>
-</ul>
-</li>
+<li>trip_mode_choice.yaml (and related files)</li>
 <li>destination_choice_size_terms.csv</li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#trip-scheduling"><span class="std std-ref">Trip Scheduling</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#trip-scheduling"><span class="std std-ref">Trip Scheduling</span></a></td>
 <td><ul class="first last simple">
 <li>trip_scheduling.yaml</li>
 <li>trip_scheduling_probs.csv</li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Mode Choice</span></a></td>
-<td><strong>NOT YET IMPLEMENTED</strong></td>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Mode Choice</span></a></td>
+<td><ul class="first last simple">
+<li>trip_mode_choice.yaml</li>
+<li>trip_mode_choice_annotate_trips_preprocessor.csv</li>
+<li>trip_mode_choice_coeffs.csv</li>
+<li>trip_mode_choice.csv</li>
+</ul>
+</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#trip-cbd-parking"><span class="std std-ref">Trip CBD Parking</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#trip-cbd-parking"><span class="std std-ref">Trip CBD Parking</span></a></td>
 <td><strong>NOT YET IMPLEMENTED</strong></td>
 </tr>
 </tbody>
@@ -959,7 +922,6 @@ library and defines two key log files:</p>
    <span class="o">-</span> <span class="n">joint_tour_destination_logsums</span>
    <span class="o">-</span> <span class="n">joint_tour_destination_simulate</span>
    <span class="o">-</span> <span class="n">joint_tour_scheduling</span>
-   <span class="o">-</span> <span class="n">joint_tour_mode_choice</span>
    <span class="o">-</span> <span class="n">non_mandatory_tour_frequency</span>
    <span class="o">-</span> <span class="n">non_mandatory_tour_destination</span>
    <span class="o">-</span> <span class="n">non_mandatory_tour_scheduling</span>
@@ -975,6 +937,7 @@ library and defines two key log files:</p>
    <span class="o">-</span> <span class="n">trip_destination</span>
    <span class="o">-</span> <span class="n">trip_purpose_and_destination</span>
    <span class="o">-</span> <span class="n">trip_scheduling</span>
+   <span class="o">-</span> <span class="n">trip_mode_choice</span>
    <span class="o">-</span> <span class="n">write_data_dictionary</span>
    <span class="o">-</span> <span class="n">write_tables</span>
 </pre></div>
@@ -1024,12 +987,12 @@ restarting the pipeline at any step.</p>
 <tr class="row-odd"><td>atwork_subtour_destination_sample</td>
 <td>atwork_subtour_destination_sample</td>
 <td>4</td>
-<td>125</td>
+<td>46</td>
 </tr>
 <tr class="row-even"><td>atwork_subtour_destination_sample</td>
 <td>atwork_subtour_destination_logsums</td>
 <td>5</td>
-<td>125</td>
+<td>46</td>
 </tr>
 <tr class="row-odd"><td>households</td>
 <td>initialize</td>
@@ -1048,13 +1011,13 @@ restarting the pipeline at any step.</p>
 </tr>
 <tr class="row-even"><td>joint_tour_destination_sample</td>
 <td>joint_tour_destination_sample</td>
-<td>5</td>
-<td>29</td>
+<td>4</td>
+<td>30</td>
 </tr>
 <tr class="row-odd"><td>joint_tour_destination_sample</td>
 <td>joint_tour_destination_logsums</td>
-<td>6</td>
-<td>29</td>
+<td>4</td>
+<td>30</td>
 </tr>
 <tr class="row-even"><td>joint_tour_participants</td>
 <td>joint_tour_participation</td>
@@ -1069,107 +1032,107 @@ restarting the pipeline at any step.</p>
 <tr class="row-even"><td>person_windows</td>
 <td>initialize</td>
 <td>21</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>initialize</td>
 <td>40</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>school_location_simulate</td>
 <td>43</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>workplace_location_simulate</td>
 <td>48</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>cdap_simulate</td>
 <td>54</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>mandatory_tour_frequency</td>
 <td>59</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>non_mandatory_tour_frequency</td>
 <td>64</td>
-<td>153</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>school_location_sample</td>
 <td>school_location_sample</td>
 <td>4</td>
-<td>138</td>
+<td>157</td>
 </tr>
 <tr class="row-even"><td>school_location_sample</td>
 <td>school_location_logsums</td>
 <td>5</td>
-<td>138</td>
+<td>157</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>mandatory_tour_frequency</td>
 <td>11</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>mandatory_tour_scheduling</td>
 <td>15</td>
-<td>68</td>
+<td>71</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>joint_tour_composition</td>
 <td>16</td>
-<td>70</td>
+<td>73</td>
 </tr>
 <tr class="row-even"><td>tours</td>
-<td>joint_tour_mode_choice</td>
-<td>17</td>
-<td>70</td>
-</tr>
-<tr class="row-odd"><td>tours</td>
 <td>atwork_subtour_frequency</td>
 <td>19</td>
-<td>189</td>
+<td>186</td>
 </tr>
-<tr class="row-even"><td>tours</td>
+<tr class="row-odd"><td>tours</td>
 <td>stop_frequency</td>
 <td>21</td>
-<td>189</td>
+<td>186</td>
 </tr>
-<tr class="row-odd"><td>trips</td>
+<tr class="row-even"><td>trips</td>
 <td>stop_frequency</td>
-<td>10</td>
-<td>464</td>
-</tr>
-<tr class="row-even"><td>trips</td>
-<td>trip_purpose</td>
-<td>11</td>
-<td>464</td>
+<td>7</td>
+<td>428</td>
 </tr>
 <tr class="row-odd"><td>trips</td>
-<td>trip_destination</td>
-<td>14</td>
-<td>464</td>
+<td>trip_purpose</td>
+<td>8</td>
+<td>428</td>
 </tr>
 <tr class="row-even"><td>trips</td>
+<td>trip_destination</td>
+<td>11</td>
+<td>428</td>
+</tr>
+<tr class="row-odd"><td>trips</td>
 <td>trip_scheduling</td>
-<td>15</td>
-<td>464</td>
+<td>12</td>
+<td>428</td>
+</tr>
+<tr class="row-even"><td>trips</td>
+<td>trip_mode_choic</td>
+<td>13</td>
+<td>428</td>
 </tr>
 <tr class="row-odd"><td>workplace_location_sample</td>
 <td>workplace_location_sample</td>
 <td>3</td>
-<td>889</td>
+<td>916</td>
 </tr>
 <tr class="row-even"><td>workplace_location_sample</td>
 <td>workplace_location_logsums</td>
 <td>4</td>
-<td>889</td>
+<td>916</td>
 </tr>
 </tbody>
 </table>
@@ -1182,7 +1145,7 @@ as well.</p>
 <div class="section" id="tracing">
 <span id="id3"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
 <p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
-is specified, then ActivitySim will output a comprehensive set of trace files for all
+is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all
 calculations for all household members:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
@@ -1241,7 +1204,7 @@ help debug data and/or logic errors.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.6',
+            VERSION:'0.7',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

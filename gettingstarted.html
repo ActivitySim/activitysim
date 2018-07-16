@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; ActivitySim 0.6
+  <title>Getting Started &mdash; ActivitySim 0.7
  documentation</title>
   
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6
+                0.7
 
               </div>
             
@@ -270,15 +270,19 @@ the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visu
 </div>
 <div class="section" id="hardware">
 <h2>Hardware<a class="headerlink" href="#hardware" title="Permalink to this headline">¶</a></h2>
-<p>The computing hardware required to run an ActivitySim-based model generally depends on:</p>
+<p>The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:</p>
 <ul class="simple">
-<li>the number of households to be simulated</li>
-<li>the number and size of network skims (i.e. the number of model zones (for each zone system if applicable))</li>
+<li>the number of households to be simulated for disaggregate model steps</li>
+<li>the number of model zones (for each zone system) for aggregate model steps</li>
+<li>the number and size of network skims by mode and time-of-day</li>
 <li>the desired runtimes</li>
 </ul>
-<p>ActivitySim requires a substantial amount of RAM since it stores data in-memory in order to minimize runtimes.
-For example, the example model is tested on a Windows server with 256GB of RAM and 48 threads.  Multi-threading/processing
-is <strong>NOT YET IMPLEMENTED</strong>, but is planned for an upcoming release.</p>
+<p>ActivitySim framework models utilize a significant amount of RAM since they store data in-memory to reduce
+access time in order to minimize runtimes.  For example, the example MTC Travel Model One model has 2.7 million
+households, 1475 zones, 826 skims and runs for approximately 19 hours in a single process/thread.  The full
+scale (all households, zones, skims, and sub-models) Travel Model One example is run on a Windows
+server with 164GB of RAM and 40 CPUs.  Parallelization is <strong>NOT YET IMPLEMENTED</strong> but is planned for
+Fall 2018 and will make full use of the available CPUs.</p>
 </div>
 </div>
 
@@ -324,7 +328,7 @@ is <strong>NOT YET IMPLEMENTED</strong>, but is planned for an upcoming release.
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.6',
+            VERSION:'0.7',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

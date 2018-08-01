@@ -3,9 +3,9 @@
 
 from __future__ import print_function
 
-from math import ceil
 import os
 import logging
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,6 @@ from . import logit
 from . import tracing
 from . import pipeline
 
-from . import util
 from . import assign
 
 from . import chunk
@@ -32,6 +31,23 @@ def random_rows(df, n):
 
     else:
         return df
+
+
+def uniquify_spec_index(spec):
+
+    # uniquify spec index inplace
+    # ensure uniqueness of spec index by appending comment with dupe count
+    # this allows us to use pandas dot to compute_utilities
+    dict = OrderedDict()
+    for expr in spec.index:
+        dict[assign.uniquify_key(dict, expr, template="{} # ({})")] = expr
+
+    # bug
+    prev_index_name = spec.index.name
+    spec.index = dict.keys()
+    spec.index.name = prev_index_name
+
+    assert spec.index.is_unique
 
 
 def read_model_spec(fpath, fname,
@@ -75,6 +91,10 @@ def read_model_spec(fpath, fname,
         spec = spec.drop(description_name, axis=1)
 
     spec = spec.set_index(expression_name).fillna(0)
+
+    # ensure uniqueness of spec index by appending comment with dupe count
+    # this allows us to use pandas dot to compute_utilities
+    uniquify_spec_index(spec)
 
     # drop any rows with all zeros since they won't have any effect (0 marginal utility)
     zero_rows = (spec == 0).all(axis=1)
@@ -130,7 +150,7 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
             return pd.Series([x] * len(df), index=df.index)
         return x
 
-    value_list = []
+    values = OrderedDict()
     print('eval_variables', end='')  # print ... for each expression
     for expr in exprs:
         print('.', end='')  # print ...
@@ -141,7 +161,9 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
                 expr_values = to_series(eval(expr[1:], globals_dict, locals_dict))
             else:
                 expr_values = df.eval(expr)
-            value_list.append((expr, expr_values))
+            # read model spec should ensure uniqueness, otherwise we should uniquify
+            assert expr not in values
+            values[expr] = expr_values
         except Exception as err:
             print()  # print ...
             logger.exception("Variable evaluation failed for: %s" % str(expr))
@@ -149,7 +171,7 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
             raise err
     print()  # print ...
 
-    values = pd.DataFrame.from_items(value_list)
+    values = pd.DataFrame.from_dict(values)
 
     # FIXME - for performance, it is essential that spec and expression_values
     # FIXME - not contain booleans when dotted with spec values
@@ -172,6 +194,12 @@ def compute_utilities(expression_values, spec):
     # FIXME - or the arrays will be converted to dtype=object within dot()
 
     spec = spec.astype(np.float64)
+
+    # pandas.dot depends on column names of expression_values matching spec index values
+    # expressions should have been uniquified when spec was read
+    # we could do it here if need be, and then set spec.index and expression_values.columns equal
+    assert spec.index.is_unique
+    assert (spec.index.values == expression_values.columns.values).all()
 
     utilities = expression_values.dot(spec)
 

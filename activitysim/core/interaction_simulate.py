@@ -5,11 +5,14 @@ import logging
 
 import numpy as np
 import pandas as pd
+from collections import OrderedDict
 
 from . import logit
 from . import tracing
 from .simulate import set_skim_wrapper_targets
 from . import chunk
+
+from . import assign
 
 from activitysim.core.util import force_garbage_collect
 
@@ -76,7 +79,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
         # # convert to numpy array so we can slice ndarrays as well as series
         # trace_rows = np.asanyarray(trace_rows)
         assert type(trace_rows) == np.ndarray
-        trace_eval_results = []
+        trace_eval_results = OrderedDict()
     else:
         trace_eval_results = None
 
@@ -108,10 +111,15 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
             utilities.utility += (v * coefficient).astype('float')
 
             if trace_eval_results is not None:
-                trace_eval_results.append((expr,
-                                           v[trace_rows]))
-                trace_eval_results.append(('partial utility (coefficient = %s)' % coefficient,
-                                           v[trace_rows]*coefficient))
+
+                # expressions should have been uniquified when spec was read
+                # (though we could do it here if need be...)
+                # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
+                assert expr not in trace_eval_results
+
+                trace_eval_results[expr] = v[trace_rows]
+                k = 'partial utility (coefficient = %s) for %s' % (coefficient, expr)
+                trace_eval_results[k] = v[trace_rows] * coefficient
 
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
@@ -124,11 +132,9 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
         logger.warn("%s: %s columns have missing values" % (trace_label, has_missing_vals))
 
     if trace_eval_results is not None:
+        trace_eval_results['total utility'] = utilities.utility[trace_rows]
 
-        trace_eval_results.append(('total utility',
-                                   utilities.utility[trace_rows]))
-
-        trace_eval_results = pd.DataFrame.from_items(trace_eval_results)
+        trace_eval_results = pd.DataFrame.from_dict(trace_eval_results)
         trace_eval_results.index = df[trace_rows].index
 
         # add df columns to trace_results

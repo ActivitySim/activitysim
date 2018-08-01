@@ -10,6 +10,7 @@ from zbox import toolz as tz, gen
 
 from activitysim.core.simulate import eval_variables
 from activitysim.core.simulate import compute_utilities
+from activitysim.core.simulate import uniquify_spec_index
 
 from activitysim.core import chunk
 from activitysim.core import logit
@@ -249,7 +250,7 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     for households of specified size.
 
     We generate this spec automatically from a table of rules and coefficients because the
-    interaction rulkes are fairly simple and can be expressed compactly whereas
+    interaction rules are fairly simple and can be expressed compactly whereas
     there is a lot of redundancy between the spec files for different household sizes, as well as
     in the vectorized expression of the interaction alternatives within the spec file itself
 
@@ -387,6 +388,8 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
     # eval expression goes in the index
     spec.set_index(expression_name, inplace=True)
+
+    uniquify_spec_index(spec)
 
     if trace_spec:
         tracing.trace_df(spec, '%s.hhsize%d_spec' % (trace_label, hhsize),

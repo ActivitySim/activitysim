@@ -279,7 +279,7 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
-        interaction_utilities.as_matrix().reshape(len(choosers), alternative_count),
+        interaction_utilities.values.reshape(len(choosers), alternative_count),
         index=choosers.index)
 
     # convert to probabilities (utilities exponentiated and normalized to probs)

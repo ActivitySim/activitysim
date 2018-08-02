@@ -509,7 +509,7 @@ class DataFrameMatrix(object):
         """
 
         self.df = df
-        self.data = df.as_matrix()
+        self.data = df.values
 
         self.offset_mapper = OffsetMapper()
         self.offset_mapper.set_offset_list(list(df.index))

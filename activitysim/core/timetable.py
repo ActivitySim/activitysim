@@ -97,7 +97,7 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
         tour_sigil = sigil[tour_type]
 
         # numpy array with one time window row for each row in nth_tours
-        tour_windows = window_periods_df.loc[nth_tours.tdd].as_matrix()
+        tour_windows = window_periods_df.loc[nth_tours.tdd].values
 
         # row idxs of tour_df group rows in windows
         row_ixs = nth_tours[persons_id_col].map(row_ix_map).values
@@ -186,7 +186,7 @@ class TimeTable(object):
         self.windows_table_name = table_name
 
         self.windows_df = windows_df
-        self.windows = self.windows_df.as_matrix()
+        self.windows = self.windows_df.values
 
         # series to map window row index value to window row's ordinal index
         self.window_row_ix = pd.Series(range(len(windows_df.index)), index=windows_df.index)
@@ -278,10 +278,10 @@ class TimeTable(object):
         # t0 = tracing.print_elapsed_time()
 
         # numpy array with one tdd_footprints_df row for tdds
-        tour_footprints = util.quick_loc_df(tdds, self.tdd_footprints_df).as_matrix()
+        tour_footprints = util.quick_loc_df(tdds, self.tdd_footprints_df).values
 
         # t0 = tracing.print_elapsed_time("tour_footprints", t0, debug=True)
-        # assert (tour_footprints == self.tdd_footprints_df.loc[tdds].as_matrix()).all
+        # assert (tour_footprints == self.tdd_footprints_df.loc[tdds].values).all
 
         # numpy array with one windows row for each person
         windows = self.slice_windows_by_row_id(window_row_ids)
@@ -321,7 +321,7 @@ class TimeTable(object):
         tour_footprints = self.tdd_footprints_df.loc[tdds]
 
         # numpy array with one time window row for each row in df
-        tour_footprints = tour_footprints.as_matrix()
+        tour_footprints = tour_footprints.values
 
         # row idxs of windows to assign to
         row_ixs = window_row_ids.map(self.window_row_ix).values
@@ -361,7 +361,7 @@ class TimeTable(object):
         tour_footprints = self.tdd_footprints_df.loc[tdds]
 
         # numpy array with one time window row for each row in df
-        tour_footprints = tour_footprints.as_matrix()
+        tour_footprints = tour_footprints.values
 
         # row idxs of windows to assign to
         row_ixs = window_row_ids.map(self.window_row_ix).values

@@ -64,11 +64,11 @@ def make_sample_choices(
             probs = probs[~zero_probs]
             choosers = choosers[~zero_probs]
 
-    cum_probs_arr = probs.as_matrix().cumsum(axis=1)
+    cum_probs_arr = probs.values.cumsum(axis=1)
 
     # alt probs in convenient layout to return prob of chose alternative
     # (same layout as cum_probs_arr)
-    alt_probs_array = probs.as_matrix().flatten()
+    alt_probs_array = probs.values.flatten()
 
     # get sample_size rands for each chooser
     # transform as we iterate over alternatives
@@ -252,7 +252,7 @@ def _interaction_sample(
     # reshape utilities (one utility column and one row per row in interaction_utilities)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
-        interaction_utilities.as_matrix().reshape(len(choosers), alternative_count),
+        interaction_utilities.values.reshape(len(choosers), alternative_count),
         index=choosers.index)
 
     cum_size = chunk.log_df_size(trace_label, 'utilities', utilities, cum_size)

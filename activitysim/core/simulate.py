@@ -770,7 +770,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     # t0 = tracing.print_elapsed_time("compute_utilities", t0, debug=True)
 
     # logsum is log of exponentiated utilities summed across columns of each chooser row
-    utils_arr = utilities.as_matrix().astype('float')
+    utils_arr = utilities.values.astype('float')
     logsums = np.log(np.exp(utils_arr).sum(axis=1))
     logsums = pd.Series(logsums, index=choosers.index)
 

@@ -65,7 +65,7 @@ def utilities(choosers, spec, test_data):
     vars = eval_variables(spec.index, choosers)
     utils = vars.dot(spec).astype('float')
     return pd.DataFrame(
-        utils.as_matrix().reshape(test_data['probabilities'].shape),
+        utils.values.reshape(test_data['probabilities'].shape),
         columns=test_data['probabilities'].columns)
 
 

@@ -257,7 +257,7 @@ def _interaction_simulate(
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
-        interaction_utilities.as_matrix().reshape(len(choosers), sample_size),
+        interaction_utilities.values.reshape(len(choosers), sample_size),
         index=choosers.index)
 
     if have_trace_targets:

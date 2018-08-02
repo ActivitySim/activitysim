@@ -699,15 +699,13 @@ def extend_table(table_name, df):
 
     if orca.is_table(table_name):
 
-        extend_df = orca.get_table(table_name).to_frame()
+        table_df = orca.get_table(table_name).to_frame()
 
         # don't expect indexes to overlap
-        assert len(extend_df.index.intersection(df.index)) == 0
+        assert len(table_df.index.intersection(df.index)) == 0
 
-        # preserve existing column order (concat reorders columns)
-        columns = list(extend_df.columns) + [c for c in df.columns if c not in extend_df.columns]
-
-        df = pd.concat([extend_df, df])[columns]
+        # preserve existing column order
+        df = pd.concat([table_df, df], sort=False)
 
     replace_table(table_name, df)
 

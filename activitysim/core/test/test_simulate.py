@@ -46,7 +46,7 @@ def test_read_model_spec(data_dir, spec_name):
     assert spec.index.name == 'expression'
     assert list(spec.columns) == ['alt0', 'alt1']
     npt.assert_array_equal(
-        spec.as_matrix(),
+        spec.values,
         [[1.1, 11], [2.2, 22], [3.3, 33], [4.4, 44]])
 
 

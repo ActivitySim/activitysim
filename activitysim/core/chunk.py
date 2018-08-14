@@ -51,12 +51,15 @@ def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
 
     # closest number of chooser rows to achieve chunk_size
     rpc = int(round(chunk_size / float(row_size)))
+
+    rpc = int(chunk_size / float(row_size))
+
     rpc = max(rpc, 1)
     rpc = min(rpc, num_choosers)
 
     # chunks = int(ceil(num_choosers / float(rpc)))
     # effective_chunk_size = row_size * rpc
-
+    #
     # logger.debug("%s #chunk_calc chunk_size %s" % (trace_label, chunk_size))
     # logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
     # logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))

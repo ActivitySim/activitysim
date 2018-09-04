@@ -262,7 +262,7 @@ Inputs
 
 In order to run the example, you first need two input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file:
 
-* store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
+* input_store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
 
     * skims/accessibility - Zone-based accessibility measures
     * land_use/taz_data - Zone-based land use data (population and employment for example)
@@ -507,8 +507,9 @@ The ``models`` setting contains the specification of the data pipeline model ste
 ::
 
  models:
-    - initialize
+    - initialize_landuse
     - compute_accessibility
+    - initialize_households
     - school_location_sample
     - school_location_logsums
     - school_location_simulate

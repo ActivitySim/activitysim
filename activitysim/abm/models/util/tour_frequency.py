@@ -174,7 +174,7 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
 
     """
                alt1       alt2     alt3
-    PERID
+    person_id
     2588676       2         0         0
     2588677       1         1         0
     """
@@ -488,7 +488,7 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
 
     """
                    household_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
-    joint_tour_id
+    tour_id
     3209530              320953      disc                1              1         1           2
     3209531              320953      disc                2              2         2           2
     23267026            2326702      shop                1              1         1           1

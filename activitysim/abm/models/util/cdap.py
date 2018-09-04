@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 # FIXME - this allows us to turn some dev debug table dump code on and off - eventually remove?
 # DUMP = False
 
-_persons_index_ = 'PERID'
-_hh_index_ = 'HHID'
+_persons_index_ = 'person_id'
+_hh_index_ = 'household_id'
 _hh_size_ = 'hhsize'
 
 _hh_id_ = 'household_id'
@@ -765,7 +765,7 @@ def _run_cdap(
     assign_cdap_rank(persons, trace_hh_id, trace_label)
 
     # Calculate CDAP utilities for each individual, ignoring interactions
-    # ind_utils has index of `PERID` and a column for each alternative
+    # ind_utils has index of 'person_id' and a column for each alternative
     # i.e. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
     indiv_utils = individual_utilities(persons[persons.cdap_rank <= MAX_HHSIZE],
                                        cdap_indiv_spec, locals_d,

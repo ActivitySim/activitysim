@@ -77,7 +77,7 @@ def setting(key, default=None):
     return s
 
 
-def read_model_settings(file_name):
+def read_model_settings(file_name, mandatory=False):
 
     configs_dir = inject.get_injectable('configs_dir')
 
@@ -89,6 +89,9 @@ def read_model_settings(file_name):
 
     if settings is None:
         settings = {}
+
+    if mandatory and not settings:
+        raise RuntimeError("Could not read settings from %s" % file_name)
 
     return settings
 
@@ -135,3 +138,40 @@ def get_logit_model_settings(model_settings):
                 raise RuntimeError("No NEST found in model spec for NL model type")
 
     return nests
+
+
+def build_output_file_path(file_name, use_prefix=None):
+    output_dir = inject.get_injectable('output_dir')
+
+    if use_prefix:
+        file_name = "%s-%s" % (use_prefix, file_name)
+
+    file_path = os.path.join(output_dir, file_name)
+
+    return file_path
+
+
+def output_file_path(file_name):
+
+    prefix = inject.get_injectable('output_file_prefix', None)
+    return build_output_file_path(file_name, use_prefix=prefix)
+
+
+def trace_file_path(file_name):
+
+    output_dir = inject.get_injectable('output_dir')
+    file_name = "trace.%s" % (file_name, )
+    file_path = os.path.join(output_dir, file_name)
+    return file_path
+
+
+def log_file_path(file_name):
+
+    prefix = inject.get_injectable('log_file_prefix', None)
+    return build_output_file_path(file_name, use_prefix=prefix)
+
+
+def pipeline_file_path(file_name):
+
+    prefix = inject.get_injectable('pipeline_file_prefix', None)
+    return build_output_file_path(file_name, use_prefix=prefix)

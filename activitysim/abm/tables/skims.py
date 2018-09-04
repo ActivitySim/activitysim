@@ -4,12 +4,14 @@
 import os
 import logging
 
+from collections import OrderedDict
+import multiprocessing as mp
+
+import numpy as np
+
 import openmatrix as omx
 
-from activitysim.core import skim as askim
-from activitysim.core import tracing
-from activitysim.core import pipeline
-
+from activitysim.core import skim
 from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
@@ -19,40 +21,90 @@ Read in the omx files and create the skim objects
 """
 
 
-# cache this so we don't open it again and again - skim code is not closing it....
+def skims_to_load(omx_file_path, tags_to_load=None):
+
+    # select the skims to load
+    with omx.open_file(omx_file_path) as omx_file:
+
+        omx_shape = omx_file.shape()
+        skim_keys = OrderedDict()
+
+        for skim_name in omx_file.listMatrices():
+            key1, sep, key2 = skim_name.partition('__')
+
+            # ignore composite tags not in tags_to_load
+            if tags_to_load and sep and key2 not in tags_to_load:
+                continue
+
+            key = (key1, key2) if sep else key1
+            skim_keys[skim_name] = key
+
+        num_skims = len(skim_keys.keys())
+
+    skim_data_shape = omx_shape + (num_skims, )
+    skim_dtype = np.float32
+
+    return skim_keys, skim_data_shape, skim_dtype
+
+
+def shared_buffer_for_skims(skims_shape, skim_dtype, shared=False):
+
+    buffer_size = np.prod(skims_shape)
+
+    if np.issubdtype(skim_dtype, np.float64):
+        typecode = 'd'
+    elif np.issubdtype(skim_dtype, np.float32):
+        typecode = 'f'
+    else:
+        raise RuntimeError("shared_buffer_for_skims unrecognized dtype %s" % skim_dtype)
+
+    logger.info("allocating shared buffer of size %s (%s)" % (buffer_size, skims_shape, ))
+
+    skim_buffer = mp.RawArray(typecode, buffer_size)
+
+    return skim_buffer
+
+
+def load_skims(omx_file_path, skim_keys, skim_data):
+
+    # read skims into skim_data
+    with omx.open_file(omx_file_path) as omx_file:
+        n = 0
+        for skim_name, key in skim_keys.iteritems():
+
+            omx_data = omx_file[skim_name]
+            assert np.issubdtype(omx_data.dtype, np.floating)
+
+            # this will trigger omx readslice to read and copy data to skim_data's buffer
+            a = skim_data[:, :, n]
+            a[:] = omx_data[:]
+            n += 1
+
+    logger.info("load_skims loaded %s skims from %s" % (n, omx_file_path))
+
+
 @inject.injectable(cache=True)
-def omx_file(data_dir, settings):
-    logger.debug("opening omx file")
-
-    fname = os.path.join(data_dir, settings["skims_file"])
-    file = omx.open_file(fname)
-
-    pipeline.close_on_exit(file, fname)
-
-    return file
-
-
-@inject.injectable(cache=True)
-def skim_dict(omx_file, cache_skim_key_values):
+def skim_dict(data_dir, settings):
 
     logger.info("skims injectable loading skims")
 
-    skim_dict = askim.SkimDict()
-    skim_dict.offset_mapper.set_offset_int(-1)
+    omx_file_path = os.path.join(data_dir, settings["skims_file"])
+    tags_to_load = settings['skim_time_periods']['labels']
 
-    skims_in_omx = omx_file.listMatrices()
-    for skim_name in skims_in_omx:
-        key, sep, key2 = skim_name.partition('__')
-        skim_data = omx_file[skim_name]
-        if not sep:
-            # no separator - this is a simple 2d skim - we load them all
-            skim_dict.set(key, skim_data)
-        else:
-            # there may be more time periods in the skim than are used by the model
-            # cache_skim_key_values is a list of time periods (frem settings) that are used
-            # FIXME - assumes that the only types of key2 are skim_time_periods
-            if key2 in cache_skim_key_values:
-                skim_dict.set((key, key2), skim_data)
+    # select the skims to load
+    skim_keys, skims_shape, skim_dtype = skims_to_load(omx_file_path, tags_to_load)
+
+    skim_buffer = inject.get_injectable('skim_buffer', None)
+    if skim_buffer:
+        logger.info('Using existing skim_buffer for skims')
+        skim_data = np.frombuffer(skim_buffer, dtype=skim_dtype).reshape(skims_shape)
+    else:
+        skim_data = np.zeros(skims_shape, dtype=skim_dtype)
+        load_skims(omx_file_path, skim_keys, skim_data)
+
+    # create skim dict
+    skim_dict = skim.SkimDict(skim_data, skim_keys.values())
+    skim_dict.offset_mapper.set_offset_int(-1)
 
     return skim_dict
 
@@ -61,4 +113,4 @@ def skim_dict(omx_file, cache_skim_key_values):
 def skim_stack(skim_dict):
 
     logger.debug("loading skim_stack")
-    return askim.SkimStack(skim_dict)
+    return skim.SkimStack(skim_dict)

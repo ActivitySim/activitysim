@@ -24,6 +24,8 @@ def close_handlers():
 
 def add_canonical_dirs():
 
+    orca.clear_cache()
+
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     orca.add_injectable("configs_dir", configs_dir)
 
@@ -158,18 +160,22 @@ def test_register_households(capsys):
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
-    tracing.register_households(df, 5)
+    orca.add_injectable('traceable_tables', ['households'])
+    orca.add_injectable("trace_hh_id", 5)
 
+    tracing.register_traceable_table('households', df)
     out, err = capsys.readouterr()
+    # print out   # don't consume output
 
-    # don't consume output
-    print out
+    assert "Can't register table 'households' without index name" in out
+
+    df.index.name = 'household_id'
+    tracing.register_traceable_table('households', df)
+    out, err = capsys.readouterr()
+    # print out   # don't consume output
 
     # should warn that household id not in index
     assert 'trace_hh_id 5 not in dataframe' in out
-
-    # should warn and rename index if index name is None
-    assert "households table index had no name. renamed index 'household_id'" in out
 
     close_handlers()
 
@@ -180,43 +186,42 @@ def test_register_tours(capsys):
 
     tracing.config_logger()
 
+    orca.add_injectable('traceable_tables', ['households', 'tours'])
+    orca.add_injectable('traceable_table_refs', None)
+
     # in case another test injected this
-    orca.add_injectable("trace_person_ids", [])
+    orca.add_injectable("trace_tours", [])
 
-    df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
+    tours_df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[10, 11, 12])
+    tours_df.index.name = 'tour_id'
 
-    tracing.register_tours(df, 5)
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    assert "no person ids registered for trace_hh_id 5" in out
-
-    close_handlers()
-
-
-def test_register_persons(capsys):
-
-    add_canonical_dirs()
-
-    tracing.config_logger()
-
-    df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
-
-    tracing.register_persons(df, 5)
+    tracing.register_traceable_table('tours', tours_df)
 
     out, err = capsys.readouterr()
+    # print out  # don't consume output
 
-    # don't consume output
-    print out
+    assert "can't find a registered table to slice table 'tours' index name 'tour_id'" in out
 
-    # should warn that household id not in index
-    assert 'trace_hh_id 5 not found' in out
+    orca.add_injectable("trace_hh_id", 3)
+    households_df = pd.DataFrame({'dzing': ['a', 'b', 'c']}, index=[1, 2, 3])
+    households_df.index.name = 'household_id'
+    tracing.register_traceable_table('households', households_df)
 
-    # should warn and rename index if index name is None
-    assert "persons table index had no name. renamed index 'person_id'" in out
+    tracing.register_traceable_table('tours', tours_df)
+
+    out, err = capsys.readouterr()
+    # print out  # don't consume output
+    assert "can't find a registered table to slice table 'tours'" in out
+
+    tours_df['household_id'] = [1, 5, 3]
+
+    tracing.register_traceable_table('tours', tours_df)
+
+    out, err = capsys.readouterr()
+    print out  # don't consume output
+
+    # should be tracing tour with tour_id 3
+    assert orca.get_injectable('trace_tours') == [12]
 
     close_handlers()
 
@@ -232,8 +237,7 @@ def test_write_csv(capsys):
 
     out, err = capsys.readouterr()
 
-    # don't consume output
-    print out
+    print out  # don't consume output
 
     assert "write_df_csv object 'baddie' of unexpected type" in out
 

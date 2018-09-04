@@ -24,10 +24,10 @@ from activitysim.core import inject
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 1269102
+HH_ID = 1528374
 
 # test households with all tour types
-# [ 897044 1062044 1227638 1227783 1583265 2124082]
+# [ 897097  921736  934309 1263203 1528374 1577292 1685008 1809710 2123173 2124138]
 
 
 SKIP_FULL_RUN = True
@@ -84,18 +84,66 @@ def test_rng_access():
 
     orca.clear_cache()
 
-    pipeline.set_rn_generator_base_seed(0)
+    inject.add_injectable('rng_base_seed', 0)
 
     pipeline.open_pipeline()
-
-    with pytest.raises(RuntimeError) as excinfo:
-        pipeline.set_rn_generator_base_seed(0)
-    assert "call set_rn_generator_base_seed before the first step" in str(excinfo.value)
 
     rng = pipeline.get_rn_generator()
 
     pipeline.close_pipeline()
     orca.clear_cache()
+
+
+def regress_mini_auto():
+
+    auto_choice = pipeline.get_table("households").auto_ownership
+
+    # regression test: these are among the first 10 households in households table
+    hh_ids = [961042, 238146, 23730]
+    choices = [1, 1, 0]
+    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
+                                name='auto_ownership')
+
+    print "auto_choice\n", auto_choice.head(10)
+    """
+    auto_choice
+    household_id
+    961042     1
+    238146     1
+    701954     1
+    644046     1
+    23730      0
+    460343     1
+    25354      1
+    92615      1
+    1950284    0
+    2122448    0
+    Name: auto_ownership, dtype: int64
+    """
+    pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
+
+
+def regress_mini_mtf():
+
+    mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
+
+    # these choices are for pure regression - their appropriateness has not been checked
+    per_ids = [26986, 92615, 93332]
+    choices = ['school1', 'work1', 'work1']
+    expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='person_id'),
+                                name='mandatory_tour_frequency')
+
+    print "mtf_choice\n", mtf_choice.dropna().head(5)
+    """
+    mtf_choice
+    26986    school1
+    92615      work1
+    93332      work1
+    93390      work1
+    93898      work1
+    Name: mandatory_tour_frequency, dtype: object
+    """
+    pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
 
 
 def test_mini_pipeline_run():
@@ -118,8 +166,9 @@ def test_mini_pipeline_run():
     # assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     _MODELS = [
-        'initialize',
+        'initialize_landuse',
         'compute_accessibility',
+        'initialize_households',
         'school_location_sample',
         'school_location_logsums',
         'school_location_simulate',
@@ -131,55 +180,12 @@ def test_mini_pipeline_run():
 
     pipeline.run(models=_MODELS, resume_after=None)
 
-    auto_choice = pipeline.get_table("households").auto_ownership
-
-    # regression test: these are among the first 10 households in households table
-    hh_ids = [464138, 1918238, 2201602]
-    choices = [1, 2, 0]
-    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
-                                name='auto_ownership')
-
-    print "auto_choice\n", auto_choice.head(10)
-    pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
+    regress_mini_auto()
 
     pipeline.run_model('cdap_simulate')
     pipeline.run_model('mandatory_tour_frequency')
 
-    mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
-
-    # these choices are for pure regression - their appropriateness has not been checked
-    per_ids = [92233, 172595, 524152]
-    choices = ['work1', 'school1', 'work_and_school']
-    expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
-                                name='mandatory_tour_frequency')
-
-    print "mtf_choice\n", mtf_choice.dropna().head(20)
-    """
-    mtf_choice
-    PERID
-    92233               work1
-    92382               work1
-    92744               work2
-    92823               work1
-    93172               work1
-    172491              work2
-    172595            school1
-    172596            school1
-    327171              work1
-    327172              work1
-    327912              work1
-    481948            school1
-    481949            school1
-    481959              work1
-    481961              work1
-    523907              work2
-    524151            school1
-    524152    work_and_school
-    524153            school1
-    821808              work1
-    Name: mandatory_tour_frequency, dtype: object
-    """
-    pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
+    regress_mini_mtf()
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
@@ -221,20 +227,11 @@ def test_mini_pipeline_run2():
     prev_checkpoint_count = len(checkpoints_df.index)
 
     # print "checkpoints_df\n", checkpoints_df[['checkpoint_name']]
-    assert prev_checkpoint_count == 11
+    assert prev_checkpoint_count == 12
 
     pipeline.open_pipeline('auto_ownership_simulate')
 
-    auto_choice = pipeline.get_table("households").auto_ownership
-
-    # regression test: these are the same as in test_mini_pipeline_run1
-    hh_ids = [464138, 1918238, 2201602]
-    choices = [1, 2, 0]
-    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
-                                name='auto_ownership')
-
-    print "auto_choice\n", auto_choice.head(4)
-    pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
+    regress_mini_auto()
 
     # try to run a model already in pipeline
     with pytest.raises(RuntimeError) as excinfo:
@@ -245,16 +242,7 @@ def test_mini_pipeline_run2():
     pipeline.run_model('cdap_simulate')
     pipeline.run_model('mandatory_tour_frequency')
 
-    mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
-
-    # this is what we got in run 1
-    per_ids = [92233, 172595, 524152]
-    choices = ['work1', 'school1', 'work_and_school']
-    expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
-                                name='mandatory_tour_frequency')
-
-    print "mtf_choice\n", mtf_choice.head(20)
-    pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
+    regress_mini_mtf()
 
     # should be able to get this before pipeline is closed (from existing open store)
     checkpoints_df = pipeline.get_checkpoints()
@@ -324,7 +312,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 186
+EXPECT_TOUR_COUNT = 158
 
 
 def regress_tour_modes(tours_df):
@@ -339,69 +327,48 @@ def regress_tour_modes(tours_df):
     """
     tour_id        tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
-    84543800     SHARED2FREE    2915303  othmaint         1          joint
-    84543820            WALK    2915304       eat         1         atwork
-    84543843        WALK_LOC    2915304      work         1      mandatory
-    84543823  DRIVEALONEFREE    2915304    escort         1  non_mandatory
-    84543897        WALK_LOC    2915306    school         1      mandatory
-    84543900     SHARED2FREE    2915306    social         1  non_mandatory
-    84543926        WALK_LOC    2915307    school         1      mandatory
-    84543910     SHARED2FREE    2915307    escort         1  non_mandatory
-    84543911     SHARED2FREE    2915307    escort         2  non_mandatory
-    84543929     SHARED2FREE    2915307    social         3  non_mandatory
-    84543955        WALK_LOC    2915308    school         1      mandatory
-    84543957            WALK    2915308  shopping         1  non_mandatory
-    84543953     SHARED2FREE    2915308  othdiscr         2  non_mandatory
-    84543938            WALK    2915308    eatout         3  non_mandatory
+    96881402            WALK    3340738  business         1         atwork
+    96881411     SHARED2FREE    3340738    eatout         1          joint
+    96881429        WALK_LOC    3340738      work         1      mandatory
+    96881427        WALK_LOC    3340738  shopping         1  non_mandatory
+    96881454        WALK_LOC    3340739    school         1      mandatory
+    96881456  DRIVEALONEFREE    3340739  shopping         1  non_mandatory
+    96881437     SHARED2FREE    3340739    eatout         2  non_mandatory
+    96881457        WALK_LOC    3340739    social         3  non_mandatory
     """
 
     EXPECT_PERSON_IDS = [
-        2915303,
-        2915304,
-        2915304,
-        2915304,
-        2915306,
-        2915306,
-        2915307,
-        2915307,
-        2915307,
-        2915307,
-        2915308,
-        2915308,
-        2915308,
-        2915308]
+        3340738,
+        3340738,
+        3340738,
+        3340738,
+        3340739,
+        3340739,
+        3340739,
+        3340739
+        ]
 
     EXPECT_TOUR_TYPES = [
-        'othmaint',
-        'eat',
+        'business',
+        'eatout',
         'work',
-        'escort',
-        'school',
-        'social',
-        'school',
-        'escort',
-        'escort',
-        'social',
+        'shopping',
         'school',
         'shopping',
-        'othdiscr',
-        'eatout']
+        'eatout',
+        'social'
+        ]
 
     EXPECT_MODES = [
-        'SHARED2FREE',
         'WALK',
+        'SHARED2FREE',
+        'WALK_LOC',
+        'WALK_LOC',
         'WALK_LOC',
         'DRIVEALONEFREE',
-        'WALK_LOC',
         'SHARED2FREE',
-        'WALK_LOC',
-        'SHARED2FREE',
-        'SHARED2FREE',
-        'SHARED2FREE',
-        'WALK_LOC',
-        'WALK',
-        'SHARED2FREE',
-        'WALK']
+        'WALK_LOC'
+        ]
 
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (tours_df.tour_type.values == EXPECT_TOUR_TYPES).all()

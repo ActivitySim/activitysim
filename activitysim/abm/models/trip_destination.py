@@ -537,6 +537,8 @@ def trip_destination(
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
 
+    logger.info("Running %s with %d trips" % (trace_label, trips_df.shape[0]))
+
     trips_df = run_trip_destination(
         trips_df,
         tours_merged_df,
@@ -556,8 +558,11 @@ def trip_destination(
 
     pipeline.replace_table("trips", trips_df)
 
+    print "trips_df\n", trips_df.shape
+
     if trace_hh_id:
         tracing.trace_df(trips_df,
                          label=trace_label,
                          slicer='trip_id',
-                         index_label='trip_id')
+                         index_label='trip_id',
+                         warn_if_empty=True)

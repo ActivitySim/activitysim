@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import input_store
+
 import households
 import persons
 import landuse
@@ -11,4 +13,4 @@ import trips
 import time_windows
 
 import constants
-import random_channels
+import table_dict

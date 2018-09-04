@@ -46,15 +46,5 @@ def test_misc():
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     orca.add_injectable("data_dir", data_dir)
 
-    with pytest.raises(RuntimeError) as excinfo:
-        orca.get_injectable("store")
-    assert "store file name not specified in settings" in str(excinfo.value)
-
-    settings = {'store': 'bogus.h5'}
-    orca.add_injectable("settings", settings)
-    with pytest.raises(RuntimeError) as excinfo:
-        orca.get_injectable("store")
-    assert "store file not found" in str(excinfo.value)
-
     # default values if not specified in settings
     assert orca.get_injectable("chunk_size") == 0

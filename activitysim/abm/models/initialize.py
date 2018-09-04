@@ -22,21 +22,15 @@ from .util import expressions
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def initialize(configs_dir):
-    """
-    Because random seed is set differently for each step, the sampling of households depends
-    on which step they are initially loaded in so we force them to load here and they get
-    stored to the pipeline,
-    """
+def annotate_tables(model_settings, trace_label):
 
-    trace_label = 'initialize'
+    annotate_tables = model_settings.get('annotate_tables', [])
 
-    model_settings = config.read_model_settings('initialize.yaml')
+    if not annotate_tables:
+        logger.warn("annotate_tables setting is empty - nothing to do!")
 
     t0 = tracing.print_elapsed_time()
 
-    annotate_tables = model_settings.get('annotate_tables')
     for table_info in annotate_tables:
 
         tablename = table_info['tablename']
@@ -60,8 +54,35 @@ def initialize(configs_dir):
         # - write table to pipeline
         pipeline.replace_table(tablename, df)
 
-        t0 = tracing.print_elapsed_time("annotate %s" % tablename, t0, debug=True)
 
+@inject.step()
+def initialize_landuse(configs_dir):
+
+    trace_label = 'initialize_landuse'
+
+    model_settings = config.read_model_settings('initialize_landuse.yaml', mandatory=True)
+
+    annotate_tables(model_settings, trace_label)
+
+    # create accessibility
+    land_use = pipeline.get_table('land_use')
+
+    accessibility_df = pd.DataFrame(index=land_use.index)
+
+    # - write table to pipeline
+    pipeline.replace_table("accessibility", accessibility_df)
+
+
+@inject.step()
+def initialize_households(configs_dir):
+
+    trace_label = 'initialize_households'
+
+    model_settings = config.read_model_settings('initialize_households.yaml', mandatory=True)
+
+    annotate_tables(model_settings, trace_label)
+
+    t0 = tracing.print_elapsed_time()
     inject.get_table('person_windows').to_frame()
     t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)
 

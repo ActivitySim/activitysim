@@ -19,6 +19,11 @@ Read in the omx files and create the skim objects
 """
 
 
+@inject.injectable(cache=True)
+def cache_skim_key_values(settings):
+    return settings['skim_time_periods']['labels']
+
+
 def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset_int=None):
 
     if offset_int is None:

@@ -20,27 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable(cache=True)
-def store(data_dir, settings):
-    if 'store' not in settings:
-        logger.error("store file name not specified in settings")
-        raise RuntimeError("store file name not specified in settings")
-    fname = os.path.join(data_dir, settings["store"])
-    if not os.path.exists(fname):
-        logger.error("store file not found: %s" % fname)
-        raise RuntimeError("store file not found: %s" % fname)
-
-    file = pd.HDFStore(fname, mode='r')
-    pipeline.close_on_exit(file, fname)
-
-    return file
-
-
-@inject.injectable(cache=True)
-def cache_skim_key_values(settings):
-    return settings['skim_time_periods']['labels']
-
-
-@inject.injectable(cache=True)
 def households_sample_size(settings, override_hh_ids):
 
     if override_hh_ids is None:

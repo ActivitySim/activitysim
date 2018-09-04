@@ -236,7 +236,7 @@ def joint_tour_participation(
 
     # - create joint_tour_participation_candidates table
     candidates = joint_tour_participation_candidates(joint_tours, persons_merged)
-    tracing.register_traceable_table('participants', candidates)
+    tracing.register_traceable_table('joint_tour_participants', candidates)
     pipeline.get_rn_generator().add_channel(candidates, 'joint_tour_participants')
 
     logger.info("Running joint_tours_participation with %d potential participants (candidates)" %
@@ -298,8 +298,8 @@ def joint_tour_participation(
 
     pipeline.replace_table("joint_tour_participants", participants)
 
-    # FIXME drop channel if we aren't using any more?
-    # pipeline.get_rn_generator().drop_channel('joint_tours_participants')
+    # drop channel as we aren't using any more (and it has candidates that weren't chosen)
+    pipeline.get_rn_generator().drop_channel('joint_tours_participants')
 
     # - assign joint tour 'point person' (participant_num == 1)
     point_persons = participants[participants.participant_num == 1]

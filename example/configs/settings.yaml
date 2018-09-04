@@ -1,5 +1,5 @@
 #input data store and skims
-store: mtc_asim.h5
+input_store: mtc_asim.h5
 skims_file: skims.omx
 
 #number of households to simulate
@@ -20,8 +20,9 @@ chunk_size: 400000000
 check_for_variability: False
 
 models:
-  - initialize
+  - initialize_landuse
   - compute_accessibility
+  - initialize_households
   - school_location_sample
   - school_location_logsums
   - school_location_simulate
@@ -58,7 +59,8 @@ models:
   - write_data_dictionary
   - write_tables
 
-#resume_after: joint_tour_destination_simulate
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_mode_choice
 
 output_tables:
   action: include

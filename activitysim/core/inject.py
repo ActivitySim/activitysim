@@ -50,24 +50,6 @@ def table():
     return decorator
 
 
-# def column(table_name, cache=False):
-#     def decorator(func):
-#         name = func.__name__
-#
-#         logger.debug("inject column %s.%s" % (table_name, name))
-#
-#         column_key = (table_name, name)
-#
-#         assert not _DECORATED_COLUMNS.get(column_key, False), \
-#             "column '%s' already decorated." % name
-#         _DECORATED_COLUMNS[column_key] = {'func': func, 'cache': cache}
-#
-#         orca.add_column(table_name, name, func, cache=cache)
-#
-#         return func
-#     return decorator
-
-
 def injectable(cache=False, override=False):
     def decorator(func):
         name = func.__name__

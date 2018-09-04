@@ -555,12 +555,12 @@ Data Tables
 
 The following tables are currently implemented:
 
-  * households - household attributes for each household being simulated.  Index: ``HHID`` (see ``scripts\data_mover.ipynb``)
-  * landuse - zonal land use (such as population and employment) attributes. Index: ``TAZ`` (see ``scripts\data_mover.ipynb``)
-  * persons - person attributes for each person being simulated.  Index: ``PERID`` (see ``scripts\data_mover.ipynb``)
-  * time windows - manages person time windows throughout the simulation.  See :ref:`time_windows`.  Index:  ``PERID`` (see the person_windows table create decorator in ``activitysim.abm.tables.time_windows.py``)
-  * tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  ``TOURID`` (see ``activitysim.abm.models.util.tour_frequency.py``)
-  * trips - trip attributes for each trip being simulated.  Index: ``TRIPID`` (see ``activitysim.abm.models.stop_frequency.py``)
+  * households - household attributes for each household being simulated.  Index: ``household_id`` (see ``activitysim.abm.tables.households.py``)
+  * landuse - zonal land use (such as population and employment) attributes. Index: ``TAZ`` (see ``activitysim.abm.tables.landuse.py``)
+  * persons - person attributes for each person being simulated.  Index: ``person_id`` (see ``activitysim.abm.tables.persons.py``)
+  * time windows - manages person time windows throughout the simulation.  See :ref:`time_windows`.  Index:  ``person_id`` (see the person_windows table create decorator in ``activitysim.abm.tables.time_windows.py``)
+  * tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  ``tour_id`` (see ``activitysim.abm.models.util.tour_frequency.py``)
+  * trips - trip attributes for each trip being simulated.  Index: ``trip_id`` (see ``activitysim.abm.models.stop_frequency.py``)
 
 A few additional tables are also used, which are not really tables, but classes:
 

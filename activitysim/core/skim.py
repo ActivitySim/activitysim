@@ -1,7 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+
 import logging
+
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -137,39 +140,18 @@ class SkimDict(object):
     Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
 
-    def __init__(self):
-        self.skims = {}
+    def __init__(self, skim_data, skim_keys):
+
+        skim_key_to_skim_num = OrderedDict(zip(skim_keys, range(len(skim_keys))))
+
+        self.skim_data = skim_data
+        self.skim_key_to_skim_num = skim_key_to_skim_num
+        self.num_skims = skim_data.shape[2]
         self.offset_mapper = OffsetMapper()
-
-    def set(self, key, skim_data):
-        """
-        Set skim data for key
-
-        Parameters
-        ----------
-        key : hashable
-             The key (identifier) for this skim object
-        skim_data : Skim
-             The skim object
-
-        Returns
-        -------
-        Nothing
-        """
-
-        if not isinstance(key, str):
-            assert isinstance(key, tuple) and len(key) == 2
-            assert isinstance(key[0], str) and isinstance(key[1], str)
-
-        self.skims[key] = np.asanyarray(skim_data)
-
-        # print "\n### %s" % (key,)
-        # print "type(skim_data)", type(skim_data)
-        # print "skim_data.shape", skim_data.shape
 
     def get(self, key):
         """
-        Get an available skim object (not the lookup)
+        Get an available wrapped skim object (not the lookup)
 
         Parameters
         ----------
@@ -181,7 +163,13 @@ class SkimDict(object):
         skim: Skim
              The skim object
         """
-        return SkimWrapper(self.skims[key], self.offset_mapper)
+        assert key in self.skim_key_to_skim_num
+        n = self.skim_key_to_skim_num[key]
+        assert n < self.num_skims
+
+        data = self.skim_data[:, :, n]
+
+        return SkimWrapper(data, self.offset_mapper)
 
     def wrap(self, left_key, right_key):
         """
@@ -318,62 +306,35 @@ class SkimStack(object):
 
     def __init__(self, skim_dict):
 
-        self.skims_data = {}
-        self.skim_keys_to_indexes = {}
         self.offset_mapper = skim_dict.offset_mapper
+        self.skim_dict = skim_dict
 
-        # pass to make dictionary of dictionaries where highest level is unique
-        # first items of the tuples and the 2nd level is the second items of
-        # the tuples
-        for key, skim_data in skim_dict.skims.iteritems():
-            if not isinstance(key, tuple) or not len(key) == 2:
-                logger.debug("SkimStack __init__ skipping key: %s" % key)
-                continue
-            logger.debug("SkimStack __init__ loading key: %s" % (key,))
-            skim_key1, skim_key2 = key
-            # logger.debug("SkimStack init key: key1='%s' key2='%s'" % (skim_key1, skim_key2))
-            # FIXME - this copys object reference
-            self.skims_data.setdefault(skim_key1, {})[skim_key2] = skim_data
+        skim_dim3 = OrderedDict()
+        for key, n in skim_dict.skim_key_to_skim_num.iteritems():
+            if isinstance(key, tuple):
+                key1, key2 = key
+                skim_dim3.setdefault(key1, OrderedDict())[key2] = n
 
-            # print "\n### %s" % (key,)
-            # print "type(skim_data)", type(skim_data)
-            # print "skim_data.shape", skim_data.shape
-
-        # second pass to turn the each highest level value into a 3D array
-        # with a dictionary to make second level keys to indexes
-        for skim_key1, value in self.skims_data.iteritems():
-            # FIXME - this actually copies/creates new stacked data
-            self.skims_data[skim_key1] = np.dstack(value.values())
-            self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
+        self.skim_dim3 = skim_dim3
 
         logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
-                    % (len(self.skim_keys_to_indexes),
-                       sum([len(d) for d in self.skim_keys_to_indexes.values()])))
+                    % (len(self.skim_dim3),
+                       sum([len(d) for d in self.skim_dim3.values()])))
 
     def __str__(self):
 
         return "\n".join(
             "%s %s" % (key1, sub_dict)
-            for key1, sub_dict in self.skim_keys_to_indexes.iteritems())
-
-    # def key_count(self):
-    #     return len(self.skim_keys_to_indexes.keys())
-    #
-    # def contains(self, key):
-    #     return key in self.skims_data
-
-    def get(self, key):
-        return self.skims_data[key], self.skim_keys_to_indexes[key]
+            for key1, sub_dict in self.skim_dim3.iteritems())
 
     def lookup(self, orig, dest, dim3, key):
 
         orig = self.offset_mapper.map(orig)
         dest = self.offset_mapper.map(dest)
 
-        assert key in self.skims_data, "SkimStack key %s missing" % key
-
-        stacked_skim_data = self.skims_data[key]
-        skim_keys_to_indexes = self.skim_keys_to_indexes[key]
+        assert key in self.skim_dim3, "SkimStack key %s missing" % key
+        stacked_skim_data = self.skim_dict.skim_data
+        skim_keys_to_indexes = self.skim_dim3[key]
 
         # skim_indexes = dim3.map(skim_keys_to_indexes).astype('int')
         # this should be faster than map

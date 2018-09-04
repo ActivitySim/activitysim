@@ -34,11 +34,22 @@ class AccessibilitySkims(object):
         whether to transpose the matrix before flattening. (i.e. act as a D-O instead of O-D skim)
     """
 
-    def __init__(self, skim_dict, omx, length, transpose=False):
+    def __init__(self, skim_dict, dest_zones, orig_zones, transpose=False):
+
+        assert skim_dict.skim_data.shape[0] == len(dest_zones)
+        assert len(orig_zones) <= len(dest_zones)
+        assert np.isin(orig_zones, dest_zones).all()
+        assert len(np.unique(orig_zones)) == len(orig_zones)
+        assert len(np.unique(dest_zones)) == len(dest_zones)
+
         self.skim_dict = skim_dict
-        self.omx = omx
-        self.length = length
         self.transpose = transpose
+        self.orig_map = None
+
+        if len(orig_zones) < len(dest_zones):
+            self.orig_map = np.isin(dest_zones, orig_zones)
+        else:
+            self.orig_map = None
 
     def __getitem__(self, key):
         """
@@ -48,19 +59,16 @@ class AccessibilitySkims(object):
         this allows the skim array to be accessed from expressions as
         skim['DISTANCE'] or skim[('SOVTOLL_TIME', 'MD')]
         """
-        try:
-            data = self.skim_dict.get(key).data
-        except KeyError:
-            omx_key = '__'.join(key)
-            logger.info("AccessibilitySkims loading %s from omx as %s" % (key, omx_key,))
-            data = self.omx[omx_key]
 
-        data = data[:self.length, :self.length]
+        data = self.skim_dict.get(key).data
 
         if self.transpose:
-            return data.transpose().flatten()
-        else:
-            return data.flatten()
+            data = data.transpose()
+
+        if self.orig_map is not None:
+            data = data[self.orig_map, :]
+
+        return data.flatten()
 
 
 @inject.injectable()
@@ -70,8 +78,8 @@ def accessibility_spec(configs_dir):
 
 
 @inject.step()
-def compute_accessibility(accessibility_spec,
-                          skim_dict, omx_file, land_use, trace_od):
+def compute_accessibility(accessibility, accessibility_spec,
+                          skim_dict, land_use, trace_od):
 
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
@@ -92,18 +100,24 @@ def compute_accessibility(accessibility_spec,
     logger.info("Running compute_accessibility")
     model_settings = config.read_model_settings('accessibility.yaml')
 
+    accessibility_df = accessibility.to_frame()
+
     constants = config.get_model_constants(model_settings)
     land_use_columns = model_settings.get('land_use_columns', [])
 
     land_use_df = land_use.to_frame()
 
-    zone_count = len(land_use_df.index)
+    orig_zones = accessibility_df.index.values
+    dest_zones = land_use_df.index.values
+
+    orig_zone_count = len(orig_zones)
+    dest_zone_count = len(dest_zones)
 
     # create OD dataframe
     od_df = pd.DataFrame(
         data={
-            'orig': np.repeat(np.asanyarray(land_use_df.index), zone_count),
-            'dest': np.tile(np.asanyarray(land_use_df.index), zone_count)
+            'orig': np.repeat(np.asanyarray(accessibility_df.index), dest_zone_count),
+            'dest': np.tile(np.asanyarray(land_use_df.index), orig_zone_count)
         }
     )
 
@@ -120,18 +134,18 @@ def compute_accessibility(accessibility_spec,
     locals_d = {
         'log': np.log,
         'exp': np.exp,
-        'skim_od': AccessibilitySkims(skim_dict, omx_file, zone_count),
-        'skim_do': AccessibilitySkims(skim_dict, omx_file, zone_count, transpose=True)
+        'skim_od': AccessibilitySkims(skim_dict, dest_zones, orig_zones),
+        'skim_do': AccessibilitySkims(skim_dict, dest_zones, orig_zones, transpose=True)
     }
     if constants is not None:
         locals_d.update(constants)
 
     results, trace_results, trace_assigned_locals \
         = assign.assign_variables(accessibility_spec, od_df, locals_d, trace_rows=trace_od_rows)
-    accessibility_df = pd.DataFrame(index=land_use.index)
+
     for column in results.columns:
         data = np.asanyarray(results[column])
-        data.shape = (zone_count, zone_count)
+        data.shape = (orig_zone_count, dest_zone_count)
         accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
 
     # - write table to pipeline
@@ -147,8 +161,6 @@ def compute_accessibility(accessibility_spec,
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
             # dump the trace results table (with _temp variables) to aid debugging
-            # note that this is not the same as the orca-injected accessibility table
-            # FIXME - should we name this differently and also dump the updated accessibility table?
             tracing.trace_df(df,
                              label='accessibility',
                              index_label='skim_offset',

@@ -28,7 +28,7 @@ logging:
 
     logfile:
       class: logging.FileHandler
-      filename: !!python/object/apply:activitysim.core.tracing.log_file_path ['xasim.log']
+      filename: !!python/object/apply:activitysim.core.config.log_file_path ['xasim.log']
       mode: w
       formatter: simpleFormatter
       level: !!python/name:logging.NOTSET

@@ -71,10 +71,13 @@ def test_skim_nans(data):
 
 def test_skims(data):
 
-    skim_dict = skim.SkimDict()
+    skims_shape = data.shape + (2,)
 
-    skim_dict.set('AM', data)
-    skim_dict.set('PM', data*10)
+    skim_data = np.zeros(skims_shape, dtype=data.dtype)
+    skim_data[:, :, 0] = data
+    skim_data[:, :, 1] = data*10
+
+    skim_dict = skim.SkimDict(skim_data, ['AM', 'PM'])
 
     skims = skim_dict.wrap("taz_l", "taz_r")
 
@@ -104,10 +107,13 @@ def test_skims(data):
 
 def test_3dskims(data):
 
-    skim_dict = skim.SkimDict()
+    skims_shape = data.shape + (2,)
 
-    skim_dict.set(("SOV", "AM"), data)
-    skim_dict.set(("SOV", "PM"), data*10)
+    skim_data = np.zeros(skims_shape, dtype=int)
+    skim_data[:, :, 0] = data
+    skim_data[:, :, 1] = data*10
+
+    skim_dict = skim.SkimDict(skim_data, [("SOV", "AM"), ("SOV", "PM")])
 
     stack = skim.SkimStack(skim_dict)
 

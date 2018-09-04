@@ -4,8 +4,8 @@
 
 import pandas as pd
 
-pipeline_filename = 'output\pipeline.h5'
-out_fields_filename = 'output\pipeline_fields.csv'
+pipeline_filename = 'output\\pipeline.h5'
+out_fields_filename = 'output\\pipeline_fields.csv'
 
 # get pipeline tables
 pipeline = pd.io.pytables.HDFStore(pipeline_filename)

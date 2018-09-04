@@ -34,10 +34,8 @@ def output_dir():
 
 
 @inject.injectable()
-def extensions_dir():
-    if not os.path.exists('extensions'):
-        raise RuntimeError("output_dir: directory does not exist")
-    return 'extensions'
+def output_file_prefix():
+    return ''
 
 
 @inject.injectable(cache=True)
@@ -47,10 +45,15 @@ def settings(configs_dir):
 
 
 @inject.injectable(cache=True)
-def pipeline_path(output_dir, settings):
+def pipeline_file_name(settings):
     """
     Orca injectable to return the path to the pipeline hdf5 file based on output_dir and settings
     """
     pipeline_file_name = settings.get('pipeline', 'pipeline.h5')
-    pipeline_file_path = os.path.join(output_dir, pipeline_file_name)
-    return pipeline_file_path
+
+    return pipeline_file_name
+
+
+@inject.injectable()
+def rng_base_seed():
+    return 0

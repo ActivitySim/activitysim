@@ -7,6 +7,7 @@ import pandas as pd
 
 from activitysim.core import pipeline
 from activitysim.core import inject
+from activitysim.core import config
 
 from activitysim.core.config import setting
 
@@ -28,15 +29,14 @@ def write_data_dictionary(output_dir):
     output_tables = pipeline.checkpointed_tables()
 
     # write data dictionary for all checkpointed_tables
-    with open(os.path.join(output_dir, 'data_dict.txt'), 'w') as file:
+
+    with open(config.output_file_path('data_dict.txt'), 'w') as file:
         for table_name in output_tables:
             df = inject.get_table(table_name, None).to_frame()
 
             print >> file, "\n### %s %s" % (table_name, df.shape)
+            print >> file, 'index:', df.index.name, df.index.dtype
             print >> file, df.dtypes
-
-            rows, columns = df.shape
-            bytes = df.memory_usage(index=True).sum()
 
 
 def write_tables(output_dir):
@@ -76,8 +76,6 @@ def write_tables(output_dir):
 
     output_tables_settings = setting(output_tables_settings_name)
 
-    output_tables_list = pipeline.checkpointed_tables()
-
     if output_tables_settings is None:
         logger.info("No output_tables specified in settings file. Nothing to write.")
         return
@@ -90,32 +88,26 @@ def write_tables(output_dir):
         raise "expected %s action '%s' to be either 'include' or 'skip'" % \
               (output_tables_settings_name, action)
 
+    checkpointed_tables = pipeline.checkpointed_tables()
     if action == 'include':
         output_tables_list = tables
     elif action == 'skip':
-        output_tables_list = [t for t in output_tables_list if t not in tables]
-
-    # should provide option to also write checkpoints?
-    # output_tables_list.append("checkpoints.csv")
+        output_tables_list = [t for t in checkpointed_tables if t not in tables]
 
     for table_name in output_tables_list:
-        table = inject.get_table(table_name, None)
 
-        if table is None:
-            logger.warn("Skipping '%s': Table not found." % table_name)
-            continue
+        if table_name == 'checkpoints':
+            df = pipeline.get_checkpoints()
+        else:
+            if table_name not in checkpointed_tables:
+                logger.warn("Skipping '%s': Table not found." % table_name)
+                continue
+            df = pipeline.get_table(table_name)
 
-        df = table.to_frame()
         file_name = "%s%s.csv" % (prefix, table_name)
-        logger.info("writing output file %s" % file_name)
-        file_path = os.path.join(output_dir, file_name)
+        file_path = config.output_file_path(file_name)
 
         # include the index if it has a name or is a MultiIndex
         write_index = df.index.name is not None or isinstance(df.index, pd.core.index.MultiIndex)
 
         df.to_csv(file_path, index=write_index)
-
-    if (action == 'include') == ('checkpoints' in tables):
-        # write checkpoints
-        file_name = "%s%s.csv" % (prefix, 'checkpoints')
-        pipeline.get_checkpoints().to_csv(os.path.join(output_dir, file_name))

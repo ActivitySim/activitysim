@@ -6,7 +6,7 @@ import logging
 import logging.config
 import sys
 import time
-from contextlib import contextmanager
+from collections import OrderedDict
 
 import yaml
 
@@ -16,6 +16,7 @@ import pandas as pd
 from activitysim.core import inject
 
 import inject_defaults
+import config
 
 
 # Configurations
@@ -49,7 +50,34 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def delete_csv_files(output_dir):
+def delete_output_files(file_type):
+    """
+    Delete files in output directory of specified type
+
+    Parameters
+    ----------
+    output_dir: str
+        Directory of trace output CSVs
+
+    Returns
+    -------
+    Nothing
+    """
+
+    output_dir = inject.get_injectable('output_dir')
+    logger.debug("Deleting %s files in output_dir %s" % (file_type, output_dir))
+
+    for the_file in os.listdir(output_dir):
+        if the_file.endswith(file_type):
+            file_path = os.path.join(output_dir, the_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(e)
+
+
+def delete_csv_files():
     """
     Delete CSV files
 
@@ -62,35 +90,7 @@ def delete_csv_files(output_dir):
     -------
     Nothing
     """
-    for the_file in os.listdir(output_dir):
-        if the_file.endswith(CSV_FILE_TYPE):
-            file_path = os.path.join(output_dir, the_file)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print(e)
-
-
-def log_file_path(name):
-    """
-    For use in logging.yaml tag to inject log file path
-
-    filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path ['asim.log']
-
-    Parameters
-    ----------
-    name: str
-        output folder name
-
-    Returns
-    -------
-    f: str
-        output folder name
-    """
-    output_dir = inject.get_injectable('output_dir')
-    f = os.path.join(output_dir, name)
-    return f
+    delete_output_files(CSV_FILE_TYPE)
 
 
 def config_logger(custom_config_file=None, basic=False):
@@ -143,10 +143,6 @@ def config_logger(custom_config_file=None, basic=False):
         print "Configured logging using basicConfig"
         logger.info("Configured logging using basicConfig")
 
-    output_dir = inject.get_injectable('output_dir')
-    logger.debug("Deleting files in output_dir %s" % output_dir)
-    delete_csv_files(output_dir)
-
 
 def print_summary(label, df, describe=False, value_counts=False):
     """
@@ -178,190 +174,6 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.info("%s summary:\n%s" % (label, df.describe()))
 
 
-def register_households(df, trace_hh_id):
-    """
-    Register with orca households for tracing
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    trace_hh_id: int
-        household id we are tracing
-
-    Returns
-    -------
-    Nothing
-    """
-
-    logger.info("tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
-
-    if trace_hh_id not in df.index:
-        logger.warn("trace_hh_id %s not in dataframe" % trace_hh_id)
-
-    # inject persons_index name of person dataframe index
-    if df.index.name is None:
-        df.index.names = ['household_id']
-        logger.warn("households table index had no name. renamed index '%s'" % df.index.name)
-    inject.add_injectable("hh_index_name", df.index.name)
-
-    logger.debug("register_households injected hh_index_name '%s'" % df.index.name)
-
-
-def register_persons(df, trace_hh_id):
-    """
-    Register with orca persons for tracing
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    trace_hh_id: int
-        household id we are tracing
-
-    Returns
-    -------
-    Nothing
-    """
-
-    # inject persons_index name of person dataframe index
-    if df.index.name is None:
-        df.index.names = ['person_id']
-        logger.warn("persons table index had no name. renamed index '%s'" % df.index.name)
-    inject.add_injectable("persons_index_name", df.index.name)
-
-    logger.debug("register_persons injected persons_index_name '%s'" % df.index.name)
-
-    # inject list of person_ids in household we are tracing
-    # this allows us to slice by person_id without requiring presence of household_id column
-    traced_persons_df = df[df['household_id'] == trace_hh_id]
-    trace_person_ids = traced_persons_df.index.tolist()
-    if len(trace_person_ids) == 0:
-        logger.warn("register_persons: trace_hh_id %s not found." % trace_hh_id)
-
-    inject.add_injectable("trace_person_ids", trace_person_ids)
-    logger.debug("register_persons injected trace_person_ids %s" % trace_person_ids)
-
-    logger.info("tracing person_ids %s in %s persons" % (trace_person_ids, len(df.index)))
-
-
-def register_tours(df, trace_hh_id):
-    """
-    Register with inject for tracing
-
-    create an injectable 'trace_tour_ids' with a list of tour_ids in household we are tracing.
-    This allows us to slice by tour_id without requiring presence of person_id column
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    trace_hh_id: int
-        household id we are tracing
-
-    Returns
-    -------
-    Nothing
-    """
-
-    # get list of persons in traced household (should already have been registered)
-    person_ids = inject.get_injectable("trace_person_ids", [])
-
-    if len(person_ids) == 0:
-        # trace_hh_id not in households table or register_persons was not not called
-        logger.warn("no person ids registered for trace_hh_id %s" % trace_hh_id)
-        return
-
-    # but if household_id is in households, then we may have some tours
-    traced_tours_df = slice_ids(df, person_ids, column='person_id')
-    trace_tour_ids = traced_tours_df.index.tolist()
-    if len(trace_tour_ids) == 0:
-        logger.info("register_tours: no tours found for person_ids %s." % person_ids)
-    else:
-        logger.info("tracing tour_ids %s in %s tours" % (trace_tour_ids, len(df.index)))
-
-    inject.add_injectable("trace_tour_ids", trace_tour_ids)
-    logger.debug("register_tours injected trace_tour_ids %s" % trace_tour_ids)
-
-
-def register_trips(df, trace_hh_id):
-    """
-    Register with inject for tracing
-
-    create an injectable 'trace_trip_ids' with a list of tour_ids in household we are tracing.
-    This allows us to slice by trip_id without requiring presence of person_id column
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    trace_hh_id: int
-        household id we are tracin
-
-    Returns
-    -------
-    Nothing
-    """
-
-    # get list of tours in traced household (should already have been registered)
-    tour_ids = inject.get_injectable("trace_tour_ids", [])
-
-    if len(tour_ids) == 0:
-        # register_persons was not not called
-        logger.warn("no tour ids registered for trace_hh_id %s" % trace_hh_id)
-        return
-
-    # but if household_id is in households, then we may have some trips
-    traced_trips_df = slice_ids(df, tour_ids, column='tour_id')
-    trace_trip_ids = traced_trips_df.index.tolist()
-    if len(traced_trips_df) == 0:
-        logger.info("register_trips: no trips found for tour_ids %s." % tour_ids)
-    else:
-        logger.info("tracing trip_ids %s in %s trips" % (trace_trip_ids, len(df.index)))
-
-    inject.add_injectable("trace_trip_ids", trace_trip_ids)
-    logger.debug("register_trips injected trace_tour_ids %s" % trace_trip_ids)
-
-
-def register_participants(df, trace_hh_id):
-    """
-    Register with inject for tracing
-
-    create an injectable 'trace_participant_ids' with a list of participant_ids in
-    household we are tracing.
-    This allows us to slice by participant_ids without requiring presence of household_id column
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    trace_hh_id: int
-        household id we are tracing
-
-    Returns
-    -------
-    Nothing
-    """
-
-    # but if household_id is in households, then we may have some tours
-    traced_participants_df = slice_ids(df, trace_hh_id, column='household_id')
-    trace_participant_ids = traced_participants_df.index.tolist()
-    if len(trace_participant_ids) == 0:
-        logger.info("register_participants: no participants found for household_id %s." %
-                    trace_hh_id)
-    else:
-        logger.info("tracing participant_ids %s in %s participants" %
-                    (trace_participant_ids, len(df.index)))
-
-    inject.add_injectable("trace_participant_ids", trace_participant_ids)
-    logger.debug("register_participants injected trace_participant_ids %s" % trace_participant_ids)
-
-
 def register_traceable_table(table_name, df):
     """
     Register traceable table
@@ -378,29 +190,77 @@ def register_traceable_table(table_name, df):
 
     trace_hh_id = inject.get_injectable("trace_hh_id", None)
 
+    trace_injectable = 'trace_%s' % table_name
+    new_traced_ids = []
+
     if trace_hh_id is None:
         return
 
+    traceable_tables = inject.get_injectable('traceable_tables', [])
+    if table_name not in traceable_tables:
+        logger.error("table '%s' not in traceable_tables" % table_name)
+        return
+
+    idx_name = df.index.name
+    if idx_name is None:
+        logger.error("Can't register table '%s' without index name" % table_name)
+        return
+
+    traceable_table_refs = inject.get_injectable('traceable_table_refs', None)
+
+    # traceable_table_refs is OrderedDict so we can find first registered table to slice by ref_con
+    if traceable_table_refs is None:
+        traceable_table_refs = OrderedDict()
+    if idx_name in traceable_table_refs and traceable_table_refs[idx_name] != table_name:
+        logger.error("table '%s' index name '%s' already registered for table '%s'" %
+                     (table_name, idx_name, traceable_table_refs[idx_name]))
+        return
+
     if table_name == 'households':
-        register_households(df, trace_hh_id)
-    elif table_name == 'persons':
-        register_persons(df, trace_hh_id)
-    elif table_name == 'trips':
-        register_trips(df, trace_hh_id)
-    elif table_name == 'tours':
-        register_tours(df, trace_hh_id)
-    elif table_name == 'participants':
-        register_participants(df, trace_hh_id)
+        if trace_hh_id not in df.index:
+            logger.warn("trace_hh_id %s not in dataframe" % trace_hh_id)
+            new_traced_ids = []
+        else:
+            logger.info("tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
+            new_traced_ids = [trace_hh_id]
     else:
-        logger.warn("register_traceable_table - don't grok '%s'" % table_name)
 
+        # find first already registered ref_col we can use to slice this table
+        ref_con = next((c for c in traceable_table_refs if c in df.columns), None)
+        if ref_con is None:
+            logger.error("can't find a registered table to slice table '%s' index name '%s'"
+                         " in traceable_table_refs: %s" %
+                         (table_name, idx_name, traceable_table_refs))
+            return
 
-def traceable_tables():
+        # get traceable_ids for ref_con table
+        ref_con_trace_injectable = 'trace_%s' % traceable_table_refs[ref_con]
+        ref_con_traced_ids = inject.get_injectable(ref_con_trace_injectable, [])
 
-    # names of all traceable tables ordered by dependency on household_id
-    # e.g. 'persons' has to be registered AFTER 'households'
+        # inject list of ids in table we are tracing
+        # this allows us to slice by id without requiring presence of a household id column
+        traced_df = df[df[ref_con].isin(ref_con_traced_ids)]
+        new_traced_ids = traced_df.index.tolist()
+        if len(new_traced_ids) == 0:
+            logger.warn("register %s: no rows with %s in %s." %
+                        (table_name, ref_con, ref_con_traced_ids))
 
-    return ['households', 'persons', 'tours', 'trips', 'joint_tours', 'participants']
+    # update traceable_table_refs with this traceable_table's ref_con
+    if idx_name not in traceable_table_refs:
+        traceable_table_refs[idx_name] = table_name
+        print "adding table %s.%s to traceable_table_refs" % (table_name, idx_name)
+        inject.add_injectable('traceable_table_refs', traceable_table_refs)
+
+    # update the list of trace_ids for this table
+    prior_traced_ids = inject.get_injectable(trace_injectable, [])
+    if prior_traced_ids:
+        logger.info("register %s: adding %s ids to %s existing trace ids" %
+                    (table_name, len(new_traced_ids), len(prior_traced_ids)))
+    traced_ids = prior_traced_ids + new_traced_ids
+    logger.info("register %s: tracing ids %s in %s %s" %
+                (table_name, traced_ids, len(df.index), table_name))
+    if new_traced_ids:
+        inject.add_injectable(trace_injectable, traced_ids)
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
@@ -479,7 +339,7 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     assert len(file_name) > 0
 
-    file_path = log_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
+    file_path = config.trace_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
 
     if os.path.isfile(file_path):
         logger.error("write_csv file exists %s %s" % (type(df).__name__, file_name))
@@ -488,11 +348,11 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
         # logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
         write_df_csv(df, file_path, index_label, columns, column_labels, transpose=transpose)
     elif isinstance(df, pd.Series):
-        # logger.debug("dumping %s element series to %s" % (len(df.index), file_name))
+        # logger.debug("dumping %s element series to %s" % (df.shape[0], file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     elif isinstance(df, dict):
         df = pd.Series(data=df)
-        # logger.debug("dumping %s element dict to %s" % (len(df.index), file_name))
+        # logger.debug("dumping %s element dict to %s" % (df.shape[0], file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
         logger.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
@@ -564,44 +424,28 @@ def get_trace_target(df, slicer):
     if slicer is None:
         slicer = df.index.name
 
-    # always slice by household id if we can
     if isinstance(df, pd.DataFrame):
-        if ('household_id' in df.columns):
+        # always slice by household id if we can
+        if 'household_id' in df.columns:
             slicer = 'household_id'
-        elif ('person_id' in df.columns):
-            slicer = 'person_id'
+        if slicer in df.columns:
+            column = slicer
 
-    if len(df.index) == 0:
+    if column is None and df.index.name != slicer:
+        raise RuntimeError("bad slicer '%s' for df with index '%s'" % (slicer, df.index.name))
+
+    table_refs = inject.get_injectable('traceable_table_refs', {})
+
+    if df.empty:
         target_ids = None
-    elif slicer == 'PERID' or slicer == inject.get_injectable('persons_index_name', None):
-        target_ids = inject.get_injectable('trace_person_ids', [])
-    elif slicer == 'HHID' or slicer == inject.get_injectable('hh_index_name', None):
-        target_ids = inject.get_injectable('trace_hh_id', [])
-    elif slicer == 'person_id':
-        target_ids = inject.get_injectable('trace_person_ids', [])
-        column = slicer
-    elif slicer == 'household_id':
-        target_ids = inject.get_injectable('trace_hh_id', [])
-        column = slicer
-    elif slicer == 'tour_id':
-        target_ids = inject.get_injectable('trace_tour_ids', [])
-    elif slicer == 'trip_id':
-        target_ids = inject.get_injectable('trace_trip_ids', [])
-    elif slicer == 'joint_tour_id':
-        target_ids = inject.get_injectable('trace_tour_ids', [])
-    elif slicer == 'participant_id':
-        target_ids = inject.get_injectable('trace_participant_ids', [])
-    elif slicer == 'TAZ' or slicer == 'ZONE':
+    elif slicer in table_refs:
+        # maps 'person_id' to 'persons', etc
+        table_name = table_refs[slicer]
+        target_ids = inject.get_injectable('trace_%s' % table_name, [])
+    elif slicer == 'TAZ':
         target_ids = inject.get_injectable('trace_od', [])
-    elif slicer == 'NONE':
-        target_ids = None
     else:
-        print df.head()
-        return None, 'NONE'
         raise RuntimeError("slice_canonically: bad slicer '%s'" % (slicer, ))
-
-    if target_ids and not isinstance(target_ids, (list, tuple)):
-        target_ids = [target_ids]
 
     return target_ids, column
 
@@ -629,7 +473,7 @@ def slice_canonically(df, slicer, label, warn_if_empty=False):
     if target_ids is not None:
         df = slice_ids(df, target_ids, column)
 
-    if warn_if_empty and len(df.index) == 0:
+    if warn_if_empty and df.shape[0] == 0:
         column_name = column or slicer
         logger.warn("slice_canonically: no rows in %s with %s == %s"
                     % (label, column_name, target_ids))
@@ -682,8 +526,7 @@ def hh_id_for_chooser(id, choosers):
         scalar household_id or series of household_ids
     """
 
-    if choosers.index.name == 'HHID' or \
-            choosers.index.name == inject.get_injectable('hh_index_name', 'HHID'):
+    if choosers.index.name == 'household_id':
         hh_id = id
     elif 'household_id' in choosers.columns:
         hh_id = choosers.loc[id]['household_id']
@@ -730,7 +573,7 @@ def trace_df(df, label, slicer=None, columns=None,
 
     df = slice_canonically(df, slicer, label, warn_if_empty)
 
-    if len(df.index) > 0:
+    if df.shape[0] > 0:
         write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,
                   column_labels=column_labels, transpose=transpose)
 
@@ -762,16 +605,17 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     # slicer column name and id targets to use for chooser id added to model_design dataframe
     # currently we only ever slice by person_id, but that could change, so we check here...
 
-    if choosers.index.name == 'PERID' \
-            or choosers.index.name == inject.get_injectable('persons_index_name', None):
+    table_refs = inject.get_injectable('traceable_table_refs', {})
+
+    if choosers.index.name == 'person_id' and inject.get_injectable('trace_persons', False):
         slicer_column_name = choosers.index.name
-        targets = inject.get_injectable('trace_person_ids', [])
-    elif ('household_id' in choosers.columns and inject.get_injectable('trace_hh_id', False)):
+        targets = inject.get_injectable('trace_persons', [])
+    elif 'household_id' in choosers.columns and inject.get_injectable('trace_hh_id', False):
         slicer_column_name = 'household_id'
         targets = inject.get_injectable('trace_hh_id', [])
-    elif ('person_id' in choosers.columns and inject.get_injectable('trace_person_ids', False)):
+    elif 'person_id' in choosers.columns and inject.get_injectable('trace_persons', False):
         slicer_column_name = 'person_id'
-        targets = inject.get_injectable('trace_person_ids', [])
+        targets = inject.get_injectable('trace_persons', [])
     else:
         print choosers.columns
         raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
@@ -847,7 +691,7 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
         return
 
     # write out the raw dataframe
-    file_path = log_file_path('%s.raw.csv' % label)
+    file_path = config.trace_file_path('%s.raw.csv' % label)
     trace_results.to_csv(file_path, mode="a", index=True, header=True)
 
     # if there are multiple targets, we want them in separate tables for readability

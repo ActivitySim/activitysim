@@ -132,7 +132,7 @@ def create_timetable_windows(rows, tdd_alts):
     so if start is 5 and end is 23, we return something like this:
 
              4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24
-    PERID
+    person_id
     30       0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
     109      0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
 
@@ -233,11 +233,10 @@ class TimeTable(object):
     def get_windows_df(self):
 
         # It appears that assignments into windows write through to underlying pandas table.
-        # Because we set windows = windows_df.as_matrix, though as_matrix does not
-        # document this feature.
-
+        # because we set windows = windows_df.values, and since all the columns are the same type
         # so no need to refresh pandas dataframe, but if we had to it would go here
 
+        # assert (self.windows_df.values == self.windows).all()
         return self.windows_df
 
     def replace_table(self):

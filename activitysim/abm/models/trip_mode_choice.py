@@ -75,11 +75,11 @@ def trip_mode_choice(
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col, right_key=dest_col,
                                              skim_key='trip_period')
-    od_skim_stack_wrapper = skim_dict.wrap('origin', 'destination')
+    od_skim_wrapper = skim_dict.wrap('origin', 'destination')
 
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
-        "od_skims": od_skim_stack_wrapper,
+        "od_skims": od_skim_wrapper,
     }
 
     constants = config.get_model_constants(model_settings)

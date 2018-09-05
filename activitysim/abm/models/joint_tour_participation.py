@@ -312,6 +312,14 @@ def joint_tour_participation(
 
     pipeline.replace_table("tours", tours)
 
+    # - annotate persons
+    persons = inject.get_table('persons').to_frame()
+    expressions.assign_columns(
+        df=persons,
+        model_settings=model_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+    pipeline.replace_table("persons", persons)
+
     if trace_hh_id:
         tracing.trace_df(participants,
                          label="joint_tour_participation.participants")

@@ -8,3 +8,9 @@ preprocessor:
 #  TABLES:
 #    - persons
 #    - accessibility
+
+annotate_persons:
+  SPEC: annotate_persons_jtp
+  DF: persons
+  TABLES:
+    - joint_tour_participants

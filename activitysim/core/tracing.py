@@ -539,7 +539,7 @@ def hh_id_for_chooser(id, choosers):
 def dump_df(dump_switch, df, trace_label, fname):
     if dump_switch:
         trace_label = extend_trace_label(trace_label, 'DUMP.%s' % fname)
-        trace_df(df, trace_label, slicer='NONE', transpose=False)
+        trace_df(df, trace_label, index_label=df.index.name, slicer='NONE', transpose=False)
 
 
 def trace_df(df, label, slicer=None, columns=None,

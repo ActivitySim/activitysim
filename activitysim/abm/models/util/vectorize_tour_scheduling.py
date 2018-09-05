@@ -438,7 +438,8 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
         The spec which will be passed to interaction_simulate.
         (all subtours share same spec regardless of subtour type)
     constants : dict
-        dict of model-specific constants for eval    chunk_size
+        dict of model-specific constants for eval
+    chunk_size
     trace_label
 
     Returns

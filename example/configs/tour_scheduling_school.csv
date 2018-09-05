@@ -18,7 +18,8 @@ First of 2+ school/univ tours- duration<6 hrs,(tour_count>1) & (tour_num == 1) &
 Subsequent of 2+ school/univ tours- duration<6 hrs,(tour_num > 1) & (duration < 6),2.142
 School+work tours by student- duration<6 hrs,work_and_school_and_worker & (duration < 6),1.73
 School+work tours by worker- duration<6 hrs,work_and_school_and_student & (duration < 6),2.142
-# Mode Choice Logsum,@@modeChoiceLogsumAlt,2.127
+#,,
+# FIXME - Mode Choice Logsum,@@modeChoiceLogsumAlt,2.127
 #,,
 Previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.person_id, df.start)",-0.5995
 Previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.person_id, df.end)",-1.102

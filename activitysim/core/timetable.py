@@ -96,6 +96,8 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
         tour_type = keys[0]
         tour_sigil = sigil[tour_type]
 
+        print "xxx tour_type", tour_type, tour_sigil
+
         # numpy array with one time window row for each row in nth_tours
         tour_windows = window_periods_df.loc[nth_tours.tdd].values
 
@@ -113,6 +115,9 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
 
     # a = pd.Series([' '.join(a) for a in agenda], index=persons.index)
     a = pd.DataFrame(data=agenda, columns=[str(w) for w in range(min_period, max_period+1)])
+
+    a.index = persons.index
+    a.index.name = persons_id_col
 
     return a
 

@@ -13,6 +13,7 @@ import openmatrix as omx
 
 from activitysim.core import skim
 from activitysim.core import inject
+from activitysim.core import util
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +40,13 @@ def skims_to_load(omx_file_path, tags_to_load=None):
             key = (key1, key2) if sep else key1
             skim_keys[skim_name] = key
 
-        num_skims = len(skim_keys.keys())
+    num_skims = len(skim_keys.keys())
 
     skim_data_shape = omx_shape + (num_skims, )
     skim_dtype = np.float32
+
+    logger.debug("skims_to_load from %s" % (omx_file_path, ))
+    logger.debug("skims_to_load skim_data_shape %s skim_dtype %s" % (skim_data_shape, skim_dtype))
 
     return skim_keys, skim_data_shape, skim_dtype
 
@@ -72,6 +76,8 @@ def load_skims(omx_file_path, skim_keys, skim_data):
         n = 0
         for skim_name, key in skim_keys.iteritems():
 
+            logger.debug("load_skims skim_name %s key %s" % (skim_name, key))
+
             omx_data = omx_file[skim_name]
             assert np.issubdtype(omx_data.dtype, np.floating)
 
@@ -86,13 +92,15 @@ def load_skims(omx_file_path, skim_keys, skim_data):
 @inject.injectable(cache=True)
 def skim_dict(data_dir, settings):
 
-    logger.info("skims injectable loading skims")
-
     omx_file_path = os.path.join(data_dir, settings["skims_file"])
     tags_to_load = settings['skim_time_periods']['labels']
 
+    logger.info("loading skim_dict from %s" % (omx_file_path, ))
+
     # select the skims to load
     skim_keys, skims_shape, skim_dtype = skims_to_load(omx_file_path, tags_to_load)
+
+    logger.debug("skim_data_shape %s skim_dtype %s" % (skims_shape, skim_dtype))
 
     skim_buffer = inject.get_injectable('skim_buffer', None)
     if skim_buffer:
@@ -101,6 +109,9 @@ def skim_dict(data_dir, settings):
     else:
         skim_data = np.zeros(skims_shape, dtype=skim_dtype)
         load_skims(omx_file_path, skim_keys, skim_data)
+
+    logger.info("skim_data dtype %s shape %s bytes %s (%s)" %
+                (skim_dtype, skims_shape, skim_data.nbytes, util.GB(skim_data.nbytes)))
 
     # create skim dict
     skim_dict = skim.SkimDict(skim_data, skim_keys.values())
@@ -112,5 +123,5 @@ def skim_dict(data_dir, settings):
 @inject.injectable(cache=True)
 def skim_stack(skim_dict):
 
-    logger.debug("loading skim_stack")
+    logger.debug("loading skim_stack injectable")
     return skim.SkimStack(skim_dict)

@@ -34,9 +34,11 @@ class AccessibilitySkims(object):
         whether to transpose the matrix before flattening. (i.e. act as a D-O instead of O-D skim)
     """
 
-    def __init__(self, skim_dict, dest_zones, orig_zones, transpose=False):
+    def __init__(self, skim_dict, orig_zones, dest_zones, transpose=False):
 
-        assert skim_dict.skim_data.shape[0] == len(dest_zones)
+        logger.info("init AccessibilitySkims with %d dest zones %d orig zones skim_data.shape %s" %
+                    (len(dest_zones), len(orig_zones), skim_dict.skim_data.shape, ))
+
         assert len(orig_zones) <= len(dest_zones)
         assert np.isin(orig_zones, dest_zones).all()
         assert len(np.unique(orig_zones)) == len(orig_zones)
@@ -44,12 +46,26 @@ class AccessibilitySkims(object):
 
         self.skim_dict = skim_dict
         self.transpose = transpose
-        self.orig_map = None
 
-        if len(orig_zones) < len(dest_zones):
-            self.orig_map = np.isin(dest_zones, orig_zones)
+        if skim_dict.skim_data.shape[0] == len(orig_zones):
+            # no slicing required
+            self.slice_map = None
         else:
-            self.orig_map = None
+            # 2-d boolean slicing in numpy is a bit tricky
+            # data = data[orig_map, dest_map]          # <- WRONG!
+            # data = data[orig_map, :][:, dest_map]    # <- RIGHT
+            # data = data[np.ix_(orig_map, dest_map)]  # <- ALSO RIGHT
+
+            skim_index = range(skim_dict.skim_data.shape[0])
+            orig_map = np.isin(skim_index, skim_dict.offset_mapper.map(orig_zones))
+            dest_map = np.isin(skim_index, skim_dict.offset_mapper.map(dest_zones))
+
+            if not dest_map.all():
+                # not using the whole skim matrix
+                logger.info("%s skim zones not in dest_map: %s" %
+                            ((~dest_map).sum(), np.ix_(~dest_map)))
+
+            self.slice_map = np.ix_(orig_map, dest_map)
 
     def __getitem__(self, key):
         """
@@ -65,8 +81,10 @@ class AccessibilitySkims(object):
         if self.transpose:
             data = data.transpose()
 
-        if self.orig_map is not None:
-            data = data[self.orig_map, :]
+        if self.slice_map is not None:
+            # slice skim to include only orig rows and dest columns
+            # 2-d boolean slicing in numpy is a bit tricky - see explanation in __init__
+            data = data[self.slice_map]
 
         return data.flatten()
 
@@ -97,21 +115,35 @@ def compute_accessibility(accessibility, accessibility_spec,
     steeper than automobile or transit.  The minimum accessibility is zero.
     """
 
-    logger.info("Running compute_accessibility")
+    trace_label = 'compute_accessibility'
     model_settings = config.read_model_settings('accessibility.yaml')
 
     accessibility_df = accessibility.to_frame()
+
+    logger.info("Running %s with %d dest zones" % (trace_label, len(accessibility_df)))
 
     constants = config.get_model_constants(model_settings)
     land_use_columns = model_settings.get('land_use_columns', [])
 
     land_use_df = land_use.to_frame()
 
+    # #bug
+    #
+    # land_use_df = land_use_df[land_use_df.index % 2 == 1]
+    # accessibility_df = accessibility_df[accessibility_df.index.isin(land_use_df.index)].head(5)
+    #
+    # print "land_use_df", land_use_df.index
+    # print "accessibility_df", accessibility_df.index
+    # #bug
+
     orig_zones = accessibility_df.index.values
     dest_zones = land_use_df.index.values
 
     orig_zone_count = len(orig_zones)
     dest_zone_count = len(dest_zones)
+
+    logger.info("Running %s with %d dest zones %d orig zones" %
+                (trace_label, dest_zone_count, orig_zone_count))
 
     # create OD dataframe
     od_df = pd.DataFrame(
@@ -134,8 +166,8 @@ def compute_accessibility(accessibility, accessibility_spec,
     locals_d = {
         'log': np.log,
         'exp': np.exp,
-        'skim_od': AccessibilitySkims(skim_dict, dest_zones, orig_zones),
-        'skim_do': AccessibilitySkims(skim_dict, dest_zones, orig_zones, transpose=True)
+        'skim_od': AccessibilitySkims(skim_dict, orig_zones, dest_zones),
+        'skim_do': AccessibilitySkims(skim_dict, orig_zones, dest_zones, transpose=True)
     }
     if constants is not None:
         locals_d.update(constants)

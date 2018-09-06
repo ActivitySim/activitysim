@@ -33,7 +33,7 @@ def auto_ownership_simulate(households,
     trace_label = 'auto_ownership_simulate'
     model_settings = config.read_model_settings('auto_ownership.yaml')
 
-    logger.info("Running auto_ownership_simulate with %d households" % len(households_merged))
+    logger.info("Running %s with %d households" % (trace_label, len(households_merged)))
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)

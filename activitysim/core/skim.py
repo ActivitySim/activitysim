@@ -149,6 +149,12 @@ class SkimDict(object):
         self.num_skims = skim_data.shape[2]
         self.offset_mapper = OffsetMapper()
 
+        self.usage = set()
+
+    def touch(self, key):
+
+        self.usage.add(key)
+
     def get(self, key):
         """
         Get an available wrapped skim object (not the lookup)
@@ -166,6 +172,8 @@ class SkimDict(object):
         assert key in self.skim_key_to_skim_num
         n = self.skim_key_to_skim_num[key]
         assert n < self.num_skims
+
+        self.touch(key)
 
         data = self.skim_data[:, :, n]
 
@@ -309,23 +317,29 @@ class SkimStack(object):
         self.offset_mapper = skim_dict.offset_mapper
         self.skim_dict = skim_dict
 
+        # build a dict mapping key1 to dict of key2 (dim3) indexes in skim_data
         skim_dim3 = OrderedDict()
         for key, n in skim_dict.skim_key_to_skim_num.iteritems():
             if isinstance(key, tuple):
                 key1, key2 = key
                 skim_dim3.setdefault(key1, OrderedDict())[key2] = n
-
         self.skim_dim3 = skim_dim3
 
         logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
                     % (len(self.skim_dim3),
                        sum([len(d) for d in self.skim_dim3.values()])))
 
-    def __str__(self):
+        self.usage = set()
 
-        return "\n".join(
-            "%s %s" % (key1, sub_dict)
-            for key1, sub_dict in self.skim_dim3.iteritems())
+    def touch(self, key):
+
+        self.usage.add(key)
+
+    # def __str__(self):
+    #
+    #     return "\n".join(
+    #         "%s %s" % (key1, sub_dict)
+    #         for key1, sub_dict in self.skim_dim3.iteritems())
 
     def lookup(self, orig, dest, dim3, key):
 
@@ -335,6 +349,8 @@ class SkimStack(object):
         assert key in self.skim_dim3, "SkimStack key %s missing" % key
         stacked_skim_data = self.skim_dict.skim_data
         skim_keys_to_indexes = self.skim_dim3[key]
+
+        self.touch(key)
 
         # skim_indexes = dim3.map(skim_keys_to_indexes).astype('int')
         # this should be faster than map

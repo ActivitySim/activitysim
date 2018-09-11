@@ -28,6 +28,11 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 logger = logging.getLogger(__name__)
 
 
+def log_file_path(file_name):
+    # FIXME - for compatability with v0.7
+    return config.log_file_path(file_name)
+
+
 def check_for_variability():
     return inject.get_injectable('check_for_variability', False)
 

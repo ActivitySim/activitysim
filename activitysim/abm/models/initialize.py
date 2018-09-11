@@ -15,6 +15,7 @@ from activitysim.core import pipeline
 
 from activitysim.core.steps.output import write_data_dictionary
 from activitysim.core.steps.output import write_tables
+from activitysim.core.steps.output import track_skim_usage
 
 from .util import expressions
 
@@ -95,6 +96,7 @@ def preload_injectables():
 
     logger.info("preload_injectables")
 
+    inject.add_step('track_skim_usage', track_skim_usage)
     inject.add_step('write_data_dictionary', write_data_dictionary)
     inject.add_step('write_tables', write_tables)
 

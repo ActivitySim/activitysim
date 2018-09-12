@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def uniquify_key(dict, key, template="{} ({})"):
     """
-    rename key so there are no duplicates with keys in dice
+    rename key so there are no duplicates with keys in dict
 
     e.g. if there is already a key named "dog", the second key will be reformatted to "dog (2)"
     """
@@ -183,7 +183,10 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
     np_logger = NumpyLogger(logger)
 
-    def is_local(target):
+    def is_throwaway(target):
+        return target == '_'
+
+    def is_temp_scalar(target):
         return target.startswith('_') and target.isupper()
 
     def is_temp(target):
@@ -229,11 +232,12 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         if target in local_keys:
             logger.warn("assign_variables target obscures local_d name '%s'" % str(target))
 
-        if is_local(target):
+        if is_temp_scalar(target) or is_throwaway(target):
             x = eval(expression, globals(), _locals_dict)
-            _locals_dict[target] = x
-            if trace_assigned_locals is not None:
-                trace_assigned_locals[uniquify_key(trace_assigned_locals, target)] = x
+            if not is_throwaway(target):
+                _locals_dict[target] = x
+                if trace_assigned_locals is not None:
+                    trace_assigned_locals[uniquify_key(trace_assigned_locals, target)] = x
             continue
 
         try:

@@ -276,7 +276,7 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
         df = df[columns]
 
     if not transpose:
-        df.to_csv(file_path, mode="a", index=True, header=True)
+        df.to_csv(file_path, mode="a", index=df.index.name is not None, header=True)
         return
 
     df_t = df.transpose()
@@ -344,7 +344,10 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     assert len(file_name) > 0
 
-    file_path = config.trace_file_path('%s.%s' % (file_name, CSV_FILE_TYPE))
+    if not file_name.endswith(".%s" % CSV_FILE_TYPE):
+        file_name = '%s.%s' % (file_name, CSV_FILE_TYPE)
+
+    file_path = config.trace_file_path(file_name)
 
     if os.path.isfile(file_path):
         logger.error("write_csv file exists %s %s" % (type(df).__name__, file_name))
@@ -360,7 +363,8 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
         # logger.debug("dumping %s element dict to %s" % (df.shape[0], file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
-        logger.error("write_df_csv object '%s' of unexpected type: %s" % (file_name, type(df)))
+        logger.error("write_csv object for file_name '%s' of unexpected type: %s" %
+                     (file_name, type(df)))
 
 
 def slice_ids(df, ids, column=None):

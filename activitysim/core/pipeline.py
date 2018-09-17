@@ -665,7 +665,7 @@ def replace_table(table_name, df):
     _PIPELINE.replaced_tables[table_name] = True
 
 
-def extend_table(table_name, df):
+def extend_table(table_name, df, axis=0):
     """
     add new table or extend (add rows) to an existing table
 
@@ -676,15 +676,23 @@ def extend_table(table_name, df):
     df : pandas DataFrame
     """
 
+    assert axis in [0, 1]
+
     if orca.is_table(table_name):
 
         table_df = orca.get_table(table_name).to_frame()
 
-        # don't expect indexes to overlap
-        assert len(table_df.index.intersection(df.index)) == 0
+        if axis == 0:
+            # don't expect indexes to overlap
+            assert len(table_df.index.intersection(df.index)) == 0
+        else:
+            # expect indexes be same
+            assert table_df.index.equals(df.index)
+            new_columns = [c for c in df.columns if c not in table_df.columns]
+            df = df[new_columns]
 
         # preserve existing column order
-        df = pd.concat([table_df, df], sort=False)
+        df = pd.concat([table_df, df], sort=False, axis=axis)
 
     replace_table(table_name, df)
 

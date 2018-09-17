@@ -239,7 +239,7 @@ def test_write_csv(capsys):
 
     print out  # don't consume output
 
-    assert "write_df_csv object 'baddie' of unexpected type" in out
+    assert "unexpected type" in out
 
     close_handlers()
 

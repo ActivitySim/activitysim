@@ -55,7 +55,7 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def delete_output_files(file_type):
+def delete_output_files(file_type, output_dir=None):
     """
     Delete files in output directory of specified type
 
@@ -69,7 +69,9 @@ def delete_output_files(file_type):
     Nothing
     """
 
-    output_dir = inject.get_injectable('output_dir')
+    if output_dir is None:
+        output_dir = inject.get_injectable('output_dir')
+
     logger.debug("Deleting %s files in output_dir %s" % (file_type, output_dir))
 
     for the_file in os.listdir(output_dir):
@@ -82,20 +84,15 @@ def delete_output_files(file_type):
                 print(e)
 
 
-def delete_csv_files():
+def delete_csv_files(output_dir=None):
     """
-    Delete CSV files
-
-    Parameters
-    ----------
-    output_dir: str
-        Directory of trace output CSVs
+    Delete CSV files in output_dir
 
     Returns
     -------
     Nothing
     """
-    delete_output_files(CSV_FILE_TYPE)
+    delete_output_files(CSV_FILE_TYPE, output_dir)
 
 
 def config_logger(custom_config_file=None, basic=False):

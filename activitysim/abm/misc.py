@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from activitysim.core import pipeline
+from activitysim.core import config
 from activitysim.core import inject
 
 # FIXME
@@ -29,18 +29,18 @@ def households_sample_size(settings, override_hh_ids):
 
 
 @inject.injectable(cache=True)
-def override_hh_ids(settings, configs_dir):
+def override_hh_ids(settings):
 
     hh_ids_filename = settings.get('hh_ids', None)
     if hh_ids_filename is None:
         return None
 
-    f = os.path.join(configs_dir, hh_ids_filename)
-    if not os.path.exists(f):
-        logger.error('hh_ids file name specified in settings, but file not found: %s' % f)
+    file_path = config.config_file_path(hh_ids_filename, mandatory=False)
+    if not file_path:
+        logger.error("hh_ids file name '%s' specified in settings not found: %s" % hh_ids_filename)
         return None
 
-    df = pd.read_csv(f, comment='#')
+    df = pd.read_csv(file_path, comment='#')
 
     if 'household_id' not in df.columns:
         logger.error("No 'household_id' column in hh_ids file %s" % hh_ids_filename)

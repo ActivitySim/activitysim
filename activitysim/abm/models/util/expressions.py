@@ -78,8 +78,6 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
         same index as df
     """
 
-    configs_dir = inject.get_injectable('configs_dir')
-
     if isinstance(model_settings, str):
         model_settings_name = model_settings
         model_settings = config.read_model_settings('%s.yaml' % model_settings)
@@ -102,7 +100,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
 
     if not expressions_spec_name.endswith(".csv"):
         expressions_spec_name = '%s.csv' % expressions_spec_name
-    expressions_spec = assign.read_assignment_spec(os.path.join(configs_dir, expressions_spec_name))
+    expressions_spec = assign.read_assignment_spec(config.config_file_path(expressions_spec_name))
 
     assert expressions_spec.shape[0] > 0, \
         "Expected to find some assignment expressions in %s" % expressions_spec_name

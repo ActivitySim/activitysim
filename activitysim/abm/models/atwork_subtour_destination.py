@@ -30,21 +30,17 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@inject.injectable()
-def atwork_subtour_destination_sample_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'atwork_subtour_destination_sample.csv')
-
-
 @inject.step()
 def atwork_subtour_destination_sample(tours,
                                       persons_merged,
-                                      atwork_subtour_destination_sample_spec,
                                       skim_dict,
                                       land_use, size_terms,
                                       chunk_size, trace_hh_id):
 
     trace_label = 'atwork_subtour_location_sample'
     model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('atwork_subtour_destination_sample.csv'))
 
     persons_merged = persons_merged.to_frame()
 
@@ -87,7 +83,7 @@ def atwork_subtour_destination_sample(tours,
         alternatives,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
-        spec=atwork_subtour_destination_sample_spec,
+        spec=model_spec,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
@@ -101,7 +97,7 @@ def atwork_subtour_destination_sample(tours,
 @inject.step()
 def atwork_subtour_destination_logsums(persons_merged,
                                        skim_dict, skim_stack,
-                                       configs_dir, chunk_size, trace_hh_id):
+                                       chunk_size, trace_hh_id):
     """
     add logsum column to existing workplace_location_sample able
 
@@ -169,15 +165,9 @@ def atwork_subtour_destination_logsums(persons_merged,
     inject.add_column("atwork_subtour_destination_sample", "mode_choice_logsum", logsums)
 
 
-@inject.injectable()
-def atwork_subtour_destination_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'atwork_subtour_destination.csv')
-
-
 @inject.step()
 def atwork_subtour_destination_simulate(tours,
                                         persons_merged,
-                                        atwork_subtour_destination_spec,
                                         skim_dict,
                                         land_use, size_terms,
                                         chunk_size, trace_hh_id):
@@ -197,6 +187,7 @@ def atwork_subtour_destination_simulate(tours,
     destination_sample = destination_sample.to_frame()
 
     model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('atwork_subtour_destination.csv'))
 
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']
@@ -245,7 +236,7 @@ def atwork_subtour_destination_simulate(tours,
     choices = interaction_sample_simulate(
         choosers,
         alternatives,
-        spec=atwork_subtour_destination_spec,
+        spec=model_spec,
         choice_column=alt_dest_col_name,
         skims=skims,
         locals_d=locals_d,

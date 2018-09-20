@@ -9,7 +9,7 @@ import pandas as pd
 from activitysim.core.simulate import read_model_spec
 from activitysim.core.interaction_simulate import interaction_simulate
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
@@ -26,17 +26,11 @@ logger = logging.getLogger(__name__)
 DUMP = True
 
 
-@inject.injectable()
-def tour_scheduling_atwork_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_scheduling_atwork.csv')
-
-
 @inject.step()
 def atwork_subtour_scheduling(
         tours,
         persons_merged,
         tdd_alts,
-        tour_scheduling_atwork_spec,
         skim_dict,
         chunk_size,
         trace_hh_id):
@@ -46,6 +40,7 @@ def atwork_subtour_scheduling(
 
     trace_label = 'atwork_subtour_scheduling'
     model_settings = config.read_model_settings('tour_scheduling_atwork.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_atwork.csv'))
 
     persons_merged = persons_merged.to_frame()
 
@@ -80,7 +75,7 @@ def atwork_subtour_scheduling(
         parent_tours,
         subtours,
         persons_merged,
-        tdd_alts, tour_scheduling_atwork_spec,
+        tdd_alts, model_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)

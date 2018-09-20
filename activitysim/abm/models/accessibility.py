@@ -89,15 +89,8 @@ class AccessibilitySkims(object):
         return data.flatten()
 
 
-@inject.injectable()
-def accessibility_spec(configs_dir):
-    f = os.path.join(configs_dir, 'accessibility.csv')
-    return assign.read_assignment_spec(f)
-
-
 @inject.step()
-def compute_accessibility(accessibility, accessibility_spec,
-                          skim_dict, land_use, trace_od):
+def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
 
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
@@ -117,6 +110,7 @@ def compute_accessibility(accessibility, accessibility_spec,
 
     trace_label = 'compute_accessibility'
     model_settings = config.read_model_settings('accessibility.yaml')
+    assignment_spec = assign.read_assignment_spec(config.config_file_path('accessibility.csv'))
 
     accessibility_df = accessibility.to_frame()
 
@@ -173,7 +167,7 @@ def compute_accessibility(accessibility, accessibility_spec,
         locals_d.update(constants)
 
     results, trace_results, trace_assigned_locals \
-        = assign.assign_variables(accessibility_spec, od_df, locals_d, trace_rows=trace_od_rows)
+        = assign.assign_variables(assignment_spec, od_df, locals_d, trace_rows=trace_od_rows)
 
     for column in results.columns:
         data = np.asanyarray(results[column])

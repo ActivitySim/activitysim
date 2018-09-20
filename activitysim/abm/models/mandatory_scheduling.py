@@ -23,22 +23,10 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@inject.injectable()
-def tour_scheduling_work_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'tour_scheduling_work.csv')
-
-
-@inject.injectable()
-def tour_scheduling_school_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'tour_scheduling_school.csv')
-
-
 @inject.step()
 def mandatory_tour_scheduling(tours,
                               persons_merged,
                               tdd_alts,
-                              tour_scheduling_work_spec,
-                              tour_scheduling_school_spec,
                               chunk_size,
                               trace_hh_id):
     """
@@ -46,6 +34,8 @@ def mandatory_tour_scheduling(tours,
     """
     trace_label = 'mandatory_tour_scheduling'
     model_settings = config.read_model_settings('mandatory_tour_scheduling.yaml')
+    work_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_work.csv'))
+    school_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_school.csv'))
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
@@ -62,7 +52,7 @@ def mandatory_tour_scheduling(tours,
     tdd_choices = vectorize_tour_scheduling(
         mandatory_tours, persons_merged,
         tdd_alts,
-        spec={'work': tour_scheduling_work_spec, 'school': tour_scheduling_school_spec},
+        spec={'work': work_spec, 'school': school_spec},
         constants=model_constants,
         chunk_size=chunk_size,
         trace_label=trace_label)

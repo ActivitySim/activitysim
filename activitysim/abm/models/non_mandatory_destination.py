@@ -12,17 +12,12 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import simulate
 
-from .util import expressions
 from activitysim.core.util import assign_in_place
 from .util.tour_destination import tour_destination_size_terms
 
 logger = logging.getLogger(__name__)
-
-
-@inject.injectable()
-def non_mandatory_tour_destination_spec(configs_dir):
-    return read_model_spec(configs_dir, 'non_mandatory_tour_destination_sample.csv')
 
 
 @inject.step()
@@ -30,7 +25,6 @@ def non_mandatory_tour_destination(
         tours,
         persons_merged,
         skim_dict,
-        non_mandatory_tour_destination_spec,
         land_use, size_terms,
         chunk_size,
         trace_hh_id):
@@ -43,12 +37,13 @@ def non_mandatory_tour_destination(
 
     trace_label = 'non_mandatory_tour_destination'
     model_settings = config.read_model_settings('non_mandatory_tour_destination.yaml')
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('non_mandatory_tour_destination_sample.csv'))
 
     tours = tours.to_frame()
 
     persons_merged = persons_merged.to_frame()
     alternatives = tour_destination_size_terms(land_use, size_terms, 'non_mandatory')
-    spec = non_mandatory_tour_destination_spec
 
     # choosers are tours - in a sense tours are choosing their destination
     non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
@@ -105,7 +100,7 @@ def non_mandatory_tour_destination(
         choices = interaction_simulate(
             segment,
             alternatives_segment,
-            spec[[kludge_name]],
+            model_spec[[kludge_name]],
             skims=skims,
             locals_d=locals_d,
             sample_size=sample_size,

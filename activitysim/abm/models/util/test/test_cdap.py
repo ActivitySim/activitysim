@@ -20,6 +20,11 @@ def data_dir():
 
 
 @pytest.fixture(scope='module')
+def configs_dir():
+    return os.path.join(os.path.dirname(__file__), 'configs')
+
+
+@pytest.fixture(scope='module')
 def people(data_dir):
     return pd.read_csv(
         os.path.join(data_dir, 'people.csv'),
@@ -27,13 +32,14 @@ def people(data_dir):
 
 
 @pytest.fixture(scope='module')
-def cdap_indiv_and_hhsize1(data_dir):
-    return read_model_spec(data_dir, 'cdap_indiv_and_hhsize1.csv')
+def cdap_indiv_and_hhsize1(configs_dir):
+    f = os.path.join(configs_dir, 'cdap_indiv_and_hhsize1.csv')
+    return read_model_spec(f)
 
 
 @pytest.fixture(scope='module')
-def cdap_interaction_coefficients(data_dir):
-    f = os.path.join(data_dir, 'cdap_interaction_coefficients.csv')
+def cdap_interaction_coefficients(configs_dir):
+    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
     coefficients = pd.read_csv(f, comment='#')
     coefficients = cdap.preprocess_interaction_coefficients(coefficients)
     return coefficients
@@ -57,9 +63,9 @@ def individual_utils(
 #     return cdap.make_household_choices(hh_utils)
 
 
-def test_bad_coefficients(data_dir):
+def test_bad_coefficients(configs_dir):
 
-    f = os.path.join(data_dir, 'cdap_interaction_coefficients.csv')
+    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
     coefficients = pd.read_csv(f, comment='#')
 
     coefficients.loc[2, 'activity'] = 'AA'

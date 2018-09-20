@@ -8,15 +8,16 @@ import pandas as pd
 
 
 from activitysim.core import inject
+from activitysim.core import config
 from activitysim.core import timetable as tt
 
 logger = logging.getLogger(__name__)
 
 
 @inject.injectable(cache=True)
-def tdd_alts(configs_dir):
+def tdd_alts():
     # right now this file just contains the start and end hour
-    f = os.path.join(configs_dir, 'tour_departure_and_duration_alternatives.csv')
+    f = config.config_file_path('tour_departure_and_duration_alternatives.csv')
     df = pd.read_csv(f)
 
     df['duration'] = df.end - df.start

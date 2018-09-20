@@ -22,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def trip_purpose_probs():
-    configs_dir = inject.get_injectable('configs_dir')
-    f = os.path.join(configs_dir, 'trip_purpose_probs.csv')
+    f = config.config_file_path('trip_purpose_probs.csv')
     df = pd.read_csv(f, comment='#')
     return df
 

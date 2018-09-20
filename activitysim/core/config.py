@@ -79,21 +79,21 @@ def setting(key, default=None):
 
 def read_model_settings(file_name, mandatory=False):
 
-    configs_dir = inject.get_injectable('configs_dir')
+    model_settings = None
 
-    settings = None
-    file_path = os.path.join(configs_dir,  file_name)
-    if os.path.isfile(file_path):
+    file_path = config_file_path(file_name, mandatory=False)
+
+    if file_path is not None and os.path.isfile(file_path):
         with open(file_path) as f:
-            settings = yaml.load(f)
+            model_settings = yaml.load(f)
 
-    if settings is None:
-        settings = {}
+    if model_settings is None:
+        model_settings = {}
 
-    if mandatory and not settings:
+    if mandatory and not model_settings:
         raise RuntimeError("Could not read settings from %s" % file_name)
 
-    return settings
+    return model_settings
 
 
 def get_model_constants(model_settings):
@@ -175,3 +175,18 @@ def pipeline_file_path(file_name):
 
     prefix = inject.get_injectable('pipeline_file_prefix', None)
     return build_output_file_path(file_name, use_prefix=prefix)
+
+
+def config_file_path(file_name, mandatory=True):
+
+    configs_dir = inject.get_injectable('configs_dir')
+
+    file_path = os.path.join(configs_dir, file_name)
+
+    if not os.path.exists(os.path.join(configs_dir, file_name)):
+        if mandatory:
+            raise RuntimeError("config_file_path: file does not exist: %s" % file_path)
+        else:
+            return None
+
+    return file_path

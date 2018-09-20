@@ -50,7 +50,14 @@ def uniquify_spec_index(spec):
     assert spec.index.is_unique
 
 
-def read_model_spec(fpath, fname,
+def read_model_alts(file_path, set_index=None):
+    df = pd.read_csv(file_path, comment='#')
+    if set_index:
+        df.set_index(set_index, inplace=True)
+    return df
+
+
+def read_model_spec(file_path,
                     description_name="Description",
                     expression_name="Expression"):
     """
@@ -65,10 +72,8 @@ def read_model_spec(fpath, fname,
 
     Parameters
     ----------
-    fpath : str
-        path to directory containing file.
-    fname : str
-        Name of a CSV spec file
+    file_path : str
+        path to CSV spec file
     description_name : str, optional
         Name of the column in `fname` that contains the component description.
     expression_name : str, optional
@@ -81,8 +86,7 @@ def read_model_spec(fpath, fname,
         expression values are set as the table index.
     """
 
-    with open(os.path.join(fpath, fname)) as f:
-        spec = pd.read_csv(f, comment='#')
+    spec = pd.read_csv(file_path, comment='#')
 
     spec = spec.dropna(subset=[expression_name])
 
@@ -99,7 +103,7 @@ def read_model_spec(fpath, fname,
     # drop any rows with all zeros since they won't have any effect (0 marginal utility)
     zero_rows = (spec == 0).all(axis=1)
     if zero_rows.any():
-        logger.debug("dropping %s all-zero rows from %s" % (zero_rows.sum(), fname))
+        logger.debug("dropping %s all-zero rows from %s" % (zero_rows.sum(), file_path))
         spec = spec.loc[~zero_rows]
 
     return spec

@@ -19,20 +19,6 @@ from .util import expressions
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def mandatory_tour_frequency_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'mandatory_tour_frequency.csv')
-
-
-@inject.injectable()
-def mandatory_tour_frequency_alternatives(configs_dir):
-    # alt file for building tours even though simulation is simple_simulate not interaction_simulate
-    f = os.path.join(configs_dir, 'mandatory_tour_frequency_alternatives.csv')
-    df = pd.read_csv(f, comment='#')
-    df.set_index('alt', inplace=True)
-    return df
-
-
 def add_null_results(trace_label, mandatory_tour_frequency_settings):
     logger.info("Skipping %s: add_null_results" % trace_label)
 
@@ -56,8 +42,6 @@ def add_null_results(trace_label, mandatory_tour_frequency_settings):
 
 @inject.step()
 def mandatory_tour_frequency(persons_merged,
-                             mandatory_tour_frequency_spec,
-                             mandatory_tour_frequency_alternatives,
                              chunk_size,
                              trace_hh_id):
     """
@@ -67,6 +51,10 @@ def mandatory_tour_frequency(persons_merged,
     trace_label = 'mandatory_tour_frequency'
 
     model_settings = config.read_model_settings('mandatory_tour_frequency.yaml')
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('mandatory_tour_frequency.csv'))
+    alternatives = simulate.read_model_alts(
+        config.config_file_path('mandatory_tour_frequency_alternatives.csv'), set_index='alt')
 
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
@@ -95,7 +83,7 @@ def mandatory_tour_frequency(persons_merged,
 
     choices = simulate.simple_simulate(
         choosers=choosers,
-        spec=mandatory_tour_frequency_spec,
+        spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,
@@ -104,7 +92,7 @@ def mandatory_tour_frequency(persons_merged,
 
     # convert indexes to alternative names
     choices = pd.Series(
-        mandatory_tour_frequency_spec.columns[choices.values],
+        model_spec.columns[choices.values],
         index=choices.index).reindex(persons_merged.local.index)
 
     # - create mandatory tours
@@ -116,7 +104,7 @@ def mandatory_tour_frequency(persons_merged,
     choosers['mandatory_tour_frequency'] = choices
     mandatory_tours = process_mandatory_tours(
         persons=choosers,
-        mandatory_tour_frequency_alts=mandatory_tour_frequency_alternatives
+        mandatory_tour_frequency_alts=alternatives
     )
 
     tours = pipeline.extend_table("tours", mandatory_tours)

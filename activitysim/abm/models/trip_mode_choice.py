@@ -17,9 +17,7 @@ from activitysim.core.util import assign_in_place
 
 from .util.mode import annotate_preprocessors
 
-from .util.trip_mode import trip_mode_choice_spec
-from .util.trip_mode import trip_mode_choice_coeffecients_spec
-from activitysim.core.assign import evaluate_constants
+from activitysim.core import assign
 
 from .util.expressions import skim_time_period_label
 
@@ -43,8 +41,10 @@ def trip_mode_choice(
     trace_label = 'trip_mode_choice'
     model_settings = config.read_model_settings('trip_mode_choice.yaml')
 
-    spec = trip_mode_choice_spec(model_settings)
-    omnibus_coefficients = trip_mode_choice_coeffecients_spec(model_settings)
+    model_spec = \
+        simulate.read_model_spec(config.config_file_path(model_settings['SPEC']))
+    omnibus_coefficients = \
+        assign.read_constant_spec(config.config_file_path(model_settings['COEFFS']))
 
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips" % (trace_label, trips_df.shape[0]))
@@ -99,7 +99,8 @@ def trip_mode_choice(
         # name index so tracing knows how to slice
         assert trips_segment.index.name == 'trip_id'
 
-        locals_dict = evaluate_constants(omnibus_coefficients[primary_purpose], constants=constants)
+        locals_dict = assign.evaluate_constants(omnibus_coefficients[primary_purpose],
+                                                constants=constants)
         locals_dict.update(constants)
 
         annotate_preprocessors(
@@ -109,7 +110,7 @@ def trip_mode_choice(
         locals_dict.update(skims)
         choices = simulate.simple_simulate(
             choosers=trips_segment,
-            spec=spec,
+            spec=model_spec,
             nest_spec=nest_spec,
             skims=skims,
             locals_d=locals_dict,
@@ -117,7 +118,7 @@ def trip_mode_choice(
             trace_label=segment_trace_label,
             trace_choice_name='trip_mode_choice')
 
-        alts = spec.columns
+        alts = model_spec.columns
         choices = choices.map(dict(zip(range(len(alts)), alts)))
 
         # tracing.print_summary('trip_mode_choice %s choices' % primary_purpose,

@@ -14,16 +14,9 @@ from .util import expressions
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def auto_ownership_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'auto_ownership.csv')
-
-
 @inject.step()
 def auto_ownership_simulate(households,
                             households_merged,
-                            auto_ownership_spec,
-                            configs_dir,
                             chunk_size,
                             trace_hh_id):
     """
@@ -35,12 +28,14 @@ def auto_ownership_simulate(households,
 
     logger.info("Running %s with %d households" % (trace_label, len(households_merged)))
 
+    model_spec = simulate.read_model_spec(config.config_file_path('auto_ownership.csv'))
+
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
 
     choices = simulate.simple_simulate(
         choosers=households_merged.to_frame(),
-        spec=auto_ownership_spec,
+        spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,

@@ -23,20 +23,6 @@ from .util.tour_frequency import process_atwork_subtours
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def atwork_subtour_frequency_spec(configs_dir):
-    return read_model_spec(configs_dir, 'atwork_subtour_frequency.csv')
-
-
-@inject.injectable()
-def atwork_subtour_frequency_alternatives(configs_dir):
-    # alt file for building tours even though simulation is simple_simulate not interaction_simulate
-    f = os.path.join(configs_dir, 'atwork_subtour_frequency_alternatives.csv')
-    df = pd.read_csv(f, comment='#')
-    df.set_index('alt', inplace=True)
-    return df
-
-
 def add_null_results(trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
     tours['atwork_subtour_frequency'] = np.nan
@@ -46,8 +32,6 @@ def add_null_results(trace_label, tours):
 @inject.step()
 def atwork_subtour_frequency(tours,
                              persons_merged,
-                             atwork_subtour_frequency_spec,
-                             atwork_subtour_frequency_alternatives,
                              chunk_size,
                              trace_hh_id):
     """
@@ -59,6 +43,11 @@ def atwork_subtour_frequency(tours,
     trace_label = 'atwork_subtour_frequency'
 
     model_settings = config.read_model_settings('atwork_subtour_frequency.yaml')
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('atwork_subtour_frequency.csv'))
+
+    alternatives = simulate.read_model_alts(
+        config.config_file_path('atwork_subtour_frequency_alternatives.csv'), set_index='alt')
 
     tours = tours.to_frame()
 
@@ -81,7 +70,7 @@ def atwork_subtour_frequency(tours,
 
     choices = simulate.simple_simulate(
         choosers=work_tours,
-        spec=atwork_subtour_frequency_spec,
+        spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,
@@ -89,7 +78,7 @@ def atwork_subtour_frequency(tours,
         trace_choice_name='atwork_subtour_frequency')
 
     # convert indexes to alternative names
-    choices = pd.Series(atwork_subtour_frequency_spec.columns[choices.values], index=choices.index)
+    choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
 
     tracing.print_summary('atwork_subtour_frequency', choices, value_counts=True)
 
@@ -102,7 +91,7 @@ def atwork_subtour_frequency(tours,
     work_tours = tours[tours.tour_type == 'work']
     assert not work_tours.atwork_subtour_frequency.isnull().any()
 
-    subtours = process_atwork_subtours(work_tours, atwork_subtour_frequency_alternatives)
+    subtours = process_atwork_subtours(work_tours, alternatives)
 
     tours = pipeline.extend_table("tours", subtours)
 

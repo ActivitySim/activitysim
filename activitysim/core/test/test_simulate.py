@@ -26,7 +26,7 @@ def spec_name(data_dir):
 @pytest.fixture(scope='module')
 def spec(data_dir, spec_name):
     return simulate.read_model_spec(
-        data_dir, spec_name,
+        os.path.join(data_dir, spec_name),
         description_name='description',
         expression_name='expression')
 
@@ -39,7 +39,7 @@ def data(data_dir):
 def test_read_model_spec(data_dir, spec_name):
 
     spec = simulate.read_model_spec(
-        data_dir, spec_name,
+        os.path.join(data_dir, spec_name),
         description_name='description', expression_name='expression')
 
     assert len(spec) == 4

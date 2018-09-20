@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @inject.step()
-def annotate_table(configs_dir):
+def annotate_table():
 
     # model_settings name should have been provided as a step argument
     model_name = inject.get_step_arg('model_name')

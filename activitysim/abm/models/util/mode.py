@@ -10,6 +10,7 @@ import numpy as np
 from activitysim.core import tracing
 from activitysim.core import inject
 from activitysim.core import simulate
+from activitysim.core import config
 
 from activitysim.core.assign import evaluate_constants
 from activitysim.core.util import assign_in_place
@@ -26,21 +27,18 @@ looks like the other specs.
 
 def tour_mode_choice_spec(model_settings):
 
-    configs_dir = inject.get_injectable('configs_dir')
-
     assert 'SPEC' in model_settings
-    return simulate.read_model_spec(configs_dir, model_settings['SPEC'])
+
+    return simulate.read_model_spec(config.config_file_path(model_settings['SPEC']))
 
 
 def tour_mode_choice_coeffecients_spec(model_settings):
 
-    configs_dir = inject.get_injectable('configs_dir')
-
     assert 'COEFFS' in model_settings
     coeffs_file_name = model_settings['COEFFS']
 
-    with open(os.path.join(configs_dir, coeffs_file_name)) as f:
-        return pd.read_csv(f, comment='#', index_col='Expression')
+    file_path = config.config_file_path(coeffs_file_name)
+    return pd.read_csv(file_path, comment='#', index_col='Expression')
 
 
 def run_tour_mode_choice_simulate(

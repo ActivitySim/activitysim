@@ -6,7 +6,7 @@ import os
 
 import pandas as pd
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
@@ -19,25 +19,25 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable()
-def cdap_indiv_spec(configs_dir):
+def cdap_indiv_spec():
     """
     spec to compute the activity utilities for each individual hh member
     with no interactions with other household members taken into account
     """
-    return asim.read_model_spec(configs_dir, 'cdap_indiv_and_hhsize1.csv')
+    return simulate.read_model_spec(config.config_file_path('cdap_indiv_and_hhsize1.csv'))
 
 
 @inject.injectable()
-def cdap_interaction_coefficients(configs_dir):
+def cdap_interaction_coefficients():
     """
     Rules and coefficients for generating interaction specs for different household sizes
     """
-    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
+    f = config.config_file_path('cdap_interaction_coefficients.csv')
     return pd.read_csv(f, comment='#')
 
 
 @inject.injectable()
-def cdap_fixed_relative_proportions(configs_dir):
+def cdap_fixed_relative_proportions():
     """
     spec to compute/specify the relative proportions of each activity (M, N, H)
     that should be used to choose activities for additional household members
@@ -47,7 +47,7 @@ def cdap_fixed_relative_proportions(configs_dir):
     EXCEPT that the values computed are relative proportions, not utilities
     (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
     """
-    return asim.read_model_spec(configs_dir, 'cdap_fixed_relative_proportions.csv')
+    return simulate.read_model_spec(config.config_file_path('cdap_fixed_relative_proportions.csv'))
 
 
 @inject.step()

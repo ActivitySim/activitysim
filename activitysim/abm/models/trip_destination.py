@@ -22,9 +22,7 @@ from .util import logsums
 from .util import expressions
 
 from .util.mode import annotate_preprocessors
-from .util.trip_mode import trip_mode_choice_spec
-from .util.trip_mode import trip_mode_choice_coeffecients_spec
-from activitysim.core.assign import evaluate_constants
+from activitysim.core import assign
 
 from .util.tour_destination import tour_destination_size_terms
 from activitysim.core.skim import DataFrameMatrix
@@ -41,8 +39,9 @@ NO_DESTINATION = -1
 
 
 def get_spec_for_purpose(model_settings, spec_name, purpose):
-    configs_dir = inject.get_injectable('configs_dir')
-    omnibus_spec = simulate.read_model_spec(configs_dir, model_settings[spec_name])
+
+    omnibus_spec = simulate.read_model_spec(config.config_file_path(model_settings[spec_name]))
+
     spec = omnibus_spec[[purpose]]
 
     # might as well ignore any spec rows with 0 utility
@@ -127,7 +126,7 @@ def compute_ood_logsums(
         trace_label)
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
-    logsum_spec = trip_mode_choice_spec(logsum_settings)
+    logsum_spec = simulate.read_model_spec(config.config_file_path(logsum_settings['SPEC']))
 
     logsums = simulate.simple_simulate_logsums(
         choosers,
@@ -187,11 +186,14 @@ def compute_logsums(
     assert choosers.index.equals(destination_sample.index)
 
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
-    omnibus_coefficient_spec = trip_mode_choice_coeffecients_spec(logsum_settings)
+
+    omnibus_coefficient_spec = \
+        assign.read_constant_spec(config.config_file_path(logsum_settings['COEFFS']))
+
     coefficient_spec = omnibus_coefficient_spec[primary_purpose]
 
     constants = config.get_model_constants(logsum_settings)
-    locals_dict = evaluate_constants(coefficient_spec, constants=constants)
+    locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
     locals_dict.update(constants)
 
     # - od_logsums

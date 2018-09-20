@@ -23,11 +23,6 @@ from .util.overlap import hh_time_window_overlap
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def joint_tour_composition_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'joint_tour_composition.csv')
-
-
 def add_null_results(trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
     tours['composition'] = np.nan
@@ -37,7 +32,6 @@ def add_null_results(trace_label, tours):
 @inject.step()
 def joint_tour_composition(
         tours, households, persons,
-        joint_tour_composition_spec,
         chunk_size,
         trace_hh_id):
     """
@@ -46,6 +40,7 @@ def joint_tour_composition(
     trace_label = 'joint_tour_composition'
 
     model_settings = config.read_model_settings('joint_tour_composition.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('joint_tour_composition.csv'))
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -89,7 +84,7 @@ def joint_tour_composition(
 
     choices = simulate.simple_simulate(
         choosers=joint_tours_merged,
-        spec=joint_tour_composition_spec,
+        spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,
@@ -97,7 +92,7 @@ def joint_tour_composition(
         trace_choice_name='composition')
 
     # convert indexes to alternative names
-    choices = pd.Series(joint_tour_composition_spec.columns[choices.values], index=choices.index)
+    choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
 
     # add composition column to tours
     joint_tours['composition'] = choices

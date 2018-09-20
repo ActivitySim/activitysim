@@ -20,18 +20,11 @@ from activitysim.core.util import assign_in_place
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def joint_tour_scheduling_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'tour_scheduling_joint.csv')
-
-
 @inject.step()
 def joint_tour_scheduling(
         tours,
         persons_merged,
         tdd_alts,
-        joint_tour_scheduling_spec,
-        configs_dir,
         chunk_size,
         trace_hh_id):
     """
@@ -39,6 +32,7 @@ def joint_tour_scheduling(
     """
     trace_label = 'joint_tour_scheduling'
     model_settings = config.read_model_settings('joint_tour_scheduling.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_joint.csv'))
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -86,7 +80,7 @@ def joint_tour_scheduling(
         joint_tours, joint_tour_participants,
         persons_merged,
         tdd_alts,
-        spec=joint_tour_scheduling_spec,
+        spec=model_spec,
         constants=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label)

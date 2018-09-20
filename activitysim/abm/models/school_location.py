@@ -35,20 +35,9 @@ logger = logging.getLogger(__name__)
 SCHOOL_TYPE_ID = OrderedDict([('university', 1), ('highschool', 2), ('gradeschool', 3)])
 
 
-@inject.injectable()
-def school_location_sample_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'school_location_sample.csv')
-
-
-@inject.injectable()
-def school_location_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'school_location.csv')
-
-
 @inject.step()
 def school_location_sample(
         persons_merged,
-        school_location_sample_spec,
         skim_dict,
         land_use, size_terms,
         chunk_size,
@@ -73,6 +62,8 @@ def school_location_sample(
 
     trace_label = 'school_location_sample'
     model_settings = config.read_model_settings('school_location.yaml')
+
+    model_spec = simulate.read_model_spec(config.config_file_path('school_location_sample.csv'))
 
     choosers = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -123,7 +114,7 @@ def school_location_sample(
             alternatives_segment,
             sample_size=sample_size,
             alt_col_name=alt_dest_col_name,
-            spec=school_location_sample_spec[[school_type]],
+            spec=model_spec[[school_type]],
             skims=skims,
             locals_d=locals_d,
             chunk_size=chunk_size,
@@ -233,7 +224,6 @@ def school_location_logsums(
 @inject.step()
 def school_location_simulate(persons_merged, persons,
                              school_location_sample,
-                             school_location_spec,
                              skim_dict,
                              land_use, size_terms,
                              chunk_size,
@@ -244,6 +234,7 @@ def school_location_simulate(persons_merged, persons,
     """
     trace_label = 'school_location_simulate'
     model_settings = config.read_model_settings('school_location.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('school_location.csv'))
 
     NO_SCHOOL_TAZ = -1
 
@@ -296,7 +287,7 @@ def school_location_simulate(persons_merged, persons,
             choices = interaction_sample_simulate(
                 choosers_segment,
                 alts_segment,
-                spec=school_location_spec[[school_type]],
+                spec=model_spec[[school_type]],
                 choice_column=alt_dest_col_name,
                 skims=skims,
                 locals_d=locals_d,

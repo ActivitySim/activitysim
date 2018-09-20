@@ -22,20 +22,16 @@ logger = logging.getLogger(__name__)
 
 def get_stop_frequency_spec(tour_type):
 
-    configs_dir = inject.get_injectable('configs_dir')
     file_name = 'stop_frequency_%s.csv' % tour_type
-
-    if not os.path.exists(os.path.join(configs_dir, file_name)):
-        return None
-
-    return simulate.read_model_spec(configs_dir, file_name)
+    file_path = config.config_file_path(file_name)
+    return simulate.read_model_spec(file_path)
 
 
 @inject.injectable()
-def stop_frequency_alts(configs_dir):
+def stop_frequency_alts():
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
-    f = os.path.join(configs_dir, 'stop_frequency_alternatives.csv')
-    df = pd.read_csv(f, comment='#')
+    file_path = config.config_file_path('stop_frequency_alternatives.csv')
+    df = pd.read_csv(file_path, comment='#')
     df.set_index('alt', inplace=True)
     return df
 

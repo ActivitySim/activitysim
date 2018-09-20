@@ -16,6 +16,7 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import simulate
 
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
@@ -40,20 +41,13 @@ TOUR_TYPE_ID = OrderedDict([
 ])
 
 
-@inject.injectable()
-def joint_tour_destination_sample_spec(configs_dir):
-    # - tour types are subset of non_mandatory tour types and use same expressions
-    return read_model_spec(configs_dir, 'non_mandatory_tour_destination_sample.csv')
-
-
 @inject.step()
 def joint_tour_destination_sample(
         tours,
         households_merged,
-        joint_tour_destination_sample_spec,
         skim_dict,
         land_use, size_terms,
-        configs_dir, chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id):
     """
     Chooses a sample of destinations from all possible tour destinations by choosing
     <sample_size> times from among destination alternatives.
@@ -88,7 +82,6 @@ def joint_tour_destination_sample(
     joint_tour_destination_sample_spec
     land_use
     size_terms
-    configs_dir
     chunk_size
     trace_hh_id
 
@@ -101,6 +94,8 @@ def joint_tour_destination_sample(
 
     trace_label = 'joint_tour_destination_sample'
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('non_mandatory_tour_destination_sample.csv'))
 
     joint_tours = tours.to_frame()
     joint_tours = joint_tours[joint_tours.tour_category == 'joint']
@@ -173,7 +168,7 @@ def joint_tour_destination_sample(
                 alternatives_segment,
                 sample_size=sample_size,
                 alt_col_name=alt_dest_col_name,
-                spec=joint_tour_destination_sample_spec[[tour_type]],
+                spec=model_spec[[tour_type]],
                 skims=skims,
                 locals_d=locals_d,
                 chunk_size=chunk_size,
@@ -278,20 +273,13 @@ def joint_tour_destination_logsums(
                          label="joint_tour_destination_logsums")
 
 
-@inject.injectable()
-def joint_tour_destination_spec(configs_dir):
-    # - tour types are subset of non_mandatory tour types and use same expressions
-    return read_model_spec(configs_dir, 'non_mandatory_tour_destination.csv')
-
-
 @inject.step()
 def joint_tour_destination_simulate(
         tours,
         households_merged,
-        joint_tour_destination_spec,
         skim_dict,
         land_use, size_terms,
-        configs_dir, chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id):
     """
     choose a joint tour destination from amont the destination sample alternatives
     (annotated with logsums) and add destination TAZ column to joint_tours table
@@ -306,6 +294,10 @@ def joint_tour_destination_simulate(
         return
 
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
+
+    # - tour types are subset of non_mandatory tour types and use same expressions
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('non_mandatory_tour_destination.csv'))
 
     destination_sample = destination_sample.to_frame()
     tours = tours.to_frame()
@@ -374,7 +366,7 @@ def joint_tour_destination_simulate(
         choices = interaction_sample_simulate(
             choosers_segment,
             alts_segment,
-            spec=joint_tour_destination_spec[[tour_type]],
+            spec=model_spec[[tour_type]],
             choice_column=alt_dest_col_name,
             skims=skims,
             locals_d=locals_d,

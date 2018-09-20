@@ -12,6 +12,7 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import timetable as tt
+from activitysim.core import simulate
 
 from .util import expressions
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
@@ -22,16 +23,10 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@inject.injectable()
-def tour_scheduling_nonmandatory_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_scheduling_nonmandatory.csv')
-
-
 @inject.step()
 def non_mandatory_tour_scheduling(tours,
                                   persons_merged,
                                   tdd_alts,
-                                  tour_scheduling_nonmandatory_spec,
                                   chunk_size,
                                   trace_hh_id):
     """
@@ -40,6 +35,8 @@ def non_mandatory_tour_scheduling(tours,
 
     trace_label = 'non_mandatory_tour_scheduling'
     model_settinsg = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('tour_scheduling_nonmandatory.csv'))
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()
@@ -66,7 +63,7 @@ def non_mandatory_tour_scheduling(tours,
 
     tdd_choices = vectorize_tour_scheduling(
         non_mandatory_tours, persons_merged,
-        tdd_alts, tour_scheduling_nonmandatory_spec,
+        tdd_alts, model_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)

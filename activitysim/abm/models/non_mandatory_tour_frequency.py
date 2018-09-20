@@ -13,6 +13,7 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import simulate
 
 from .util import expressions
 from .util.overlap import person_max_window
@@ -24,22 +25,8 @@ from .util.tour_frequency import process_non_mandatory_tours
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def non_mandatory_tour_frequency_spec(configs_dir):
-    return read_model_spec(configs_dir, 'non_mandatory_tour_frequency.csv')
-
-
-@inject.injectable()
-def non_mandatory_tour_frequency_alts(configs_dir):
-    f = os.path.join(configs_dir, 'non_mandatory_tour_frequency_alternatives.csv')
-    df = pd.read_csv(f, comment='#')
-    return df
-
-
 @inject.step()
 def non_mandatory_tour_frequency(persons, persons_merged,
-                                 non_mandatory_tour_frequency_alts,
-                                 non_mandatory_tour_frequency_spec,
                                  chunk_size,
                                  trace_hh_id):
 
@@ -52,11 +39,17 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
     trace_label = 'non_mandatory_tour_frequency'
     model_settings = config.read_model_settings('non_mandatory_tour_frequency.yaml')
+    model_spec = simulate.read_model_spec(
+        config.config_file_path('non_mandatory_tour_frequency.csv'))
+
+    alternatives = simulate.read_model_alts(
+        config.config_file_path('non_mandatory_tour_frequency_alternatives.csv'),
+        set_index=None)
 
     choosers = persons_merged.to_frame()
 
     # FIXME kind of tacky both that we know to add this here and del it below
-    non_mandatory_tour_frequency_alts['tot_tours'] = non_mandatory_tour_frequency_alts.sum(axis=1)
+    alternatives['tot_tours'] = alternatives.sum(axis=1)
 
     # - preprocessor
     preprocessor_settings = model_settings.get('preprocessor', None)
@@ -86,7 +79,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
         name = PTYPE_NAME[ptype]
 
         # pick the spec column for the segment
-        spec = non_mandatory_tour_frequency_spec[[name]]
+        spec = model_spec[[name]]
 
         # drop any zero-valued rows
         spec = spec[spec[name] != 0]
@@ -95,7 +88,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
         choices = interaction_simulate(
             segment,
-            non_mandatory_tour_frequency_alts,
+            alternatives,
             spec=spec,
             locals_d=constants,
             chunk_size=chunk_size,
@@ -119,10 +112,10 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     Now we create a "tours" table which has one row per tour that has been generated
     (and the person id it is associated with)
     """
-    del non_mandatory_tour_frequency_alts['tot_tours']  # del tot_tours column we added above
+    del alternatives['tot_tours']  # del tot_tours column we added above
     non_mandatory_tours = process_non_mandatory_tours(
         persons[~persons.mandatory_tour_frequency.isnull()],
-        non_mandatory_tour_frequency_alts,
+        alternatives,
     )
 
     tours = pipeline.extend_table("tours", non_mandatory_tours)

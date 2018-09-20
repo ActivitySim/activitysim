@@ -39,14 +39,8 @@ it gets used
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def workplace_location_sample_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'workplace_location_sample.csv')
-
-
 @inject.step()
 def workplace_location_sample(persons_merged,
-                              workplace_location_sample_spec,
                               skim_dict,
                               land_use, size_terms,
                               chunk_size, trace_hh_id):
@@ -63,6 +57,7 @@ def workplace_location_sample(persons_merged,
 
     trace_label = 'workplace_location_sample'
     model_settings = config.read_model_settings('workplace_location.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('workplace_location_sample.csv'))
 
     # FIXME - only choose workplace_location of workers? is this the right criteria?
     choosers = persons_merged.to_frame()
@@ -101,7 +96,7 @@ def workplace_location_sample(persons_merged,
         alternatives,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
-        spec=workplace_location_sample_spec,
+        spec=model_spec,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
@@ -114,7 +109,7 @@ def workplace_location_sample(persons_merged,
 def workplace_location_logsums(persons_merged,
                                skim_dict, skim_stack,
                                workplace_location_sample,
-                               configs_dir, chunk_size, trace_hh_id):
+                               chunk_size, trace_hh_id):
     """
     add logsum column to existing workplace_location_sample able
 
@@ -174,18 +169,12 @@ def workplace_location_logsums(persons_merged,
     inject.add_column('workplace_location_sample', 'mode_choice_logsum', logsums)
 
 
-@inject.injectable()
-def workplace_location_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'workplace_location.csv')
-
-
 @inject.step()
 def workplace_location_simulate(persons_merged, persons,
                                 workplace_location_sample,
-                                workplace_location_spec,
                                 skim_dict,
                                 land_use, size_terms,
-                                configs_dir, chunk_size, trace_hh_id):
+                                chunk_size, trace_hh_id):
     """
     Workplace location model on workplace_location_sample annotated with mode_choice logsum
     to select a work_taz from sample alternatives
@@ -193,6 +182,8 @@ def workplace_location_simulate(persons_merged, persons,
 
     trace_label = 'workplace_location_simulate'
     model_settings = config.read_model_settings('workplace_location.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('workplace_location.csv'))
+
     NO_WORKPLACE_TAZ = -1
 
     location_sample = workplace_location_sample.to_frame()
@@ -235,7 +226,7 @@ def workplace_location_simulate(persons_merged, persons,
         choices = interaction_sample_simulate(
             choosers,
             alternatives,
-            spec=workplace_location_spec,
+            spec=model_spec,
             choice_column=alt_dest_col_name,
             skims=skims,
             locals_d=locals_d,

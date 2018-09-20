@@ -23,11 +23,6 @@ from .util.overlap import person_time_window_overlap
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def joint_tour_participation_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'joint_tour_participation.csv')
-
-
 def joint_tour_participation_candidates(joint_tours, persons_merged):
 
     # - only interested in persons from households with joint_tours
@@ -204,18 +199,31 @@ def participants_chooser(probs, choosers, spec, trace_label):
     return choices, rands
 
 
-def add_null_results(trace_label):
+def annotate_jtp(model_settings, trace_label):
+
+    # - annotate persons
+    persons = inject.get_table('persons').to_frame()
+    expressions.assign_columns(
+        df=persons,
+        model_settings=model_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+    pipeline.replace_table("persons", persons)
+
+
+def add_null_results(model_settings, trace_label):
     logger.info("Skipping %s: joint tours" % trace_label)
     # participants table is used downstream in non-joint tour expressions
     participants = pd.DataFrame(columns=['person_id'])
     participants.index.name = 'participant_id'
     pipeline.replace_table("joint_tour_participants", participants)
 
+    # - run annotations
+    annotate_jtp(model_settings, trace_label)
+
 
 @inject.step()
 def joint_tour_participation(
         tours, persons_merged,
-        joint_tour_participation_spec,
         chunk_size,
         trace_hh_id):
     """
@@ -223,13 +231,14 @@ def joint_tour_participation(
     """
     trace_label = 'joint_tour_participation'
     model_settings = config.read_model_settings('joint_tour_participation.yaml')
+    model_spec = simulate.read_model_spec(config.config_file_path('joint_tour_participation.csv'))
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
 
     # - if no joint tours
     if joint_tours.shape[0] == 0:
-        add_null_results(trace_label)
+        add_null_results(model_settings, trace_label)
         return
 
     persons_merged = persons_merged.to_frame()
@@ -264,7 +273,7 @@ def joint_tour_participation(
 
     choices = simulate.simple_simulate(
         choosers=candidates,
-        spec=joint_tour_participation_spec,
+        spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,
@@ -274,9 +283,9 @@ def joint_tour_participation(
 
     # choice is boolean (participate or not)
     choice_col = model_settings.get('participation_choice', 'participate')
-    assert choice_col in joint_tour_participation_spec.columns, \
+    assert choice_col in model_spec.columns, \
         "couldn't find participation choice column '%s' in spec"
-    PARTICIPATE_CHOICE = joint_tour_participation_spec.columns.get_loc(choice_col)
+    PARTICIPATE_CHOICE = model_spec.columns.get_loc(choice_col)
 
     participate = (choices == PARTICIPATE_CHOICE)
 
@@ -312,13 +321,8 @@ def joint_tour_participation(
 
     pipeline.replace_table("tours", tours)
 
-    # - annotate persons
-    persons = inject.get_table('persons').to_frame()
-    expressions.assign_columns(
-        df=persons,
-        model_settings=model_settings.get('annotate_persons'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
-    pipeline.replace_table("persons", persons)
+    # - run annotations
+    annotate_jtp(model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(participants,

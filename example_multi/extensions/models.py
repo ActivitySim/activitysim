@@ -19,9 +19,8 @@ logger = logging.getLogger('activitysim')
 
 
 @inject.injectable()
-def best_transit_path_spec(configs_dir):
-    f = os.path.join(configs_dir, 'best_transit_path.csv')
-    return assign.read_assignment_spec(f)
+def best_transit_path_spec():
+    return assign.read_assignment_spec(config.config_file_path('best_transit_path.csv'))
 
 
 VECTOR_TEST_SIZE = 100000

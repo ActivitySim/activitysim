@@ -120,10 +120,7 @@ def config_logger(custom_config_file=None, basic=False):
         log_config_file = custom_config_file
     elif not basic:
         # look for conf file in configs_dir
-        configs_dir = inject.get_injectable('configs_dir')
-        default_config_file = os.path.join(configs_dir, LOGGING_CONF_FILE_NAME)
-        if os.path.isfile(default_config_file):
-            log_config_file = default_config_file
+        log_config_file = config.config_file_path(LOGGING_CONF_FILE_NAME, mandatory=False)
 
     if log_config_file:
         with open(log_config_file) as f:

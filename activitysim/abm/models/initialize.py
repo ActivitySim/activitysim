@@ -57,7 +57,7 @@ def annotate_tables(model_settings, trace_label):
 
 
 @inject.step()
-def initialize_landuse(configs_dir):
+def initialize_landuse():
 
     trace_label = 'initialize_landuse'
 
@@ -75,7 +75,7 @@ def initialize_landuse(configs_dir):
 
 
 @inject.step()
-def initialize_households(configs_dir):
+def initialize_households():
 
     trace_label = 'initialize_households'
 

@@ -43,13 +43,6 @@ FAILFIX_DROP_AND_CLEANUP = 'drop_and_cleanup'
 FAILFIX_DEFAULT = FAILFIX_CHOOSE_MOST_INITIAL
 
 
-def trip_scheduling_probs(configs_dir):
-
-    f = os.path.join(configs_dir, 'trip_scheduling_probs.csv')
-    df = pd.read_csv(f, comment='#')
-    return df
-
-
 def set_tour_hour(trips, tours):
     """
     add columns 'tour_hour', 'earliest', 'latest' to trips
@@ -449,7 +442,6 @@ def run_trip_scheduling(
 def trip_scheduling(
         trips,
         tours,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
@@ -506,7 +498,7 @@ def trip_scheduling(
 
     failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
 
-    probs_spec = trip_scheduling_probs(configs_dir)
+    probs_spec = pd.read_csv(config.config_file_path('trip_scheduling_probs.csv'), comment='#')
 
     trips_df = trips.to_frame()
     tours = tours.to_frame()

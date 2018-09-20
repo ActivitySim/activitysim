@@ -8,7 +8,6 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from activitysim.core.simulate import read_model_spec
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
 
@@ -94,8 +93,7 @@ def joint_tour_destination_sample(
 
     trace_label = 'joint_tour_destination_sample'
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
-    model_spec = simulate.read_model_spec(
-        config.config_file_path('non_mandatory_tour_destination_sample.csv'))
+    model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_destination_sample.csv')
 
     joint_tours = tours.to_frame()
     joint_tours = joint_tours[joint_tours.tour_category == 'joint']
@@ -296,8 +294,7 @@ def joint_tour_destination_simulate(
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
 
     # - tour types are subset of non_mandatory tour types and use same expressions
-    model_spec = simulate.read_model_spec(
-        config.config_file_path('non_mandatory_tour_destination.csv'))
+    model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_destination.csv')
 
     destination_sample = destination_sample.to_frame()
     tours = tours.to_frame()

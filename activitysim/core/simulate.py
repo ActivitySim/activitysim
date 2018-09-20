@@ -14,6 +14,7 @@ from .skim import SkimDictWrapper, SkimStackWrapper
 from . import logit
 from . import tracing
 from . import pipeline
+from . import config
 
 from . import assign
 
@@ -57,11 +58,13 @@ def read_model_alts(file_path, set_index=None):
     return df
 
 
-def read_model_spec(file_path,
+def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
                     description_name="Description",
                     expression_name="Expression"):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
+
+    file_path : str   absolute or relative path to file
 
     The CSV is expected to have columns for component descriptions
     and expressions, plus one or more alternatives.
@@ -72,8 +75,13 @@ def read_model_spec(file_path,
 
     Parameters
     ----------
-    file_path : str
-        path to CSV spec file
+    model_settings : dict
+        name of spec_file is in model_settings['SPEC'] and file is relative to configs
+    file_name : str
+        file_name id spec file in configs folder (or in spec_dir is specified)
+    spec_dir : str
+        directory in which to fine spec file if not in configs
+
     description_name : str, optional
         Name of the column in `fname` that contains the component description.
     expression_name : str, optional
@@ -85,6 +93,18 @@ def read_model_spec(file_path,
         The description column is dropped from the returned data and the
         expression values are set as the table index.
     """
+
+    assert (model_settings or file_name) and not (model_settings and file_name), \
+        "expect either model_spec or file_name argument"
+
+    if model_settings is not None:
+        assert isinstance(model_settings, dict)
+        file_name = model_settings['SPEC']
+
+    if spec_dir is not None:
+        file_path = os.path.join(spec_dir, file_name)
+    else:
+        file_path = config.config_file_path(file_name)
 
     spec = pd.read_csv(file_path, comment='#')
 

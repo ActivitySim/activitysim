@@ -29,7 +29,7 @@ def tour_mode_choice_spec(model_settings):
 
     assert 'SPEC' in model_settings
 
-    return simulate.read_model_spec(config.config_file_path(model_settings['SPEC']))
+    return simulate.read_model_spec(file_name=model_settings['SPEC'])
 
 
 def tour_mode_choice_coeffecients_spec(model_settings):

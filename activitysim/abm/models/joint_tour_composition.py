@@ -40,7 +40,7 @@ def joint_tour_composition(
     trace_label = 'joint_tour_composition'
 
     model_settings = config.read_model_settings('joint_tour_composition.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('joint_tour_composition.csv'))
+    model_spec = simulate.read_model_spec(file_name='joint_tour_composition.csv')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']

@@ -6,9 +6,6 @@ import logging
 
 import pandas as pd
 
-from activitysim.core.simulate import read_model_spec
-from activitysim.core.interaction_simulate import interaction_simulate
-
 from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import pipeline
@@ -40,7 +37,7 @@ def atwork_subtour_scheduling(
 
     trace_label = 'atwork_subtour_scheduling'
     model_settings = config.read_model_settings('tour_scheduling_atwork.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_atwork.csv'))
+    model_spec = simulate.read_model_spec(file_name='tour_scheduling_atwork.csv')
 
     persons_merged = persons_merged.to_frame()
 

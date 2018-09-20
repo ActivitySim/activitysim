@@ -40,7 +40,7 @@ NO_DESTINATION = -1
 
 def get_spec_for_purpose(model_settings, spec_name, purpose):
 
-    omnibus_spec = simulate.read_model_spec(config.config_file_path(model_settings[spec_name]))
+    omnibus_spec = simulate.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[purpose]]
 
@@ -126,7 +126,7 @@ def compute_ood_logsums(
         trace_label)
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
-    logsum_spec = simulate.read_model_spec(config.config_file_path(logsum_settings['SPEC']))
+    logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
 
     logsums = simulate.simple_simulate_logsums(
         choosers,

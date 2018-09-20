@@ -32,7 +32,7 @@ def joint_tour_scheduling(
     """
     trace_label = 'joint_tour_scheduling'
     model_settings = config.read_model_settings('joint_tour_scheduling.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_joint.csv'))
+    model_spec = simulate.read_model_spec(file_name='tour_scheduling_joint.csv')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']

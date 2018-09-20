@@ -51,8 +51,7 @@ def mandatory_tour_frequency(persons_merged,
     trace_label = 'mandatory_tour_frequency'
 
     model_settings = config.read_model_settings('mandatory_tour_frequency.yaml')
-    model_spec = simulate.read_model_spec(
-        config.config_file_path('mandatory_tour_frequency.csv'))
+    model_spec = simulate.read_model_spec(file_name='mandatory_tour_frequency.csv')
     alternatives = simulate.read_model_alts(
         config.config_file_path('mandatory_tour_frequency_alternatives.csv'), set_index='alt')
 

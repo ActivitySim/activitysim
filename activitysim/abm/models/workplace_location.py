@@ -57,7 +57,7 @@ def workplace_location_sample(persons_merged,
 
     trace_label = 'workplace_location_sample'
     model_settings = config.read_model_settings('workplace_location.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('workplace_location_sample.csv'))
+    model_spec = simulate.read_model_spec(file_name='workplace_location_sample.csv')
 
     # FIXME - only choose workplace_location of workers? is this the right criteria?
     choosers = persons_merged.to_frame()
@@ -182,7 +182,7 @@ def workplace_location_simulate(persons_merged, persons,
 
     trace_label = 'workplace_location_simulate'
     model_settings = config.read_model_settings('workplace_location.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('workplace_location.csv'))
+    model_spec = simulate.read_model_spec(file_name='workplace_location.csv')
 
     NO_WORKPLACE_TAZ = -1
 

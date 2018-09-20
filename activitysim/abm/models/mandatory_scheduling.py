@@ -34,8 +34,8 @@ def mandatory_tour_scheduling(tours,
     """
     trace_label = 'mandatory_tour_scheduling'
     model_settings = config.read_model_settings('mandatory_tour_scheduling.yaml')
-    work_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_work.csv'))
-    school_spec = simulate.read_model_spec(config.config_file_path('tour_scheduling_school.csv'))
+    work_spec = simulate.read_model_spec(file_name='tour_scheduling_work.csv')
+    school_spec = simulate.read_model_spec(file_name='tour_scheduling_school.csv')
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()

@@ -6,7 +6,6 @@ import logging
 
 import pandas as pd
 
-from activitysim.core.simulate import read_model_spec
 from activitysim.core.interaction_simulate import interaction_simulate
 
 from activitysim.core import tracing
@@ -39,8 +38,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
     trace_label = 'non_mandatory_tour_frequency'
     model_settings = config.read_model_settings('non_mandatory_tour_frequency.yaml')
-    model_spec = simulate.read_model_spec(
-        config.config_file_path('non_mandatory_tour_frequency.csv'))
+    model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_frequency.csv')
 
     alternatives = simulate.read_model_alts(
         config.config_file_path('non_mandatory_tour_frequency_alternatives.csv'),

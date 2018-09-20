@@ -28,7 +28,7 @@ def auto_ownership_simulate(households,
 
     logger.info("Running %s with %d households" % (trace_label, len(households_merged)))
 
-    model_spec = simulate.read_model_spec(config.config_file_path('auto_ownership.csv'))
+    model_spec = simulate.read_model_spec(file_name='auto_ownership.csv')
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)

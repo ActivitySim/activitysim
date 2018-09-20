@@ -24,7 +24,7 @@ def cdap_indiv_spec():
     spec to compute the activity utilities for each individual hh member
     with no interactions with other household members taken into account
     """
-    return simulate.read_model_spec(config.config_file_path('cdap_indiv_and_hhsize1.csv'))
+    return simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv')
 
 
 @inject.injectable()
@@ -47,7 +47,7 @@ def cdap_fixed_relative_proportions():
     EXCEPT that the values computed are relative proportions, not utilities
     (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
     """
-    return simulate.read_model_spec(config.config_file_path('cdap_fixed_relative_proportions.csv'))
+    return simulate.read_model_spec(file_name='cdap_fixed_relative_proportions.csv')
 
 
 @inject.step()

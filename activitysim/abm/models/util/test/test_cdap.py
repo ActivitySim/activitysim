@@ -33,8 +33,7 @@ def people(data_dir):
 
 @pytest.fixture(scope='module')
 def cdap_indiv_and_hhsize1(configs_dir):
-    f = os.path.join(configs_dir, 'cdap_indiv_and_hhsize1.csv')
-    return read_model_spec(f)
+    return read_model_spec(file_name='cdap_indiv_and_hhsize1.csv', spec_dir=configs_dir)
 
 
 @pytest.fixture(scope='module')

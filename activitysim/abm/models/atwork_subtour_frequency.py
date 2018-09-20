@@ -7,7 +7,6 @@ import logging
 import pandas as pd
 import numpy as np
 
-from activitysim.core.simulate import read_model_spec
 from activitysim.core.interaction_simulate import interaction_simulate
 
 from activitysim.core import simulate
@@ -43,8 +42,7 @@ def atwork_subtour_frequency(tours,
     trace_label = 'atwork_subtour_frequency'
 
     model_settings = config.read_model_settings('atwork_subtour_frequency.yaml')
-    model_spec = simulate.read_model_spec(
-        config.config_file_path('atwork_subtour_frequency.csv'))
+    model_spec = simulate.read_model_spec(file_name='atwork_subtour_frequency.csv')
 
     alternatives = simulate.read_model_alts(
         config.config_file_path('atwork_subtour_frequency_alternatives.csv'), set_index='alt')

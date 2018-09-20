@@ -231,7 +231,7 @@ def joint_tour_participation(
     """
     trace_label = 'joint_tour_participation'
     model_settings = config.read_model_settings('joint_tour_participation.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('joint_tour_participation.csv'))
+    model_spec = simulate.read_model_spec(file_name='joint_tour_participation.csv')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']

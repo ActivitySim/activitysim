@@ -42,7 +42,7 @@ def trip_mode_choice(
     model_settings = config.read_model_settings('trip_mode_choice.yaml')
 
     model_spec = \
-        simulate.read_model_spec(config.config_file_path(model_settings['SPEC']))
+        simulate.read_model_spec(file_name=model_settings['SPEC'])
     omnibus_coefficients = \
         assign.read_constant_spec(config.config_file_path(model_settings['COEFFS']))
 

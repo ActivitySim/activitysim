@@ -20,13 +20,6 @@ from activitysim.core.util import reindex
 logger = logging.getLogger(__name__)
 
 
-def get_stop_frequency_spec(tour_type):
-
-    file_name = 'stop_frequency_%s.csv' % tour_type
-    file_path = config.config_file_path(file_name)
-    return simulate.read_model_spec(file_path)
-
-
 @inject.injectable()
 def stop_frequency_alts():
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
@@ -199,7 +192,7 @@ def stop_frequency(
         logging.info("%s running segment %s with %s chooser rows" %
                      (trace_label, segment_type, choosers.shape[0]))
 
-        spec = get_stop_frequency_spec(segment_type)
+        spec = simulate.read_model_spec(file_name='stop_frequency_%s.csv' % segment_type)
 
         assert spec is not None, "spec for segment_type %s not found" % segment_type
 

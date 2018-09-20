@@ -32,7 +32,7 @@ def joint_tour_frequency(
     """
     trace_label = 'joint_tour_frequency'
     model_settings = config.read_model_settings('joint_tour_frequency.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('joint_tour_frequency.csv'))
+    model_spec = simulate.read_model_spec(file_name='joint_tour_frequency.csv')
 
     alternatives = simulate.read_model_alts(
         config.config_file_path('joint_tour_frequency_alternatives.csv'), set_index='alt')

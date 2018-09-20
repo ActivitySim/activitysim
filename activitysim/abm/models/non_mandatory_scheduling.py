@@ -35,8 +35,7 @@ def non_mandatory_tour_scheduling(tours,
 
     trace_label = 'non_mandatory_tour_scheduling'
     model_settinsg = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
-    model_spec = simulate.read_model_spec(
-        config.config_file_path('tour_scheduling_nonmandatory.csv'))
+    model_spec = simulate.read_model_spec(file_name='tour_scheduling_nonmandatory.csv')
 
     tours = tours.to_frame()
     persons_merged = persons_merged.to_frame()

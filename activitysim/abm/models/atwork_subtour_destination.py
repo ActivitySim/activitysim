@@ -39,8 +39,7 @@ def atwork_subtour_destination_sample(tours,
 
     trace_label = 'atwork_subtour_location_sample'
     model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
-    model_spec = simulate.read_model_spec(
-        config.config_file_path('atwork_subtour_destination_sample.csv'))
+    model_spec = simulate.read_model_spec(file_name='atwork_subtour_destination_sample.csv')
 
     persons_merged = persons_merged.to_frame()
 
@@ -187,7 +186,7 @@ def atwork_subtour_destination_simulate(tours,
     destination_sample = destination_sample.to_frame()
 
     model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('atwork_subtour_destination.csv'))
+    model_spec = simulate.read_model_spec(file_name='atwork_subtour_destination.csv')
 
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']

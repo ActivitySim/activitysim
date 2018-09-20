@@ -63,7 +63,7 @@ def school_location_sample(
     trace_label = 'school_location_sample'
     model_settings = config.read_model_settings('school_location.yaml')
 
-    model_spec = simulate.read_model_spec(config.config_file_path('school_location_sample.csv'))
+    model_spec = simulate.read_model_spec(file_name='school_location_sample.csv')
 
     choosers = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -234,7 +234,7 @@ def school_location_simulate(persons_merged, persons,
     """
     trace_label = 'school_location_simulate'
     model_settings = config.read_model_settings('school_location.yaml')
-    model_spec = simulate.read_model_spec(config.config_file_path('school_location.csv'))
+    model_spec = simulate.read_model_spec(file_name='school_location.csv')
 
     NO_SCHOOL_TAZ = -1
 

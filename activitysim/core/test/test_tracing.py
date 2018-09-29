@@ -33,43 +33,6 @@ def add_canonical_dirs():
     orca.add_injectable("output_dir", output_dir)
 
 
-def test_bad_custom_config_file(capsys):
-
-    add_canonical_dirs()
-
-    custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'xlogging.yaml')
-    tracing.config_logger(custom_config_file=custom_config_file)
-
-    logger = logging.getLogger('activitysim')
-
-    file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]
-    assert len(file_handlers) == 1
-    asim_logger_baseFilename = file_handlers[0].baseFilename
-
-    logger = logging.getLogger(__name__)
-    logger.info('test_bad_custom_config_file')
-    logger.info('log_info')
-    logger.warn('log_warn1')
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    assert "could not find conf file" in out
-    assert 'log_warn1' in out
-    assert 'log_info' not in out
-
-    close_handlers()
-
-    logger.warn('log_warn2')
-
-    with open(asim_logger_baseFilename, 'r') as content_file:
-        content = content_file.read()
-    assert 'log_warn1' in content
-    assert 'log_warn2' not in content
-
-
 def test_config_logger(capsys):
 
     add_canonical_dirs()
@@ -107,31 +70,6 @@ def test_config_logger(capsys):
         print content
     assert 'log_warn1' in content
     assert 'log_warn2' not in content
-
-
-def test_custom_config_logger(capsys):
-
-    add_canonical_dirs()
-
-    custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'custom_logging.yaml')
-    tracing.config_logger(custom_config_file)
-
-    logger = logging.getLogger('activitysim')
-
-    logger.warn('custom_log_warn')
-
-    asim_logger_filename = os.path.join(os.path.dirname(__file__), 'output', 'xasim.log')
-
-    with open(asim_logger_filename, 'r') as content_file:
-        content = content_file.read()
-    assert 'custom_log_warn' in content
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    assert 'custom_log_warn' in out
 
 
 def test_print_summary(capsys):

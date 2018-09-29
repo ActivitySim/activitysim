@@ -100,6 +100,10 @@ def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
     if model_settings is not None:
         assert isinstance(model_settings, dict)
         file_name = model_settings['SPEC']
+    else:
+        assert isinstance(file_name, str)
+        if not file_name.lower().endswith('.csv'):
+            file_name = '%s.csv' % (file_name,)
 
     if spec_dir is not None:
         file_path = os.path.join(spec_dir, file_name)

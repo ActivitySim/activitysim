@@ -15,7 +15,6 @@ import pandas as pd
 
 from activitysim.core import inject
 
-import inject_defaults
 import config
 
 
@@ -55,7 +54,7 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def delete_output_files(file_type, output_dir=None):
+def delete_output_files(file_type, ignore=None):
     """
     Delete files in output directory of specified type
 
@@ -69,14 +68,22 @@ def delete_output_files(file_type, output_dir=None):
     Nothing
     """
 
-    if output_dir is None:
-        output_dir = inject.get_injectable('output_dir')
+    output_dir = inject.get_injectable('output_dir')
+
+    if ignore:
+        ignore = [os.path.realpath(p) for p in ignore]
+        print "delete_output_files ignoring", ignore
 
     logger.debug("Deleting %s files in output_dir %s" % (file_type, output_dir))
 
     for the_file in os.listdir(output_dir):
         if the_file.endswith(file_type):
             file_path = os.path.join(output_dir, the_file)
+
+            if ignore and os.path.realpath(file_path) in ignore:
+                logger.info("delete_output_files ignoring %s" % file_path)
+                continue
+
             try:
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
@@ -84,7 +91,7 @@ def delete_output_files(file_type, output_dir=None):
                 print(e)
 
 
-def delete_csv_files(output_dir=None):
+def delete_csv_files():
     """
     Delete CSV files in output_dir
 
@@ -92,35 +99,26 @@ def delete_csv_files(output_dir=None):
     -------
     Nothing
     """
-    delete_output_files(CSV_FILE_TYPE, output_dir)
+    delete_output_files(CSV_FILE_TYPE)
 
 
-def config_logger(custom_config_file=None, basic=False):
+def config_logger(basic=False):
     """
     Configure logger
 
-    if log_config_file is not supplied then look for conf file in configs_dir
-
-    if not found use basicConfig
-
-    Parameters
-    ----------
-    custom_config_file: str
-        custom config filename
-    basic: boolean
-        basic setup
+    look for conf file in configs_dir, if not found use basicConfig
 
     Returns
     -------
     Nothing
     """
-    log_config_file = None
 
-    if custom_config_file and os.path.isfile(custom_config_file):
-        log_config_file = custom_config_file
-    elif not basic:
-        # look for conf file in configs_dir
+    # look for conf file in configs_dir
+    log_config_file = None
+    if not basic:
         log_config_file = config.config_file_path(LOGGING_CONF_FILE_NAME, mandatory=False)
+
+    print "log_config_file", log_config_file
 
     if log_config_file:
         with open(log_config_file) as f:
@@ -132,9 +130,6 @@ def config_logger(custom_config_file=None, basic=False):
         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
     logger = logging.getLogger(ASIM_LOGGER)
-
-    if custom_config_file and not os.path.isfile(custom_config_file):
-        logger.error("#\n#\n#\nconfig_logger could not find conf file '%s'" % custom_config_file)
 
     if log_config_file:
         logger.info("Read logging configuration from: %s" % log_config_file)

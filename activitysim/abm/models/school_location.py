@@ -60,10 +60,9 @@ def school_location_sample(
     +-----------+--------------+----------------+------------+
     """
 
-    trace_label = 'school_location_sample'
+    model_name = 'school_location_sample'
     model_settings = config.read_model_settings('school_location.yaml')
-
-    model_spec = simulate.read_model_spec(file_name='school_location_sample.csv')
+    model_spec = simulate.read_model_spec(file_name=model_settings['SAMPLE_SPEC'])
 
     choosers = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -97,7 +96,7 @@ def school_location_sample(
         choosers_segment = choosers[choosers["is_" + school_type]]
 
         if choosers_segment.shape[0] == 0:
-            logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
+            logger.info("%s skipping school_type %s: no choosers" % (model_name, school_type))
             continue
 
         # alts indexed by taz with one column containing size_term for  this tour_type
@@ -118,7 +117,7 @@ def school_location_sample(
             skims=skims,
             locals_d=locals_d,
             chunk_size=chunk_size,
-            trace_label=tracing.extend_trace_label(trace_label, school_type))
+            trace_label=tracing.extend_trace_label(model_name, school_type))
 
         choices['school_type'] = school_type_id
         choices_list.append(choices)
@@ -128,7 +127,7 @@ def school_location_sample(
         # - # NARROW
         choices['school_type'] = choices['school_type'].astype(np.uint8)
     else:
-        logger.info("Skipping %s: add_null_results" % trace_label)
+        logger.info("Skipping %s: add_null_results" % model_name)
         choices = pd.DataFrame()
 
     inject.add_table('school_location_sample', choices)
@@ -162,16 +161,15 @@ def school_location_logsums(
     | 23751     | 14           | 0.972732479292 | 2          |  1.44009018355 |
     +-----------+--------------+----------------+------------+----------------+
     """
-
-    trace_label = 'school_location_logsums'
-
+    model_name = 'school_location_logsums'
     model_settings = config.read_model_settings('school_location.yaml')
+
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     location_sample = school_location_sample.to_frame()
 
     if location_sample.shape[0] == 0:
-        tracing.no_results(trace_label)
+        tracing.no_results(model_name)
         return
 
     logger.info("Running school_location_logsums with %s rows" % location_sample.shape[0])
@@ -188,7 +186,7 @@ def school_location_logsums(
         choosers = location_sample[location_sample['school_type'] == school_type_id]
 
         if choosers.shape[0] == 0:
-            logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
+            logger.info("%s skipping school_type %s: no choosers" % (model_name, school_type))
             continue
 
         choosers = pd.merge(
@@ -204,7 +202,7 @@ def school_location_logsums(
             logsum_settings, model_settings,
             skim_dict, skim_stack,
             chunk_size, trace_hh_id,
-            tracing.extend_trace_label(trace_label, school_type))
+            tracing.extend_trace_label(model_name, school_type))
 
         logsums_list.append(logsums)
 
@@ -232,9 +230,10 @@ def school_location_simulate(persons_merged, persons,
     School location model on school_location_sample annotated with mode_choice logsum
     to select a school_taz from sample alternatives
     """
-    trace_label = 'school_location_simulate'
+    model_name = 'school_location'
     model_settings = config.read_model_settings('school_location.yaml')
-    model_spec = simulate.read_model_spec(file_name='school_location.csv')
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
 
     NO_SCHOOL_TAZ = -1
 
@@ -273,7 +272,7 @@ def school_location_simulate(persons_merged, persons,
             choosers_segment = choosers[choosers["is_" + school_type]]
 
             if choosers_segment.shape[0] == 0:
-                logger.info("%s skipping school_type %s: no choosers" % (trace_label, school_type))
+                logger.info("%s skipping school_type %s: no choosers" % (model_name, school_type))
                 continue
 
             alts_segment = \
@@ -292,8 +291,8 @@ def school_location_simulate(persons_merged, persons,
                 skims=skims,
                 locals_d=locals_d,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(trace_label, school_type),
-                trace_choice_name='school_location')
+                trace_label=tracing.extend_trace_label(model_name, school_type),
+                trace_choice_name=model_name)
 
             choices_list.append(choices)
 
@@ -310,12 +309,12 @@ def school_location_simulate(persons_merged, persons,
         # no school-goers (but we still want to annotate persons)
         persons['school_taz'] = NO_SCHOOL_TAZ
 
-        logger.info("%s no school-goers" % trace_label)
+        logger.info("%s no school-goers" % model_name)
 
     expressions.assign_columns(
         df=persons,
         model_settings=model_settings.get('annotate_persons'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+        trace_label=tracing.extend_trace_label(model_name, 'annotate_persons'))
 
     pipeline.replace_table("persons", persons)
 

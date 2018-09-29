@@ -11,8 +11,8 @@ import yaml
 
 from .. import inject
 
-# Also note that the following import statement has the side-effect of registering injectables:
-from .. import inject_defaults
+# Note that the following import statement has the side-effect of registering injectables:
+from .. import config
 
 
 def teardown_function(func):

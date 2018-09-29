@@ -67,8 +67,12 @@ output_tables:
   prefix: final_
   tables:
     - checkpoints
-#    - tours
+#    - accessibility
+#    - land_use
+#    - households
+#    - persons
 #    - trips
+#    - tours
 
 # area_types less than this are considered urban
 urban_threshold: 4

@@ -52,7 +52,6 @@ if __name__ == '__main__':
         logger.info("cpu count : %s" % multiprocessing.cpu_count())
 
         tasks.print_run_list(run_list, sys.stdout)
-        bug
 
         tasks.run_multiprocess(run_list)
 

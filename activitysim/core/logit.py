@@ -98,7 +98,9 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     """
     trace_label = tracing.extend_trace_label(trace_label, 'utils_to_probs')
 
-    utils_arr = utils.values.astype('float')
+    # fixme - conversion to float not needed in either case?
+    # utils_arr = utils.values.astype('float')
+    utils_arr = utils.values
     if not exponentiated:
         utils_arr = np.exp(utils_arr)
 

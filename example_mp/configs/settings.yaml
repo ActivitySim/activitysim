@@ -59,7 +59,7 @@ models:
 
 # comment out to run single-threaded
 multiprocess: False
-chunk_size: 2000000000
+chunk_size: 4000000000
 
 multiprocess_steps:
   - label: mp_initialize
@@ -67,7 +67,7 @@ multiprocess_steps:
   - label: mp_households
     begin: school_location_sample
     num_processes: 3
-    #chunk_size: 1000000000
+    chunk_size: 1000000000
     slice:
       tables:
         - households

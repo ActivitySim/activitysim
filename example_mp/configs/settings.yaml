@@ -13,51 +13,52 @@ trace_od: [5, 11]
 
 #internal settings
 chunk_size: 2000000000
+#
 
 # comment out or set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False
 
-#models:
-#  - initialize_landuse
-#  - compute_accessibility
-#  - initialize_households
-#  - school_location_sample
-#  - school_location_logsums
-#  - school_location_simulate
-#  - workplace_location_sample
-#  - workplace_location_logsums
-#  - workplace_location_simulate
-#  - auto_ownership_simulate
-#  - cdap_simulate
-#  - mandatory_tour_frequency
-#  - mandatory_tour_scheduling
-#  - joint_tour_frequency
-#  - joint_tour_composition
-#  - joint_tour_participation
-#  - joint_tour_destination_sample
-#  - joint_tour_destination_logsums
-#  - joint_tour_destination_simulate
-#  - joint_tour_scheduling
-#  - non_mandatory_tour_frequency
-#  - non_mandatory_tour_destination
-#  - non_mandatory_tour_scheduling
-#  - tour_mode_choice_simulate
-#  - atwork_subtour_frequency
-#  - atwork_subtour_destination_sample
-#  - atwork_subtour_destination_logsums
-#  - atwork_subtour_destination_simulate
-#  - atwork_subtour_scheduling
-#  - atwork_subtour_mode_choice
-#  - stop_frequency
-#  - trip_purpose
-#  - trip_destination
-#  - trip_purpose_and_destination
-#  - trip_scheduling
-#  - trip_mode_choice
-#  - write_data_dictionary
-#  - write_tables
+models:
+  - initialize_landuse
+  - compute_accessibility
+  - initialize_households
+  - school_location_sample
+  - school_location_logsums
+  - school_location_simulate
+  - workplace_location_sample
+  - workplace_location_logsums
+  - workplace_location_simulate
+  - auto_ownership_simulate
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination_sample
+  - joint_tour_destination_logsums
+  - joint_tour_destination_simulate
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination_sample
+  - atwork_subtour_destination_logsums
+  - atwork_subtour_destination_simulate
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - write_tables
 
-#resume_after:
+resume_after: school_location_simulate
 
 
 # comment out to run single-threaded
@@ -106,9 +107,9 @@ output_tables:
   prefix: final_
   tables:
     - checkpoints
-    - accessibility
-    - land_use
-    - households
-    - persons
-    - trips
-    - tours
+#    - accessibility
+#    - land_use
+#    - households
+#    - persons
+#    - trips
+#    - tours

@@ -374,7 +374,7 @@ def mp_coalesce_pipelines(sub_job_proc_names, slice_info):
 
 def mp_debug(injectables):
 
-    for k,v in injectables.iteritems():
+    for k, v in injectables.iteritems():
         inject.add_injectable(k, v)
 
     process_name = mp.current_process().name
@@ -383,6 +383,7 @@ def mp_debug(injectables):
 
     print "configs_dir", inject.get_injectable('configs_dir')
     print "households_sample_size", setting('households_sample_size')
+
 
 def run_sub_process(p):
     logger.info("running sub_process %s" % p.name)
@@ -414,7 +415,7 @@ def run_sub_procs(procs):
 
 def run_multiprocess(run_list):
 
-    #fixme
+    # fixme
     # logger.info('running mp_debug')
     # run_sub_process(
     #     mp.Process(target=mp_debug, name='mp_debug',

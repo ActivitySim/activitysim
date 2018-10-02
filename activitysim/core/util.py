@@ -301,3 +301,18 @@ def assign_in_place(df, df2):
     new_columns = [c for c in df2.columns if c not in df.columns]
 
     df[new_columns] = df2[new_columns]
+
+
+def df_from_dict(values, index=None):
+
+    df = pd.DataFrame.from_dict(values)
+    if index is not None:
+        df.index = index
+
+    # 2x slower but users less peak RAM
+    # df = pd.DataFrame(index = index)
+    # for c in values.keys():
+    #     df[c] = values[c]
+    #     del values[c]
+
+    return df

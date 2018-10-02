@@ -197,7 +197,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     def is_temp(target):
         return target.startswith('_')
 
-    def to_series(x, target=None):
+    def to_series(x):
         if x is None or np.isscalar(x):
             return pd.Series([x] * len(df.index), index=df.index)
         return x
@@ -255,7 +255,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
             # FIXME should whitelist globals for security?
             globals_dict = {}
-            values = to_series(eval(expression, globals_dict, _locals_dict), target=target)
+            expr_values = to_series(eval(expression, globals_dict, _locals_dict))
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)
@@ -266,17 +266,17 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             logger.error("assign_variables expression: %s = %s"
                          % (str(target), str(expression)))
 
-            # values = to_series(None, target=target)
+            # expr_values = to_series(None, target=target)
             raise err
 
         if not is_temp(target):
-            variables[target] = values
+            variables[target] = expr_values
 
         if trace_results is not None:
-            trace_results[uniquify_key(trace_results, target)] = values[trace_rows]
+            trace_results[uniquify_key(trace_results, target)] = expr_values[trace_rows]
 
         # update locals to allows us to ref previously assigned targets
-        _locals_dict[target] = values
+        _locals_dict[target] = expr_values
 
     if trace_results is not None:
 
@@ -288,8 +288,6 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         trace_results = pd.concat([df[trace_rows], trace_results], axis=1)
 
     # we stored result in dict - convert to df
-    variables = pd.DataFrame.from_dict(variables)
-    # in case items were numpy arrays not pandas series, fix index
-    variables.index = df.index
+    variables = util.df_from_dict(variables, index=df.index)
 
     return variables, trace_results, trace_assigned_locals

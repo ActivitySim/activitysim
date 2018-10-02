@@ -3,8 +3,10 @@
 
 from __future__ import print_function
 
+import sys
 import os
 import logging
+import time
 from collections import OrderedDict
 
 import numpy as np
@@ -15,6 +17,7 @@ from . import logit
 from . import tracing
 from . import pipeline
 from . import config
+from . import util
 
 from . import assign
 
@@ -133,7 +136,7 @@ def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
     return spec
 
 
-def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
+def eval_variables(exprs, df, locals_d=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -149,6 +152,10 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     Users should take care that these expressions must result in
     a Pandas Series.
 
+    # FIXME - for performance, it is essential that spec and expression_values
+    # FIXME - not contain booleans when dotted with spec values
+    # FIXME - or the arrays will be converted to dtype=object within dot()
+
     Parameters
     ----------
     exprs : sequence of str
@@ -156,8 +163,6 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    target_type: dtype or None
-        type to coerce results or None if no coercion desired
 
     Returns
     -------
@@ -173,22 +178,36 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
 
     locals_dict['df'] = df
 
-    def to_series(x):
-        if np.isscalar(x):
-            return pd.Series([x] * len(df), index=df.index)
-        return x
+    def to_array(x):
+
+        if x is None or np.isscalar(x):
+            a = np.asanyarray([x] * len(df.index))
+        elif isinstance(x, pd.Series):
+            # fixme
+            # assert x.index.equals(df.index)
+            # save a little RAM
+            a = x.values
+
+        # FIXME - for performance, it is essential that spec and expression_values
+        # FIXME - not contain booleans when dotted with spec values
+        # FIXME - or the arrays will be converted to dtype=object within dot()
+        if not np.issubdtype(a.dtype, np.number):
+            a = a.astype(np.int8)
+
+        return a
 
     values = OrderedDict()
     print('eval_variables', end='')  # print ... for each expression
     for expr in exprs:
-        print('.', end='')  # print ...
+        print('.', end='')
+        sys.stdout.flush()
         # logger.debug("eval_variables: %s" % expr)
         # logger.debug("eval_variables %s" % util.memory_info())
         try:
             if expr.startswith('@'):
-                expr_values = to_series(eval(expr[1:], globals_dict, locals_dict))
+                expr_values = to_array(eval(expr[1:], globals_dict, locals_dict))
             else:
-                expr_values = df.eval(expr)
+                expr_values = to_array(df.eval(expr))
             # read model spec should ensure uniqueness, otherwise we should uniquify
             assert expr not in values
             values[expr] = expr_values
@@ -199,13 +218,7 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
             raise err
     print()  # print ...
 
-    values = pd.DataFrame.from_dict(values)
-
-    # FIXME - for performance, it is essential that spec and expression_values
-    # FIXME - not contain booleans when dotted with spec values
-    # FIXME - or the arrays will be converted to dtype=object within dot()
-    if target_type is not None:
-        values = values.astype(target_type)
+    values = util.df_from_dict(values, index=df.index)
 
     return values
 
@@ -779,47 +792,71 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
         Index will be that of `choosers`, values will be logsum across spec column values
     """
 
+    # FIXME - untested and not currently used by any models...
+
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
     check_for_variability = tracing.check_for_variability()
 
     logger.debug("running eval_mnl_logsums")
-    # t0 = tracing.print_elapsed_time()
+    t00 = t0 = print_elapsed_time()
+
+    # trace choosers
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
 
     expression_values = eval_variables(spec.index, choosers, locals_d)
-    # t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
+    t0 = print_elapsed_time("eval_variables", t0, debug=True)
 
     if check_for_variability:
         _check_for_variability(expression_values, trace_label)
 
     # utility values
     utilities = compute_utilities(expression_values, spec)
-    # t0 = tracing.print_elapsed_time("compute_utilities", t0, debug=True)
+    t0 = print_elapsed_time("compute_utilities", t0, debug=True)
 
-    # logsum is log of exponentiated utilities summed across columns of each chooser row
-    utils_arr = utilities.values.astype('float')
-    logsums = np.log(np.exp(utils_arr).sum(axis=1))
-    logsums = pd.Series(logsums, index=choosers.index)
-
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
+    # trace expression_values
+    if have_trace_targets:
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
     cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
+    del expression_values  # done with expression_values
 
+    # - logsums
+    # logsum is log of exponentiated utilities summed across columns of each chooser row
+    logsums = np.log(np.exp(utilities.values).sum(axis=1))
+    logsums = pd.Series(logsums, index=choosers.index)
+    t0 = print_elapsed_time("logsums", t0, debug=True)
+
+    # trace utilities
     if have_trace_targets:
         # add logsum to utilities for tracing
         utilities['logsum'] = logsums
-
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
+    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
+
+    # trace logsums
+    if have_trace_targets:
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
+    cum_size = chunk.log_df_size(trace_label, "logsums", logsums, cum_size)
+    chunk.log_chunk_size(trace_label, cum_size)
+
+    t0 = print_elapsed_time("end eval_mnl_logsums", t00, debug=True)
 
     return logsums
+
+
+def print_elapsed_time(msg=None, t0=None, debug=False):
+
+    msg = "%s %s" % (msg, util.memory_info())
+    # print(msg)
+    # sys.stdout.write('\a')
+    # sys.stdout.flush()
+    return tracing.print_elapsed_time(msg, t0, debug=debug)
 
 
 def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
@@ -834,51 +871,69 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
     trace_label = tracing.extend_trace_label(trace_label, 'nl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
-
     check_for_variability = tracing.check_for_variability()
 
-    logger.debug("running eval_nl_logsums")
-    # t0 = tracing.print_elapsed_time()
+    t00 = t0 = print_elapsed_time("begin eval_nl_logsums")
 
+    # trace choosers
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
+
+    # - eval spec expressions
     # column names of expression_values match spec index values
     expression_values = eval_variables(spec.index, choosers, locals_d)
-    # t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
+    t0 = print_elapsed_time("eval_variables", t0, debug=True)
 
     if check_for_variability:
         _check_for_variability(expression_values, trace_label)
-        # t0 = tracing.print_elapsed_time("_check_for_variability", t0, debug=True)
+        t0 = print_elapsed_time("_check_for_variability", t0, debug=True)
 
-    # raw utilities of all the leaves
+    # - raw utilities of all the leaves
     raw_utilities = compute_utilities(expression_values, spec)
-    # t0 = tracing.print_elapsed_time("expression_values.dot", t0, debug=True)
+    t0 = print_elapsed_time("compute_utilities", t0, debug=True)
 
-    # exponentiated utilities of leaves and nests
+    # trace expression_values
+    if have_trace_targets:
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
+    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
+    del expression_values  # done with expression_values
+
+    # - exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    # t0 = tracing.print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
+    t0 = print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
 
+    # trace raw_utilities
+    if have_trace_targets:
+        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
+    del raw_utilities  # done with raw_utilities
+
+    # - logsums
     logsums = np.log(nested_exp_utilities.root)
     logsums = pd.Series(logsums, index=choosers.index)
-    # t0 = tracing.print_elapsed_time("logsums", t0, debug=True)
+    t0 = print_elapsed_time("logsums", t0, debug=True)
 
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "nested_exp_utils", nested_exp_utilities, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
-
+    # trace nested_exp_utilities
     if have_trace_targets:
         # add logsum to nested_exp_utilities for tracing
         nested_exp_utilities['logsum'] = logsums
-
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
         tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
+    cum_size = \
+        chunk.log_df_size(trace_label, "nested_exp_utilities", nested_exp_utilities, cum_size)
+    del nested_exp_utilities  # done with nested_exp_utilities
+
+    # trace logsums
+    if have_trace_targets:
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
+    cum_size = chunk.log_df_size(trace_label, "logsums", logsums, cum_size)
+    chunk.log_chunk_size(trace_label, cum_size)
+
+    t0 = print_elapsed_time("end eval_nl_logsums", t00, debug=True)
 
     return logsums
 

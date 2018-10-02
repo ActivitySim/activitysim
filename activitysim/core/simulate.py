@@ -852,7 +852,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
 
 def print_elapsed_time(msg=None, t0=None, debug=False):
 
-    msg = "%s %s" % (msg, util.memory_info())
+    # msg = "%s %s" % (msg, util.memory_info())
     # print(msg)
     # sys.stdout.write('\a')
     # sys.stdout.flush()

@@ -40,8 +40,8 @@ if __name__ == '__main__':
         cleanup_output_files()
 
     run_list = tasks.get_run_list()
-
-    tasks.print_run_list(run_list)
+    with open(config.output_file_path('run_list.txt'), 'w') as file:
+        tasks.print_run_list(run_list, file)
 
     t0 = tracing.print_elapsed_time()
 
@@ -50,6 +50,9 @@ if __name__ == '__main__':
         logger.info("main process pid : %s" % os.getpid())
         logger.info("sys.executable : %s" % sys.executable)
         logger.info("cpu count : %s" % multiprocessing.cpu_count())
+
+        tasks.print_run_list(run_list, sys.stdout)
+        bug
 
         tasks.run_multiprocess(run_list)
 

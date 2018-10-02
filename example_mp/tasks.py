@@ -309,7 +309,11 @@ def allocate_shared_data():
     return skim_buffer
 
 
-def run_mp_simulation(skim_buffer, models, resume_after, num_processes, pipeline_prefix=False):
+def run_mp_simulation(skim_buffer, step_info, resume_after, pipeline_prefix=False):
+
+    models = step_info['models']
+    num_processes = step_info['num_processes']
+    chunk_size = step_info['chunk_size']
 
     handle_standard_args()
 
@@ -327,16 +331,7 @@ def run_mp_simulation(skim_buffer, models, resume_after, num_processes, pipeline
     tracing.config_logger()
 
     inject.add_injectable('skim_buffer', skim_buffer)
-
-    if num_processes > 1:
-        chunk_size = inject.get_injectable('chunk_size')
-
-        if chunk_size:
-            new_chunk_size = int(round(chunk_size / float(num_processes)))
-            new_chunk_size = max(new_chunk_size, 1)
-            logger.info("run_mp_simulation adjusting chunk_size from %s to %s" %
-                        (chunk_size, new_chunk_size))
-            inject.add_injectable("chunk_size", new_chunk_size)
+    inject.add_injectable("chunk_size", chunk_size)
 
     run_simulation(models, resume_after)
 
@@ -434,30 +429,27 @@ def run_multiprocess(run_list):
     for step_info in run_list['multiprocess_steps']:
 
         label = step_info['label']
-        step_models = step_info['models']
         slice_info = step_info.get('slice', None)
 
         if not slice_info:
 
-            num_processes = step_info['num_processes']
-            assert num_processes == 1
+            assert step_info['num_processes'] == 1
 
-            logger.info('running step %s single process with %s models' % (label, len(step_models)))
+            logger.info('running step %s single process' % (label,))
 
             # unsliced steps run single-threaded
             sub_proc_name = label
 
             run_sub_process(
                 mp.Process(target=run_mp_simulation, name=sub_proc_name,
-                           args=(shared_skim_data, step_models, resume_after, num_processes))
+                           args=(shared_skim_data, step_info, resume_after))
             )
 
         else:
 
             num_processes = step_info['num_processes']
 
-            logger.info('running step %s multiprocess with %s processes and %s models' %
-                        (label, num_processes, len(step_models)))
+            logger.info('running step %s multiprocess with %s processes' % (label, num_processes,))
 
             sub_proc_names = ["%s_sub-%s" % (label, i) for i in range(num_processes)]
 
@@ -470,7 +462,7 @@ def run_multiprocess(run_list):
             logger.info('starting sub_processes')
             error_procs = run_sub_procs([
                 mp.Process(target=run_mp_simulation, name=process_name,
-                           args=(shared_skim_data, step_models, resume_after, num_processes),
+                           args=(shared_skim_data, step_info, resume_after),
                            kwargs={'pipeline_prefix': True})
                 for process_name in sub_proc_names
             ])
@@ -494,6 +486,7 @@ def get_run_list():
     models = setting('models', [])
     resume_after = inject.get_injectable('resume_after', None) or setting('resume_after', None)
     multiprocess = inject.get_injectable('multiprocess', False) or setting('multiprocess', False)
+    global_chunk_size = setting('chunk_size', 0)
     multiprocess_steps = setting('multiprocess_steps', [])
 
     if multiprocess and mp.cpu_count() == 1:
@@ -522,12 +515,12 @@ def get_run_list():
             raise RuntimeError("multiprocess setting is %s but no multiprocess_steps setting" %
                                multiprocess)
 
-        # check label, num_processes value and presence of slice info
+        # check label, num_processes, chunk_size and presence of slice info
         labels = set()
         for istep in range(len(multiprocess_steps)):
             step = multiprocess_steps[istep]
 
-            # check label
+            # - validate label
             label = step.get('label', None)
             if not label:
                 raise RuntimeError("missing label for step %s"
@@ -537,7 +530,7 @@ def get_run_list():
                                    " in multiprocess_steps" % label)
             labels.add(label)
 
-            # validate num_processes and assign default
+            # - validate num_processes and assign default
             num_processes = step.get('num_processes', 0)
 
             if not isinstance(num_processes, int) or num_processes < 0:
@@ -564,7 +557,18 @@ def get_run_list():
 
             multiprocess_steps[istep]['num_processes'] = num_processes
 
-        # determine index in models list of step starts
+            # - validate chunk_size and assign default
+            chunk_size = step.get('chunk_size', None)
+            if chunk_size is None:
+                if global_chunk_size > 0 and num_processes > 1:
+                    chunk_size = int(round(global_chunk_size / float(num_processes)))
+                    chunk_size = max(chunk_size, 1)
+                else:
+                    chunk_size = global_chunk_size
+
+            multiprocess_steps[istep]['chunk_size'] = chunk_size
+
+        # - determine index in models list of step starts
         START = 'begin'
         starts = [0] * len(multiprocess_steps)
         for istep in range(len(multiprocess_steps)):
@@ -598,7 +602,7 @@ def get_run_list():
                                    " falls before that of prior step in models list" %
                                    (START, start, label, istep))
 
-        # build step model lists
+        # - build step model lists
         starts.append(len(models))  # so last step gets remaining models in list
         for istep in range(len(multiprocess_steps)):
             multiprocess_steps[istep]['models'] = models[starts[istep]: starts[istep + 1]]
@@ -608,23 +612,23 @@ def get_run_list():
     return run_list
 
 
-def print_run_list(run_list):
+def print_run_list(run_list, file):
 
-    print "resume_after:", run_list['resume_after']
-    print "multiprocess:", run_list['multiprocess']
+    print >> file, "resume_after:", run_list['resume_after']
+    print >> file, "multiprocess:", run_list['multiprocess']
 
     if run_list['multiprocess']:
         for step in run_list['multiprocess_steps']:
-            print "step:", step['label']
-            print "   num_processes:", step.get('num_processes', None)
-            print "   models"
+            print >> file, "step:", step['label']
+            print >> file, "   num_processes:", step['num_processes']
+            print >> file, "   chunk_size:", step['chunk_size']
+            print >> file, "   models"
             for m in step['models']:
-                print "     - ", m
+                print >> file, "     - ", m
     else:
-        print "models"
+        print >> file, "models"
         for m in run_list['models']:
-            print "  - ", m
-# 'multiprocess_steps': multiprocess_steps,
+            print >> file, "  - ", m
 
 
 def console_logger_format(format):

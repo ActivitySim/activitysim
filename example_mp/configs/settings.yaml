@@ -11,10 +11,6 @@ trace_hh_id: 1269102
 # trace origin, destination in accessibility calculation
 trace_od: [5, 11]
 
-#internal settings
-chunk_size: 2000000000
-#
-
 # comment out or set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False
 
@@ -58,18 +54,20 @@ models:
   - write_data_dictionary
   - write_tables
 
-resume_after: school_location_simulate
+#resume_after: school_location_simulate
 
 
 # comment out to run single-threaded
 multiprocess: False
+chunk_size: 2000000000
 
 multiprocess_steps:
   - label: mp_initialize
     begin: initialize_landuse
   - label: mp_households
     begin: school_location_sample
-    num_processes: 2
+    num_processes: 3
+    #chunk_size: 1000000000
     slice:
       tables:
         - households

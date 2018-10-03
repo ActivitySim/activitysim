@@ -286,14 +286,6 @@ def coalesce_pipelines(sub_process_names, slice_info):
     #     print "checkpoint_tables\n", checkpoint_tables
 
 
-def run_simulation(models, resume_after=None):
-
-    pipeline.run(models=models, resume_after=resume_after)
-
-    # tables will no longer be available after pipeline is closed
-    pipeline.close_pipeline()
-
-
 def allocate_shared_data():
     logger.info("allocate_shared_data")
 
@@ -341,7 +333,8 @@ def run_mp_simulation(injectables, skim_buffer, step_info, resume_after, pipelin
     inject.add_injectable('skim_buffer', skim_buffer)
     inject.add_injectable("chunk_size", chunk_size)
 
-    run_simulation(models, resume_after)
+    pipeline.run(models=models, resume_after=resume_after)
+    pipeline.close_pipeline()
 
     # try:
     #     run_simulation(models, resume_after)
@@ -599,7 +592,14 @@ def get_run_list():
         # - build step model lists
         starts.append(len(models))  # so last step gets remaining models in list
         for istep in range(len(multiprocess_steps)):
-            multiprocess_steps[istep]['models'] = models[starts[istep]: starts[istep + 1]]
+            step_models = models[starts[istep]: starts[istep + 1]]
+
+            suppress_intermediate_checkpoints = True
+            if suppress_intermediate_checkpoints:
+                step_models = ['_' + m if m[0] != '_' and m != step_models[-1] else m for m in step_models]
+
+            multiprocess_steps[istep]['models'] = step_models
+
 
         run_list['multiprocess_steps'] = multiprocess_steps
 

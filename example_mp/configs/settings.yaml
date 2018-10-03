@@ -18,11 +18,11 @@ models:
   - initialize_landuse
   - compute_accessibility
   - initialize_households
-  - school_location_sample
-  - school_location_logsums
+  - _school_location_sample
+  - _school_location_logsums
   - school_location_simulate
-  - workplace_location_sample
-  - workplace_location_logsums
+  - _workplace_location_sample
+  - _workplace_location_logsums
   - workplace_location_simulate
   - auto_ownership_simulate
   - cdap_simulate
@@ -31,8 +31,8 @@ models:
   - joint_tour_frequency
   - joint_tour_composition
   - joint_tour_participation
-  - joint_tour_destination_sample
-  - joint_tour_destination_logsums
+  - _joint_tour_destination_sample
+  - _joint_tour_destination_logsums
   - joint_tour_destination_simulate
   - joint_tour_scheduling
   - non_mandatory_tour_frequency
@@ -40,8 +40,8 @@ models:
   - non_mandatory_tour_scheduling
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
-  - atwork_subtour_destination_sample
-  - atwork_subtour_destination_logsums
+  - _atwork_subtour_destination_sample
+  - _atwork_subtour_destination_logsums
   - atwork_subtour_destination_simulate
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
@@ -65,9 +65,9 @@ multiprocess_steps:
   - label: mp_initialize
     begin: initialize_landuse
   - label: mp_households
-    begin: school_location_sample
+    begin: _school_location_sample
     num_processes: 3
-    chunk_size: 1000000000
+    #chunk_size: 1000000000
     slice:
       tables:
         - households

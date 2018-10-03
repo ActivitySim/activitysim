@@ -27,7 +27,7 @@ def skims_to_load(omx_file_path, tags_to_load=None):
     # select the skims to load
     with omx.open_file(omx_file_path) as omx_file:
 
-        omx_shape = omx_file.shape()
+        omx_shape = tuple(map(int, omx_file.shape()))  # sometimes omx shape are floats!
         skim_keys = OrderedDict()
 
         for skim_name in omx_file.listMatrices():
@@ -53,7 +53,7 @@ def skims_to_load(omx_file_path, tags_to_load=None):
 
 def shared_buffer_for_skims(skims_shape, skim_dtype, shared=False):
 
-    buffer_size = np.prod(skims_shape)
+    buffer_size = int(np.prod(skims_shape))
 
     if np.issubdtype(skim_dtype, np.float64):
         typecode = 'd'

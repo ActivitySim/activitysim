@@ -309,7 +309,17 @@ def allocate_shared_data():
     return skim_buffer
 
 
-def run_mp_simulation(skim_buffer, step_info, resume_after, pipeline_prefix=False):
+def setup_injectables_and_logging(injectables):
+
+    for k, v in injectables.iteritems():
+        inject.add_injectable(k, v)
+
+    process_name = mp.current_process().name
+    inject.add_injectable("log_file_prefix", process_name)
+    tracing.config_logger()
+
+
+def run_mp_simulation(injectables, skim_buffer, step_info, resume_after, pipeline_prefix=False):
 
     models = step_info['models']
     num_processes = step_info['num_processes']
@@ -319,16 +329,14 @@ def run_mp_simulation(skim_buffer, step_info, resume_after, pipeline_prefix=Fals
 
     # do this before config_logger so log file is named appropriately
     process_name = mp.current_process().name
-
-    logger.info("run_mp_simulation %s num_processes %s" % (process_name, num_processes))
-
-    inject.add_injectable("log_file_prefix", process_name)
     if pipeline_prefix:
         pipeline_prefix = process_name if pipeline_prefix is True else pipeline_prefix
         logger.info("injecting pipeline_file_prefix '%s'" % pipeline_prefix)
         inject.add_injectable("pipeline_file_prefix", pipeline_prefix)
 
-    tracing.config_logger()
+    setup_injectables_and_logging(injectables)
+
+    logger.info("run_mp_simulation %s num_processes %s" % (process_name, num_processes))
 
     inject.add_injectable('skim_buffer', skim_buffer)
     inject.add_injectable("chunk_size", chunk_size)
@@ -343,41 +351,27 @@ def run_mp_simulation(skim_buffer, step_info, resume_after, pipeline_prefix=Fals
     #     raise e
 
 
-def mp_apportion_pipeline(sub_job_proc_names, slice_info):
-    process_name = mp.current_process().name
-    inject.add_injectable("log_file_prefix", process_name)
-    tracing.config_logger()
-
+def mp_apportion_pipeline(injectables, sub_job_proc_names, slice_info):
+    setup_injectables_and_logging(injectables)
     apportion_pipeline(sub_job_proc_names, slice_info)
 
 
-def mp_setup_skims(skim_buffer):
-    process_name = mp.current_process().name
-    inject.add_injectable("log_file_prefix", process_name)
-    tracing.config_logger()
-
+def mp_setup_skims(injectables, skim_buffer):
+    setup_injectables_and_logging(injectables)
     skim_data = load_skim_data(skim_buffer)
 
 
-def mp_coalesce_pipelines(sub_job_proc_names, slice_info):
-    process_name = mp.current_process().name
-    inject.add_injectable("log_file_prefix", process_name)
-    tracing.config_logger()
-
+def mp_coalesce_pipelines(injectables, sub_job_proc_names, slice_info):
+    setup_injectables_and_logging(injectables)
     coalesce_pipelines(sub_job_proc_names, slice_info)
 
 
 def mp_debug(injectables):
 
-    for k, v in injectables.iteritems():
-        inject.add_injectable(k, v)
+    setup_injectables_and_logging(injectables)
 
-    process_name = mp.current_process().name
-    inject.add_injectable("log_file_prefix", process_name)
-    tracing.config_logger()
-
-    print "configs_dir", inject.get_injectable('configs_dir')
-    print "households_sample_size", setting('households_sample_size')
+    for k in injectables:
+        print k, inject.get_injectable(k)
 
 
 def run_sub_process(p):
@@ -408,20 +402,20 @@ def run_sub_procs(procs):
     return error_procs
 
 
-def run_multiprocess(run_list):
+def run_multiprocess(run_list, injectables):
 
     # fixme
     # logger.info('running mp_debug')
     # run_sub_process(
-    #     mp.Process(target=mp_debug, name='mp_debug',
-    #                args=({},))
+    #     mp.Process(target=mp_debug, name='mp_debug', args=(injectables,))
     # )
     # bug
 
     logger.info('setup shared skim data')
     shared_skim_data = allocate_shared_data()
     run_sub_process(
-        mp.Process(target=mp_setup_skims, name='mp_setup_skims', args=(shared_skim_data,))
+        mp.Process(target=mp_setup_skims, name='mp_setup_skims',
+                   args=(injectables, shared_skim_data,))
     )
 
     resume_after = None
@@ -442,7 +436,7 @@ def run_multiprocess(run_list):
 
             run_sub_process(
                 mp.Process(target=run_mp_simulation, name=sub_proc_name,
-                           args=(shared_skim_data, step_info, resume_after))
+                           args=(injectables, shared_skim_data, step_info, resume_after))
             )
 
         else:
@@ -456,13 +450,13 @@ def run_multiprocess(run_list):
             logger.info('apportioning households to sub_processes')
             run_sub_process(
                 mp.Process(target=mp_apportion_pipeline, name='%s_apportion' % label,
-                           args=(sub_proc_names, slice_info))
+                           args=(injectables, sub_proc_names, slice_info))
             )
 
             logger.info('starting sub_processes')
             error_procs = run_sub_procs([
                 mp.Process(target=run_mp_simulation, name=process_name,
-                           args=(shared_skim_data, step_info, resume_after),
+                           args=(injectables, shared_skim_data, step_info, resume_after),
                            kwargs={'pipeline_prefix': True})
                 for process_name in sub_proc_names
             ])
@@ -475,7 +469,7 @@ def run_multiprocess(run_list):
             logger.info('coalescing sub_process pipelines')
             run_sub_process(
                 mp.Process(target=mp_coalesce_pipelines, name='%s_coalesce' % label,
-                           args=(sub_proc_names, slice_info))
+                           args=(injectables, sub_proc_names, slice_info))
             )
 
         resume_after = '_'

@@ -2,7 +2,7 @@
 inherit_settings: True
 
 #number of households to simulate
-households_sample_size: 0
+households_sample_size: 1000
 
 #trace household id; comment out for no trace
 # household with all tour categories

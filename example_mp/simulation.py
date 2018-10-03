@@ -35,6 +35,9 @@ if __name__ == '__main__':
     config.handle_standard_args()
     tracing.config_logger()
 
+    injectables = ['data_dir', 'configs_dir', 'output_dir']
+    injectables = {k: inject.get_injectable(k) for k in injectables}
+
     # cleanup if not resuming
     if not config.setting('resume_after', False):
         cleanup_output_files()
@@ -53,7 +56,7 @@ if __name__ == '__main__':
 
         tasks.print_run_list(run_list, sys.stdout)
 
-        tasks.run_multiprocess(run_list)
+        tasks.run_multiprocess(run_list, injectables)
 
     else:
         logger.info("run single process simulation")

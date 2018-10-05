@@ -1,6 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+
+import sys
 import os
 import logging
 
@@ -22,71 +25,191 @@ Read in the omx files and create the skim objects
 """
 
 
-def skims_to_load(omx_file_path, tags_to_load=None):
+def get_skim_info(omx_file_path, tags_to_load=None):
 
-    # select the skims to load
-    with omx.open_file(omx_file_path) as omx_file:
+    # this is sys.maxint for p2.7 but no limit for p3
+    # MAX_BLOCK_BYTES = 28880000
+    MAX_BLOCK_BYTES = sys.maxint
 
-        omx_shape = tuple(map(int, omx_file.shape()))  # sometimes omx shape are floats!
-        skim_keys = OrderedDict()
-
-        for skim_name in omx_file.listMatrices():
-            key1, sep, key2 = skim_name.partition('__')
-
-            # ignore composite tags not in tags_to_load
-            if tags_to_load and sep and key2 not in tags_to_load:
-                continue
-
-            key = (key1, key2) if sep else key1
-            skim_keys[skim_name] = key
-
-    num_skims = len(skim_keys.keys())
-
-    skim_data_shape = omx_shape + (num_skims, )
+    # Note: we load all skims except those with key2 not in tags_to_load
+    # Note: we require all skims to be of same dtype so they can share buffer - is that ok?
+    # fixme is it ok to require skims be all the same type? if so, is this the right choice?
     skim_dtype = np.float32
+    omx_name = os.path.splitext(os.path.basename(omx_file_path))[0]
 
-    logger.debug("skims_to_load from %s" % (omx_file_path, ))
-    logger.debug("skims_to_load skim_data_shape %s skim_dtype %s" % (skim_data_shape, skim_dtype))
+    with omx.open_file(omx_file_path) as omx_file:
+        omx_shape = tuple(map(int, omx_file.shape()))  # sometimes omx shape are floats!
+        omx_skim_names = omx_file.listMatrices()
 
-    return skim_keys, skim_data_shape, skim_dtype
+    # - omx_keys dict maps skim key to omx_key
+    # DISTWALK: DISTWALK
+    # ('DRV_COM_WLK_BOARDS', 'AM'): DRV_COM_WLK_BOARDS__AM, ...
+    omx_keys = OrderedDict()
+    for skim_name in omx_skim_names:
+        key1, sep, key2 = skim_name.partition('__')
 
+        # - ignore composite tags not in tags_to_load
+        if tags_to_load and sep and key2 not in tags_to_load:
+            continue
 
-def shared_buffer_for_skims(skims_shape, skim_dtype, shared=False):
+        skim_key = (key1, key2) if sep else key1
+        omx_keys[skim_key] = skim_name
 
-    buffer_size = int(np.prod(skims_shape))
+    num_skims = len(omx_keys.keys())
+    skim_data_shape = omx_shape + (num_skims, )
 
-    if np.issubdtype(skim_dtype, np.float64):
-        typecode = 'd'
-    elif np.issubdtype(skim_dtype, np.float32):
-        typecode = 'f'
+    # - key1_subkeys dict maps key1 to dict of subkeys with that key1
+    # DIST: {'DIST': 0}
+    # DRV_COM_WLK_BOARDS: {'MD': 1, 'AM': 0, 'PM': 2}, ...
+    key1_subkeys = OrderedDict()
+    for skim_key, omx_key in omx_keys.iteritems():
+        if isinstance(skim_key, tuple):
+            key1, key2 = skim_key
+        else:
+            key1 = key2 = skim_key
+        key2_dict = key1_subkeys.setdefault(key1, {})
+        key2_dict[key2] = len(key2_dict)
+
+    # - blocks dict maps block name to blocksize (number of subkey skims in block)
+    # skims_0: 198,
+    # skims_1: 198, ...
+    # - key1_block_offsets dict maps key1 to (block, offset) of first skim with that key1
+    # DISTWALK: (0, 2),
+    # DRV_COM_WLK_BOARDS: (0, 3), ...
+
+    if MAX_BLOCK_BYTES:
+        max_block_items = MAX_BLOCK_BYTES // np.dtype(skim_dtype).itemsize
+        max_skims_per_block = max_block_items // np.prod(omx_shape)
     else:
-        raise RuntimeError("shared_buffer_for_skims unrecognized dtype %s" % skim_dtype)
+        max_skims_per_block = num_skims
 
-    logger.info("allocating shared buffer of size %s (%s)" % (buffer_size, skims_shape, ))
+    def block_name(block):
+        return "%s_%s" % (omx_name, block)
 
-    skim_buffer = mp.RawArray(typecode, buffer_size)
+    key1_block_offsets = OrderedDict()
+    blocks = OrderedDict()
+    block = offset = 0
+    for key1, v in key1_subkeys.iteritems():
+        num_subkeys = len(v)
+        if offset + num_subkeys > max_skims_per_block:  # next block
+            blocks[block_name(block)] = offset
+            block += 1
+            offset = 0
+        key1_block_offsets[key1] = (block, offset)
+        offset += num_subkeys
+    blocks[block_name(block)] = offset  # last block
+
+    # - block_offsets dict maps skim_key to (block, offset) of omx matrix
+    # DIST: (0, 0),
+    # ('DRV_COM_WLK_BOARDS', 'AM'): (0, 3),
+    # ('DRV_COM_WLK_BOARDS', 'MD') (0, 4), ...
+    block_offsets = OrderedDict()
+    for skim_key in omx_keys:
+
+        if isinstance(skim_key, tuple):
+            key1, key2 = skim_key
+        else:
+            key1 = key2 = skim_key
+
+        block, key1_offset = key1_block_offsets[key1]
+
+        key2_relative_offset = key1_subkeys.get(key1).get(key2)
+
+        block_offsets[skim_key] = (block, key1_offset + key2_relative_offset)
+
+    logger.debug("get_skim_info from %s" % (omx_file_path, ))
+    logger.debug("get_skim_info skim_dtype %s omx_shape %s num_skims %s num_blocks %s" %
+                 (skim_dtype, omx_shape, num_skims, len(blocks)))
+
+    skim_info = {
+        'omx_name': omx_name,
+        'omx_shape': omx_shape,
+        'num_skims': num_skims,
+        'dtype': skim_dtype,
+        'omx_keys': omx_keys,
+        'key1_block_offsets': key1_block_offsets,
+        'block_offsets': block_offsets,
+        'blocks': blocks,
+    }
+
+    return skim_info
+
+
+def buffer_for_skims(skim_info, shared=False):
+
+    skim_dtype = skim_info['dtype']
+    omx_shape = skim_info['omx_shape']
+    blocks = skim_info['blocks']
+
+    skim_buffer = {}
+    for block_name, block_size in blocks.iteritems():
+
+        buffer_size = np.prod(omx_shape) * block_size
+
+        logger.info("allocating shared buffer %s for %s (%s) matrices" %
+                    (block_name, buffer_size, omx_shape, ))
+
+        if shared:
+            if np.issubdtype(skim_dtype, np.float64):
+                typecode = 'd'
+            elif np.issubdtype(skim_dtype, np.float32):
+                typecode = 'f'
+            else:
+                raise RuntimeError("buffer_for_skims unrecognized dtype %s" % skim_dtype)
+
+            buffer = mp.RawArray(typecode, buffer_size)
+        else:
+            buffer = np.zeros(buffer_size, dtype=skim_dtype)
+
+        skim_buffer[block_name] = buffer
 
     return skim_buffer
 
 
-def load_skims(omx_file_path, skim_keys, skim_data):
+def skim_data_from_buffer(skim_buffer, skim_info):
+
+    assert type(skim_buffer) == dict
+
+    omx_shape = skim_info['omx_shape']
+    skim_dtype = skim_info['dtype']
+    blocks = skim_info['blocks']
+
+    skim_data = []
+    for block_name, block_size in blocks.iteritems():
+        skims_shape = omx_shape + (block_size,)
+        block_buffer = skim_buffer[block_name]
+        assert len(block_buffer) == int(np.prod(skims_shape))
+        block_data = np.frombuffer(block_buffer, dtype=skim_dtype).reshape(skims_shape)
+        skim_data.append(block_data)
+
+    return skim_data
+
+
+def load_skims(omx_file_path, skim_info, skim_buffer):
+
+    skim_data = skim_data_from_buffer(skim_buffer, skim_info)
+
+    block_offsets = skim_info['block_offsets']
+    omx_keys = skim_info['omx_keys']
 
     # read skims into skim_data
     with omx.open_file(omx_file_path) as omx_file:
-        n = 0
-        for skim_name, key in skim_keys.iteritems():
+        for skim_key, omx_key in omx_keys.iteritems():
 
-            logger.debug("load_skims skim_name %s key %s" % (skim_name, key))
-
-            omx_data = omx_file[skim_name]
+            omx_data = omx_file[omx_key]
             assert np.issubdtype(omx_data.dtype, np.floating)
 
-            # this will trigger omx readslice to read and copy data to skim_data's buffer
-            a = skim_data[:, :, n]
-            a[:] = omx_data[:]
-            n += 1
+            block, offset = block_offsets[skim_key]
+            block_data = skim_data[block]
 
-    logger.info("load_skims loaded %s skims from %s" % (n, omx_file_path))
+            logger.debug("load_skims load omx_key %s skim_key %s to block %s offset %s" %
+                         (omx_key, skim_key, block, offset))
+
+            # this will trigger omx readslice to read and copy data to skim_data's buffer
+            a = block_data[:, :, offset]
+            a[:] = omx_data[:]
+
+    logger.info("load_skims loaded skims from %s" % (omx_file_path, ))
 
 
 @inject.injectable(cache=True)
@@ -98,23 +221,28 @@ def skim_dict(data_dir, settings):
     logger.info("loading skim_dict from %s" % (omx_file_path, ))
 
     # select the skims to load
-    skim_keys, skims_shape, skim_dtype = skims_to_load(omx_file_path, tags_to_load)
+    skim_info = get_skim_info(omx_file_path, tags_to_load)
 
-    logger.debug("skim_data_shape %s skim_dtype %s" % (skims_shape, skim_dtype))
+    logger.debug("omx_shape %s skim_dtype %s" % (skim_info['omx_shape'], skim_info['dtype']))
 
     skim_buffer = inject.get_injectable('skim_buffer', None)
     if skim_buffer:
         logger.info('Using existing skim_buffer for skims')
-        skim_data = np.frombuffer(skim_buffer, dtype=skim_dtype).reshape(skims_shape)
     else:
-        skim_data = np.zeros(skims_shape, dtype=skim_dtype)
-        load_skims(omx_file_path, skim_keys, skim_data)
+        skim_buffer = buffer_for_skims(skim_info, shared=False)
+        load_skims(omx_file_path, skim_info, skim_buffer)
 
-    logger.info("skim_data dtype %s shape %s bytes %s (%s)" %
-                (skim_dtype, skims_shape, skim_data.nbytes, util.GB(skim_data.nbytes)))
+    skim_data = skim_data_from_buffer(skim_buffer, skim_info)
+
+    block_names = skim_info['blocks'].keys()
+    for i in range(len(skim_data)):
+        block_name = block_names[i]
+        block_data = skim_data[i]
+        logger.info("block_name %s bytes %s (%s)" %
+                    (block_name, block_data.nbytes, util.GB(block_data.nbytes)))
 
     # create skim dict
-    skim_dict = skim.SkimDict(skim_data, skim_keys.values())
+    skim_dict = skim.SkimDict(skim_data, skim_info)
     skim_dict.offset_mapper.set_offset_int(-1)
 
     return skim_dict

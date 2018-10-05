@@ -140,15 +140,12 @@ class SkimDict(object):
     Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
 
-    def __init__(self, skim_data, skim_keys):
+    def __init__(self, skim_data, skim_info):
 
-        skim_key_to_skim_num = OrderedDict(zip(skim_keys, range(len(skim_keys))))
-
+        self.skim_info = skim_info
         self.skim_data = skim_data
-        self.skim_key_to_skim_num = skim_key_to_skim_num
-        self.num_skims = skim_data.shape[2]
-        self.offset_mapper = OffsetMapper()
 
+        self.offset_mapper = OffsetMapper()
         self.usage = set()
 
     def touch(self, key):
@@ -169,13 +166,13 @@ class SkimDict(object):
         skim: Skim
              The skim object
         """
-        assert key in self.skim_key_to_skim_num
-        n = self.skim_key_to_skim_num[key]
-        assert n < self.num_skims
+
+        block, offset = self.skim_info['block_offsets'].get(key)
+        block_data = self.skim_data[block]
 
         self.touch(key)
 
-        data = self.skim_data[:, :, n]
+        data = block_data[:, :, offset]
 
         return SkimWrapper(data, self.offset_mapper)
 
@@ -317,12 +314,28 @@ class SkimStack(object):
         self.offset_mapper = skim_dict.offset_mapper
         self.skim_dict = skim_dict
 
-        # build a dict mapping key1 to dict of key2 (dim3) indexes in skim_data
+        # - key1_blocks dict maps key1 to block number
+        # DISTWALK: 0,
+        # DRV_COM_WLK_BOARDS: 0, ...
+        key1_block_offsets = skim_dict.skim_info['key1_block_offsets']
+        self.key1_blocks = {k: v[0] for k, v in key1_block_offsets.iteritems()}
+
+        # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
+        # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
+        block_offsets = skim_dict.skim_info['block_offsets']
         skim_dim3 = OrderedDict()
-        for key, n in skim_dict.skim_key_to_skim_num.iteritems():
-            if isinstance(key, tuple):
-                key1, key2 = key
-                skim_dim3.setdefault(key1, OrderedDict())[key2] = n
+        for skim_key in block_offsets:
+
+            if not isinstance(skim_key, tuple):
+                continue
+
+            key1, key2 = skim_key
+            block, offset = block_offsets[skim_key]
+
+            assert block == self.key1_blocks[key1]
+
+            skim_dim3.setdefault(key1, OrderedDict())[key2] = offset
+
         self.skim_dim3 = skim_dim3
 
         logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
@@ -332,22 +345,18 @@ class SkimStack(object):
         self.usage = set()
 
     def touch(self, key):
-
         self.usage.add(key)
-
-    # def __str__(self):
-    #
-    #     return "\n".join(
-    #         "%s %s" % (key1, sub_dict)
-    #         for key1, sub_dict in self.skim_dim3.iteritems())
 
     def lookup(self, orig, dest, dim3, key):
 
         orig = self.offset_mapper.map(orig)
         dest = self.offset_mapper.map(dest)
 
+        assert key in self.key1_blocks, "SkimStack key %s missing" % key
         assert key in self.skim_dim3, "SkimStack key %s missing" % key
-        stacked_skim_data = self.skim_dict.skim_data
+
+        block = self.key1_blocks[key]
+        stacked_skim_data = self.skim_dict.skim_data[block]
         skim_keys_to_indexes = self.skim_dim3[key]
 
         self.touch(key)

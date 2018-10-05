@@ -36,8 +36,9 @@ class AccessibilitySkims(object):
 
     def __init__(self, skim_dict, orig_zones, dest_zones, transpose=False):
 
-        logger.info("init AccessibilitySkims with %d dest zones %d orig zones skim_data.shape %s" %
-                    (len(dest_zones), len(orig_zones), skim_dict.skim_data.shape, ))
+        omx_shape = skim_dict.skim_info['omx_shape']
+        logger.info("init AccessibilitySkims with %d dest zones %d orig zones omx_shape %s" %
+                    (len(dest_zones), len(orig_zones), omx_shape, ))
 
         assert len(orig_zones) <= len(dest_zones)
         assert np.isin(orig_zones, dest_zones).all()
@@ -47,7 +48,7 @@ class AccessibilitySkims(object):
         self.skim_dict = skim_dict
         self.transpose = transpose
 
-        if skim_dict.skim_data.shape[0] == len(orig_zones):
+        if omx_shape[0] == len(orig_zones):
             # no slicing required
             self.slice_map = None
         else:
@@ -56,7 +57,7 @@ class AccessibilitySkims(object):
             # data = data[orig_map, :][:, dest_map]    # <- RIGHT
             # data = data[np.ix_(orig_map, dest_map)]  # <- ALSO RIGHT
 
-            skim_index = range(skim_dict.skim_data.shape[0])
+            skim_index = range(omx_shape.shape[0])
             orig_map = np.isin(skim_index, skim_dict.offset_mapper.map(orig_zones))
             dest_map = np.isin(skim_index, skim_dict.offset_mapper.map(dest_zones))
 

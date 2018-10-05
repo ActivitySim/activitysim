@@ -17,29 +17,12 @@ from activitysim.core.config import setting
 from activitysim.core.config import handle_standard_args
 
 from activitysim import abm
-from activitysim.abm.tables.skims import skims_to_load
-from activitysim.abm.tables.skims import shared_buffer_for_skims
+from activitysim.abm.tables.skims import get_skim_info
+from activitysim.abm.tables.skims import buffer_for_skims
 from activitysim.abm.tables.skims import load_skims
 
 
 logger = logging.getLogger('activitysim')
-
-
-def load_skim_data(skim_buffer):
-
-    logger.info("load_skim_data")
-
-    data_dir = inject.get_injectable('data_dir')
-    omx_file_path = os.path.join(data_dir, setting('skims_file'))
-    tags_to_load = setting('skim_time_periods')['labels']
-
-    skim_keys, skims_shape, skim_dtype = skims_to_load(omx_file_path, tags_to_load)
-
-    skim_data = np.frombuffer(skim_buffer, dtype=skim_dtype).reshape(skims_shape)
-
-    load_skims(omx_file_path, skim_keys, skim_data)
-
-    return skim_data
 
 
 def pipeline_table_keys(pipeline_store, checkpoint_name=None):
@@ -280,23 +263,29 @@ def coalesce_pipelines(sub_process_names, slice_info):
 
     pipeline.close_pipeline()
 
-    # pipeline_path = config.build_output_file_path(pipeline_file_name)
-    # with pd.HDFStore(pipeline_path, mode='r') as pipeline_store:
-    #     checkpoint_name, checkpoint_tables = pipeline_table_keys(pipeline_store)
-    #     print "checkpoint_tables\n", checkpoint_tables
+
+def load_skim_data(skim_buffer):
+
+    logger.info("load_skim_data")
+
+    data_dir = inject.get_injectable('data_dir')
+    omx_file_path = os.path.join(data_dir, setting('skims_file'))
+    tags_to_load = setting('skim_time_periods')['labels']
+
+    skim_info = get_skim_info(omx_file_path, tags_to_load)
+    load_skims(omx_file_path, skim_info, skim_buffer)
 
 
-def allocate_shared_data():
-    logger.info("allocate_shared_data")
+def allocate_shared_skim_buffer():
+    logger.info("allocate_shared_skim_buffer")
 
     data_dir = inject.get_injectable('data_dir')
     omx_file_path = os.path.join(data_dir, setting('skims_file'))
     tags_to_load = setting('skim_time_periods')['labels']
 
     # select the skims to load
-    skim_keys, skims_shape, skim_dtype = skims_to_load(omx_file_path, tags_to_load)
-
-    skim_buffer = shared_buffer_for_skims(skims_shape, skim_dtype)
+    skim_info = get_skim_info(omx_file_path, tags_to_load)
+    skim_buffer = buffer_for_skims(skim_info, shared=True)
 
     return skim_buffer
 
@@ -311,7 +300,9 @@ def setup_injectables_and_logging(injectables):
     tracing.config_logger()
 
 
-def run_mp_simulation(injectables, skim_buffer, step_info, resume_after, pipeline_prefix=False):
+def run_mp_simulation(injectables, step_info, resume_after, pipeline_prefix, **kwargs):
+
+    skim_buffer = kwargs
 
     models = step_info['models']
     num_processes = step_info['num_processes']
@@ -349,22 +340,15 @@ def mp_apportion_pipeline(injectables, sub_job_proc_names, slice_info):
     apportion_pipeline(sub_job_proc_names, slice_info)
 
 
-def mp_setup_skims(injectables, skim_buffer):
+def mp_setup_skims(injectables, **kwargs):
+    skim_buffer = kwargs
     setup_injectables_and_logging(injectables)
-    skim_data = load_skim_data(skim_buffer)
+    load_skim_data(skim_buffer)
 
 
 def mp_coalesce_pipelines(injectables, sub_job_proc_names, slice_info):
     setup_injectables_and_logging(injectables)
     coalesce_pipelines(sub_job_proc_names, slice_info)
-
-
-def mp_debug(injectables):
-
-    setup_injectables_and_logging(injectables)
-
-    for k in injectables:
-        print k, inject.get_injectable(k)
 
 
 def run_sub_process(p):
@@ -397,18 +381,13 @@ def run_sub_procs(procs):
 
 def run_multiprocess(run_list, injectables):
 
-    # fixme
-    # logger.info('running mp_debug')
-    # run_sub_process(
-    #     mp.Process(target=mp_debug, name='mp_debug', args=(injectables,))
-    # )
-    # bug
-
     logger.info('setup shared skim data')
-    shared_skim_data = allocate_shared_data()
+    shared_skim_buffer = allocate_shared_skim_buffer()
+
     run_sub_process(
         mp.Process(target=mp_setup_skims, name='mp_setup_skims',
-                   args=(injectables, shared_skim_data,))
+                   args=(injectables,),
+                   kwargs=shared_skim_buffer)
     )
 
     resume_after = None
@@ -429,7 +408,8 @@ def run_multiprocess(run_list, injectables):
 
             run_sub_process(
                 mp.Process(target=run_mp_simulation, name=sub_proc_name,
-                           args=(injectables, shared_skim_data, step_info, resume_after))
+                           args=(injectables, step_info, resume_after, False),
+                           kwargs=shared_skim_buffer)
             )
 
         else:
@@ -449,8 +429,8 @@ def run_multiprocess(run_list, injectables):
             logger.info('starting sub_processes')
             error_procs = run_sub_procs([
                 mp.Process(target=run_mp_simulation, name=process_name,
-                           args=(injectables, shared_skim_data, step_info, resume_after),
-                           kwargs={'pipeline_prefix': True})
+                           args=(injectables, step_info, resume_after, True),
+                           kwargs=shared_skim_buffer)
                 for process_name in sub_proc_names
             ])
 
@@ -594,12 +574,13 @@ def get_run_list():
         for istep in range(len(multiprocess_steps)):
             step_models = models[starts[istep]: starts[istep + 1]]
 
+            # suppress_intermediate_checkpoints until we support resume_after
             suppress_intermediate_checkpoints = True
             if suppress_intermediate_checkpoints:
-                step_models = ['_' + m if m[0] != '_' and m != step_models[-1] else m for m in step_models]
+                step_models = ['_' + m if m[0] != '_' and m != step_models[-1] else m
+                               for m in step_models]
 
             multiprocess_steps[istep]['models'] = step_models
-
 
         run_list['multiprocess_steps'] = multiprocess_steps
 

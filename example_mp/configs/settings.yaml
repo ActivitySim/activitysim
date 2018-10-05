@@ -105,9 +105,9 @@ output_tables:
   prefix: final_
   tables:
     - checkpoints
-#    - accessibility
-#    - land_use
-#    - households
-#    - persons
-#    - trips
-#    - tours
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - trips
+    - tours

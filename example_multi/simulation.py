@@ -41,7 +41,7 @@ def data_dir():
 @inject.injectable(override=True)
 def preload_injectables():
     # don't want to load standard skims
-    pass
+    return False
 
 
 def print_elapsed_time(msg=None, t0=None):

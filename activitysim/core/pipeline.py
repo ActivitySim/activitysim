@@ -2,7 +2,7 @@ import os
 import datetime as dt
 
 import pandas as pd
-import orca
+from . import orca
 
 import logging
 import inject
@@ -180,6 +180,8 @@ def write_df(df, table_name, checkpoint_name=None):
     store = get_pipeline_store()
 
     store[pipeline_table_key(table_name, checkpoint_name)] = df
+
+    store.flush()
 
 
 def rewrap(table_name, df=None):
@@ -449,7 +451,7 @@ def run_model(model_name):
         add_checkpoint(model_name)
         t0 = print_elapsed_time("add_checkpoint '%s'" % model_name, t0, debug=True)
     else:
-        logger.warn("##### skipping %s checkpoint for %s\n" % (step_name, model_name))
+        logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
 
 def open_pipeline(resume_after=None):
@@ -490,6 +492,22 @@ def open_pipeline(resume_after=None):
     logger.debug("open_pipeline complete")
 
 
+def last_checkpoint():
+    """
+
+    Returns
+    -------
+    last_checkpoint: str
+        name of last checkpoint
+    """
+
+    #fixme
+    if not _PIPELINE.is_open:
+        raise RuntimeError("Pipeline is not open!")
+
+    return _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
+
+
 def close_pipeline():
     """
     Close any known open files
@@ -526,15 +544,17 @@ def run(models, resume_after=None):
         model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
     """
 
-    if resume_after:
-        logger.info('resume_after %s' % resume_after)
-        if resume_after in models:
-            models = models[models.index(resume_after) + 1:]
-
     t0 = print_elapsed_time()
 
     open_pipeline(resume_after)
     t0 = print_elapsed_time('open_pipeline', t0)
+
+    if resume_after == '_':
+        resume_after = _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
+        logger.info("Setting resume_after to %s" % (resume_after, ))
+        if resume_after in models:
+            models = models[models.index(resume_after) + 1:]
+        #bug
 
     # preload any bulky injectables (e.g. skims) not in pipeline
     if orca.is_injectable('preload_injectables'):

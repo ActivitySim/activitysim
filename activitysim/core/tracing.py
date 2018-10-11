@@ -42,11 +42,15 @@ def extend_trace_label(trace_label, extension):
     return trace_label
 
 
+def format_elapsed_time(t):
+    return "%s seconds (%s minutes)" % (round(t, 3), round(t / 60.0, 1))
+
+
 def print_elapsed_time(msg=None, t0=None, debug=False):
     t1 = time.time()
     if msg:
         t = t1 - (t0 or t1)
-        msg = "Time to execute %s : %s seconds (%s minutes)" % (msg, round(t, 3), round(t/60.0, 1))
+        msg = "Time to execute %s : %s" % (msg, format_elapsed_time(t))
         if debug:
             logger.debug(msg)
         else:
@@ -118,7 +122,7 @@ def config_logger(basic=False):
     if not basic:
         log_config_file = config.config_file_path(LOGGING_CONF_FILE_NAME, mandatory=False)
 
-    print "log_config_file", log_config_file
+    #print "log_config_file", log_config_file
 
     if log_config_file:
         with open(log_config_file) as f:
@@ -339,7 +343,7 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     file_path = config.trace_file_path(file_name)
 
     if os.path.isfile(file_path):
-        logger.error("write_csv file exists %s %s" % (type(df).__name__, file_name))
+        logger.debug("write_csv file exists %s %s" % (type(df).__name__, file_name))
 
     if isinstance(df, pd.DataFrame):
         # logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
@@ -569,7 +573,17 @@ def trace_df(df, label, slicer=None, columns=None,
     Nothing
     """
 
-    df = slice_canonically(df, slicer, label, warn_if_empty)
+    #df = slice_canonically(df, slicer, label, warn_if_empty)
+
+    target_ids, column = get_trace_target(df, slicer)
+
+    if target_ids is not None:
+        df = slice_ids(df, target_ids, column)
+
+    if warn_if_empty and df.shape[0] == 0 and target_ids != []:
+        column_name = column or slicer
+        logger.warn("slice_canonically: no rows in %s with %s == %s"
+                    % (label, column_name, target_ids))
 
     if df.shape[0] > 0:
         write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,

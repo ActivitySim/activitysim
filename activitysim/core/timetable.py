@@ -96,8 +96,6 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
         tour_type = keys[0]
         tour_sigil = sigil[tour_type]
 
-        print "xxx tour_type", tour_type, tour_sigil
-
         # numpy array with one time window row for each row in nth_tours
         tour_windows = window_periods_df.loc[nth_tours.tdd].values
 

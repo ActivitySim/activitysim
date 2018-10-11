@@ -23,6 +23,7 @@ def cleanup_output_files():
     tracing.delete_output_files('h5')
     tracing.delete_output_files('csv')
     tracing.delete_output_files('txt')
+    tracing.delete_output_files('yaml')
 
 
 if __name__ == '__main__':
@@ -35,6 +36,8 @@ if __name__ == '__main__':
     config.handle_standard_args()
     tracing.config_logger()
 
+    t0 = tracing.print_elapsed_time()
+
     injectables = ['data_dir', 'configs_dir', 'output_dir']
     injectables = {k: inject.get_injectable(k) for k in injectables}
 
@@ -46,15 +49,10 @@ if __name__ == '__main__':
     with open(config.output_file_path('run_list.txt'), 'w') as file:
         tasks.print_run_list(run_list, file)
 
-    t0 = tracing.print_elapsed_time()
+    # tasks.print_run_list(run_list)
 
     if run_list['multiprocess']:
         logger.info("run multiprocess simulation")
-        logger.info("main process pid : %s" % os.getpid())
-        logger.info("sys.executable : %s" % sys.executable)
-        logger.info("cpu count : %s" % multiprocessing.cpu_count())
-
-        tasks.print_run_list(run_list, sys.stdout)
 
         tasks.run_multiprocess(run_list, injectables)
 
@@ -67,4 +65,4 @@ if __name__ == '__main__':
         # tables will no longer be available after pipeline is closed
         pipeline.close_pipeline()
 
-    t0 = tracing.print_elapsed_time("mp_simulation", t0)
+    t0 = tracing.print_elapsed_time("everything", t0)

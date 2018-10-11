@@ -5,7 +5,6 @@ import os
 import tempfile
 
 import numpy as np
-import orca
 import pytest
 import yaml
 
@@ -25,15 +24,15 @@ def test_defaults():
     orca.clear_cache()
 
     with pytest.raises(RuntimeError) as excinfo:
-        orca.get_injectable("configs_dir")
+        inject.get_injectable("configs_dir")
     assert "directory does not exist" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
-        orca.get_injectable("data_dir")
+        inject.get_injectable("data_dir")
     assert "directory does not exist" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
-        output_dir = orca.get_injectable("output_dir")
+        output_dir = inject.get_injectable("output_dir")
         print "output_dir", output_dir
     assert "directory does not exist" in str(excinfo.value)
 

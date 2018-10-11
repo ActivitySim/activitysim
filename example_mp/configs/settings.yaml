@@ -2,7 +2,7 @@
 inherit_settings: True
 
 #number of households to simulate
-households_sample_size: 1000
+households_sample_size: 100
 
 #trace household id; comment out for no trace
 # household with all tour categories
@@ -55,30 +55,38 @@ models:
   - write_tables
 
 #resume_after: school_location_simulate
+#
+#resume: _workplace_location_sample
+#restore_checkpoint: school_location_simulate
+
 
 
 # comment out to run single-threaded
 multiprocess: False
 chunk_size: 4000000000
+# 160 GB
+#chunk_size: 10000000000
+
 
 multiprocess_steps:
-  - label: mp_initialize
+  - name: mp_initialize
     begin: initialize_landuse
-  - label: mp_households
+  - name: mp_households
     begin: _school_location_sample
     num_processes: 3
+    stagger: 10
     #chunk_size: 1000000000
     slice:
       tables:
         - households
         - persons
-  - label: mp_summarize
+  - name: mp_summarize
     begin: write_data_dictionary
 
 #multiprocess_steps:
-#  - label: mp_initialize_landuse
+#  - name: mp_initialize_landuse
 #    begin: initialize_landuse
-#  - label: mp_accessibility
+#  - name: mp_accessibility
 #    begin: compute_accessibility
 #    num_processes: 2
 #    slice:
@@ -86,17 +94,17 @@ multiprocess_steps:
 #        - accessibility
 #      except:
 #        - land_use
-#  - label: mp_initialize_households
+#  - name: mp_initialize_households
 #    begin: initialize_households
-#  - label: mp_households
-#    begin: school_location_sample
+#  - name: mp_households
+#    begin: _school_location_sample
 #    # num_processes = 0 means use all available cpus
-#    num_processes: 0
+#    num_processes: 2
 #    slice:
 #      tables:
 #        - households
 #        - persons
-#  - label: mp_summarize
+#  - name: mp_summarize
 #    begin: write_data_dictionary
 
 

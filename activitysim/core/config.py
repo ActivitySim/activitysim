@@ -94,7 +94,7 @@ def handle_standard_args(parser=None):
     parser.add_argument("-c", "--config", help="path to config dir", action='append')
     parser.add_argument("-o", "--output", help="path to output dir")
     parser.add_argument("-d", "--data", help="path to data dir")
-    parser.add_argument("-r", "--resume", help="resume after")
+    parser.add_argument("-r", "--resume", nargs='?', const='_', type=str, help="resume after")
     parser.add_argument("-m", "--multiprocess", type=str2bool, nargs='?', const=True,
                         help="run multiprocess (boolean flag, no arg defaults to true)")
 
@@ -133,9 +133,8 @@ def setting(key, default=None):
         s = inject.get_injectable(key, None)
 
         if s:
-            # fixme - when does this happen?
+            # this happens when handle_standard_args overrides a setting with an injectable
             logger.info("read setting %s from injectable" % key)
-            bug
 
     # otherwise fall back to supplied default
     if s is None:

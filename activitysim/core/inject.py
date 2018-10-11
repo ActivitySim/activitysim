@@ -1,7 +1,7 @@
 import logging
 
 import pandas as pd
-import orca
+from . import orca
 
 _DECORATED_STEPS = {}
 _DECORATED_TABLES = {}

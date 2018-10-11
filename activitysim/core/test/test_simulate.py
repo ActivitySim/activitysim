@@ -9,7 +9,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 
-import orca
+from .. import inject
 
 from .. import simulate
 
@@ -71,7 +71,7 @@ def test_eval_variables(spec, data):
 
 def test_simple_simulate(data, spec):
 
-    orca.add_injectable("check_for_variability", False)
+    inject.add_injectable("check_for_variability", False)
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
@@ -80,7 +80,7 @@ def test_simple_simulate(data, spec):
 
 def test_simple_simulate_chunked(data, spec):
 
-    orca.add_injectable("check_for_variability", False)
+    inject.add_injectable("check_for_variability", False)
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None, chunk_size=2)
     expected = pd.Series([1, 1, 1], index=data.index)

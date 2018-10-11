@@ -1,8 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
 import logging
-import os
 
 import pandas as pd
 
@@ -107,7 +107,8 @@ def cdap_simulate(persons_merged, persons, households,
     pipeline.replace_table("households", households)
 
     tracing.print_summary('cdap_activity', persons.cdap_activity, value_counts=True)
-    print pd.crosstab(persons.ptype, persons.cdap_activity, margins=True)
+    logger.info("cdap crosstabs:\n%s" %
+                pd.crosstab(persons.ptype, persons.cdap_activity, margins=True))
 
     if trace_hh_id:
 

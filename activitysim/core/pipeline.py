@@ -227,7 +227,7 @@ def rewrap(table_name, df=None):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
-            #fixme
+            # fixme
             orca.orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list

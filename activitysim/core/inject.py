@@ -87,7 +87,7 @@ def add_table(table_name, table, cache=False):
     return orca.add_table(table_name, table, cache=cache)
 
 
-#fixme remove?
+# fixme remove?
 def add_column(table_name, column_name, column, cache=False):
     return orca.add_column(table_name, column_name, column, cache=cache)
 
@@ -120,8 +120,6 @@ def get_injectable(name, default=_NO_DEFAULT):
 
 def remove_injectable(name):
 
-    #fixme
-    #del orca.orca._INJECTABLES[name]
     orca.orca._INJECTABLES.pop(name, None)
 
 

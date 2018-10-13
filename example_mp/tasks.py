@@ -765,7 +765,6 @@ def print_run_list(run_list, output_file=None):
             print("  - ", m, file=output_file)
 
 
-
 def print_journal(journal, output_file=None):
 
     if output_file is None:

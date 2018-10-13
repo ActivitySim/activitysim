@@ -12,7 +12,6 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
 
-#from . import extensions
 from .extensions import steps
 
 # set the max households for all tests (this is to limit memory use on travis)
@@ -58,7 +57,6 @@ def test_pipeline_run():
 
     setup()
 
-    #fixme
     inject.add_step('step1', steps.step1)
     inject.add_step('step2', steps.step2)
     inject.add_step('step3', steps.step3)
@@ -106,7 +104,6 @@ def test_pipeline_checkpoint_drop():
 
     setup()
 
-    #fixme
     inject.add_step('step1', steps.step1)
     inject.add_step('step2', steps.step2)
     inject.add_step('step3', steps.step3)

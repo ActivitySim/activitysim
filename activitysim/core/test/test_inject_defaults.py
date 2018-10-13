@@ -44,4 +44,3 @@ def test_defaults():
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     inject.add_injectable("data_dir", data_dir)
-

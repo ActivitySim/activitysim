@@ -15,13 +15,13 @@ from .. import config
 
 
 def teardown_function(func):
-    orca.clear_cache()
+    inject.clear_cache()
     inject.reinject_decorated_tables()
 
 
 def test_defaults():
 
-    orca.clear_cache()
+    inject.clear_cache()
 
     with pytest.raises(RuntimeError) as excinfo:
         inject.get_injectable("configs_dir")
@@ -37,13 +37,11 @@ def test_defaults():
     assert "directory does not exist" in str(excinfo.value)
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs_test_defaults')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
-    settings = orca.get_injectable("settings")
+    settings = inject.get_injectable("settings")
     assert isinstance(settings, dict)
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
-    # default values if not specified in settings
-    assert orca.get_injectable("chunk_size") == 0

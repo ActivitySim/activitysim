@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import logging
 
 import pandas as pd
@@ -84,6 +87,7 @@ def add_table(table_name, table, cache=False):
     return orca.add_table(table_name, table, cache=cache)
 
 
+#fixme remove?
 def add_column(table_name, column_name, column, cache=False):
     return orca.add_column(table_name, column_name, column, cache=cache)
 
@@ -114,6 +118,13 @@ def get_injectable(name, default=_NO_DEFAULT):
         return default
 
 
+def remove_injectable(name):
+
+    #fixme
+    #del orca.orca._INJECTABLES[name]
+    orca.orca._INJECTABLES.pop(name, None)
+
+
 def reinject_decorated_tables():
     """
     reinject the decorated tables (and columns)
@@ -141,6 +152,10 @@ def reinject_decorated_tables():
         orca.add_injectable(name, args['func'], cache=args['cache'])
 
 
+def clear_cache():
+    return orca.clear_cache()
+
+
 def set_step_args(args=None):
 
     assert isinstance(args, dict) or args is None
@@ -156,3 +171,9 @@ def get_step_arg(arg_name, default=_NO_DEFAULT):
         raise "step arg '%s' not found and no default" % arg_name
 
     return args.get(arg_name, default)
+
+
+def dump_state():
+
+    print "_DECORATED_STEPS", _DECORATED_STEPS.keys()
+    print "orca._STEPS", orca.orca._STEPS.keys()

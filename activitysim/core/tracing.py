@@ -122,8 +122,6 @@ def config_logger(basic=False):
     if not basic:
         log_config_file = config.config_file_path(LOGGING_CONF_FILE_NAME, mandatory=False)
 
-    #print "log_config_file", log_config_file
-
     if log_config_file:
         with open(log_config_file) as f:
             config_dict = yaml.load(f)
@@ -452,37 +450,6 @@ def get_trace_target(df, slicer):
     return target_ids, column
 
 
-def slice_canonically(df, slicer, label, warn_if_empty=False):
-    """
-    Slice dataframe by traced household or person id dataframe and write to CSV
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        dataframe to slice
-    slicer: str
-        name of column or index to use for slicing
-    label: str
-        tracer name - only used to report bad slicer
-
-    Returns
-    -------
-    sliced subset of dataframe
-    """
-
-    target_ids, column = get_trace_target(df, slicer)
-
-    if target_ids is not None:
-        df = slice_ids(df, target_ids, column)
-
-    if warn_if_empty and df.shape[0] == 0:
-        column_name = column or slicer
-        logger.warn("slice_canonically: no rows in %s with %s == %s"
-                    % (label, column_name, target_ids))
-
-    return df
-
-
 def trace_targets(df, slicer=None):
 
     target_ids, column = get_trace_target(df, slicer)
@@ -572,8 +539,6 @@ def trace_df(df, label, slicer=None, columns=None,
     -------
     Nothing
     """
-
-    #df = slice_canonically(df, slicer, label, warn_if_empty)
 
     target_ids, column = get_trace_target(df, slicer)
 

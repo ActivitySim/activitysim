@@ -12,8 +12,6 @@ import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 
-import orca
-
 from .. import assign
 from .. import tracing
 from .. import inject
@@ -30,7 +28,7 @@ def close_handlers():
 
 
 def teardown_function(func):
-    orca.clear_cache()
+    inject.clear_cache()
     inject.reinject_decorated_tables()
 
 
@@ -159,7 +157,7 @@ def test_assign_variables_failing(capsys, data):
     close_handlers()
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     tracing.config_logger(basic=True)
 

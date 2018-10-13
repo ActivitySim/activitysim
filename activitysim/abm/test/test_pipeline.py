@@ -6,7 +6,6 @@ import tempfile
 import logging
 
 import numpy as np
-import orca
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
@@ -35,7 +34,7 @@ SKIP_FULL_RUN = False
 
 
 def teardown_function(func):
-    orca.clear_cache()
+    inject.clear_cache()
     inject.reinject_decorated_tables()
 
 
@@ -64,7 +63,7 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
         if check_for_variability is not None:
             settings['check_for_variability'] = check_for_variability
 
-    orca.add_injectable("settings", settings)
+        inject.add_injectable("settings", settings)
 
     return settings
 
@@ -72,17 +71,17 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
 def test_rng_access():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    orca.clear_cache()
+    inject.clear_cache()
 
     inject.add_injectable('rng_base_seed', 0)
 
@@ -91,7 +90,7 @@ def test_rng_access():
     rng = pipeline.get_rn_generator()
 
     pipeline.close_pipeline()
-    orca.clear_cache()
+    inject.clear_cache()
 
 
 def regress_mini_auto():
@@ -149,21 +148,19 @@ def regress_mini_mtf():
 def test_mini_pipeline_run():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    orca.clear_cache()
+    inject.clear_cache()
 
     tracing.config_logger()
-
-    # assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
 
     _MODELS = [
         'initialize_landuse',
@@ -198,7 +195,7 @@ def test_mini_pipeline_run():
     assert "not in checkpoints" in str(excinfo.value)
 
     pipeline.close_pipeline()
-    orca.clear_cache()
+    inject.clear_cache()
 
     close_handlers()
 
@@ -210,17 +207,17 @@ def test_mini_pipeline_run2():
     # when we restart pipeline
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    orca.clear_cache()
+    inject.clear_cache()
 
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
@@ -249,7 +246,7 @@ def test_mini_pipeline_run2():
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
     pipeline.close_pipeline()
-    orca.clear_cache()
+    inject.clear_cache()
 
 
 def full_run(resume_after=None, chunk_size=0,
@@ -257,13 +254,13 @@ def full_run(resume_after=None, chunk_size=0,
              trace_hh_id=None, trace_od=None, check_for_variability=None):
 
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example', 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     settings = inject_settings(
         configs_dir,
@@ -273,7 +270,7 @@ def full_run(resume_after=None, chunk_size=0,
         trace_od=trace_od,
         check_for_variability=check_for_variability)
 
-    orca.clear_cache()
+    inject.clear_cache()
 
     tracing.config_logger()
 
@@ -283,10 +280,6 @@ def full_run(resume_after=None, chunk_size=0,
 
     tours = pipeline.get_table('tours')
     tour_count = len(tours.index)
-
-    # pipeline.close_pipeline()
-    #
-    # orca.clear_cache()
 
     return tour_count
 

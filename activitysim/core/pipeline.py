@@ -1,3 +1,6 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
 import os
 import datetime as dt
 
@@ -224,6 +227,7 @@ def rewrap(table_name, df=None):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
+            #fixme
             orca.orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
@@ -501,7 +505,6 @@ def last_checkpoint():
         name of last checkpoint
     """
 
-    #fixme
     if not _PIPELINE.is_open:
         raise RuntimeError("Pipeline is not open!")
 
@@ -551,10 +554,11 @@ def run(models, resume_after=None):
 
     if resume_after == '_':
         resume_after = _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
-        logger.info("Setting resume_after to %s" % (resume_after, ))
+
+    if resume_after:
+        logger.info('resume_after %s' % resume_after)
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
-        #bug
 
     # preload any bulky injectables (e.g. skims) not in pipeline
     if orca.is_injectable('preload_injectables'):

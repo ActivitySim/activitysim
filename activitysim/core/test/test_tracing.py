@@ -6,10 +6,10 @@ import logging
 
 import pytest
 
-import orca
 import pandas as pd
 
-from .. import tracing as tracing
+from .. import tracing
+from .. import inject
 
 
 def close_handlers():
@@ -24,13 +24,13 @@ def close_handlers():
 
 def add_canonical_dirs():
 
-    orca.clear_cache()
+    inject.clear_cache()
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
 
 def test_config_logger(capsys):
@@ -98,8 +98,8 @@ def test_register_households(capsys):
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
-    orca.add_injectable('traceable_tables', ['households'])
-    orca.add_injectable("trace_hh_id", 5)
+    inject.add_injectable('traceable_tables', ['households'])
+    inject.add_injectable("trace_hh_id", 5)
 
     tracing.register_traceable_table('households', df)
     out, err = capsys.readouterr()
@@ -124,11 +124,11 @@ def test_register_tours(capsys):
 
     tracing.config_logger()
 
-    orca.add_injectable('traceable_tables', ['households', 'tours'])
-    orca.add_injectable('traceable_table_refs', None)
+    inject.add_injectable('traceable_tables', ['households', 'tours'])
+    inject.add_injectable('traceable_table_refs', None)
 
     # in case another test injected this
-    orca.add_injectable("trace_tours", [])
+    inject.add_injectable("trace_tours", [])
 
     tours_df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[10, 11, 12])
     tours_df.index.name = 'tour_id'
@@ -140,7 +140,7 @@ def test_register_tours(capsys):
 
     assert "can't find a registered table to slice table 'tours' index name 'tour_id'" in out
 
-    orca.add_injectable("trace_hh_id", 3)
+    inject.add_injectable("trace_hh_id", 3)
     households_df = pd.DataFrame({'dzing': ['a', 'b', 'c']}, index=[1, 2, 3])
     households_df.index.name = 'household_id'
     tracing.register_traceable_table('households', households_df)
@@ -159,7 +159,7 @@ def test_register_tours(capsys):
     print out  # don't consume output
 
     # should be tracing tour with tour_id 3
-    assert orca.get_injectable('trace_tours') == [12]
+    assert inject.get_injectable('trace_tours') == [12]
 
     close_handlers()
 
@@ -205,10 +205,10 @@ def test_basic(capsys):
     close_handlers()
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []

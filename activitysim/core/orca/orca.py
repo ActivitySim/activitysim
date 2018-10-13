@@ -24,7 +24,7 @@ from .utils.logutil import log_start_finish
 from collections import namedtuple
 
 warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
-logger = logging.getLogger('orca')
+logger = logging.getLogger(__name__)
 
 _TABLES = {}
 _COLUMNS = {}
@@ -1978,7 +1978,6 @@ def run(steps, iter_vars=None, data_out=None, out_interval=1,
                 'running iteration {} with iteration value {!r}'.format(
                     i, var))
 
-        t1 = time.time()
         for j, step_name in enumerate(steps):
             add_injectable('iter_step', iter_step(j, step_name))
             with log_start_finish(

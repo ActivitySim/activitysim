@@ -24,12 +24,12 @@ setup(
     install_requires=[
         'numpy >= 1.13.0',
         'openmatrix >= 0.2.4',
-        #'orca >= 1.1',
         'pandas >= 0.20.3',
         'pyyaml >= 3.0',
         'tables >= 3.3.0',
-        'toolz >= 0.7',
+        'toolz >= 0.8.1',
         'zbox >= 1.2',
-        'psutil >= 4.1'
+        'psutil >= 4.1',
+        'future >= 0.16.0'
     ]
 )

@@ -1,0 +1,16 @@
+[MESSAGES CONTROL]
+disable=locally-disabled,
+ # False positive for type annotations with typing module
+ # invalid-sequence-index,
+ # False positive for OK test methods names and few other places
+ invalid-name,
+ # False positive for test file classes and methods
+ missing-docstring
+
+[REPORTS]
+# Simplify pylint reports
+reports=no
+
+[SIMILARITIES]
+min-similarity-lines=10
+ignore-docstrings=yes

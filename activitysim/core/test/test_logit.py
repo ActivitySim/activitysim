@@ -5,13 +5,13 @@ import os.path
 
 import numpy as np
 import pandas as pd
-import orca
 
 import pandas.util.testing as pdt
 import pytest
 
 from ..simulate import eval_variables
 from .. import logit
+from .. import inject
 
 
 @pytest.fixture(scope='module')
@@ -22,10 +22,10 @@ def data_dir():
 def add_canonical_dirs():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
 
 # this is lifted straight from urbansim's test_mnl.py

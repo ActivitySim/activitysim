@@ -1,7 +1,9 @@
-import os
-import sys
+# ActivitySim
+# See full license in LICENSE.txt.
+
+from __future__ import print_function
+
 import logging
-import multiprocessing
 
 from activitysim.core import inject
 from activitysim.core import tracing
@@ -46,10 +48,11 @@ if __name__ == '__main__':
         cleanup_output_files()
 
     run_list = tasks.get_run_list()
-    with open(config.output_file_path('run_list.txt'), 'w') as file:
-        tasks.print_run_list(run_list, file)
+    with open(config.output_file_path('run_list.txt'), 'w') as f:
+        tasks.print_run_list(run_list, f)
 
     # tasks.print_run_list(run_list)
+    # bug
 
     if run_list['multiprocess']:
         logger.info("run multiprocess simulation")

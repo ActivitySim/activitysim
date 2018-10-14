@@ -1,13 +1,16 @@
-import collections
+# ActivitySim
+# See full license in LICENSE.txt.
 
+from __future__ import absolute_import
+
+from builtins import range
+from builtins import object
+import logging
 import numpy as np
 import pandas as pd
 
-import inject
 from .tracing import print_elapsed_time
 
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -429,7 +432,7 @@ class Random(object):
         if self.step_name is not None or self.channels:
             raise RuntimeError("Can only call set_base_seed before the first step.")
 
-        assert len(self.channels.keys()) == 0
+        assert len(list(self.channels.keys())) == 0
 
         if seed is None:
             self.base_seed = np.random.RandomState().randint(_MAX_SEED)

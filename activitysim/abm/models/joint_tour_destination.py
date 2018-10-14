@@ -1,7 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from future.utils import iteritems
+
 import logging
 from collections import OrderedDict
 
@@ -138,7 +139,7 @@ def joint_tour_destination_sample(
     choices_list = []
     # segment by trip type and pick the right spec for each person type
     # for tour_type, choosers_segment in choosers.groupby('tour_type'):
-    for tour_type, tour_type_id in TOUR_TYPE_ID.iteritems():
+    for tour_type, tour_type_id in iteritems(TOUR_TYPE_ID):
 
         locals_d['segment'] = tour_type
 
@@ -229,7 +230,7 @@ def joint_tour_destination_logsums(
         logsum.filter_chooser_columns(joint_tours_merged, logsum_settings, model_settings)
 
     logsums_list = []
-    for tour_type, tour_type_id in TOUR_TYPE_ID.iteritems():
+    for tour_type, tour_type_id in iteritems(TOUR_TYPE_ID):
 
         choosers = destination_sample[destination_sample['tour_type_id'] == tour_type_id]
 
@@ -334,7 +335,7 @@ def joint_tour_destination_simulate(
     choices_list = []
     # segment by trip type and pick the right spec for each person type
     # for tour_type, choosers_segment in choosers.groupby('tour_type'):
-    for tour_type, tour_type_id in TOUR_TYPE_ID.iteritems():
+    for tour_type, tour_type_id in iteritems(TOUR_TYPE_ID):
 
         locals_d['segment'] = tour_type
 

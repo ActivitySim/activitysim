@@ -1,10 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import print_function
+
 import logging
 
-import numpy as np
 import pandas as pd
 
 from activitysim.core import simulate
@@ -159,7 +159,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
             unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
             tracing.write_csv(unsatisfied_candidates,
                               file_name='%s.UNSATISFIED' % trace_label, transpose=False)
-            print unsatisfied_candidates.head(20)
+            print(unsatisfied_candidates.head(20))
             assert False
 
         choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)

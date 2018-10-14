@@ -1,6 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
+from builtins import next
+from builtins import str
+from builtins import range
+
 import os
 import logging
 import logging.config
@@ -15,7 +23,7 @@ import pandas as pd
 
 from activitysim.core import inject
 
-import config
+from . import config
 
 
 # Configurations
@@ -76,7 +84,7 @@ def delete_output_files(file_type, ignore=None):
 
     if ignore:
         ignore = [os.path.realpath(p) for p in ignore]
-        print "delete_output_files ignoring", ignore
+        print("delete_output_files ignoring", ignore)
 
     logger.debug("Deleting %s files in output_dir %s" % (file_type, output_dir))
 
@@ -136,7 +144,7 @@ def config_logger(basic=False):
     if log_config_file:
         logger.info("Read logging configuration from: %s" % log_config_file)
     else:
-        print "Configured logging using basicConfig"
+        print("Configured logging using basicConfig")
         logger.info("Configured logging using basicConfig")
 
 
@@ -244,7 +252,7 @@ def register_traceable_table(table_name, df):
     # update traceable_table_refs with this traceable_table's ref_con
     if idx_name not in traceable_table_refs:
         traceable_table_refs[idx_name] = table_name
-        print "adding table %s.%s to traceable_table_refs" % (table_name, idx_name)
+        print("adding table %s.%s to traceable_table_refs" % (table_name, idx_name))
         inject.add_injectable('traceable_table_refs', traceable_table_refs)
 
     # update the list of trace_ids for this table
@@ -594,7 +602,7 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
         slicer_column_name = 'person_id'
         targets = inject.get_injectable('trace_persons', [])
     else:
-        print choosers.columns
+        print(choosers.columns)
         raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
                            % choosers.index.name)
 

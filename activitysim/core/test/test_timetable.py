@@ -1,9 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from builtins import range
 import numpy as np
 import pandas as pd
-import numpy.testing as npt
 import pandas.util.testing as pdt
 import pytest
 
@@ -14,7 +14,7 @@ from .. import timetable as tt
 def persons():
 
     df = pd.DataFrame(
-        index=range(6)
+        index=list(range(6))
     )
 
     return df
@@ -70,8 +70,8 @@ def test_basic(persons, tdd_alts):
     num_alts = len(tdd_alts.index)
     num_persons = len(persons.index)
 
-    person_ids = pd.Series(range(num_persons)*num_alts)
-    tdds = pd.Series(np.repeat(range(num_alts), num_persons))
+    person_ids = pd.Series(list(range(num_persons))*num_alts)
+    tdds = pd.Series(np.repeat(list(range(num_alts)), num_persons))
 
     assert timetable.tour_available(person_ids, tdds).all()
 

@@ -1,6 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from builtins import str
+from builtins import range
+from future.utils import iteritems
+
 import logging
 
 import numpy as np
@@ -16,7 +20,7 @@ def enumerate_tour_types(tour_flavors):
     # tour_flavors: {'eat': 1, 'business': 2, 'maint': 1}
     # channels:      ['eat1', 'business1', 'business2', 'maint1']
     channels = [tour_type + str(tour_num)
-                for tour_type, max_count in tour_flavors.iteritems()
+                for tour_type, max_count in iteritems(tour_flavors)
                 for tour_num in range(1, max_count + 1)]
     return channels
 
@@ -110,7 +114,7 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
 
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(to_replace=possible_tours,
-                                          value=range(possible_tours_count))
+                                          value=list(range(possible_tours_count)))
 
     # convert to numeric - shouldn't be any NaNs - this will raise error if there are
     tours.tour_id = pd.to_numeric(tours.tour_id, errors='coerce').astype(int)
@@ -149,17 +153,17 @@ def process_tours(tour_frequency, tour_frequency_alts, tour_category, parent_col
 
     Returns
     -------
-    tours : DataFrame
+    tours : pandas.DataFrame
         An example of a tours DataFrame is supplied as a comment in the
         source code - it has an index which is a unique tour identifier,
         a person_id column, and a tour type column which comes from the
         column names of the alternatives DataFrame supplied above.
 
-    tours.tour_type       - tour type (e.g. school, work, shopping, eat)
-    tours.tour_type_num   - if there are two 'school' type tours, they will be numbered 1 and 2
-    tours.tour_type_count - number of tours of tour_type parent has (parent's max tour_type_num)
-    tours.tour_num        - index of tour (of any type) for parent
-    tours.tour_count      - number of tours of any type) for parent (parent's max tour_num)
+        tours.tour_type       - tour type (e.g. school, work, shopping, eat)
+        tours.tour_type_num   - if there are two 'school' type tours, they will be numbered 1 and 2
+        tours.tour_type_count - number of tours of tour_type parent has (parent's max tour_type_num)
+        tours.tour_num        - index of tour (of any type) for parent
+        tours.tour_count      - number of tours of any type) for parent (parent's max tour_num)
     """
 
     # FIXME - document requirement to ensure adjacent tour_type_nums in tour_num order
@@ -257,7 +261,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
         depends on the is_worker column: work tours first for workers, second for non-workers
     """
 
-    PERSON_COLUMNS = ['mandatory_tour_frequency', 'is_worker',
+    person_columns = ['mandatory_tour_frequency', 'is_worker',
                       'school_taz', 'workplace_taz', 'home_taz', 'household_id']
     assert not persons.mandatory_tour_frequency.isnull().any()
 
@@ -266,7 +270,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
                           tour_category='mandatory')
 
     tours_merged = pd.merge(tours[['person_id', 'tour_type']],
-                            persons[PERSON_COLUMNS],
+                            persons[person_columns],
                             left_on='person_id', right_index=True)
 
     # by default work tours are first for work_and_school tours

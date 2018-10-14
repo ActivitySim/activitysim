@@ -1,10 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import absolute_import
+
 import logging
 
 from activitysim.core import inject
-from input_store import read_input_table
+from .input_store import read_input_table
 
 logger = logging.getLogger(__name__)
 

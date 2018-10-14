@@ -3,6 +3,10 @@
 
 from __future__ import print_function
 
+from builtins import map
+from builtins import range
+from future.utils import iteritems
+
 import sys
 import os
 import logging
@@ -29,7 +33,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
 
     # this is sys.maxint for p2.7 but no limit for p3
     # MAX_BLOCK_BYTES = 28880000
-    MAX_BLOCK_BYTES = sys.maxint
+    MAX_BLOCK_BYTES = sys.maxsize
 
     # Note: we load all skims except those with key2 not in tags_to_load
     # Note: we require all skims to be of same dtype so they can share buffer - is that ok?
@@ -55,14 +59,14 @@ def get_skim_info(omx_file_path, tags_to_load=None):
         skim_key = (key1, key2) if sep else key1
         omx_keys[skim_key] = skim_name
 
-    num_skims = len(omx_keys.keys())
+    num_skims = len(omx_keys)
     skim_data_shape = omx_shape + (num_skims, )
 
     # - key1_subkeys dict maps key1 to dict of subkeys with that key1
     # DIST: {'DIST': 0}
     # DRV_COM_WLK_BOARDS: {'MD': 1, 'AM': 0, 'PM': 2}, ...
     key1_subkeys = OrderedDict()
-    for skim_key, omx_key in omx_keys.iteritems():
+    for skim_key, omx_key in iteritems(omx_keys):
         if isinstance(skim_key, tuple):
             key1, key2 = skim_key
         else:
@@ -89,7 +93,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
     key1_block_offsets = OrderedDict()
     blocks = OrderedDict()
     block = offset = 0
-    for key1, v in key1_subkeys.iteritems():
+    for key1, v in iteritems(key1_subkeys):
         num_subkeys = len(v)
         if offset + num_subkeys > max_skims_per_block:  # next block
             blocks[block_name(block)] = offset
@@ -142,7 +146,7 @@ def buffer_for_skims(skim_info, shared=False):
     blocks = skim_info['blocks']
 
     skim_buffer = {}
-    for block_name, block_size in blocks.iteritems():
+    for block_name, block_size in iteritems(blocks):
 
         buffer_size = np.prod(omx_shape) * block_size
 
@@ -175,7 +179,7 @@ def skim_data_from_buffer(skim_buffer, skim_info):
     blocks = skim_info['blocks']
 
     skim_data = []
-    for block_name, block_size in blocks.iteritems():
+    for block_name, block_size in iteritems(blocks):
         skims_shape = omx_shape + (block_size,)
         block_buffer = skim_buffer[block_name]
         assert len(block_buffer) == int(np.prod(skims_shape))
@@ -194,7 +198,7 @@ def load_skims(omx_file_path, skim_info, skim_buffer):
 
     # read skims into skim_data
     with omx.open_file(omx_file_path) as omx_file:
-        for skim_key, omx_key in omx_keys.iteritems():
+        for skim_key, omx_key in iteritems(omx_keys):
 
             omx_data = omx_file[omx_key]
             assert np.issubdtype(omx_data.dtype, np.floating)
@@ -234,7 +238,7 @@ def skim_dict(data_dir, settings):
 
     skim_data = skim_data_from_buffer(skim_buffer, skim_info)
 
-    block_names = skim_info['blocks'].keys()
+    block_names = list(skim_info['blocks'].keys())
     for i in range(len(skim_data)):
         block_name = block_names[i]
         block_data = skim_data[i]

@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from builtins import str
 import os.path
 from itertools import product
 

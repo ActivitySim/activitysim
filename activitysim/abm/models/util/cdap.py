@@ -1,5 +1,8 @@
+from __future__ import division
 # ActivitySim
 # See full license in LICENSE.txt.
+
+from builtins import range
 
 import logging
 import itertools
@@ -322,7 +325,7 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
             # list of alternative columns where person pnum has expression activity
             # e.g. for M_p1 we want the columns where activity M is in position p1
-            alternative_columns = filter(lambda alt: alt[pnum - 1] == activity, alternatives)
+            alternative_columns = [alt for alt in alternatives if alt[pnum - 1] == activity]
             spec.loc[new_row_index, alternative_columns] = 1
 
     # ignore rows whose cardinality exceeds hhsize
@@ -348,13 +351,13 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
             continue
 
-        if row.cardinality not in range(1, MAX_INTERACTION_CARDINALITY+1):
+        if not (0 <= row.cardinality <= MAX_INTERACTION_CARDINALITY):
             raise RuntimeError("Bad row cardinality %d for %s" % (row.cardinality, row.slug))
 
         # for all other interaction rules, we need to generate a row in the spec for each
         # possible combination of interacting persons
         # e.g. for (1, 2), (1,3), (2,3) for a coefficient with cardinality 2 in hhsize 3
-        for tup in itertools.combinations(range(1, hhsize+1), row.cardinality):
+        for tup in itertools.combinations(list(range(1, hhsize+1)), row.cardinality):
 
             # determine the name of the chooser column with the ptypes for this interaction
             if row.cardinality == 1:
@@ -369,8 +372,10 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
             # create list of columns with names matching activity for each of the persons in tup
             # e.g. ['MMM', 'MMN', 'MMH'] for an interaction between p1 and p3 with activity 'M'
+            # alternative_columns = \
+            #     filter(lambda alt: all([alt[p - 1] == row.activity for p in tup]), alternatives)
             alternative_columns = \
-                filter(lambda alt: all([alt[p - 1] == row.activity for p in tup]), alternatives)
+                [alt for alt in alternatives if all([alt[p - 1] == row.activity for p in tup])]
 
             # a row for this interaction may already exist,
             # e.g. if there are rules for both HH13 and MM13, we don't need to add rows for both
@@ -535,7 +540,7 @@ def hh_choosers(indiv_utils, hhsize):
 
     # add interaction columns for all 2 and 3 person interactions
     for i in range(2, min(hhsize, MAX_INTERACTION_CARDINALITY)+1):
-        for tup in itertools.combinations(range(1, hhsize+1), i):
+        for tup in itertools.combinations(list(range(1, hhsize+1)), i):
             add_interaction_column(choosers, tup)
 
     return choosers

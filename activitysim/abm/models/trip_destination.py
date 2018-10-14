@@ -1,7 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import print_function
+
+from builtins import range
 import logging
 
 import numpy as np
@@ -18,7 +20,6 @@ from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
-from .util import logsums
 from .util import expressions
 
 from .util.mode import annotate_preprocessors
@@ -560,7 +561,7 @@ def trip_destination(
 
     pipeline.replace_table("trips", trips_df)
 
-    print "trips_df\n", trips_df.shape
+    print("trips_df\n", trips_df.shape)
 
     if trace_hh_id:
         tracing.trace_df(trips_df,

@@ -9,11 +9,7 @@ import pandas as pd
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core import tracing
 from activitysim.core import inject
-
 from activitysim.core import timetable as tt
-
-from activitysim.core.util import memory_info
-from activitysim.core.util import df_size
 from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import reindex
 

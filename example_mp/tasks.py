@@ -2,7 +2,11 @@
 # See full license in LICENSE.txt.
 
 from __future__ import print_function
+from __future__ import division
 
+from builtins import zip
+from builtins import next
+from builtins import range
 from future.utils import iteritems
 
 import sys
@@ -24,7 +28,9 @@ from activitysim.core import config
 from activitysim.core.config import setting
 from activitysim.core.config import handle_standard_args
 
+# activitysim.abm imported for its side-effects (dependency injection)
 from activitysim import abm
+
 from activitysim.abm.tables.skims import get_skim_info
 from activitysim.abm.tables.skims import buffer_for_skims
 from activitysim.abm.tables.skims import load_skims
@@ -70,7 +76,7 @@ def build_slice_rules(slice_info, tables):
     if primary_slicer not in tables:
         raise RuntimeError("primary slice table '%s' not in pipeline" % primary_slicer)
 
-    logger.debug("build_slice_rules tables %s", tables.keys())
+    logger.debug("build_slice_rules tables %s", list(tables.keys()))
     logger.debug("build_slice_rules primary_slicer %s", primary_slicer)
     logger.debug("build_slice_rules slicer_table_names %s", slicer_table_names)
     logger.debug("build_slice_rules slicer_table_exceptions %s", slicer_table_exceptions)
@@ -154,7 +160,7 @@ def apportion_pipeline(sub_job_names, slice_info):
 
     # keep only the last row of checkpoints and patch the last checkpoint name
     checkpoints_df = checkpoints_df.tail(1).copy()
-    checkpoints_df[tables.keys()] = checkpoint_name
+    checkpoints_df[list(tables.keys())] = checkpoint_name
 
     # build slice rules for loaded tables
     slice_rules = build_slice_rules(slice_info, tables)
@@ -184,7 +190,7 @@ def apportion_pipeline(sub_job_names, slice_info):
                     # slice primary apportion table by num_sub_jobs strides
                     # this hopefully yields a more random distribution
                     # (e.g.) households are ordered by size in input store
-                    primary_df = df[np.asanyarray(range(df.shape[0])) % num_sub_jobs == i]
+                    primary_df = df[np.asanyarray(list(range(df.shape[0]))) % num_sub_jobs == i]
                     sliced_tables[table_name] = primary_df
                 elif rule['slice_by'] == 'index':
                     # slice a table with same index name as a known slicer
@@ -416,7 +422,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
         queues.append(q)
 
     def log_queued_messages():
-        for i, process, queue in zip(range(num_simulations), procs, queues):
+        for i, process, queue in zip(list(range(num_simulations)), procs, queues):
             while not queue.empty():
                 msg = queue.get(block=False)
                 logger.info("%s %s : %s",
@@ -541,10 +547,10 @@ def get_resume_journal(run_list):
         raise RuntimeError("empty journal for resume_after '%s'" % resume_after)
 
     if resume_after == '_':
-        resume_step_name = previous_journal.keys()[-1]
+        resume_step_name = list(previous_journal.keys())[-1]
     else:
 
-        previous_steps = previous_journal.keys()
+        previous_steps = list(previous_journal.keys())
 
         # run_list step resume_after is in
         resume_step_name = next((step['name'] for step in run_list['multiprocess_steps']
@@ -574,8 +580,9 @@ def get_resume_journal(run_list):
             previous_journal[resume_step_name]['coalesce'] = None
 
     multiprocess_step_names = [step['name'] for step in run_list['multiprocess_steps']]
-    if previous_journal.keys() != multiprocess_step_names[:len(previous_journal)]:
-        raise RuntimeError("last run steps don't match run list: %s" % previous_journal.keys())
+    if list(previous_journal.keys()) != multiprocess_step_names[:len(previous_journal)]:
+        raise RuntimeError("last run steps don't match run list: %s" %
+                           list(previous_journal.keys()))
 
     return previous_journal
 
@@ -661,7 +668,7 @@ def get_run_list():
             chunk_size = step.get('chunk_size', None)
             if chunk_size is None:
                 if global_chunk_size > 0 and num_processes > 1:
-                    chunk_size = int(round(global_chunk_size / float(num_processes)))
+                    chunk_size = int(round(global_chunk_size / num_processes))
                     chunk_size = max(chunk_size, 1)
                 else:
                     chunk_size = global_chunk_size
@@ -748,7 +755,7 @@ def print_run_list(run_list, output_file=None):
         for step in run_list['multiprocess_steps']:
             print("  step:", step['name'], file=output_file)
             for k in step:
-                if isinstance(step[k], (list, )):
+                if isinstance(step[k], list):
                     print("    ", k, file=output_file)
                     for v in step[k]:
                         print("       -", v, file=output_file)
@@ -799,7 +806,7 @@ def read_journal(file_name=None):
 
 def save_journal(journal, file_name=None):
     with open(journal_file_path(file_name), 'w') as f:
-        journal = [step for step in journal.values()]
+        journal = [step for step in list(journal.values())]
         yaml.dump(journal, f)
 
 

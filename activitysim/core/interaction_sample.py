@@ -1,6 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import absolute_import
+from __future__ import division
+
+from builtins import range
+
 import logging
 
 from math import ceil
@@ -16,7 +21,7 @@ from .simulate import set_skim_wrapper_targets
 
 
 from .interaction_simulate import eval_interaction_utilities
-import pipeline
+from . import pipeline
 
 logger = logging.getLogger(__name__)
 

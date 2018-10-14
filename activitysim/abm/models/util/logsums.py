@@ -1,11 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-import logging
+from __future__ import absolute_import
 
-import numpy as np
-import pandas as pd
+import logging
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -13,8 +11,8 @@ from activitysim.core import config
 
 from activitysim.core.assign import evaluate_constants
 
-from mode import tour_mode_choice_spec
-from mode import tour_mode_choice_coeffecients_spec
+from .mode import tour_mode_choice_spec
+from .mode import tour_mode_choice_coeffecients_spec
 
 
 from . import expressions

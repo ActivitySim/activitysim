@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from future.utils import iteritems
+
 import logging
 from collections import OrderedDict
 
@@ -89,7 +91,7 @@ def school_location_sample(
         locals_d.update(constants)
 
     choices_list = []
-    for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
+    for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
 
         locals_d['segment'] = school_type
 
@@ -179,7 +181,7 @@ def school_location_logsums(
     persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
     logsums_list = []
-    for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
+    for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
 
         tour_purpose = 'univ' if school_type == 'university' else 'school'
 
@@ -265,7 +267,7 @@ def school_location_simulate(persons_merged, persons,
         choosers = choosers[chooser_columns]
 
         choices_list = []
-        for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
+        for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
 
             locals_d['segment'] = school_type
 

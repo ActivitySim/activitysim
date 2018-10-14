@@ -1,6 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from future.utils import iteritems
+
+from builtins import zip
+from builtins import object
+
 import logging
 import os
 from collections import OrderedDict
@@ -57,7 +62,7 @@ def evaluate_constants(expressions, constants):
 
     # FIXME why copy?
     d = {}
-    for k, v in expressions.iteritems():
+    for k, v in iteritems(expressions):
         d[k] = eval(str(v), d.copy(), constants)
 
     return d
@@ -220,7 +225,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         _locals_dict[df_alias] = df
     else:
         _locals_dict['df'] = df
-    local_keys = _locals_dict.keys()
+    local_keys = list(_locals_dict.keys())
 
     # build a dataframe of eval results for non-temp targets
     # since we allow targets to be recycled, we want to only keep the last usage
@@ -232,7 +237,8 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         target, expression = e
 
         assert isinstance(target, str), \
-            "expected target '%s' for expression '%s' to be string" % (target, expression)
+            "expected target '%s' for expression '%s' to be string not %s" % \
+            (target, expression, type(target))
 
         if target in local_keys:
             logger.warn("assign_variables target obscures local_d name '%s'" % str(target))

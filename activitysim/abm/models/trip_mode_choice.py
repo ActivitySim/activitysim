@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 
 
+from builtins import zip
+from builtins import range
 import logging
 
 import pandas as pd
@@ -119,7 +121,7 @@ def trip_mode_choice(
             trace_choice_name='trip_mode_choice')
 
         alts = model_spec.columns
-        choices = choices.map(dict(zip(range(len(alts)), alts)))
+        choices = choices.map(dict(list(zip(list(range(len(alts))), alts))))
 
         # tracing.print_summary('trip_mode_choice %s choices' % primary_purpose,
         #                       choices, value_counts=True)

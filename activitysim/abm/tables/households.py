@@ -1,18 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import absolute_import
+
+from builtins import range
 import logging
-import os
 
 import pandas as pd
 
-from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import pipeline
-
 from activitysim.core import inject
 
-from input_store import read_input_table
+from .input_store import read_input_table
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
 
     # FIXME - pathological knowledge of name of chunk_id column used by chunked_choosers_by_chunk_id
     assert 'chunk_id' not in df.columns
-    df['chunk_id'] = pd.Series(range(len(df)), df.index)
+    df['chunk_id'] = pd.Series(list(range(len(df))), df.index)
 
     # replace table function with dataframe
     inject.add_table('households', df)

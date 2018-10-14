@@ -2,11 +2,14 @@
 # See full license in LICENSE.txt.
 
 from __future__ import print_function
+from __future__ import division
+
+from future.utils import listvalues
+from builtins import range
 
 import sys
 import os
 import logging
-import time
 from collections import OrderedDict
 
 import numpy as np
@@ -48,7 +51,7 @@ def uniquify_spec_index(spec):
 
     # bug
     prev_index_name = spec.index.name
-    spec.index = dict.keys()
+    spec.index = list(dict.keys())
     spec.index.name = prev_index_name
 
     assert spec.index.is_unique
@@ -271,7 +274,7 @@ def set_skim_wrapper_targets(df, skims):
     elif isinstance(skims, dict):
         # it it is a dict, then check for known types, ignore anything we don't recognize as a skim
         # (this allows putting skim column names in same dict as skims for use in locals_dicts)
-        for skim in skims.values():
+        for skim in listvalues(skims):
             if isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper):
                 skim.set_df(df)
     else:
@@ -409,7 +412,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
     ----------
     nested_probabilities : pandas.DataFrame
         dataframe with the nested probabilities for nest leafs and nodes
-    nest_spec : dict
+    nests : dict
         Nest tree dict from the model spec yaml file
     spec : pandas.Dataframe
         simple simulate spec so we can return columns in appropriate order

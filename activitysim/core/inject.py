@@ -1,9 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+
+from future.utils import iteritems
+
 import logging
 
-import pandas as pd
 from . import orca
 
 _DECORATED_STEPS = {}
@@ -136,16 +139,16 @@ def reinject_decorated_tables():
     orca.orca._TABLE_CACHE.clear()
     orca.orca._COLUMN_CACHE.clear()
 
-    for name, func in _DECORATED_TABLES.iteritems():
+    for name, func in iteritems(_DECORATED_TABLES):
         logger.debug("reinject decorated table %s" % name)
         orca.add_table(name, func)
 
-    for column_key, args in _DECORATED_COLUMNS.iteritems():
+    for column_key, args in iteritems(_DECORATED_COLUMNS):
         table_name, column_name = column_key
         logger.debug("reinject decorated column %s.%s" % (table_name, column_name))
         orca.add_column(table_name, column_name, args['func'], cache=args['cache'])
 
-    for name, args in _DECORATED_INJECTABLES.iteritems():
+    for name, args in iteritems(_DECORATED_INJECTABLES):
         logger.debug("reinject decorated injectable %s" % name)
         orca.add_injectable(name, args['func'], cache=args['cache'])
 
@@ -173,5 +176,5 @@ def get_step_arg(arg_name, default=_NO_DEFAULT):
 
 def dump_state():
 
-    print "_DECORATED_STEPS", _DECORATED_STEPS.keys()
-    print "orca._STEPS", orca.orca._STEPS.keys()
+    print("_DECORATED_STEPS", list(_DECORATED_STEPS.keys()))
+    print("orca._STEPS", list(orca.orca._STEPS.keys()))

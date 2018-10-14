@@ -1,6 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
+from future.utils import iteritems
+
+from builtins import next
+from builtins import map
+from builtins import object
 import os
 import datetime as dt
 
@@ -8,14 +17,14 @@ import pandas as pd
 from . import orca
 
 import logging
-import inject
-import config
-from util import memory_info
-from util import df_size
+from . import inject
+from . import config
+from .util import memory_info
+from .util import df_size
 
-import random
-import tracing
-from tracing import print_elapsed_time
+from . import random
+from . import tracing
+from .tracing import print_elapsed_time
 
 logger = logging.getLogger(__name__)
 
@@ -76,8 +85,8 @@ def close_on_exit(file, name):
 
 
 def close_open_files():
-    for name, file in _PIPELINE.open_files.iteritems():
-        print "Closing %s" % name
+    for name, file in iteritems(_PIPELINE.open_files):
+        print("Closing %s" % name)
         file.close()
     _PIPELINE.open_files.clear()
 
@@ -307,7 +316,7 @@ def checkpointed_tables():
     Return a list of the names of all checkpointed tables
     """
 
-    return [name for name, checkpoint_name in _PIPELINE.last_checkpoint.iteritems()
+    return [name for name, checkpoint_name in iteritems(_PIPELINE.last_checkpoint)
             if checkpoint_name and name not in NON_TABLE_COLUMNS]
 
 
@@ -346,7 +355,7 @@ def load_checkpoint(checkpoint_name):
 
     # drop tables with empty names
     for checkpoint in checkpoints:
-        for key in checkpoint.keys():
+        for key in list(checkpoint.keys()):
             if key not in NON_TABLE_COLUMNS and not checkpoint[key]:
                 del checkpoint[key]
 
@@ -392,7 +401,7 @@ def split_arg(s, sep, default=''):
     split str s in two at first sep, returning empty string as second result if no sep
     """
     r = s.split(sep, 2)
-    r = map(str.strip, r)
+    r = list(map(str.strip, r))
 
     arg = r[0]
 

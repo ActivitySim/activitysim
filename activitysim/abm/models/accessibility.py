@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from builtins import range
+from builtins import object
 import logging
 import os
 
@@ -57,7 +59,7 @@ class AccessibilitySkims(object):
             # data = data[orig_map, :][:, dest_map]    # <- RIGHT
             # data = data[np.ix_(orig_map, dest_map)]  # <- ALSO RIGHT
 
-            skim_index = range(omx_shape[0])
+            skim_index = list(range(omx_shape[0]))
             orig_map = np.isin(skim_index, skim_dict.offset_mapper.map(orig_zones))
             dest_map = np.isin(skim_index, skim_dict.offset_mapper.map(dest_zones))
 

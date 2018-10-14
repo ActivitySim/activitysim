@@ -1,20 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+
+from builtins import str
 import os
-import tempfile
 import logging
 
-import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 import yaml
-import openmatrix as omx
 
-from activitysim.abm import __init__
-from activitysim.abm.tables import size_terms
-
+from activitysim.core import random
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
@@ -89,6 +87,8 @@ def test_rng_access():
 
     rng = pipeline.get_rn_generator()
 
+    assert isinstance(rng, random.Random)
+
     pipeline.close_pipeline()
     inject.clear_cache()
 
@@ -103,7 +103,7 @@ def regress_mini_auto():
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')
 
-    print "auto_choice\n", auto_choice.head(10)
+    print("auto_choice\n", auto_choice.head(10))
     """
     auto_choice
     household_id
@@ -132,7 +132,7 @@ def regress_mini_mtf():
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='person_id'),
                                 name='mandatory_tour_frequency')
 
-    print "mtf_choice\n", mtf_choice.dropna().head(5)
+    print("mtf_choice\n", mtf_choice.dropna().head(5))
     """
     mtf_choice
     26986    school1
@@ -315,7 +315,7 @@ def regress_tour_modes(tours_df):
     tours_df = tours_df[tours_df.household_id == HH_ID]
     tours_df = tours_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
 
-    print "mode_df\n", tours_df[mode_cols]
+    print("mode_df\n", tours_df[mode_cols])
 
     """
     tour_id        tour_mode  person_id tour_type  tour_num  tour_category
@@ -395,7 +395,7 @@ def test_full_run1():
     tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    print "tour_count", tour_count
+    print("tour_count", tour_count)
 
     assert(tour_count == EXPECT_TOUR_COUNT)
 
@@ -455,6 +455,6 @@ def test_full_run_stability():
 
 if __name__ == "__main__":
 
-    print "running test_full_run1"
+    print("running test_full_run1")
     test_full_run1()
     # teardown_function(None)

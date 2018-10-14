@@ -1,21 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-import copy
-import string
-import pandas as pd
-import numpy as np
+from __future__ import absolute_import
 
-from activitysim.core import tracing
-from activitysim.core import inject
+from builtins import zip
+from builtins import range
+
+import pandas as pd
+
 from activitysim.core import simulate
 from activitysim.core import config
-
 from activitysim.core.assign import evaluate_constants
 from activitysim.core.util import assign_in_place
 
-import expressions
+from . import expressions
 
 
 """
@@ -82,7 +80,7 @@ def run_tour_mode_choice_simulate(
         trace_choice_name=trace_choice_name)
 
     alts = spec.columns
-    choices = choices.map(dict(zip(range(len(alts)), alts)))
+    choices = choices.map(dict(list(zip(list(range(len(alts))), alts))))
 
     return choices
 

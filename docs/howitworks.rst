@@ -342,7 +342,7 @@ and the model is calculating and adding the mode choice logsums using the logsum
 
 ::
 
-    for school_type, school_type_id in SCHOOL_TYPE_ID.iteritems():
+    for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
 
         segment = 'university' if school_type == 'university' else 'school'
         logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)

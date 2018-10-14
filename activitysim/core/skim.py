@@ -1,7 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from future.utils import iteritems
+from future.utils import listvalues
 
+from builtins import range
+from builtins import object
 import logging
 
 from collections import OrderedDict
@@ -28,14 +32,14 @@ class OffsetMapper(object):
 
         # for performance, check if this is a simple int-based series
         first_offset = offset_list[0]
-        if (offset_list == range(first_offset, len(offset_list)+first_offset)):
+        if (offset_list == list(range(first_offset, len(offset_list)+first_offset))):
             offset_int = -1 * first_offset
             # print "set_offset_list substituting offset_int of %s" % offset_int
             self.set_offset_int(offset_int)
             return
 
         if self.offset_series is None:
-            self.offset_series = pd.Series(data=range(len(offset_list)), index=offset_list)
+            self.offset_series = pd.Series(data=list(range(len(offset_list))), index=offset_list)
         else:
             # make sure it offsets are the same
             assert (offset_list == self.offset_series.index).all()
@@ -43,7 +47,7 @@ class OffsetMapper(object):
     def set_offset_int(self, offset_int):
 
         # should be some kind of integer
-        assert long(offset_int) == offset_int
+        assert int(offset_int) == offset_int
         assert self.offset_series is None
 
         if self.offset_int is None:
@@ -64,7 +68,7 @@ class OffsetMapper(object):
 
         elif self.offset_int:
             # should be some kind of integer
-            assert long(self.offset_int) == self.offset_int
+            assert int(self.offset_int) == self.offset_int
             assert (self.offset_series is None)
             offsets = zone_ids + self.offset_int
         else:
@@ -318,7 +322,7 @@ class SkimStack(object):
         # DISTWALK: 0,
         # DRV_COM_WLK_BOARDS: 0, ...
         key1_block_offsets = skim_dict.skim_info['key1_block_offsets']
-        self.key1_blocks = {k: v[0] for k, v in key1_block_offsets.iteritems()}
+        self.key1_blocks = {k: v[0] for k, v in iteritems(key1_block_offsets)}
 
         # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
         # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
@@ -340,7 +344,7 @@ class SkimStack(object):
 
         logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
                     % (len(self.skim_dim3),
-                       sum([len(d) for d in self.skim_dim3.values()])))
+                       sum([len(d) for d in listvalues(self.skim_dim3)])))
 
         self.usage = set()
 

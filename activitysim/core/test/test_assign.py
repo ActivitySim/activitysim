@@ -1,15 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os.path
+from __future__ import print_function
 
+from builtins import str
+import os.path
 import logging
 import logging.config
 
-import numpy.testing as npt
 import numpy as np
 import pandas as pd
-import pandas.util.testing as pdt
 import pytest
 
 from .. import assign
@@ -75,7 +75,7 @@ def test_assign_variables(capsys, spec_name, data):
     results, trace_results, trace_assigned_locals \
         = assign.assign_variables(spec, data, locals_d, trace_rows=None)
 
-    print results
+    print(results)
 
     assert list(results.columns) == ['target1', 'target2', 'target3']
     assert list(results.target1) == [True, False, False]
@@ -93,7 +93,7 @@ def test_assign_variables(capsys, spec_name, data):
     assert list(results.target3) == [530, 530, 550]
 
     # should assign trace_results for second row in data
-    print trace_results
+    print(trace_results)
 
     assert trace_results is not None
     assert '_scalar' in trace_results.columns
@@ -104,7 +104,7 @@ def test_assign_variables(capsys, spec_name, data):
     assert list(trace_results['_temp']) == [9]
     assert list(trace_results['target3']) == [530]
 
-    print "trace_assigned_locals", trace_assigned_locals
+    print("trace_assigned_locals", trace_assigned_locals)
     assert trace_assigned_locals['_DF_COL_NAME'] == 'thing2'
 
     # shouldn't have been changed even though it was a target
@@ -128,7 +128,7 @@ def test_assign_variables_aliased(capsys, data):
         = assign.assign_variables(spec, data, locals_d,
                                   df_alias='aliased_df', trace_rows=trace_rows)
 
-    print results
+    print(results)
 
     assert list(results.columns) == ['target1', 'target2', 'target3']
     assert list(results.target1) == [True, False, False]
@@ -136,7 +136,7 @@ def test_assign_variables_aliased(capsys, data):
     assert list(results.target3) == [530, 530, 550]
 
     # should assign trace_results for second row in data
-    print trace_results
+    print(trace_results)
 
     assert trace_results is not None
     assert '_scalar' in trace_results.columns
@@ -177,7 +177,7 @@ def test_assign_variables_failing(capsys, data):
 
     out, err = capsys.readouterr()
     # don't consume output
-    print out
+    print(out)
 
     # undefined variable should raise error
     assert "'undefined_variable' is not defined" in str(excinfo.value)

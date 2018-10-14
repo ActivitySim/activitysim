@@ -1,14 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+
+from builtins import str
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
-import pandas.util.testing as pdt
 import pytest
 
 from activitysim.core import random
-from activitysim.core import pipeline
 
 
 def test_basic():
@@ -59,7 +60,7 @@ def test_channel():
 
     rands = rng.random_for_df(persons)
 
-    print "rands", np.asanyarray(rands).flatten()
+    print("rands", np.asanyarray(rands).flatten())
 
     assert rands.shape == (5, 1)
     test1_expected_rands = [0.9060891, 0.4576382, 0.2154094, 0.2801035, 0.6196645]
@@ -105,7 +106,7 @@ def test_channel():
 
     rands = rng.random_for_df(persons)
 
-    print "rands", np.asanyarray(rands).flatten()
+    print("rands", np.asanyarray(rands).flatten())
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands)
 
     rands = rng.random_for_df(persons)

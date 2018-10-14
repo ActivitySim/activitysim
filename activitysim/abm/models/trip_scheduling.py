@@ -1,7 +1,11 @@
+from __future__ import division
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import division
+
+from builtins import range
+
 import logging
 
 import numpy as np
@@ -371,7 +375,7 @@ def trip_scheduling_rpc(chunk_size, choosers, spec, trace_label=None):
     chooser_row_size = choosers.shape[1] + extra_columns
 
     # scale row_size by average number of chooser rows per chunk_id
-    rows_per_chunk_id = choosers.shape[0] / float(num_choosers)
+    rows_per_chunk_id = choosers.shape[0] / num_choosers
     row_size = (rows_per_chunk_id * chooser_row_size)
 
     # print "num_choosers", num_choosers
@@ -504,7 +508,8 @@ def trip_scheduling(
     tours = tours.to_frame()
 
     # add tour-based chunk_id so we can chunk all trips in tour together
-    trips_df['chunk_id'] = reindex(pd.Series(range(tours.shape[0]), tours.index), trips_df.tour_id)
+    trips_df['chunk_id'] = \
+        reindex(pd.Series(list(range(tours.shape[0])), tours.index), trips_df.tour_id)
 
     max_iterations = model_settings.get('MAX_ITERATIONS', 1)
     assert max_iterations > 0

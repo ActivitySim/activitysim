@@ -2,14 +2,16 @@
 # See full license in LICENSE.txt.
 
 from __future__ import division
+from __future__ import absolute_import
 
+from builtins import object
 import logging
 
 import numpy as np
 import pandas as pd
 
-import tracing
-import pipeline
+from . import tracing
+from . import pipeline
 
 logger = logging.getLogger(__name__)
 

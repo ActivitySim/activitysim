@@ -1,6 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from builtins import str
+from builtins import range
+from builtins import object
 import logging
 
 import numpy as np
@@ -79,7 +82,7 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
     agenda = agenda.reshape(n_persons, n_periods)
 
     scheduled = np.zeros_like(agenda, dtype=int)
-    row_ix_map = pd.Series(range(n_persons), index=persons.index)
+    row_ix_map = pd.Series(list(range(n_persons)), index=persons.index)
 
     # construct with strings so we can create runs of strings using char * int
     w_strings = [
@@ -149,7 +152,7 @@ def create_timetable_windows(rows, tdd_alts):
     assert rows.index is not None
 
     # pad windows at both ends of day
-    windows = range(tdd_alts.start.min() - 1, tdd_alts.end.max() + 2)
+    windows = list(range(tdd_alts.start.min() - 1, tdd_alts.end.max() + 2))
 
     # hdf5 store converts these to strs, se we conform
     window_cols = [str(w) for w in windows]
@@ -192,10 +195,10 @@ class TimeTable(object):
         self.windows = self.windows_df.values
 
         # series to map window row index value to window row's ordinal index
-        self.window_row_ix = pd.Series(range(len(windows_df.index)), index=windows_df.index)
+        self.window_row_ix = pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
 
         int_time_periods = [int(c) for c in windows_df.columns.values]
-        self.time_ix = pd.Series(range(len(windows_df.columns)), index=int_time_periods)
+        self.time_ix = pd.Series(list(range(len(windows_df.columns))), index=int_time_periods)
 
         # - pre-compute window state footprints for every tdd_alt
         min_period = min(int_time_periods)

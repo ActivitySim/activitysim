@@ -1,12 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+from builtins import str
 import os
-import tempfile
 
-import numpy as np
 import pytest
-import yaml
 
 from .. import inject
 
@@ -33,7 +32,7 @@ def test_defaults():
 
     with pytest.raises(RuntimeError) as excinfo:
         output_dir = inject.get_injectable("output_dir")
-        print "output_dir", output_dir
+        print("output_dir", output_dir)
     assert "directory does not exist" in str(excinfo.value)
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs_test_defaults')

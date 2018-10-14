@@ -1,16 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import logging
+from __future__ import absolute_import
 
-import pandas as pd
+import logging
 
 from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import tracing
-from activitysim.core.util import other_than, reindex
 
-from input_store import read_input_table
+from .input_store import read_input_table
 
 logger = logging.getLogger(__name__)
 

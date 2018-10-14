@@ -1,9 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import print_function
+
+from builtins import str
 import os.path
 import logging
-
 import pytest
 
 import pandas as pd
@@ -45,7 +47,7 @@ def test_config_logger(capsys):
     assert len(file_handlers) == 1
     asim_logger_baseFilename = file_handlers[0].baseFilename
 
-    print "handlers:", logger.handlers
+    print("handlers:", logger.handlers)
 
     logger.info('test_config_logger')
     logger.info('log_info')
@@ -54,7 +56,7 @@ def test_config_logger(capsys):
     out, err = capsys.readouterr()
 
     # don't consume output
-    print out
+    print(out)
 
     assert "could not find conf file" not in out
     assert 'log_warn1' in out
@@ -67,7 +69,7 @@ def test_config_logger(capsys):
 
     with open(asim_logger_baseFilename, 'r') as content_file:
         content = content_file.read()
-        print content
+        print(content)
     assert 'log_warn1' in content
     assert 'log_warn2' not in content
 
@@ -78,12 +80,12 @@ def test_print_summary(capsys):
 
     tracing.config_logger()
 
-    tracing.print_summary('label', df=None, describe=False, value_counts=False)
+    tracing.print_summary('label', df=pd.DataFrame(), describe=False, value_counts=False)
 
     out, err = capsys.readouterr()
 
     # don't consume output
-    print out
+    print(out)
 
     assert 'print_summary neither value_counts nor describe' in out
 
@@ -156,7 +158,7 @@ def test_register_tours(capsys):
     tracing.register_traceable_table('tours', tours_df)
 
     out, err = capsys.readouterr()
-    print out  # don't consume output
+    print(out)  # don't consume output
 
     # should be tracing tour with tour_id 3
     assert inject.get_injectable('trace_tours') == [12]
@@ -175,7 +177,7 @@ def test_write_csv(capsys):
 
     out, err = capsys.readouterr()
 
-    print out  # don't consume output
+    print(out)  # don't consume output
 
     assert "unexpected type" in out
 
@@ -229,7 +231,7 @@ def test_basic(capsys):
     out, err = capsys.readouterr()
 
     # don't consume output
-    print out
+    print(out)
 
     assert 'log_warn' in out
     assert 'log_info' in out

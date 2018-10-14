@@ -1,11 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-import tempfile
-import logging
+from __future__ import print_function
 
-import pandas.util.testing as pdt
+from builtins import str
+import os
+import logging
 import pytest
 
 from activitysim.core import tracing
@@ -73,7 +73,7 @@ def test_pipeline_run():
     pipeline.run(models=_MODELS, resume_after=None)
 
     checkpoints = pipeline.get_checkpoints()
-    print "checkpoints\n", checkpoints
+    print("checkpoints\n", checkpoints)
 
     c2 = pipeline.get_table("table2").c2
 
@@ -121,7 +121,7 @@ def test_pipeline_checkpoint_drop():
     pipeline.run(models=_MODELS, resume_after=None)
 
     checkpoints = pipeline.get_checkpoints()
-    print "checkpoints\n", checkpoints
+    print("checkpoints\n", checkpoints)
 
     pipeline.get_table("table1")
 

@@ -482,11 +482,9 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
-    check_for_variability = tracing.check_for_variability()
-
     expression_values = eval_variables(spec.index, choosers, locals_d)
 
-    if check_for_variability:
+    if config.setting('check_for_variability'):
         _check_for_variability(expression_values, trace_label)
 
     # matrix product of spec expression_values with utility coefficients of alternatives
@@ -571,12 +569,10 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     trace_label = tracing.extend_trace_label(trace_label, 'nl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
-    check_for_variability = tracing.check_for_variability()
-
     # column names of expression_values match spec index values
     expression_values = eval_variables(spec.index, choosers, locals_d)
 
-    if check_for_variability:
+    if config.setting('check_for_variability'):
         _check_for_variability(expression_values, trace_label)
 
     # raw utilities of all the leaves
@@ -797,8 +793,6 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     trace_label = tracing.extend_trace_label(trace_label, 'mnl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
-    check_for_variability = tracing.check_for_variability()
-
     logger.debug("running eval_mnl_logsums")
     t00 = t0 = print_elapsed_time()
 
@@ -810,7 +804,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     expression_values = eval_variables(spec.index, choosers, locals_d)
     t0 = print_elapsed_time("eval_variables", t0, debug=True)
 
-    if check_for_variability:
+    if config.setting('check_for_variability'):
         _check_for_variability(expression_values, trace_label)
 
     # utility values
@@ -871,7 +865,6 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
     trace_label = tracing.extend_trace_label(trace_label, 'nl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
-    check_for_variability = tracing.check_for_variability()
 
     t00 = t0 = print_elapsed_time("begin eval_nl_logsums")
 
@@ -885,7 +878,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     expression_values = eval_variables(spec.index, choosers, locals_d)
     t0 = print_elapsed_time("eval_variables", t0, debug=True)
 
-    if check_for_variability:
+    if config.setting('check_for_variability'):
         _check_for_variability(expression_values, trace_label)
         t0 = print_elapsed_time("_check_for_variability", t0, debug=True)
 

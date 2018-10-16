@@ -1,21 +1,25 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 from builtins import map
 from builtins import range
+from builtins import int
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 from future.utils import iteritems
 
 import sys
 import os
 import logging
+import multiprocessing
 
 from collections import OrderedDict
-import multiprocessing as mp
 
 import numpy as np
-
 import openmatrix as omx
 
 from activitysim.core import skim
@@ -148,7 +152,8 @@ def buffer_for_skims(skim_info, shared=False):
     skim_buffer = {}
     for block_name, block_size in iteritems(blocks):
 
-        buffer_size = np.prod(omx_shape) * block_size
+        # buffer_size must be int (or p2.7 long), not np.int64
+        buffer_size = int(np.prod(omx_shape) * block_size)
 
         logger.info("allocating shared buffer %s for %s (%s) matrices" %
                     (block_name, buffer_size, omx_shape, ))
@@ -161,7 +166,7 @@ def buffer_for_skims(skim_info, shared=False):
             else:
                 raise RuntimeError("buffer_for_skims unrecognized dtype %s" % skim_dtype)
 
-            buffer = mp.RawArray(typecode, buffer_size)
+            buffer = multiprocessing.RawArray(typecode, buffer_size)
         else:
             buffer = np.zeros(buffer_size, dtype=skim_dtype)
 

@@ -1,0 +1,45 @@
+
+inherit_settings: True
+
+multiprocess: True
+
+
+models:
+  - initialize_landuse
+  - compute_accessibility
+  - initialize_households
+  - school_location_sample
+  - school_location_logsums
+  - school_location_simulate
+  - workplace_location_sample
+  - workplace_location_logsums
+  - workplace_location_simulate
+  - auto_ownership_simulate
+  - write_data_dictionary
+  - write_tables
+
+
+multiprocess_steps:
+  - name: mp_initialize_landuse
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    num_processes: 2
+    slice:
+      tables:
+        - accessibility
+      except:
+        - land_use
+  - name: mp_initialize_households
+    begin: initialize_households
+  - name: mp_households
+    begin: school_location_sample
+    num_processes: 2
+    stagger: 4
+    #chunk_size: 1000000000
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary

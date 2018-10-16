@@ -11,6 +11,7 @@ from collections import OrderedDict
 
 from . import logit
 from . import tracing
+from . import config
 from .simulate import set_skim_wrapper_targets
 from . import chunk
 
@@ -85,7 +86,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
     else:
         trace_eval_results = None
 
-    check_for_variability = tracing.check_for_variability()
+    check_for_variability = config.setting('check_for_variability')
 
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously

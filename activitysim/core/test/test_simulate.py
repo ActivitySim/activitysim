@@ -71,7 +71,7 @@ def test_eval_variables(spec, data):
 
 def test_simple_simulate(data, spec):
 
-    inject.add_injectable("check_for_variability", False)
+    inject.add_injectable("settings", {'check_for_variability': False})
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
@@ -80,7 +80,7 @@ def test_simple_simulate(data, spec):
 
 def test_simple_simulate_chunked(data, spec):
 
-    inject.add_injectable("check_for_variability", False)
+    inject.add_injectable("settings", {'check_for_variability': False})
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None, chunk_size=2)
     expected = pd.Series([1, 1, 1], index=data.index)

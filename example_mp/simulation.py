@@ -16,9 +16,9 @@ from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
+from activitysim.core import mp_tasks
 # from activitysim import abm
 
-import tasks
 
 logger = logging.getLogger('activitysim')
 
@@ -40,41 +40,30 @@ if __name__ == '__main__':
     # inject.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
     inject.add_injectable('data_dir', '../example/data')
     inject.add_injectable('configs_dir', ['configs', '../example/configs'])
-    # inject.add_injectable('configs_dir', '../example/configs')
 
     config.handle_standard_args()
     tracing.config_logger()
 
     t0 = tracing.print_elapsed_time()
 
-    injectables = ['data_dir', 'configs_dir', 'output_dir']
-    injectables = {k: inject.get_injectable(k) for k in injectables}
-
     # cleanup if not resuming
     if not config.setting('resume_after', False):
         cleanup_output_files()
 
-    run_list = tasks.get_run_list()
-
-    mode = 'wb' if sys.version_info < (3,) else 'w'
-    with open(config.output_file_path('run_list.txt'), mode) as f:
-        tasks.print_run_list(run_list, f)
-
-    tasks.print_run_list(run_list)
-    bug
+    run_list = mp_tasks.get_run_list()
+    # mp_tasks.print_run_list(run_list)
 
     if run_list['multiprocess']:
         logger.info("run multiprocess simulation")
 
-        tasks.run_multiprocess(run_list, injectables)
+        # do this after config.handle_standard_args, as command line args may override injectables
+        injectables = ['data_dir', 'configs_dir', 'output_dir']
+        injectables = {k: inject.get_injectable(k) for k in injectables}
 
+        mp_tasks.run_multiprocess(run_list, injectables)
     else:
         logger.info("run single process simulation")
-
-        # tasks.run_simulation(run_list['models'], run_list['resume_after'])
         pipeline.run(models=run_list['models'], resume_after=run_list['resume_after'])
-
-        # tables will no longer be available after pipeline is closed
         pipeline.close_pipeline()
 
     t0 = tracing.print_elapsed_time("everything", t0)

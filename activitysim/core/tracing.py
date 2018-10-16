@@ -41,10 +41,6 @@ def log_file_path(file_name):
     return config.log_file_path(file_name)
 
 
-def check_for_variability():
-    return inject.get_injectable('check_for_variability', False)
-
-
 def extend_trace_label(trace_label, extension):
     if trace_label:
         trace_label = "%s.%s" % (trace_label, extension)

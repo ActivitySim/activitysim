@@ -17,7 +17,7 @@ import sys
 import os
 import time
 import logging
-import multiprocessing as mp
+import multiprocessing
 from collections import OrderedDict
 
 import yaml
@@ -90,7 +90,7 @@ def build_slice_rules(slice_info, tables):
     slicer_ref_cols = OrderedDict()
 
     # build slice rules for loaded tables
-    slice_rules = {}
+    slice_rules = OrderedDict()
     for table_name, df in iteritems(tables):
 
         rule = {}
@@ -313,7 +313,7 @@ def setup_injectables_and_logging(injectables):
 
     inject.add_injectable("is_sub_task", True)
 
-    process_name = mp.current_process().name
+    process_name = multiprocessing.current_process().name
     inject.add_injectable("log_file_prefix", process_name)
     tracing.config_logger()
 
@@ -330,7 +330,7 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
     handle_standard_args()
 
     # do this before config_logger so log file is named appropriately
-    process_name = mp.current_process().name
+    process_name = multiprocessing.current_process().name
     if num_processes > 1:
         pipeline_prefix = process_name
         logger.info("injecting pipeline_file_prefix '%s'", pipeline_prefix)
@@ -418,10 +418,10 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
     queues = []
 
     for process_name in process_names:
-        q = mp.Queue()
-        p = mp.Process(target=mp_run_simulation, name=process_name,
-                       args=(q, injectables, step_info, resume_after),
-                       kwargs=shared_skim_buffer)
+        q = multiprocessing.Queue()
+        p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
+                                    args=(q, injectables, step_info, resume_after),
+                                    kwargs=shared_skim_buffer)
         procs.append(p)
         queues.append(q)
 
@@ -449,7 +449,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
         logger.info("start process %s", p.name)
         p.start()
 
-    while mp.active_children():
+    while multiprocessing.active_children():
         idle(1)
     log_queued_messages()
 
@@ -467,6 +467,10 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
 
 
 def run_multiprocess(run_list, injectables):
+
+    if not run_list['multiprocess']:
+        raise RuntimeError("run_multiprocess called but multiprocess flag is %s" %
+                           run_list['multiprocess'])
 
     resume_journal = run_list.get('resume_journal', {})
     run_status = OrderedDict()
@@ -487,9 +491,9 @@ def run_multiprocess(run_list, injectables):
 
     # - mp_setup_skims
     run_sub_task(
-        mp.Process(target=mp_setup_skims, name='mp_setup_skims',
-                   args=(injectables,),
-                   kwargs=shared_skim_buffer)
+        multiprocessing.Process(
+            target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
+            kwargs=shared_skim_buffer)
     )
 
     for step_info in run_list['multiprocess_steps']:
@@ -513,8 +517,9 @@ def run_multiprocess(run_list, injectables):
             if num_processes > 1:
                 logger.info('apportioning households to sub_processes')
                 run_sub_task(
-                    mp.Process(target=mp_apportion_pipeline, name='%s_apportion' % step_name,
-                               args=(injectables, sub_proc_names, slice_info))
+                    multiprocessing.Process(
+                        target=mp_apportion_pipeline, name='%s_apportion' % step_name,
+                        args=(injectables, sub_proc_names, slice_info))
                 )
         update_journal(step_name, 'apportion', True)
 
@@ -533,8 +538,9 @@ def run_multiprocess(run_list, injectables):
             if num_processes > 1:
                 logger.info('coalescing sub_process pipelines')
                 run_sub_task(
-                    mp.Process(target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
-                               args=(injectables, sub_proc_names, slice_info))
+                    multiprocessing.Process(
+                        target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
+                        args=(injectables, sub_proc_names, slice_info))
                 )
         update_journal(step_name, 'coalesce', True)
 
@@ -599,7 +605,7 @@ def get_run_list():
     global_chunk_size = setting('chunk_size', 0)
     multiprocess_steps = setting('multiprocess_steps', [])
 
-    if multiprocess and mp.cpu_count() == 1:
+    if multiprocess and multiprocessing.cpu_count() == 1:
         logger.warning("Can't multiprocess because there is only 1 cpu")
         multiprocess = False
 
@@ -652,13 +658,13 @@ def get_run_list():
                 if num_processes == 0:
                     logger.info("Setting num_processes = %s for step %s",
                                 num_processes, name)
-                    num_processes = mp.cpu_count()
+                    num_processes = multiprocessing.cpu_count()
                 if num_processes == 1:
                     raise RuntimeError("num_processes = 1 but found slice info for step %s"
                                        " in multiprocess_steps" % name)
-                if num_processes > mp.cpu_count():
+                if num_processes > multiprocessing.cpu_count():
                     logger.warning("num_processes setting (%s) greater than cpu count (%s",
-                                   num_processes, mp.cpu_count())
+                                   num_processes, multiprocessing.cpu_count())
             else:
                 if num_processes == 0:
                     num_processes = 1
@@ -739,6 +745,11 @@ def get_run_list():
                 istep = len(resume_journal) - 1
                 multiprocess_steps[istep]['resume_after'] = resume_after
 
+    # - write run list to output dir
+    mode = 'wb' if sys.version_info < (3,) else 'w'
+    with open(config.output_file_path('run_list.txt'), mode) as f:
+        print_run_list(run_list, f)
+
     return run_list
 
 
@@ -772,11 +783,6 @@ def print_run_list(run_list, output_file=None):
         if run_list.get('resume_journal'):
             print("\nresume_journal:", file=output_file)
             print_journal(run_list['resume_journal'], output_file)
-
-    else:
-        print("models", file=output_file)
-        for m in run_list['models']:
-            print("  - ", m, file=output_file)
 
 
 def print_journal(journal, output_file=None):

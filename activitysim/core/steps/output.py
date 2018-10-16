@@ -41,7 +41,8 @@ def track_skim_usage(output_dir):
     skim_dict = inject.get_injectable('skim_dict')
     skim_stack = inject.get_injectable('skim_stack', None)
 
-    with open(config.output_file_path('skim_usage.txt'), 'wb') as file:
+    mode = 'wb' if sys.version_info < (3,) else 'w'
+    with open(config.output_file_path('skim_usage.txt'), mode) as file:
 
         print("\n### skim_dict usage", file=file)
         for key in skim_dict.usage:

@@ -1967,7 +1967,8 @@ def run(steps, iter_vars=None, data_out=None, out_interval=1,
     # write out the base (inputs)
     if data_out:
         add_injectable('iter_var', iter_vars[0])
-        write_tables(data_out, out_base_tables, 'base', compress=compress, local=out_base_local)
+        write_tables(data_out, out_base_tables,
+                     prefix='base', compress=compress, local=out_base_local)
 
     # run the steps
     for i, var in enumerate(iter_vars, start=1):
@@ -1990,7 +1991,8 @@ def run(steps, iter_vars=None, data_out=None, out_interval=1,
         # write out the results for the current iteration
         if data_out:
             if (i - 1) % out_interval == 0 or i == max_i:
-                write_tables(data_out, out_run_tables, var, compress=compress, local=out_run_local)
+                write_tables(data_out, out_run_tables,
+                             prefix=var, compress=compress, local=out_run_local)
 
         clear_cache(scope=_CS_ITER)
 

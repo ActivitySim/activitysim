@@ -1,9 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-from builtins import str
+from builtins import *
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import os
 import logging
 
@@ -21,13 +25,12 @@ from activitysim.core import inject
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 1528374
+HH_ID = 1482966
 
-# test households with all tour types
-# [ 897097  921736  934309 1263203 1528374 1577292 1685008 1809710 2123173 2124138]
+# [1062107 1098395 1115294 1482578 1482698 1482715 1482920
+# 1482966 1809757 2022863 2123123 2123582 2591312]
 
-
-SKIP_FULL_RUN = True
+# SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
 
 
@@ -98,28 +101,21 @@ def regress_mini_auto():
     auto_choice = pipeline.get_table("households").auto_ownership
 
     # regression test: these are among the first 10 households in households table
-    hh_ids = [961042, 238146, 23730]
-    choices = [1, 1, 0]
+    hh_ids = [961042, 608031, 93713]
+    choices = [0, 0, 1]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')
 
-    print("auto_choice\n", auto_choice.head(10))
+    print("auto_choice\n", auto_choice.head(3))
     """
     auto_choice
-    household_id
-    961042     1
-    238146     1
-    701954     1
-    644046     1
-    23730      0
-    460343     1
-    25354      1
-    92615      1
-    1950284    0
-    2122448    0
+     household_id
+    961042     0
+    608031     0
+    93713      1
     Name: auto_ownership, dtype: int64
     """
-    pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
+    pdt.assert_series_equal(auto_choice.reindex(hh_ids), expected_choice)
 
 
 def regress_mini_mtf():
@@ -127,22 +123,22 @@ def regress_mini_mtf():
     mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
 
     # these choices are for pure regression - their appropriateness has not been checked
-    per_ids = [26986, 92615, 93332]
-    choices = ['school1', 'work1', 'work1']
+    per_ids = [23757, 24180, 268182]
+    choices = ['school1', 'school1', 'work1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='person_id'),
                                 name='mandatory_tour_frequency')
 
     print("mtf_choice\n", mtf_choice.dropna().head(5))
     """
     mtf_choice
-    26986    school1
-    92615      work1
-    93332      work1
-    93390      work1
-    93898      work1
+    23757     school1
+    24180     school1
+    25067     school1
+    268181    school1
+    268182      work1
     Name: mandatory_tour_frequency, dtype: object
     """
-    pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
+    pdt.assert_series_equal(mtf_choice.reindex(per_ids), expected_choice)
 
 
 def test_mini_pipeline_run():
@@ -305,7 +301,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 158
+EXPECT_TOUR_COUNT = 305
 
 
 def regress_tour_modes(tours_df):
@@ -320,47 +316,39 @@ def regress_tour_modes(tours_df):
     """
     tour_id        tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
-    96881402            WALK    3340738  business         1         atwork
-    96881411     SHARED2FREE    3340738    eatout         1          joint
-    96881429        WALK_LOC    3340738      work         1      mandatory
-    96881427        WALK_LOC    3340738  shopping         1  non_mandatory
-    96881454        WALK_LOC    3340739    school         1      mandatory
-    96881456  DRIVEALONEFREE    3340739  shopping         1  non_mandatory
-    96881437     SHARED2FREE    3340739    eatout         2  non_mandatory
-    96881457        WALK_LOC    3340739    social         3  non_mandatory
+    94247751     SHARED2FREE    3249922  othmaint         1          joint
+    94247765        WALK_LOC    3249922      work         1      mandatory
+    94247744            WALK    3249922    eatout         1  non_mandatory
+    94247771     SHARED3FREE    3249923       eat         1         atwork
+    94247794        WALK_LOC    3249923      work         1      mandatory
+    94247773  DRIVEALONEFREE    3249923    eatout         1  non_mandatory
     """
 
     EXPECT_PERSON_IDS = [
-        3340738,
-        3340738,
-        3340738,
-        3340738,
-        3340739,
-        3340739,
-        3340739,
-        3340739
+        3249922,
+        3249922,
+        3249922,
+        3249923,
+        3249923,
+        3249923,
         ]
 
     EXPECT_TOUR_TYPES = [
-        'business',
-        'eatout',
+        'othmaint',
         'work',
-        'shopping',
-        'school',
-        'shopping',
         'eatout',
-        'social'
+        'eat',
+        'work',
+        'eatout',
         ]
 
     EXPECT_MODES = [
-        'WALK',
         'SHARED2FREE',
         'WALK_LOC',
-        'WALK_LOC',
+        'WALK',
+        'SHARED3FREE',
         'WALK_LOC',
         'DRIVEALONEFREE',
-        'SHARED2FREE',
-        'WALK_LOC'
         ]
 
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()

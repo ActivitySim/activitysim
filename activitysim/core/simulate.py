@@ -312,10 +312,10 @@ def _check_for_variability(expression_values, trace_label):
             has_missing_vals += 1
 
     if no_variability > 0:
-        logger.warn("%s: %s columns have no variability" % (trace_label, no_variability))
+        logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
 
     if has_missing_vals > 0:
-        logger.warn("%s: %s columns have missing values" % (trace_label, has_missing_vals))
+        logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
 
 
 def compute_nested_exp_utilities(raw_utilities, nest_spec):
@@ -977,8 +977,8 @@ def simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_lab
         # expression_values for each spec row
         # utilities for each alt
         extra_columns = spec.shape[0] + spec.shape[1]
-        logger.warn("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
-                    " so chunk sizing might be a bit off")
+        logger.warning("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
+                       " so chunk sizing might be a bit off")
     else:
         # expression_values for each spec row
         # raw_utilities for each alt

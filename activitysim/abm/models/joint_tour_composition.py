@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 def add_null_results(trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
-    tours['composition'] = np.nan
+    tours['composition'] = ''
     pipeline.replace_table("tours", tours)
 
 
@@ -94,10 +94,11 @@ def joint_tour_composition(
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
 
-    # add composition column to tours
+    # add composition column to tours for tracing
     joint_tours['composition'] = choices
 
-    assign_in_place(tours, joint_tours[['composition']])
+    # reindex since we ran model on a subset of households
+    tours['composition'] = choices.reindex(tours.index).fillna('').astype(str)
     pipeline.replace_table("tours", tours)
 
     tracing.print_summary('joint_tour_composition', joint_tours.composition,

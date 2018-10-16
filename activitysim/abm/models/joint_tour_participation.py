@@ -55,7 +55,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     MAX_PNUM = 100
     if candidates.PNUM.max() > MAX_PNUM:
         # if this happens, channel random seeds will overlap at MAX_PNUM (not probably a big deal)
-        logger.warn("max persons.PNUM (%s) > MAX_PNUM (%s)" % (candidates.PNUM.max(), MAX_PNUM))
+        logger.warning("max persons.PNUM (%s) > MAX_PNUM (%s)" % (candidates.PNUM.max(), MAX_PNUM))
 
     candidates['participant_id'] = (candidates[joint_tours.index.name] * MAX_PNUM) + candidates.PNUM
     candidates.set_index('participant_id', drop=True, inplace=True, verify_integrity=True)
@@ -154,7 +154,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
         iter += 1
 
         if iter > MAX_ITERATIONS:
-            logger.warn('%s max iterations exceeded (%s).' % (trace_label, MAX_ITERATIONS))
+            logger.warning('%s max iterations exceeded (%s).' % (trace_label, MAX_ITERATIONS))
             diagnostic_cols = ['tour_id', 'household_id', 'composition', 'adult']
             unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
             tracing.write_csv(unsatisfied_candidates,

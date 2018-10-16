@@ -26,9 +26,9 @@ def log_start_finish(msg, logger, level=logging.DEBUG):
         Level at which to log, passed to ``logger.log``.
 
     """
-    logger.log(level, 'start: ' + msg)
+    # logger.log(level, 'start: ' + msg)
     yield
-    logger.log(level, 'finish: ' + msg)
+    # logger.log(level, 'finish: ' + msg)
 
 
 def set_log_level(level):

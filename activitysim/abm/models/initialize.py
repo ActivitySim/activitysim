@@ -28,7 +28,7 @@ def annotate_tables(model_settings, trace_label):
     annotate_tables = model_settings.get('annotate_tables', [])
 
     if not annotate_tables:
-        logger.warn("annotate_tables setting is empty - nothing to do!")
+        logger.warning("annotate_tables setting is empty - nothing to do!")
 
     t0 = tracing.print_elapsed_time()
 

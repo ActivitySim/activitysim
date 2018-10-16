@@ -103,7 +103,7 @@ def joint_tour_frequency(
     # - annotate households
     # add joint_tour_frequency and num_hh_joint_tours columns to households
     # reindex since we ran model on a subset of households
-    households['joint_tour_frequency'] = choices.reindex(households.index)
+    households['joint_tour_frequency'] = choices.reindex(households.index).fillna('').astype(str)
 
     households['num_hh_joint_tours'] = joint_tours.groupby('household_id').size().\
         reindex(households.index).fillna(0).astype(np.int8)

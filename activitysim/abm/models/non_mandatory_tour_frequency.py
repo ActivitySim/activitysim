@@ -4,6 +4,7 @@
 import os
 import logging
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core.interaction_simulate import interaction_simulate
@@ -47,7 +48,10 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     choosers = persons_merged.to_frame()
 
     # FIXME kind of tacky both that we know to add this here and del it below
+    # 'tot_tours' is used in model_spec expressions
     alternatives['tot_tours'] = alternatives.sum(axis=1)
+
+    no_tours_alt = list((alternatives.sum(axis=1) == 0).values).index(True)
 
     # - preprocessor
     preprocessor_settings = model_settings.get('preprocessor', None)
@@ -103,7 +107,8 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     persons = persons.to_frame()
 
     # need to reindex as we only handled persons with cdap_activity in ['M', 'N']
-    persons['non_mandatory_tour_frequency'] = choices.reindex(persons.index)
+    persons['non_mandatory_tour_frequency'] = \
+        choices.reindex(persons.index).fillna(no_tours_alt).astype(np.int8)
 
     """
     We have now generated non-mandatory tours, but they are attributes of the person table
@@ -112,11 +117,12 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     """
     del alternatives['tot_tours']  # del tot_tours column we added above
     non_mandatory_tours = process_non_mandatory_tours(
-        persons[~persons.mandatory_tour_frequency.isnull()],
+        persons[persons.mandatory_tour_frequency != no_tours_alt],
         alternatives,
     )
 
     tours = pipeline.extend_table("tours", non_mandatory_tours)
+
     tracing.register_traceable_table('tours', tours)
     pipeline.get_rn_generator().add_channel(non_mandatory_tours, 'tours')
 

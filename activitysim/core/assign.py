@@ -241,7 +241,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             (target, expression, type(target))
 
         if target in local_keys:
-            logger.warn("assign_variables target obscures local_d name '%s'" % str(target))
+            logger.warning("assign_variables target obscures local_d name '%s'" % str(target))
 
         if is_temp_scalar(target) or is_throwaway(target):
             x = eval(expression, globals(), _locals_dict)

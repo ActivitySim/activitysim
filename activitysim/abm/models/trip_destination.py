@@ -306,8 +306,9 @@ def choose_trip_destination(
 
     dropped_trips = ~trips.index.isin(destination_sample.index.unique())
     if dropped_trips.any():
-        logger.warn("%s trip_destination_ample %s trips without viable destination alternatives"
-                    % (trace_label, dropped_trips.sum()))
+        logger.warning("%s trip_destination_ample %s trips "
+                       "without viable destination alternatives" %
+                       (trace_label, dropped_trips.sum()))
         trips = trips[~dropped_trips]
 
     t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0)
@@ -340,8 +341,9 @@ def choose_trip_destination(
 
     dropped_trips = ~trips.index.isin(destinations.index)
     if dropped_trips.any():
-        logger.warn("%s trip_destination_simulate %s trips without viable destination alternatives"
-                    % (trace_label, dropped_trips.sum()))
+        logger.warning("%s trip_destination_simulate %s trips "
+                       "without viable destination alternatives" %
+                       (trace_label, dropped_trips.sum()))
 
     t0 = print_elapsed_time("%s.trip_destination_simulate" % trace_label, t0)
 
@@ -503,8 +505,8 @@ def run_trip_destination(
 
             failed_trip_ids = nth_trips.index.difference(destinations.index)
             if failed_trip_ids.any():
-                logger.warn("%s sidelining %s trips without viable destination alternatives"
-                            % (nth_trace_label, failed_trip_ids.shape[0]))
+                logger.warning("%s sidelining %s trips without viable destination alternatives" %
+                               (nth_trace_label, failed_trip_ids.shape[0]))
                 next_trip_ids = nth_trips.next_trip_id.reindex(failed_trip_ids)
                 trips.loc[failed_trip_ids, 'failed'] = True
                 trips.loc[failed_trip_ids, 'destination'] = -1
@@ -549,7 +551,7 @@ def trip_destination(
         trace_label)
 
     if trips_df.failed.any():
-        logger.warn("%s %s failed trips" % (trace_label, trips_df.failed.sum()))
+        logger.warning("%s %s failed trips" % (trace_label, trips_df.failed.sum()))
         file_name = "%s_failed_trips" % trace_label
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
@@ -557,7 +559,8 @@ def trip_destination(
     if CLEANUP:
         trips_df = cleanup_failed_trips(trips_df)
     elif trips_df.failed.any():
-        logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
+        logger.warning("%s keeping %s sidelined failed trips" %
+                       (trace_label, trips_df.failed.sum()))
 
     pipeline.replace_table("trips", trips_df)
 

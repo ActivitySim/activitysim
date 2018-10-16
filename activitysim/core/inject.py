@@ -85,7 +85,7 @@ def add_step(name, func):
 def add_table(table_name, table, cache=False):
 
     if orca.is_table(table_name):
-        logger.warn("inject add_table replacing existing table %s" % table_name)
+        logger.warning("inject add_table replacing existing table %s" % table_name)
 
     return orca.add_table(table_name, table, cache=cache)
 

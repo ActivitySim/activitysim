@@ -5,7 +5,10 @@ from __future__ import absolute_import
 
 from builtins import range
 from builtins import object
+
 import logging
+import hashlib
+
 import numpy as np
 import pandas as pd
 
@@ -16,6 +19,23 @@ logger = logging.getLogger(__name__)
 
 # one more than 0xFFFFFFFF so we can wrap using: int64 % _MAX_SEED
 _MAX_SEED = (1 << 32)
+_SEED_MASK = 0xffffffff
+
+
+def hash32(s):
+    """
+
+    Parameters
+    ----------
+    s: str
+
+    Returns
+    -------
+        32 bit unsigned hash
+    """
+    s = s.encode('utf8')
+    h = hashlib.md5(s).hexdigest()
+    return int(h, base=16) & _SEED_MASK
 
 
 class SimpleChannel(object):
@@ -54,7 +74,7 @@ class SimpleChannel(object):
 
         # ensure that every channel is different, even for the same df index values and max_steps
         self.channel_name = channel_name
-        self.channel_seed = hash(self.channel_name) % _MAX_SEED
+        self.channel_seed = hash32(self.channel_name)
 
         self.step_name = None
         self.step_seed = None
@@ -109,7 +129,7 @@ class SimpleChannel(object):
         """
 
         if domain_df.empty:
-            logger.warn("extend_domain for channel %s for empty domain_df" % self.channel_name)
+            logger.warning("extend_domain for channel %s for empty domain_df" % self.channel_name)
 
         # dataframe to hold state for every df row
         row_states = pd.DataFrame(columns=['row_seed', 'offset'], index=domain_df.index)
@@ -138,7 +158,7 @@ class SimpleChannel(object):
         assert self.step_name is None
 
         self.step_name = step_name
-        self.step_seed = hash(self.step_name) % _MAX_SEED
+        self.step_seed = hash32(self.step_name)
 
         self.init_row_states_for_step(self.row_states)
 
@@ -269,7 +289,7 @@ class SimpleChannel(object):
         if not self.multi_choice_offset:
             # FIXME - if replace, should we estimate rands_consumed?
             if replace:
-                logger.warn("choice_for_df MULTI_CHOICE_FF with replace")
+                logger.warning("choice_for_df MULTI_CHOICE_FF with replace")
             # update offset for rows we handled
             self.row_states.loc[df.index, 'offset'] += size
 
@@ -324,7 +344,7 @@ class Random(object):
 
         self.step_name = step_name
 
-        self.step_seed = hash(step_name) % _MAX_SEED
+        self.step_seed = hash32(step_name)
 
         seed = [self.base_seed, self.step_seed]
         self.global_rng = np.random.RandomState(seed)
@@ -470,7 +490,7 @@ class Random(object):
         exists to allow sampling of input tables consistent no matter what step they are called in
         """
 
-        seed = [self.base_seed, hash(one_off_step_name) % _MAX_SEED]
+        seed = [self.base_seed, hash32(one_off_step_name)]
         return np.random.RandomState(seed)
 
     def random_for_df(self, df, n=1):

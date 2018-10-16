@@ -128,10 +128,10 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
             raise err
 
     if no_variability > 0:
-        logger.warn("%s: %s columns have no variability" % (trace_label, no_variability))
+        logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
 
     if has_missing_vals > 0:
-        logger.warn("%s: %s columns have missing values" % (trace_label, has_missing_vals))
+        logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
 
     if trace_eval_results is not None:
         trace_eval_results['total utility'] = utilities.utility[trace_rows]

@@ -1,10 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import range
-from builtins import object
+from __future__ import (absolute_import, division, print_function, unicode_literals)
+from builtins import *
+
 import logging
-import os
 
 import pandas as pd
 import numpy as np
@@ -183,7 +183,7 @@ def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
     if trace_od:
 
         if not trace_od_rows.any():
-            logger.warn("trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
+            logger.warning("trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
         else:
 
             # add OD columns to trace results

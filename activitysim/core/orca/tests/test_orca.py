@@ -915,12 +915,12 @@ def test_write_tables(df, store_name):
 
     step_tables = orca.get_step_table_names(['step'])
 
-    orca.write_tables(store_name, step_tables, None)
+    orca.write_tables(store_name, step_tables)
     with pd.HDFStore(store_name, mode='r') as store:
         assert 'table' in store
         pdt.assert_frame_equal(store['table'], df)
 
-    orca.write_tables(store_name, step_tables, 1969)
+    orca.write_tables(store_name, step_tables, prefix=1969)
 
     with pd.HDFStore(store_name, mode='r') as store:
         assert '1969/table' in store

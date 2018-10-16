@@ -1,9 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
+# ActivitySim
+# See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-from builtins import str
+from builtins import *
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import os.path
 import logging
 import pytest
@@ -51,7 +57,7 @@ def test_config_logger(capsys):
 
     logger.info('test_config_logger')
     logger.info('log_info')
-    logger.warn('log_warn1')
+    logger.warning('log_warn1')
 
     out, err = capsys.readouterr()
 
@@ -65,7 +71,7 @@ def test_config_logger(capsys):
     close_handlers()
 
     logger = logging.getLogger(__name__)
-    logger.warn('log_warn2')
+    logger.warning('log_warn2')
 
     with open(asim_logger_baseFilename, 'r') as content_file:
         content = content_file.read()
@@ -226,7 +232,7 @@ def test_basic(capsys):
     logger.info('test_basic')
     logger.debug('log_debug')
     logger.info('log_info')
-    logger.warn('log_warn')
+    logger.warning('log_warn')
 
     out, err = capsys.readouterr()
 

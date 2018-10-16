@@ -121,7 +121,7 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
     """
 
     # if not choosers.index.is_monotonic_increasing:
-    #     logger.warn('chunked_choosers_and_alts sorting choosers because not monotonic increasing')
+    #     logger.warning('sorting choosers because not monotonic increasing')
     #     choosers = choosers.sort_index()
 
     # alternatives index should match choosers (except with duplicate repeating alt rows)

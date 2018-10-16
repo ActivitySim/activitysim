@@ -337,8 +337,8 @@ def schedule_trips_in_leg(
         # most initial departure (when no choice was made because all probs were zero)
         if last_iteration and (failfix == FAILFIX_CHOOSE_MOST_INITIAL):
             choices = choices.reindex(nth_trips.index)
-            logger.warn("%s coercing %s depart choices to most initial" %
-                        (nth_trace_label, choices.isna().sum()))
+            logger.warning("%s coercing %s depart choices to most initial" %
+                           (nth_trace_label, choices.isna().sum()))
             choices = choices.fillna(trips[ADJUST_NEXT_DEPART_COL])
 
         # adjust allowed depart range of next trip
@@ -552,8 +552,8 @@ def trip_scheduling(
     choices = pd.concat(choices_list)
     choices = choices.reindex(trips_df.index)
     if choices.isnull().any():
-        logger.warn("%s of %s trips could not be scheduled after %s iterations" %
-                    (choices.isnull().sum(), trips_df.shape[0], i))
+        logger.warning("%s of %s trips could not be scheduled after %s iterations" %
+                       (choices.isnull().sum(), trips_df.shape[0], i))
 
         if failfix != FAILFIX_DROP_AND_CLEANUP:
             raise RuntimeError("%s setting '%' not enabled in settings" %

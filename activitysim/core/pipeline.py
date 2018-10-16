@@ -1,9 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
+
+from __future__ import (absolute_import, division, print_function, unicode_literals)
+
+from builtins import *
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 from future.utils import iteritems
 
@@ -113,7 +117,7 @@ def open_pipeline_store(overwrite=False):
                 os.unlink(pipeline_file_path)
         except Exception as e:
             print(e)
-            logger.warn("Error removing %s: %s" % (pipeline_file_path, e))
+            logger.warning("Error removing %s: %s" % (pipeline_file_path, e))
 
     _PIPELINE.pipeline_store = pd.HDFStore(pipeline_file_path, mode='a')
 
@@ -718,14 +722,21 @@ def extend_table(table_name, df, axis=0):
         if axis == 0:
             # don't expect indexes to overlap
             assert len(table_df.index.intersection(df.index)) == 0
+            missing_df_str_columns = [c for c in table_df.columns
+                                      if c not in df.columns and table_df[c].dtype == 'O']
         else:
             # expect indexes be same
             assert table_df.index.equals(df.index)
-            new_columns = [c for c in df.columns if c not in table_df.columns]
-            df = df[new_columns]
+            new_df_columns = [c for c in df.columns if c not in table_df.columns]
+            df = df[new_df_columns]
 
         # preserve existing column order
         df = pd.concat([table_df, df], sort=False, axis=axis)
+
+        # backfill missing df columns that were str (object) type in table_df
+        if axis == 0:
+            for c in missing_df_str_columns:
+                df[c] = df[c].fillna('')
 
     replace_table(table_name, df)
 

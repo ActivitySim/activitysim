@@ -114,7 +114,7 @@ def mandatory_tour_frequency(persons_merged,
     persons = inject.get_table('persons').to_frame()
 
     # need to reindex as we only handled persons with cdap_activity == 'M'
-    persons['mandatory_tour_frequency'] = choices.reindex(persons.index)
+    persons['mandatory_tour_frequency'] = choices.reindex(persons.index).fillna('').astype(str)
 
     expressions.assign_columns(
         df=persons,

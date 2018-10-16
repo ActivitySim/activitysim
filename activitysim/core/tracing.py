@@ -1,13 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 from builtins import next
 from builtins import str
 from builtins import range
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import os
 import logging
@@ -222,7 +223,7 @@ def register_traceable_table(table_name, df):
 
     if table_name == 'households':
         if trace_hh_id not in df.index:
-            logger.warn("trace_hh_id %s not in dataframe" % trace_hh_id)
+            logger.warning("trace_hh_id %s not in dataframe" % trace_hh_id)
             new_traced_ids = []
         else:
             logger.info("tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
@@ -246,8 +247,8 @@ def register_traceable_table(table_name, df):
         traced_df = df[df[ref_con].isin(ref_con_traced_ids)]
         new_traced_ids = traced_df.index.tolist()
         if len(new_traced_ids) == 0:
-            logger.warn("register %s: no rows with %s in %s." %
-                        (table_name, ref_con, ref_con_traced_ids))
+            logger.warning("register %s: no rows with %s in %s." %
+                           (table_name, ref_con, ref_con_traced_ids))
 
     # update traceable_table_refs with this traceable_table's ref_con
     if idx_name not in traceable_table_refs:
@@ -339,11 +340,9 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
     Nothing
     """
 
-    file_name = file_name.encode('ascii', 'ignore')
-
     assert len(file_name) > 0
 
-    if not file_name.endswith(".%s" % CSV_FILE_TYPE):
+    if not file_name.endswith('.%s' % CSV_FILE_TYPE):
         file_name = '%s.%s' % (file_name, CSV_FILE_TYPE)
 
     file_path = config.trace_file_path(file_name)
@@ -555,8 +554,8 @@ def trace_df(df, label, slicer=None, columns=None,
 
     if warn_if_empty and df.shape[0] == 0 and target_ids != []:
         column_name = column or slicer
-        logger.warn("slice_canonically: no rows in %s with %s == %s"
-                    % (label, column_name, target_ids))
+        logger.warning("slice_canonically: no rows in %s with %s == %s"
+                       % (label, column_name, target_ids))
 
     if df.shape[0] > 0:
         write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,

@@ -1,9 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function, unicode_literals)
+
+from builtins import *
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import logging
+from io import open
+import sys
 
 from activitysim.core import inject
 from activitysim.core import tracing
@@ -48,11 +55,13 @@ if __name__ == '__main__':
         cleanup_output_files()
 
     run_list = tasks.get_run_list()
-    with open(config.output_file_path('run_list.txt'), 'w') as f:
+
+    mode = 'wb' if sys.version_info < (3,) else 'w'
+    with open(config.output_file_path('run_list.txt'), mode) as f:
         tasks.print_run_list(run_list, f)
 
-    # tasks.print_run_list(run_list)
-    # bug
+    tasks.print_run_list(run_list)
+    bug
 
     if run_list['multiprocess']:
         logger.info("run multiprocess simulation")

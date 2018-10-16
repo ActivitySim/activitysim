@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, unicode_literals)
+
 import os
 import warnings
 import logging
@@ -13,7 +15,7 @@ from activitysim.core import config
 from activitysim.core import inject
 
 # FIXME
-warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
+# warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
 logger = logging.getLogger(__name__)
@@ -64,7 +66,7 @@ def trace_hh_id(settings):
     id = settings.get('trace_hh_id', None)
 
     if id and not isinstance(id, int):
-        logger.warn("setting trace_hh_id is wrong type, should be an int, but was %s" % type(id))
+        logger.warning("setting trace_hh_id is wrong type, should be an int, but was %s" % type(id))
         id = None
 
     return id
@@ -76,7 +78,7 @@ def trace_od(settings):
     od = settings.get('trace_od', None)
 
     if od and not (isinstance(od, list) and len(od) == 2 and all(isinstance(x, int) for x in od)):
-        logger.warn("setting trace_od is wrong type, should be a list of length 2, but was %s" % od)
+        logger.warning("setting trace_od should be a list of length 2, but was %s" % od)
         od = None
 
     return od

@@ -1,12 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
+from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
-from builtins import zip
-from builtins import next
-from builtins import range
+from builtins import *
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 from future.utils import iteritems
 
 import sys
@@ -345,7 +349,7 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
         # if they specified a resume_after model, check to make sure it is checkpointed
         if resume_after not in pipeline.get_checkpoints()[pipeline.CHECKPOINT_NAME].values:
             # if not checkpointed, then fall back to last checkpoint
-            logger.warn("resume_after checkpoint '%s' not in pipeline", resume_after)
+            logger.warning("resume_after checkpoint '%s' not in pipeline", resume_after)
             resume_after = '_'
 
     pipeline.open_pipeline(resume_after)
@@ -596,7 +600,7 @@ def get_run_list():
     multiprocess_steps = setting('multiprocess_steps', [])
 
     if multiprocess and mp.cpu_count() == 1:
-        logger.warn("Can't multiprocess because there is only 1 cpu")
+        logger.warning("Can't multiprocess because there is only 1 cpu")
         multiprocess = False
 
     run_list = {
@@ -653,8 +657,8 @@ def get_run_list():
                     raise RuntimeError("num_processes = 1 but found slice info for step %s"
                                        " in multiprocess_steps" % name)
                 if num_processes > mp.cpu_count():
-                    logger.warn("num_processes setting (%s) greater than cpu count (%s",
-                                num_processes, mp.cpu_count())
+                    logger.warning("num_processes setting (%s) greater than cpu count (%s",
+                                   num_processes, mp.cpu_count())
             else:
                 if num_processes == 0:
                     num_processes = 1
@@ -743,6 +747,9 @@ def print_run_list(run_list, output_file=None):
     if output_file is None:
         output_file = sys.stdout
 
+    s = 'print_run_list'
+    print(s, file=output_file)
+
     print("resume_after:", run_list['resume_after'], file=output_file)
     print("multiprocess:", run_list['multiprocess'], file=output_file)
 
@@ -818,15 +825,3 @@ def is_sub_task():
 def if_sub_task(if_is, if_isnt):
 
     return if_is if is_sub_task() else if_isnt
-
-
-def if_sub_task_opt(if_is, if_isnt):
-
-    opt = {
-        'ERROR': logging.ERROR,
-        'WARN': logging.WARN,
-        'INFO': logging.INFO,
-        'DEBUG': logging.DEBUG,
-        'NOTSET': logging.NOTSET,
-    }
-    return opt[if_is] if is_sub_task() else opt[if_isnt]

@@ -109,7 +109,7 @@ def trip_purpose_and_destination(
             results.append(trips_df[RESULT_COLUMNS])
             break
 
-        logger.warn("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
+        logger.warning("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
         file_name = "%s_i%s_failed_trips" % (trace_label, i)
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
@@ -117,7 +117,7 @@ def trip_purpose_and_destination(
         # if max iterations reached, add remaining trips to results and give up
         # note that we do this BEFORE failing leg_mates so resulting trip legs are complete
         if i >= MAX_ITERATIONS:
-            logger.warn("%s too many iterations %s" % (trace_label, i))
+            logger.warning("%s too many iterations %s" % (trace_label, i))
             results.append(trips_df[RESULT_COLUMNS])
             break
 
@@ -142,7 +142,8 @@ def trip_purpose_and_destination(
     if CLEANUP:
         trips_df = cleanup_failed_trips(trips_df)
     elif trips_df.failed.any():
-        logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
+        logger.warning("%s keeping %s sidelined failed trips" %
+                       (trace_label, trips_df.failed.sum()))
 
     pipeline.replace_table("trips", trips_df)
 

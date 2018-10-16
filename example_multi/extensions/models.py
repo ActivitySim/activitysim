@@ -98,7 +98,7 @@ def best_transit_path(set_random_seed,
     if trace_od:
 
         if not trace_oabd_rows.any():
-            logger.warn("trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
+            logger.warning("trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
         else:
 
             tracing.trace_df(atap_btap_df,

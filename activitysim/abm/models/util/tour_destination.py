@@ -40,9 +40,9 @@ def size_term(land_use, destination_choice_coeffs):
     missing = coeffs[~coeffs.index.isin(land_use.columns)]
 
     if len(missing) > 0:
-        logger.warn("%s  missing columns in land use" % len(missing.index))
+        logger.warning("%s  missing columns in land use" % len(missing.index))
         for v in missing.index.values:
-            logger.warn("missing: %s" % v)
+            logger.warning("missing: %s" % v)
 
     return land_use[coeffs.index].dot(coeffs)
 
@@ -84,7 +84,7 @@ def tour_destination_size_terms(land_use, size_terms, selector):
     df.index.name = 'TAZ'
 
     if not (df.dtypes == 'float64').all():
-        logger.warn('Surprised to find that not all size_terms were float64!')
+        logger.warning('Surprised to find that not all size_terms were float64!')
 
     # - #NARROW
     # float16 has 3.3 decimal digits of precision, float32 has 7.2

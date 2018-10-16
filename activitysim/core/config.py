@@ -1,5 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, unicode_literals)
+
+from builtins import *
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import argparse
 import os
@@ -252,7 +258,6 @@ def config_file_path(file_name, mandatory=True):
 
     if isinstance(configs_dir, str):
         configs_dir = [configs_dir]
-
     assert isinstance(configs_dir, list)
 
     file_path = None

@@ -287,8 +287,8 @@ def assign_in_place(df, df2):
                 try:
                     df[c] = df[c].astype(old_dtype)
                 except ValueError:
-                    logger.warn("assign_in_place changed dtype %s of column %s to %s" %
-                                (old_dtype, c, df[c].dtype))
+                    logger.warning("assign_in_place changed dtype %s of column %s to %s" %
+                                   (old_dtype, c, df[c].dtype))
 
             # if both df and df2 column were ints, but result is not
             if np.issubdtype(old_dtype, np.integer) \
@@ -297,8 +297,8 @@ def assign_in_place(df, df2):
                 try:
                     df[c] = df[c].astype(old_dtype)
                 except ValueError:
-                    logger.warn("assign_in_place changed dtype %s of column %s to %s" %
-                                (old_dtype, c, df[c].dtype))
+                    logger.warning("assign_in_place changed dtype %s of column %s to %s" %
+                                   (old_dtype, c, df[c].dtype))
 
     # add new columns (in order they appear in df2)
     new_columns = [c for c in df2.columns if c not in df.columns]

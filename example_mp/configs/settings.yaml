@@ -1,8 +1,11 @@
 
 inherit_settings: True
 
-#number of households to simulate
 households_sample_size: 100
+multiprocess: False
+chunk_size: 3000000000
+
+check_for_variability: False
 
 #trace household id; comment out for no trace
 # household with all tour categories
@@ -10,9 +13,6 @@ trace_hh_id: 1269102
 
 # trace origin, destination in accessibility calculation
 trace_od: [5, 11]
-
-# comment out or set false to disable variability check in simple_simulate and interaction_simulate
-check_for_variability: False
 
 models:
   - initialize_landuse
@@ -61,9 +61,6 @@ models:
 
 
 
-# comment out to run single-threaded
-multiprocess: False
-chunk_size: 4000000000
 # 160 GB
 #chunk_size: 10000000000
 

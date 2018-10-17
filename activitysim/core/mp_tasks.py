@@ -43,6 +43,11 @@ from activitysim.abm.tables.skims import load_skims
 logger = logging.getLogger('activitysim')
 
 
+"""
+    child process methods (called within sub process)
+"""
+
+
 def pipeline_table_keys(pipeline_store, checkpoint_name=None):
 
     checkpoints = pipeline_store[pipeline.CHECKPOINT_TABLE_NAME]
@@ -318,38 +323,23 @@ def setup_injectables_and_logging(injectables):
     tracing.config_logger()
 
 
-def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
-
-    skim_buffer = kwargs
+def run_simulation(queue, injectables, step_info, resume_after, skim_buffer):
 
     step_label = step_info['name']
     models = step_info['models']
-    num_processes = step_info['num_processes']
     chunk_size = step_info['chunk_size']
-
-    handle_standard_args()
-
-    # do this before config_logger so log file is named appropriately
-    process_name = multiprocessing.current_process().name
-    if num_processes > 1:
-        pipeline_prefix = process_name
-        logger.info("injecting pipeline_file_prefix '%s'", pipeline_prefix)
-        inject.add_injectable("pipeline_file_prefix", pipeline_prefix)
-
-    setup_injectables_and_logging(injectables)
-
-    logger.info("mp_run_simulation %s num_processes %s", process_name, num_processes)
-    if resume_after:
-        logger.info('resume_after %s', resume_after)
 
     inject.add_injectable('skim_buffer', skim_buffer)
     inject.add_injectable("chunk_size", chunk_size)
 
-    if resume_after and resume_after != '_':
+    if resume_after:
+        logger.info('resume_after %s', resume_after)
+
         # if they specified a resume_after model, check to make sure it is checkpointed
-        if resume_after not in pipeline.get_checkpoints()[pipeline.CHECKPOINT_NAME].values:
+        if resume_after != '_' \
+                and resume_after not in pipeline.get_checkpoints()[pipeline.CHECKPOINT_NAME].values:
             # if not checkpointed, then fall back to last checkpoint
-            logger.warning("resume_after checkpoint '%s' not in pipeline", resume_after)
+            logger.info("resume_after checkpoint '%s' not in pipeline.", resume_after)
             resume_after = '_'
 
     pipeline.open_pipeline(resume_after)
@@ -376,6 +366,26 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
     pipeline.close_pipeline()
 
 
+"""
+    multiprocessing entry points
+"""
+
+
+def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
+
+    skim_buffer = kwargs
+    handle_standard_args()
+    setup_injectables_and_logging(injectables)
+
+    process_name = multiprocessing.current_process().name
+    if step_info['num_processes'] > 1:
+        pipeline_prefix = process_name
+        logger.info("injecting pipeline_file_prefix '%s'", pipeline_prefix)
+        inject.add_injectable("pipeline_file_prefix", pipeline_prefix)
+
+    run_simulation(queue, injectables, step_info, resume_after, skim_buffer)
+
+
 def mp_apportion_pipeline(injectables, sub_job_proc_names, slice_info):
     setup_injectables_and_logging(injectables)
     apportion_pipeline(sub_job_proc_names, slice_info)
@@ -392,15 +402,9 @@ def mp_coalesce_pipelines(injectables, sub_job_proc_names, slice_info):
     coalesce_pipelines(sub_job_proc_names, slice_info)
 
 
-def run_sub_task(p):
-    logger.info("running sub_process %s", p.name)
-    p.start()
-    p.join()
-    # logger.info('%s.exitcode = %s' % (p.name, p.exitcode))
-
-    if p.exitcode:
-        logger.error("Process %s returned exitcode %s", p.name, p.exitcode)
-        raise RuntimeError("Process %s returned exitcode %s" % (p.name, p.exitcode))
+"""
+    main (parent) process methods
+"""
 
 
 def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_names, resume_after):
@@ -466,25 +470,35 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
     return error_count
 
 
+def run_sub_task(p):
+    logger.info("running sub_process %s", p.name)
+    p.start()
+    p.join()
+    # logger.info('%s.exitcode = %s' % (p.name, p.exitcode))
+
+    if p.exitcode:
+        logger.error("Process %s returned exitcode %s", p.name, p.exitcode)
+        raise RuntimeError("Process %s returned exitcode %s" % (p.name, p.exitcode))
+
+
 def run_multiprocess(run_list, injectables):
 
     if not run_list['multiprocess']:
         raise RuntimeError("run_multiprocess called but multiprocess flag is %s" %
                            run_list['multiprocess'])
 
-    resume_journal = run_list.get('resume_journal', {})
-    run_status = OrderedDict()
+    old_breadcrumbs = run_list.get('breadcrumbs', {})
+    new_breadcrumbs = OrderedDict()
 
-    def skip(step_name, key):
-        already_did_this = resume_journal and resume_journal.get(step_name, {}).get(key, False)
-        if already_did_this:
-            logger.info("Skipping %s %s", step_name, key)
-            time.sleep(1)
-        return already_did_this
+    def skip_phase(phase):
+        skip = old_breadcrumbs and old_breadcrumbs.get(step_name, {}).get(phase, False)
+        if skip:
+            logger.info("Skipping %s %s", step_name, phase)
+        return skip
 
-    def update_journal(step_name, key, value):
-        run_status.setdefault(step_name, {'name': step_name})[key] = value
-        save_journal(run_status)
+    def drop_breadcrumb(phase):
+        new_breadcrumbs.setdefault(step_name, {'name': step_name})[phase] = True
+        write_breadcrumbs(new_breadcrumbs)
 
     logger.info('setup shared skim data')
     shared_skim_buffer = allocate_shared_skim_buffer()
@@ -508,12 +522,10 @@ def run_multiprocess(run_list, injectables):
         else:
             sub_proc_names = ["%s_%s" % (step_name, i) for i in range(num_processes)]
 
-        update_journal(step_name, 'sub_proc_names', sub_proc_names)
-
         logger.info('running step %s with %s processes', step_name, num_processes,)
 
         # - mp_apportion_pipeline
-        if not skip(step_name, 'apportion'):
+        if not skip_phase('apportion'):
             if num_processes > 1:
                 logger.info('apportioning households to sub_processes')
                 run_sub_task(
@@ -521,20 +533,19 @@ def run_multiprocess(run_list, injectables):
                         target=mp_apportion_pipeline, name='%s_apportion' % step_name,
                         args=(injectables, sub_proc_names, slice_info))
                 )
-        update_journal(step_name, 'apportion', True)
+        drop_breadcrumb('apportion')
 
         # - run_sub_simulations
-        if not skip(step_name, 'simulate'):
+        if not skip_phase('simulate'):
             error_count = \
                 run_sub_simulations(injectables, shared_skim_buffer, step_info, sub_proc_names,
                                     resume_after=step_info.get('resume_after', None))
             if error_count:
                 raise RuntimeError("%s processes failed in step %s" % (error_count, step_name))
-
-        update_journal(step_name, 'simulate', True)
+        drop_breadcrumb('simulate')
 
         # - mp_coalesce_pipelines
-        if not skip(step_name, 'coalesce'):
+        if not skip_phase('coalesce'):
             if num_processes > 1:
                 logger.info('coalescing sub_process pipelines')
                 run_sub_task(
@@ -542,59 +553,58 @@ def run_multiprocess(run_list, injectables):
                         target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
                         args=(injectables, sub_proc_names, slice_info))
                 )
-        update_journal(step_name, 'coalesce', True)
+        drop_breadcrumb('coalesce')
 
 
-def get_resume_journal(run_list):
+def get_breadcrumbs(run_list):
 
     resume_after = run_list['resume_after']
     assert resume_after is not None
 
-    previous_journal = read_journal()
+    breadcrumbs = read_breadcrumbs()
 
-    if not previous_journal:
-        logger.error("empty journal for resume_after '%s'", resume_after)
-        raise RuntimeError("empty journal for resume_after '%s'" % resume_after)
+    if not breadcrumbs:
+        logger.error("empty breadcrumbs for resume_after '%s'", resume_after)
+        raise RuntimeError("empty breadcrumbs for resume_after '%s'" % resume_after)
 
     if resume_after == '_':
-        resume_step_name = list(previous_journal.keys())[-1]
+        resume_step_name = list(breadcrumbs.keys())[-1]
     else:
 
-        previous_steps = list(previous_journal.keys())
+        previous_steps = list(breadcrumbs.keys())
 
         # run_list step resume_after is in
         resume_step_name = next((step['name'] for step in run_list['multiprocess_steps']
                                  if resume_after in step['models']), None)
 
         if resume_step_name not in previous_steps:
-            logger.error("resume_after model '%s' not in journal", resume_after)
-            raise RuntimeError("resume_after model '%s' not in journal" % resume_after)
+            logger.error("resume_after model '%s' not in breadcrumbs", resume_after)
+            raise RuntimeError("resume_after model '%s' not in breadcrumbs" % resume_after)
 
-        # drop any previous_journal steps after resume_step
+        # drop any previous_breadcrumbs steps after resume_step
         for step in previous_steps[previous_steps.index(resume_step_name) + 1:]:
-            del previous_journal[step]
+            del breadcrumbs[step]
 
     multiprocess_step = next((step for step in run_list['multiprocess_steps']
-                              if step['name'] == resume_step_name), [])
+                              if step['name'] == resume_step_name), [])  # type: dict
 
-    print("resume_step_models", multiprocess_step['models'])
     if resume_after in multiprocess_step['models'][:-1]:
 
         # if resume_after is specified by name, and is not the last model in the step
         # then we need to rerun the simulations, even if they succeeded
 
-        if previous_journal[resume_step_name].get('simulate', None):
-            previous_journal[resume_step_name]['simulate'] = None
+        if breadcrumbs[resume_step_name].get('simulate', None):
+            breadcrumbs[resume_step_name]['simulate'] = None
 
-        if previous_journal[resume_step_name].get('coalesce', None):
-            previous_journal[resume_step_name]['coalesce'] = None
+        if breadcrumbs[resume_step_name].get('coalesce', None):
+            breadcrumbs[resume_step_name]['coalesce'] = None
 
     multiprocess_step_names = [step['name'] for step in run_list['multiprocess_steps']]
-    if list(previous_journal.keys()) != multiprocess_step_names[:len(previous_journal)]:
+    if list(breadcrumbs.keys()) != multiprocess_step_names[:len(breadcrumbs)]:
         raise RuntimeError("last run steps don't match run list: %s" %
-                           list(previous_journal.keys()))
+                           list(breadcrumbs.keys()))
 
-    return previous_journal
+    return breadcrumbs
 
 
 def get_run_list():
@@ -736,13 +746,13 @@ def get_run_list():
 
         run_list['multiprocess_steps'] = multiprocess_steps
 
-        # - add resume_journal
+        # - add resume_breadcrumbs
         if resume_after:
-            resume_journal = get_resume_journal(run_list)
-            if resume_journal:
-                run_list['resume_journal'] = resume_journal
+            breadcrumbs = get_breadcrumbs(run_list)
+            if breadcrumbs:
+                run_list['breadcrumbs'] = breadcrumbs
                 # - add resume_after to resume_step
-                istep = len(resume_journal) - 1
+                istep = len(breadcrumbs) - 1
                 multiprocess_steps[istep]['resume_after'] = resume_after
 
     # - write run list to output dir
@@ -780,18 +790,18 @@ def print_run_list(run_list, output_file=None):
                 else:
                     print("    %s: %s" % (k, step[k]), file=output_file)
 
-        if run_list.get('resume_journal'):
-            print("\nresume_journal:", file=output_file)
-            print_journal(run_list['resume_journal'], output_file)
+        if run_list.get('breadcrumbs'):
+            print("\nbreadcrumbs:", file=output_file)
+            print_breadcrumbs(run_list['breadcrumbs'], output_file)
 
 
-def print_journal(journal, output_file=None):
+def print_breadcrumbs(breadcrumbs, output_file=None):
 
     if output_file is None:
         output_file = sys.stdout
 
-    for step_name in journal:
-        step = journal[step_name]
+    for step_name in breadcrumbs:
+        step = breadcrumbs[step_name]
         print("  step:", step_name, file=output_file)
         for k in step:
             if isinstance(k, str):
@@ -802,25 +812,25 @@ def print_journal(journal, output_file=None):
                     print("      ", v, file=output_file)
 
 
-def journal_file_path(file_name=None):
-    return config.build_output_file_path(file_name or 'journal.yaml')
+def breadcrumbs_file_path():
+    return config.build_output_file_path('breadcrumbs.yaml')
 
 
-def read_journal(file_name=None):
-    file_path = journal_file_path(file_name)
+def read_breadcrumbs():
+    file_path = breadcrumbs_file_path()
     if not os.path.exists(file_path):
-        raise IOError("Could not find saved journal file '%s'" % file_path)
+        raise IOError("Could not find saved breadcrumbs file '%s'" % file_path)
     with open(file_path, 'r') as f:
-        journal = yaml.load(f)
+        breadcrumbs = yaml.load(f)
 
-    journal = OrderedDict([(step['name'], step) for step in journal])
-    return journal
+    breadcrumbs = OrderedDict([(step['name'], step) for step in breadcrumbs])
+    return breadcrumbs
 
 
-def save_journal(journal, file_name=None):
-    with open(journal_file_path(file_name), 'w') as f:
-        journal = [step for step in list(journal.values())]
-        yaml.dump(journal, f)
+def write_breadcrumbs(breadcrumbs):
+    with open(breadcrumbs_file_path(), 'w') as f:
+        breadcrumbs = [step for step in list(breadcrumbs.values())]
+        yaml.dump(breadcrumbs, f)
 
 
 def is_sub_task():

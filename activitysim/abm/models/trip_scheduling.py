@@ -522,7 +522,7 @@ def trip_scheduling(
         last_iteration = (i == max_iterations)
 
         trace_label_i = tracing.extend_trace_label(trace_label, "i%s" % i)
-        logger.info("%s scheduling %s trips" % (trace_label_i, trips_df.shape[0]))
+        logger.info("%s scheduling %s trips", trace_label_i, trips_df.shape[0])
 
         choices = \
             run_trip_scheduling(
@@ -537,7 +537,7 @@ def trip_scheduling(
 
         # boolean series of trips whose individual trip scheduling failed
         failed = choices.reindex(trips_df.index).isnull()
-        logger.info("%s %s failed" % (trace_label_i, failed.sum()))
+        logger.info("%s %s failed", trace_label_i, failed.sum())
 
         if not last_iteration:
             # boolean series of trips whose leg scheduling failed

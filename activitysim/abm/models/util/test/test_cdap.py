@@ -129,7 +129,7 @@ def test_build_cdap_spec_hhsize2(people, cdap_indiv_and_hhsize1, cdap_interactio
 
     choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
 
-    spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize=hhsize)
+    spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize=hhsize, cache=False)
 
     vars = cdap.eval_variables(spec.index, choosers)
 

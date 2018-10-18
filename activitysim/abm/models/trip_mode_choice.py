@@ -49,7 +49,7 @@ def trip_mode_choice(
         assign.read_constant_spec(config.config_file_path(model_settings['COEFFS']))
 
     trips_df = trips.to_frame()
-    logger.info("Running %s with %d trips" % (trace_label, trips_df.shape[0]))
+    logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     tours_merged = tours_merged.to_frame()
     tours_merged = tours_merged[model_settings['TOURS_MERGED_CHOOSER_COLUMNS']]

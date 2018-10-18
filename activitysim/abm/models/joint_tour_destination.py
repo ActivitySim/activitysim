@@ -134,7 +134,7 @@ def joint_tour_destination_sample(
     if constants is not None:
         locals_d.update(constants)
 
-    logger.info("Running joint_tour_destination_sample with %d joint_tours" % len(choosers))
+    logger.info("Running joint_tour_destination_sample with %d joint_tours", len(choosers))
 
     choices_list = []
     # segment by trip type and pick the right spec for each person type
@@ -146,7 +146,7 @@ def joint_tour_destination_sample(
         choosers_segment = choosers[choosers.tour_type == tour_type]
 
         if choosers_segment.shape[0] == 0:
-            logger.info("%s skipping tour_type %s: no tours" % (trace_label, tour_type))
+            logger.info("%s skipping tour_type %s: no tours", trace_label, tour_type)
             continue
 
         # alts indexed by taz with one column containing size_term for  this tour_type
@@ -235,7 +235,7 @@ def joint_tour_destination_logsums(
         choosers = destination_sample[destination_sample['tour_type_id'] == tour_type_id]
 
         if choosers.shape[0] == 0:
-            logger.info("%s skipping tour_type %s: no tours" % (trace_label, tour_type))
+            logger.info("%s skipping tour_type %s: no tours", trace_label, tour_type)
             continue
 
         # sample is sorted by TOUR_TYPE_ID, tour_id
@@ -249,7 +249,7 @@ def joint_tour_destination_logsums(
             how="left",
             sort=False)
 
-        logger.info("%s running %s with %s rows" % (trace_label, tour_type, len(choosers)))
+        logger.info("%s running %s with %s rows", trace_label, tour_type, len(choosers))
 
         tour_purpose = tour_type
         logsums = logsum.compute_logsums(
@@ -343,7 +343,7 @@ def joint_tour_destination_simulate(
 
         # - skip empty segments
         if choosers_segment.shape[0] == 0:
-            logger.info("%s skipping tour_type %s: no tours" % (trace_label, tour_type))
+            logger.info("%s skipping tour_type %s: no tours", trace_label, tour_type)
             continue
 
         alts_segment = destination_sample[destination_sample.tour_type_id == tour_type_id]

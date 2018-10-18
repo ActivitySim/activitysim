@@ -241,7 +241,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             (target, expression, type(target))
 
         if target in local_keys:
-            logger.warning("assign_variables target obscures local_d name '%s'" % str(target))
+            logger.warning("assign_variables target obscures local_d name '%s'", str(target))
 
         if is_temp_scalar(target) or is_throwaway(target):
             x = eval(expression, globals(), _locals_dict)
@@ -267,12 +267,8 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             np.seterrcall(saved_handler)
 
         except Exception as err:
-            logger.error("assign_variables error: %s: %s" % (type(err).__name__, str(err)))
-
-            logger.error("assign_variables expression: %s = %s"
-                         % (str(target), str(expression)))
-
-            # expr_values = to_series(None, target=target)
+            logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
+            logger.error("assign_variables expression: %s = %s", str(target), str(expression))
             raise err
 
         if not is_temp(target):

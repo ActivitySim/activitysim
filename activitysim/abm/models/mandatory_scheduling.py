@@ -48,7 +48,7 @@ def mandatory_tour_scheduling(tours,
 
     model_constants = config.get_model_constants(model_settings)
 
-    logger.info("Running mandatory_tour_scheduling with %d tours" % len(tours))
+    logger.info("Running mandatory_tour_scheduling with %d tours", len(tours))
     tdd_choices = vectorize_tour_scheduling(
         mandatory_tours, persons_merged,
         tdd_alts,

@@ -20,6 +20,7 @@ from activitysim.core import random
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
+from activitysim.core import config
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
@@ -32,6 +33,21 @@ HH_ID = 1482966
 
 # SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
+
+
+def setup_dirs(configs_dir):
+
+    inject.add_injectable("configs_dir", configs_dir)
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    inject.add_injectable("output_dir", output_dir)
+
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    inject.add_injectable("data_dir", data_dir)
+
+    inject.clear_cache()
+
+    tracing.config_logger()
 
 
 def teardown_function(func):
@@ -49,20 +65,13 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def inject_settings(configs_dir, households_sample_size, chunk_size=None,
-                    trace_hh_id=None, trace_od=None, check_for_variability=None):
+def inject_settings(configs_dir, **kwargs):
 
     with open(os.path.join(configs_dir, 'settings.yaml')) as f:
         settings = yaml.load(f)
-        settings['households_sample_size'] = households_sample_size
-        if chunk_size is not None:
-            settings['chunk_size'] = chunk_size
-        if trace_hh_id is not None:
-            settings['trace_hh_id'] = trace_hh_id
-        if trace_od is not None:
-            settings['trace_od'] = trace_od
-        if check_for_variability is not None:
-            settings['check_for_variability'] = check_for_variability
+
+        for k in kwargs:
+            settings[k] = kwargs[k]
 
         inject.add_injectable("settings", settings)
 
@@ -72,17 +81,8 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
 def test_rng_access():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    inject.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable("output_dir", output_dir)
-
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    inject.add_injectable("data_dir", data_dir)
-
-    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
-
-    inject.clear_cache()
+    setup_dirs(configs_dir)
 
     inject.add_injectable('rng_base_seed', 0)
 
@@ -144,19 +144,10 @@ def regress_mini_mtf():
 def test_mini_pipeline_run():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    inject.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable("output_dir", output_dir)
-
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    inject.add_injectable("data_dir", data_dir)
+    setup_dirs(configs_dir)
 
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
-
-    inject.clear_cache()
-
-    tracing.config_logger()
 
     _MODELS = [
         'initialize_landuse',
@@ -192,7 +183,6 @@ def test_mini_pipeline_run():
 
     pipeline.close_pipeline()
     inject.clear_cache()
-
     close_handlers()
 
 
@@ -203,17 +193,10 @@ def test_mini_pipeline_run2():
     # when we restart pipeline
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    inject.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable("output_dir", output_dir)
-
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    inject.add_injectable("data_dir", data_dir)
+    setup_dirs(configs_dir)
 
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
-
-    inject.clear_cache()
 
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
@@ -241,8 +224,38 @@ def test_mini_pipeline_run2():
     checkpoints_df = pipeline.get_checkpoints()
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
+    # - write list of override_hh_ids to override_hh_ids.csv in configs for use in next test
+    num_hh_ids = 10
+    hh_ids = pipeline.get_table("households").head(num_hh_ids).index.values
+    hh_ids = pd.DataFrame({'household_id': hh_ids})
+    hh_ids.to_csv(os.path.join(configs_dir, 'override_hh_ids.csv'), index=False, header=True)
+
     pipeline.close_pipeline()
     inject.clear_cache()
+    close_handlers()
+
+
+def test_mini_pipeline_run3():
+
+    # test that hh_ids setting overrides household sampling
+
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    setup_dirs(configs_dir)
+    inject_settings(configs_dir, hh_ids='override_hh_ids.csv')
+
+    households = inject.get_table('households').to_frame()
+
+    override_hh_ids = pd.read_csv(config.config_file_path('override_hh_ids.csv'))
+
+    print("\noverride_hh_ids\n", override_hh_ids)
+
+    print("\nhouseholds\n", households.index)
+
+    assert households.shape[0] == override_hh_ids.shape[0]
+    assert households.index.isin(override_hh_ids.household_id).all()
+
+    inject.clear_cache()
+    close_handlers()
 
 
 def full_run(resume_after=None, chunk_size=0,
@@ -250,13 +263,8 @@ def full_run(resume_after=None, chunk_size=0,
              trace_hh_id=None, trace_od=None, check_for_variability=None):
 
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example', 'configs')
-    inject.add_injectable("configs_dir", configs_dir)
 
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    inject.add_injectable("data_dir", data_dir)
-
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable("output_dir", output_dir)
+    setup_dirs(configs_dir)
 
     settings = inject_settings(
         configs_dir,
@@ -265,10 +273,6 @@ def full_run(resume_after=None, chunk_size=0,
         trace_hh_id=trace_hh_id,
         trace_od=trace_od,
         check_for_variability=check_for_variability)
-
-    inject.clear_cache()
-
-    tracing.config_logger()
 
     MODELS = settings['models']
 
@@ -435,6 +439,21 @@ def test_full_run_stability():
 
     tour_count = full_run(trace_hh_id=HH_ID,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE+10)
+
+    regress()
+
+    pipeline.close_pipeline()
+
+
+def test_full_run_singleton():
+
+    # should wrk with only one hh
+
+    if SKIP_FULL_RUN:
+        return
+
+    tour_count = full_run(trace_hh_id=HH_ID,
+                          households_sample_size=1)
 
     regress()
 

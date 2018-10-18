@@ -26,7 +26,7 @@ def auto_ownership_simulate(households,
     trace_label = 'auto_ownership_simulate'
     model_settings = config.read_model_settings('auto_ownership.yaml')
 
-    logger.info("Running %s with %d households" % (trace_label, len(households_merged)))
+    logger.info("Running %s with %d households", trace_label, len(households_merged))
 
     model_spec = simulate.read_model_spec(file_name='auto_ownership.csv')
 

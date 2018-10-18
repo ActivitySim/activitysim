@@ -55,7 +55,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     MAX_PNUM = 100
     if candidates.PNUM.max() > MAX_PNUM:
         # if this happens, channel random seeds will overlap at MAX_PNUM (not probably a big deal)
-        logger.warning("max persons.PNUM (%s) > MAX_PNUM (%s)" % (candidates.PNUM.max(), MAX_PNUM))
+        logger.warning("max persons.PNUM (%s) > MAX_PNUM (%s)", candidates.PNUM.max(), MAX_PNUM)
 
     candidates['participant_id'] = (candidates[joint_tours.index.name] * MAX_PNUM) + candidates.PNUM
     candidates.set_index('participant_id', drop=True, inplace=True, verify_integrity=True)
@@ -146,7 +146,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
     rands_list = []
 
     num_tours_remaining = len(candidates.tour_id.unique())
-    logger.info('%s %s joint tours to satisfy.' % (trace_label, num_tours_remaining,))
+    logger.info('%s %s joint tours to satisfy.', trace_label, num_tours_remaining,)
 
     iter = 0
     while candidates.shape[0] > 0:
@@ -154,7 +154,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
         iter += 1
 
         if iter > MAX_ITERATIONS:
-            logger.warning('%s max iterations exceeded (%s).' % (trace_label, MAX_ITERATIONS))
+            logger.warning('%s max iterations exceeded (%s).', trace_label, MAX_ITERATIONS)
             diagnostic_cols = ['tour_id', 'household_id', 'composition', 'adult']
             unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
             tracing.write_csv(unsatisfied_candidates,
@@ -194,7 +194,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
     assert choices.index.equals(choosers.index)
     assert rands.index.equals(choosers.index)
 
-    logger.info('%s %s iterations to satisfy all joint tours.' % (trace_label, iter,))
+    logger.info('%s %s iterations to satisfy all joint tours.', trace_label, iter,)
 
     return choices, rands
 
@@ -211,7 +211,7 @@ def annotate_jtp(model_settings, trace_label):
 
 
 def add_null_results(model_settings, trace_label):
-    logger.info("Skipping %s: joint tours" % trace_label)
+    logger.info("Skipping %s: joint tours", trace_label)
     # participants table is used downstream in non-joint tour expressions
     participants = pd.DataFrame(columns=['person_id'])
     participants.index.name = 'participant_id'

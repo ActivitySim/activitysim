@@ -6,6 +6,7 @@ from builtins import range
 
 import logging
 import itertools
+import os
 
 import numpy as np
 import pandas as pd
@@ -18,6 +19,8 @@ from activitysim.core.simulate import uniquify_spec_index
 from activitysim.core import chunk
 from activitysim.core import logit
 from activitysim.core import tracing
+from activitysim.core import inject
+from activitysim.core import config
 
 logger = logging.getLogger(__name__)
 
@@ -246,8 +249,48 @@ def preprocess_interaction_coefficients(interaction_coefficients):
     return coefficients
 
 
+def cached_spec_name(hhsize):
+    return 'cdap_spec_%s.csv' % hhsize
+
+
+def cached_spec_path(spec_name):
+    return config.output_file_path(spec_name)
+
+
+def get_cached_spec(hhsize):
+
+    spec_name = cached_spec_name(hhsize)
+
+    spec = inject.get_injectable(spec_name, None)
+    if spec is not None:
+        logger.info("build_cdap_spec returning cached injectable spec %s", spec_name)
+        return spec
+
+    # # try configs dir
+    # spec_path = config.config_file_path(spec_name, mandatory=False)
+    # if spec_path:
+    #     logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
+    #     return pd.read_csv(spec_path, index_col='Expression')
+
+    # try data dir
+    if os.path.exists(config.output_file_path(spec_name)):
+        spec_path = config.output_file_path(spec_name)
+        logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
+        return pd.read_csv(spec_path, index_col='Expression')
+
+    return None
+
+
+def cache_spec(hhsize, spec):
+    spec_name = cached_spec_name(hhsize)
+    # cache as injectable
+    inject.add_injectable(spec_name, spec)
+    # cache as csv in output_dir
+    spec.to_csv(config.output_file_path(spec_name), index=True)
+
+
 def build_cdap_spec(interaction_coefficients, hhsize,
-                    trace_spec=False, trace_label=None):
+                    trace_spec=False, trace_label=None, cache=True):
     """
     Build a spec file for computing utilities of alternative household member interaction patterns
     for households of specified size.
@@ -290,6 +333,9 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     spec: pandas.DataFrame
 
     """
+
+    t0 = tracing.print_elapsed_time()
+
     # if DUMP:
     #     # dump the interaction_coefficients table because it has been preprocessed
     #     tracing.trace_df(interaction_coefficients,
@@ -298,6 +344,11 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
     # cdap spec is same for all households of MAX_HHSIZE and greater
     hhsize = min(hhsize, MAX_HHSIZE)
+
+    if cache:
+        spec = get_cached_spec(hhsize)
+        if spec is not None:
+            return spec
 
     expression_name = "Expression"
 
@@ -409,6 +460,11 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     if trace_spec:
         tracing.trace_df(spec, '%s.hhsize%d_spec_patched' % (trace_label, hhsize),
                          transpose=False, slicer='NONE')
+
+    if cache:
+        cache_spec(hhsize, spec)
+
+    t0 = tracing.print_elapsed_time("build_cdap_spec hh_size %s" % hhsize, t0)
 
     return spec
 

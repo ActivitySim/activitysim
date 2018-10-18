@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_null_results(trace_label, tours):
-    logger.info("Skipping %s: add_null_results" % trace_label)
+    logger.info("Skipping %s: add_null_results", trace_label)
     tours['atwork_subtour_frequency'] = np.nan
     pipeline.replace_table("tours", tours)
 
@@ -61,7 +61,7 @@ def atwork_subtour_frequency(tours,
     # merge persons into work_tours
     work_tours = pd.merge(work_tours, persons_merged, left_on='person_id', right_index=True)
 
-    logger.info("Running atwork_subtour_frequency with %d work tours" % len(work_tours))
+    logger.info("Running atwork_subtour_frequency with %d work tours", len(work_tours))
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)

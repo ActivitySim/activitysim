@@ -1,13 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
 import logging
 
 import numpy as np
 import pandas as pd
-
-from activitysim.core import simulate as asim
 
 from activitysim.core import assign
 from activitysim.core import inject
@@ -34,7 +31,7 @@ def best_transit_path(set_random_seed,
 
     model_settings = config.read_model_settings('best_transit_path.yaml')
 
-    logger.info("best_transit_path VECTOR_TEST_SIZE %s" % VECTOR_TEST_SIZE)
+    logger.info("best_transit_path VECTOR_TEST_SIZE %s", VECTOR_TEST_SIZE)
 
     omaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
     dmaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
@@ -60,9 +57,9 @@ def best_transit_path(set_random_seed,
         how='left'
     )
 
-    logger.info("len od_df %s" % len(od_df.index))
-    logger.info("len atap_btap_df %s" % len(atap_btap_df.index))
-    logger.info("avg explosion %s" % (len(atap_btap_df.index) / (1.0 * len(od_df.index))))
+    logger.info("len od_df %s", len(od_df.index))
+    logger.info("len atap_btap_df %s", len(atap_btap_df.index))
+    logger.info("avg explosion %s", (len(atap_btap_df.index) / (1.0 * len(od_df.index))))
 
     if trace_od:
         trace_orig, trace_dest = trace_od
@@ -90,7 +87,7 @@ def best_transit_path(set_random_seed,
     n = len(atap_btap_df.index)
     atap_btap_df = atap_btap_df.dropna(subset=['utility'])
 
-    logger.info("Dropped %s of %s rows with null utility" % (n - len(atap_btap_df.index), n))
+    logger.info("Dropped %s of %s rows with null utility", n - len(atap_btap_df.index), n)
 
     # choose max utility
     atap_btap_df = atap_btap_df.sort_values(by='utility').groupby('idx').tail(1)
@@ -98,7 +95,7 @@ def best_transit_path(set_random_seed,
     if trace_od:
 
         if not trace_oabd_rows.any():
-            logger.warning("trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
+            logger.warning("trace_od not found origin = %s, dest = %s", trace_orig, trace_dest)
         else:
 
             tracing.trace_df(atap_btap_df,

@@ -1,12 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
 import logging
 
-import pandas as pd
-
-from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
@@ -42,7 +38,7 @@ def non_mandatory_tour_scheduling(tours,
 
     non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
 
-    logger.info("Running non_mandatory_tour_scheduling with %d tours" % len(tours))
+    logger.info("Running non_mandatory_tour_scheduling with %d tours", len(tours))
 
     constants = config.get_model_constants(model_settinsg)
 

@@ -47,7 +47,7 @@ def joint_tour_scheduling(
 
     persons_merged = persons_merged.to_frame()
 
-    logger.info("Running %s with %d joint tours" % (trace_label, joint_tours.shape[0]))
+    logger.info("Running %s with %d joint tours", trace_label, joint_tours.shape[0])
 
     # it may seem peculiar that we are concerned with persons rather than households
     # but every joint tour is (somewhat arbitrarily) assigned a "primary person"

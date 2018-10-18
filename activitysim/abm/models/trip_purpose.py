@@ -45,9 +45,9 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
 
     row_size = chooser_row_size + extra_columns
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    # logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
-    # logger.debug("%s #chunk_calc extra_columns %s" % (trace_label, extra_columns))
+    # logger.debug("%s #chunk_calc choosers %s", trace_label, choosers.shape)
+    # logger.debug("%s #chunk_calc spec %s", trace_label, spec.shape)
+    # logger.debug("%s #chunk_calc extra_columns %s", trace_label, extra_columns)
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -128,17 +128,17 @@ def run_trip_purpose(
     last_trip = (trips_df.trip_num == trips_df.trip_count)
     purpose = trips_df.primary_purpose[last_trip & trips_df.outbound]
     result_list.append(purpose)
-    logger.info("assign purpose to %s last outbound trips" % purpose.shape[0])
+    logger.info("assign purpose to %s last outbound trips", purpose.shape[0])
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
     purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
     purpose = pd.Series(np.where(purpose == 'atwork', 'Work', 'Home'), index=purpose.index)
     result_list.append(purpose)
-    logger.info("assign purpose to %s last inbound trips" % purpose.shape[0])
+    logger.info("assign purpose to %s last inbound trips", purpose.shape[0])
 
     # - intermediate stops (non-last trips) purpose assigned by probability table
     trips_df = trips_df[~last_trip]
-    logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
+    logger.info("assign purpose to %s intermediate trips", trips_df.shape[0])
 
     preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
@@ -157,7 +157,7 @@ def run_trip_purpose(
 
     for i, num_chunks, trips_chunk in chunk.chunked_choosers(trips_df, rows_per_chunk):
 
-        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(trips_chunk)))
+        logger.info("Running chunk %s of %s size %d", i, num_chunks, len(trips_chunk))
 
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label

@@ -76,7 +76,7 @@ def school_location_sample(
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
-    logger.info("Running school_location_simulate with %d persons" % len(choosers))
+    logger.info("Running school_location_simulate with %d persons", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
@@ -98,7 +98,7 @@ def school_location_sample(
         choosers_segment = choosers[choosers["is_" + school_type]]
 
         if choosers_segment.shape[0] == 0:
-            logger.info("%s skipping school_type %s: no choosers" % (model_name, school_type))
+            logger.info("%s skipping school_type %s: no choosers", model_name, school_type)
             continue
 
         # alts indexed by taz with one column containing size_term for  this tour_type

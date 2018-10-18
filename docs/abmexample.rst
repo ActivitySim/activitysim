@@ -479,7 +479,7 @@ Logging
 Included in the ``configs`` folder is the ``logging.yaml``, which configures Python logging 
 library and defines two key log files: 
 
-* ``asim.log`` - overall system log file
+* ``activitysim.log`` - overall system log file
 * ``hhtrace.log`` - household trace log file if tracing is on
 
 Refer to the :ref:`tracing` section for more detail on tracing.
@@ -642,9 +642,9 @@ The example ``simulation.py`` run model script also writes the final tables to C
 for illustrative purposes by using the :func:`activitysim.core.pipeline.get_table` method.  This method
 returns a pandas DataFrame, which can then be written to a CSV with the ``to_csv(file_path)`` method.
 
-ActivitySim also writes log and trace files to the ``outputs`` folder.  The asim.log file, which
-is the overall log file is always produced.  If tracing is specified, then trace files are output
-as well.
+ActivitySim also writes log and trace files to the ``outputs`` folder.  The activitysim.log file,
+which is the overall log file is always produced.  If tracing is specified, then trace files are
+output as well.
 
 .. _tracing :
 

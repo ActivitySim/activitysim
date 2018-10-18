@@ -15,6 +15,7 @@ import logging
 import logging.config
 import sys
 import time
+import contextlib
 from collections import OrderedDict
 
 import yaml
@@ -63,7 +64,29 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def delete_output_files(file_type, ignore=None):
+@contextlib.contextmanager
+def timing(msg, callers_logger, level=logging.DEBUG):
+    """
+    A context manager to log time to execute a block
+
+    Parameters
+    ----------
+    msg : str
+        Will be prefixed with "start: " and "finish: ".
+    callers_logger : logging.Logger
+        logger passed from caller's context
+    level : int, optional
+        Level at which to log, passed to ``logger.log``.
+
+    """
+    callers_logger.log(level, msg)
+    t = time.time()
+    yield
+    t = time.time() - t
+    callers_logger.log(level, "Time to execute %s : %s" % (msg, format_elapsed_time(t)))
+
+
+def delete_output_files(file_type, ignore=None, subdir=None):
     """
     Delete files in output directory of specified type
 
@@ -79,9 +102,14 @@ def delete_output_files(file_type, ignore=None):
 
     output_dir = inject.get_injectable('output_dir')
 
+    if subdir:
+        output_dir = os.path.join(output_dir, subdir)
+        if not os.path.exists(output_dir):
+            logger.warn("delete_output_files: No subdirectory %s" % (file_type, output_dir))
+            return
+
     if ignore:
         ignore = [os.path.realpath(p) for p in ignore]
-        print("delete_output_files ignoring", ignore)
 
     logger.debug("Deleting %s files in output_dir %s" % (file_type, output_dir))
 

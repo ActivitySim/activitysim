@@ -488,6 +488,8 @@ def open_pipeline(resume_after=None):
 
     if _PIPELINE.is_open:
         raise RuntimeError("Pipeline is already open!")
+
+    _PIPELINE.init_state()
     _PIPELINE.is_open = True
 
     get_rn_generator().set_base_seed(inject.get_injectable('rng_base_seed', 0))

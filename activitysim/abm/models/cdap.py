@@ -73,7 +73,7 @@ def cdap_simulate(persons_merged, persons, households,
 
     constants = config.get_model_constants(model_settings)
 
-    logger.info("Running cdap_simulate with %d persons" % len(persons_merged.index))
+    logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 
     choices = run_cdap(persons=persons_merged,
                        cdap_indiv_spec=cdap_indiv_spec,

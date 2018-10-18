@@ -23,7 +23,7 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
     df_full = read_input_table("households")
 
     # only using households listed in override_hh_ids
-    if override_hh_ids:
+    if override_hh_ids is not None:
 
         # trace_hh_id will not used if it is not in list of override_hh_ids
         logger.info("override household list containing %s households" % len(override_hh_ids))
@@ -42,8 +42,6 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
 
         # df contains only trace_hh (or empty if not in full store)
         df = tracing.slice_ids(df_full, trace_hh_id)
-
-        df = df[df.index.isin(ids)]
 
     # if we need a subset of full store
     elif households_sample_size > 0 and df_full.shape[0] > households_sample_size:

@@ -226,6 +226,12 @@ def build_output_file_path(file_name, use_prefix=None):
     return file_path
 
 
+def data_file_path(file_name):
+
+    data_dir = inject.get_injectable('data_dir')
+    return os.path.join(data_dir, file_name)
+
+
 def output_file_path(file_name):
 
     prefix = inject.get_injectable('output_file_prefix', None)
@@ -235,7 +241,12 @@ def output_file_path(file_name):
 def trace_file_path(file_name):
 
     output_dir = inject.get_injectable('output_dir')
-    file_name = "trace.%s" % (file_name, )
+
+    if os.path.exists(os.path.join(output_dir, 'trace')):
+        output_dir = os.path.join(output_dir, 'trace')
+    else:
+        file_name = "trace.%s" % (file_name,)
+
     file_path = os.path.join(output_dir, file_name)
     return file_path
 

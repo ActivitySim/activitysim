@@ -18,6 +18,8 @@ import os
 import time
 import logging
 import multiprocessing
+import cProfile
+
 from collections import OrderedDict
 
 import yaml
@@ -289,8 +291,7 @@ def load_skim_data(skim_buffer):
 
     logger.info("load_skim_data")
 
-    data_dir = inject.get_injectable('data_dir')
-    omx_file_path = os.path.join(data_dir, setting('skims_file'))
+    omx_file_path = config.data_file_path(setting('skims_file'))
     tags_to_load = setting('skim_time_periods')['labels']
 
     skim_info = get_skim_info(omx_file_path, tags_to_load)
@@ -298,10 +299,10 @@ def load_skim_data(skim_buffer):
 
 
 def allocate_shared_skim_buffer():
+
     logger.info("allocate_shared_skim_buffer")
 
-    data_dir = inject.get_injectable('data_dir')
-    omx_file_path = os.path.join(data_dir, setting('skims_file'))
+    omx_file_path = config.data_file_path(setting('skims_file'))
     tags_to_load = setting('skim_time_periods')['labels']
 
     # select the skims to load
@@ -323,7 +324,7 @@ def setup_injectables_and_logging(injectables):
     tracing.config_logger()
 
 
-def run_simulation(queue, injectables, step_info, resume_after, skim_buffer):
+def run_simulation(queue, step_info, resume_after, skim_buffer):
 
     step_label = step_info['name']
     models = step_info['models']
@@ -366,6 +367,11 @@ def run_simulation(queue, injectables, step_info, resume_after, skim_buffer):
     pipeline.close_pipeline()
 
 
+def profile_path():
+    path = config.output_file_path('%s.prof' % multiprocessing.current_process().name)
+    return path
+
+
 """
     multiprocessing entry points
 """
@@ -377,29 +383,47 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
     handle_standard_args()
     setup_injectables_and_logging(injectables)
 
-    process_name = multiprocessing.current_process().name
     if step_info['num_processes'] > 1:
-        pipeline_prefix = process_name
+        pipeline_prefix = multiprocessing.current_process().name
         logger.info("injecting pipeline_file_prefix '%s'", pipeline_prefix)
         inject.add_injectable("pipeline_file_prefix", pipeline_prefix)
 
-    run_simulation(queue, injectables, step_info, resume_after, skim_buffer)
+    if setting('profile', False):
+        cProfile.runctx('run_simulation(queue, step_info, resume_after, skim_buffer)',
+                        globals(), locals(), filename=profile_path())
+    else:
+        run_simulation(queue, step_info, resume_after, skim_buffer)
 
 
 def mp_apportion_pipeline(injectables, sub_job_proc_names, slice_info):
     setup_injectables_and_logging(injectables)
-    apportion_pipeline(sub_job_proc_names, slice_info)
+
+    if setting('profile', False):
+        cProfile.runctx('apportion_pipeline(sub_job_proc_names, slice_info)',
+                        globals(), locals(), filename=profile_path())
+    else:
+        apportion_pipeline(sub_job_proc_names, slice_info)
 
 
 def mp_setup_skims(injectables, **kwargs):
     skim_buffer = kwargs
     setup_injectables_and_logging(injectables)
-    load_skim_data(skim_buffer)
+
+    if setting('profile', False):
+        cProfile.runctx('load_skim_data(skim_buffer)',
+                        globals(), locals(), filename=profile_path())
+    else:
+        load_skim_data(skim_buffer)
 
 
 def mp_coalesce_pipelines(injectables, sub_job_proc_names, slice_info):
     setup_injectables_and_logging(injectables)
-    coalesce_pipelines(sub_job_proc_names, slice_info)
+
+    if setting('profile', False):
+        cProfile.runctx('coalesce_pipelines(sub_job_proc_names, slice_info)',
+                        globals(), locals(), filename=profile_path())
+    else:
+        coalesce_pipelines(sub_job_proc_names, slice_info)
 
 
 """
@@ -500,15 +524,16 @@ def run_multiprocess(run_list, injectables):
         new_breadcrumbs.setdefault(step_name, {'name': step_name})[phase] = True
         write_breadcrumbs(new_breadcrumbs)
 
-    logger.info('setup shared skim data')
-    shared_skim_buffer = allocate_shared_skim_buffer()
+    with tracing.timing('allocate shared skim buffer', logger):
+        shared_skim_buffer = allocate_shared_skim_buffer()
 
     # - mp_setup_skims
-    run_sub_task(
-        multiprocessing.Process(
-            target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
-            kwargs=shared_skim_buffer)
-    )
+    with tracing.timing('setup skims', logger):
+        run_sub_task(
+            multiprocessing.Process(
+                target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
+                kwargs=shared_skim_buffer)
+        )
 
     for step_info in run_list['multiprocess_steps']:
 
@@ -522,12 +547,9 @@ def run_multiprocess(run_list, injectables):
         else:
             sub_proc_names = ["%s_%s" % (step_name, i) for i in range(num_processes)]
 
-        logger.info('running step %s with %s processes', step_name, num_processes,)
-
         # - mp_apportion_pipeline
-        if not skip_phase('apportion'):
-            if num_processes > 1:
-                logger.info('apportioning households to sub_processes')
+        if not skip_phase('apportion') and num_processes > 1:
+            with tracing.timing('apportion %s pipelines' % step_name, logger):
                 run_sub_task(
                     multiprocessing.Process(
                         target=mp_apportion_pipeline, name='%s_apportion' % step_name,
@@ -537,17 +559,17 @@ def run_multiprocess(run_list, injectables):
 
         # - run_sub_simulations
         if not skip_phase('simulate'):
-            error_count = \
-                run_sub_simulations(injectables, shared_skim_buffer, step_info, sub_proc_names,
-                                    resume_after=step_info.get('resume_after', None))
+            with tracing.timing('run step %s' % step_name, logger):
+                error_count = \
+                    run_sub_simulations(injectables, shared_skim_buffer, step_info, sub_proc_names,
+                                        resume_after=step_info.get('resume_after', None))
             if error_count:
                 raise RuntimeError("%s processes failed in step %s" % (error_count, step_name))
         drop_breadcrumb('simulate')
 
         # - mp_coalesce_pipelines
-        if not skip_phase('coalesce'):
-            if num_processes > 1:
-                logger.info('coalescing sub_process pipelines')
+        if not skip_phase('coalesce') and num_processes > 1:
+            with tracing.timing('coalesce %s pipelines' % step_name, logger):
                 run_sub_task(
                     multiprocessing.Process(
                         target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,

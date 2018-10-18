@@ -70,7 +70,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
 
-    logger.info("Running non_mandatory_tour_frequency with %d persons" % len(choosers))
+    logger.info("Running non_mandatory_tour_frequency with %d persons", len(choosers))
 
     constants = config.get_model_constants(model_settings)
 
@@ -86,7 +86,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
         # drop any zero-valued rows
         spec = spec[spec[name] != 0]
 
-        logger.info("Running segment '%s' of size %d" % (name, len(segment)))
+        logger.info("Running segment '%s' of size %d", name, len(segment))
 
         choices = interaction_simulate(
             segment,

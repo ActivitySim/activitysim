@@ -49,7 +49,7 @@ def atwork_subtour_scheduling(
         tracing.no_results(trace_label)
         return
 
-    logger.info("Running %s with %d tours" % (trace_label, len(subtours)))
+    logger.info("Running %s with %d tours", trace_label, len(subtours))
 
     # preprocessor
     constants = config.get_model_constants(model_settings)

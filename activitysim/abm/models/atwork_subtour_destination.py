@@ -64,7 +64,7 @@ def atwork_subtour_destination_sample(tours,
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
-    logger.info("Running atwork_subtour_location_sample with %d tours" % len(choosers))
+    logger.info("Running atwork_subtour_location_sample with %d tours", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a workplace_taz
     # in the choosers and a TAZ in the alternatives which get merged during interaction
@@ -143,7 +143,7 @@ def atwork_subtour_destination_logsums(persons_merged,
                         right_index=True,
                         how="left")
 
-    logger.info("Running %s with %s rows" % (trace_label, len(choosers)))
+    logger.info("Running %s with %s rows", trace_label, len(choosers))
 
     tracing.dump_df(DUMP, persons_merged, trace_label, 'persons_merged')
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
@@ -217,7 +217,7 @@ def atwork_subtour_destination_simulate(tours,
 
     constants = config.get_model_constants(model_settings)
 
-    logger.info("Running atwork_subtour_destination_simulate with %d persons" % len(choosers))
+    logger.info("Running atwork_subtour_destination_simulate with %d persons", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction

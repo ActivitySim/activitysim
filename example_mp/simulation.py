@@ -17,6 +17,7 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import mp_tasks
+
 # from activitysim import abm
 
 
@@ -30,9 +31,20 @@ def cleanup_output_files():
     tracing.delete_output_files('log', ignore=active_log_files)
 
     tracing.delete_output_files('h5')
-    tracing.delete_output_files('csv')
+    tracing.delete_output_files('csv', subdir='trace')
     tracing.delete_output_files('txt')
     tracing.delete_output_files('yaml')
+
+
+def run(run_list, injectables=None):
+
+    if run_list['multiprocess']:
+        logger.info("run multiprocess simulation")
+        mp_tasks.run_multiprocess(run_list, injectables)
+    else:
+        logger.info("run single process simulation")
+        pipeline.run(models=run_list['models'], resume_after=run_list['resume_after'])
+        pipeline.close_pipeline()
 
 
 if __name__ == '__main__':
@@ -51,19 +63,19 @@ if __name__ == '__main__':
         cleanup_output_files()
 
     run_list = mp_tasks.get_run_list()
-    # mp_tasks.print_run_list(run_list)
 
     if run_list['multiprocess']:
-        logger.info("run multiprocess simulation")
-
         # do this after config.handle_standard_args, as command line args may override injectables
         injectables = ['data_dir', 'configs_dir', 'output_dir']
         injectables = {k: inject.get_injectable(k) for k in injectables}
-
-        mp_tasks.run_multiprocess(run_list, injectables)
     else:
-        logger.info("run single process simulation")
-        pipeline.run(models=run_list['models'], resume_after=run_list['resume_after'])
-        pipeline.close_pipeline()
+        injectables = None
+
+    if config.setting('profile', False):
+        import cProfile
+        cProfile.runctx('run(run_list, injectables)',
+                        globals(), locals(), filename=config.output_file_path('simulation.prof'))
+    else:
+        run(run_list, injectables)
 
     t0 = tracing.print_elapsed_time("everything", t0)

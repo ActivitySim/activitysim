@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_null_results(trace_label, mandatory_tour_frequency_settings):
-    logger.info("Skipping %s: add_null_results" % trace_label)
+    logger.info("Skipping %s: add_null_results", trace_label)
 
     persons = inject.get_table('persons').to_frame()
     persons['mandatory_tour_frequency'] = ''
@@ -58,7 +58,7 @@ def mandatory_tour_frequency(persons_merged,
     choosers = persons_merged.to_frame()
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == 'M']
-    logger.info("Running mandatory_tour_frequency with %d persons" % len(choosers))
+    logger.info("Running mandatory_tour_frequency with %d persons", len(choosers))
 
     # - if no mandatory tours
     if choosers.shape[0] == 0:

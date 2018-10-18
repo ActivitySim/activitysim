@@ -1,9 +1,11 @@
 
 inherit_settings: True
 
-households_sample_size: 100
-multiprocess: False
+households_sample_size: 300
 chunk_size: 3000000000
+
+multiprocess: False
+profile: True
 
 check_for_variability: False
 
@@ -54,7 +56,7 @@ models:
   - write_data_dictionary
   - write_tables
 
-#resume_after: school_location_simulate
+#resume_after: auto_ownership_simulate
 #
 #resume: _workplace_location_sample
 #restore_checkpoint: school_location_simulate

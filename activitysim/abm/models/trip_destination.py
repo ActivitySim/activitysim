@@ -83,7 +83,7 @@ def trip_destination_sample(
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST"]
 
-    logger.info("Running %s with %d trips" % (trace_label, trips.shape[0]))
+    logger.info("Running %s with %d trips", trace_label, trips.shape[0])
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update({
@@ -165,7 +165,7 @@ def compute_logsums(
         adds od_logsum and dp_logsum columns to trips (in place)
     """
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
-    logger.info("Running %s with %d samples" % (trace_label, destination_sample.shape[0]))
+    logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
@@ -251,7 +251,7 @@ def trip_destination_simulate(
 
     alt_dest_col_name = model_settings["ALT_DEST"]
 
-    logger.info("Running trip_destination_simulate with %d trips" % len(trips))
+    logger.info("Running trip_destination_simulate with %d trips", len(trips))
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update({
@@ -273,7 +273,7 @@ def trip_destination_simulate(
 
     # drop any failed zero_prob destinations
     if (destinations == NO_DESTINATION).any():
-        # logger.debug("dropping %s failed destinations" % (destinations == NO_DESTINATION).sum())
+        # logger.debug("dropping %s failed destinations", destinations == NO_DESTINATION).sum()
         destinations = destinations[destinations != NO_DESTINATION]
 
     return destinations
@@ -289,7 +289,7 @@ def choose_trip_destination(
         chunk_size, trace_hh_id,
         trace_label):
 
-    logger.info("choose_trip_destination %s with %d trips" % (trace_label, trips.shape[0]))
+    logger.info("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
 
     # FIXME want timing?
     t0 = print_elapsed_time()
@@ -484,7 +484,7 @@ def run_trip_destination(
                     locals_dict=config.get_model_constants(model_settings),
                     trace_label=nth_trace_label)
 
-            logger.info("Running %s with %d trips" % (nth_trace_label, nth_trips.shape[0]))
+            logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
 
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
@@ -542,7 +542,7 @@ def trip_destination(
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
 
-    logger.info("Running %s with %d trips" % (trace_label, trips_df.shape[0]))
+    logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     trips_df = run_trip_destination(
         trips_df,
@@ -551,9 +551,9 @@ def trip_destination(
         trace_label)
 
     if trips_df.failed.any():
-        logger.warning("%s %s failed trips" % (trace_label, trips_df.failed.sum()))
+        logger.warning("%s %s failed trips", trace_label, trips_df.failed.sum())
         file_name = "%s_failed_trips" % trace_label
-        logger.info("writing failed trips to %s" % file_name)
+        logger.info("writing failed trips to %s", file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 
     if CLEANUP:

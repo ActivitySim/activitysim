@@ -43,7 +43,7 @@ logging:
       stream: ext://sys.stdout
       formatter: simpleFormatter
       #level: WARNING
-      level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [DEBUG, NOTSET]
+      level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [INFO, NOTSET]
 
     mp_console:
       class: logging.StreamHandler

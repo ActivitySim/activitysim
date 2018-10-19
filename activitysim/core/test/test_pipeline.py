@@ -23,7 +23,9 @@ HOUSEHOLDS_SAMPLE_SIZE = 100
 HH_ID = 961042
 
 
-def setup():
+def setup_function():
+
+    inject.reinject_decorated_tables()
 
     inject.remove_injectable('skim_dict')
     inject.remove_injectable('skim_stack')
@@ -58,8 +60,6 @@ def close_handlers():
 
 
 def test_pipeline_run():
-
-    setup()
 
     inject.add_step('step1', steps.step1)
     inject.add_step('step2', steps.step2)
@@ -105,8 +105,6 @@ def test_pipeline_run():
 
 
 def test_pipeline_checkpoint_drop():
-
-    setup()
 
     inject.add_step('step1', steps.step1)
     inject.add_step('step2', steps.step2)

@@ -14,21 +14,23 @@ from future.utils import iteritems
 from builtins import next
 from builtins import map
 from builtins import object
+
 import os
+import logging
 import datetime as dt
 
 import pandas as pd
-from . import orca
 
-import logging
+from . import orca
 from . import inject
 from . import config
-from .util import memory_info
-from .util import df_size
-
 from . import random
 from . import tracing
+
+from .util import memory_info
+from .util import df_size
 from .tracing import print_elapsed_time
+
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +110,7 @@ def open_pipeline_store(overwrite=False):
     if _PIPELINE.pipeline_store is not None:
         raise RuntimeError("Pipeline store is already open!")
 
-    pipeline_file_path = config.pipeline_file_path(orca.get_injectable('pipeline_file_name'))
+    pipeline_file_path = config.pipeline_file_path(inject.get_injectable('pipeline_file_name'))
 
     if overwrite:
         try:
@@ -241,10 +243,10 @@ def rewrap(table_name, df=None):
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
             # fixme
-            orca.orca._COLUMNS.pop((table_name, column_name), None)
+            orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca.orca._TABLES.pop(table_name, None)
+        orca._TABLES.pop(table_name, None)
 
     assert df is not None
 
@@ -757,10 +759,10 @@ def drop_table(table_name):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
-            orca.orca._COLUMNS.pop((table_name, column_name), None)
+            orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca.orca._TABLES.pop(table_name, None)
+        orca._TABLES.pop(table_name, None)
 
     if table_name in _PIPELINE.replaced_tables:
 

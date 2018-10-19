@@ -51,18 +51,6 @@ def individual_utils(
     return cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
 
-# @pytest.fixture
-# def hh_utils(individual_utils, people, hh_id_col):
-#     hh_utils = cdap.initial_household_utilities(
-#         individual_utils, people, hh_id_col)
-#     return hh_utils
-#
-#
-# @pytest.fixture
-# def hh_choices(random_seed, hh_utils):
-#     return cdap.make_household_choices(hh_utils)
-
-
 def test_bad_coefficients(configs_dir):
 
     f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')

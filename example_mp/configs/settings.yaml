@@ -73,7 +73,7 @@ multiprocess_steps:
   - name: mp_households
     begin: _school_location_sample
     num_processes: 3
-    stagger: 10
+    stagger: 30
     #chunk_size: 1000000000
     slice:
       tables:

@@ -11,7 +11,7 @@ from activitysim.core import inject
 from activitysim.core.config import setting
 
 # FIXME
-warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
+# warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
 logger = logging.getLogger(__name__)

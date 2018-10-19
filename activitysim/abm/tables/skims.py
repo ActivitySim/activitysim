@@ -36,8 +36,8 @@ Read in the omx files and create the skim objects
 def get_skim_info(omx_file_path, tags_to_load=None):
 
     # this is sys.maxint for p2.7 but no limit for p3
-    # MAX_BLOCK_BYTES = 28880000
-    MAX_BLOCK_BYTES = sys.maxsize
+    # windows sys.maxint =  2147483647
+    MAX_BLOCK_BYTES = sys.maxint - 1 if sys.version_info < (3,) else sys.maxsize - 1
 
     # Note: we load all skims except those with key2 not in tags_to_load
     # Note: we require all skims to be of same dtype so they can share buffer - is that ok?
@@ -46,7 +46,12 @@ def get_skim_info(omx_file_path, tags_to_load=None):
     omx_name = os.path.splitext(os.path.basename(omx_file_path))[0]
 
     with omx.open_file(omx_file_path) as omx_file:
-        omx_shape = tuple(map(int, omx_file.shape()))  # sometimes omx shape are floats!
+        # omx_shape = tuple(map(int, tuple(omx_file.shape())))  # sometimes omx shape are floats!
+
+        # fixme call to omx_file.shape() failing in windows p3.5
+        omx_shape = omx_file.shape()
+        omx_shape = (int(omx_shape[0]), int(omx_shape[1]))  # sometimes omx shape are floats!
+
         omx_skim_names = omx_file.listMatrices()
 
     # - omx_keys dict maps skim key to omx_key

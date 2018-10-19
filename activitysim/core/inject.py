@@ -123,7 +123,7 @@ def get_injectable(name, default=_NO_DEFAULT):
 
 def remove_injectable(name):
 
-    orca.orca._INJECTABLES.pop(name, None)
+    orca._INJECTABLES.pop(name, None)
 
 
 def reinject_decorated_tables():
@@ -134,10 +134,10 @@ def reinject_decorated_tables():
     logger.info("reinject_decorated_tables")
 
     # need to clear any non-decorated tables that were added during the previous run
-    orca.orca._TABLES.clear()
-    orca.orca._COLUMNS.clear()
-    orca.orca._TABLE_CACHE.clear()
-    orca.orca._COLUMN_CACHE.clear()
+    orca._TABLES.clear()
+    orca._COLUMNS.clear()
+    orca._TABLE_CACHE.clear()
+    orca._COLUMN_CACHE.clear()
 
     for name, func in iteritems(_DECORATED_TABLES):
         logger.debug("reinject decorated table %s" % name)
@@ -177,4 +177,4 @@ def get_step_arg(arg_name, default=_NO_DEFAULT):
 def dump_state():
 
     print("_DECORATED_STEPS", list(_DECORATED_STEPS.keys()))
-    print("orca._STEPS", list(orca.orca._STEPS.keys()))
+    print("orca._STEPS", list(orca._STEPS.keys()))

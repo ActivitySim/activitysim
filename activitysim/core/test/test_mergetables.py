@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from .. import orca
-from ..utils.testing import assert_frames_equal
+from .utils_testing import assert_frames_equal
 
 
 def setup_function(func):

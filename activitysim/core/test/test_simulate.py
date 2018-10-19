@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import print_function
 
 import os.path
 
@@ -63,8 +64,13 @@ def test_eval_variables(spec, data):
             [0, 1, 5, 1]],
             index=data.index, columns=spec.index)
 
-    for i in [0, 1]:
-        expected[expected.columns[i]] = expected[expected.columns[i]].astype(np.int8)
+    expected[expected.columns[0]] = expected[expected.columns[0]].astype(np.int8)
+    expected[expected.columns[1]] = expected[expected.columns[1]].astype(np.int8)
+    expected[expected.columns[2]] = expected[expected.columns[2]].astype(np.int64)
+    expected[expected.columns[3]] = expected[expected.columns[3]].astype(int)
+
+    print("\nexpected\n", expected.dtypes)
+    print("\nresult\n", result.dtypes)
 
     pdt.assert_frame_equal(result, expected, check_names=False)
 

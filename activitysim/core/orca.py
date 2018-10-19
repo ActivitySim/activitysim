@@ -14,17 +14,17 @@ import warnings
 from collections import Callable, namedtuple
 from contextlib import contextmanager
 from functools import wraps
+import inspect
 
 import pandas as pd
 import tables
 import tlz as tz
 
-from . import utils
-from .utils.logutil import log_start_finish
 from collections import namedtuple
 
-warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
-logger = logging.getLogger(__name__)
+# warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
+# logger = logging.getLogger(__name__)
+logger = logging.getLogger('orca')
 
 _TABLES = {}
 _COLUMNS = {}
@@ -43,6 +43,52 @@ _CS_ITER = 'iteration'
 _CS_STEP = 'step'
 
 CacheItem = namedtuple('CacheItem', ['name', 'value', 'scope'])
+
+
+@contextmanager
+def log_start_finish(msg, logger, level=logging.DEBUG):
+    """
+    A context manager to log messages with "start: " and "finish: "
+    prefixes before and after a block.
+
+    Parameters
+    ----------
+    msg : str
+        Will be prefixed with "start: " and "finish: ".
+    logger : logging.Logger
+    level : int, optional
+        Level at which to log, passed to ``logger.log``.
+
+    """
+    # logger.log(level, 'start: ' + msg)
+    yield
+    # logger.log(level, 'finish: ' + msg)
+
+
+def _func_source_data(func):
+    """
+    Return data about a function source, including file name,
+    line number, and source code.
+
+    Parameters
+    ----------
+    func : object
+        May be anything support by the inspect module, such as a function,
+        method, or class.
+
+    Returns
+    -------
+    filename : str
+    lineno : int
+        The line number on which the function starts.
+    source : str
+
+    """
+    filename = inspect.getsourcefile(func)
+    lineno = inspect.getsourcelines(func)[1]
+    source = inspect.getsource(func)
+
+    return filename, lineno, source
 
 
 def clear_all():
@@ -574,7 +620,7 @@ class TableFuncWrapper(object):
         source : str
 
         """
-        return utils.func_source_data(self._func)
+        return _func_source_data(self._func)
 
 
 class _ColumnFuncWrapper(object):
@@ -668,7 +714,7 @@ class _ColumnFuncWrapper(object):
         source : str
 
         """
-        return utils.func_source_data(self._func)
+        return _func_source_data(self._func)
 
 
 class _SeriesWrapper(object):
@@ -832,7 +878,7 @@ class _StepFuncWrapper(object):
         source : str
 
         """
-        return utils.func_source_data(self._func)
+        return _func_source_data(self._func)
 
 
 def is_table(name):
@@ -1472,11 +1518,11 @@ def get_injectable_func_source_data(name):
     inj = get_raw_injectable(name)
 
     if isinstance(inj, _InjectableFuncWrapper):
-        return utils.func_source_data(inj._func)
+        return _func_source_data(inj._func)
     elif hasattr(inj, '__wrapped__'):
-        return utils.func_source_data(inj.__wrapped__)
+        return _func_source_data(inj.__wrapped__)
     else:
-        return utils.func_source_data(inj)
+        return _func_source_data(inj)
 
 
 def add_step(step_name, func):

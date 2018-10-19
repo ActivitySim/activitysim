@@ -54,9 +54,7 @@ def settings():
 
 @inject.injectable(cache=True)
 def pipeline_file_name(settings):
-    """
-    Orca injectable to return the path to the pipeline hdf5 file based on output_dir and settings
-    """
+
     pipeline_file_name = settings.get('pipeline', 'pipeline.h5')
 
     return pipeline_file_name

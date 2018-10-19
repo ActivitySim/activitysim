@@ -9,8 +9,9 @@ import pandas as pd
 import pytest
 from pandas.util import testing as pdt
 
-from .. import orca
-from ..utils.testing import assert_frames_equal
+from activitysim.core import orca
+from activitysim.core import inject
+from .utils_testing import assert_frames_equal
 
 
 def setup_function(func):
@@ -21,6 +22,8 @@ def setup_function(func):
 def teardown_function(func):
     orca.clear_all()
     orca.enable_cache()
+    # be nice to the others tests that expect decorated injectables to be there
+    inject.reinject_decorated_tables()
 
 
 @pytest.fixture

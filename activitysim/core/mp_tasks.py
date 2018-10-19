@@ -431,11 +431,51 @@ def mp_coalesce_pipelines(injectables, sub_job_proc_names, slice_info):
 """
 
 
-def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_names, resume_after):
+def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_names,
+                        resume_after, previously_completed):
+
+    def log_queued_messages():
+        for i, process, queue in zip(list(range(num_simulations)), procs, queues):
+            while not queue.empty():
+                msg = queue.get(block=False)
+                logger.info("%s %s : %s", process.name, msg['model'],
+                            tracing.format_elapsed_time(msg['time']))
+
+    def check_proc_status():
+        # we want to drop 'completed' breadcrumb when it happens, lest we terminate
+        for p in procs:
+            if p.exitcode is None:
+                pass  # still running
+            elif p.exitcode == 0:
+                # completed successfully
+                if p.name not in completed:
+                    logger.info("process %s completed", p.name)
+                    completed.add(p.name)
+                    drob_breadcrumb(step_name, 'completed', list(completed))
+            else:
+                # process failed
+                if p.name not in failed:
+                    logger.info("process %s failed with exitcode %s", p.name, p.exitcode)
+                    failed.add(p.name)
+
+    def idle(seconds):
+        log_queued_messages()
+        check_proc_status()
+        for _ in range(seconds):
+            time.sleep(1)
+            log_queued_messages()
+            check_proc_status()
 
     step_name = step_info['name']
 
     logger.info('run_sub_simulations step %s models resume_after %s', step_name, resume_after)
+
+    if previously_completed:
+        assert resume_after == '_'
+        assert set(previously_completed).issubset(set(process_names))
+        process_names = [name for name in process_names if name not in previously_completed]
+        logger.info('run_sub_simulations step %s: skipping %s previously completed subprocedures',
+                    step_name, len(previously_completed))
 
     # if not the first step, resume_after the last checkpoint from the previous step
     if resume_after is None and step_info['step_num'] > 0:
@@ -444,6 +484,11 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
     num_simulations = len(process_names)
     procs = []
     queues = []
+    stagger_starts = step_info['stagger']
+
+    completed = set(previously_completed)
+    failed = set([])  # so we can log process failure when it happens
+    drob_breadcrumb(step_name, 'completed', list(completed))
 
     for process_name in process_names:
         q = multiprocessing.Queue()
@@ -453,45 +498,33 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
         procs.append(p)
         queues.append(q)
 
-    def log_queued_messages():
-        for i, process, queue in zip(list(range(num_simulations)), procs, queues):
-            while not queue.empty():
-                msg = queue.get(block=False)
-                logger.info("%s %s : %s",
-                            process.name,
-                            msg['model'],
-                            tracing.format_elapsed_time(msg['time']))
-
-    def idle(seconds):
-        log_queued_messages()
-        for _ in range(seconds):
-            time.sleep(1)
-            log_queued_messages()
-
-    stagger = 0
-    for p in procs:
-        if stagger > 0:
-            logger.info("stagger process %s by %s seconds", p.name, stagger)
-            idle(stagger)
-        stagger = step_info['stagger']
+    # - start processes
+    for i, p in zip(list(range(num_simulations)), procs):
+        if stagger_starts > 0 and i > 0:
+            logger.info("stagger process %s by %s seconds", p.name, stagger_starts)
+            idle(seconds=stagger_starts)
         logger.info("start process %s", p.name)
         p.start()
 
+    # - idle logging queued messages and proc completion
     while multiprocessing.active_children():
-        idle(1)
-    log_queued_messages()
+        idle(seconds=1)
+    idle(seconds=0)
+
+    # no need to join explicitly since multiprocessing.active_children joins completed procs
+    # for p in procs:
+    #     p.join()
 
     for p in procs:
-        p.join()
-
-    # log exitcode of sub_simulations that failed
-    error_count = 0
-    for p in procs:
+        assert p.exitcode is not None
         if p.exitcode:
-            logger.error("Process %s returned exitcode %s", p.name, p.exitcode)
-            error_count += 1
+            logger.error("Process %s failed with exitcode %s", p.name, p.exitcode)
+            assert p.name in failed
+        else:
+            logger.error("Process %s completed with exitcode %s", p.name, p.exitcode)
+            assert p.name in completed
 
-    return error_count
+    return list(completed)
 
 
 def run_sub_task(p):
@@ -505,6 +538,13 @@ def run_sub_task(p):
         raise RuntimeError("Process %s returned exitcode %s" % (p.name, p.exitcode))
 
 
+def drob_breadcrumb(step_name, crumb, value=True):
+    breadcrumbs = inject.get_injectable('breadcrumbs', OrderedDict())
+    breadcrumbs.setdefault(step_name, {'name': step_name})[crumb] = value
+    inject.add_injectable('breadcrumbs', breadcrumbs)
+    write_breadcrumbs(breadcrumbs)
+
+
 def run_multiprocess(run_list, injectables):
 
     if not run_list['multiprocess']:
@@ -512,7 +552,6 @@ def run_multiprocess(run_list, injectables):
                            run_list['multiprocess'])
 
     old_breadcrumbs = run_list.get('breadcrumbs', {})
-    new_breadcrumbs = OrderedDict()
 
     def skip_phase(phase):
         skip = old_breadcrumbs and old_breadcrumbs.get(step_name, {}).get(phase, False)
@@ -520,9 +559,8 @@ def run_multiprocess(run_list, injectables):
             logger.info("Skipping %s %s", step_name, phase)
         return skip
 
-    def drop_breadcrumb(phase):
-        new_breadcrumbs.setdefault(step_name, {'name': step_name})[phase] = True
-        write_breadcrumbs(new_breadcrumbs)
+    def find_breadcrumb(crumb, default=None):
+        return old_breadcrumbs.get(step_name, {}).get(crumb, default)
 
     with tracing.timing('allocate shared skim buffer', logger):
         shared_skim_buffer = allocate_shared_skim_buffer()
@@ -555,17 +593,23 @@ def run_multiprocess(run_list, injectables):
                         target=mp_apportion_pipeline, name='%s_apportion' % step_name,
                         args=(injectables, sub_proc_names, slice_info))
                 )
-        drop_breadcrumb('apportion')
+        drob_breadcrumb(step_name, 'apportion')
 
         # - run_sub_simulations
         if not skip_phase('simulate'):
+            resume_after = step_info.get('resume_after', None)
+
+            completed = find_breadcrumb('completed', default=[]) if resume_after == '_' else []
+
             with tracing.timing('run step %s' % step_name, logger):
-                error_count = \
+                completed = \
                     run_sub_simulations(injectables, shared_skim_buffer, step_info, sub_proc_names,
-                                        resume_after=step_info.get('resume_after', None))
-            if error_count:
-                raise RuntimeError("%s processes failed in step %s" % (error_count, step_name))
-        drop_breadcrumb('simulate')
+                                        resume_after, completed)
+
+            if len(completed) != num_processes:
+                raise RuntimeError("%s processes failed in step %s" %
+                                   (num_processes - len(completed), step_name))
+        drob_breadcrumb(step_name, 'simulate')
 
         # - mp_coalesce_pipelines
         if not skip_phase('coalesce') and num_processes > 1:
@@ -575,7 +619,7 @@ def run_multiprocess(run_list, injectables):
                         target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
                         args=(injectables, sub_proc_names, slice_info))
                 )
-        drop_breadcrumb('coalesce')
+        drob_breadcrumb(step_name, 'coalesce')
 
 
 def get_breadcrumbs(run_list):

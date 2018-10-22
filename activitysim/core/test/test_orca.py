@@ -5,6 +5,7 @@
 import os
 import tempfile
 
+import tables
 import pandas as pd
 import pytest
 from pandas.util import testing as pdt
@@ -909,6 +910,7 @@ def store_name(request):
     return fname
 
 
+@pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_write_tables(df, store_name):
     orca.add_table('table', df)
 
@@ -939,6 +941,7 @@ def test_write_all_tables(df, store_name):
             assert t in store
 
 
+@pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_run_and_write_tables(df, store_name):
     orca.add_table('table', df)
 
@@ -971,6 +974,7 @@ def test_run_and_write_tables(df, store_name):
                 store['10/table'][year_key(x)], series_year(x))
 
 
+@pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_run_and_write_tables_out_tables_provided(df, store_name):
     table_names = ['table', 'table2', 'table3']
     for t in table_names:

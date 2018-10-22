@@ -2,10 +2,14 @@
 inherit_settings: True
 
 households_sample_size: 300
+
+# 160 GB
+#chunk_size: 10000000000
+
 chunk_size: 3000000000
 
 multiprocess: False
-profile: True
+profile: False
 
 check_for_variability: False
 
@@ -56,16 +60,6 @@ models:
   - write_data_dictionary
   - write_tables
 
-#resume_after: auto_ownership_simulate
-#
-#resume: _workplace_location_sample
-#restore_checkpoint: school_location_simulate
-
-
-
-# 160 GB
-#chunk_size: 10000000000
-
 
 multiprocess_steps:
   - name: mp_initialize
@@ -73,7 +67,7 @@ multiprocess_steps:
   - name: mp_households
     begin: _school_location_sample
     num_processes: 3
-    stagger: 30
+    stagger: 5
     #chunk_size: 1000000000
     slice:
       tables:
@@ -112,9 +106,9 @@ output_tables:
   prefix: final_
   tables:
     - checkpoints
-    - accessibility
-    - land_use
-    - households
-    - persons
-    - trips
-    - tours
+#    - accessibility
+#    - land_use
+#    - households
+#    - persons
+#    - trips
+#    - tours

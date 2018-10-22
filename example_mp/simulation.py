@@ -31,6 +31,7 @@ def cleanup_output_files():
     tracing.delete_output_files('log', ignore=active_log_files)
 
     tracing.delete_output_files('h5')
+    tracing.delete_output_files('csv')
     tracing.delete_output_files('csv', subdir='trace')
     tracing.delete_output_files('txt')
     tracing.delete_output_files('yaml')

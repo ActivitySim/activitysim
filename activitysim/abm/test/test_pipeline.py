@@ -2,8 +2,8 @@
 # See full license in LICENSE.txt.
 
 from __future__ import (absolute_import, division, print_function, unicode_literals)
-
 from builtins import *
+
 
 from future.standard_library import install_aliases
 install_aliases()  # noqa: E402

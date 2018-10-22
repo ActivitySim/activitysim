@@ -22,7 +22,7 @@ import tlz as tz
 
 from collections import namedtuple
 
-# warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
+warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
 # logger = logging.getLogger(__name__)
 logger = logging.getLogger('orca')
 

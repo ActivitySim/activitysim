@@ -2,7 +2,6 @@
 # See full license in LICENSE.txt.
 
 from __future__ import (absolute_import, division, print_function, unicode_literals)
-
 from builtins import *
 
 from future.standard_library import install_aliases
@@ -11,6 +10,8 @@ install_aliases()  # noqa: E402
 import os
 import logging
 import pytest
+
+import tables
 
 from activitysim.core import tracing
 from activitysim.core import pipeline
@@ -59,6 +60,7 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
+# @pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_pipeline_run():
 
     inject.add_step('step1', steps.step1)

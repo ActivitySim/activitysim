@@ -70,8 +70,7 @@ def pipeline_table_keys(pipeline_store, checkpoint_name=None):
     checkpoint_tables = checkpoint_tables[checkpoint_tables != '']
 
     # hdf5 key is <table_name>/<checkpoint_name>
-    # FIXME - pathologically knows the format used by pipeline.pipeline_table_key()
-    checkpoint_tables = {table_name: table_name + '/' + checkpoint_name
+    checkpoint_tables = {table_name: pipeline.pipeline_table_key(table_name, checkpoint_name)
                          for table_name, checkpoint_name in iteritems(checkpoint_tables)}
 
     # checkpoint name and series mapping table name to hdf5 key for tables in that checkpoint

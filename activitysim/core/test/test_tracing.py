@@ -1,11 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-# ActivitySim
-# See full license in LICENSE.txt.
-from __future__ import (absolute_import, division, print_function, unicode_literals)
-
-from builtins import *
+from __future__ import (absolute_import, division, print_function, )
 
 from future.standard_library import install_aliases
 install_aliases()  # noqa: E402

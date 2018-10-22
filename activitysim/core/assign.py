@@ -1,13 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from future.utils import iteritems
-
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 from builtins import zip
 from builtins import object
+from future.utils import iteritems
 
 import logging
-import os
 from collections import OrderedDict
 
 import numpy as np

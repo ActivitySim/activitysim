@@ -1,7 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
 import pandas as pd
@@ -15,14 +18,8 @@ from activitysim.core import inject
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
 
-from activitysim.core.util import reindex
-
 from .util import expressions
-from .util.logsums import compute_logsums
-from .util.expressions import skim_time_period_label
-
 from .util import logsums as logsum
-
 from .util.tour_destination import tour_destination_size_terms
 
 

@@ -1,7 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
 import numpy as np
@@ -14,9 +17,7 @@ from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import pipeline
 
-from activitysim.core.util import assign_in_place
 from .util import expressions
-from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
 

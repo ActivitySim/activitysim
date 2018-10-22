@@ -1,9 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import str
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 from builtins import range
 from builtins import object
+
 import logging
 
 import numpy as np

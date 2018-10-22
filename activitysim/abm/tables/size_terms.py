@@ -1,10 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-import logging
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
-import numpy as np
+import logging
 import pandas as pd
 
 from activitysim.core import inject

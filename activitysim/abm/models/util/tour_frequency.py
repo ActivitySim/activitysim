@@ -1,7 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import str
 from builtins import range
 from future.utils import iteritems
 

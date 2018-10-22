@@ -3,6 +3,13 @@
 
 from __future__ import print_function
 
+# import sys
+# if not sys.warnoptions:  # noqa: E402
+#     import warnings
+#     warnings.filterwarnings('error', category=Warning)
+#     warnings.filterwarnings('ignore', category=PendingDeprecationWarning, module='future')
+#     warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
+
 import logging
 
 # activitysim.abm imported for its side-effects (dependency injection)

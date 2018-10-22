@@ -1,10 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
-import numpy as np
 import pandas as pd
 
 from activitysim.core import simulate
@@ -14,7 +16,6 @@ from activitysim.core import config
 from activitysim.core import inject
 
 from .util import expressions
-from activitysim.core.util import assign_in_place
 
 
 from .util.overlap import hh_time_window_overlap

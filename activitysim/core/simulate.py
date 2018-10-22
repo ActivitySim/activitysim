@@ -1,11 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
-from __future__ import division
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import range
 
 from future.utils import listvalues
-from builtins import range
+
 
 import sys
 import os

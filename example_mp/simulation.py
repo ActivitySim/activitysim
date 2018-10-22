@@ -1,16 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import (absolute_import, division, print_function, unicode_literals)
-
-from builtins import *
-
+from __future__ import (absolute_import, division, print_function, )
 from future.standard_library import install_aliases
 install_aliases()  # noqa: E402
 
-import logging
-from io import open
 import sys
+import logging
+
+if not sys.warnoptions:  # noqa: E402
+    import warnings
+    warnings.filterwarnings('error', category=Warning)
+    warnings.filterwarnings('ignore', category=PendingDeprecationWarning, module='future')
+    warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
 
 from activitysim.core import inject
 from activitysim.core import tracing

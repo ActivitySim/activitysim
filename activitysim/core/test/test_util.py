@@ -1,7 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import str
 import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt

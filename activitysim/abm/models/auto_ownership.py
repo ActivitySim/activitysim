@@ -1,6 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
 from activitysim.core import simulate
@@ -8,8 +12,6 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
-
-from .util import expressions
 
 logger = logging.getLogger(__name__)
 

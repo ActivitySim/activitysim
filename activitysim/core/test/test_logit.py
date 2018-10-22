@@ -1,7 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import str
 import os.path
 
 import numpy as np

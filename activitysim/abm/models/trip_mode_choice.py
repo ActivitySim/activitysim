@@ -1,13 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 from builtins import zip
 from builtins import range
+
 import logging
 
 import pandas as pd
-import yaml
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -15,7 +17,6 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core.util import force_garbage_collect
-from activitysim.core.util import assign_in_place
 
 from .util.mode import annotate_preprocessors
 

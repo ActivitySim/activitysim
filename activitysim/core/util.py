@@ -31,10 +31,13 @@ def df_size(df):
     return "%s %s" % (df.shape, GB(bytes))
 
 
-def memory_info():
+def memory_info(full=False):
 
     mi = psutil.Process().memory_full_info()
-    return "memory_info: vms: %s rss: %s uss: %s" % (GB(mi.vms), GB(mi.rss), GB(mi.uss))
+    if full:
+        return "memory_info: full: %s" % str(mi)
+    else:
+        return "memory_info: vms: %s rss: %s uss: %s" % (GB(mi.vms), GB(mi.rss), GB(mi.uss))
 
 
 def force_garbage_collect():

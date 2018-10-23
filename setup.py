@@ -24,7 +24,7 @@ setup(
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
         'numpy >= 1.13.0',
-        'openmatrix >= 0.2.4',
+        'openmatrix >= 0.3.4.1',
         'pandas >= 0.20.3',
         'pyyaml >= 3.0',
         'tables >= 3.3.0',

@@ -42,7 +42,8 @@ def log_chunk_size(trace_label, cum):
     bytes = cum[1]
 
     logger.debug("%s #chunk CUM %s %s" % (trace_label, elements, util.GB(bytes)))
-    # logger.debug("%s %s" % (trace_label, util.memory_info()))
+    logger.debug("%s %s" % (trace_label, util.memory_info()))
+    logger.debug("%s %s" % (trace_label, util.memory_info(full=True)))
 
 
 def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):

@@ -132,7 +132,8 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
                            trace_choosers=trace_choosers)
 
     # if allow_zero_probs, this may cause a RuntimeWarning: invalid value encountered in divide
-    with np.errstate(invalid='ignore' if allow_zero_probs else 'warn'):
+    with np.errstate(invalid='ignore' if allow_zero_probs else 'warn',
+                     divide='ignore' if allow_zero_probs else 'warn'):
         np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
 
     PROB_MIN = 0.0

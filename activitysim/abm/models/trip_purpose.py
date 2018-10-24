@@ -78,6 +78,8 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
                         how='left').set_index('trip_id')
 
+    chunk.log_df(trace_label, 'choosers', choosers)
+
     # select the matching depart range (this should result on in exactly one chooser row per trip)
     choosers = choosers[(choosers.start >= choosers['depart_range_start']) & (
                 choosers.start <= choosers['depart_range_end'])]
@@ -89,9 +91,6 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     choices, rands = logit.make_choices(
         choosers[purpose_cols],
         trace_label=trace_label, trace_choosers=choosers)
-
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-    chunk.log_chunk_size(trace_label, cum_size)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'trip_purpose'])
@@ -163,11 +162,15 @@ def run_trip_purpose(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size)
+
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,
             trace_hh_id,
             trace_label=chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

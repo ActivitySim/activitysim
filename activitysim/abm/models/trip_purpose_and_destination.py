@@ -64,7 +64,7 @@ def trip_purpose_and_destination(
     model_settings = config.read_model_settings('trip_purpose_and_destination.yaml')
 
     MAX_ITERATIONS = model_settings.get('MAX_ITERATIONS', 5)
-    CLEANUP = model_settings.get('cleanup', True)
+    CLEANUP = model_settings.get('CLEANUP', True)
 
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()

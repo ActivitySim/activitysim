@@ -360,7 +360,7 @@ def schedule_trips_in_leg(
 
 
 # calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
-def trip_scheduling_rpc(chunk_size, choosers, spec, trace_label=None):
+def trip_scheduling_rpc(chunk_size, choosers, spec, trace_label):
 
     # NOTE we chunk chunk_id
     num_choosers = choosers['chunk_id'].max() + 1
@@ -556,7 +556,7 @@ def trip_scheduling(
                        (choices.isnull().sum(), trips_df.shape[0], i))
 
         if failfix != FAILFIX_DROP_AND_CLEANUP:
-            raise RuntimeError("%s setting '%' not enabled in settings" %
+            raise RuntimeError("%s setting '%s' not enabled in settings" %
                                (FAILFIX, FAILFIX_DROP_AND_CLEANUP))
 
         trips_df['failed'] = choices.isnull()

@@ -23,10 +23,9 @@ from . import tracing
 from . import pipeline
 from . import config
 from . import util
-
 from . import assign
-
 from . import chunk
+from . import mem
 
 logger = logging.getLogger(__name__)
 
@@ -203,9 +202,6 @@ def eval_variables(exprs, df, locals_d=None):
 
     values = OrderedDict()
     for expr in exprs:
-        sys.stdout.flush()
-        # logger.debug("eval_variables: %s" % expr)
-        # logger.debug("eval_variables %s" % util.memory_info())
         try:
             if expr.startswith('@'):
                 expr_values = to_array(eval(expr[1:], globals_dict, locals_dict))
@@ -215,7 +211,6 @@ def eval_variables(exprs, df, locals_d=None):
             assert expr not in values
             values[expr] = expr_values
         except Exception as err:
-            print()  # print ...
             logger.exception("Variable evaluation failed for: %s" % str(expr))
 
             raise err
@@ -481,10 +476,19 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
         of `spec`.
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'mnl')
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_mnl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
-    expression_values = eval_variables(spec.index, choosers, locals_d)
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+
+    with mem.trace('expression_values', logger):
+        expression_values = eval_variables(spec.index, choosers, locals_d)
+    chunk.log_df(trace_label, 'expression_values', expression_values)
+
+    if have_trace_targets:
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
 
     if config.setting('check_for_variability'):
         _check_for_variability(expression_values, trace_label)
@@ -494,17 +498,21 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     # resulting in a dataframe with one row per chooser and one column per alternative
     # pandas.dot depends on column names of expression_values matching spec index values
 
-    utilities = compute_utilities(expression_values, spec)
+    with mem.trace('utilities', logger):
+        utilities = compute_utilities(expression_values, spec)
+    chunk.log_df(trace_label, "utilities", utilities)
+
+    del expression_values
 
     if have_trace_targets:
-        # report these now in case utils_to_probs throws error on zero-probs
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
-    probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    with mem.trace('probs', logger):
+        probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    chunk.log_df(trace_label, "probs", probs)
+
+    del utilities
 
     if have_trace_targets:
         # report these now in case make_choices throws error on bad_choices
@@ -517,12 +525,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     else:
         choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-
-    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "probs", probs, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
+    del probs
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -568,41 +571,68 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         of `spec`.
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'nl')
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_nl')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+
     # column names of expression_values match spec index values
-    expression_values = eval_variables(spec.index, choosers, locals_d)
+    with mem.trace('expression_values', logger):
+        expression_values = eval_variables(spec.index, choosers, locals_d)
+    chunk.log_df(trace_label, "expression_values", expression_values)
+
+    if have_trace_targets:
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
 
     if config.setting('check_for_variability'):
         _check_for_variability(expression_values, trace_label)
 
     # raw utilities of all the leaves
-    raw_utilities = compute_utilities(expression_values, spec)
-
-    # exponentiated utilities of leaves and nests
-    nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-
-    # probabilities of alternatives relative to siblings sharing the same nest
-    nested_probabilities = compute_nested_probabilities(nested_exp_utilities, nest_spec,
-                                                        trace_label=trace_label)
-
-    # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
-    base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
+    with mem.trace('raw_utilities', logger):
+        raw_utilities = compute_utilities(expression_values, spec)
+    chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
-        # report these now in case of no_choices
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
+
+    del expression_values
+
+    # exponentiated utilities of leaves and nests
+    with mem.trace('nested_exp_utilities', logger):
+        nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+    chunk.log_df(trace_label, "nested_exp_utils", nested_exp_utilities)
+
+    del raw_utilities
+
+    if have_trace_targets:
         tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
+
+    # probabilities of alternatives relative to siblings sharing the same nest
+    with mem.trace('nested_probabilities', logger):
+        nested_probabilities = \
+            compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label=trace_label)
+    chunk.log_df(trace_label, "nested_probs", nested_probabilities)
+
+    del nested_exp_utilities
+
+    if have_trace_targets:
         tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
                          column_labels=['alternative', 'probability'])
+
+    # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
+    with mem.trace('base_probabilities', logger):
+        base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
+    chunk.log_df(trace_label, "base_probs", base_probabilities)
+
+    del nested_probabilities
+
+    if have_trace_targets:
         tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
                          column_labels=['alternative', 'probability'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
     # note base_probabilities could all be zero since we allowed all probs for nests to be zero
     # check here to print a clear message but make_choices will raise error if probs don't sum to 1
@@ -625,13 +655,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     else:
         choices, rands = logit.make_choices(base_probabilities, trace_label=trace_label)
 
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-    cum_size = chunk.log_df_size(trace_label, "expression_values", expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "nested_exp_utils", nested_exp_utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "nested_probs", nested_probabilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "base_probs", base_probabilities, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
+    del base_probabilities
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -763,12 +787,16 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size)
+
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
             custom_chooser,
             chunk_trace_label,
             trace_choice_name)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 
@@ -792,39 +820,38 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
 
     # FIXME - untested and not currently used by any models...
 
-    trace_label = tracing.extend_trace_label(trace_label, 'mnl')
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_mnl_logsums')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
 
     logger.debug("running eval_mnl_logsums")
-    t00 = t0 = print_elapsed_time()
 
     # trace choosers
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
 
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    t0 = print_elapsed_time("eval_variables", t0, debug=True)
+    with mem.trace('expression_values', logger):
+        expression_values = eval_variables(spec.index, choosers, locals_d)
+    chunk.log_df(trace_label, 'expression_values', expression_values)
 
+    if have_trace_targets:
+        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+                         column_labels=['expression', None])
     if config.setting('check_for_variability'):
         _check_for_variability(expression_values, trace_label)
 
     # utility values
-    utilities = compute_utilities(expression_values, spec)
-    t0 = print_elapsed_time("compute_utilities", t0, debug=True)
+    with mem.trace('utilities', logger):
+        utilities = compute_utilities(expression_values, spec)
+    chunk.log_df(trace_label, "utilities", utilities,)
 
-    # trace expression_values
-    if have_trace_targets:
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
-    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
     del expression_values  # done with expression_values
 
     # - logsums
     # logsum is log of exponentiated utilities summed across columns of each chooser row
-    logsums = np.log(np.exp(utilities.values).sum(axis=1))
-    logsums = pd.Series(logsums, index=choosers.index)
-    t0 = print_elapsed_time("logsums", t0, debug=True)
+    with mem.trace('logsums', logger):
+        logsums = np.log(np.exp(utilities.values).sum(axis=1))
+        logsums = pd.Series(logsums, index=choosers.index)
+    chunk.log_df(trace_label, "logsums", logsums)
 
     # trace utilities
     if have_trace_targets:
@@ -832,27 +859,10 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
         utilities['logsum'] = logsums
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
-
-    # trace logsums
-    if have_trace_targets:
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
-    cum_size = chunk.log_df_size(trace_label, "logsums", logsums, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
-
-    t0 = print_elapsed_time("end eval_mnl_logsums", t00, debug=True)
 
     return logsums
-
-
-def print_elapsed_time(msg=None, t0=None, debug=False):
-
-    # msg = "%s %s" % (msg, util.memory_info())
-    # print(msg)
-    # sys.stdout.write('\a')
-    # sys.stdout.flush()
-    return tracing.print_elapsed_time(msg, t0, debug=debug)
 
 
 def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
@@ -865,70 +875,62 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'nl')
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_nl_logsums')
     have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
-
-    t00 = t0 = print_elapsed_time("begin eval_nl_logsums")
 
     # trace choosers
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
 
     # - eval spec expressions
     # column names of expression_values match spec index values
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    t0 = print_elapsed_time("eval_variables", t0, debug=True)
+    with mem.trace('expression_values', logger):
+        expression_values = eval_variables(spec.index, choosers, locals_d)
+    chunk.log_df(trace_label, 'expression_values', expression_values)
 
-    if config.setting('check_for_variability'):
-        _check_for_variability(expression_values, trace_label)
-        t0 = print_elapsed_time("_check_for_variability", t0, debug=True)
-
-    # - raw utilities of all the leaves
-    raw_utilities = compute_utilities(expression_values, spec)
-    t0 = print_elapsed_time("compute_utilities", t0, debug=True)
-
-    # trace expression_values
     if have_trace_targets:
         tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
                          column_labels=['expression', None])
-    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
-    del expression_values  # done with expression_values
 
-    # - exponentiated utilities of leaves and nests
-    nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    t0 = print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
+    if config.setting('check_for_variability'):
+        _check_for_variability(expression_values, trace_label)
 
-    # trace raw_utilities
+    # - raw utilities of all the leaves
+    with mem.trace('raw_utilities', logger):
+        raw_utilities = compute_utilities(expression_values, spec)
+    chunk.log_df(trace_label, "raw_utilities", raw_utilities)
+
     if have_trace_targets:
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
-    del raw_utilities  # done with raw_utilities
+
+    with mem.trace('del expression_values', logger):
+        del expression_values  # done with expression_values
+
+    # - exponentiated utilities of leaves and nests
+    with mem.trace('nested_exp_utilities', logger):
+        nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+    chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
+
+    with mem.trace('del raw_utilities', logger):
+        del raw_utilities  # done with raw_utilities
 
     # - logsums
-    logsums = np.log(nested_exp_utilities.root)
-    logsums = pd.Series(logsums, index=choosers.index)
-    t0 = print_elapsed_time("logsums", t0, debug=True)
+    with mem.trace('logsums', logger):
+        logsums = np.log(nested_exp_utilities.root)
+        logsums = pd.Series(logsums, index=choosers.index)
+    chunk.log_df(trace_label, "logsums", logsums)
 
-    # trace nested_exp_utilities
     if have_trace_targets:
         # add logsum to nested_exp_utilities for tracing
         nested_exp_utilities['logsum'] = logsums
         tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-    cum_size = \
-        chunk.log_df_size(trace_label, "nested_exp_utilities", nested_exp_utilities, cum_size)
-    del nested_exp_utilities  # done with nested_exp_utilities
-
-    # trace logsums
-    if have_trace_targets:
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
-    cum_size = chunk.log_df_size(trace_label, "logsums", logsums, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
 
-    t0 = print_elapsed_time("end eval_nl_logsums", t00, debug=True)
+    with mem.trace('del nested_exp_utilities', logger):
+        del nested_exp_utilities  # done with nested_exp_utilities
 
     return logsums
 
@@ -1017,10 +1019,14 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size)
+
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
             chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(logsums)
 

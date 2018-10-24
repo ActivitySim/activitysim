@@ -69,7 +69,6 @@ def timing(msg, callers_logger, level=logging.DEBUG):
     Parameters
     ----------
     msg : str
-        Will be prefixed with "start: " and "finish: ".
     callers_logger : logging.Logger
         logger passed from caller's context
     level : int, optional
@@ -472,8 +471,6 @@ def get_trace_target(df, slicer):
         target_ids = inject.get_injectable('trace_%s' % table_name, [])
     elif slicer == 'TAZ':
         target_ids = inject.get_injectable('trace_od', [])
-    else:
-        raise RuntimeError("slice_canonically: bad slicer '%s'" % (slicer, ))
 
     return target_ids, column
 

@@ -44,6 +44,16 @@ logger = logging.getLogger('activitysim')
 """
 
 
+def filter_warnings():
+
+    if setting('strict', False):  # noqa: E402
+        import warnings
+        warnings.filterwarnings('error', category=Warning)
+        warnings.filterwarnings('default', category=PendingDeprecationWarning, module='future')
+        warnings.filterwarnings('default', category=FutureWarning, module='pandas')
+        warnings.filterwarnings('default', category=RuntimeWarning, module='numpy')
+
+
 def pipeline_table_keys(pipeline_store, checkpoint_name=None):
 
     checkpoints = pipeline_store[pipeline.CHECKPOINT_TABLE_NAME]
@@ -312,6 +322,8 @@ def setup_injectables_and_logging(injectables):
 
     inject.add_injectable("is_sub_task", True)
 
+    filter_warnings()
+
     process_name = multiprocessing.current_process().name
     inject.add_injectable("log_file_prefix", process_name)
     tracing.config_logger()
@@ -373,7 +385,8 @@ def profile_path():
 def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
 
     skim_buffer = kwargs
-    handle_standard_args()
+    # handle_standard_args()
+
     setup_injectables_and_logging(injectables)
 
     if step_info['num_processes'] > 1:

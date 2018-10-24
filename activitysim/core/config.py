@@ -116,9 +116,9 @@ def handle_standard_args(parser=None):
             raise IOError("Could not find data dir '%s'" % args.data)
         inject.add_injectable("data_dir", args.data)
     if args.resume:
-        inject.add_injectable("resume_after", args.resume)
+        inject.add_injectable('resume_after', args.resume)
     if args.multiprocess:
-        inject.add_injectable("multiprocess", args.multiprocess)
+        inject.add_injectable('multiprocess', args.multiprocess)
 
     return args
 

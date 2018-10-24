@@ -21,9 +21,9 @@ from . import inject
 from . import config
 from . import random
 from . import tracing
+from . import mem
 
-from .util import memory_info
-from .util import df_size
+from . import util
 from .tracing import print_elapsed_time
 
 
@@ -279,7 +279,7 @@ def add_checkpoint(checkpoint_name):
             continue
 
         logger.debug("add_checkpoint '%s' table '%s' %s" %
-                     (checkpoint_name, table_name, df_size(df)))
+                     (checkpoint_name, table_name, util.df_size(df)))
         write_df(df, table_name, checkpoint_name)
 
         # remember which checkpoint it was last written
@@ -568,7 +568,7 @@ def run(models, resume_after=None):
         resume_after = _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
 
     if resume_after:
-        logger.info('resume_after %s' % resume_after)
+        logger.info("resume_after %s" % resume_after)
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
 
@@ -583,8 +583,6 @@ def run(models, resume_after=None):
         t1 = print_elapsed_time()
         run_model(model)
         t1 = print_elapsed_time("run_model %s" % model, t1)
-
-        logger.debug('#mem after %s, %s' % (model, memory_info()))
 
     t0 = print_elapsed_time("run (%s models)" % len(models), t0)
 

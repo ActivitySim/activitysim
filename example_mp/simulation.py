@@ -8,17 +8,13 @@ install_aliases()  # noqa: E402
 import sys
 import logging
 
-if not sys.warnoptions:  # noqa: E402
-    import warnings
-    warnings.filterwarnings('error', category=Warning)
-    warnings.filterwarnings('ignore', category=PendingDeprecationWarning, module='future')
-    warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
-
+from activitysim.core import mem
 from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import mp_tasks
+from activitysim.core import chunk
 
 # from activitysim import abm
 
@@ -57,6 +53,8 @@ if __name__ == '__main__':
     inject.add_injectable('configs_dir', ['configs', '../example/configs'])
 
     config.handle_standard_args()
+
+    mp_tasks.filter_warnings()
     tracing.config_logger()
 
     t0 = tracing.print_elapsed_time()
@@ -69,7 +67,7 @@ if __name__ == '__main__':
 
     if run_list['multiprocess']:
         # do this after config.handle_standard_args, as command line args may override injectables
-        injectables = ['data_dir', 'configs_dir', 'output_dir']
+        injectables = ['data_dir', 'configs_dir', 'output_dir', 'strict']
         injectables = {k: inject.get_injectable(k) for k in injectables}
     else:
         injectables = None
@@ -82,3 +80,6 @@ if __name__ == '__main__':
         run(run_list, injectables)
 
     t0 = tracing.print_elapsed_time("everything", t0)
+
+    chunk.log_chunk_high_water_mark()
+    mem.log_mem_high_water_mark()

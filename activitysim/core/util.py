@@ -7,8 +7,6 @@ install_aliases()  # noqa: E402
 
 from builtins import zip
 
-import psutil
-import gc
 import logging
 
 from operator import itemgetter
@@ -17,6 +15,8 @@ import numpy as np
 import pandas as pd
 
 from zbox import toolz as tz
+
+from . import mem
 
 logger = logging.getLogger(__name__)
 
@@ -29,21 +29,6 @@ def GB(bytes):
 def df_size(df):
     bytes = df.memory_usage(index=True).sum()
     return "%s %s" % (df.shape, GB(bytes))
-
-
-def memory_info(full=False):
-
-    mi = psutil.Process().memory_full_info()
-    if full:
-        return "memory_info: full: %s" % str(mi)
-    else:
-        return "memory_info: vms: %s rss: %s uss: %s" % (GB(mi.vms), GB(mi.rss), GB(mi.uss))
-
-
-def force_garbage_collect():
-
-    gc.collect()
-    logger.debug("force_garbage_collect %s" % memory_info())
 
 
 def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):

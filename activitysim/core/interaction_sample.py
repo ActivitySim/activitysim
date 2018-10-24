@@ -14,7 +14,7 @@ from math import ceil
 import numpy as np
 import pandas as pd
 
-from activitysim.core.util import force_garbage_collect
+from activitysim.core.mem import force_garbage_collect
 
 from . import logit
 from . import tracing
@@ -217,7 +217,7 @@ def _interaction_sample(
     interaction_df = \
         logit.interaction_dataset(choosers, alternatives, sample_size=alternative_count)
 
-    cum_size = chunk.log_df_size(trace_label, 'interaction_df', interaction_df, cum_size=None)
+    chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
@@ -239,12 +239,10 @@ def _interaction_sample(
     else:
         trace_rows = trace_ids = None
 
+    # interaction_utilities is a df with one utility column and one row per interaction_df row
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
-
-    # interaction_utilities is a df with one utility column and one row per interaction_df row
-
-    cum_size = chunk.log_df_size(trace_label, 'interaction_utils', interaction_utilities, cum_size)
+    chunk.log_df(trace_label, 'interaction_utils', interaction_utilities)
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
@@ -261,8 +259,7 @@ def _interaction_sample(
     utilities = pd.DataFrame(
         interaction_utilities.values.reshape(len(choosers), alternative_count),
         index=choosers.index)
-
-    cum_size = chunk.log_df_size(trace_label, 'utilities', utilities, cum_size)
+    chunk.log_df(trace_label, 'utilities', utilities)
 
     if have_trace_targets:
         tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
@@ -274,8 +271,7 @@ def _interaction_sample(
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
                                  trace_label=trace_label, trace_choosers=choosers)
-
-    cum_size = chunk.log_df_size(trace_label, 'probs', probs, cum_size)
+    chunk.log_df(trace_label, 'probs', probs)
 
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
@@ -286,6 +282,8 @@ def _interaction_sample(
         sample_size, alternative_count, alt_col_name,
         allow_zero_probs=allow_zero_probs,
         trace_label=trace_label)
+
+    chunk.log_df(trace_label, 'choices_df', choices_df)
 
     # make_sample_choices should return choosers index as choices_df column
     assert choosers.index.name in choices_df.columns
@@ -324,8 +322,6 @@ def _interaction_sample(
     choices_df['prob'] = choices_df['prob'].astype(np.float32)
     assert (choices_df['pick_count'].max() < 4294967295) or (choices_df.empty)
     choices_df['pick_count'] = choices_df['pick_count'].astype(np.uint32)
-
-    chunk.log_chunk_size(trace_label, cum_size)
 
     return choices_df
 
@@ -440,10 +436,14 @@ def interaction_sample(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size)
+
         choices = _interaction_sample(chooser_chunk, alternatives,
                                       spec, sample_size, alt_col_name, allow_zero_probs,
                                       skims, locals_d,
                                       chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         if choices.shape[0] > 0:
             # might not be any if allow_zero_probs

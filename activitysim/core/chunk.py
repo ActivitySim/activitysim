@@ -5,17 +5,66 @@ from __future__ import (absolute_import, division, print_function, )
 from future.standard_library import install_aliases
 install_aliases()  # noqa: E402
 
+from builtins import input
+
 import logging
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 
 from . import util
+from . import mem
 
 logger = logging.getLogger(__name__)
 
 
-def log_df_size(trace_label, table_name, df, cum_size):
+CHUNK_LOG = OrderedDict()
+CHUNK_SIZE = []
+
+ELEMENTS_HWM = {}
+BYTES_HWM = {}
+
+
+def GB(bytes):
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return "%s (%s GB)" % (bytes, round(gb, 2), )
+
+
+def log_open(trace_label, chunk_size):
+
+    # if trace_label is None:
+    #     trace_label = "noname_%s" % len(CHUNK_LOG)
+
+    if len(CHUNK_LOG) > 0:
+        assert chunk_size == 0
+        logger.debug("log_open nested chunker %s" % trace_label)
+
+    CHUNK_LOG[trace_label] = OrderedDict()
+    CHUNK_SIZE.append(chunk_size)
+
+
+def log_close(trace_label):
+
+    # if trace_label is None:
+    #     trace_label = "noname_%s" % (len(CHUNK_LOG)-1)
+
+    assert CHUNK_LOG and next(reversed(CHUNK_LOG)) == trace_label
+
+    logger.debug("log_close %s" % trace_label)
+    log_write()
+    # input("Return to continue: ")
+
+    label, _ = CHUNK_LOG.popitem(last=True)
+    assert label == trace_label
+    CHUNK_SIZE.pop()
+
+
+def log_df(trace_label, table_name, df):
+
+    cur_chunker = next(reversed(CHUNK_LOG))
+    if table_name in CHUNK_LOG[cur_chunker]:
+        logger.warning("log_df table %s for chunker %s already logged" % (table_name, cur_chunker))
 
     if isinstance(df, pd.Series):
         elements = df.shape[0]
@@ -23,27 +72,49 @@ def log_df_size(trace_label, table_name, df, cum_size):
     elif isinstance(df, pd.DataFrame):
         elements = df.shape[0] * df.shape[1]
         bytes = df.memory_usage(index=True).sum()
+    elif isinstance(df, np.ndarray):
+        elements = np.prod(df.shape)
+        bytes = df.nbytes
     else:
+        logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
         assert False
 
-    # logger.debug("%s #chunk log_df_size %s %s %s %s" %
-    #              (trace_label, table_name, df.shape, elements, util.GB(bytes)))
-
-    if cum_size:
-        elements += cum_size[0]
-        bytes += cum_size[1]
-
-    return elements, bytes
+    CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
+    mem.log_memory_info("%s.chunk_log_df.%s" % (trace_label, table_name))
 
 
-def log_chunk_size(trace_label, cum):
+def log_write():
+    total_elements = 0
+    total_bytes = 0
+    for label in CHUNK_LOG:
+        tables = CHUNK_LOG[label]
+        for table_name in tables:
+            elements, bytes = tables[table_name]
+            logger.debug("%s table %s %s %s" % (label, table_name, elements, GB(bytes)))
+            total_elements += elements
+            total_bytes += bytes
 
-    elements = cum[0]
-    bytes = cum[1]
+    logger.debug("%s total elements %s %s" % (CHUNK_LOG.keys(), total_elements, GB(total_bytes)))
 
-    logger.debug("%s #chunk CUM %s %s" % (trace_label, elements, util.GB(bytes)))
-    logger.debug("%s %s" % (trace_label, util.memory_info()))
-    logger.debug("%s %s" % (trace_label, util.memory_info(full=True)))
+    if total_elements > ELEMENTS_HWM.get('mark', 0):
+        ELEMENTS_HWM['mark'] = total_elements
+        ELEMENTS_HWM['chunker'] = CHUNK_LOG.keys()
+
+    if total_bytes > BYTES_HWM.get('mark', 0):
+        BYTES_HWM['mark'] = total_bytes
+        BYTES_HWM['chunker'] = CHUNK_LOG.keys()
+
+    if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
+        logger.warning("total_elements (%s) > chunk_size (%s)" % (total_elements, CHUNK_SIZE[0]))
+
+
+def log_chunk_high_water_mark():
+    if 'mark' in ELEMENTS_HWM:
+        logger.info("chunk high_water_mark total_elements: %s in %s" %
+                    (ELEMENTS_HWM['mark'], ELEMENTS_HWM['chunker']), )
+    if 'mark' in BYTES_HWM:
+        logger.info("chunk high_water_mark total_bytes: %s in %s" %
+                    (GB(BYTES_HWM['mark']), BYTES_HWM['chunker']), )
 
 
 def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):

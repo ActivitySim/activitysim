@@ -53,6 +53,7 @@ def test_vts():
     persons = pd.DataFrame({
         "income": [20, 30, 25]
     }, index=[1, 2, 3])
+
     inject.add_table('persons', persons)
 
     spec = pd.DataFrame({"Coefficient": [1.2]},
@@ -61,7 +62,8 @@ def test_vts():
 
     inject.add_injectable("check_for_variability", True)
 
-    tdd_choices = vectorize_tour_scheduling(tours, persons, alts, spec)
+    tdd_choices = vectorize_tour_scheduling(tours, persons, alts, spec,
+                                            constants={}, chunk_size=0, trace_label='test_vts')
 
     # FIXME - dead reckoning regression
     # there's no real logic here - this is just what came out of the monte carlo

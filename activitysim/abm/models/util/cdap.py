@@ -875,8 +875,7 @@ def _run_cdap(
     #     tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
     #                      transpose=False, slicer='NONE')
 
-    cum_size = chunk.log_df_size(trace_label, 'persons', persons, cum_size=None)
-    chunk.log_chunk_size(trace_label, cum_size)
+    chunk.log_df(trace_label, 'persons', persons)
 
     # return dataframe with two columns
     return cdap_results
@@ -961,12 +960,16 @@ def run_cdap(
 
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i)
 
+        chunk.log_open(chunk_trace_label, chunk_size)
+
         choices = _run_cdap(persons_chunk,
                             cdap_indiv_spec,
                             cdap_interaction_coefficients,
                             cdap_fixed_relative_proportions,
                             locals_d,
                             trace_hh_id, chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

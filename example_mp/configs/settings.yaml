@@ -1,15 +1,16 @@
 
 inherit_settings: True
 
-households_sample_size: 300
+households_sample_size:  100
+#households_sample_size:  123281
 
 # 160 GB
 #chunk_size: 10000000000
-
 chunk_size: 3000000000
 
 multiprocess: False
 profile: False
+strict: False
 
 check_for_variability: False
 

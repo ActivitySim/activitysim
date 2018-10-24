@@ -10,7 +10,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core import tracing
 from activitysim.core import inject
 from activitysim.core import timetable as tt
-from activitysim.core.util import force_garbage_collect
+from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import reindex
 
 from activitysim.core import chunk
@@ -176,11 +176,14 @@ def _schedule_tours(
     previous_tour_info = get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts)
     tours = tours.join(previous_tour_info)
 
+    chunk.log_df(tour_trace_label, "tours", tours)
+
     # build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
     choice_column = 'tdd'
     alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col)
+    chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     locals_d = {
         'tt': timetable
@@ -201,10 +204,6 @@ def _schedule_tours(
     previous_tour.loc[tours[tour_owner_id_col]] = choices.values
 
     timetable.assign(tours[window_id_col], choices)
-
-    cum_size = chunk.log_df_size(tour_trace_label, "tours", tours, cum_size=None)
-    cum_size = chunk.log_df_size(tour_trace_label, "alt_tdd", alt_tdd, cum_size)
-    chunk.log_chunk_size(tour_trace_label, cum_size)
 
     return choices
 
@@ -280,11 +279,14 @@ def schedule_tours(
         chunk_trace_label = tracing.extend_trace_label(tour_trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else tour_trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size)
         choices = _schedule_tours(chooser_chunk, persons_merged,
                                   alts, spec, constants,
                                   timetable, timetable_window_id_col,
                                   previous_tour, tour_owner_id_col,
                                   tour_trace_label=chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

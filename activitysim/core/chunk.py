@@ -63,24 +63,59 @@ def log_close(trace_label):
 def log_df(trace_label, table_name, df):
 
     cur_chunker = next(reversed(CHUNK_LOG))
-    if table_name in CHUNK_LOG[cur_chunker]:
-        logger.warning("log_df table %s for chunker %s already logged" % (table_name, cur_chunker))
 
-    if isinstance(df, pd.Series):
-        elements = df.shape[0]
-        bytes = df.memory_usage(index=True)
-    elif isinstance(df, pd.DataFrame):
-        elements = df.shape[0] * df.shape[1]
-        bytes = df.memory_usage(index=True).sum()
-    elif isinstance(df, np.ndarray):
-        elements = np.prod(df.shape)
-        bytes = df.nbytes
+    if df is None:
+        elements, bytes = list(-n for n in CHUNK_LOG.get(cur_chunker).pop(table_name))
+        df_trace_label = "%s.del_df.%s" % (trace_label, table_name)
     else:
-        logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
-        assert False
 
-    CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
-    mem.log_memory_info("%s.chunk_log_df.%s" % (trace_label, table_name))
+        if isinstance(df, pd.Series):
+            elements = df.shape[0]
+            bytes = df.memory_usage(index=True)
+        elif isinstance(df, pd.DataFrame):
+            elements = df.shape[0] * df.shape[1]
+            bytes = df.memory_usage(index=True).sum()
+        elif isinstance(df, np.ndarray):
+            elements = np.prod(df.shape)
+            bytes = df.nbytes
+        else:
+            logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
+            assert False
+
+        CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
+
+        df_trace_label = "%s.add_df.%s" % (trace_label, table_name)
+
+    logger.debug("df elements %s %s : %s " % (elements, GB(bytes), df_trace_label))
+
+    total_elements, total_bytes = _log_totals()
+    logger.debug("%s total elements %s %s" % (total_elements, GB(total_bytes), df_trace_label))
+
+    mem.log_memory_info(df_trace_label)
+
+
+def _log_totals():
+    total_elements = 0
+    total_bytes = 0
+    for label in CHUNK_LOG:
+        tables = CHUNK_LOG[label]
+        for table_name in tables:
+            elements, bytes = tables[table_name]
+            total_elements += elements
+            total_bytes += bytes
+
+    if total_elements > ELEMENTS_HWM.get('mark', 0):
+        ELEMENTS_HWM['mark'] = total_elements
+        ELEMENTS_HWM['chunker'] = CHUNK_LOG.keys()
+
+    if total_bytes > BYTES_HWM.get('mark', 0):
+        BYTES_HWM['mark'] = total_bytes
+        BYTES_HWM['chunker'] = CHUNK_LOG.keys()
+
+    if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
+        logger.warning("total_elements (%s) > chunk_size (%s)" % (total_elements, CHUNK_SIZE[0]))
+
+    return total_elements, total_bytes
 
 
 def log_write():
@@ -95,17 +130,6 @@ def log_write():
             total_bytes += bytes
 
     logger.debug("%s total elements %s %s" % (CHUNK_LOG.keys(), total_elements, GB(total_bytes)))
-
-    if total_elements > ELEMENTS_HWM.get('mark', 0):
-        ELEMENTS_HWM['mark'] = total_elements
-        ELEMENTS_HWM['chunker'] = CHUNK_LOG.keys()
-
-    if total_bytes > BYTES_HWM.get('mark', 0):
-        BYTES_HWM['mark'] = total_bytes
-        BYTES_HWM['chunker'] = CHUNK_LOG.keys()
-
-    if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
-        logger.warning("total_elements (%s) > chunk_size (%s)" % (total_elements, CHUNK_SIZE[0]))
 
 
 def log_chunk_high_water_mark():

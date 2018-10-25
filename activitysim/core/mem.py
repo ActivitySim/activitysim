@@ -92,6 +92,8 @@ def trace(msg, callers_logger, level=logging.DEBUG):
     callerframerecord = inspect.stack()[2]
     caller_name = inspect.getframeinfo(callerframerecord[0]).function
 
+    msg = "%s.%s" % (caller_name, msg)
+
     prev_mem = _track_memory_info("%s.before" % msg)
     t = time.time()
     yield
@@ -100,5 +102,5 @@ def trace(msg, callers_logger, level=logging.DEBUG):
 
     delta_mem = post_mem - prev_mem
 
-    callers_logger.log(level, "Time to perform %s.%s : %s memory: %s (%s)" %
-                       (caller_name, msg, format_elapsed_time(t), GB(post_mem), GB(delta_mem)))
+    callers_logger.log(level, "Time to perform %s : %s memory: %s (%s)" %
+                       (msg, format_elapsed_time(t), GB(post_mem), GB(delta_mem)))

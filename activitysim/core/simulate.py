@@ -503,6 +503,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     chunk.log_df(trace_label, "utilities", utilities)
 
     del expression_values
+    chunk.log_df(trace_label, 'expression_values', None)
 
     if have_trace_targets:
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
@@ -513,6 +514,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     chunk.log_df(trace_label, "probs", probs)
 
     del utilities
+    chunk.log_df(trace_label, 'utilities', None)
 
     if have_trace_targets:
         # report these now in case make_choices throws error on bad_choices
@@ -526,6 +528,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
         choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
     del probs
+    chunk.log_df(trace_label, 'probs', None)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -599,13 +602,15 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
                          column_labels=['alternative', 'utility'])
 
     del expression_values
+    chunk.log_df(trace_label, 'expression_values', None)
 
     # exponentiated utilities of leaves and nests
     with mem.trace('nested_exp_utilities', logger):
         nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    chunk.log_df(trace_label, "nested_exp_utils", nested_exp_utilities)
+    chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
     del raw_utilities
+    chunk.log_df(trace_label, 'raw_utilities', None)
 
     if have_trace_targets:
         tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
@@ -615,9 +620,10 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     with mem.trace('nested_probabilities', logger):
         nested_probabilities = \
             compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label=trace_label)
-    chunk.log_df(trace_label, "nested_probs", nested_probabilities)
+    chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
 
     del nested_exp_utilities
+    chunk.log_df(trace_label, 'nested_exp_utilities', None)
 
     if have_trace_targets:
         tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
@@ -626,9 +632,10 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
     with mem.trace('base_probabilities', logger):
         base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
-    chunk.log_df(trace_label, "base_probs", base_probabilities)
+    chunk.log_df(trace_label, "base_probabilities", base_probabilities)
 
     del nested_probabilities
+    chunk.log_df(trace_label, 'nested_probabilities', None)
 
     if have_trace_targets:
         tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
@@ -656,6 +663,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         choices, rands = logit.make_choices(base_probabilities, trace_label=trace_label)
 
     del base_probabilities
+    chunk.log_df(trace_label, 'base_probabilities', None)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -845,6 +853,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     chunk.log_df(trace_label, "utilities", utilities,)
 
     del expression_values  # done with expression_values
+    chunk.log_df(trace_label, 'expression_values', None)
 
     # - logsums
     # logsum is log of exponentiated utilities summed across columns of each chooser row
@@ -904,16 +913,16 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
 
-    with mem.trace('del expression_values', logger):
-        del expression_values  # done with expression_values
+    del expression_values  # done with expression_values
+    chunk.log_df(trace_label, 'expression_values', None)
 
     # - exponentiated utilities of leaves and nests
     with mem.trace('nested_exp_utilities', logger):
         nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
     chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
-    with mem.trace('del raw_utilities', logger):
-        del raw_utilities  # done with raw_utilities
+    del raw_utilities  # done with raw_utilities
+    chunk.log_df(trace_label, 'raw_utilities', None)
 
     # - logsums
     with mem.trace('logsums', logger):

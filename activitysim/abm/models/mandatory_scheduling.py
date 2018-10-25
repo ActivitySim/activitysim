@@ -23,6 +23,22 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
+def filter_chooser_columns(choosers, model_settings):
+
+    chooser_columns = model_settings.get('CHOOSER_COLUMNS', [])
+
+    missing_columns = [c for c in chooser_columns if c not in choosers]
+    if missing_columns:
+        logger.warning("filter_chooser_columns missing_columns %s" % missing_columns)
+        bug
+
+    # ignore any columns not appearing in choosers df
+    chooser_columns = [c for c in chooser_columns if c in choosers]
+
+    choosers = choosers[chooser_columns]
+    return choosers
+
+
 @inject.step()
 def mandatory_tour_scheduling(tours,
                               persons_merged,
@@ -45,6 +61,8 @@ def mandatory_tour_scheduling(tours,
     if mandatory_tours.shape[0] == 0:
         tracing.no_results(trace_label)
         return
+
+    persons_merged = filter_chooser_columns(persons_merged, model_settings)
 
     model_constants = config.get_model_constants(model_settings)
 

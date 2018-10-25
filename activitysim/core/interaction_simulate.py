@@ -228,7 +228,7 @@ def _interaction_simulate(
     # cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
-    with mem.trace('interaction_df', logger):
+    with mem.trace(trace_label, 'interaction_df', logger):
         interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
@@ -250,7 +250,7 @@ def _interaction_simulate(
     else:
         trace_rows = trace_ids = None
 
-    with mem.trace('interaction_utilities', logger):
+    with mem.trace(trace_label, 'interaction_utilities', logger):
         interaction_utilities, trace_eval_results \
             = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
@@ -265,7 +265,7 @@ def _interaction_simulate(
 
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
-    with mem.trace('utilities', logger):
+    with mem.trace(trace_label, 'utilities', logger):
         utilities = pd.DataFrame(
             interaction_utilities.values.reshape(len(choosers), sample_size),
             index=choosers.index)
@@ -279,7 +279,7 @@ def _interaction_simulate(
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    with mem.trace('probs', logger):
+    with mem.trace(trace_label, 'probs', logger):
         probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'probs', probs)
 
@@ -290,7 +290,7 @@ def _interaction_simulate(
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
-    with mem.trace('logit.make_choices', logger):
+    with mem.trace(trace_label, 'logit.make_choices', logger):
         positions, rands = \
             logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'positions', positions)
@@ -299,7 +299,7 @@ def _interaction_simulate(
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
     # tranche of this choosers alternatives created by cross join of alternatives and choosers
-    with mem.trace('choices', logger):
+    with mem.trace(trace_label, 'choices', logger):
         # offsets is the offset into model_design df of first row of chooser alternatives
         offsets = np.arange(len(positions)) * sample_size
         # resulting Int64Index has one element per chooser row and is in same order as choosers

@@ -7,6 +7,7 @@ install_aliases()  # noqa: E402
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core import inject
@@ -23,6 +24,9 @@ def tdd_alts():
     df = pd.read_csv(f)
 
     df['duration'] = df.end - df.start
+
+    # - NARROW
+    df = df.astype(np.int8)
 
     return df
 

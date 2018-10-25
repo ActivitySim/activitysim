@@ -109,7 +109,7 @@ def _interaction_sample_simulate(
     # so we just need to left join alternatives with choosers
     assert alternatives.index.name == choosers.index.name
 
-    with mem.trace('interaction_df', logger):
+    with mem.trace(trace_label, 'interaction_df', logger):
         interaction_df = pd.merge(
             alternatives, choosers,
             left_index=True, right_index=True,
@@ -133,7 +133,7 @@ def _interaction_sample_simulate(
     # column names of choosers match spec index values
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in alternative
-    with mem.trace('interaction_utilities', logger):
+    with mem.trace(trace_label, 'interaction_utilities', logger):
         interaction_utilities, trace_eval_results \
             = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
@@ -188,7 +188,7 @@ def _interaction_sample_simulate(
     chunk.log_df(trace_label, 'padded_utilities', padded_utilities)
 
     # convert to a dataframe with one row per chooser and one column per alternative
-    with mem.trace('utilities_df', logger):
+    with mem.trace(trace_label, 'utilities_df', logger):
         utilities_df = pd.DataFrame(
             padded_utilities,
             index=choosers.index)
@@ -203,7 +203,7 @@ def _interaction_sample_simulate(
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    with mem.trace('utils_to_probs', logger):
+    with mem.trace(trace_label, 'utils_to_probs', logger):
         probs = logit.utils_to_probs(utilities_df, allow_zero_probs=allow_zero_probs,
                                      trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'probs', probs)
@@ -224,7 +224,7 @@ def _interaction_sample_simulate(
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
-    with mem.trace('logit.make_choices', logger):
+    with mem.trace(trace_label, 'logit.make_choices', logger):
         positions, rands = \
             logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
 

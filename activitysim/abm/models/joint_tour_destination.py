@@ -183,7 +183,7 @@ def joint_tour_destination_sample(
 
     choices = pd.concat(choices_list)
 
-    # - # NARROW
+    # - NARROW
     choices['tour_type_id'] = choices['tour_type_id'].astype(np.uint8)
 
     inject.add_table('joint_tour_destination_sample', choices)

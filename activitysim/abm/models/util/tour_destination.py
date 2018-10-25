@@ -86,7 +86,7 @@ def tour_destination_size_terms(land_use, size_terms, selector):
     if not (df.dtypes == 'float64').all():
         logger.warning('Surprised to find that not all size_terms were float64!')
 
-    # - #NARROW
+    # - NARROW
     # float16 has 3.3 decimal digits of precision, float32 has 7.2
     df = df.astype(np.float16, errors='raise')
 

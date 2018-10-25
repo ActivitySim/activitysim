@@ -27,8 +27,12 @@ BYTES_HWM = {}
 
 
 def GB(bytes):
-    gb = (bytes / (1024 * 1024 * 1024.0))
-    return "%s (%s GB)" % (bytes, round(gb, 2), )
+    if bytes < (1024 * 1024 * 1024.0):
+        mb = (bytes / (1024 * 1024.0))
+        return "(%s MB)" % round(mb, 2)
+    else:
+        gb = (bytes / (1024 * 1024 * 1024.0))
+        return "(%s GB)" % round(gb, 2)
 
 
 def log_open(trace_label, chunk_size):
@@ -65,31 +69,33 @@ def log_df(trace_label, table_name, df):
     cur_chunker = next(reversed(CHUNK_LOG))
 
     if df is None:
-        elements, bytes = list(-n for n in CHUNK_LOG.get(cur_chunker).pop(table_name))
+        elements, bytes, shape = list(CHUNK_LOG.get(cur_chunker).pop(table_name))
+        elements *= -1
+        bytes *= -1
         df_trace_label = "%s.del_df.%s" % (trace_label, table_name)
     else:
 
+        shape = df.shape
+        elements = np.prod(shape)
+
         if isinstance(df, pd.Series):
-            elements = df.shape[0]
             bytes = df.memory_usage(index=True)
         elif isinstance(df, pd.DataFrame):
-            elements = df.shape[0] * df.shape[1]
             bytes = df.memory_usage(index=True).sum()
         elif isinstance(df, np.ndarray):
-            elements = np.prod(df.shape)
             bytes = df.nbytes
         else:
             logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
             assert False
 
-        CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
+        CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes, shape)
 
         df_trace_label = "%s.add_df.%s" % (trace_label, table_name)
 
-    logger.debug("df elements %s %s : %s " % (elements, GB(bytes), df_trace_label))
+    logger.debug("%s df %s %s %s : %s " % (table_name, elements, shape, GB(bytes), df_trace_label))
 
     total_elements, total_bytes = _log_totals()
-    logger.debug("%s total elements %s %s" % (total_elements, GB(total_bytes), df_trace_label))
+    logger.debug("total elements %s %s : %s" % (total_elements, GB(total_bytes), df_trace_label))
 
     mem.log_memory_info(df_trace_label)
 
@@ -100,7 +106,7 @@ def _log_totals():
     for label in CHUNK_LOG:
         tables = CHUNK_LOG[label]
         for table_name in tables:
-            elements, bytes = tables[table_name]
+            elements, bytes, shape = tables[table_name]
             total_elements += elements
             total_bytes += bytes
 
@@ -124,8 +130,8 @@ def log_write():
     for label in CHUNK_LOG:
         tables = CHUNK_LOG[label]
         for table_name in tables:
-            elements, bytes = tables[table_name]
-            logger.debug("%s table %s %s %s" % (label, table_name, elements, GB(bytes)))
+            elements, bytes, shape = tables[table_name]
+            logger.debug("%s table %s %s %s %s" % (label, table_name, shape, elements, GB(bytes)))
             total_elements += elements
             total_bytes += bytes
 

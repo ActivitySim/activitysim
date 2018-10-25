@@ -42,8 +42,8 @@ def _track_memory_info(trace_label):
 
     gc.collect()
     mi = psutil.Process().memory_info()
-    logger.debug("memory_info: rss: %s vms: %s trace_label: %s" %
-                 (GB(mi.rss), GB(mi.vms), trace_label))
+    # logger.debug("memory_info: rss: %s vms: %s trace_label: %s" %
+    #              (GB(mi.rss), GB(mi.vms), trace_label))
 
     cur_mem = mi.vms
 
@@ -76,7 +76,7 @@ def log_mem_high_water_mark():
 
 
 @contextlib.contextmanager
-def trace(msg, callers_logger, level=logging.DEBUG):
+def trace(trace_label, tag, callers_logger, level=logging.DEBUG):
     """
     A context manager to log delta time and memory to execute a block
 
@@ -92,13 +92,14 @@ def trace(msg, callers_logger, level=logging.DEBUG):
     callerframerecord = inspect.stack()[2]
     caller_name = inspect.getframeinfo(callerframerecord[0]).function
 
-    msg = "%s.%s" % (caller_name, msg)
+    trace_label = "%s.%s" % (trace_label, tag)
+    msg = "%s.%s" % (caller_name, tag)
 
-    prev_mem = _track_memory_info("%s.before" % msg)
+    prev_mem = _track_memory_info("%s.before" % trace_label)
     t = time.time()
     yield
     t = time.time() - t
-    post_mem = _track_memory_info("%s.after" % msg)
+    post_mem = _track_memory_info("%s.after" % trace_label)
 
     delta_mem = post_mem - prev_mem
 

@@ -54,7 +54,7 @@ def cleanup_failed_trips(trips):
     """
 
     if trips.failed.any():
-        logger.info("cleanup_failed_trips dropping %s sidelined failed trips" % trips.failed.sum())
+        logger.warning("cleanup_failed_trips dropping %s failed trips" % trips.failed.sum())
 
         trips['patch'] = False
         flag_failed_trip_leg_mates(trips, 'patch')

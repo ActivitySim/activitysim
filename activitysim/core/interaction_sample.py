@@ -318,7 +318,7 @@ def _interaction_sample(
     # don't need this after tracing
     del choices_df['rand']
 
-    # - #NARROW
+    # - NARROW
     choices_df['prob'] = choices_df['prob'].astype(np.float32)
     assert (choices_df['pick_count'].max() < 4294967295) or (choices_df.empty)
     choices_df['pick_count'] = choices_df['pick_count'].astype(np.uint32)

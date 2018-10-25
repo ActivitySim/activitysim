@@ -64,26 +64,32 @@ def trip_purpose_and_destination(
     model_settings = config.read_model_settings('trip_purpose_and_destination.yaml')
 
     MAX_ITERATIONS = model_settings.get('MAX_ITERATIONS', 5)
-    CLEANUP = model_settings.get('CLEANUP', True)
 
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
+
+    if trips_df.empty:
+        logger.info("%s - no trips. Nothing to do." % trace_label)
+        return
 
     # FIXME could allow MAX_ITERATIONS=0 to allow for cleanup-only run
     # in which case, we would need to drop bad trips, WITHOUT failing bad_trip leg_mates
     assert (MAX_ITERATIONS > 0)
 
     # if trip_destination has been run before, keep only failed trips (and leg_mates) to retry
-    if 'failed' in trips_df:
-        logger.info('trip_destination has already been run. Rerunning failed trips')
-        flag_failed_trip_leg_mates(trips_df, 'failed')
-        trips_df = trips_df[trips_df.failed]
-        tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
-        logger.info('Rerunning %s failed trips and leg-mates' % trips_df.shape[0])
-
-    if trips_df.empty:
-        logger.info("%s - no trips. Nothing to do." % trace_label)
-        return
+    if 'destination' in trips_df:
+        if trips_df.failed.any():
+            logger.info('trip_destination has already been run. Rerunning failed trips')
+            flag_failed_trip_leg_mates(trips_df, 'failed')
+            trips_df = trips_df[trips_df.failed]
+            tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
+            logger.info('Rerunning %s failed trips and leg-mates' % trips_df.shape[0])
+        else:
+            # no failed trips from prior run of trip_destination
+            logger.info("%s - no failed trips from prior model run." % trace_label)
+            del trips_df['failed']
+            pipeline.replace_table("trips", trips_df)
+            return
 
     results = []
     i = 0
@@ -93,7 +99,8 @@ def trip_purpose_and_destination(
         i += 1
 
         for c in RESULT_COLUMNS:
-            del trips_df[c]
+            if c in trips_df:
+                del trips_df[c]
 
         trips_df = run_trip_purpose_and_destination(
             trips_df,
@@ -139,11 +146,7 @@ def trip_purpose_and_destination(
     trips_df = trips.to_frame()
     assign_in_place(trips_df, results)
 
-    if CLEANUP:
-        trips_df = cleanup_failed_trips(trips_df)
-    elif trips_df.failed.any():
-        logger.warning("%s keeping %s sidelined failed trips" %
-                       (trace_label, trips_df.failed.sum()))
+    trips_df = cleanup_failed_trips(trips_df)
 
     pipeline.replace_table("trips", trips_df)
 

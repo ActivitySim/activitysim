@@ -130,7 +130,7 @@ def school_location_sample(
 
     if len(choices_list) > 0:
         choices = pd.concat(choices_list)
-        # - # NARROW
+        # - NARROW
         choices['school_type'] = choices['school_type'].astype(np.uint8)
     else:
         logger.info("Skipping %s: add_null_results" % model_name)

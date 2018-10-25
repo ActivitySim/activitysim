@@ -482,7 +482,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    with mem.trace('expression_values', logger):
+    with mem.trace(trace_label, 'expression_values', logger):
         expression_values = eval_variables(spec.index, choosers, locals_d)
     chunk.log_df(trace_label, 'expression_values', expression_values)
 
@@ -498,7 +498,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     # resulting in a dataframe with one row per chooser and one column per alternative
     # pandas.dot depends on column names of expression_values matching spec index values
 
-    with mem.trace('utilities', logger):
+    with mem.trace(trace_label, 'utilities', logger):
         utilities = compute_utilities(expression_values, spec)
     chunk.log_df(trace_label, "utilities", utilities)
 
@@ -509,7 +509,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
 
-    with mem.trace('probs', logger):
+    with mem.trace(trace_label, 'probs', logger):
         probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, "probs", probs)
 
@@ -581,7 +581,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
     # column names of expression_values match spec index values
-    with mem.trace('expression_values', logger):
+    with mem.trace(trace_label, 'expression_values', logger):
         expression_values = eval_variables(spec.index, choosers, locals_d)
     chunk.log_df(trace_label, "expression_values", expression_values)
 
@@ -593,7 +593,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         _check_for_variability(expression_values, trace_label)
 
     # raw utilities of all the leaves
-    with mem.trace('raw_utilities', logger):
+    with mem.trace(trace_label, 'raw_utilities', logger):
         raw_utilities = compute_utilities(expression_values, spec)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -605,7 +605,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     chunk.log_df(trace_label, 'expression_values', None)
 
     # exponentiated utilities of leaves and nests
-    with mem.trace('nested_exp_utilities', logger):
+    with mem.trace(trace_label, 'nested_exp_utilities', logger):
         nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
     chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
@@ -617,7 +617,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
                          column_labels=['alternative', 'utility'])
 
     # probabilities of alternatives relative to siblings sharing the same nest
-    with mem.trace('nested_probabilities', logger):
+    with mem.trace(trace_label, 'nested_probabilities', logger):
         nested_probabilities = \
             compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label=trace_label)
     chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
@@ -630,7 +630,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
                          column_labels=['alternative', 'probability'])
 
     # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
-    with mem.trace('base_probabilities', logger):
+    with mem.trace(trace_label, 'base_probabilities', logger):
         base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
     chunk.log_df(trace_label, "base_probabilities", base_probabilities)
 
@@ -837,7 +837,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    with mem.trace('expression_values', logger):
+    with mem.trace(trace_label, 'expression_values', logger):
         expression_values = eval_variables(spec.index, choosers, locals_d)
     chunk.log_df(trace_label, 'expression_values', expression_values)
 
@@ -848,7 +848,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
         _check_for_variability(expression_values, trace_label)
 
     # utility values
-    with mem.trace('utilities', logger):
+    with mem.trace(trace_label, 'utilities', logger):
         utilities = compute_utilities(expression_values, spec)
     chunk.log_df(trace_label, "utilities", utilities,)
 
@@ -857,7 +857,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
 
     # - logsums
     # logsum is log of exponentiated utilities summed across columns of each chooser row
-    with mem.trace('logsums', logger):
+    with mem.trace(trace_label, 'logsums', logger):
         logsums = np.log(np.exp(utilities.values).sum(axis=1))
         logsums = pd.Series(logsums, index=choosers.index)
     chunk.log_df(trace_label, "logsums", logsums)
@@ -893,7 +893,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
     # - eval spec expressions
     # column names of expression_values match spec index values
-    with mem.trace('expression_values', logger):
+    with mem.trace(trace_label, 'expression_values', logger):
         expression_values = eval_variables(spec.index, choosers, locals_d)
     chunk.log_df(trace_label, 'expression_values', expression_values)
 
@@ -905,7 +905,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         _check_for_variability(expression_values, trace_label)
 
     # - raw utilities of all the leaves
-    with mem.trace('raw_utilities', logger):
+    with mem.trace(trace_label, 'raw_utilities', logger):
         raw_utilities = compute_utilities(expression_values, spec)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -917,7 +917,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     chunk.log_df(trace_label, 'expression_values', None)
 
     # - exponentiated utilities of leaves and nests
-    with mem.trace('nested_exp_utilities', logger):
+    with mem.trace(trace_label, 'nested_exp_utilities', logger):
         nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
     chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
@@ -925,7 +925,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     chunk.log_df(trace_label, 'raw_utilities', None)
 
     # - logsums
-    with mem.trace('logsums', logger):
+    with mem.trace(trace_label, 'logsums', logger):
         logsums = np.log(nested_exp_utilities.root)
         logsums = pd.Series(logsums, index=choosers.index)
     chunk.log_df(trace_label, "logsums", logsums)
@@ -938,7 +938,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
 
-    with mem.trace('del nested_exp_utilities', logger):
+    with mem.trace(trace_label, 'del nested_exp_utilities', logger):
         del nested_exp_utilities  # done with nested_exp_utilities
 
     return logsums

@@ -10,7 +10,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core import tracing
 from activitysim.core import inject
 from activitysim.core import timetable as tt
-from activitysim.core.mem import force_garbage_collect
+from activitysim.core import mem
 from activitysim.core.util import reindex
 
 from activitysim.core import chunk
@@ -60,7 +60,7 @@ def get_previous_tour_by_tourid(current_tour_window_ids,
     return previous_tour_by_tourid
 
 
-def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col):
+def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col, trace_label):
     """
     interaction_sample_simulate expects
     alts index same as choosers (e.g. tour_id)
@@ -90,17 +90,17 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     tour_ids = np.repeat(tours.index, len(alts.index))
     window_row_ids = np.repeat(tours[window_id_col], len(alts.index))
 
-    alt_tdd = alts.take(alts_ids).copy()
+    alt_tdd = alts.take(alts_ids)
+
     alt_tdd.index = tour_ids
     alt_tdd[window_id_col] = window_row_ids
     alt_tdd[choice_column] = alts_ids
 
-    # slice out all non-available tours
-    available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
-
-    assert available.any()
-
-    alt_tdd = alt_tdd[available]
+    with mem.trace(trace_label, 'tour_available', logger):
+        # slice out all non-available tours
+        available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
+        assert available.any()
+        alt_tdd = alt_tdd[available]
 
     # FIXME - don't need this any more after slicing
     del alt_tdd[window_id_col]
@@ -160,9 +160,11 @@ def _schedule_tours(
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
     # merge persons into tours
-    # avoid dual suffix for redundant columns names (e.g. household_id) that appear in both
-    tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True,
-                     suffixes=('', '_y'))
+    with mem.trace(tour_trace_label, 'tours.merge', logger):
+
+        # avoid dual suffix for redundant columns names (e.g. household_id) that appear in both
+        tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True,
+                         suffixes=('', '_y'))
 
     # if no timetable window_id_col specified, then add index as an explicit column
     if window_id_col is None:
@@ -181,8 +183,10 @@ def _schedule_tours(
     # build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
-    choice_column = 'tdd'
-    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col)
+    with mem.trace(tour_trace_label, 'alt_tdd', logger):
+        choice_column = 'tdd'
+        alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
+                                          tour_trace_label)
     chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     locals_d = {
@@ -227,10 +231,10 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
 
     row_size = (chooser_row_size + extra_chooser_columns + alt_row_size) * sample_size
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
-    # logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
-    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
+    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -262,9 +266,6 @@ def schedule_tours(
     else:
         assert not tours[timetable_window_id_col].duplicated().any()
 
-    # persons_merged columns plus 2 previous tour columns
-    extra_chooser_columns = persons_merged.shape[1] + 2
-
     rows_per_chunk = \
         calc_rows_per_chunk(chunk_size, tours, persons_merged, alts, trace_label=tour_trace_label)
 
@@ -290,7 +291,7 @@ def schedule_tours(
 
         result_list.append(choices)
 
-        force_garbage_collect()
+        mem.force_garbage_collect()
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

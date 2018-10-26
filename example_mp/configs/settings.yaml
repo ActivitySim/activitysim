@@ -1,27 +1,22 @@
 
 inherit_settings: True
 
-households_sample_size:  20000
 #households_sample_size:  0
+#multiprocess: False
+#profile: False
+#strict: False
+#chunk_size: 0
+#check_for_variability: False
+#trace_hh_id: None
+#trace_od: None
 
-
-# 160 GB
-#chunk_size: 10000000000
-#chunk_size: 3000000000
+households_sample_size:  20000
 chunk_size: 1500000000
-
 multiprocess: False
 profile: True
 strict: True
 
-check_for_variability: False
 
-#trace household id; comment out for no trace
-# household with all tour categories
-trace_hh_id: 1269102
-
-# trace origin, destination in accessibility calculation
-trace_od: [5, 11]
 
 models:
   - initialize_landuse
@@ -47,21 +42,21 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
-  - tour_mode_choice_simulate
-  - atwork_subtour_frequency
-  - _atwork_subtour_destination_sample
-  - _atwork_subtour_destination_logsums
-  - atwork_subtour_destination_simulate
-  - atwork_subtour_scheduling
-  - atwork_subtour_mode_choice
-  - stop_frequency
-  - trip_purpose
-  - trip_destination
-  - trip_purpose_and_destination
-  - trip_scheduling
-  - trip_mode_choice
-  - write_data_dictionary
-  - write_tables
+#  - tour_mode_choice_simulate
+#  - atwork_subtour_frequency
+#  - _atwork_subtour_destination_sample
+#  - _atwork_subtour_destination_logsums
+#  - atwork_subtour_destination_simulate
+#  - atwork_subtour_scheduling
+#  - atwork_subtour_mode_choice
+#  - stop_frequency
+#  - trip_purpose
+#  - trip_destination
+#  - trip_purpose_and_destination
+#  - trip_scheduling
+#  - trip_mode_choice
+#  - write_data_dictionary
+#  - write_tables
 
 
 multiprocess_steps:

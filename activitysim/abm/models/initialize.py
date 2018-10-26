@@ -53,6 +53,8 @@ def annotate_tables(model_settings, trace_label):
                 model_settings=annotate,
                 trace_label=tracing.extend_trace_label(trace_label, 'annotate_%s' % tablename))
 
+        # fixme - narrow?
+
         # - write table to pipeline
         pipeline.replace_table(tablename, df)
 

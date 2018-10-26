@@ -25,8 +25,10 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 
+from activitysim.core import chunk
+from activitysim.core import mem
+
 from activitysim.core.config import setting
-from activitysim.core.config import handle_standard_args
 
 # activitysim.abm imported for its side-effects (dependency injection)
 from activitysim import abm
@@ -331,9 +333,9 @@ def setup_injectables_and_logging(injectables):
 
 def run_simulation(queue, step_info, resume_after, skim_buffer):
 
-    step_label = step_info['name']
     models = step_info['models']
     chunk_size = step_info['chunk_size']
+    step_label = step_info['name']
 
     inject.add_injectable('skim_buffer', skim_buffer)
     inject.add_injectable("chunk_size", chunk_size)
@@ -368,6 +370,8 @@ def run_simulation(queue, step_info, resume_after, skim_buffer):
         queue.put({'model': model, 'time': time.time()-t1})
 
     t0 = tracing.print_elapsed_time("run (%s models)" % len(models), t0)
+
+    mem.log_mem_high_water_mark()
 
     pipeline.close_pipeline()
 
@@ -474,6 +478,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
 
     step_name = step_info['name']
 
+    t0 = tracing.print_elapsed_time()
     logger.info('run_sub_simulations step %s models resume_after %s', step_name, resume_after)
 
     if previously_completed:
@@ -530,13 +535,18 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
             logger.error("Process %s completed with exitcode %s", p.name, p.exitcode)
             assert p.name in completed
 
+    t0 = tracing.print_elapsed_time('run_sub_simulations step %s' % step_name)
+
     return list(completed)
 
 
 def run_sub_task(p):
     logger.info("running sub_process %s", p.name)
+
+    t0 = tracing.print_elapsed_time()
     p.start()
     p.join()
+    t0 = tracing.print_elapsed_time('sub_process %s' % p.name)
     # logger.info('%s.exitcode = %s' % (p.name, p.exitcode))
 
     if p.exitcode:
@@ -568,16 +578,17 @@ def run_multiprocess(run_list, injectables):
     def find_breadcrumb(crumb, default=None):
         return old_breadcrumbs.get(step_name, {}).get(crumb, default)
 
-    with tracing.timing('allocate shared skim buffer', logger):
-        shared_skim_buffer = allocate_shared_skim_buffer()
+    t0 = tracing.print_elapsed_time()
+    shared_skim_buffer = allocate_shared_skim_buffer()
+    t0 = tracing.print_elapsed_time('allocate shared skim buffer', t0)
 
     # - mp_setup_skims
-    with tracing.timing('setup skims', logger):
-        run_sub_task(
-            multiprocessing.Process(
-                target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
-                kwargs=shared_skim_buffer)
-        )
+    run_sub_task(
+        multiprocessing.Process(
+            target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
+            kwargs=shared_skim_buffer)
+    )
+    t0 = tracing.print_elapsed_time('setup skims', t0)
 
     for step_info in run_list['multiprocess_steps']:
 
@@ -593,12 +604,11 @@ def run_multiprocess(run_list, injectables):
 
         # - mp_apportion_pipeline
         if not skip_phase('apportion') and num_processes > 1:
-            with tracing.timing('apportion %s pipelines' % step_name, logger):
-                run_sub_task(
-                    multiprocessing.Process(
-                        target=mp_apportion_pipeline, name='%s_apportion' % step_name,
-                        args=(injectables, sub_proc_names, slice_info))
-                )
+            run_sub_task(
+                multiprocessing.Process(
+                    target=mp_apportion_pipeline, name='%s_apportion' % step_name,
+                    args=(injectables, sub_proc_names, slice_info))
+            )
         drob_breadcrumb(step_name, 'apportion')
 
         # - run_sub_simulations
@@ -607,10 +617,8 @@ def run_multiprocess(run_list, injectables):
 
             completed = find_breadcrumb('completed', default=[]) if resume_after == '_' else []
 
-            with tracing.timing('run step %s' % step_name, logger):
-                completed = \
-                    run_sub_simulations(injectables, shared_skim_buffer, step_info, sub_proc_names,
-                                        resume_after, completed)
+            completed = run_sub_simulations(injectables, shared_skim_buffer, step_info,
+                                            sub_proc_names, resume_after, completed)
 
             if len(completed) != num_processes:
                 raise RuntimeError("%s processes failed in step %s" %
@@ -619,12 +627,11 @@ def run_multiprocess(run_list, injectables):
 
         # - mp_coalesce_pipelines
         if not skip_phase('coalesce') and num_processes > 1:
-            with tracing.timing('coalesce %s pipelines' % step_name, logger):
-                run_sub_task(
-                    multiprocessing.Process(
-                        target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
-                        args=(injectables, sub_proc_names, slice_info))
-                )
+            run_sub_task(
+                multiprocessing.Process(
+                    target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
+                    args=(injectables, sub_proc_names, slice_info))
+            )
         drob_breadcrumb(step_name, 'coalesce')
 
 

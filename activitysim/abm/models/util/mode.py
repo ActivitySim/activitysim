@@ -11,7 +11,6 @@ import pandas as pd
 from activitysim.core import simulate
 from activitysim.core import config
 from activitysim.core.assign import evaluate_constants
-from activitysim.core.util import assign_in_place
 
 from . import expressions
 
@@ -65,7 +64,7 @@ def run_tour_mode_choice_simulate(
     choosers['in_period'] = expressions.skim_time_period_label(choosers[in_time])
     choosers['out_period'] = expressions.skim_time_period_label(choosers[out_time])
 
-    annotate_preprocessors(
+    expressions.annotate_preprocessors(
         choosers, locals_dict, skims,
         model_settings, trace_label)
 
@@ -83,30 +82,3 @@ def run_tour_mode_choice_simulate(
     choices = choices.map(dict(list(zip(list(range(len(alts))), alts))))
 
     return choices
-
-
-def annotate_preprocessors(
-        tours_df, locals_dict, skims,
-        model_settings, trace_label):
-
-    locals_d = {}
-    locals_d.update(locals_dict)
-    locals_d.update(skims)
-
-    preprocessor_settings = model_settings.get('preprocessor', [])
-    if not isinstance(preprocessor_settings, list):
-        assert isinstance(preprocessor_settings, dict)
-        preprocessor_settings = [preprocessor_settings]
-
-    simulate.set_skim_wrapper_targets(tours_df, skims)
-
-    annotations = None
-    for model_settings in preprocessor_settings:
-
-        results = expressions.compute_columns(
-            df=tours_df,
-            model_settings=model_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label)
-
-        assign_in_place(tours_df, results)

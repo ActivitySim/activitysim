@@ -213,9 +213,10 @@ class TimeTable(object):
             (C_END if row.duration > 0 else C_START_END) +
             (C_EMPTY * (max_period - row.end))
             for idx, row in tdd_alts_df.iterrows()]
-        footprints = np.asanyarray([list(r) for r in w_strings]).astype(int)
-        self.tdd_footprints_df = pd.DataFrame(data=footprints, index=tdd_alts_df.index)
-        # print "\tdd_footprints_df\n", self.tdd_footprints_df
+
+        # we want range index so we can use raw numpy
+        assert (tdd_alts_df.index == list(range(tdd_alts_df.shape[0]))).all()
+        self.tdd_footprints = np.asanyarray([list(r) for r in w_strings]).astype(int)
 
     def slice_windows_by_row_id(self, window_row_ids):
         """
@@ -283,13 +284,8 @@ class TimeTable(object):
 
         assert len(window_row_ids) == len(tdds)
 
-        # t0 = tracing.print_elapsed_time()
-
         # numpy array with one tdd_footprints_df row for tdds
-        tour_footprints = util.quick_loc_df(tdds, self.tdd_footprints_df).values
-
-        # t0 = tracing.print_elapsed_time("tour_footprints", t0, debug=True)
-        # assert (tour_footprints == self.tdd_footprints_df.loc[tdds].values).all
+        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # numpy array with one windows row for each person
         windows = self.slice_windows_by_row_id(window_row_ids)
@@ -300,8 +296,6 @@ class TimeTable(object):
 
         available = ~np.isin(x, COLLISION_LIST).any(axis=1)
         available = pd.Series(available, index=window_row_ids.index)
-
-        # t0 = tracing.print_elapsed_time("available", t0, debug=True)
 
         return available
 
@@ -325,11 +319,8 @@ class TimeTable(object):
         # vectorization doesn't work duplicates
         assert len(window_row_ids.index) == len(np.unique(window_row_ids.values))
 
-        # df with one tdd_footprint row for each person tdd
-        tour_footprints = self.tdd_footprints_df.loc[tdds]
-
-        # numpy array with one time window row for each row in df
-        tour_footprints = tour_footprints.values
+        # numpy array with one time window row for each person tdd
+        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
         row_ixs = window_row_ids.map(self.window_row_ix).values
@@ -365,11 +356,8 @@ class TimeTable(object):
         self.windows.fill(0)
         self.assign(window_row_ids, tdds)
 
-        # df with one tdd_footprint row for each person tdd
-        tour_footprints = self.tdd_footprints_df.loc[tdds]
-
-        # numpy array with one time window row for each row in df
-        tour_footprints = tour_footprints.values
+        # numpy array with one time window row for each person tdd
+        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
         row_ixs = window_row_ids.map(self.window_row_ix).values

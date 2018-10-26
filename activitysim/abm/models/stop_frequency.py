@@ -41,6 +41,7 @@ def process_trips(tours, stop_frequency_alts):
     # get the actual alternatives for each person - have to go back to the
     # stop_frequency_alts dataframe to get this - the stop_frequency choice
     # column has the index values for the chosen alternative
+
     trips = stop_frequency_alts.loc[tours.stop_frequency]
 
     # assign tour ids to the index

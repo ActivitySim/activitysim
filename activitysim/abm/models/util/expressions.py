@@ -13,10 +13,14 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import assign
 from activitysim.core import inject
+from activitysim.core import simulate
 
 from activitysim.core.util import other_than
 from activitysim.core.util import assign_in_place
 from activitysim.core import util
+
+
+logger = logging.getLogger(__name__)
 
 
 def reindex_i(series1, series2, dtype=np.int8):
@@ -179,3 +183,46 @@ def skim_time_period_label(time):
         return skim_time_periods['labels'][bin]
 
     return pd.cut(time, skim_time_periods['hours'], labels=skim_time_periods['labels']).astype(str)
+
+
+def annotate_preprocessors(
+        tours_df, locals_dict, skims,
+        model_settings, trace_label):
+
+    locals_d = {}
+    locals_d.update(locals_dict)
+    locals_d.update(skims)
+
+    preprocessor_settings = model_settings.get('preprocessor', [])
+    if not isinstance(preprocessor_settings, list):
+        assert isinstance(preprocessor_settings, dict)
+        preprocessor_settings = [preprocessor_settings]
+
+    simulate.set_skim_wrapper_targets(tours_df, skims)
+
+    annotations = None
+    for model_settings in preprocessor_settings:
+
+        results = compute_columns(
+            df=tours_df,
+            model_settings=model_settings,
+            locals_dict=locals_d,
+            trace_label=trace_label)
+
+        assign_in_place(tours_df, results)
+
+
+def filter_chooser_columns(choosers, model_settings, column_list='CHOOSER_COLUMNS'):
+
+    chooser_columns = model_settings.get(column_list, [])
+
+    missing_columns = [c for c in chooser_columns if c not in choosers]
+    if missing_columns:
+        logger.warning("filter_chooser_columns missing_columns %s" % missing_columns)
+        assert False
+
+    # ignore any columns not appearing in choosers df
+    chooser_columns = [c for c in chooser_columns if c in choosers]
+
+    choosers = choosers[chooser_columns]
+    return choosers

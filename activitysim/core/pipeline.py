@@ -455,15 +455,16 @@ def run_model(model_name):
 
     inject.set_step_args(args)
 
+    t0 = print_elapsed_time()
     orca.run([step_name])
+    t0 = print_elapsed_time("run_model step '%s'" % model_name, t0, debug=True)
 
     inject.set_step_args(None)
 
     _PIPELINE.rng().end_step(model_name)
     if checkpoint:
-        t0 = print_elapsed_time()
         add_checkpoint(model_name)
-        t0 = print_elapsed_time("add_checkpoint '%s'" % model_name, t0, debug=True)
+        t0 = print_elapsed_time("run_model add_checkpoint '%s'" % model_name, t0, debug=True)
     else:
         logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
@@ -580,11 +581,9 @@ def run(models, resume_after=None):
     t0 = print_elapsed_time()
     for model in models:
 
-        t1 = print_elapsed_time()
         run_model(model)
-        t1 = print_elapsed_time("run_model %s" % model, t1)
 
-    t0 = print_elapsed_time("run (%s models)" % len(models), t0)
+    t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 
     # don't close the pipeline, as the user may want to read intermediate results from the store
 

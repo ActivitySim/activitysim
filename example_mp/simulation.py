@@ -82,5 +82,4 @@ if __name__ == '__main__':
 
     t0 = tracing.print_elapsed_time("everything", t0)
 
-    chunk.log_chunk_high_water_mark()
     mem.log_mem_high_water_mark()

@@ -112,15 +112,9 @@ preprocessor:
 #    TABLES:
 #      - land_use
 
-
-
 TOURS_MERGED_CHOOSER_COLUMNS:
-#  - tour_type
   - hhsize
-#  - density_index
   - age
-#  - age_16_p
-#  - age_16_to_19
   - auto_ownership
   - number_of_participants
   - tour_category

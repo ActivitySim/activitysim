@@ -16,7 +16,7 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import timetable as tt
 from .util.vectorize_tour_scheduling import vectorize_subtour_scheduling
-from .util.mode import annotate_preprocessors
+from .util.expressions import annotate_preprocessors
 
 from activitysim.core.util import assign_in_place
 

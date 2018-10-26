@@ -96,11 +96,10 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     alt_tdd[window_id_col] = window_row_ids
     alt_tdd[choice_column] = alts_ids
 
-    with mem.trace(trace_label, 'tour_available', logger):
-        # slice out all non-available tours
-        available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
-        assert available.any()
-        alt_tdd = alt_tdd[available]
+    # slice out all non-available tours
+    available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
+    assert available.any()
+    alt_tdd = alt_tdd[available]
 
     # FIXME - don't need this any more after slicing
     del alt_tdd[window_id_col]
@@ -160,11 +159,10 @@ def _schedule_tours(
     logger.info("%s schedule_tours running %d tour choices" % (tour_trace_label, len(tours)))
 
     # merge persons into tours
-    with mem.trace(tour_trace_label, 'tours.merge', logger):
-
-        # avoid dual suffix for redundant columns names (e.g. household_id) that appear in both
-        tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True,
-                         suffixes=('', '_y'))
+    # avoid dual suffix for redundant columns names (e.g. household_id) that appear in both
+    tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True,
+                     suffixes=('', '_y'))
+    chunk.log_df(tour_trace_label, "tours", tours)
 
     # if no timetable window_id_col specified, then add index as an explicit column
     if window_id_col is None:
@@ -183,10 +181,9 @@ def _schedule_tours(
     # build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
-    with mem.trace(tour_trace_label, 'alt_tdd', logger):
-        choice_column = 'tdd'
-        alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
-                                          tour_trace_label)
+    choice_column = 'tdd'
+    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
+                                      tour_trace_label)
     chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     locals_d = {
@@ -400,8 +397,14 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     choices = pd.concat(choice_list)
 
     # add the start, end, and duration from tdd_alts
-    tdd = alts.loc[choices]
-    tdd.index = choices.index
+    # use np instead of (slower) loc[] since alts has rangeindex
+    tdd = pd.DataFrame(data=alts.values[choices.values],
+                       columns=alts.columns,
+                       index=choices.index)
+
+    # tdd = alts.loc[choices]
+    # tdd.index = choices.index
+
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
@@ -500,8 +503,14 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     choices = pd.concat(choice_list)
 
     # add the start, end, and duration from tdd_alts
-    tdd = alts.loc[choices]
-    tdd.index = choices.index
+    # assert (alts.index == list(range(alts.shape[0]))).all()
+    tdd = pd.DataFrame(data=alts.values[choices.values],
+                       columns=alts.columns,
+                       index=choices.index)
+
+    # tdd = alts.loc[choices]
+    # tdd.index = choices.index
+
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
@@ -623,7 +632,14 @@ def vectorize_joint_tour_scheduling(
     choices = pd.concat(choice_list)
 
     # add the start, end, and duration from tdd_alts
-    tdd = alts.loc[choices]
+    # assert (alts.index == list(range(alts.shape[0]))).all()
+    tdd = pd.DataFrame(data=alts.values[choices.values],
+                       columns=alts.columns,
+                       index=choices.index)
+
+    # tdd = alts.loc[choices]
+    # tdd.index = choices.index
+
     tdd.index = choices.index
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices

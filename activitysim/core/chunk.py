@@ -18,8 +18,11 @@ from . import mem
 
 logger = logging.getLogger(__name__)
 
-
+# dict of table_dicts keyed by trace_label
+# table_dicts are dicts tuples of (elements, bytes, shape) keyed by table_name
 CHUNK_LOG = OrderedDict()
+
+# array of chunk_size active CHUNK_LOG
 CHUNK_SIZE = []
 
 ELEMENTS_HWM = {}
@@ -37,12 +40,10 @@ def GB(bytes):
 
 def log_open(trace_label, chunk_size):
 
-    # if trace_label is None:
-    #     trace_label = "noname_%s" % len(CHUNK_LOG)
-
     if len(CHUNK_LOG) > 0:
         assert chunk_size == 0
         logger.debug("log_open nested chunker %s" % trace_label)
+        assert trace_label not in CHUNK_LOG
 
     CHUNK_LOG[trace_label] = OrderedDict()
     CHUNK_SIZE.append(chunk_size)
@@ -50,18 +51,22 @@ def log_open(trace_label, chunk_size):
 
 def log_close(trace_label):
 
-    # if trace_label is None:
-    #     trace_label = "noname_%s" % (len(CHUNK_LOG)-1)
-
     assert CHUNK_LOG and next(reversed(CHUNK_LOG)) == trace_label
 
     logger.debug("log_close %s" % trace_label)
-    log_write()
-    # input("Return to continue: ")
+
+    # if we are closing the root level
+    if len(CHUNK_LOG) == 1:
+        log_write()
+        # input("Return to continue: ")
 
     label, _ = CHUNK_LOG.popitem(last=True)
     assert label == trace_label
     CHUNK_SIZE.pop()
+
+    if len(CHUNK_LOG) == 0:
+        ELEMENTS_HWM.clear()
+        BYTES_HWM.clear()
 
 
 def log_df(trace_label, table_name, df):
@@ -94,13 +99,14 @@ def log_df(trace_label, table_name, df):
 
     logger.debug("%s df %s %s %s : %s " % (table_name, elements, shape, GB(bytes), df_trace_label))
 
-    total_elements, total_bytes = _log_totals()
+    total_elements, total_bytes = _log_totals(table_name)
     logger.debug("total elements %s %s : %s" % (total_elements, GB(total_bytes), df_trace_label))
 
-    mem.log_memory_info(df_trace_label)
+    cur_mem = mem.track_memory_info(trace_label)
+    logger.debug("current memory %s : %s" % (GB(cur_mem), df_trace_label))
 
 
-def _log_totals():
+def _log_totals(table_name):
     total_elements = 0
     total_bytes = 0
     for label in CHUNK_LOG:
@@ -113,13 +119,15 @@ def _log_totals():
     if total_elements > ELEMENTS_HWM.get('mark', 0):
         ELEMENTS_HWM['mark'] = total_elements
         ELEMENTS_HWM['chunker'] = CHUNK_LOG.keys()
+        ELEMENTS_HWM['table_name'] = table_name
 
     if total_bytes > BYTES_HWM.get('mark', 0):
         BYTES_HWM['mark'] = total_bytes
         BYTES_HWM['chunker'] = CHUNK_LOG.keys()
+        BYTES_HWM['table_name'] = table_name
 
-    if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
-        logger.warning("total_elements (%s) > chunk_size (%s)" % (total_elements, CHUNK_SIZE[0]))
+    # if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
+    #     logger.warning("total_elements (%s) > chunk_size (%s)" % (total_elements, CHUNK_SIZE[0]))
 
     return total_elements, total_bytes
 
@@ -137,8 +145,6 @@ def log_write():
 
     logger.debug("%s total elements %s %s" % (CHUNK_LOG.keys(), total_elements, GB(total_bytes)))
 
-
-def log_chunk_high_water_mark():
     if 'mark' in ELEMENTS_HWM:
         logger.info("chunk high_water_mark total_elements: %s in %s" %
                     (ELEMENTS_HWM['mark'], ELEMENTS_HWM['chunker']), )

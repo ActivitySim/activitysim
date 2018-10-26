@@ -17,9 +17,7 @@ from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 from .util.mode import tour_mode_choice_spec
-
 from .util.mode import run_tour_mode_choice_simulate
-from .util.mode import annotate_preprocessors
 
 logger = logging.getLogger(__name__)
 

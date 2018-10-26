@@ -18,7 +18,7 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core.mem import force_garbage_collect
 
-from .util.mode import annotate_preprocessors
+from .util.expressions import annotate_preprocessors
 
 from activitysim.core import assign
 

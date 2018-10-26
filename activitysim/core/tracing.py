@@ -61,27 +61,6 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-@contextlib.contextmanager
-def timing(msg, callers_logger, level=logging.DEBUG):
-    """
-    A context manager to log time to execute a block
-
-    Parameters
-    ----------
-    msg : str
-    callers_logger : logging.Logger
-        logger passed from caller's context
-    level : int, optional
-        Level at which to log, passed to ``logger.log``.
-
-    """
-    callers_logger.log(level, msg)
-    t = time.time()
-    yield
-    t = time.time() - t
-    callers_logger.log(level, "Time to execute %s : %s" % (msg, format_elapsed_time(t)))
-
-
 def delete_output_files(file_type, ignore=None, subdir=None):
     """
     Delete files in output directory of specified type

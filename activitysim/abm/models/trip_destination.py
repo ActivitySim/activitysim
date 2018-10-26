@@ -24,7 +24,6 @@ from activitysim.core.util import assign_in_place
 
 from .util import expressions
 
-from .util.mode import annotate_preprocessors
 from activitysim.core import assign
 
 from .util.tour_destination import tour_destination_size_terms
@@ -123,7 +122,7 @@ def compute_ood_logsums(
 
     locals_dict.update(od_skims)
 
-    annotate_preprocessors(
+    expressions.annotate_preprocessors(
         choosers, locals_dict, od_skims,
         logsum_settings,
         trace_label)
@@ -293,7 +292,6 @@ def choose_trip_destination(
 
     logger.info("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
 
-    # FIXME want timing?
     t0 = print_elapsed_time()
 
     # - trip_destination_sample

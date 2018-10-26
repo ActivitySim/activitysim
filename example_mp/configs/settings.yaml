@@ -1,8 +1,8 @@
 
 inherit_settings: True
 
-#households_sample_size:  100
-households_sample_size:  273272
+households_sample_size:  20000
+#households_sample_size:  0
 
 
 # 160 GB

@@ -10,9 +10,6 @@ from builtins import input
 
 import psutil
 import logging
-import contextlib
-import time
-import inspect
 import gc
 
 logger = logging.getLogger(__name__)
@@ -38,9 +35,8 @@ def set_pause_threshold(gb):
     MEM['pause'] = bytes
 
 
-def _track_memory_info(trace_label):
+def track_memory_info(trace_label):
 
-    gc.collect()
     mi = psutil.Process().memory_info()
     # logger.debug("memory_info: rss: %s vms: %s trace_label: %s" %
     #              (GB(mi.rss), GB(mi.vms), trace_label))
@@ -60,48 +56,7 @@ def _track_memory_info(trace_label):
     return cur_mem
 
 
-def log_memory_info(trace_label):
-
-    _track_memory_info(trace_label)
-
-    mi = psutil.Process().memory_info()
-    logger.debug("memory_info: rss: %s vms: %s trace_label: %s" %
-                 (GB(mi.rss), GB(mi.vms), trace_label))
-
-
 def log_mem_high_water_mark():
     if 'high_water_mark' in MEM:
         logger.info("mem high_water_mark %s in %s" %
                     (GB(MEM['high_water_mark']), MEM['high_water_mark_trace_label']), )
-
-
-@contextlib.contextmanager
-def trace(trace_label, tag, callers_logger, level=logging.DEBUG):
-    """
-    A context manager to log delta time and memory to execute a block
-
-    Parameters
-    ----------
-    msg : str
-    callers_logger : logging.Logger
-        logger passed from caller's context
-    level : int, optional
-        Level at which to log, passed to ``logger.log``.
-
-    """
-    callerframerecord = inspect.stack()[2]
-    caller_name = inspect.getframeinfo(callerframerecord[0]).function
-
-    trace_label = "%s.%s" % (trace_label, tag)
-    msg = "%s.%s" % (caller_name, tag)
-
-    prev_mem = _track_memory_info("%s.before" % trace_label)
-    t = time.time()
-    yield
-    t = time.time() - t
-    post_mem = _track_memory_info("%s.after" % trace_label)
-
-    delta_mem = post_mem - prev_mem
-
-    callers_logger.log(level, "Time to perform %s : %s memory: %s (%s)" %
-                       (msg, format_elapsed_time(t), GB(post_mem), GB(delta_mem)))

@@ -34,20 +34,21 @@ def non_mandatory_tour_scheduling(tours,
     """
 
     trace_label = 'non_mandatory_tour_scheduling'
-    model_settinsg = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
+    model_settings = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
     model_spec = simulate.read_model_spec(file_name='tour_scheduling_nonmandatory.csv')
 
     tours = tours.to_frame()
-    persons_merged = persons_merged.to_frame()
-
     non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
 
     logger.info("Running non_mandatory_tour_scheduling with %d tours", len(tours))
 
-    constants = config.get_model_constants(model_settinsg)
+    persons_merged = persons_merged.to_frame()
+    persons_merged = expressions.filter_chooser_columns(persons_merged, model_settings)
+
+    constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settinsg.get('preprocessor', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_d = {}

@@ -304,6 +304,13 @@ def load_skim_data(skim_buffer):
 
 
 def allocate_shared_skim_buffer():
+    """
+    This is called by the main process and allocate memory buffer to share with subprocs
+
+    Returns
+    -------
+        multiprocessing.RawArray
+    """
 
     logger.info("allocate_shared_skim_buffer")
 
@@ -449,6 +456,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
                 msg = queue.get(block=False)
                 logger.info("%s %s : %s", process.name, msg['model'],
                             tracing.format_elapsed_time(msg['time']))
+                mem.trace_memory_info("%s.%s.completed" % (process.name, msg['model']))
 
     def check_proc_status():
         # we want to drop 'completed' breadcrumb when it happens, lest we terminate
@@ -460,20 +468,24 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
                 if p.name not in completed:
                     logger.info("process %s completed", p.name)
                     completed.add(p.name)
-                    drob_breadcrumb(step_name, 'completed', list(completed))
+                    drop_breadcrumb(step_name, 'completed', list(completed))
+                    mem.trace_memory_info("%s.completed" % p.name)
             else:
                 # process failed
                 if p.name not in failed:
                     logger.info("process %s failed with exitcode %s", p.name, p.exitcode)
                     failed.add(p.name)
+                    mem.trace_memory_info("%s.failed" % p.name)
 
     def idle(seconds):
         log_queued_messages()
         check_proc_status()
+        mem.trace_memory_info()
         for _ in range(seconds):
             time.sleep(1)
             log_queued_messages()
             check_proc_status()
+            mem.trace_memory_info()
 
     step_name = step_info['name']
 
@@ -498,7 +510,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
 
     completed = set(previously_completed)
     failed = set([])  # so we can log process failure when it happens
-    drob_breadcrumb(step_name, 'completed', list(completed))
+    drop_breadcrumb(step_name, 'completed', list(completed))
 
     for process_name in process_names:
         q = multiprocessing.Queue()
@@ -515,6 +527,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
             idle(seconds=stagger_starts)
         logger.info("start process %s", p.name)
         p.start()
+        mem.trace_memory_info("%s.start" % p.name)
 
     # - idle logging queued messages and proc completion
     while multiprocessing.active_children():
@@ -534,7 +547,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
             logger.error("Process %s completed with exitcode %s", p.name, p.exitcode)
             assert p.name in completed
 
-    t0 = tracing.print_elapsed_time('run_sub_simulations step %s' % step_name)
+    t0 = tracing.print_elapsed_time('run_sub_simulations step %s' % step_name, t0)
 
     return list(completed)
 
@@ -542,18 +555,22 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
 def run_sub_task(p):
     logger.info("running sub_process %s", p.name)
 
+    mem.trace_memory_info("%s.start" % p.name)
+
     t0 = tracing.print_elapsed_time()
     p.start()
     p.join()
-    t0 = tracing.print_elapsed_time('sub_process %s' % p.name)
+    t0 = tracing.print_elapsed_time('sub_process %s' % p.name, t0)
     # logger.info('%s.exitcode = %s' % (p.name, p.exitcode))
+
+    mem.trace_memory_info("%s.completed" % p.name)
 
     if p.exitcode:
         logger.error("Process %s returned exitcode %s", p.name, p.exitcode)
         raise RuntimeError("Process %s returned exitcode %s" % (p.name, p.exitcode))
 
 
-def drob_breadcrumb(step_name, crumb, value=True):
+def drop_breadcrumb(step_name, crumb, value=True):
     breadcrumbs = inject.get_injectable('breadcrumbs', OrderedDict())
     breadcrumbs.setdefault(step_name, {'name': step_name})[crumb] = value
     inject.add_injectable('breadcrumbs', breadcrumbs)
@@ -561,6 +578,8 @@ def drob_breadcrumb(step_name, crumb, value=True):
 
 
 def run_multiprocess(run_list, injectables):
+
+    mem.trace_memory_info("run_multiprocess.start")
 
     if not run_list['multiprocess']:
         raise RuntimeError("run_multiprocess called but multiprocess flag is %s" %
@@ -580,6 +599,7 @@ def run_multiprocess(run_list, injectables):
     t0 = tracing.print_elapsed_time()
     shared_skim_buffer = allocate_shared_skim_buffer()
     t0 = tracing.print_elapsed_time('allocate shared skim buffer', t0)
+    mem.trace_memory_info("allocate_shared_skim_buffer.completed")
 
     # - mp_setup_skims
     run_sub_task(
@@ -608,7 +628,7 @@ def run_multiprocess(run_list, injectables):
                     target=mp_apportion_pipeline, name='%s_apportion' % step_name,
                     args=(injectables, sub_proc_names, slice_info))
             )
-        drob_breadcrumb(step_name, 'apportion')
+        drop_breadcrumb(step_name, 'apportion')
 
         # - run_sub_simulations
         if not skip_phase('simulate'):
@@ -622,7 +642,7 @@ def run_multiprocess(run_list, injectables):
             if len(completed) != num_processes:
                 raise RuntimeError("%s processes failed in step %s" %
                                    (num_processes - len(completed), step_name))
-        drob_breadcrumb(step_name, 'simulate')
+        drop_breadcrumb(step_name, 'simulate')
 
         # - mp_coalesce_pipelines
         if not skip_phase('coalesce') and num_processes > 1:
@@ -631,7 +651,7 @@ def run_multiprocess(run_list, injectables):
                     target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
                     args=(injectables, sub_proc_names, slice_info))
             )
-        drob_breadcrumb(step_name, 'coalesce')
+        drop_breadcrumb(step_name, 'coalesce')
 
 
 def get_breadcrumbs(run_list):
@@ -699,11 +719,11 @@ def get_run_list():
         logger.warning("Can't multiprocess because there is only 1 cpu")
         multiprocess = False
 
-    # if not multiprocess:
-    #     multiprocess_steps = [
-    #         {'name': 'mp_simulation', 'begin': models[0]}
-    #     ]
-    #     multiprocess = True
+    if not multiprocess and setting('singleprocess_as_subtask', False):
+        multiprocess_steps = [
+            {'name': 'mp_simulation', 'begin': models[0]}
+        ]
+        multiprocess = True
 
     run_list = {
         'models': models,

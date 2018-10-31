@@ -52,6 +52,7 @@ def format_elapsed_time(t):
 def print_elapsed_time(msg=None, t0=None, debug=False):
     t1 = time.time()
     if msg:
+        assert t0 is not None
         t = t1 - (t0 or t1)
         msg = "Time to execute %s : %s" % (msg, format_elapsed_time(t))
         if debug:

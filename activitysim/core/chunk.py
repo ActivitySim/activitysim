@@ -30,13 +30,13 @@ BYTES_HWM = [{}]
 MEM_HWM = [{}]
 
 
-def GB(bytes):
-    if bytes < (1024 * 1024 * 1024.0):
-        mb = (bytes / (1024 * 1024.0))
-        return "(%s MB)" % round(mb, 2)
+def GB(bytes, sign=False):
+    if bytes < (1024 * 1024):
+        return ("%+.2f KB" if sign else "%.2f KB") % (bytes / 1024)
+    elif bytes < (1024 * 1024 * 1024):
+        return ("%+.2f MB" if sign else "%.2f MB") % (bytes / (1024 * 1024))
     else:
-        gb = (bytes / (1024 * 1024 * 1024.0))
-        return "(%s GB)" % round(gb, 2)
+        return ("%+.2f GB" if sign else "%.2f GB") % (bytes / (1024 * 1024 * 1024))
 
 
 def log_open(trace_label, chunk_size):
@@ -60,7 +60,6 @@ def log_close(trace_label):
 
     logger.debug("log_close %s" % trace_label)
 
-    _chunk_totals(logger)
     log_write_hwm()
 
     label, _ = CHUNK_LOG.popitem(last=True)
@@ -80,8 +79,6 @@ def log_df(trace_label, table_name, df):
 
     cur_chunker = next(reversed(CHUNK_LOG))
     op = 'del' if df is None else 'add'
-
-    prev_elements, prev_bytes = _chunk_totals()
 
     if df is None:
         CHUNK_LOG.get(cur_chunker).pop(table_name)
@@ -111,37 +108,37 @@ def log_df(trace_label, table_name, df):
                  (op, table_name, elements, shape, GB(bytes), trace_label))
 
     total_elements, total_bytes = _chunk_totals()
-    cur_mem = mem.track_memory_info()
+    cur_mem = mem.get_memory_info()
 
-    # log current totals
-    logger.debug("total elements: %s (%s) bytes: %s (%s) mem: %s " %
-                 (total_elements, total_elements-prev_elements,
-                  GB(total_bytes), GB(total_bytes - prev_bytes),
-                  GB(cur_mem), ))
+    # # log current totals
+    # logger.debug("%s %s total elements: %d (%+d) bytes: %s (%s) mem: %s " %
+    #              (op, table_name,
+    #               total_elements, total_elements-prev_elements,
+    #               GB(total_bytes), GB(total_bytes - prev_bytes, sign=True),
+    #               GB(cur_mem), ))
 
     # - check high_water_marks
     hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
-    hwm_info = "elements: %s bytes: %s mem: %s" % (total_elements, GB(total_bytes), GB(cur_mem))
     for hwm in ELEMENTS_HWM:
         if total_elements > hwm.get('mark', 0):
             hwm['mark'] = total_elements
             hwm['trace_label'] = hwm_trace_label
-            hwm['info'] = hwm_info
+            hwm['info'] = "bytes: %s mem: %s" % (GB(total_bytes), GB(cur_mem))
 
     for hwm in BYTES_HWM:
         if total_bytes > hwm.get('mark', 0):
             hwm['mark'] = total_bytes
             hwm['trace_label'] = hwm_trace_label
-            hwm['info'] = hwm_info
+            hwm['info'] = "elements: %s mem: %s" % (total_elements, GB(cur_mem))
 
     for hwm in MEM_HWM:
         if cur_mem > hwm.get('mark', 0):
             hwm['mark'] = cur_mem
             hwm['trace_label'] = hwm_trace_label
-            hwm['info'] = hwm_info
+            hwm['info'] = "elements: %s bytes: %s" % (total_elements, GB(total_bytes))
 
 
-def _chunk_totals(alogger=None):
+def _chunk_totals():
 
     total_elements = 0
     total_bytes = 0
@@ -149,15 +146,8 @@ def _chunk_totals(alogger=None):
         tables = CHUNK_LOG[label]
         for table_name in tables:
             elements, bytes, shape = tables[table_name]
-            if alogger:
-                alogger.debug("%s table %s %s %s %s" %
-                              (label, table_name, shape, elements, GB(bytes)))
             total_elements += elements
             total_bytes += bytes
-
-    if alogger:
-        alogger.debug("%s total elements %s %s" %
-                      (CHUNK_LOG.keys(), total_elements, GB(total_bytes)))
 
     return total_elements, total_bytes
 
@@ -166,16 +156,16 @@ def log_write_hwm():
 
     hwm = ELEMENTS_HWM[-1]
     if 'mark' in hwm:
-        logger.info("elements high_water_mark: %s (%s) in %s" %
+        logger.info("high_water_mark elements: %s (%s) in %s" %
                     (hwm['mark'], hwm['info'], hwm['trace_label']), )
     hwm = BYTES_HWM[-1]
     if 'mark' in hwm:
-        logger.info("bytes high_water_mark: %s (%s) in %s" %
+        logger.info("high_water_mark bytes: %s (%s) in %s" %
                     (GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
 
     hwm = MEM_HWM[-1]
     if 'mark' in hwm:
-        logger.info("mem high_water_mark: %s (%s) in %s" %
+        logger.info("high_water_mark mem: %s (%s) in %s" %
                     (GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
 
 

@@ -18,14 +18,15 @@ inherit_settings: True
 #stagger: 30
 #profile: False
 #strict: False
-#trace_hh_id: None
-#trace_od: None
+#trace_hh_id:
+#trace_od:
 
 # example
-#households_sample_size:  273272
-households_sample_size:  20000
+#households_sample_size: 273272
+households_sample_size:  40000
 
 multiprocess: False
+singleprocess_as_subtask: True
 chunk_size: 1500000000
 num_processes: 3
 stagger: 5

@@ -101,6 +101,20 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
     for expr, coefficient in zip(spec.index, spec.iloc[:, 0]):
         try:
 
+            # fixme - remove this? (used only in trip_destination_sample.csv)
+            # allow temps of form _od_DIST@od_skim['DIST']
+            if expr.startswith('_'):
+                target = expr[:expr.index('@')]
+                rhs = expr[expr.index('@') + 1:]
+                v = to_series(eval(rhs, globals(), locals_d))
+
+                # update locals to allows us to ref previously assigned targets
+                locals_d[target] = v
+
+                if trace_eval_results is not None:
+                    trace_eval_results[expr] = v[trace_rows]
+                continue
+
             if expr.startswith('@'):
                 v = to_series(eval(expr[1:], globals(), locals_d))
             else:

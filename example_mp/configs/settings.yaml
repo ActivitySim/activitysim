@@ -10,13 +10,32 @@ inherit_settings: True
 #trace_hh_id: None
 #trace_od: None
 
+# full
+#households_sample_size:  0
+#multiprocess: True
+#chunk_size: 15000000000
+#num_processes: 10
+#stagger: 30
+#profile: False
+#strict: False
+#trace_hh_id: None
+#trace_od: None
+
+# example
+#households_sample_size:  273272
 households_sample_size:  20000
-chunk_size: 1500000000
+
 multiprocess: False
+chunk_size: 1500000000
+num_processes: 3
+stagger: 5
 profile: True
 strict: True
+trace_hh_id: 1482966
+trace_od: [5, 11]
 
-
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_purpose
 
 models:
   - initialize_landuse
@@ -42,30 +61,29 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
-#  - tour_mode_choice_simulate
-#  - atwork_subtour_frequency
-#  - _atwork_subtour_destination_sample
-#  - _atwork_subtour_destination_logsums
-#  - atwork_subtour_destination_simulate
-#  - atwork_subtour_scheduling
-#  - atwork_subtour_mode_choice
-#  - stop_frequency
-#  - trip_purpose
-#  - trip_destination
-#  - trip_purpose_and_destination
-#  - trip_scheduling
-#  - trip_mode_choice
-#  - write_data_dictionary
-#  - write_tables
-
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - _atwork_subtour_destination_sample
+  - _atwork_subtour_destination_logsums
+  - atwork_subtour_destination_simulate
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - write_tables
 
 multiprocess_steps:
   - name: mp_initialize
     begin: initialize_landuse
   - name: mp_households
     begin: _school_location_sample
-    num_processes: 3
-    stagger: 5
+    #num_processes: 10
+    #stagger: 30
     #chunk_size: 1000000000
     slice:
       tables:

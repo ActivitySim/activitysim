@@ -251,7 +251,7 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
     else:
         sample = np.tile(alts_idx, numchoosers)
 
-    alts_sample = alternatives.take(sample)
+    alts_sample = alternatives.take(sample).copy()
 
     alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
 

@@ -157,8 +157,9 @@ def buffer_for_skims(skim_info, shared=False):
         # buffer_size must be int (or p2.7 long), not np.int64
         buffer_size = int(np.prod(omx_shape) * block_size)
 
-        logger.info("allocating shared buffer %s for %s (%s) matrices" %
-                    (block_name, buffer_size, omx_shape, ))
+        csz = buffer_size * np.dtype(skim_dtype).itemsize
+        logger.info("allocating shared buffer %s for %s (%s) matrices (%s)" %
+                    (block_name, buffer_size, omx_shape, util.GB(csz)))
 
         if shared:
             if np.issubdtype(skim_dtype, np.float64):

@@ -58,15 +58,16 @@ def test_offset_list(data):
         [52, 99, 16])
 
 
-def test_skim_nans(data):
-    sk = skim.SkimWrapper(data)
-
-    orig = [5, np.nan, 1, 2]
-    dest = [np.nan, 9, 6, 4]
-
-    npt.assert_array_equal(
-        sk.get(orig, dest),
-        [np.nan, np.nan, 16, 24])
+# fixme - nan support disabled in skim.py (not sure we need it?)
+# def test_skim_nans(data):
+#     sk = skim.SkimWrapper(data)
+#
+#     orig = [5, np.nan, 1, 2]
+#     dest = [np.nan, 9, 6, 4]
+#
+#     npt.assert_array_equal(
+#         sk.get(orig, dest),
+#         [np.nan, np.nan, 16, 24])
 
 
 def test_skims(data):
@@ -97,7 +98,7 @@ def test_skims(data):
         pd.Series(
             [12, 93, 47],
             index=[0, 1, 2]
-        ).astype('float64')
+        ).astype(data.dtype)
     )
 
     pdt.assert_series_equal(
@@ -105,7 +106,7 @@ def test_skims(data):
         pd.Series(
             [120, 930, 470],
             index=[0, 1, 2]
-        ).astype('float64')
+        ).astype(data.dtype)
     )
 
 

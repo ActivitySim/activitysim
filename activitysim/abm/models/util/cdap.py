@@ -12,9 +12,7 @@ import numpy as np
 import pandas as pd
 from zbox import toolz as tz, gen
 
-from activitysim.core.simulate import eval_variables
-from activitysim.core.simulate import compute_utilities
-from activitysim.core.simulate import uniquify_spec_index
+from activitysim.core import simulate
 
 from activitysim.core import chunk
 from activitysim.core import logit
@@ -185,20 +183,13 @@ def individual_utilities(
     """
 
     # calculate single person utilities
-    individual_vars = eval_variables(cdap_indiv_spec.index, persons, locals_d)
-    indiv_utils = compute_utilities(individual_vars, cdap_indiv_spec)
+    indiv_utils = simulate.eval_utilities(cdap_indiv_spec, persons, locals_d, trace_label)
 
     # add columns from persons to facilitate building household interactions
     useful_columns = [_hh_id_, _ptype_, 'cdap_rank', _hh_size_]
     indiv_utils[useful_columns] = persons[useful_columns]
 
-    # if DUMP:
-    #     tracing.trace_df(indiv_utils, '%s.DUMP.indiv_utils' % trace_label,
-    #                      transpose=False, slicer='NONE')
-
     if trace_hh_id:
-        tracing.trace_df(individual_vars, '%s.individual_vars' % trace_label,
-                         column_labels=['expression', 'person'])
         tracing.trace_df(indiv_utils, '%s.indiv_utils' % trace_label,
                          column_labels=['activity', 'person'])
 
@@ -445,7 +436,7 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     # eval expression goes in the index
     spec.set_index(expression_name, inplace=True)
 
-    uniquify_spec_index(spec)
+    simulate.uniquify_spec_index(spec)
 
     if trace_spec:
         tracing.trace_df(spec, '%s.hhsize%d_spec' % (trace_label, hhsize),
@@ -646,9 +637,7 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
                                trace_spec=(trace_hh_id in choosers.index),
                                trace_label=trace_label)
 
-        vars = eval_variables(spec.index, choosers)
-
-        utils = compute_utilities(vars, spec)
+        utils = simulate.eval_utilities(spec, choosers, trace_label=trace_label)
 
     if len(utils.index) == 0:
         return pd.Series()
@@ -666,8 +655,6 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
 
         if hhsize > 1:
             tracing.trace_df(choosers, '%s.hhsize%d_choosers' % (trace_label, hhsize),
-                             column_labels=['expression', 'person'])
-            tracing.trace_df(vars, '%s.hhsize%d_vars' % (trace_label, hhsize),
                              column_labels=['expression', 'person'])
 
         tracing.trace_df(utils, '%s.hhsize%d_utils' % (trace_label, hhsize),
@@ -768,10 +755,10 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
         return pd.Series()
 
     # eval the expression file
-    model_design = eval_variables(cdap_fixed_relative_proportions.index, choosers, locals_d)
+    values = simulate.eval_variables(cdap_fixed_relative_proportions.index, choosers, locals_d)
 
     # cdap_fixed_relative_proportions computes relative proportions by ptype, not utilities
-    proportions = model_design.dot(cdap_fixed_relative_proportions)
+    proportions = values.dot(cdap_fixed_relative_proportions)
 
     # convert relative proportions to probability
     probs = proportions.div(proportions.sum(axis=1), axis=0)

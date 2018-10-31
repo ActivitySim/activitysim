@@ -55,7 +55,7 @@ class OffsetMapper(object):
         assert self.offset_series is None
 
         if self.offset_int is None:
-            self.offset_int = offset_int
+            self.offset_int = int(offset_int)
         else:
             # make sure it is the same
             assert offset_int == self.offset_int
@@ -71,8 +71,6 @@ class OffsetMapper(object):
             offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series))
 
         elif self.offset_int:
-            # should be some kind of integer
-            assert int(self.offset_int) == self.offset_int
             assert (self.offset_series is None)
             offsets = zone_ids + self.offset_int
         else:
@@ -116,27 +114,44 @@ class SkimWrapper(object):
         values : 1D array
 
         """
-        # only working with numpy in here
-        orig = np.asanyarray(orig)
-        dest = np.asanyarray(dest)
-        out_shape = orig.shape
 
-        # filter orig and dest to only the real-number pairs
-        notnan = ~(np.isnan(orig) | np.isnan(dest))
-        orig = orig[notnan].astype('int')
-        dest = dest[notnan].astype('int')
+        # if False:  #fixme SLOWER
+        #     # fixme - I don't think we need to support nan orig, dest values
+        #
+        #     # only working with numpy in here
+        #     orig = np.asanyarray(orig)
+        #     dest = np.asanyarray(dest)
+        #     out_shape = orig.shape
+        #
+        #     # filter orig and dest to only the real-number pairs
+        #     notnan = ~(np.isnan(orig) | np.isnan(dest))
+        #
+        #     orig = orig[notnan].astype('int')
+        #     dest = dest[notnan].astype('int')
+        #
+        #     orig = self.offset_mapper.map(orig)
+        #     dest = self.offset_mapper.map(dest)
+        #
+        #     result = self.data[orig, dest]
+        #
+        #     # add the nans back to the result
+        #     # (np.empty ensures result type is np.float64 to support nans)
+        #     out = np.empty(out_shape)
+        #     out[notnan] = result
+        #     out[~notnan] = np.nan
+        #
+        #     return out
+
+        # only working with numpy in here
+        orig = np.asanyarray(orig).astype(int)
+        dest = np.asanyarray(dest).astype(int)
 
         orig = self.offset_mapper.map(orig)
         dest = self.offset_mapper.map(dest)
 
         result = self.data[orig, dest]
 
-        # add the nans back to the result
-        out = np.empty(out_shape)
-        out[notnan] = result
-        out[~notnan] = np.nan
-
-        return out
+        return result
 
 
 class SkimDict(object):

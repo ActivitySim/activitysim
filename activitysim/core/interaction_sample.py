@@ -242,7 +242,10 @@ def _interaction_sample(
     # interaction_utilities is a df with one utility column and one row per interaction_df row
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
-    chunk.log_df(trace_label, 'interaction_utils', interaction_utilities)
+    chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
+
+    del interaction_df
+    chunk.log_df(trace_label, 'interaction_df', None)
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
@@ -261,6 +264,9 @@ def _interaction_sample(
         index=choosers.index)
     chunk.log_df(trace_label, 'utilities', utilities)
 
+    del interaction_utilities
+    chunk.log_df(trace_label, 'interaction_utilities', None)
+
     if have_trace_targets:
         tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
                          column_labels=['alternative', 'utility'])
@@ -273,6 +279,9 @@ def _interaction_sample(
                                  trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'probs', probs)
 
+    del utilities
+    chunk.log_df(trace_label, 'utilities', None)
+
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
@@ -284,6 +293,9 @@ def _interaction_sample(
         trace_label=trace_label)
 
     chunk.log_df(trace_label, 'choices_df', choices_df)
+
+    del probs
+    chunk.log_df(trace_label, 'probs', None)
 
     # make_sample_choices should return choosers index as choices_df column
     assert choosers.index.name in choices_df.columns
@@ -303,6 +315,7 @@ def _interaction_sample(
     # drop the duplicates
     choices_df = choices_df[~choices_df['pick_dup']]
     del choices_df['pick_dup']
+    chunk.log_df(trace_label, 'choices_df', choices_df)
 
     # set index after groupby so we can trace on it
     choices_df.set_index(choosers.index.name, inplace=True)
@@ -317,6 +330,7 @@ def _interaction_sample(
 
     # don't need this after tracing
     del choices_df['rand']
+    chunk.log_df(trace_label, 'choices_df', choices_df)
 
     # - NARROW
     choices_df['prob'] = choices_df['prob'].astype(np.float32)

@@ -140,6 +140,60 @@ def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
     return spec
 
 
+def eval_utilities(spec, choosers, locals_d=None, trace_label=None):
+
+    # fixme - restore tracing and _check_for_variability
+
+    t0 = tracing.print_elapsed_time()
+
+    # if False:  #fixme SLOWER
+    #     expression_values = eval_variables(spec.index, choosers, locals_d)
+    #     # chunk.log_df(trace_label, 'expression_values', expression_values)
+    #     # if trace_label and tracing.has_trace_targets(choosers):
+    #     #     tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+    #     #                      column_labels=['expression', None])
+    #     # if config.setting('check_for_variability'):
+    #     #     _check_for_variability(expression_values, trace_label)
+    #     utilities = compute_utilities(expression_values, spec)
+    #
+    #     # chunk.log_df(trace_label, 'expression_values', None)
+    #     t0 = tracing.print_elapsed_time(" eval_utilities SLOWER", t0)
+    #
+    #     return utilities
+
+    # - eval spec expressions
+
+    # avoid altering caller's passed-in locals_d parameter (they may be looping)
+    locals_dict = assign.local_utilities()
+    if locals_d is not None:
+        locals_dict.update(locals_d)
+    globals_dict = {}
+
+    locals_dict['df'] = choosers
+
+    exprs = spec.index
+    expression_values = np.empty((spec.shape[0], choosers.shape[0]))
+    i = 0
+    for expr in exprs:
+        try:
+            if expr.startswith('@'):
+                expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
+            else:
+                expression_values[i] = choosers.eval(expr)
+            i += 1
+        except Exception as err:
+            logger.exception("Variable evaluation failed for: %s" % str(expr))
+            raise err
+
+    # - compute_utilities
+    utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
+    utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
+
+    t0 = tracing.print_elapsed_time(" eval_utilities", t0)
+
+    return utilities
+
+
 def eval_variables(exprs, df, locals_d=None):
     """
     Evaluate a set of variable expressions from a spec in the context
@@ -191,6 +245,8 @@ def eval_variables(exprs, df, locals_d=None):
             # assert x.index.equals(df.index)
             # save a little RAM
             a = x.values
+        else:
+            a = x
 
         # FIXME - for performance, it is essential that spec and expression_values
         # FIXME - not contain booleans when dotted with spec values
@@ -482,26 +538,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    chunk.log_df(trace_label, 'expression_values', expression_values)
-
-    if have_trace_targets:
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
-
-    if config.setting('check_for_variability'):
-        _check_for_variability(expression_values, trace_label)
-
-    # matrix product of spec expression_values with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-    # pandas.dot depends on column names of expression_values matching spec index values
-
-    utilities = compute_utilities(expression_values, spec)
+    utilities = eval_utilities(spec, choosers, locals_d, trace_label)
     chunk.log_df(trace_label, "utilities", utilities)
-
-    del expression_values
-    chunk.log_df(trace_label, 'expression_values', None)
 
     if have_trace_targets:
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
@@ -577,27 +615,12 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    # column names of expression_values match spec index values
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    chunk.log_df(trace_label, "expression_values", expression_values)
-
-    if have_trace_targets:
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
-
-    if config.setting('check_for_variability'):
-        _check_for_variability(expression_values, trace_label)
-
-    # raw utilities of all the leaves
-    raw_utilities = compute_utilities(expression_values, spec)
+    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-
-    del expression_values
-    chunk.log_df(trace_label, 'expression_values', None)
 
     # exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
@@ -829,21 +852,12 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    chunk.log_df(trace_label, 'expression_values', expression_values)
+    utilities = eval_utilities(spec, choosers, locals_d, trace_label)
+    chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
-    if config.setting('check_for_variability'):
-        _check_for_variability(expression_values, trace_label)
-
-    # utility values
-    utilities = compute_utilities(expression_values, spec)
-    chunk.log_df(trace_label, "utilities", utilities,)
-
-    del expression_values  # done with expression_values
-    chunk.log_df(trace_label, 'expression_values', None)
+        tracing.trace_df(utilities, '%s.raw_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
 
     # - logsums
     # logsum is log of exponentiated utilities summed across columns of each chooser row
@@ -853,10 +867,6 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
 
     # trace utilities
     if have_trace_targets:
-        # add logsum to utilities for tracing
-        utilities['logsum'] = logsums
-        tracing.trace_df(utilities, '%s.utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
 
@@ -880,28 +890,12 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    # - eval spec expressions
-    # column names of expression_values match spec index values
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    chunk.log_df(trace_label, 'expression_values', expression_values)
-
-    if have_trace_targets:
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
-
-    if config.setting('check_for_variability'):
-        _check_for_variability(expression_values, trace_label)
-
-    # - raw utilities of all the leaves
-    raw_utilities = compute_utilities(expression_values, spec)
+    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-
-    del expression_values  # done with expression_values
-    chunk.log_df(trace_label, 'expression_values', None)
 
     # - exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)

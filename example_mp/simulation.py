@@ -45,6 +45,7 @@ def run(run_list, injectables=None):
         logger.info("run single process simulation")
         pipeline.run(models=run_list['models'], resume_after=run_list['resume_after'])
         pipeline.close_pipeline()
+        chunk.log_write_hwm()
 
 
 if __name__ == '__main__':
@@ -81,5 +82,3 @@ if __name__ == '__main__':
         run(run_list, injectables)
 
     t0 = tracing.print_elapsed_time("everything", t0)
-
-    mem.log_mem_high_water_mark()

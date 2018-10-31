@@ -365,13 +365,12 @@ def run_simulation(queue, step_info, resume_after, skim_buffer):
 
         t1 = tracing.print_elapsed_time()
         pipeline.run_model(model)
-        tracing.print_elapsed_time("run_model %s %s" % (step_label, model,), t1)
 
         queue.put({'model': model, 'time': time.time()-t1})
 
     t0 = tracing.print_elapsed_time("run (%s models)" % len(models), t0)
 
-    mem.log_mem_high_water_mark()
+    chunk.log_write_hwm()
 
     pipeline.close_pipeline()
 
@@ -692,11 +691,19 @@ def get_run_list():
     resume_after = inject.get_injectable('resume_after', None) or setting('resume_after', None)
     multiprocess = inject.get_injectable('multiprocess', False) or setting('multiprocess', False)
     global_chunk_size = setting('chunk_size', 0)
+    default_mp_processes = setting('num_processes', 0) or int(1 + multiprocessing.cpu_count() / 2.0)
+    default_stagger = setting('stagger', 0)
     multiprocess_steps = setting('multiprocess_steps', [])
 
     if multiprocess and multiprocessing.cpu_count() == 1:
         logger.warning("Can't multiprocess because there is only 1 cpu")
         multiprocess = False
+
+    # if not multiprocess:
+    #     multiprocess_steps = [
+    #         {'name': 'mp_simulation', 'begin': models[0]}
+    #     ]
+    #     multiprocess = True
 
     run_list = {
         'models': models,
@@ -745,9 +752,8 @@ def get_run_list():
 
             if 'slice' in step:
                 if num_processes == 0:
-                    logger.info("Setting num_processes = %s for step %s",
-                                num_processes, name)
-                    num_processes = multiprocessing.cpu_count()
+                    logger.info("Setting num_processes = %s for step %s", num_processes, name)
+                    num_processes = default_mp_processes
                 if num_processes == 1:
                     raise RuntimeError("num_processes = 1 but found slice info for step %s"
                                        " in multiprocess_steps" % name)
@@ -775,7 +781,7 @@ def get_run_list():
             multiprocess_steps[istep]['chunk_size'] = chunk_size
 
             # - validate stagger and assign default
-            multiprocess_steps[istep]['stagger'] = max(int(step.get('stagger', 0)), 0)
+            multiprocess_steps[istep]['stagger'] = max(int(step.get('stagger', default_stagger)), 0)
 
         # - determine index in models list of step starts
         start_tag = 'begin'

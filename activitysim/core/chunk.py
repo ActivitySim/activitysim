@@ -25,8 +25,9 @@ CHUNK_LOG = OrderedDict()
 # array of chunk_size active CHUNK_LOG
 CHUNK_SIZE = []
 
-ELEMENTS_HWM = {}
-BYTES_HWM = {}
+ELEMENTS_HWM = [{}]
+BYTES_HWM = [{}]
+MEM_HWM = [{}]
 
 
 def GB(bytes):
@@ -48,6 +49,10 @@ def log_open(trace_label, chunk_size):
     CHUNK_LOG[trace_label] = OrderedDict()
     CHUNK_SIZE.append(chunk_size)
 
+    ELEMENTS_HWM.append({})
+    BYTES_HWM.append({})
+    MEM_HWM.append({})
+
 
 def log_close(trace_label):
 
@@ -55,29 +60,35 @@ def log_close(trace_label):
 
     logger.debug("log_close %s" % trace_label)
 
-    # if we are closing the root level
-    if len(CHUNK_LOG) == 1:
-        log_write()
-        # input("Return to continue: ")
+    _chunk_totals(logger)
+    log_write_hwm()
 
     label, _ = CHUNK_LOG.popitem(last=True)
     assert label == trace_label
     CHUNK_SIZE.pop()
 
-    if len(CHUNK_LOG) == 0:
-        ELEMENTS_HWM.clear()
-        BYTES_HWM.clear()
+    ELEMENTS_HWM.pop()
+    BYTES_HWM.pop()
+    MEM_HWM.pop()
 
 
 def log_df(trace_label, table_name, df):
 
+    # if df is None:
+    #     mem.force_garbage_collect()
+    # return
+
     cur_chunker = next(reversed(CHUNK_LOG))
+    op = 'del' if df is None else 'add'
+
+    prev_elements, prev_bytes = _chunk_totals()
 
     if df is None:
-        elements, bytes, shape = list(CHUNK_LOG.get(cur_chunker).pop(table_name))
-        elements *= -1
-        bytes *= -1
-        df_trace_label = "%s.del_df.%s" % (trace_label, table_name)
+        CHUNK_LOG.get(cur_chunker).pop(table_name)
+        elements = bytes = 0
+        shape = (0, 0)
+
+        mem.force_garbage_collect()
     else:
 
         shape = df.shape
@@ -95,62 +106,77 @@ def log_df(trace_label, table_name, df):
 
         CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes, shape)
 
-        df_trace_label = "%s.add_df.%s" % (trace_label, table_name)
+    # log this df
+    logger.debug("%s %s df %s %s %s : %s " %
+                 (op, table_name, elements, shape, GB(bytes), trace_label))
 
-    logger.debug("%s df %s %s %s : %s " % (table_name, elements, shape, GB(bytes), df_trace_label))
+    total_elements, total_bytes = _chunk_totals()
+    cur_mem = mem.track_memory_info()
 
-    total_elements, total_bytes = _log_totals(table_name)
-    logger.debug("total elements %s %s : %s" % (total_elements, GB(total_bytes), df_trace_label))
+    # log current totals
+    logger.debug("total elements: %s (%s) bytes: %s (%s) mem: %s " %
+                 (total_elements, total_elements-prev_elements,
+                  GB(total_bytes), GB(total_bytes - prev_bytes),
+                  GB(cur_mem), ))
 
-    cur_mem = mem.track_memory_info(trace_label)
-    logger.debug("current memory %s : %s" % (GB(cur_mem), df_trace_label))
+    # - check high_water_marks
+    hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
+    hwm_info = "elements: %s bytes: %s mem: %s" % (total_elements, GB(total_bytes), GB(cur_mem))
+    for hwm in ELEMENTS_HWM:
+        if total_elements > hwm.get('mark', 0):
+            hwm['mark'] = total_elements
+            hwm['trace_label'] = hwm_trace_label
+            hwm['info'] = hwm_info
+
+    for hwm in BYTES_HWM:
+        if total_bytes > hwm.get('mark', 0):
+            hwm['mark'] = total_bytes
+            hwm['trace_label'] = hwm_trace_label
+            hwm['info'] = hwm_info
+
+    for hwm in MEM_HWM:
+        if cur_mem > hwm.get('mark', 0):
+            hwm['mark'] = cur_mem
+            hwm['trace_label'] = hwm_trace_label
+            hwm['info'] = hwm_info
 
 
-def _log_totals(table_name):
+def _chunk_totals(alogger=None):
+
     total_elements = 0
     total_bytes = 0
     for label in CHUNK_LOG:
         tables = CHUNK_LOG[label]
         for table_name in tables:
             elements, bytes, shape = tables[table_name]
+            if alogger:
+                alogger.debug("%s table %s %s %s %s" %
+                              (label, table_name, shape, elements, GB(bytes)))
             total_elements += elements
             total_bytes += bytes
 
-    if total_elements > ELEMENTS_HWM.get('mark', 0):
-        ELEMENTS_HWM['mark'] = total_elements
-        ELEMENTS_HWM['chunker'] = CHUNK_LOG.keys()
-        ELEMENTS_HWM['table_name'] = table_name
-
-    if total_bytes > BYTES_HWM.get('mark', 0):
-        BYTES_HWM['mark'] = total_bytes
-        BYTES_HWM['chunker'] = CHUNK_LOG.keys()
-        BYTES_HWM['table_name'] = table_name
-
-    # if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
-    #     logger.warning("total_elements (%s) > chunk_size (%s)" % (total_elements, CHUNK_SIZE[0]))
+    if alogger:
+        alogger.debug("%s total elements %s %s" %
+                      (CHUNK_LOG.keys(), total_elements, GB(total_bytes)))
 
     return total_elements, total_bytes
 
 
-def log_write():
-    total_elements = 0
-    total_bytes = 0
-    for label in CHUNK_LOG:
-        tables = CHUNK_LOG[label]
-        for table_name in tables:
-            elements, bytes, shape = tables[table_name]
-            logger.debug("%s table %s %s %s %s" % (label, table_name, shape, elements, GB(bytes)))
-            total_elements += elements
-            total_bytes += bytes
+def log_write_hwm():
 
-    logger.debug("%s total elements %s %s" % (CHUNK_LOG.keys(), total_elements, GB(total_bytes)))
+    hwm = ELEMENTS_HWM[-1]
+    if 'mark' in hwm:
+        logger.info("elements high_water_mark: %s (%s) in %s" %
+                    (hwm['mark'], hwm['info'], hwm['trace_label']), )
+    hwm = BYTES_HWM[-1]
+    if 'mark' in hwm:
+        logger.info("bytes high_water_mark: %s (%s) in %s" %
+                    (GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
 
-    if 'mark' in ELEMENTS_HWM:
-        logger.info("chunk high_water_mark total_elements: %s in %s" %
-                    (ELEMENTS_HWM['mark'], ELEMENTS_HWM['chunker']), )
-    if 'mark' in BYTES_HWM:
-        logger.info("chunk high_water_mark total_bytes: %s in %s" %
-                    (GB(BYTES_HWM['mark']), BYTES_HWM['chunker']), )
+    hwm = MEM_HWM[-1]
+    if 'mark' in hwm:
+        logger.info("mem high_water_mark: %s (%s) in %s" %
+                    (GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
 
 
 def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):

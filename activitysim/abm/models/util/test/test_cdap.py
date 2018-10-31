@@ -9,8 +9,7 @@ import pytest
 
 from .. import cdap
 
-from activitysim.core.simulate import read_model_spec
-from activitysim.core.simulate import compute_utilities
+from activitysim.core import simulate
 
 
 @pytest.fixture(scope='module')
@@ -32,7 +31,7 @@ def people(data_dir):
 
 @pytest.fixture(scope='module')
 def cdap_indiv_and_hhsize1(configs_dir):
-    return read_model_spec(file_name='cdap_indiv_and_hhsize1.csv', spec_dir=configs_dir)
+    return simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv', spec_dir=configs_dir)
 
 
 @pytest.fixture(scope='module')
@@ -117,9 +116,9 @@ def test_build_cdap_spec_hhsize2(people, cdap_indiv_and_hhsize1, cdap_interactio
 
     spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize=hhsize, cache=False)
 
-    vars = cdap.eval_variables(spec.index, choosers)
+    vars = simulate.eval_variables(spec.index, choosers)
 
-    utils = compute_utilities(vars, spec)
+    utils = simulate.compute_utilities(vars, spec)
 
     expected = pd.DataFrame([
         [0, 3, 0, 3, 7, 3, 0, 3, 0],  # household 3

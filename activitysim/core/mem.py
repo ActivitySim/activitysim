@@ -51,9 +51,8 @@ def trace_memory_info(event=''):
     rss = current_process.memory_info().rss
     for child in current_process.children(recursive=True):
         try:
-            #
             rss += child.memory_info().rss
-        except:
+        except psutil.NoSuchProcess:
             pass
 
     # logger.debug("memory_info: rss: %s available: %s percent: %s"

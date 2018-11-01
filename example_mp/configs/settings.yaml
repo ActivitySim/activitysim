@@ -30,7 +30,7 @@ singleprocess_as_subtask: True
 chunk_size: 1500000000
 num_processes: 3
 stagger: 5
-profile: True
+profile: False
 strict: True
 trace_hh_id: 1482966
 trace_od: [5, 11]

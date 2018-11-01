@@ -78,18 +78,19 @@ def log_df(trace_label, table_name, df):
     # return
 
     cur_chunker = next(reversed(CHUNK_LOG))
-    op = 'del' if df is None else 'add'
 
     if df is None:
         CHUNK_LOG.get(cur_chunker).pop(table_name)
-        elements = bytes = 0
-        shape = (0, 0)
+        op = 'del'
+
+        logger.debug("del %s df : %s " % (table_name, trace_label))
 
         mem.force_garbage_collect()
     else:
 
         shape = df.shape
         elements = np.prod(shape)
+        op = 'add'
 
         if isinstance(df, pd.Series):
             bytes = df.memory_usage(index=True)
@@ -103,19 +104,12 @@ def log_df(trace_label, table_name, df):
 
         CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes, shape)
 
-    # log this df
-    logger.debug("%s %s df %s %s %s : %s " %
-                 (op, table_name, elements, shape, GB(bytes), trace_label))
+        # log this df
+        logger.debug("add %s df %s %s %s : %s " %
+                     (table_name, elements, shape, GB(bytes), trace_label))
 
     total_elements, total_bytes = _chunk_totals()
     cur_mem = mem.get_memory_info()
-
-    # # log current totals
-    # logger.debug("%s %s total elements: %d (%+d) bytes: %s (%s) mem: %s " %
-    #              (op, table_name,
-    #               total_elements, total_elements-prev_elements,
-    #               GB(total_bytes), GB(total_bytes - prev_bytes, sign=True),
-    #               GB(cur_mem), ))
 
     # - check high_water_marks
     hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)

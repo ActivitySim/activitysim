@@ -544,7 +544,7 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
             logger.error("Process %s failed with exitcode %s", p.name, p.exitcode)
             assert p.name in failed
         else:
-            logger.error("Process %s completed with exitcode %s", p.name, p.exitcode)
+            logger.info("Process %s completed with exitcode %s", p.name, p.exitcode)
             assert p.name in completed
 
     t0 = tracing.print_elapsed_time('run_sub_simulations step %s' % step_name, t0)

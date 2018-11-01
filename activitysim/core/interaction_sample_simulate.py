@@ -167,16 +167,13 @@ def _interaction_sample_simulate(
     # (we want to insert dummy utilities at the END of the list of alternative utilities)
     # inserts is a list of the indices at which we want to do the insertions
     inserts = np.repeat(last_row_offsets, max_sample_count - sample_counts)
-    chunk.log_df(trace_label, 'inserts', inserts)
 
     del sample_counts
     chunk.log_df(trace_label, 'sample_counts', None)
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
-
     del inserts
-    chunk.log_df(trace_label, 'inserts', None)
 
     del interaction_utilities
     chunk.log_df(trace_label, 'interaction_utilities', None)

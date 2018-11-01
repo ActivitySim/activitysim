@@ -559,7 +559,14 @@ def run_sub_task(p):
 
     t0 = tracing.print_elapsed_time()
     p.start()
-    p.join()
+
+    while multiprocessing.active_children():
+        mem.trace_memory_info()
+        time.sleep(1)
+
+    # no need to join explicitly since multiprocessing.active_children joins completed procs
+    # p.join()
+
     t0 = tracing.print_elapsed_time('sub_process %s' % p.name, t0)
     # logger.info('%s.exitcode = %s' % (p.name, p.exitcode))
 

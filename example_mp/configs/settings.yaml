@@ -11,10 +11,14 @@ inherit_settings: True
 #trace_od: None
 
 # full
-#households_sample_size:  0
 #multiprocess: True
+#households_sample_size:  0
 #chunk_size: 15000000000
 #num_processes: 10
+## 50% sample
+##households_sample_size:  1366361
+##chunk_size: 7500000000
+##num_processes: 5
 #stagger: 30
 #profile: False
 #strict: False
@@ -23,7 +27,7 @@ inherit_settings: True
 
 # example
 #households_sample_size: 273272
-households_sample_size:  40000
+households_sample_size:  1000
 
 multiprocess: False
 singleprocess_as_subtask: True
@@ -83,7 +87,7 @@ multiprocess_steps:
     begin: initialize_landuse
   - name: mp_households
     begin: _school_location_sample
-    #num_processes: 10
+    #num_processes: 9
     #stagger: 30
     #chunk_size: 1000000000
     slice:

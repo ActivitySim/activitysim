@@ -30,13 +30,22 @@ BYTES_HWM = [{}]
 MEM_HWM = [{}]
 
 
-def GB(bytes, sign=False):
-    if bytes < (1024 * 1024):
-        return ("%+.2f KB" if sign else "%.2f KB") % (bytes / 1024)
-    elif bytes < (1024 * 1024 * 1024):
-        return ("%+.2f MB" if sign else "%.2f MB") % (bytes / (1024 * 1024))
-    else:
-        return ("%+.2f GB" if sign else "%.2f GB") % (bytes / (1024 * 1024 * 1024))
+# def GB(bytes):
+#     if bytes < (1024 * 1024):
+#         return ("%.2f KB") % (bytes / 1024)
+#     elif bytes < (1024 * 1024 * 1024):
+#         return ("%.2f MB") % (bytes / (1024 * 1024))
+#     else:
+#         return ("%.2f GB") % (bytes / (1024 * 1024 * 1024))
+
+def GB(bytes):
+    # symbols = ('', 'K', 'M', 'G', 'T')
+    symbols = ('', ' KB', ' MB', ' GB', ' TB')
+    fmt = "%.1f%s"
+    for i, s in enumerate(symbols):
+        units = 1 << i * 10
+        if bytes < units * 1024:
+            return fmt % (bytes / units, s)
 
 
 def log_open(trace_label, chunk_size):
@@ -73,19 +82,18 @@ def log_close(trace_label):
 
 def log_df(trace_label, table_name, df):
 
-    # if df is None:
-    #     mem.force_garbage_collect()
-    # return
+    if df is None:
+        mem.force_garbage_collect()
 
     cur_chunker = next(reversed(CHUNK_LOG))
+    cur_mem = mem.get_memory_info()
 
     if df is None:
         CHUNK_LOG.get(cur_chunker).pop(table_name)
         op = 'del'
 
-        logger.debug("del %s df : %s " % (table_name, trace_label))
+        logger.debug("log_df del %s df cur_mem: %s : %s " % (table_name, GB(cur_mem), trace_label))
 
-        mem.force_garbage_collect()
     else:
 
         shape = df.shape
@@ -105,11 +113,10 @@ def log_df(trace_label, table_name, df):
         CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes, shape)
 
         # log this df
-        logger.debug("add %s df %s %s %s : %s " %
-                     (table_name, elements, shape, GB(bytes), trace_label))
+        logger.debug("log_df add %s df %s %s bytes: %s mem: %s : %s " %
+                     (table_name, elements, shape, GB(bytes), GB(cur_mem), trace_label))
 
-    total_elements, total_bytes = _chunk_totals()
-    cur_mem = mem.get_memory_info()
+    total_elements, total_bytes = _chunk_totals()  # new chunk totals
 
     # - check high_water_marks
     hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)

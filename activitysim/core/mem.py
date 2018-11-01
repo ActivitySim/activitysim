@@ -43,7 +43,7 @@ def trace_memory_info(event=''):
     if last_tick == 0:
         mode = 'wb' if sys.version_info < (3,) else 'w'
         with open(config.output_file_path('mem.csv'), mode) as file:
-            print("time,rss,used,available,percent,event", file=file)
+            print("time,rss,uss,available,percent,event", file=file)
 
     MEM['tick'] = t
 
@@ -53,6 +53,7 @@ def trace_memory_info(event=''):
         try:
             rss += child.memory_info().rss
         except psutil.NoSuchProcess:
+            # print("NoSuchProcess %s %s" % (child.name(),  child.status()))
             pass
 
     # logger.debug("memory_info: rss: %s available: %s percent: %s"

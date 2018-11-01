@@ -34,11 +34,6 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 logger = logging.getLogger(__name__)
 
 
-def log_file_path(file_name):
-    # FIXME - for compatability with v0.7
-    return config.log_file_path(file_name)
-
-
 def extend_trace_label(trace_label, extension):
     if trace_label:
         trace_label = "%s.%s" % (trace_label, extension)

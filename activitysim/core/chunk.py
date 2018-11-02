@@ -19,7 +19,7 @@ from . import mem
 logger = logging.getLogger(__name__)
 
 # dict of table_dicts keyed by trace_label
-# table_dicts are dicts tuples of (elements, bytes, shape) keyed by table_name
+# table_dicts are dicts tuples of (elements, bytes, mem) keyed by table_name
 CHUNK_LOG = OrderedDict()
 
 # array of chunk_size active CHUNK_LOG
@@ -50,10 +50,12 @@ def GB(bytes):
 
 def log_open(trace_label, chunk_size):
 
+    # nested chunkers should be unchunked
     if len(CHUNK_LOG) > 0:
         assert chunk_size == 0
-        logger.debug("log_open nested chunker %s" % trace_label)
         assert trace_label not in CHUNK_LOG
+
+    logger.debug("log_open chunker %s chunk_size %s" % (trace_label, chunk_size))
 
     CHUNK_LOG[trace_label] = OrderedDict()
     CHUNK_SIZE.append(chunk_size)
@@ -69,7 +71,9 @@ def log_close(trace_label):
 
     logger.debug("log_close %s" % trace_label)
 
-    log_write_hwm()
+    # if we are closing base level chunker
+    if len(CHUNK_LOG) == 1:
+        log_write_hwm()
 
     label, _ = CHUNK_LOG.popitem(last=True)
     assert label == trace_label
@@ -86,13 +90,12 @@ def log_df(trace_label, table_name, df):
         mem.force_garbage_collect()
 
     cur_chunker = next(reversed(CHUNK_LOG))
-    cur_mem = mem.get_memory_info()
 
     if df is None:
         CHUNK_LOG.get(cur_chunker).pop(table_name)
         op = 'del'
 
-        logger.debug("log_df del %s df cur_mem: %s : %s " % (table_name, GB(cur_mem), trace_label))
+        logger.debug("log_df del %s df : %s " % (table_name, trace_label))
 
     else:
 
@@ -110,16 +113,27 @@ def log_df(trace_label, table_name, df):
             logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
             assert False
 
-        CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes, shape)
+        CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
 
         # log this df
-        logger.debug("log_df add %s df %s %s bytes: %s mem: %s : %s " %
-                     (table_name, elements, shape, GB(bytes), GB(cur_mem), trace_label))
+        logger.debug("log_df add %s df %s %s bytes: %s : %s " %
+                     (table_name, elements, shape, GB(bytes), trace_label))
 
     total_elements, total_bytes = _chunk_totals()  # new chunk totals
+    cur_mem = mem.get_memory_info()
+    hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
+
+    if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
+        logger.warn("total_elements (%s) > chunk_size (%s) : %s " %
+                    (total_elements, CHUNK_SIZE[0], hwm_trace_label))
+
+    logger.debug("total_elements: %s, total_bytes: %s cur_mem: %s: %s " %
+                 (total_elements, GB(total_bytes), GB(cur_mem), hwm_trace_label))
+
+    mem.trace_memory_info(hwm_trace_label)
 
     # - check high_water_marks
-    hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
+
     for hwm in ELEMENTS_HWM:
         if total_elements > hwm.get('mark', 0):
             hwm['mark'] = total_elements
@@ -146,7 +160,7 @@ def _chunk_totals():
     for label in CHUNK_LOG:
         tables = CHUNK_LOG[label]
         for table_name in tables:
-            elements, bytes, shape = tables[table_name]
+            elements, bytes = tables[table_name]
             total_elements += elements
             total_bytes += bytes
 
@@ -181,13 +195,13 @@ def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
     rpc = min(rpc, num_choosers)
 
     # chunks = int(ceil(num_choosers / float(rpc)))
-    # effective_chunk_size = row_size * rpc
+    effective_chunk_size = row_size * rpc
     #
     # logger.debug("%s #chunk_calc chunk_size %s" % (trace_label, chunk_size))
     # logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
     # logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))
     # logger.debug("%s #chunk_calc rows_per_chunk %s" % (trace_label, rpc))
-    # logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
+    logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
     # logger.debug("%s #chunk_calc chunks %s" % (trace_label, chunks))
 
     return rpc

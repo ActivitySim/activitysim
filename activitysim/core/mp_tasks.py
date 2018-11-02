@@ -399,6 +399,8 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
 
     setup_injectables_and_logging(injectables)
 
+    mem.init_trace(file_name="mem_%s.csv" % multiprocessing.current_process().name)
+
     if step_info['num_processes'] > 1:
         pipeline_prefix = multiprocessing.current_process().name
         logger.info("injecting pipeline_file_prefix '%s'", pipeline_prefix)
@@ -586,6 +588,7 @@ def drop_breadcrumb(step_name, crumb, value=True):
 
 def run_multiprocess(run_list, injectables):
 
+    mem.init_trace()
     mem.trace_memory_info("run_multiprocess.start")
 
     if not run_list['multiprocess']:

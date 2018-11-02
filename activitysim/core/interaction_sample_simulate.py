@@ -7,6 +7,8 @@ install_aliases()  # noqa: E402
 
 import logging
 
+import gc
+
 import numpy as np
 import pandas as pd
 
@@ -109,10 +111,13 @@ def _interaction_sample_simulate(
     # so we just need to left join alternatives with choosers
     assert alternatives.index.name == choosers.index.name
 
-    interaction_df = pd.merge(
-        alternatives, choosers,
-        left_index=True, right_index=True,
-        suffixes=('', '_r'))
+    # interaction_df = pd.merge(
+    #     alternatives, choosers,
+    #     left_index=True, right_index=True,
+    #     suffixes=('', '_r'))
+
+    interaction_df = alternatives.join(choosers, how='left', rsuffix='_r')
+
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if have_trace_targets:

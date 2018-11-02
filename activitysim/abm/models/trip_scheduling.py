@@ -211,6 +211,10 @@ def schedule_nth_trips(
     # left join trips to probs (there may be multiple rows per trip for multiple depart ranges)
     choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
                         how='left').set_index('trip_id')
+    chunk.log_df(trace_label, "choosers", choosers)
+
+    if trace_hh_id and tracing.has_trace_targets(trips):
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
     # choosers should now match trips row for row
     assert choosers.index.is_unique
@@ -219,6 +223,8 @@ def schedule_nth_trips(
     # zero out probs outside earliest-latest window
     chooser_probs = clip_probs(trips, choosers[probs_cols], model_settings)
 
+    chunk.log_df(trace_label, "chooser_probs", chooser_probs)
+
     if first_trip_in_leg:
         # probs should sum to 1 unless all zero
         chooser_probs = chooser_probs.div(chooser_probs.sum(axis=1), axis=0).fillna(0)
@@ -226,13 +232,25 @@ def schedule_nth_trips(
     # probs should sum to 1 with residual probs resulting in choice of 'fail'
     chooser_probs['fail'] = 1 - chooser_probs.sum(axis=1).clip(0, 1)
 
+    if trace_hh_id and tracing.has_trace_targets(trips):
+        tracing.trace_df(chooser_probs, '%s.chooser_probs' % trace_label)
+
     choices, rands = logit.make_choices(
         chooser_probs,
         trace_label=trace_label, trace_choosers=choosers)
 
+    chunk.log_df(trace_label, "choices", choices)
+    chunk.log_df(trace_label, "rands", rands)
+
+    if trace_hh_id and tracing.has_trace_targets(trips):
+        tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'depart'])
+        tracing.trace_df(rands, '%s.rands' % trace_label, columns=[None, 'rand'])
+
     # convert alt choice index to depart time (setting failed choices to -1)
     failed = (choices == chooser_probs.columns.get_loc('fail'))
     choices = (choices + depart_alt_base).where(~failed, -1)
+
+    chunk.log_df(trace_label, "failed", failed)
 
     # report failed trips while we have the best diagnostic info
     if report_failed_trips and failed.any():
@@ -245,8 +263,6 @@ def schedule_nth_trips(
 
     # trace before removing failures
     if trace_hh_id and tracing.has_trace_targets(trips):
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(chooser_probs, '%s.chooser_probs' % trace_label)
         tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'depart'])
         tracing.trace_df(rands, '%s.rands' % trace_label, columns=[None, 'rand'])
 
@@ -321,6 +337,8 @@ def schedule_trips_in_leg(
 
         nth_trace_label = tracing.extend_trace_label(trace_label, 'num_%s' % i)
 
+        chunk.log_open(nth_trace_label, chunk_size=0)
+
         choices = schedule_nth_trips(
             nth_trips,
             probs_spec,
@@ -329,6 +347,8 @@ def schedule_trips_in_leg(
             report_failed_trips=last_iteration,
             trace_hh_id=trace_hh_id,
             trace_label=nth_trace_label)
+
+        chunk.log_close(nth_trace_label)
 
         # if outbound, this trip's depart constrains next trip's earliest depart option
         # if inbound, we are handling in reverse order, so it constrains latest depart instead
@@ -415,6 +435,8 @@ def run_trip_scheduling(
         else:
             chunk_trace_label = trace_label
 
+        leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'outbound')
+        chunk.log_open(leg_trace_label, chunk_size)
         choices = \
             schedule_trips_in_leg(
                 outbound=True,
@@ -423,9 +445,12 @@ def run_trip_scheduling(
                 model_settings=model_settings,
                 last_iteration=last_iteration,
                 trace_hh_id=trace_hh_id,
-                trace_label=tracing.extend_trace_label(chunk_trace_label, 'outbound'))
+                trace_label=leg_trace_label)
         result_list.append(choices)
+        chunk.log_close(leg_trace_label)
 
+        leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
+        chunk.log_open(leg_trace_label, chunk_size)
         choices = \
             schedule_trips_in_leg(
                 outbound=False,
@@ -434,8 +459,9 @@ def run_trip_scheduling(
                 model_settings=model_settings,
                 last_iteration=last_iteration,
                 trace_hh_id=trace_hh_id,
-                trace_label=tracing.extend_trace_label(chunk_trace_label, 'inbound'))
+                trace_label=leg_trace_label)
         result_list.append(choices)
+        chunk.log_close(leg_trace_label)
 
     choices = pd.concat(result_list)
 

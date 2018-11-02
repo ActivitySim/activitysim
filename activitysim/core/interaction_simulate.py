@@ -101,8 +101,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
     for expr, coefficient in zip(spec.index, spec.iloc[:, 0]):
         try:
 
-            # fixme - remove this? (used only in trip_destination_sample.csv)
-            # allow temps of form _od_DIST@od_skim['DIST']
+            # - allow temps of form _od_DIST@od_skim['DIST']
             if expr.startswith('_'):
                 target = expr[:expr.index('@')]
                 rhs = expr[expr.index('@') + 1:]
@@ -113,6 +112,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
 
                 if trace_eval_results is not None:
                     trace_eval_results[expr] = v[trace_rows]
+
+                # mem.trace_memory_info("eval_interaction_utilities TEMP: %s" % expr)
                 continue
 
             if expr.startswith('@'):
@@ -145,6 +146,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
+
+        # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
 
     if no_variability > 0:
         logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))

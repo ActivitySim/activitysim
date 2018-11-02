@@ -173,8 +173,7 @@ def _schedule_tours(
     assert not tours[window_id_col].duplicated().any()
 
     # merge previous tour columns (join on index)
-    previous_tour_info = get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts)
-    tours = tours.join(previous_tour_info)
+    tours = tours.join(get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts))
 
     chunk.log_df(tour_trace_label, "tours", tours)
 

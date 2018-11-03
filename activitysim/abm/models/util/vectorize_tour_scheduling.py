@@ -213,8 +213,8 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
     num_choosers = len(tours.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = tours.shape[1]
     sample_size = alternatives.shape[0]
@@ -227,10 +227,10 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
 
     row_size = (chooser_row_size + extra_chooser_columns + alt_row_size) * sample_size
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
-    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
+    # logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -262,10 +262,8 @@ def schedule_tours(
     else:
         assert not tours[timetable_window_id_col].duplicated().any()
 
-    rows_per_chunk = \
+    rows_per_chunk, effective_chunk_size = \
         calc_rows_per_chunk(chunk_size, tours, persons_merged, alts, trace_label=tour_trace_label)
-
-    logger.info("chunk_size %s rows_per_chunk %s" % (chunk_size, rows_per_chunk))
 
     result_list = []
     for i, num_chunks, chooser_chunk \
@@ -276,7 +274,7 @@ def schedule_tours(
         chunk_trace_label = tracing.extend_trace_label(tour_trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else tour_trace_label
 
-        chunk.log_open(chunk_trace_label, chunk_size)
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
         choices = _schedule_tours(chooser_chunk, persons_merged,
                                   alts, spec, constants,
                                   timetable, timetable_window_id_col,

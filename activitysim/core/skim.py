@@ -142,6 +142,9 @@ class SkimWrapper(object):
         #
         #     return out
 
+        # fixme - remove?
+        assert not (np.isnan(orig) | np.isnan(dest)).any()
+
         # only working with numpy in here
         orig = np.asanyarray(orig).astype(int)
         dest = np.asanyarray(dest).astype(int)

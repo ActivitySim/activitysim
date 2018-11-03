@@ -868,15 +868,14 @@ def _run_cdap(
     return cdap_results
 
 
-# calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
 def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
 
     # NOTE we chunk chunk_id
     num_choosers = choosers['chunk_id'].max() + 1
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = choosers.shape[1]
 
@@ -937,7 +936,8 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
-    rows_per_chunk = calc_rows_per_chunk(chunk_size, persons, trace_label=trace_label)
+    rows_per_chunk, effective_chunk_size = \
+        calc_rows_per_chunk(chunk_size, persons, trace_label=trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
@@ -947,7 +947,7 @@ def run_cdap(
 
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i)
 
-        chunk.log_open(chunk_trace_label, chunk_size)
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
         choices = _run_cdap(persons_chunk,
                             cdap_indiv_spec,

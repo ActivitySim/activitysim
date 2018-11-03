@@ -24,19 +24,10 @@ CHUNK_LOG = OrderedDict()
 
 # array of chunk_size active CHUNK_LOG
 CHUNK_SIZE = []
+EFFECTIVE_CHUNK_SIZE = []
 
-ELEMENTS_HWM = [{}]
-BYTES_HWM = [{}]
-MEM_HWM = [{}]
+HWM = [{}]
 
-
-# def GB(bytes):
-#     if bytes < (1024 * 1024):
-#         return ("%.2f KB") % (bytes / 1024)
-#     elif bytes < (1024 * 1024 * 1024):
-#         return ("%.2f MB") % (bytes / (1024 * 1024))
-#     else:
-#         return ("%.2f GB") % (bytes / (1024 * 1024 * 1024))
 
 def GB(bytes):
     # symbols = ('', 'K', 'M', 'G', 'T')
@@ -48,21 +39,32 @@ def GB(bytes):
             return fmt % (bytes / units, s)
 
 
-def log_open(trace_label, chunk_size):
+def commas(x):
+    x = int(x)
+    if x < 10000:
+        return str(x)
+    result = ''
+    while x >= 1000:
+        x, r = divmod(x, 1000)
+        result = ",%03d%s" % (r, result)
+    return "%d%s" % (x, result)
+
+
+def log_open(trace_label, chunk_size, effective_chunk_size):
 
     # nested chunkers should be unchunked
     if len(CHUNK_LOG) > 0:
         assert chunk_size == 0
         assert trace_label not in CHUNK_LOG
 
-    logger.debug("log_open chunker %s chunk_size %s" % (trace_label, chunk_size))
+    logger.debug("log_open chunker %s chunk_size %s effective_chunk_size %s" %
+                 (trace_label, commas(chunk_size), commas(effective_chunk_size)))
 
     CHUNK_LOG[trace_label] = OrderedDict()
     CHUNK_SIZE.append(chunk_size)
+    EFFECTIVE_CHUNK_SIZE.append(effective_chunk_size)
 
-    ELEMENTS_HWM.append({})
-    BYTES_HWM.append({})
-    MEM_HWM.append({})
+    HWM.append({})
 
 
 def log_close(trace_label):
@@ -78,10 +80,9 @@ def log_close(trace_label):
     label, _ = CHUNK_LOG.popitem(last=True)
     assert label == trace_label
     CHUNK_SIZE.pop()
+    EFFECTIVE_CHUNK_SIZE.pop()
 
-    ELEMENTS_HWM.pop()
-    BYTES_HWM.pop()
-    MEM_HWM.pop()
+    HWM.pop()
 
 
 def log_df(trace_label, table_name, df):
@@ -95,7 +96,7 @@ def log_df(trace_label, table_name, df):
         CHUNK_LOG.get(cur_chunker).pop(table_name)
         op = 'del'
 
-        logger.debug("log_df del %s df : %s " % (table_name, trace_label))
+        logger.debug("log_df del %s : %s " % (table_name, trace_label))
 
     else:
 
@@ -116,41 +117,27 @@ def log_df(trace_label, table_name, df):
         CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
 
         # log this df
-        logger.debug("log_df add %s df %s %s bytes: %s : %s " %
-                     (table_name, elements, shape, GB(bytes), trace_label))
+        logger.debug("log_df add %s elements: %s bytes: %s shape: %s : %s " %
+                     (table_name, commas(elements), GB(bytes), shape, trace_label))
 
     total_elements, total_bytes = _chunk_totals()  # new chunk totals
     cur_mem = mem.get_memory_info()
     hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
 
-    if CHUNK_SIZE[0] and total_elements > CHUNK_SIZE[0]:
-        logger.warn("total_elements (%s) > chunk_size (%s) : %s " %
-                    (total_elements, CHUNK_SIZE[0], hwm_trace_label))
-
-    logger.debug("total_elements: %s, total_bytes: %s cur_mem: %s: %s " %
-                 (total_elements, GB(total_bytes), GB(cur_mem), hwm_trace_label))
+    # logger.debug("total_elements: %s, total_bytes: %s cur_mem: %s: %s " %
+    #              (total_elements, GB(total_bytes), GB(cur_mem), hwm_trace_label))
 
     mem.trace_memory_info(hwm_trace_label)
 
     # - check high_water_marks
 
-    for hwm in ELEMENTS_HWM:
-        if total_elements > hwm.get('mark', 0):
-            hwm['mark'] = total_elements
-            hwm['trace_label'] = hwm_trace_label
-            hwm['info'] = "bytes: %s mem: %s" % (GB(total_bytes), GB(cur_mem))
+    info = "elements: %s bytes: %s mem: %s chunk_size: %s effective_chunk_size: %s" % \
+           (commas(total_elements), GB(total_bytes), GB(cur_mem),
+            commas(CHUNK_SIZE[0]), commas(EFFECTIVE_CHUNK_SIZE[0]))
 
-    for hwm in BYTES_HWM:
-        if total_bytes > hwm.get('mark', 0):
-            hwm['mark'] = total_bytes
-            hwm['trace_label'] = hwm_trace_label
-            hwm['info'] = "elements: %s mem: %s" % (total_elements, GB(cur_mem))
-
-    for hwm in MEM_HWM:
-        if cur_mem > hwm.get('mark', 0):
-            hwm['mark'] = cur_mem
-            hwm['trace_label'] = hwm_trace_label
-            hwm['info'] = "elements: %s bytes: %s" % (total_elements, GB(total_bytes))
+    check_hwm('elements', total_elements, info, hwm_trace_label)
+    check_hwm('bytes', total_bytes, info, hwm_trace_label)
+    check_hwm('mem', cur_mem, info, hwm_trace_label)
 
 
 def _chunk_totals():
@@ -167,29 +154,49 @@ def _chunk_totals():
     return total_elements, total_bytes
 
 
+def check_hwm(tag, value, info, trace_label):
+
+    for d in HWM:
+
+        hwm = d.setdefault(tag, {})
+
+        if value > hwm.get('mark', 0):
+            hwm['mark'] = value
+            hwm['info'] = info
+            hwm['trace_label'] = trace_label
+
+
 def log_write_hwm():
 
-    hwm = ELEMENTS_HWM[-1]
-    if 'mark' in hwm:
-        logger.info("high_water_mark elements: %s (%s) in %s" %
-                    (hwm['mark'], hwm['info'], hwm['trace_label']), )
-    hwm = BYTES_HWM[-1]
-    if 'mark' in hwm:
-        logger.info("high_water_mark bytes: %s (%s) in %s" %
-                    (GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
+    d = HWM[0]
+    for tag in d:
+        hwm = d[tag]
+        logger.info("high_water_mark %s: %s (%s) in %s" %
+                    (tag, hwm['mark'], hwm['info'], hwm['trace_label']), )
 
-    hwm = MEM_HWM[-1]
-    if 'mark' in hwm:
-        logger.info("high_water_mark mem: %s (%s) in %s" %
-                    (GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
+    # - elements shouldn't exceed chunk_size or effective_chunk_size of base chunker
+    def check_chunk_size(hwm, chunk_size, label, max_leeway):
+        elements = hwm['mark']
+        if chunk_size and max_leeway and elements > chunk_size * max_leeway:  # too high
+            logger.warn("total_elements (%s) > %s (%s) %s : %s " %
+                        (commas(elements), label, commas(chunk_size),
+                         hwm['info'], hwm['trace_label']))
+
+    # if we are in a chunker
+    if len(HWM) > 1 and HWM[1]:
+        assert 'elements' in HWM[1]  # expect an 'elements' hwm dict for base chunker
+        hwm = HWM[1].get('elements')
+        check_chunk_size(hwm, EFFECTIVE_CHUNK_SIZE[0],  'effective_chunk_size', max_leeway=1)
+        check_chunk_size(hwm, CHUNK_SIZE[0], 'chunk_size', max_leeway=1)
 
 
 def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
 
-    # closest number of chooser rows to achieve chunk_size
-    rpc = int(round(chunk_size / float(row_size)))
-
-    rpc = int(chunk_size / float(row_size))
+    if chunk_size > 0:
+        # closest number of chooser rows to achieve chunk_size without exceeding
+        rpc = int(chunk_size / float(row_size))
+    else:
+        rpc = num_choosers
 
     rpc = max(rpc, 1)
     rpc = min(rpc, num_choosers)
@@ -201,10 +208,13 @@ def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
     # logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
     # logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))
     # logger.debug("%s #chunk_calc rows_per_chunk %s" % (trace_label, rpc))
-    logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
+    # logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
     # logger.debug("%s #chunk_calc chunks %s" % (trace_label, chunks))
 
-    return rpc
+    logger.info("%s #chunk_calc rows_per_chunk %s, effective_chunk_size %s, num_choosers %s" %
+                (trace_label, rpc, effective_chunk_size, num_choosers))
+
+    return rpc, effective_chunk_size
 
 
 def chunked_choosers(choosers, rows_per_chunk):

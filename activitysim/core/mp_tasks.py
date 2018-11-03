@@ -377,8 +377,6 @@ def run_simulation(queue, step_info, resume_after, skim_buffer):
 
     t0 = tracing.print_elapsed_time("run (%s models)" % len(models), t0)
 
-    chunk.log_write_hwm()
-
     pipeline.close_pipeline()
 
 
@@ -399,7 +397,8 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
 
     setup_injectables_and_logging(injectables)
 
-    mem.init_trace(file_name="mem_%s.csv" % multiprocessing.current_process().name)
+    mem.init_trace(setting('mem_tick'),
+                   file_name="mem_%s.csv" % multiprocessing.current_process().name)
 
     if step_info['num_processes'] > 1:
         pipeline_prefix = multiprocessing.current_process().name
@@ -411,6 +410,9 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
                         globals(), locals(), filename=profile_path())
     else:
         run_simulation(queue, step_info, resume_after, skim_buffer)
+
+    chunk.log_write_hwm()
+    mem.log_hwm()
 
 
 def mp_apportion_pipeline(injectables, sub_job_proc_names, slice_info):
@@ -588,7 +590,7 @@ def drop_breadcrumb(step_name, crumb, value=True):
 
 def run_multiprocess(run_list, injectables):
 
-    mem.init_trace()
+    mem.init_trace(setting('mem_tick'))
     mem.trace_memory_info("run_multiprocess.start")
 
     if not run_list['multiprocess']:
@@ -663,6 +665,8 @@ def run_multiprocess(run_list, injectables):
             )
         drop_breadcrumb(step_name, 'coalesce')
 
+    mem.log_hwm()
+
 
 def get_breadcrumbs(run_list):
 
@@ -729,11 +733,11 @@ def get_run_list():
         logger.warning("Can't multiprocess because there is only 1 cpu")
         multiprocess = False
 
-    if not multiprocess and setting('singleprocess_as_subtask', False):
-        multiprocess_steps = [
-            {'name': 'mp_simulation', 'begin': models[0]}
-        ]
-        multiprocess = True
+    # if not multiprocess and setting('singleprocess_as_subtask', False):
+    #     multiprocess_steps = [
+    #         {'name': 'mp_simulation', 'begin': models[0]}
+    #     ]
+    #     multiprocess = True
 
     run_list = {
         'models': models,
@@ -784,9 +788,9 @@ def get_run_list():
                 if num_processes == 0:
                     logger.info("Setting num_processes = %s for step %s", num_processes, name)
                     num_processes = default_mp_processes
-                if num_processes == 1:
-                    raise RuntimeError("num_processes = 1 but found slice info for step %s"
-                                       " in multiprocess_steps" % name)
+                # if num_processes == 1:
+                #     raise RuntimeError("num_processes = 1 but found slice info for step %s"
+                #                        " in multiprocess_steps" % name)
                 if num_processes > multiprocessing.cpu_count():
                     logger.warning("num_processes setting (%s) greater than cpu count (%s",
                                    num_processes, multiprocessing.cpu_count())

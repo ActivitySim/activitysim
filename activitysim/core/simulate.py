@@ -755,8 +755,8 @@ def simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -796,10 +796,8 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     assert len(choosers) > 0
 
-    rows_per_chunk = simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
-
-    logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
-                (rows_per_chunk, len(choosers.index)))
+    rows_per_chunk, effective_chunk_size = \
+        simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
@@ -810,7 +808,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
-        chunk.log_open(chunk_trace_label, chunk_size)
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
@@ -953,8 +951,8 @@ def simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_lab
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -994,9 +992,8 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     assert len(choosers) > 0
 
-    rows_per_chunk = simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
-    logger.info("%s chunk_size %s num_choosers %s, rows_per_chunk %s" %
-                (trace_label, chunk_size, len(choosers.index), rows_per_chunk))
+    rows_per_chunk, effective_chunk_size = \
+        simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
@@ -1007,7 +1004,7 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
-        chunk.log_open(chunk_trace_label, chunk_size)
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,

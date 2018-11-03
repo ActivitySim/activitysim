@@ -337,7 +337,7 @@ def schedule_trips_in_leg(
 
         nth_trace_label = tracing.extend_trace_label(trace_label, 'num_%s' % i)
 
-        chunk.log_open(nth_trace_label, chunk_size=0)
+        chunk.log_open(nth_trace_label, chunk_size=0, effective_chunk_size=0)
 
         choices = schedule_nth_trips(
             nth_trips,
@@ -379,15 +379,14 @@ def schedule_trips_in_leg(
     return choices
 
 
-# calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
 def trip_scheduling_rpc(chunk_size, choosers, spec, trace_label):
 
     # NOTE we chunk chunk_id
     num_choosers = choosers['chunk_id'].max() + 1
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     # extra columns from spec
     extra_columns = spec.shape[1]
@@ -421,10 +420,8 @@ def run_trip_scheduling(
 
     set_tour_hour(trips, tours)
 
-    rows_per_chunk = trip_scheduling_rpc(chunk_size, trips, probs_spec, trace_label)
-
-    # logger.info("%s rows_per_chunk %s num_choosers %s" %
-    #             (trace_label, rows_per_chunk, len(trips.index)))
+    rows_per_chunk, effective_chunk_size = \
+        trip_scheduling_rpc(chunk_size, trips, probs_spec, trace_label)
 
     result_list = []
     for i, num_chunks, trips_chunk in chunk.chunked_choosers_by_chunk_id(trips, rows_per_chunk):
@@ -436,7 +433,7 @@ def run_trip_scheduling(
             chunk_trace_label = trace_label
 
         leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'outbound')
-        chunk.log_open(leg_trace_label, chunk_size)
+        chunk.log_open(leg_trace_label, chunk_size, effective_chunk_size)
         choices = \
             schedule_trips_in_leg(
                 outbound=True,
@@ -450,7 +447,7 @@ def run_trip_scheduling(
         chunk.log_close(leg_trace_label)
 
         leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
-        chunk.log_open(leg_trace_label, chunk_size)
+        chunk.log_open(leg_trace_label, chunk_size, effective_chunk_size)
         choices = \
             schedule_trips_in_leg(
                 outbound=False,

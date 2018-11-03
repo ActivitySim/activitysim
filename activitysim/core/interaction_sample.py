@@ -345,8 +345,8 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
     num_choosers = choosers.shape[0]
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     # all columns from choosers
     chooser_row_size = choosers.shape[1]
@@ -437,10 +437,8 @@ def interaction_sample(
     assert sample_size > 0
     sample_size = min(sample_size, len(alternatives.index))
 
-    rows_per_chunk = \
+    rows_per_chunk, effective_chunk_size = \
         calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label)
-    logger.info("interaction_sample chunk_size %s num_choosers %s rows_per_chunk %s" %
-                (chunk_size, choosers.shape[0], rows_per_chunk))
 
     result_list = []
     for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
@@ -450,7 +448,7 @@ def interaction_sample(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
-        chunk.log_open(chunk_trace_label, chunk_size)
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
         choices = _interaction_sample(chooser_chunk, alternatives,
                                       spec, sample_size, alt_col_name, allow_zero_probs,

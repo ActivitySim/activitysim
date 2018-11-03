@@ -36,8 +36,8 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -149,11 +149,8 @@ def run_trip_purpose(
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    rows_per_chunk = \
+    rows_per_chunk, effective_chunk_size = \
         trip_purpose_rpc(chunk_size, trips_df, probs_spec, trace_label=trace_label)
-
-    logger.info("%s rows_per_chunk %s num_choosers %s" %
-                (trace_label, rows_per_chunk, len(trips_df.index)))
 
     for i, num_chunks, trips_chunk in chunk.chunked_choosers(trips_df, rows_per_chunk):
 
@@ -162,7 +159,7 @@ def run_trip_purpose(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
-        chunk.log_open(chunk_trace_label, chunk_size)
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
         choices = choose_intermediate_trip_purpose(
             trips_chunk,

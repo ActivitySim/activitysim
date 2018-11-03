@@ -19,21 +19,21 @@ logger = logging.getLogger(__name__)
 """
 
 
-@inject.injectable()
+@inject.injectable(cache=True)
 def configs_dir():
     if not os.path.exists('configs'):
         raise RuntimeError("configs_dir: directory does not exist")
     return 'configs'
 
 
-@inject.injectable()
+@inject.injectable(cache=True)
 def data_dir():
     if not os.path.exists('data'):
         raise RuntimeError("data_dir: directory does not exist")
     return 'data'
 
 
-@inject.injectable()
+@inject.injectable(cache=True)
 def output_dir():
     if not os.path.exists('output'):
         raise RuntimeError("output_dir: directory does not exist")
@@ -43,11 +43,6 @@ def output_dir():
 @inject.injectable()
 def output_file_prefix():
     return ''
-
-
-@inject.injectable(cache=True)
-def settings():
-    return read_settings_file('settings.yaml', mandatory=True)
 
 
 @inject.injectable(cache=True)
@@ -70,6 +65,11 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+@inject.injectable(cache=True)
+def settings():
+    return read_settings_file('settings.yaml', mandatory=True)
 
 
 def handle_standard_args(parser=None):
@@ -115,34 +115,26 @@ def handle_standard_args(parser=None):
         if not os.path.exists(args.data):
             raise IOError("Could not find data dir '%s'" % args.data)
         inject.add_injectable("data_dir", args.data)
-    if args.resume:
-        inject.add_injectable('resume_after', args.resume)
-    if args.multiprocess:
-        inject.add_injectable('multiprocess', args.multiprocess)
+
+    # - do these after potentially overriding configs_dir
+    if args.resume is not None:
+        override_setting('resume_after', args.resume)
+    if args.multiprocess is not None:
+        override_setting('multiprocess', args.multiprocess)
 
     return args
 
 
-def setting(key, default=None):
+def override_setting(key, value):
 
     settings = inject.get_injectable('settings')
+    settings[key] = value
+    inject.add_injectable('settings', settings)
 
-    # explicit setting in settings file takes precedence
-    s = settings.get(key, None)
 
-    # if no setting, try injectable
-    if s is None:
-        s = inject.get_injectable(key, None)
+def setting(key, default=None):
 
-        if s:
-            # this happens when handle_standard_args overrides a setting with an injectable
-            logger.info("read setting %s from injectable" % key)
-
-    # otherwise fall back to supplied default
-    if s is None:
-        s = default
-
-    return s
+    return inject.get_injectable('settings').get(key, default)
 
 
 def read_model_settings(file_name, mandatory=False):

@@ -267,8 +267,8 @@ def calc_rows_per_chunk(chunk_size, choosers, alt_sample, spec, trace_label=None
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -342,11 +342,8 @@ def interaction_sample_simulate(
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
 
-    rows_per_chunk = \
+    rows_per_chunk, effective_chunk_size = \
         calc_rows_per_chunk(chunk_size, choosers, alternatives, spec=spec, trace_label=trace_label)
-
-    logger.info("interaction_sample_simulate chunk_size %s num_choosers %s"
-                % (chunk_size, len(choosers.index)))
 
     result_list = []
     for i, num_chunks, chooser_chunk, alternative_chunk \
@@ -357,7 +354,7 @@ def interaction_sample_simulate(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
-        chunk.log_open(chunk_trace_label, chunk_size)
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,

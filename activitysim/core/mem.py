@@ -19,6 +19,8 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 MEM = {}
+HWM = {}
+DEFAULT_TICK_LEN = 30
 
 
 def force_garbage_collect():
@@ -26,15 +28,44 @@ def force_garbage_collect():
 
 
 def GB(bytes):
-    return "%.2f" % (bytes / (1024 * 1024 * 1024.0))
+    return (bytes / (1024 * 1024 * 1024.0))
 
 
-def init_trace(tick_len=5, file_name="mem.csv"):
+def init_trace(tick_len=None, file_name="mem.csv"):
     MEM['tick'] = 0
     if file_name is not None:
         MEM['file_name'] = file_name
-    if tick_len is not None:
+    if tick_len is None:
+        MEM['tick_len'] = DEFAULT_TICK_LEN
+    else:
         MEM['tick_len'] = tick_len
+
+    logger.info("init_trace file_name %s" % file_name)
+
+
+def trace_hwm(tag, value, timestamp, label):
+
+    hwm = HWM.setdefault(tag, {})
+
+    if value > hwm.get('mark', 0):
+        hwm['mark'] = value
+        hwm['timestamp'] = timestamp
+        hwm['label'] = label
+
+
+def log_hwm():
+
+    for tag in HWM:
+        hwm = HWM[tag]
+        logger.info("high water mark %s: %s timestamp: %s label: %s" %
+                    (tag, hwm['mark'], hwm['timestamp'], hwm['label']))
+
+    mode = 'ab' if sys.version_info < (3,) else 'a'
+    with open(config.output_file_path(MEM['file_name']), mode) as file:
+        for tag in HWM:
+            hwm = HWM[tag]
+            print("high water mark %s: %.2f timestamp: %s label: %s" %
+                  (tag, hwm['mark'], hwm['timestamp'], hwm['label']), file=file)
 
 
 def trace_memory_info(event=''):
@@ -43,9 +74,10 @@ def trace_memory_info(event=''):
         return
 
     last_tick = MEM['tick']
+    tick_len = MEM['tick_len'] or float('inf')
 
     t = time.time()
-    if (t - last_tick < MEM['tick_len']) and not event:
+    if (t - last_tick < tick_len) and not event:
         return
 
     vmi = psutil.virtual_memory()
@@ -65,14 +97,19 @@ def trace_memory_info(event=''):
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
             pass
 
+    timestamp = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    trace_hwm('rss', GB(rss), timestamp, event)
+    trace_hwm('used', GB(vmi.used), timestamp, event)
+
     # logger.debug("memory_info: rss: %s available: %s percent: %s"
     #              %  (GB(mi.rss), GB(vmi.available), GB(vmi.percent)))
 
     mode = 'ab' if sys.version_info < (3,) else 'a'
     with open(config.output_file_path(MEM['file_name']), mode) as file:
 
-        print("%s, %s, %s, %s, %s%%, %s" %
-              (datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        print("%s, %.2f, %.2f, %.2f, %s%%, %s" %
+              (timestamp,
                GB(rss),
                GB(vmi.used),
                GB(vmi.available),

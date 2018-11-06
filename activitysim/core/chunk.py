@@ -19,7 +19,7 @@ from . import mem
 logger = logging.getLogger(__name__)
 
 # dict of table_dicts keyed by trace_label
-# table_dicts are dicts tuples of (elements, bytes, mem) keyed by table_name
+# table_dicts are dicts tuples of {table_name: (elements, bytes, mem), ...}
 CHUNK_LOG = OrderedDict()
 
 # array of chunk_size active CHUNK_LOG
@@ -171,14 +171,14 @@ def log_write_hwm():
     d = HWM[0]
     for tag in d:
         hwm = d[tag]
-        logger.info("high_water_mark %s: %s (%s) in %s" %
+        logger.info("#chunk_hwm high_water_mark %s: %s (%s) in %s" %
                     (tag, hwm['mark'], hwm['info'], hwm['trace_label']), )
 
     # - elements shouldn't exceed chunk_size or effective_chunk_size of base chunker
     def check_chunk_size(hwm, chunk_size, label, max_leeway):
         elements = hwm['mark']
         if chunk_size and max_leeway and elements > chunk_size * max_leeway:  # too high
-            logger.warn("total_elements (%s) > %s (%s) %s : %s " %
+            logger.warn("#chunk_hwm total_elements (%s) > %s (%s) %s : %s " %
                         (commas(elements), label, commas(chunk_size),
                          hwm['info'], hwm['trace_label']))
 
@@ -186,7 +186,7 @@ def log_write_hwm():
     if len(HWM) > 1 and HWM[1]:
         assert 'elements' in HWM[1]  # expect an 'elements' hwm dict for base chunker
         hwm = HWM[1].get('elements')
-        check_chunk_size(hwm, EFFECTIVE_CHUNK_SIZE[0],  'effective_chunk_size', max_leeway=1)
+        check_chunk_size(hwm, EFFECTIVE_CHUNK_SIZE[0],  'effective_chunk_size', max_leeway=1.05)
         check_chunk_size(hwm, CHUNK_SIZE[0], 'chunk_size', max_leeway=1)
 
 
@@ -203,16 +203,11 @@ def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
 
     # chunks = int(ceil(num_choosers / float(rpc)))
     effective_chunk_size = row_size * rpc
-    #
-    # logger.debug("%s #chunk_calc chunk_size %s" % (trace_label, chunk_size))
-    # logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
-    # logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))
-    # logger.debug("%s #chunk_calc rows_per_chunk %s" % (trace_label, rpc))
-    # logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
-    # logger.debug("%s #chunk_calc chunks %s" % (trace_label, chunks))
+    num_chunks = (num_choosers // rpc) + (num_choosers % rpc > 0)
 
-    logger.info("%s #chunk_calc rows_per_chunk %s, effective_chunk_size %s, num_choosers %s" %
-                (trace_label, rpc, effective_chunk_size, num_choosers))
+    logger.info("#chunk_calc num_chunks: %s, rows_per_chunk: %s, "
+                "effective_chunk_size: %s, num_choosers: %s : %s" %
+                (num_chunks, rpc, effective_chunk_size, num_choosers, trace_label))
 
     return rpc, effective_chunk_size
 

@@ -73,30 +73,33 @@ def delete_output_files(file_type, ignore=None, subdir=None):
 
     output_dir = inject.get_injectable('output_dir')
 
-    if subdir:
-        output_dir = os.path.join(output_dir, subdir)
-        if not os.path.exists(output_dir):
-            logger.warn("delete_output_files: No subdirectory %s" % (file_type, output_dir))
-            return
+    directories = ['', 'log', 'trace']
 
-    if ignore:
-        ignore = [os.path.realpath(p) for p in ignore]
+    for subdir in directories:
 
-    logger.debug("Deleting %s files in output_dir %s" % (file_type, output_dir))
+        dir = os.path.join(output_dir, subdir) if subdir else output_dir
 
-    for the_file in os.listdir(output_dir):
-        if the_file.endswith(file_type):
-            file_path = os.path.join(output_dir, the_file)
+        if not os.path.exists(dir):
+            continue
 
-            if ignore and os.path.realpath(file_path) in ignore:
-                logger.info("delete_output_files ignoring %s" % file_path)
-                continue
+        if ignore:
+            ignore = [os.path.realpath(p) for p in ignore]
 
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print(e)
+        # logger.debug("Deleting %s files in output dir %s" % (file_type, dir))
+
+        for the_file in os.listdir(dir):
+            if the_file.endswith(file_type):
+                file_path = os.path.join(dir, the_file)
+
+                if ignore and os.path.realpath(file_path) in ignore:
+                    logger.debug("delete_output_files ignoring %s" % file_path)
+                    continue
+
+                try:
+                    if os.path.isfile(file_path):
+                        os.unlink(file_path)
+                except Exception as e:
+                    print(e)
 
 
 def delete_csv_files():

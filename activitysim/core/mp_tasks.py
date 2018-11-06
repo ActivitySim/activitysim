@@ -397,12 +397,11 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
 
     setup_injectables_and_logging(injectables)
 
-    mem.init_trace(setting('mem_tick'),
-                   file_name="mem_%s.csv" % multiprocessing.current_process().name)
+    mem.init_trace(setting('mem_tick'))
 
     if step_info['num_processes'] > 1:
         pipeline_prefix = multiprocessing.current_process().name
-        logger.info("injecting pipeline_file_prefix '%s'", pipeline_prefix)
+        logger.debug("injecting pipeline_file_prefix '%s'", pipeline_prefix)
         inject.add_injectable("pipeline_file_prefix", pipeline_prefix)
 
     if setting('profile', False):
@@ -875,8 +874,8 @@ def get_run_list():
                 multiprocess_steps[istep]['resume_after'] = resume_after
 
     # - write run list to output dir
-    mode = 'wb' if sys.version_info < (3,) else 'w'
-    with open(config.output_file_path('run_list.txt'), mode) as f:
+    # use log_file_path so we use (optional) log subdir and prefix process name
+    with config.open_log_file('run_list.txt', 'w') as f:
         print_run_list(run_list, f)
 
     return run_list

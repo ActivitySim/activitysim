@@ -8,6 +8,7 @@ install_aliases()  # noqa: E402
 import argparse
 import os
 import yaml
+import sys
 
 import logging
 from activitysim.core import inject
@@ -230,6 +231,7 @@ def trace_file_path(file_name):
 
     output_dir = inject.get_injectable('output_dir')
 
+    # - check for optional trace subfolder
     if os.path.exists(os.path.join(output_dir, 'trace')):
         output_dir = os.path.join(output_dir, 'trace')
     else:
@@ -241,8 +243,25 @@ def trace_file_path(file_name):
 
 def log_file_path(file_name):
 
+    output_dir = inject.get_injectable('output_dir')
+
+    # - check for optional log subfolder
+    if os.path.exists(os.path.join(output_dir, 'log')):
+        output_dir = os.path.join(output_dir, 'log')
+
+    # - check for optional process name prefix
     prefix = inject.get_injectable('log_file_prefix', None)
-    return build_output_file_path(file_name, use_prefix=prefix)
+    if prefix:
+        file_name = "%s-%s" % (prefix, file_name)
+
+    file_path = os.path.join(output_dir, file_name)
+
+    return file_path
+
+
+def open_log_file(file_name, mode):
+    mode = mode + 'b' if sys.version_info < (3,) else mode
+    return open(log_file_path(file_name), mode)
 
 
 def pipeline_file_path(file_name):

@@ -41,39 +41,39 @@ def track_skim_usage(output_dir):
     skim_stack = inject.get_injectable('skim_stack', None)
 
     mode = 'wb' if sys.version_info < (3,) else 'w'
-    with open(config.output_file_path('skim_usage.txt'), mode) as file:
+    with open(config.output_file_path('skim_usage.txt'), mode) as output_file:
 
-        print("\n### skim_dict usage", file=file)
+        print("\n### skim_dict usage", file=output_file)
         for key in skim_dict.usage:
-            print(key, file=file)
+            print(key, file=output_file)
 
         if skim_stack is None:
 
             unused_keys = {k for k in skim_dict.skim_info['omx_keys']} - \
                           {k for k in skim_dict.usage}
 
-            print("\n### unused skim keys", file=file)
+            print("\n### unused skim keys", file=output_file)
             for key in unused_keys:
-                print(key, file=file)
+                print(key, file=output_file)
 
         else:
 
-            print("\n### skim_stack usage", file=file)
+            print("\n### skim_stack usage", file=output_file)
             for key in skim_stack.usage:
-                print(key, file=file)
+                print(key, file=output_file)
 
             unused = {k for k in skim_dict.skim_info['omx_keys'] if not isinstance(k, tuple)} - \
                      {k for k in skim_dict.usage if not isinstance(k, tuple)}
-            print("\n### unused skim str keys", file=file)
+            print("\n### unused skim str keys", file=output_file)
             for key in unused:
-                print(key, file=file)
+                print(key, file=output_file)
 
                 unused = {k[0] for k in skim_dict.skim_info['omx_keys'] if isinstance(k, tuple)} - \
                          {k[0] for k in skim_dict.usage if isinstance(k, tuple)} - \
                          {k for k in skim_stack.usage}
-            print("\n### unused skim dim3 keys", file=file)
+            print("\n### unused skim dim3 keys", file=output_file)
             for key in unused:
-                print(key, file=file)
+                print(key, file=output_file)
 
 
 def write_data_dictionary(output_dir):
@@ -93,13 +93,13 @@ def write_data_dictionary(output_dir):
     # write data dictionary for all checkpointed_tables
 
     mode = 'wb' if sys.version_info < (3,) else 'w'
-    with open(config.output_file_path('data_dict.txt'), mode) as file:
+    with open(config.output_file_path('data_dict.txt'), mode) as output_file:
         for table_name in output_tables:
             df = inject.get_table(table_name, None).to_frame()
 
-            print("\n### %s %s" % (table_name, df.shape), file=file)
-            print('index:', df.index.name, df.index.dtype, file=file)
-            print(df.dtypes, file=file)
+            print("\n### %s %s" % (table_name, df.shape), file=output_file)
+            print('index:', df.index.name, df.index.dtype, file=output_file)
+            print(df.dtypes, file=output_file)
 
 
 # def xwrite_data_dictionary(output_dir):

@@ -12,7 +12,7 @@ import datetime
 import psutil
 import logging
 import gc
-import sys
+
 
 from activitysim.core import config
 
@@ -60,12 +60,11 @@ def log_hwm():
         logger.info("high water mark %s: %s timestamp: %s label: %s" %
                     (tag, hwm['mark'], hwm['timestamp'], hwm['label']))
 
-    mode = 'ab' if sys.version_info < (3,) else 'a'
-    with open(config.output_file_path(MEM['file_name']), mode) as file:
+    with config.open_log_file(MEM['file_name'], 'a') as log_file:
         for tag in HWM:
             hwm = HWM[tag]
             print("high water mark %s: %.2f timestamp: %s label: %s" %
-                  (tag, hwm['mark'], hwm['timestamp'], hwm['label']), file=file)
+                  (tag, hwm['mark'], hwm['timestamp'], hwm['label']), file=log_file)
 
 
 def trace_memory_info(event=''):
@@ -83,9 +82,8 @@ def trace_memory_info(event=''):
     vmi = psutil.virtual_memory()
 
     if last_tick == 0:
-        mode = 'wb' if sys.version_info < (3,) else 'w'
-        with open(config.output_file_path(MEM['file_name']), mode) as file:
-            print("time,rss,used,available,percent,event", file=file)
+        with config.open_log_file(MEM['file_name'], 'w') as log_file:
+            print("time,rss,used,available,percent,event", file=log_file)
 
     MEM['tick'] = t
 
@@ -105,8 +103,7 @@ def trace_memory_info(event=''):
     # logger.debug("memory_info: rss: %s available: %s percent: %s"
     #              %  (GB(mi.rss), GB(vmi.available), GB(vmi.percent)))
 
-    mode = 'ab' if sys.version_info < (3,) else 'a'
-    with open(config.output_file_path(MEM['file_name']), mode) as file:
+    with config.open_log_file(MEM['file_name'], 'a') as output_file:
 
         print("%s, %.2f, %.2f, %.2f, %s%%, %s" %
               (timestamp,
@@ -114,7 +111,7 @@ def trace_memory_info(event=''):
                GB(vmi.used),
                GB(vmi.available),
                vmi.percent,
-               event), file=file)
+               event), file=output_file)
 
 
 def get_memory_info():

@@ -30,7 +30,6 @@ def cleanup_output_files():
 
     tracing.delete_output_files('h5')
     tracing.delete_output_files('csv')
-    tracing.delete_output_files('csv', subdir='trace')
     tracing.delete_output_files('txt')
     tracing.delete_output_files('yaml')
     tracing.delete_output_files('prof')
@@ -48,6 +47,24 @@ def run(run_list, injectables=None):
         chunk.log_write_hwm()
 
 
+def log_settings():
+
+    settings = [
+        'households_sample_size',
+        'chunk_size',
+        'multiprocess',
+        'num_processes',
+        'resume_after',
+    ]
+
+    for k in settings:
+        logger.info("setting %s: %s" % (k, config.setting(k)))
+
+    injectables = ['data_dir', 'configs_dir', 'output_dir']
+    for k in injectables:
+        logger.info("injectable %s: %s" % (k, inject.get_injectable(k)))
+
+
 if __name__ == '__main__':
 
     # inject.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
@@ -58,6 +75,8 @@ if __name__ == '__main__':
 
     mp_tasks.filter_warnings()
     tracing.config_logger()
+
+    log_settings()
 
     t0 = tracing.print_elapsed_time()
 

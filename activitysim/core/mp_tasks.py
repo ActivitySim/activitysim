@@ -234,7 +234,20 @@ def apportion_pipeline(sub_job_names, slice_info):
             pipeline_store[pipeline.CHECKPOINT_TABLE_NAME] = checkpoints_df
 
 
-def coalesce_pipelines(sub_process_names, slice_info):
+def coalesce_pipelines(sub_process_names, slice_info, use_prefix=True):
+
+    def sub_pipeline_path(name):
+        if use_prefix:
+            # name is prefix
+            path = config.build_output_file_path(pipeline_file_name, use_prefix=name)
+        elif os.path.exists(name):
+            # check if name is valid path
+            path = name
+        else:
+            # otherwise expect to find it on output dir
+            path = config.build_output_file_path(name)
+
+        return path
 
     pipeline_file_name = inject.get_injectable('pipeline_file_name')
 
@@ -245,8 +258,7 @@ def coalesce_pipelines(sub_process_names, slice_info):
     tables = OrderedDict([(table_name, None) for table_name in slice_info['tables']])
 
     # read all tables from first process pipeline
-    pipeline_path = \
-        config.build_output_file_path(pipeline_file_name, use_prefix=sub_process_names[0])
+    pipeline_path = sub_pipeline_path(sub_process_names[0])
     with pd.HDFStore(pipeline_path, mode='r') as pipeline_store:
 
         # hdf5_keys is a dict mapping table_name to pipeline hdf5_key
@@ -269,7 +281,7 @@ def coalesce_pipelines(sub_process_names, slice_info):
     # concat omnibus tables from all sub_processes
     omnibus_tables = {table_name: [] for table_name in omnibus_keys}
     for process_name in sub_process_names:
-        pipeline_path = config.build_output_file_path(pipeline_file_name, use_prefix=process_name)
+        pipeline_path = sub_pipeline_path(process_name)
         logger.info("coalesce pipeline %s", pipeline_path)
 
         with pd.HDFStore(pipeline_path, mode='r') as pipeline_store:
@@ -730,13 +742,6 @@ def get_run_list():
 
     if multiprocess and multiprocessing.cpu_count() == 1:
         logger.warning("Can't multiprocess because there is only 1 cpu")
-        multiprocess = False
-
-    # if not multiprocess and setting('singleprocess_as_subtask', False):
-    #     multiprocess_steps = [
-    #         {'name': 'mp_simulation', 'begin': models[0]}
-    #     ]
-    #     multiprocess = True
 
     run_list = {
         'models': models,
@@ -870,6 +875,7 @@ def get_run_list():
             if breadcrumbs:
                 run_list['breadcrumbs'] = breadcrumbs
                 # - add resume_after to resume_step
+                # FIXME - are we assuming it is in last step?
                 istep = len(breadcrumbs) - 1
                 multiprocess_steps[istep]['resume_after'] = resume_after
 

@@ -57,7 +57,7 @@ def log_hwm():
 
     for tag in HWM:
         hwm = HWM[tag]
-        logger.info("high water mark %s: %s timestamp: %s label: %s" %
+        logger.info("high water mark %s: %.2f timestamp: %s label: %s" %
                     (tag, hwm['mark'], hwm['timestamp'], hwm['label']))
 
     with config.open_log_file(MEM['file_name'], 'a') as log_file:

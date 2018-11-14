@@ -3,19 +3,36 @@ inherit_settings: True
 
 # - production config
 #multiprocess: True
-#num_processes: 10
-#stagger: 30
 #mem_tick: 30
 #profile: False
 #strict: False
+#num_processes: 10
+#stagger: 30
 
-# - dev config
+# azure 432GB 64 processors
+#multiprocess: True
+#mem_tick: 30
+#profile: False
+#strict: False
+#num_processes: 30
+#stagger: 15
+
+# - dev config 3%
+#multiprocess: True
+#mem_tick: 30
+#profile: False
+#strict: False
+#num_processes: 3
+#stagger: 30
+
+# - dev config mini
 multiprocess: True
-num_processes: 3
-stagger: 30
 mem_tick: 30
 profile: False
 strict: False
+num_processes: 3
+stagger: 5
+
 
 # - full sample
 #households_sample_size:  0
@@ -34,9 +51,16 @@ strict: False
 #chunk_size: 1500000000
 
 # - 3.3% sample
-households_sample_size: 91091
-chunk_size: 500000000
+#households_sample_size: 91091
+#chunk_size: 500000000
 
+# - mini sample
+#households_sample_size: 300
+households_sample_size: 200
+#households_sample_stride: [3, 0]
+
+
+chunk_size: 0
 
 # - tracing
 trace_hh_id:
@@ -138,3 +162,13 @@ output_tables:
 #    - persons
 #    - trips
 #    - tours
+
+
+coalesce:
+  names:
+    - pipeline_0.h5
+    - pipeline_1.h5
+  slice:
+    tables:
+      - households
+      - persons

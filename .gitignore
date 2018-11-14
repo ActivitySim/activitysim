@@ -4,6 +4,7 @@ example/data/*
 .ipynb_checkpoints
 .coverage*
 .pytest_cache
+.vagrant
 
 
 # Byte-compiled / optimized / DLL files

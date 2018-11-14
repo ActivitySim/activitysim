@@ -18,13 +18,9 @@ logger = logging.getLogger(__name__)
 
 def read_raw_persons(households):
 
-    # we only use these to know whether we need to slice persons
-    households_sample_size = inject.get_injectable('households_sample_size')
-    override_hh_ids = inject.get_injectable('override_hh_ids')
-
     df = read_input_table("persons")
 
-    if (households_sample_size > 0) or override_hh_ids:
+    if inject.get_injectable('households_sliced', False):
         # keep all persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 

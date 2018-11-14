@@ -49,7 +49,7 @@ def output_file_prefix():
 @inject.injectable(cache=True)
 def pipeline_file_name(settings):
 
-    pipeline_file_name = settings.get('pipeline', 'pipeline.h5')
+    pipeline_file_name = settings.get('pipeline_file_name', 'pipeline.h5')
 
     return pipeline_file_name
 
@@ -66,6 +66,25 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+def str2stride(v):
+
+    try:
+        stride_len, offset = v.split(',', 1)
+        stride_len = int(stride_len)
+        offset = int(offset)
+
+    except Exception as err:
+        raise argparse.ArgumentTypeError('int list of length two expected.')
+
+    if stride_len == 0:
+        raise argparse.ArgumentTypeError('stride_len cannot be 0.')
+
+    if offset >= stride_len:
+        raise argparse.ArgumentTypeError('offset cannot be greater than stride_len.')
+
+    return [stride_len, offset]
 
 
 @inject.injectable(cache=True)
@@ -101,6 +120,10 @@ def handle_standard_args(parser=None):
     parser.add_argument("-m", "--multiprocess", type=str2bool, nargs='?', const=True,
                         help="run multiprocess (boolean flag, no arg defaults to true)")
 
+    parser.add_argument("-s", "--stride", type=str2stride,
+                        help="households_sample_stride stride_len and offset -e.g. --stride=4,0")
+    parser.add_argument("-p", "--pipeline", help="pipeline file name")
+
     args = parser.parse_args()
 
     if args.config:
@@ -116,6 +139,12 @@ def handle_standard_args(parser=None):
         if not os.path.exists(args.data):
             raise IOError("Could not find data dir '%s'" % args.data)
         inject.add_injectable("data_dir", args.data)
+
+    # FIXME - should these be settings?
+    if args.stride:
+        inject.add_injectable("households_sample_stride", args.stride)
+    if args.pipeline:
+        inject.add_injectable("pipeline_file_name", args.pipeline)
 
     # - do these after potentially overriding configs_dir
     if args.resume is not None:

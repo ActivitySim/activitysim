@@ -1,0 +1,10 @@
+-d ~/work/activitysim-data/mtc_tm1/data
+
+cp -r output output0
+python simulation.py -s 2,0 -o output0 -c configs_sim -c ../example/configs
+
+cp -r output output1
+python simulation.py -s 2,1 -o output1 -c configs_sim -c ../example/configs
+
+cp -r output output_report
+python coalesce

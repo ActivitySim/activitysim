@@ -1,0 +1,92 @@
+
+inherit_settings: True
+
+# - production config
+#multiprocess: True
+#mem_tick: 30
+#profile: False
+#strict: False
+#num_processes: 10
+#stagger: 30
+
+# azure 432GB 64 processors
+#multiprocess: True
+#mem_tick: 30
+#profile: False
+#strict: False
+#num_processes: 30
+#stagger: 15
+
+# - dev config 3%
+#multiprocess: True
+#mem_tick: 30
+#profile: False
+#strict: False
+#num_processes: 3
+#stagger: 30
+
+# - dev config mini
+multiprocess: True
+mem_tick: 30
+profile: False
+strict: False
+num_processes: 2
+stagger: 15
+
+
+households_sample_size: 1000
+#households_sample_stride: [2, 0]
+
+chunk_size: 0
+
+# - tracing
+trace_hh_id:
+trace_od:
+
+models:
+  - initialize_landuse
+  - compute_accessibility
+  - initialize_households
+  - _school_location_sample
+  - _school_location_logsums
+  - school_location_simulate
+  - _workplace_location_sample
+  - _workplace_location_logsums
+  - workplace_location_simulate
+  - auto_ownership_simulate
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - _joint_tour_destination_sample
+  - _joint_tour_destination_logsums
+  - joint_tour_destination_simulate
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - _atwork_subtour_destination_sample
+  - _atwork_subtour_destination_logsums
+  - atwork_subtour_destination_simulate
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_households
+    begin: _school_location_sample
+    slice:
+      tables:
+        - households
+        - persons

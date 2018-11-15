@@ -47,7 +47,7 @@ def run(run_list, injectables=None):
         chunk.log_write_hwm()
 
 
-def log_settings():
+def log_settings(injectables):
 
     settings = [
         'households_sample_size',
@@ -60,7 +60,6 @@ def log_settings():
     for k in settings:
         logger.info("setting %s: %s" % (k, config.setting(k)))
 
-    injectables = ['data_dir', 'configs_dir', 'output_dir']
     for k in injectables:
         logger.info("injectable %s: %s" % (k, inject.get_injectable(k)))
 
@@ -71,12 +70,12 @@ if __name__ == '__main__':
     inject.add_injectable('data_dir', '../example/data')
     inject.add_injectable('configs_dir', ['configs', '../example/configs'])
 
-    config.handle_standard_args()
+    injectables = config.handle_standard_args()
 
     mp_tasks.filter_warnings()
     tracing.config_logger()
 
-    log_settings()
+    log_settings(injectables)
 
     t0 = tracing.print_elapsed_time()
 
@@ -88,7 +87,6 @@ if __name__ == '__main__':
 
     if run_list['multiprocess']:
         # do this after config.handle_standard_args, as command line args may override injectables
-        injectables = ['data_dir', 'configs_dir', 'output_dir']
         injectables = {k: inject.get_injectable(k) for k in injectables}
     else:
         injectables = None

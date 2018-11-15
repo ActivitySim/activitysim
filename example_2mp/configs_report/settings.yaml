@@ -35,8 +35,8 @@ output_tables:
 
 coalesce:
   names:
-    - pipeline_0.h5
-    - pipeline_1.h5
+    - output_0/pipeline.h5
+    - output_1/pipeline.h5
   slice:
     tables:
       - households

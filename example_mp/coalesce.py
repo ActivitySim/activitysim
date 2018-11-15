@@ -26,7 +26,6 @@ logger = logging.getLogger('activitysim')
 
 if __name__ == '__main__':
 
-
     inject.add_injectable('configs_dir', ['configs', '../example/configs'])
 
     config.handle_standard_args()
@@ -37,8 +36,6 @@ if __name__ == '__main__':
     t0 = tracing.print_elapsed_time()
 
     coalesce_rules = config.setting('coalesce')
-
-    #run_list = mp_tasks.get_run_list()
 
     mp_tasks.coalesce_pipelines(coalesce_rules['names'], coalesce_rules['slice'], use_prefix=False)
 

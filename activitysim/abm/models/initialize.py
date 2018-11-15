@@ -105,10 +105,11 @@ def preload_injectables():
 
     t0 = tracing.print_elapsed_time()
 
-    if inject.get_injectable('skim_dict', None) is not None:
-        t0 = tracing.print_elapsed_time("preload skim_dict", t0, debug=True)
-
-    if inject.get_injectable('skim_stack', None) is not None:
-        t0 = tracing.print_elapsed_time("preload skim_stack", t0, debug=True)
+    # FIXME - still want to do this?
+    # if inject.get_injectable('skim_dict', None) is not None:
+    #     t0 = tracing.print_elapsed_time("preload skim_dict", t0, debug=True)
+    #
+    # if inject.get_injectable('skim_stack', None) is not None:
+    #     t0 = tracing.print_elapsed_time("preload skim_stack", t0, debug=True)
 
     return True

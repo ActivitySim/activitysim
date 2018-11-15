@@ -753,7 +753,7 @@ def get_run_list():
     if not models or not isinstance(models, list):
         raise RuntimeError('No models list in settings file')
     if resume_after not in models + ['_', None]:
-        raise RuntimeError("resume_after '%s' not in models list" % resume_after)
+       raise RuntimeError("resume_after '%s' not in models list" % resume_after)
     if resume_after == models[-1]:
         raise RuntimeError("resume_after '%s' is last model in models list" % resume_after)
 

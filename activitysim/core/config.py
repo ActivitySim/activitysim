@@ -107,7 +107,7 @@ def handle_standard_args(parser=None):
     Returns
     -------
 
-    args : parser.parse_args() result
+    injectables - array of injectables altered by args
     """
 
     if parser is None:
@@ -126,25 +126,31 @@ def handle_standard_args(parser=None):
 
     args = parser.parse_args()
 
+    injectables = []
+
+    def override_injectable(name, value):
+        inject.add_injectable(name, value)
+        injectables.append(name)
+
     if args.config:
         for dir in args.config:
             if not os.path.exists(dir):
                 raise IOError("Could not find configs dir '%s'" % dir)
-        inject.add_injectable("configs_dir", args.config)
+        override_injectable("configs_dir", args.config)
     if args.output:
         if not os.path.exists(args.output):
             raise IOError("Could not find output dir '%s'." % args.output)
-        inject.add_injectable("output_dir", args.output)
+        override_injectable("output_dir", args.output)
     if args.data:
         if not os.path.exists(args.data):
             raise IOError("Could not find data dir '%s'" % args.data)
-        inject.add_injectable("data_dir", args.data)
+        override_injectable("data_dir", args.data)
 
     # FIXME - should these be settings?
     if args.stride:
-        inject.add_injectable("households_sample_stride", args.stride)
+        override_injectable("households_sample_stride", args.stride)
     if args.pipeline:
-        inject.add_injectable("pipeline_file_name", args.pipeline)
+        override_injectable("pipeline_file_name", args.pipeline)
 
     # - do these after potentially overriding configs_dir
     if args.resume is not None:
@@ -152,7 +158,7 @@ def handle_standard_args(parser=None):
     if args.multiprocess is not None:
         override_setting('multiprocess', args.multiprocess)
 
-    return args
+    return injectables
 
 
 def override_setting(key, value):

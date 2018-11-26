@@ -8,11 +8,7 @@ mem_tick: 30
 profile: False
 strict: False
 
-
-households_sample_size: 0
-# so the following will get a 10 percent slice:
-#households_sample_stride: [10, 0]
-
+households_sample_size: 600
 chunk_size: 1500000000
 num_processes: 3
 stagger: 15

@@ -88,6 +88,7 @@ def log_close(trace_label):
 def log_df(trace_label, table_name, df):
 
     if df is None:
+        # FIXME force_garbage_collect on delete?
         mem.force_garbage_collect()
 
     cur_chunker = next(reversed(CHUNK_LOG))

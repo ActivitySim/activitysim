@@ -306,7 +306,7 @@ def choose_trip_destination(
 
     dropped_trips = ~trips.index.isin(destination_sample.index.unique())
     if dropped_trips.any():
-        logger.warning("%s trip_destination_ample %s trips "
+        logger.warning("%s trip_destination_sample %s trips "
                        "without viable destination alternatives" %
                        (trace_label, dropped_trips.sum()))
         trips = trips[~dropped_trips]

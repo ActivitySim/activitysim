@@ -14,11 +14,6 @@ logging:
 
   loggers:
 
-    tasks:
-      level: DEBUG
-      handlers: [mp_console, logfile]
-      propagate: false
-
     activitysim:
       level: DEBUG
       handlers: [console, logfile]
@@ -44,12 +39,6 @@ logging:
       formatter: simpleFormatter
       #level: WARNING
       level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [INFO, NOTSET]
-
-    mp_console:
-      class: logging.StreamHandler
-      stream: ext://sys.stdout
-      formatter: simpleFormatter
-      level: NOTSET
 
   formatters:
 

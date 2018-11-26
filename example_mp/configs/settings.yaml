@@ -30,8 +30,8 @@ multiprocess: True
 mem_tick: 30
 profile: False
 strict: False
-num_processes: 3
-stagger: 5
+#num_processes: 3
+#stagger: 5
 
 
 # - full sample
@@ -56,11 +56,14 @@ stagger: 5
 
 # - mini sample
 #households_sample_size: 300
-households_sample_size: 200
+#households_sample_size: 0
 #households_sample_stride: [3, 0]
 
 
-chunk_size: 0
+households_sample_size:  0
+chunk_size: 1000000000
+num_processes: 1
+households_sample_stride: [36,0]
 
 # - tracing
 trace_hh_id:

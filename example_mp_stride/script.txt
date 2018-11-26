@@ -1,0 +1,21 @@
+
+#DATA_DIR=E:\Projects\Clients\ASIM\full_example_input_data
+DATA_DIR=~/work/activitysim-data/mtc_tm1_sf/data
+
+rm -r output_0; cp -r output output_0
+python simulation.py -s 2,0 -o output_0 -c configs_sim -c ../example/configs -d  $DATA_DIR
+
+rm -r output_1; cp -r output output_1
+python simulation.py -s 2,1 -o output_1 -c configs_sim -c ../example/configs -d  $DATA_DIR
+
+rm -r output_report; cp -r output output_report
+python coalesce.py -o output_report -c configs_report -c ../example/configs
+
+# run final report tasks
+python simulation.py -o output_report -c configs_report -c ../example/configs
+
+
+rm -r output_0
+rm -r output_1
+rm -r output_report
+

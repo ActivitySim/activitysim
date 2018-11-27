@@ -1,0 +1,52 @@
+
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
+AZ_VM_SIZE=Standard_E64s_v3
+
+############### resize
+
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+az vm resize --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME --size $AZ_VM_SIZE
+
+############### start
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv)
+
+
+# copy settings to example_mp/configs
+scp example_mp/settings.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/settings.yaml
+scp example_mp/logging.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/logging.yaml
+
+############### run
+
+ssh $AZ_USERNAME@$VM_IP
+
+export PATH="/datadrive/work/miniconda/bin:$PATH"
+hash -r
+
+source activate asim
+
+cd /datadrive/work/activitysim/example_mp
+
+nano configs/settings.yaml
+
+export VECLIB_MAXIMUM_THREADS=1 # osx-specific
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export OMP_NUM_THREADS=1
+
+python simulation.py -d /datadrive/work/data/full
+
+# 50%
+#python simulation.py -s 2,0 -d /datadrive/work/data/full
+
+tar -zcvf log.tar.gz output/log/ 
+
+exit
+
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/log.tar.gz log.tar.gz 
+
+############### 
+
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME

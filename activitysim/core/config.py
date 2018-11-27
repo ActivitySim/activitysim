@@ -146,7 +146,6 @@ def handle_standard_args(parser=None):
             raise IOError("Could not find data dir '%s'" % args.data)
         override_injectable("data_dir", args.data)
 
-    # FIXME - should these be settings?
     if args.stride:
         override_injectable("households_sample_stride", args.stride)
     if args.pipeline:

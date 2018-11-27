@@ -87,6 +87,7 @@ if __name__ == '__main__':
 
     if run_list['multiprocess']:
         # do this after config.handle_standard_args, as command line args may override injectables
+        injectables = list(set(injectables) | set(['data_dir', 'configs_dir', 'output_dir']))
         injectables = {k: inject.get_injectable(k) for k in injectables}
     else:
         injectables = None

@@ -78,12 +78,8 @@ models:
   - initialize_landuse
   - compute_accessibility
   - initialize_households
-  - _school_location_sample
-  - _school_location_logsums
-  - school_location_simulate
-  - _workplace_location_sample
-  - _workplace_location_logsums
-  - workplace_location_simulate
+  - school_location
+  - workplace_location
   - auto_ownership_simulate
   - cdap_simulate
   - mandatory_tour_frequency
@@ -118,7 +114,7 @@ multiprocess_steps:
   - name: mp_initialize
     begin: initialize_landuse
   - name: mp_households
-    begin: _school_location_sample
+    begin: school_location
     #num_processes: 9
     #stagger: 30
     #chunk_size: 1000000000
@@ -143,7 +139,7 @@ multiprocess_steps:
 #  - name: mp_initialize_households
 #    begin: initialize_households
 #  - name: mp_households
-#    begin: _school_location_sample
+#    begin: school_location
 #    # num_processes = 0 means use all available cpus
 #    num_processes: 2
 #    slice:

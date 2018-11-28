@@ -1,6 +1,4 @@
 *.csv
-*.log
-*.prof
-*.h5
 *.txt
+*.h5
 *.yaml

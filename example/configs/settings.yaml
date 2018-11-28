@@ -25,12 +25,8 @@ models:
   - initialize_landuse
   - compute_accessibility
   - initialize_households
-  - school_location_sample
-  - school_location_logsums
-  - school_location_simulate
-  - workplace_location_sample
-  - workplace_location_logsums
-  - workplace_location_simulate
+  - school_location
+  - workplace_location
   - auto_ownership_simulate
   - cdap_simulate
   - mandatory_tour_frequency

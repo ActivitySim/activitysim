@@ -36,11 +36,11 @@ it gets used
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def workplace_location_sample(persons_merged,
-                              skim_dict,
-                              land_use, size_terms,
-                              chunk_size, trace_hh_id):
+def run_workplace_location_sample(
+        persons_merged,
+        skim_dict,
+        land_use, size_terms,
+        chunk_size, trace_hh_id):
     """
     build a table of workers * all zones in order to select a sample of alternative work locations.
 
@@ -57,13 +57,12 @@ def workplace_location_sample(persons_merged,
     model_spec = simulate.read_model_spec(file_name='workplace_location_sample.csv')
 
     # FIXME - only choose workplace_location of workers? is this the right criteria?
-    choosers = persons_merged.to_frame()
-    choosers = choosers[choosers.is_worker]
+    choosers = persons_merged[persons_merged.is_worker]
 
-    if choosers.shape[0] == 0:
+    if choosers.empty:
         logger.info("Skipping %s: no workers" % trace_label)
-        inject.add_table('workplace_location_sample', pd.DataFrame())
-        return
+        choices = pd.DataFrame()
+        return choices
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -99,14 +98,14 @@ def workplace_location_sample(persons_merged,
         chunk_size=chunk_size,
         trace_label=trace_label)
 
-    inject.add_table('workplace_location_sample', choices)
+    return choices
 
 
-@inject.step()
-def workplace_location_logsums(persons_merged,
-                               skim_dict, skim_stack,
-                               workplace_location_sample,
-                               chunk_size, trace_hh_id):
+def run_workplace_location_logsums(
+        persons_merged_df,
+        skim_dict, skim_stack,
+        location_sample_df,
+        chunk_size, trace_hh_id):
     """
     add logsum column to existing workplace_location_sample able
 
@@ -130,22 +129,21 @@ def workplace_location_logsums(persons_merged,
 
     trace_label = 'workplace_location_logsums'
 
-    location_sample = workplace_location_sample.to_frame()
-    if location_sample.shape[0] == 0:
+    if location_sample_df.empty:
         tracing.no_results(trace_label)
-        return
+        return location_sample_df
 
     model_settings = config.read_model_settings('workplace_location.yaml')
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
-    persons_merged = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
-    persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
+    persons_merged_df = \
+        logsum.filter_chooser_columns(persons_merged_df, logsum_settings, model_settings)
 
-    logger.info("Running workplace_location_logsums with %s rows" % len(location_sample))
+    logger.info("Running workplace_location_logsums with %s rows" % len(location_sample_df))
 
-    choosers = pd.merge(location_sample,
-                        persons_merged,
+    choosers = pd.merge(location_sample_df,
+                        persons_merged_df,
                         left_index=True,
                         right_index=True,
                         how="left")
@@ -163,15 +161,17 @@ def workplace_location_logsums(persons_merged,
     # when the index has duplicates, however, in the special case that the series index exactly
     # matches the table index, then the series value order is preserved
     # logsums now does, since workplace_location_sample was on left side of merge de-dup merge
-    inject.add_column('workplace_location_sample', 'mode_choice_logsum', logsums)
+    location_sample_df['mode_choice_logsum'] = logsums
+
+    return location_sample_df
 
 
-@inject.step()
-def workplace_location_simulate(persons_merged, persons,
-                                workplace_location_sample,
-                                skim_dict,
-                                land_use, size_terms,
-                                chunk_size, trace_hh_id):
+def run_workplace_location_simulate(
+        persons_merged,
+        location_sample_df,
+        skim_dict,
+        land_use, size_terms,
+        chunk_size, trace_hh_id):
     """
     Workplace location model on workplace_location_sample annotated with mode_choice logsum
     to select a work_taz from sample alternatives
@@ -181,15 +181,12 @@ def workplace_location_simulate(persons_merged, persons,
     model_settings = config.read_model_settings('workplace_location.yaml')
     model_spec = simulate.read_model_spec(file_name='workplace_location.csv')
 
-    NO_WORKPLACE_TAZ = -1
+    if location_sample_df.empty:
+        logger.info("%s no workers" % trace_label)
+        choices = pd.Series()
+    else:
 
-    location_sample = workplace_location_sample.to_frame()
-    persons = persons.to_frame()
-
-    if location_sample.shape[0] > 0:
-
-        choosers = persons_merged.to_frame()
-        choosers = choosers[choosers.is_worker]
+        choosers = persons_merged[persons_merged.is_worker]
 
         # FIXME - MEMORY HACK - only include columns actually used in spec
         chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -199,11 +196,10 @@ def workplace_location_simulate(persons_merged, persons,
 
         # alternatives are pre-sampled and annotated with logsums and pick_count
         # but we have to merge additional alt columns into alt sample list
-        location_sample = workplace_location_sample.to_frame()
         destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'work')
 
         alternatives = \
-            pd.merge(location_sample, destination_size_terms,
+            pd.merge(location_sample_df, destination_size_terms,
                      left_on=alt_dest_col_name, right_index=True, how="left")
 
         logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
@@ -231,26 +227,68 @@ def workplace_location_simulate(persons_merged, persons,
             trace_label=trace_label,
             trace_choice_name='workplace_location')
 
-        persons['workplace_taz'] = \
-            choices.reindex(persons.index).fillna(NO_WORKPLACE_TAZ).astype(int)
+    return choices
 
-    else:
 
-        # no workers (but we still want to annotate persons)
-        persons['workplace_taz'] = NO_WORKPLACE_TAZ
+@inject.step()
+def workplace_location(
+        persons_merged, persons,
+        skim_dict, skim_stack,
+        land_use, size_terms,
+        chunk_size, trace_hh_id):
+
+    persons_merged_df = persons_merged.to_frame()
+
+    # - workplace_location_sample
+    location_sample_df = \
+        run_workplace_location_sample(
+            persons_merged_df,
+            skim_dict,
+            land_use, size_terms,
+            chunk_size,
+            trace_hh_id)
+
+    # - workplace_location_logsums
+    location_sample_df = \
+        run_workplace_location_logsums(
+            persons_merged_df,
+            skim_dict, skim_stack,
+            location_sample_df,
+            chunk_size,
+            trace_hh_id)
+
+    # - school_location_simulate
+    choices = \
+        run_workplace_location_simulate(
+            persons_merged_df,
+            location_sample_df,
+            skim_dict,
+            land_use, size_terms,
+            chunk_size,
+            trace_hh_id)
+
+    tracing.print_summary('workplace_taz', choices, describe=True)
+
+    persons_df = persons.to_frame()
+
+    # We only chose school locations for the subset of persons who go to school
+    # so we backfill the empty choices with -1 to code as no school location
+    NO_WORKPLACE_TAZ = -1
+    persons_df['workplace_taz'] = \
+        choices.reindex(persons_df.index).fillna(NO_WORKPLACE_TAZ).astype(int)
+
+    # - annotate persons
+    model_name = 'workplace_location'
+    model_settings = config.read_model_settings('workplace_location.yaml')
 
     expressions.assign_columns(
-        df=persons,
+        df=persons_df,
         model_settings=model_settings.get('annotate_persons'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+        trace_label=tracing.extend_trace_label(model_name, 'annotate_persons'))
 
-    pipeline.replace_table("persons", persons)
-
-    pipeline.drop_table('workplace_location_sample')
-
-    tracing.print_summary('workplace_taz', persons.workplace_taz, describe=True)
+    pipeline.replace_table("persons", persons_df)
 
     if trace_hh_id:
-        tracing.trace_df(persons,
+        tracing.trace_df(persons_df,
                          label="workplace_location",
                          warn_if_empty=True)

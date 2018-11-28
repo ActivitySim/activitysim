@@ -150,12 +150,8 @@ def test_mini_pipeline_run():
         'initialize_landuse',
         'compute_accessibility',
         'initialize_households',
-        'school_location_sample',
-        'school_location_logsums',
-        'school_location_simulate',
-        'workplace_location_sample',
-        'workplace_location_logsums',
-        'workplace_location_simulate',
+        'school_location',
+        'workplace_location',
         'auto_ownership_simulate'
     ]
 
@@ -200,7 +196,7 @@ def test_mini_pipeline_run2():
     prev_checkpoint_count = len(checkpoints_df.index)
 
     # print "checkpoints_df\n", checkpoints_df[['checkpoint_name']]
-    assert prev_checkpoint_count == 12
+    assert prev_checkpoint_count == 8
 
     pipeline.open_pipeline('auto_ownership_simulate')
 
@@ -302,7 +298,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 305
+EXPECT_TOUR_COUNT = 307
 
 
 def regress_tour_modes(tours_df):
@@ -322,7 +318,7 @@ def regress_tour_modes(tours_df):
     94247744            WALK    3249922    eatout         1  non_mandatory
     94247771     SHARED3FREE    3249923       eat         1         atwork
     94247794        WALK_LOC    3249923      work         1      mandatory
-    94247773  DRIVEALONEFREE    3249923    eatout         1  non_mandatory
+    94247773  DRIVEALONEFREE    3249923    social         1  non_mandatory
     """
 
     EXPECT_PERSON_IDS = [
@@ -340,7 +336,7 @@ def regress_tour_modes(tours_df):
         'eatout',
         'eat',
         'work',
-        'eatout',
+        'social',
         ]
 
     EXPECT_MODES = [

@@ -94,10 +94,10 @@ def atwork_subtour_destination_logsums(persons_merged,
                                        skim_dict, skim_stack,
                                        chunk_size, trace_hh_id):
     """
-    add logsum column to existing workplace_location_sample able
+    add logsum column to existing atwork_subtour_destination_sample able
 
     logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
-    in workplace_location_sample, and computing the logsum of all the utilities
+    in atwork_subtour_destination_sample, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+
     | person_id | dest_TAZ     | rand           | pick_count | logsum (added) |

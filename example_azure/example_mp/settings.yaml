@@ -24,9 +24,7 @@ models:
   - initialize_landuse
   - compute_accessibility
   - initialize_households
-  - _school_location_sample
-  - _school_location_logsums
-  - school_location_simulate
+  - school_location
   - _workplace_location_sample
   - _workplace_location_logsums
   - workplace_location_simulate
@@ -64,7 +62,7 @@ multiprocess_steps:
   - name: mp_initialize
     begin: initialize_landuse
   - name: mp_households
-    begin: _school_location_sample
+    begin: school_location
     slice:
       tables:
         - households

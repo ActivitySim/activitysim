@@ -510,9 +510,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - initialize_landuse
     - compute_accessibility
     - initialize_households
-    - school_location_sample
-    - school_location_logsums
-    - school_location_simulate
+    - school_location
     - workplace_location_sample
     - workplace_location_logsums
     - workplace_location_simulate

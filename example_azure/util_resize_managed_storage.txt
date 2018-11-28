@@ -1,9 +1,3 @@
-
-#AZ_VM_NUMBER=1
-AZ_VM_NAME=ubuntu$AZ_VM_NUMBER
-AZ_RESOURCE_GROUP=jeffdoyle
-AZ_USERNAME=azureuser
-
 ########################## resize managed storage
 
 #https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks

@@ -41,8 +41,7 @@ logger = logging.getLogger(__name__)
 SCHOOL_TYPE_ID = OrderedDict([('university', 1), ('highschool', 2), ('gradeschool', 3)])
 
 
-@inject.step()
-def school_location_sample(
+def run_school_location_sample(
         persons_merged,
         skim_dict,
         land_use, size_terms,
@@ -70,10 +69,9 @@ def school_location_sample(
     model_settings = config.read_model_settings('school_location.yaml')
     model_spec = simulate.read_model_spec(file_name=model_settings['SAMPLE_SPEC'])
 
-    choosers = persons_merged.to_frame()
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
-    choosers = choosers[chooser_columns]
+    choosers = persons_merged[chooser_columns]
 
     size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
 
@@ -136,22 +134,21 @@ def school_location_sample(
         logger.info("Skipping %s: add_null_results" % model_name)
         choices = pd.DataFrame()
 
-    inject.add_table('school_location_sample', choices)
+    return choices
 
 
-@inject.step()
-def school_location_logsums(
+def run_school_location_logsums(
         persons_merged,
         skim_dict, skim_stack,
-        school_location_sample,
+        location_sample_df,
         chunk_size,
         trace_hh_id):
 
     """
-    add logsum column to existing school_location_sample able
+    compute and add mode_choice_logsum column to location_sample_df
 
     logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
-    in school_location_sample, and computing the logsum of all the utilities
+    in location_sample_df, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+
     | person_id | dest_TAZ     | rand           | pick_count | logsum (added) |
@@ -172,15 +169,12 @@ def school_location_logsums(
 
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
-    location_sample = school_location_sample.to_frame()
-
-    if location_sample.shape[0] == 0:
+    if location_sample_df.empty:
         tracing.no_results(model_name)
-        return
+        return location_sample_df
 
-    logger.info("Running school_location_logsums with %s rows" % location_sample.shape[0])
+    logger.info("Running school_location_logsums with %s rows" % location_sample_df.shape[0])
 
-    persons_merged = persons_merged.to_frame()
     # - only include columns actually used in spec
     persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
@@ -189,7 +183,7 @@ def school_location_logsums(
 
         tour_purpose = 'univ' if school_type == 'university' else 'school'
 
-        choosers = location_sample[location_sample['school_type'] == school_type_id]
+        choosers = location_sample_df[location_sample_df['school_type'] == school_type_id]
 
         if choosers.shape[0] == 0:
             logger.info("%s skipping school_type %s: no choosers" % (model_name, school_type))
@@ -215,23 +209,25 @@ def school_location_logsums(
     logsums = pd.concat(logsums_list)
 
     # add_column series should have an index matching the table to which it is being added
-    # logsums does, since school_location_sample was on left side of merge creating choosers
+    # logsums does, since location_sample_df was on left side of merge creating choosers
 
     # "add_column series should have an index matching the table to which it is being added"
     # when the index has duplicates, however, in the special case that the series index exactly
     # matches the table index, then the series value order is preserved.
-    # logsums does align with school_location_sample as we loop through it in exactly the same
+    # logsums does align with location_sample_df as we loop through it in exactly the same
     # order as we did when we created it
-    inject.add_column('school_location_sample', 'mode_choice_logsum', logsums)
+    location_sample_df['mode_choice_logsum'] = logsums
+
+    return location_sample_df
 
 
-@inject.step()
-def school_location_simulate(persons_merged, persons,
-                             school_location_sample,
-                             skim_dict,
-                             land_use, size_terms,
-                             chunk_size,
-                             trace_hh_id):
+def run_school_location_simulate(
+        persons_merged,
+        location_sample_df,
+        skim_dict,
+        land_use, size_terms,
+        chunk_size,
+        trace_hh_id):
     """
     School location model on school_location_sample annotated with mode_choice logsum
     to select a school_taz from sample alternatives
@@ -241,15 +237,13 @@ def school_location_simulate(persons_merged, persons,
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
 
-    NO_SCHOOL_TAZ = -1
+    if location_sample_df.empty:
 
-    location_sample = school_location_sample.to_frame()
-    persons = persons.to_frame()
+        logger.info("%s no school-goers" % model_name)
+        choices = pd.Series()
 
-    # if there are any school-goers
-    if location_sample.shape[0] > 0:
+    else:
 
-        choosers = persons_merged.to_frame()
         destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
 
         alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
@@ -268,7 +262,7 @@ def school_location_simulate(persons_merged, persons,
 
         # FIXME - MEMORY HACK - only include columns actually used in spec
         chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
-        choosers = choosers[chooser_columns]
+        choosers = persons_merged[chooser_columns]
 
         choices_list = []
         for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
@@ -282,7 +276,7 @@ def school_location_simulate(persons_merged, persons,
                 continue
 
             alts_segment = \
-                location_sample[location_sample['school_type'] == school_type_id]
+                location_sample_df[location_sample_df['school_type'] == school_type_id]
 
             # alternatives are pre-sampled and annotated with logsums and pick_count
             # but we have to merge size_terms column into alt sample list
@@ -304,29 +298,68 @@ def school_location_simulate(persons_merged, persons,
 
         choices = pd.concat(choices_list)
 
-        # We only chose school locations for the subset of persons who go to school
-        # so we backfill the empty choices with -1 to code as no school location
-        persons['school_taz'] = choices.reindex(persons.index).fillna(NO_SCHOOL_TAZ).astype(int)
+    return choices
 
-        tracing.print_summary('school_taz', choices, describe=True)
 
-    else:
+@inject.step()
+def school_location(
+        persons_merged, persons,
+        skim_dict, skim_stack,
+        land_use, size_terms,
+        chunk_size,
+        trace_hh_id):
 
-        # no school-goers (but we still want to annotate persons)
-        persons['school_taz'] = NO_SCHOOL_TAZ
+    persons_merged_df = persons_merged.to_frame()
 
-        logger.info("%s no school-goers" % model_name)
+    # - school_location_sample
+    location_sample_df = \
+        run_school_location_sample(
+            persons_merged_df,
+            skim_dict,
+            land_use, size_terms,
+            chunk_size,
+            trace_hh_id)
 
+    # - school_location_logsums
+    location_sample_df = \
+        run_school_location_logsums(
+            persons_merged_df,
+            skim_dict, skim_stack,
+            location_sample_df,
+            chunk_size,
+            trace_hh_id)
+
+    # - school_location_simulate
+    choices = \
+        run_school_location_simulate(
+            persons_merged_df,
+            location_sample_df,
+            skim_dict,
+            land_use, size_terms,
+            chunk_size,
+            trace_hh_id)
+
+    tracing.print_summary('school_taz', choices, describe=True)
+
+    persons_df = persons.to_frame()
+
+    # We only chose school locations for the subset of persons who go to school
+    # so we backfill the empty choices with -1 to code as no school location
+    NO_SCHOOL_TAZ = -1
+    persons_df['school_taz'] = choices.reindex(persons_df.index).fillna(NO_SCHOOL_TAZ).astype(int)
+    tracing.print_summary('school_taz', choices, describe=True)
+
+    # - annotate persons
+    model_name = 'school_location'
+    model_settings = config.read_model_settings('school_location.yaml')
     expressions.assign_columns(
-        df=persons,
+        df=persons_df,
         model_settings=model_settings.get('annotate_persons'),
         trace_label=tracing.extend_trace_label(model_name, 'annotate_persons'))
 
-    pipeline.replace_table("persons", persons)
-
-    pipeline.drop_table('school_location_sample')
+    pipeline.replace_table("persons", persons_df)
 
     if trace_hh_id:
-        tracing.trace_df(persons,
+        tracing.trace_df(persons_df,
                          label="school_location",
                          warn_if_empty=True)

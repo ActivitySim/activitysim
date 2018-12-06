@@ -20,7 +20,7 @@ from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.util import assign_in_place
 
 from .util import logsums as logsum
-from .util.tour_destination import tour_destination_size_terms
+from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
 logger = logging.getLogger(__name__)
 DUMP = False

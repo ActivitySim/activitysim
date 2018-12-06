@@ -20,7 +20,7 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from .util import expressions
 from .util import logsums as logsum
-from .util.tour_destination import tour_destination_size_terms
+from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
 
 """
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 def run_workplace_location_sample(
         persons_merged,
         skim_dict,
-        land_use, size_terms,
+        size_terms,
         chunk_size, trace_hh_id):
     """
     build a table of workers * all zones in order to select a sample of alternative work locations.
@@ -68,7 +68,7 @@ def run_workplace_location_sample(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alternatives = tour_destination_size_terms(land_use, size_terms, 'work')
+    alternatives = size_terms
 
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]

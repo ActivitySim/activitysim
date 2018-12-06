@@ -23,10 +23,11 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.core.util import reindex
-from activitysim.core.util import left_merge_on_index_and_col
+
+from activitysim.abm.tables import shadow_pricing
 
 from .util import logsums as logsum
-from .util.tour_destination import tour_destination_size_terms
+
 
 from .util import expressions
 
@@ -37,16 +38,23 @@ go to school.
 
 logger = logging.getLogger(__name__)
 
-# use int not str to identify school type in sample df
-SCHOOL_TYPE_ID = OrderedDict([('university', 1), ('highschool', 2), ('gradeschool', 3)])
+
+NO_SCHOOL_TAZ = -1
+
+
+# we want to iterate over segment_ids in the same order every time
+def order_dict_by_keys(segment_ids):
+    return OrderedDict([(k, segment_ids[k]) for k in sorted(segment_ids.keys())])
 
 
 def run_school_location_sample(
         persons_merged,
         skim_dict,
-        land_use, size_terms,
+        dest_size_terms,
+        model_settings,
         chunk_size,
-        trace_hh_id):
+        trace_hh_id,
+        trace_label):
 
     """
     build a table of persons * all zones to select a sample of alternative school locations.
@@ -65,15 +73,13 @@ def run_school_location_sample(
     +-----------+--------------+----------------+------------+
     """
 
-    model_name = 'school_location_sample'
-    model_settings = config.read_model_settings('school_location.yaml')
     model_spec = simulate.read_model_spec(file_name=model_settings['SAMPLE_SPEC'])
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = persons_merged[chooser_columns]
 
-    size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
+    chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN']
 
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
@@ -88,50 +94,53 @@ def run_school_location_sample(
     locals_d = {
         'skims': skims
     }
-    constants = config.get_model_constants(model_settings)
-    if constants is not None:
-        locals_d.update(constants)
+    constants_dict = config.get_model_constants(model_settings)
+    if constants_dict is not None:
+        locals_d.update(constants_dict)
+
+    # we want to iterate over segment_ids in the same order in sample, logsums, and simulate
+    segment_ids = order_dict_by_keys(model_settings['SEGMENT_IDS'])
 
     choices_list = []
-    for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
+    for segment_name, segment_id in iteritems(segment_ids):
 
-        locals_d['segment'] = school_type
+        locals_d['segment'] = segment_name
 
-        choosers_segment = choosers[choosers["is_" + school_type]]
+        choosers_segment = choosers[choosers[chooser_segment_column] == segment_id]
 
         if choosers_segment.shape[0] == 0:
-            logger.info("%s skipping school_type %s: no choosers", model_name, school_type)
+            logger.info("%s skipping school_type %s: no choosers", trace_label, segment_name)
             continue
 
         # alts indexed by taz with one column containing size_term for  this tour_type
-        alternatives_segment = size_terms[[school_type]]
+        alternatives_segment = dest_size_terms[[segment_name]]
 
         # no point in considering impossible alternatives (where dest size term is zero)
-        alternatives_segment = alternatives_segment[alternatives_segment[school_type] > 0]
+        alternatives_segment = alternatives_segment[alternatives_segment[segment_name] > 0]
 
-        logger.info("school_type %s:  %s persons %s alternatives" %
-                    (school_type, len(choosers_segment), len(alternatives_segment)))
+        logger.info("%s segment %s:  %s persons %s alternatives" %
+                    (trace_label, segment_name, len(choosers_segment), len(alternatives_segment)))
 
         choices = interaction_sample(
             choosers_segment,
             alternatives_segment,
             sample_size=sample_size,
             alt_col_name=alt_dest_col_name,
-            spec=model_spec[[school_type]],
+            spec=model_spec[[segment_name]],
             skims=skims,
             locals_d=locals_d,
             chunk_size=chunk_size,
-            trace_label=tracing.extend_trace_label(model_name, school_type))
+            trace_label=tracing.extend_trace_label(trace_label, segment_name))
 
-        choices['school_type'] = school_type_id
+        choices['segment_id'] = segment_id
         choices_list.append(choices)
 
     if len(choices_list) > 0:
         choices = pd.concat(choices_list)
         # - NARROW
-        choices['school_type'] = choices['school_type'].astype(np.uint8)
+        choices['segment_id'] = choices['segment_id'].astype(np.uint8)
     else:
-        logger.info("Skipping %s: add_null_results" % model_name)
+        logger.info("Skipping %s: add_null_results" % trace_label)
         choices = pd.DataFrame()
 
     return choices
@@ -141,8 +150,10 @@ def run_school_location_logsums(
         persons_merged,
         skim_dict, skim_stack,
         location_sample_df,
+        model_settings,
         chunk_size,
-        trace_hh_id):
+        trace_hh_id,
+        trace_label):
 
     """
     compute and add mode_choice_logsum column to location_sample_df
@@ -164,13 +175,11 @@ def run_school_location_logsums(
     | 23751     | 14           | 0.972732479292 | 2          |  1.44009018355 |
     +-----------+--------------+----------------+------------+----------------+
     """
-    model_name = 'school_location_logsums'
-    model_settings = config.read_model_settings('school_location.yaml')
 
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     if location_sample_df.empty:
-        tracing.no_results(model_name)
+        tracing.no_results(trace_label)
         return location_sample_df
 
     logger.info("Running school_location_logsums with %s rows" % location_sample_df.shape[0])
@@ -178,15 +187,19 @@ def run_school_location_logsums(
     # - only include columns actually used in spec
     persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
+    # we want to iterate over segment_ids in the same order in sample, logsums, and simulate
+    segment_ids = order_dict_by_keys(model_settings['SEGMENT_IDS'])
+
     logsums_list = []
-    for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
+    for segment_name, segment_id in iteritems(segment_ids):
 
-        tour_purpose = 'univ' if school_type == 'university' else 'school'
+        # FIXME - pathological knowledge of relation between segment name and tour_purpose
+        tour_purpose = 'univ' if segment_name == 'university' else 'school'
 
-        choosers = location_sample_df[location_sample_df['school_type'] == school_type_id]
+        choosers = location_sample_df[location_sample_df['segment_id'] == segment_id]
 
         if choosers.shape[0] == 0:
-            logger.info("%s skipping school_type %s: no choosers" % (model_name, school_type))
+            logger.info("%s skipping school_type %s: no choosers" % (trace_label, segment_name))
             continue
 
         choosers = pd.merge(
@@ -202,7 +215,7 @@ def run_school_location_logsums(
             logsum_settings, model_settings,
             skim_dict, skim_stack,
             chunk_size, trace_hh_id,
-            tracing.extend_trace_label(model_name, school_type))
+            tracing.extend_trace_label(trace_label, segment_name))
 
         logsums_list.append(logsums)
 
@@ -225,26 +238,24 @@ def run_school_location_simulate(
         persons_merged,
         location_sample_df,
         skim_dict,
-        land_use, size_terms,
+        dest_size_terms,
+        model_settings,
         chunk_size,
-        trace_hh_id):
+        trace_hh_id,
+        trace_label):
     """
     School location model on school_location_sample annotated with mode_choice logsum
     to select a school_taz from sample alternatives
     """
-    model_name = 'school_location'
-    model_settings = config.read_model_settings('school_location.yaml')
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
 
     if location_sample_df.empty:
 
-        logger.info("%s no school-goers" % model_name)
+        logger.info("%s no school-goers" % trace_label)
         choices = pd.Series()
 
     else:
-
-        destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'school')
 
         alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
@@ -256,43 +267,46 @@ def run_school_location_simulate(
         locals_d = {
             'skims': skims,
         }
-        constants = config.get_model_constants(model_settings)
-        if constants is not None:
-            locals_d.update(constants)
+        constants_dict = config.get_model_constants(model_settings)
+        if constants_dict is not None:
+            locals_d.update(constants_dict)
 
         # FIXME - MEMORY HACK - only include columns actually used in spec
         chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
         choosers = persons_merged[chooser_columns]
 
+        # we want to iterate over segment_ids in the same order in sample, logsums, and simulate
+        segment_ids = order_dict_by_keys(model_settings['SEGMENT_IDS'])
+
         choices_list = []
-        for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
+        for segment_name, segment_id in iteritems(segment_ids):
 
-            locals_d['segment'] = school_type
+            locals_d['segment'] = segment_name
 
-            choosers_segment = choosers[choosers["is_" + school_type]]
+            choosers_segment = choosers[choosers['school_segment'] == segment_id]
 
             if choosers_segment.shape[0] == 0:
-                logger.info("%s skipping school_type %s: no choosers" % (model_name, school_type))
+                logger.info("%s skipping school_type %s: no choosers" % (trace_label, segment_name))
                 continue
 
             alts_segment = \
-                location_sample_df[location_sample_df['school_type'] == school_type_id]
+                location_sample_df[location_sample_df['segment_id'] == segment_id]
 
             # alternatives are pre-sampled and annotated with logsums and pick_count
-            # but we have to merge size_terms column into alt sample list
-            alts_segment[school_type] = \
-                reindex(destination_size_terms[school_type], alts_segment[alt_dest_col_name])
+            # but we have to merge dest_choice_size column into alt sample list
+            alts_segment[segment_name] = \
+                reindex(dest_size_terms[segment_name], alts_segment[alt_dest_col_name])
 
             choices = interaction_sample_simulate(
                 choosers_segment,
                 alts_segment,
-                spec=model_spec[[school_type]],
+                spec=model_spec[[segment_name]],
                 choice_column=alt_dest_col_name,
                 skims=skims,
                 locals_d=locals_d,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(model_name, school_type),
-                trace_choice_name=model_name)
+                trace_label=tracing.extend_trace_label(trace_label, segment_name),
+                trace_choice_name=trace_label)
 
             choices_list.append(choices)
 
@@ -301,24 +315,24 @@ def run_school_location_simulate(
     return choices
 
 
-@inject.step()
-def school_location(
-        persons_merged, persons,
+def run_school_location(
+        persons_merged_df,
         skim_dict, skim_stack,
-        land_use, size_terms,
-        chunk_size,
-        trace_hh_id):
-
-    persons_merged_df = persons_merged.to_frame()
+        dest_size_terms,
+        model_settings,
+        chunk_size, trace_hh_id, trace_label
+        ):
 
     # - school_location_sample
     location_sample_df = \
         run_school_location_sample(
             persons_merged_df,
             skim_dict,
-            land_use, size_terms,
+            dest_size_terms,
+            model_settings,
             chunk_size,
-            trace_hh_id)
+            trace_hh_id,
+            tracing.extend_trace_label(trace_label, 'sample'))
 
     # - school_location_logsums
     location_sample_df = \
@@ -326,8 +340,10 @@ def school_location(
             persons_merged_df,
             skim_dict, skim_stack,
             location_sample_df,
+            model_settings,
             chunk_size,
-            trace_hh_id)
+            trace_hh_id,
+            tracing.extend_trace_label(trace_label, 'logsums'))
 
     # - school_location_simulate
     choices = \
@@ -335,19 +351,83 @@ def school_location(
             persons_merged_df,
             location_sample_df,
             skim_dict,
-            land_use, size_terms,
+            dest_size_terms,
+            model_settings,
             chunk_size,
-            trace_hh_id)
+            trace_hh_id,
+            tracing.extend_trace_label(trace_label, 'simulate'))
 
-    tracing.print_summary('school_taz', choices, describe=True)
+    return choices
+
+
+@inject.step()
+def school_location(
+        persons_merged, persons,
+        skim_dict, skim_stack,
+        chunk_size,
+        trace_hh_id):
+
+    trace_label = 'school_location'
+    model_settings = config.read_model_settings('school_location.yaml')
+
+    chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN']
+
+    persons_merged_df = persons_merged.to_frame()
+
+    spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+
+    # - max_iterations
+    if spc.saved_shadow_prices:
+        max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED', 1)
+    else:
+        max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS', 5)
+    logging.debug("%s max_iterations: %s" % (trace_label, max_iterations))
+
+    choices = None
+    for iteration in range(max_iterations):
+
+        if iteration > 0:
+            spc.update_shadow_prices()
+
+        # - shadow_price adjusted predicted_size
+        shadow_price_adjusted_predicted_size = spc.predicted_size * spc.shadow_prices
+
+        choices = run_school_location(
+            persons_merged_df,
+            skim_dict, skim_stack,
+            shadow_price_adjusted_predicted_size,
+            model_settings,
+            chunk_size, trace_hh_id,
+            trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
+
+        choices_df = choices.to_frame('dest_choice')
+        choices_df['segment_id'] = \
+            persons_merged_df[chooser_segment_column].reindex(choices_df.index)
+
+        spc.set_choices(choices_df)
+
+        number_of_failed_zones = spc.check_fit(iteration)
+
+        logging.info("%s iteration: %s number_of_failed_zones: %s" %
+                     (trace_label, iteration, number_of_failed_zones))
+
+        if number_of_failed_zones == 0:
+            break
+
+    # - print convergence stats
+    print("\nshadow_pricing rms_error\n", spc.rms_error)
+    print("\nshadow_pricing num_fail\n", spc.num_fail)
 
     persons_df = persons.to_frame()
 
     # We only chose school locations for the subset of persons who go to school
     # so we backfill the empty choices with -1 to code as no school location
-    NO_SCHOOL_TAZ = -1
     persons_df['school_taz'] = choices.reindex(persons_df.index).fillna(NO_SCHOOL_TAZ).astype(int)
-    tracing.print_summary('school_taz', choices, describe=True)
+    # tracing.print_summary('school_taz', choices, value_counts=True)
+
+    # - shadow price table
+    inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
+    inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
 
     # - annotate persons
     model_name = 'school_location'

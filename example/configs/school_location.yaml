@@ -2,9 +2,7 @@ SAMPLE_SIZE: 30
 
 SIMULATE_CHOOSER_COLUMNS:
   - TAZ
-  - is_university
-  - is_highschool
-  - is_gradeschool
+  - school_segment
 
 # model-specific logsum-related settings
 CHOOSER_ORIG_COL_NAME: TAZ
@@ -21,3 +19,39 @@ LOGSUM_PREPROCESSOR: nontour_preprocessor
 annotate_persons:
   SPEC: annotate_persons_school
   DF: persons
+
+MAX_SHADOW_PRICE_ITERATIONS: 5
+MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
+
+# - shadow pricing
+
+CHOOSER_TABLE_NAME: persons
+
+DESTINATION_SIZE_TABLE: school_destination_size
+
+# size_terms selector
+SELECTOR: school
+
+# chooser column with segment_id for this segment type
+CHOOSER_SEGMENT_COLUMN: school_segment
+
+# FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
+SEGMENT_IDS:
+  university: 3
+  highschool: 2
+  gradeschool: 1
+
+SHADOW_PRICE_TABLE: school_shadow_prices
+MODELED_SIZE_TABLE: school_modeled_size
+
+SAVED_SHADOW_PRICE_TABLE_NAME: school_shadow_prices.csv
+
+
+# ignore criteria for zones smaller than size_threshold
+SIZE_THRESHOLD: 100
+
+# zone passes if modeled is within percent_tolerance of  predicted_size
+PERCENT_TOLERANCE: 5
+
+# max number of zones allowed to fail
+FAIL_THRESHOLD: 10

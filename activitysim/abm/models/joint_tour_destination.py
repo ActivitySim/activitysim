@@ -26,7 +26,7 @@ from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
 from .util import logsums as logsum
-from .util.tour_destination import tour_destination_size_terms
+from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
 
 logger = logging.getLogger(__name__)

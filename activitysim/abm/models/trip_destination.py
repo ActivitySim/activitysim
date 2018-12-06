@@ -26,7 +26,8 @@ from .util import expressions
 
 from activitysim.core import assign
 
-from .util.tour_destination import tour_destination_size_terms
+from activitysim.abm.tables.size_terms import tour_destination_size_terms
+
 from activitysim.core.skim import DataFrameMatrix
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate

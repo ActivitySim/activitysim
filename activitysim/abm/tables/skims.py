@@ -94,7 +94,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
         max_skims_per_block = num_skims
 
     def block_name(block):
-        return "%s_%s" % (omx_name, block)
+        return "skim_%s_%s" % (omx_name, block)
 
     key1_block_offsets = OrderedDict()
     blocks = OrderedDict()
@@ -145,13 +145,13 @@ def get_skim_info(omx_file_path, tags_to_load=None):
     return skim_info
 
 
-def buffer_for_skims(skim_info, shared=False):
+def buffers_for_skims(skim_info, shared=False):
 
     skim_dtype = skim_info['dtype']
     omx_shape = skim_info['omx_shape']
     blocks = skim_info['blocks']
 
-    skim_buffer = {}
+    skim_buffers = {}
     for block_name, block_size in iteritems(blocks):
 
         # buffer_size must be int (or p2.7 long), not np.int64
@@ -167,20 +167,20 @@ def buffer_for_skims(skim_info, shared=False):
             elif np.issubdtype(skim_dtype, np.float32):
                 typecode = 'f'
             else:
-                raise RuntimeError("buffer_for_skims unrecognized dtype %s" % skim_dtype)
+                raise RuntimeError("buffers_for_skims unrecognized dtype %s" % skim_dtype)
 
             buffer = multiprocessing.RawArray(typecode, buffer_size)
         else:
             buffer = np.zeros(buffer_size, dtype=skim_dtype)
 
-        skim_buffer[block_name] = buffer
+        skim_buffers[block_name] = buffer
 
-    return skim_buffer
+    return skim_buffers
 
 
-def skim_data_from_buffer(skim_buffer, skim_info):
+def skim_data_from_buffers(skim_buffers, skim_info):
 
-    assert type(skim_buffer) == dict
+    assert type(skim_buffers) == dict
 
     omx_shape = skim_info['omx_shape']
     skim_dtype = skim_info['dtype']
@@ -189,7 +189,7 @@ def skim_data_from_buffer(skim_buffer, skim_info):
     skim_data = []
     for block_name, block_size in iteritems(blocks):
         skims_shape = omx_shape + (block_size,)
-        block_buffer = skim_buffer[block_name]
+        block_buffer = skim_buffers[block_name]
         assert len(block_buffer) == int(np.prod(skims_shape))
         block_data = np.frombuffer(block_buffer, dtype=skim_dtype).reshape(skims_shape)
         skim_data.append(block_data)
@@ -197,9 +197,9 @@ def skim_data_from_buffer(skim_buffer, skim_info):
     return skim_data
 
 
-def load_skims(omx_file_path, skim_info, skim_buffer):
+def load_skims(omx_file_path, skim_info, skim_buffers):
 
-    skim_data = skim_data_from_buffer(skim_buffer, skim_info)
+    skim_data = skim_data_from_buffers(skim_buffers, skim_info)
 
     block_offsets = skim_info['block_offsets']
     omx_keys = skim_info['omx_keys']
@@ -237,14 +237,14 @@ def skim_dict(data_dir, settings):
 
     logger.debug("omx_shape %s skim_dtype %s" % (skim_info['omx_shape'], skim_info['dtype']))
 
-    skim_buffer = inject.get_injectable('skim_buffer', None)
-    if skim_buffer:
-        logger.info('Using existing skim_buffer for skims')
+    skim_buffers = inject.get_injectable('data_buffers', None)
+    if skim_buffers:
+        logger.info('Using existing skim_buffers for skims')
     else:
-        skim_buffer = buffer_for_skims(skim_info, shared=False)
-        load_skims(omx_file_path, skim_info, skim_buffer)
+        skim_buffers = buffers_for_skims(skim_info, shared=False)
+        load_skims(omx_file_path, skim_info, skim_buffers)
 
-    skim_data = skim_data_from_buffer(skim_buffer, skim_info)
+    skim_data = skim_data_from_buffers(skim_buffers, skim_info)
 
     block_names = list(skim_info['blocks'].keys())
     for i in range(len(skim_data)):

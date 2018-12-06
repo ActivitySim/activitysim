@@ -18,7 +18,8 @@ from activitysim.core import pipeline
 from activitysim.core import simulate
 
 from activitysim.core.util import assign_in_place
-from .util.tour_destination import tour_destination_size_terms
+from activitysim.abm.tables.size_terms import tour_destination_size_terms
+
 
 logger = logging.getLogger(__name__)
 

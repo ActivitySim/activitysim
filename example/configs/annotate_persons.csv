@@ -28,4 +28,8 @@ is_gradeschool,is_gradeschool,"(pstudent == constants.PSTUDENT_GRADE_OR_HIGH) & 
 is_highschool,is_highschool,"(pstudent == constants.PSTUDENT_GRADE_OR_HIGH) & (persons.age > setting('grade_school_max_age'))"
 is_university,is_university,"pstudent == constants.PSTUDENT_UNIVERSITY"
 #,,
+school_segment gradeschool,school_segment,"np.where(is_gradeschool, constants.SCHOOL_SEGMENT_GRADE, constants.SCHOOL_SEGMENT_NONE)"
+school_segment highschool,school_segment,"np.where(is_highschool, constants.SCHOOL_SEGMENT_HIGH, school_segment)"
+school_segment university,school_segment,"np.where(is_university, constants.SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
+#,,
 home_taz,home_taz,"reindex(households.TAZ, persons.household_id)"

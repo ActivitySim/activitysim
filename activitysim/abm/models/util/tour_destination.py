@@ -89,5 +89,6 @@ def tour_destination_size_terms(land_use, size_terms, selector):
     # - NARROW
     # float16 has 3.3 decimal digits of precision, float32 has 7.2
     df = df.astype(np.float16, errors='raise')
+    assert np.isfinite(df.values).all()
 
     return df

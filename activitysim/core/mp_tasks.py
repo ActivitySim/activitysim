@@ -34,8 +34,12 @@ from activitysim.core.config import setting
 from activitysim import abm
 
 from activitysim.abm.tables.skims import get_skim_info
-from activitysim.abm.tables.skims import buffer_for_skims
+from activitysim.abm.tables.skims import buffers_for_skims
 from activitysim.abm.tables.skims import load_skims
+
+from activitysim.abm.tables.shadow_pricing import buffers_for_shadow_pricing
+from activitysim.abm.tables.shadow_pricing import get_shadow_pricing_info
+
 
 
 logger = logging.getLogger(__name__)
@@ -315,7 +319,7 @@ def load_skim_data(skim_buffer):
     load_skims(omx_file_path, skim_info, skim_buffer)
 
 
-def allocate_shared_skim_buffer():
+def allocate_shared_skim_buffers():
     """
     This is called by the main process and allocate memory buffer to share with subprocs
 
@@ -331,9 +335,26 @@ def allocate_shared_skim_buffer():
 
     # select the skims to load
     skim_info = get_skim_info(omx_file_path, tags_to_load)
-    skim_buffer = buffer_for_skims(skim_info, shared=True)
+    skim_buffers = buffers_for_skims(skim_info, shared=True)
 
-    return skim_buffer
+    return skim_buffers
+
+
+def allocate_shared_shadow_pricing_buffers():
+    """
+    This is called by the main process and allocate memory buffer to share with subprocs
+
+    Returns
+    -------
+        multiprocessing.RawArray
+    """
+
+    logger.info("allocate_shared_shadow_pricing_buffers")
+
+    shadow_pricing_info = get_shadow_pricing_info()
+    shadow_pricing_buffers = buffers_for_shadow_pricing(shadow_pricing_info, shared=True)
+
+    return shadow_pricing_buffers
 
 
 def setup_injectables_and_logging(injectables):
@@ -350,14 +371,16 @@ def setup_injectables_and_logging(injectables):
     tracing.config_logger()
 
 
-def run_simulation(queue, step_info, resume_after, skim_buffer):
+def run_simulation(queue, step_info, resume_after, shared_data_buffer):
 
     models = step_info['models']
     chunk_size = step_info['chunk_size']
     step_label = step_info['name']
+    num_processes = step_info['num_processes']
 
-    inject.add_injectable('skim_buffer', skim_buffer)
+    inject.add_injectable('data_buffers', shared_data_buffer)
     inject.add_injectable("chunk_size", chunk_size)
+    inject.add_injectable("num_processes", num_processes)
 
     if resume_after:
         logger.info('resume_after %s', resume_after)
@@ -404,7 +427,7 @@ def profile_path():
 
 def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
 
-    skim_buffer = kwargs
+    shared_data_buffer = kwargs
     # handle_standard_args()
 
     setup_injectables_and_logging(injectables)
@@ -420,7 +443,7 @@ def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
         cProfile.runctx('run_simulation(queue, step_info, resume_after, skim_buffer)',
                         globals(), locals(), filename=profile_path())
     else:
-        run_simulation(queue, step_info, resume_after, skim_buffer)
+        run_simulation(queue, step_info, resume_after, shared_data_buffer)
 
     chunk.log_write_hwm()
     mem.log_hwm()
@@ -437,14 +460,14 @@ def mp_apportion_pipeline(injectables, sub_job_proc_names, slice_info):
 
 
 def mp_setup_skims(injectables, **kwargs):
-    skim_buffer = kwargs
+    shared_data_buffer = kwargs
     setup_injectables_and_logging(injectables)
 
     if setting('profile', False):
         cProfile.runctx('load_skim_data(skim_buffer)',
                         globals(), locals(), filename=profile_path())
     else:
-        load_skim_data(skim_buffer)
+        load_skim_data(shared_data_buffer)
 
 
 def mp_coalesce_pipelines(injectables, sub_job_proc_names, slice_info):
@@ -462,8 +485,11 @@ def mp_coalesce_pipelines(injectables, sub_job_proc_names, slice_info):
 """
 
 
-def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_names,
-                        resume_after, previously_completed):
+def run_sub_simulations(
+        injectables,
+        shared_data_buffers,
+        step_info, process_names,
+        resume_after, previously_completed):
 
     def log_queued_messages():
         for i, process, queue in zip(list(range(num_simulations)), procs, queues):
@@ -530,8 +556,8 @@ def run_sub_simulations(injectables, shared_skim_buffer, step_info, process_name
     for process_name in process_names:
         q = multiprocessing.Queue()
         p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
-                                    args=(q, injectables, step_info, resume_after),
-                                    kwargs=shared_skim_buffer)
+                                    args=(q, injectables, step_info, resume_after,),
+                                    kwargs=shared_data_buffers)
         procs.append(p)
         queues.append(q)
 
@@ -619,16 +645,24 @@ def run_multiprocess(run_list, injectables):
     def find_breadcrumb(crumb, default=None):
         return old_breadcrumbs.get(step_name, {}).get(crumb, default)
 
+    shared_data_buffers = {}
+
     t0 = tracing.print_elapsed_time()
-    shared_skim_buffer = allocate_shared_skim_buffer()
+    shared_data_buffers.update(allocate_shared_skim_buffers())
     t0 = tracing.print_elapsed_time('allocate shared skim buffer', t0)
     mem.trace_memory_info("allocate_shared_skim_buffer.completed")
+
+    # FIXME combine shared_skim_buffer and shared_shadow_pricing_buffer in shared_data_buffer
+    t0 = tracing.print_elapsed_time()
+    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers())
+    t0 = tracing.print_elapsed_time('allocate shared shadow_pricing buffer', t0)
+    mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
 
     # - mp_setup_skims
     run_sub_task(
         multiprocessing.Process(
             target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
-            kwargs=shared_skim_buffer)
+            kwargs=shared_data_buffers)
     )
     t0 = tracing.print_elapsed_time('setup skims', t0)
 
@@ -659,7 +693,9 @@ def run_multiprocess(run_list, injectables):
 
             completed = find_breadcrumb('completed', default=[]) if resume_after == '_' else []
 
-            completed = run_sub_simulations(injectables, shared_skim_buffer, step_info,
+            completed = run_sub_simulations(injectables,
+                                            shared_data_buffers,
+                                            step_info,
                                             sub_proc_names, resume_after, completed)
 
             if len(completed) != num_processes:

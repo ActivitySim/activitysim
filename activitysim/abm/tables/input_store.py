@@ -10,7 +10,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import inject
+from activitysim.core import config
 from activitysim.core.config import setting
 
 # FIXME
@@ -22,18 +22,13 @@ logger = logging.getLogger(__name__)
 
 def read_input_table(table_name):
 
-    input_store_path = inject.get_injectable("input_store_path", None)
+    filename = setting('input_store', None)
 
-    if not input_store_path:
+    if not filename:
+        logger.error("input store file name not specified in settings")
+        raise RuntimeError("store file name not specified in settings")
 
-        filename = setting('input_store', None)
-
-        if not filename:
-            logger.error("input store file name not specified in settings")
-            raise RuntimeError("store file name not specified in settings")
-
-        data_dir = inject.get_injectable("data_dir")
-        input_store_path = os.path.join(data_dir, filename)
+    input_store_path = config.data_file_path(filename)
 
     if not os.path.exists(input_store_path):
         logger.error("store file not found: %s" % input_store_path)

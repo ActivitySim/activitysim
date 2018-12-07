@@ -19,3 +19,40 @@ annotate_persons:
   DF: persons
   TABLES:
     - land_use
+
+# - shadow pricing
+
+MAX_SHADOW_PRICE_ITERATIONS: 5
+MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
+
+CHOOSER_TABLE_NAME: households
+
+DESTINATION_SIZE_TABLE: workplace_destination_size
+
+# size_terms selector
+SELECTOR: work
+
+# chooser column with segment_id for this segment type
+CHOOSER_SEGMENT_COLUMN: income_segment
+
+# FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
+SEGMENT_IDS:
+  work_low: 1
+  work_med: 2
+  work_high: 3
+  work_veryhigh: 4
+
+
+SHADOW_PRICE_TABLE: workplace_shadow_prices
+MODELED_SIZE_TABLE: workplace_modeled_size
+
+#SAVED_SHADOW_PRICE_TABLE_NAME: workplace_shadow_prices.csv
+
+# ignore criteria for zones smaller than size_threshold
+SIZE_THRESHOLD: 100
+
+# zone passes if modeled is within percent_tolerance of  predicted_size
+PERCENT_TOLERANCE: 5
+
+# max number of zones allowed to fail
+FAIL_THRESHOLD: 10

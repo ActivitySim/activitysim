@@ -20,10 +20,10 @@ annotate_persons:
   SPEC: annotate_persons_school
   DF: persons
 
+# - shadow pricing
+
 MAX_SHADOW_PRICE_ITERATIONS: 5
 MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
-
-# - shadow pricing
 
 CHOOSER_TABLE_NAME: persons
 
@@ -44,8 +44,7 @@ SEGMENT_IDS:
 SHADOW_PRICE_TABLE: school_shadow_prices
 MODELED_SIZE_TABLE: school_modeled_size
 
-SAVED_SHADOW_PRICE_TABLE_NAME: school_shadow_prices.csv
-
+#SAVED_SHADOW_PRICE_TABLE_NAME: school_shadow_prices.csv
 
 # ignore criteria for zones smaller than size_threshold
 SIZE_THRESHOLD: 100

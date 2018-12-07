@@ -115,7 +115,7 @@ def handle_standard_args(parser=None):
 
     parser.add_argument("-c", "--config", help="path to config dir", action='append')
     parser.add_argument("-o", "--output", help="path to output dir")
-    parser.add_argument("-d", "--data", help="path to data dir")
+    parser.add_argument("-d", "--data", help="path to data dir", action='append')
     parser.add_argument("-r", "--resume", nargs='?', const='_', type=str, help="resume after")
     parser.add_argument("-m", "--multiprocess", type=str2bool, nargs='?', const=True,
                         help="run multiprocess (boolean flag, no arg defaults to true)")
@@ -137,14 +137,15 @@ def handle_standard_args(parser=None):
             if not os.path.exists(dir):
                 raise IOError("Could not find configs dir '%s'" % dir)
         override_injectable("configs_dir", args.config)
+    if args.data:
+        for dir in args.data:
+            if not os.path.exists(dir):
+                raise IOError("Could not find data dir '%s'" % dir)
+        override_injectable("data_dir", args.config)
     if args.output:
         if not os.path.exists(args.output):
             raise IOError("Could not find output dir '%s'." % args.output)
         override_injectable("output_dir", args.output)
-    if args.data:
-        if not os.path.exists(args.data):
-            raise IOError("Could not find data dir '%s'" % args.data)
-        override_injectable("data_dir", args.data)
 
     if args.stride:
         override_injectable("households_sample_stride", args.stride)
@@ -249,10 +250,37 @@ def build_output_file_path(file_name, use_prefix=None):
     return file_path
 
 
-def data_file_path(file_name):
+def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=True):
 
-    data_dir = inject.get_injectable('data_dir')
-    return os.path.join(data_dir, file_name)
+    dir_list = inject.get_injectable(dir_list_injectable_name)
+
+    if isinstance(dir_list, str):
+        dir_list = [dir_list]
+
+    assert isinstance(dir_list, list)
+
+    file_path = None
+    for dir in dir_list:
+        p = os.path.join(dir, file_name)
+        if os.path.isfile(p):
+            file_path = p
+            break
+
+    if mandatory and not file_path:
+        raise RuntimeError("file_path %s: file '%s' not in %s" %
+                           (dir_list_injectable_name, file_path, dir_list))
+
+    return file_path
+
+
+def data_file_path(file_name, mandatory=True):
+
+    return cascading_input_file_path(file_name, 'data_dir', mandatory)
+
+
+def config_file_path(file_name, mandatory=True):
+
+    return cascading_input_file_path(file_name, 'configs_dir', mandatory)
 
 
 def output_file_path(file_name):
@@ -302,28 +330,6 @@ def pipeline_file_path(file_name):
 
     prefix = inject.get_injectable('pipeline_file_prefix', None)
     return build_output_file_path(file_name, use_prefix=prefix)
-
-
-def config_file_path(file_name, mandatory=True):
-
-    configs_dir = inject.get_injectable('configs_dir')
-
-    if isinstance(configs_dir, str):
-        configs_dir = [configs_dir]
-
-    assert isinstance(configs_dir, list)
-
-    file_path = None
-    for dir in configs_dir:
-        p = os.path.join(dir, file_name)
-        if os.path.exists(p):
-            file_path = p
-            break
-
-    if mandatory and not file_path:
-        raise RuntimeError("config_file_path: file '%s' not in %s" % (file_path, configs_dir))
-
-    return file_path
 
 
 def read_settings_file(file_name, mandatory=True):

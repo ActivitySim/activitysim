@@ -16,6 +16,7 @@ presence of university student other than self in household,has_university,"othe
 student_is_employed,student_is_employed,"(persons.ptype.isin([constants.PTYPE_UNIVERSITY, constants.PTYPE_DRIVING]) & persons.pemploy.isin([constants.PEMPLOY_FULL, constants.PEMPLOY_PART]))"
 nonstudent_to_school,nonstudent_to_school,"(persons.ptype.isin([constants.PTYPE_FULL, constants.PTYPE_PART, constants.PTYPE_NONWORK, constants.PTYPE_RETIRED]) & persons.pstudent.isin([constants.PSTUDENT_GRADE_OR_HIGH, constants.PSTUDENT_UNIVERSITY]))"
 is_worker,is_worker,"persons.pemploy.isin([constants.PEMPLOY_FULL, constants.PEMPLOY_PART])"
+#,,
 #,, FIXME - if person is a university student but has school age student category value then reset student category value
 ,pstudent,"persons.pstudent.where(persons.ptype!=constants.PTYPE_UNIVERSITY, constants.PSTUDENT_UNIVERSITY)"
 #,, FIXME if person is a student of any kind but has full-time employment status then reset student category value to non-student

@@ -89,7 +89,7 @@ def initialize_households():
     annotate_tables(model_settings, trace_label)
 
     # - ShadowPriceCalculator predicted_size tables
-    for dest_model_settings_file in ['school_location.yaml']:
+    for dest_model_settings_file in ['school_location.yaml', 'workplace_location.yaml']:
 
         dest_choice_model_settings = config.read_model_settings(dest_model_settings_file)
         selector = dest_choice_model_settings['SELECTOR']
@@ -107,7 +107,6 @@ def initialize_households():
                 chooser_segment_column,
                 segment_ids)
         inject.add_table(destination_size_table_name, size_df)
-
 
     t0 = tracing.print_elapsed_time()
     inject.get_table('person_windows').to_frame()

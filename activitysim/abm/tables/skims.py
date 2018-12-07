@@ -22,6 +22,7 @@ import openmatrix as omx
 from activitysim.core import skim
 from activitysim.core import inject
 from activitysim.core import util
+from activitysim.core import config
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +228,7 @@ def load_skims(omx_file_path, skim_info, skim_buffers):
 @inject.injectable(cache=True)
 def skim_dict(data_dir, settings):
 
-    omx_file_path = os.path.join(data_dir, settings["skims_file"])
+    omx_file_path = config.data_file_path(settings["skims_file"])
     tags_to_load = settings['skim_time_periods']['labels']
 
     logger.info("loading skim_dict from %s" % (omx_file_path, ))

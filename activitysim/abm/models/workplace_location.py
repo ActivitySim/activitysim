@@ -20,8 +20,8 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from .util import expressions
 from .util import logsums as logsum
-from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
+from activitysim.abm.tables import shadow_pricing
 
 """
 The workplace location model predicts the zones in which various people will
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 def run_workplace_location_sample(
         persons_merged,
         skim_dict,
-        size_terms,
+        dest_size_terms,
         chunk_size, trace_hh_id):
     """
     build a table of workers * all zones in order to select a sample of alternative work locations.
@@ -68,7 +68,7 @@ def run_workplace_location_sample(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alternatives = size_terms
+    alternatives = dest_size_terms
 
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
@@ -170,7 +170,7 @@ def run_workplace_location_simulate(
         persons_merged,
         location_sample_df,
         skim_dict,
-        land_use, size_terms,
+        dest_size_terms,
         chunk_size, trace_hh_id):
     """
     Workplace location model on workplace_location_sample annotated with mode_choice logsum
@@ -196,10 +196,9 @@ def run_workplace_location_simulate(
 
         # alternatives are pre-sampled and annotated with logsums and pick_count
         # but we have to merge additional alt columns into alt sample list
-        destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'work')
 
         alternatives = \
-            pd.merge(location_sample_df, destination_size_terms,
+            pd.merge(location_sample_df, dest_size_terms,
                      left_on=alt_dest_col_name, right_index=True, how="left")
 
         logger.info("Running workplace_location_simulate with %d persons" % len(choosers))
@@ -230,21 +229,20 @@ def run_workplace_location_simulate(
     return choices
 
 
-@inject.step()
-def workplace_location(
-        persons_merged, persons,
+def run_workplace_location(
+        persons_merged_df,
         skim_dict, skim_stack,
-        land_use, size_terms,
-        chunk_size, trace_hh_id):
-
-    persons_merged_df = persons_merged.to_frame()
+        dest_size_terms,
+        model_settings,
+        chunk_size, trace_hh_id, trace_label
+        ):
 
     # - workplace_location_sample
     location_sample_df = \
         run_workplace_location_sample(
             persons_merged_df,
             skim_dict,
-            land_use, size_terms,
+            dest_size_terms,
             chunk_size,
             trace_hh_id)
 
@@ -263,9 +261,65 @@ def workplace_location(
             persons_merged_df,
             location_sample_df,
             skim_dict,
-            land_use, size_terms,
+            dest_size_terms,
             chunk_size,
             trace_hh_id)
+
+    return choices
+
+
+@inject.step()
+def workplace_location(
+        persons_merged, persons,
+        skim_dict, skim_stack,
+        chunk_size, trace_hh_id):
+
+    trace_label = 'workplace_location'
+    model_settings = config.read_model_settings('workplace_location.yaml')
+
+    chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN']
+
+    persons_merged_df = persons_merged.to_frame()
+
+    spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+
+    # - max_iterations
+    if spc.saved_shadow_prices:
+        max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED', 1)
+    else:
+        max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS', 5)
+    logging.debug("%s max_iterations: %s" % (trace_label, max_iterations))
+
+    choices = None
+    for iteration in range(max_iterations):
+
+        if iteration > 0:
+            spc.update_shadow_prices()
+
+        # - shadow_price adjusted predicted_size
+        shadow_price_adjusted_predicted_size = spc.predicted_size * spc.shadow_prices
+
+        choices = run_workplace_location(
+            persons_merged_df,
+            skim_dict, skim_stack,
+            shadow_price_adjusted_predicted_size,
+            model_settings,
+            chunk_size, trace_hh_id,
+            trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
+
+        choices_df = choices.to_frame('dest_choice')
+        choices_df['segment_id'] = \
+            persons_merged_df[chooser_segment_column].reindex(choices_df.index)
+
+        spc.set_choices(choices_df)
+
+        number_of_failed_zones = spc.check_fit(iteration)
+
+        logging.info("%s iteration: %s number_of_failed_zones: %s" %
+                     (trace_label, iteration, number_of_failed_zones))
+
+        if number_of_failed_zones == 0:
+            break
 
     tracing.print_summary('workplace_taz', choices, describe=True)
 
@@ -276,6 +330,12 @@ def workplace_location(
     NO_WORKPLACE_TAZ = -1
     persons_df['workplace_taz'] = \
         choices.reindex(persons_df.index).fillna(NO_WORKPLACE_TAZ).astype(int)
+
+    # - shadow price table
+    if 'SHADOW_PRICE_TABLE' in model_settings:
+        inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
+    if 'MODELED_SIZE_TABLE' in model_settings:
+        inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
 
     # - annotate persons
     model_name = 'workplace_location'

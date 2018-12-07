@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 TALLY_CHECKIN = (0, -1)
 TALLY_CHECKOUT = (1, -1)
 
+
 class ShadowPriceCalculator(object):
 
     def __init__(self, model_settings, shared_data=None, shared_data_lock=None):
@@ -84,10 +85,13 @@ class ShadowPriceCalculator(object):
         # - load saved shadow_prices
         saved_shadow_price_file_name = model_settings.get('SAVED_SHADOW_PRICE_TABLE_NAME')
         if saved_shadow_price_file_name:
-            file_path = config.config_file_path(saved_shadow_price_file_name)
-            if os.path.isfile(file_path):
+            # FIXME - where should we look for this file?
+            file_path = config.data_file_path(saved_shadow_price_file_name, mandatory=False)
+            if file_path:
                 shadow_prices = pd.read_csv(file_path, index_col=0)
-                logging.warning("loaded saved_shadow_prices from %s" % (file_path))
+                logging.warning("loading saved_shadow_prices from %s" % (file_path))
+            else:
+                logging.warning("Could not find saved_shadow_prices file %s" % (file_path))
 
         return shadow_prices
 
@@ -140,7 +144,6 @@ class ShadowPriceCalculator(object):
                             index=local_modeled_size.index,
                             columns=local_modeled_size.columns)
 
-
     def set_choices(self, choices_df):
 
         assert 'dest_choice' in choices_df
@@ -153,7 +156,6 @@ class ShadowPriceCalculator(object):
         modeled_size = modeled_size.fillna(0).astype(int)
 
         self.modeled_size = self.synchronize_choices(modeled_size)
-
 
     def check_fit(self, iter):
 
@@ -197,9 +199,10 @@ class ShadowPriceCalculator(object):
 
         new_scale_factor = self.predicted_size / self.modeled_size
 
+        # FIXME - need to decide if following CTRAMP code quoted above, and if so, which version
         # following CTRAMP (original version - later commented out)
         # avoid zero-divide for 0 modeled_size, by setting scale_factor same as modeled_size of 1
-        #new_scale_factor.where(self.modeled_size > 0, self.predicted_size)
+        # new_scale_factor.where(self.modeled_size > 0, self.predicted_size)
 
         new_shadow_prices = self.shadow_prices * new_scale_factor
 
@@ -235,7 +238,6 @@ def get_shadow_pricing_info():
         'dtype': sp_dtype,
         'blocks': blocks,
     }
-
 
     return shadow_pricing_info
 
@@ -293,8 +295,6 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, selector):
 def load_shadow_price_calculator(model_settings):
 
     selector = model_settings['SELECTOR']
-    segment_ids = model_settings['SEGMENT_IDS']
-    destination_size_table = model_settings['DESTINATION_SIZE_TABLE']
 
     # - data_buffers (if shared data)
     data_buffers = inject.get_injectable('data_buffers', None)

@@ -238,7 +238,7 @@ def test_mini_pipeline_run3():
 
     households = inject.get_table('households').to_frame()
 
-    override_hh_ids = pd.read_csv(config.config_file_path('override_hh_ids.csv'))
+    override_hh_ids = pd.read_csv(config.data_file_path('override_hh_ids.csv'))
 
     print("\noverride_hh_ids\n", override_hh_ids)
 

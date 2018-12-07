@@ -37,9 +37,8 @@ from activitysim.abm.tables.skims import get_skim_info
 from activitysim.abm.tables.skims import buffers_for_skims
 from activitysim.abm.tables.skims import load_skims
 
-from activitysim.abm.tables.shadow_pricing import buffers_for_shadow_pricing
 from activitysim.abm.tables.shadow_pricing import get_shadow_pricing_info
-
+from activitysim.abm.tables.shadow_pricing import buffers_for_shadow_pricing
 
 
 logger = logging.getLogger(__name__)

@@ -415,7 +415,7 @@ def school_location(
             break
 
     # - print convergence stats
-    print("\nshadow_pricing rms_error\n", spc.rms_error)
+    # print("\nshadow_pricing rms_error\n", spc.rms_error)
     print("\nshadow_pricing num_fail\n", spc.num_fail)
 
     persons_df = persons.to_frame()
@@ -426,8 +426,10 @@ def school_location(
     # tracing.print_summary('school_taz', choices, value_counts=True)
 
     # - shadow price table
-    inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
-    inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
+    if 'SHADOW_PRICE_TABLE' in model_settings:
+        inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
+    if 'MODELED_SIZE_TABLE' in model_settings:
+        inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
 
     # - annotate persons
     model_name = 'school_location'

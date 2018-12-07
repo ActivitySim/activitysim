@@ -8,7 +8,7 @@ import numpy as np
 import openmatrix as omx
 
 from activitysim.core import skim as askim
-from activitysim.core import tracing
+from activitysim.core import config
 from activitysim.core import inject
 
 
@@ -59,7 +59,7 @@ def taz_skim_dict(data_dir, settings):
 
     logger.info("loading taz_skim_dict")
 
-    skims_file = os.path.join(data_dir, settings["taz_skims_file"])
+    skims_file = config.data_file_path(settings["taz_skims_file"])
     cache_skim_key_values = settings['skim_time_periods']['labels']
 
     skim_dict = askim.SkimDict()
@@ -79,7 +79,7 @@ def tap_skim_dict(data_dir, settings):
     skim_dict = askim.SkimDict()
 
     for skims_file in settings["tap_skims_files"]:
-        skims_file_path = os.path.join(data_dir, skims_file)
+        skims_file_path = config.data_file_path(skims_file)
         with omx.open_file(skims_file_path) as omx_file:
             add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values)
 

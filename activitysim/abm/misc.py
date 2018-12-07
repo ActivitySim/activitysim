@@ -50,7 +50,7 @@ def override_hh_ids(settings):
     if hh_ids_filename is None:
         return None
 
-    file_path = config.config_file_path(hh_ids_filename, mandatory=False)
+    file_path = config.data_file_path(hh_ids_filename, mandatory=False)
     if not file_path:
         logger.error("hh_ids file name '%s' specified in settings not found: %s" % hh_ids_filename)
         return None

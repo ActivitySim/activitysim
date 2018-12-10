@@ -20,9 +20,7 @@ annotate_persons:
   SPEC: annotate_persons_school
   DF: persons
 
-
 # - shadow pricing
-
 
 MAX_SHADOW_PRICE_ITERATIONS: 5
 MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
@@ -54,5 +52,5 @@ SIZE_THRESHOLD: 100
 # zone passes if modeled is within percent_tolerance of  predicted_size
 PERCENT_TOLERANCE: 5
 
-# max number of zones allowed to fail
-FAIL_THRESHOLD: 10
+# max percentage of zones allowed to fail
+FAIL_THRESHOLD: 5

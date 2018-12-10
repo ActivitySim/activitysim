@@ -298,7 +298,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 307
+EXPECT_TOUR_COUNT = 308
 
 
 def regress_tour_modes(tours_df):

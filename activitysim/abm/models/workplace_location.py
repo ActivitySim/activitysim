@@ -56,8 +56,7 @@ def run_workplace_location_sample(
     model_settings = config.read_model_settings('workplace_location.yaml')
     model_spec = simulate.read_model_spec(file_name='workplace_location_sample.csv')
 
-    # FIXME - only choose workplace_location of workers? is this the right criteria?
-    choosers = persons_merged[persons_merged.is_worker]
+    choosers = persons_merged
 
     if choosers.empty:
         logger.info("Skipping %s: no workers" % trace_label)
@@ -186,7 +185,7 @@ def run_workplace_location_simulate(
         choices = pd.Series()
     else:
 
-        choosers = persons_merged[persons_merged.is_worker]
+        choosers = persons_merged
 
         # FIXME - MEMORY HACK - only include columns actually used in spec
         chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -281,6 +280,9 @@ def workplace_location(
 
     persons_merged_df = persons_merged.to_frame()
 
+    # presumably is_worker or something similar
+    persons_merged_df = persons_merged_df[persons_merged[model_settings['CHOOSER_FILTER_COLUMN']]]
+
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
 
     # - max_iterations
@@ -313,13 +315,17 @@ def workplace_location(
 
         spc.set_choices(choices_df)
 
-        number_of_failed_zones = spc.check_fit(iteration)
+        fit = spc.check_fit(iteration)
 
-        logging.info("%s iteration: %s number_of_failed_zones: %s" %
-                     (trace_label, iteration, number_of_failed_zones))
-
-        if number_of_failed_zones == 0:
+        if fit:
             break
+
+    logging.info("check_fit converged: %s iteration: %s" % (fit, iter,))
+
+    # - convergence stats
+    print("\nshadow_pricing max_abs_diff\n", spc.max_abs_diff)
+    print("\nshadow_pricing max_rel_diff\n", spc.max_rel_diff)
+    print("\nshadow_pricing num_fail\n", spc.num_fail)
 
     tracing.print_summary('workplace_taz', choices, describe=True)
 

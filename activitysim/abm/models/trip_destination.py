@@ -427,7 +427,7 @@ def run_trip_destination(
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     land_use = inject.get_table('land_use')
-    size_terms = inject.get_table('size_terms')
+    size_terms = inject.get_injectable('size_terms')
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)

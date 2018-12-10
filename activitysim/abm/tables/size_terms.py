@@ -18,7 +18,13 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
+@inject.injectable(cache=True)
+def shadow_pricing_models():
+
+    return {'school': 'school_location', 'work': 'workplace_location'}
+
+
+@inject.injectable(cache=True)
 def size_terms():
     f = config.config_file_path('destination_choice_size_terms.csv')
     return pd.read_csv(f, comment='#', index_col='segment')
@@ -87,14 +93,16 @@ def tour_destination_size_terms(land_use, size_terms, selector):
     """
 
     land_use = land_use.to_frame()
-    size_terms = size_terms.to_frame()
 
     size_terms = size_terms[size_terms.selector == selector].copy()
     del size_terms['selector']
 
     df = pd.DataFrame({key: size_term(land_use, row) for key, row in size_terms.iterrows()},
                       index=land_use.index)
-    df.index.name = 'TAZ'
+
+    # df.index.name = 'TAZ'
+    assert land_use.index.name == 'TAZ'
+    df.index.name = land_use.index.name
 
     if not (df.dtypes == 'float64').all():
         logger.warning('Surprised to find that not all size_terms were float64!')
@@ -105,39 +113,3 @@ def tour_destination_size_terms(land_use, size_terms, selector):
     assert np.isfinite(df.values).all()
 
     return df
-
-
-def destination_predicted_size(choosers_table, selector, chooser_segment_column, segment_ids):
-
-    land_use = inject.get_table('land_use')
-    size_terms = inject.get_table('size_terms')
-    choosers_df = inject.get_table(choosers_table).to_frame()
-
-    # - raw_predicted_size
-    raw_size = tour_destination_size_terms(land_use, size_terms, selector)
-    assert set(raw_size.columns) == set(segment_ids.keys())
-
-    segment_chooser_counts = \
-        {segment_name: (choosers_df[chooser_segment_column] == segment_id).sum()
-         for segment_name, segment_id in iteritems(segment_ids)}
-
-    # - segment scale factor (modeled / predicted) keyed by segment_name
-    # scaling reconciles differences between synthetic population and zone demographics
-    # in a partial sample, it also scales predicted_size targets to sample population
-    segment_scale_factors = {}
-    for c in raw_size:
-        segment_predicted_size = raw_size[c].astype(np.float64).sum()
-        segment_scale_factors[c] = \
-            segment_chooser_counts[c] / np.maximum(segment_predicted_size, 1)
-
-    # - scaled_size = zone_size * (total_segment_modeled / total_segment_predicted)
-    predicted_size = raw_size.astype(np.float64)
-    for c in predicted_size:
-        predicted_size[c] *= segment_scale_factors[c]
-
-    # trace_label = "destination_predicted_size %s" % (selector)
-    # print("%s raw_predicted_size\n" % (trace_label,), raw_size.head(20))
-    # print("%s segment_scale_factors" % (trace_label,), segment_scale_factors)
-    # print("%s predicted_size\n" % (trace_label,), predicted_size)
-
-    return predicted_size

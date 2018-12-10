@@ -52,5 +52,5 @@ SIZE_THRESHOLD: 100
 # zone passes if modeled is within percent_tolerance of  predicted_size
 PERCENT_TOLERANCE: 5
 
-# max number of zones allowed to fail
+# max percentage of zones allowed to fail
 FAIL_THRESHOLD: 10

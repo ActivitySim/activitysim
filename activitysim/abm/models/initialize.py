@@ -20,7 +20,7 @@ from activitysim.core.steps.output import track_skim_usage
 
 from .util import expressions
 
-from activitysim.abm.tables.size_terms import destination_predicted_size
+from activitysim.abm.tables import shadow_pricing
 
 
 logger = logging.getLogger(__name__)
@@ -80,34 +80,18 @@ def initialize_landuse():
 
 
 @inject.step()
-def initialize_households():
+def initialize_households(shadow_pricing_models):
 
     trace_label = 'initialize_households'
 
     model_settings = config.read_model_settings('initialize_households.yaml', mandatory=True)
-
     annotate_tables(model_settings, trace_label)
 
-    # - ShadowPriceCalculator predicted_size tables
-    for dest_model_settings_file in ['school_location.yaml', 'workplace_location.yaml']:
+    # - initialize shadow_pricing predicted_size after annotating household and person tables
+    # since these are scaled to model size, they have to be created while single-process
+    shadow_pricing.add_predicted_size_table(shadow_pricing_models)
 
-        dest_choice_model_settings = config.read_model_settings(dest_model_settings_file)
-        selector = dest_choice_model_settings['SELECTOR']
-        segment_ids = dest_choice_model_settings['SEGMENT_IDS']
-        chooser_table_name = dest_choice_model_settings['CHOOSER_TABLE_NAME']
-        chooser_segment_column = dest_choice_model_settings['CHOOSER_SEGMENT_COLUMN']
-        destination_size_table_name = dest_choice_model_settings['DESTINATION_SIZE_TABLE']
-
-        logger.info("%s creating %s" % (trace_label, destination_size_table_name))
-
-        size_df = \
-            destination_predicted_size(
-                chooser_table_name,
-                selector,
-                chooser_segment_column,
-                segment_ids)
-        inject.add_table(destination_size_table_name, size_df)
-
+    # - preload person_windows
     t0 = tracing.print_elapsed_time()
     inject.get_table('person_windows').to_frame()
     t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)

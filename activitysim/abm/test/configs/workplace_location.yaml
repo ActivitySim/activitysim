@@ -25,15 +25,19 @@ annotate_persons:
 MAX_SHADOW_PRICE_ITERATIONS: 5
 MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
 
-CHOOSER_TABLE_NAME: households
+# income_segment is in households, but we want to count persons
+CHOOSER_TABLE_NAME: persons_merged
 
 DESTINATION_SIZE_TABLE: workplace_destination_size
 
 # size_terms selector
 SELECTOR: work
 
-# chooser column with segment_id for this segment type
+# we can't use use household income_segment as this will also be set for non-workers
 CHOOSER_SEGMENT_COLUMN: income_segment
+
+# boolean column to filter choosers (True means keep)
+CHOOSER_FILTER_COLUMN: is_worker
 
 # FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
 SEGMENT_IDS:
@@ -54,5 +58,5 @@ SIZE_THRESHOLD: 100
 # zone passes if modeled is within percent_tolerance of  predicted_size
 PERCENT_TOLERANCE: 5
 
-# max number of zones allowed to fail
+# max percentage of zones allowed to fail
 FAIL_THRESHOLD: 10

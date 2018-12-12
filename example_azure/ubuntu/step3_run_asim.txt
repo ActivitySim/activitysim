@@ -1,11 +1,18 @@
 
+#AZ_VM_SIZE=Standard_D16s_v3
+
+
 # 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
-AZ_VM_SIZE=Standard_E64s_v3
+#AZ_VM_SIZE=Standard_E64s_v3
+
+# 128 cpu 2TB ram $13.34/hour
+#AZ_VM_SIZE=Standard_M128s
 
 ############### resize
 
 az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
 az vm resize --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME --size $AZ_VM_SIZE
+
 
 ############### start
 
@@ -38,8 +45,6 @@ export OMP_NUM_THREADS=1
 
 python simulation.py -d /datadrive/work/data/full
 
-# 50%
-#python simulation.py -s 2,0 -d /datadrive/work/data/full
 
 tar -zcvf log.tar.gz output/log/ 
 
@@ -49,4 +54,30 @@ scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/log.tar.gz log.ta
 
 ############### 
 
+az vm stop --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
 az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+
+############### mount smb
+
+# on dev
+
+STORAGEKEY=$(az storage account keys list \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --account-name $STORAGEACCT \
+    --query "[0].value" | tr -d '"')
+
+echo "STORAGEKEY=$STORAGEKEY"
+
+# on ubuntu
+
+STORAGEKEY=<xxx>
+STORAGEACCT=mystorageacct32320
+SHARE_NAME=myshare
+sudo mkdir /mnt/fileshare
+sudo mount -t cifs //$STORAGEACCT.file.core.windows.net/$SHARE_NAME /mnt/fileshare -o vers=3.0,username=$STORAGEACCT,password=$STORAGEKEY,dir_mode=0777,file_mode=0777,serverino
+
+FILE_NAME=windows1_128_run_1.zip
+DEST_DIR=output_windows
+scp $AZ_USERNAME@$VM_IP:/mnt/fileshare/work/$FILE_NAME $DEST_DIR/$FILE_NAME
+

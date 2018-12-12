@@ -3,67 +3,33 @@ inherit_settings: True
 
 # - production config
 #multiprocess: True
-#mem_tick: 30
 #profile: False
 #strict: False
-#num_processes: 10
-#stagger: 30
+#mem_tick: 0
 
-# azure 432GB 64 processors
-#multiprocess: True
-#mem_tick: 30
-#profile: False
-#strict: False
-#num_processes: 30
-#stagger: 15
-
-# - dev config 3%
-#multiprocess: True
-#mem_tick: 30
-#profile: False
-#strict: False
-#num_processes: 3
-#stagger: 30
-
-# - dev config mini
+# - dev config
 multiprocess: True
-mem_tick: 30
 profile: False
 strict: False
-#num_processes: 3
+mem_tick: 30
+
+# - full sample - 2732722 households on 64 processor 432 GiB RAM
+#households_sample_size:  0
+#chunk_size:  90000000000
+#num_processes: 60
 #stagger: 5
 
+# - small sample
+households_sample_size:  5000
+chunk_size: 500000000
+num_processes: 2
+stagger: 5
 
-# - full sample
+# - stride sample
 #households_sample_size:  0
-#chunk_size: 15000000000
-
-# - 50% sample
-#households_sample_size:  1366361
-#chunk_size: 7500000000
-
-# - 20% sample
-#households_sample_size: 546544
-#chunk_size: 3000000000
-
-# - 10% sample
-#households_sample_size: 273272
-#chunk_size: 1500000000
-
-# - 3.3% sample
-#households_sample_size: 91091
-#chunk_size: 500000000
-
-# - mini sample
-#households_sample_size: 300
-#households_sample_size: 0
-#households_sample_stride: [3, 0]
-
-
-households_sample_size:  0
-chunk_size: 1000000000
-num_processes: 1
-households_sample_stride: [36,0]
+#chunk_size: 1000000000
+#num_processes: 1
+#households_sample_stride: [120,0]
 
 # - tracing
 trace_hh_id:

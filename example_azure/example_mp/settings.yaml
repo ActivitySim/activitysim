@@ -4,15 +4,21 @@ inherit_settings: True
 # - production config
 
 multiprocess: True
-mem_tick: 60
+mem_tick: 0
 profile: False
 strict: False
 
-households_sample_size:  0
-chunk_size:  32000000000
-num_processes: 20
-stagger: 30
+# Standard_E64s_v3
+#households_sample_size:  0
+#chunk_size:  90000000000
+#num_processes: 60
+#stagger: 5
 
+# Standard_M128s
+households_sample_size:  0
+chunk_size:  0
+num_processes: 120
+stagger: 0
 
 
 # - tracing

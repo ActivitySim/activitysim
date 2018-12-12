@@ -33,7 +33,7 @@ git checkout dev
 
 conda remove --name asim --all
 
-conda create -q -n asim python=2.7 cytoolz numpy pandas pip pytables pyyaml toolz psutil
+conda create -n asim python=2.7 cytoolz numpy pandas pip pytables pyyaml toolz psutil
 source activate asim
 pip install openmatrix zbox future
 

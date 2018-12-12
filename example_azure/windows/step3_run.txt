@@ -1,0 +1,39 @@
+
+
+
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
+#AZ_VM_SIZE=Standard_E64s_v3
+
+# 128 cpu 2TB ram $13.34/hour
+AZ_VM_SIZE=Standard_M128s
+
+############### resize
+
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+az vm resize --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME --size $AZ_VM_SIZE
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+
+az vm stop --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+################################################ anaconda prompt
+
+cd example_mp
+
+git status
+
+activate asim
+
+set OPENBLAS_NUM_THREADS=1
+set MKL_NUM_THREADS=1
+set NUMEXPR_NUM_THREADS=1
+set OMP_NUM_THREADS=1
+
+
+python simulation.py -d  E:\data\full -m
+
+python simulation.py -d  E:\data\sf_county -m
+
+
+#

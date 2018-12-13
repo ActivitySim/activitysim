@@ -748,6 +748,8 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
         list of alternatives chosen for all extra members, indexed by _persons_index_
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'extra_hh_member_choices')
+
     # extra household members have cdap_ran > MAX_HHSIZE
     choosers = persons[persons['cdap_rank'] > MAX_HHSIZE]
 

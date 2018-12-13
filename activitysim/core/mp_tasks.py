@@ -385,8 +385,8 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
         logger.info('resume_after %s', resume_after)
 
         # if they specified a resume_after model, check to make sure it is checkpointed
-        if resume_after != '_' \
-                and resume_after not in pipeline.get_checkpoints()[pipeline.CHECKPOINT_NAME].values:
+        if resume_after != '_' and resume_after \
+                not in pipeline.get_checkpoints()[pipeline.CHECKPOINT_NAME].values:
             # if not checkpointed, then fall back to last checkpoint
             logger.info("resume_after checkpoint '%s' not in pipeline.", resume_after)
             resume_after = '_'
@@ -405,7 +405,13 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
     for model in models:
 
         t1 = tracing.print_elapsed_time()
-        pipeline.run_model(model)
+
+        try:
+            pipeline.run_model(model)
+        except Exception as e:
+            logger.warning("%s exception running %s model: %s", type(e).__name__, model, str(e),
+                           exc_info=True)
+            raise e
 
         queue.put({'model': model, 'time': time.time()-t1})
 
@@ -488,7 +494,7 @@ def run_sub_simulations(
         injectables,
         shared_data_buffers,
         step_info, process_names,
-        resume_after, previously_completed):
+        resume_after, previously_completed, fail_fast):
 
     def log_queued_messages():
         for i, process, queue in zip(list(range(num_simulations)), procs, queues):
@@ -516,6 +522,8 @@ def run_sub_simulations(
                     logger.info("process %s failed with exitcode %s", p.name, p.exitcode)
                     failed.add(p.name)
                     mem.trace_memory_info("%s.failed" % p.name)
+                    if fail_fast:
+                        raise RuntimeError("Process %s failed" % (p.name,))
 
     def idle(seconds):
         log_queued_messages()
@@ -635,6 +643,9 @@ def run_multiprocess(run_list, injectables):
 
     old_breadcrumbs = run_list.get('breadcrumbs', {})
 
+    # raise error if any sub-process fails without waiting for others to complete
+    fail_fast = setting('fail_fast')
+
     def skip_phase(phase):
         skip = old_breadcrumbs and old_breadcrumbs.get(step_name, {}).get(phase, False)
         if skip:
@@ -695,7 +706,7 @@ def run_multiprocess(run_list, injectables):
             completed = run_sub_simulations(injectables,
                                             shared_data_buffers,
                                             step_info,
-                                            sub_proc_names, resume_after, completed)
+                                            sub_proc_names, resume_after, completed, fail_fast)
 
             if len(completed) != num_processes:
                 raise RuntimeError("%s processes failed in step %s" %

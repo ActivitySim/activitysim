@@ -1,6 +1,9 @@
 
 inherit_settings: True
 
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
 # - production config
 #multiprocess: True
 #profile: False

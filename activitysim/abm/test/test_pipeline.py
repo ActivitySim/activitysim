@@ -217,11 +217,13 @@ def test_mini_pipeline_run2():
     checkpoints_df = pipeline.get_checkpoints()
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
-    # - write list of override_hh_ids to override_hh_ids.csv in configs for use in next test
+    # - write list of override_hh_ids to override_hh_ids.csv in data for use in next test
     num_hh_ids = 10
     hh_ids = pipeline.get_table("households").head(num_hh_ids).index.values
     hh_ids = pd.DataFrame({'household_id': hh_ids})
-    hh_ids.to_csv(os.path.join(configs_dir, 'override_hh_ids.csv'), index=False, header=True)
+
+    data_dir = inject.get_injectable('data_dir')
+    hh_ids.to_csv(os.path.join(data_dir, 'override_hh_ids.csv'), index=False, header=True)
 
     pipeline.close_pipeline()
     inject.clear_cache()

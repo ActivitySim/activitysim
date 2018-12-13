@@ -46,11 +46,13 @@ export OMP_NUM_THREADS=1
 python simulation.py -d /datadrive/work/data/full
 
 
-tar -zcvf log.tar.gz output/log/ 
+tar -zcvf log.tar.gz output/log/
+tar -zcvf trace.tar.gz output/trace/
 
 exit
 
-scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/log.tar.gz log.tar.gz 
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/log.tar.gz output_ubuntu/log.tar.gz
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/trace.tar.gz output_ubuntu/trace.tar.gz
 
 ############### 
 

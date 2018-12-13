@@ -5,30 +5,30 @@ inherit_settings: True
 fail_fast: True
 
 # - production config
-#multiprocess: True
-#profile: False
-#strict: False
-#mem_tick: 0
-#use_shadow_pricing: True
-
-# - full sample - 2732722 households on 64 processor 432 GiB RAM
-#households_sample_size:  0
-#chunk_size:  90000000000
-#num_processes: 60
-#stagger: 5
-
-# - dev config
 multiprocess: True
 profile: False
 strict: False
-mem_tick: 30
-use_shadow_pricing: False
+mem_tick: 0
+use_shadow_pricing: True
 
-# - small sample
-households_sample_size:  5000
-chunk_size: 500000000
-num_processes: 2
+# - full sample - 2732722 households on 64 processor 432 GiB RAM
+households_sample_size:  0
+chunk_size:  90000000000
+num_processes: 60
 stagger: 5
+
+## - dev config
+#multiprocess: True
+#profile: False
+#strict: False
+#mem_tick: 30
+#use_shadow_pricing: False
+#
+## - small sample
+#households_sample_size:  5000
+#chunk_size: 500000000
+#num_processes: 2
+#stagger: 5
 
 # - stride sample
 #households_sample_size:  0

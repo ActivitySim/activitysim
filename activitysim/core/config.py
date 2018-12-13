@@ -141,7 +141,7 @@ def handle_standard_args(parser=None):
         for dir in args.data:
             if not os.path.exists(dir):
                 raise IOError("Could not find data dir '%s'" % dir)
-        override_injectable("data_dir", args.config)
+        override_injectable("data_dir", args.data)
     if args.output:
         if not os.path.exists(args.output):
             raise IOError("Could not find output dir '%s'." % args.output)

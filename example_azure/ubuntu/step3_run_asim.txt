@@ -21,8 +21,11 @@ VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.networ
 
 
 # copy settings to example_mp/configs
-scp example_mp/settings.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/settings.yaml
-scp example_mp/logging.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/logging.yaml
+scp example_mp/configs/settings.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/settings.yaml
+scp example_mp/configs/logging.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/logging.yaml
+
+#scp example_mp/configs/school_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/school_location.yaml
+#scp example_mp/configs/workplace_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/workplace_location.yaml
 
 ############### run
 
@@ -51,8 +54,8 @@ tar -zcvf trace.tar.gz output/trace/
 
 exit
 
-scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/log.tar.gz output_ubuntu/log.tar.gz
-scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/trace.tar.gz output_ubuntu/trace.tar.gz
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/log.tar.gz example_azure/output_ubuntu/log.tar.gz
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/trace.tar.gz example_azure/output_ubuntu/trace.tar.gz
 
 ############### 
 

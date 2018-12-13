@@ -268,13 +268,13 @@ def register_traceable_table(table_name, df):
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
 
-    mode = 'a' if os.path.isfile(file_path) else 'w'
+    need_header = not os.path.isfile(file_path)
 
     if columns:
         df = df[columns]
 
     if not transpose:
-        df.to_csv(file_path, mode="a", index=df.index.name is not None, header=True)
+        df.to_csv(file_path, mode='a', index=df.index.name is not None, header=need_header)
         return
 
     df_t = df.transpose()
@@ -283,7 +283,8 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
     elif index_label:
         df_t.index.name = index_label
 
-    with open(file_path, mode=mode) as f:
+    if need_header:
+
         if column_labels is None:
             column_labels = [None, None]
         if column_labels[0] is None:
@@ -298,10 +299,10 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
                 column_labels[0] + ',' \
                 + ','.join([column_labels[1] + '_' + str(i+1) for i in range(len(df_t.columns))])
 
-        if mode == 'a':
-            column_label_row = '# ' + column_label_row
-        f.write(column_label_row + '\n')
-    df_t.to_csv(file_path, mode='a', index=True, header=True)
+        with open(file_path, mode='a') as f:
+            f.write(column_label_row + '\n')
+
+    df_t.to_csv(file_path, mode='a', index=True, header=False)
 
 
 def write_series_csv(series, file_path, index_label=None, columns=None, column_labels=None):
@@ -314,7 +315,9 @@ def write_series_csv(series, file_path, index_label=None, columns=None, column_l
         series = series.rename(columns[1])
     if index_label and series.index.name is None:
         series.index.name = index_label
-    series.to_csv(file_path, mode='a', index=True, header=True)
+
+    need_header = not os.path.isfile(file_path)
+    series.to_csv(file_path, mode='a', index=True, header=need_header)
 
 
 def write_csv(df, file_name, index_label=None, columns=None, column_labels=None, transpose=True):

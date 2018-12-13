@@ -6,18 +6,20 @@ inherit_settings: True
 #profile: False
 #strict: False
 #mem_tick: 0
-
-# - dev config
-multiprocess: True
-profile: False
-strict: False
-mem_tick: 30
+#use_shadow_pricing: True
 
 # - full sample - 2732722 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
 #chunk_size:  90000000000
 #num_processes: 60
 #stagger: 5
+
+# - dev config
+multiprocess: True
+profile: False
+strict: False
+mem_tick: 30
+use_shadow_pricing: False
 
 # - small sample
 households_sample_size:  5000
@@ -127,7 +129,12 @@ output_tables:
 #    - persons
 #    - trips
 #    - tours
-
+#    - school_shadow_prices
+#    - school_destination_size
+#    - school_modeled_size
+#    - workplace_shadow_prices
+#    - workplace_destination_size
+#    - workplace_modeled_size
 
 coalesce:
   names:

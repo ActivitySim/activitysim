@@ -17,9 +17,11 @@ trace_od:
 
 chunk_size: 0
 
-# comment out or set false to disable variability check in simple_simulate and interaction_simulate
+# set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False
 
+# set false to disable shadow_pricing
+use_shadow_pricing: False
 
 models:
   - initialize_landuse
@@ -101,3 +103,8 @@ skim_time_periods:
         - AM
         - MD
         - PM
+
+shadow_pricing_models:
+  school: school_location
+  work: workplace_location
+

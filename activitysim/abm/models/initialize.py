@@ -80,7 +80,7 @@ def initialize_landuse():
 
 
 @inject.step()
-def initialize_households(shadow_pricing_models):
+def initialize_households():
 
     trace_label = 'initialize_households'
 
@@ -89,7 +89,7 @@ def initialize_households(shadow_pricing_models):
 
     # - initialize shadow_pricing predicted_size after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
-    shadow_pricing.add_predicted_size_table(shadow_pricing_models)
+    shadow_pricing.add_predicted_size_table()
 
     # - preload person_windows
     t0 = tracing.print_elapsed_time()

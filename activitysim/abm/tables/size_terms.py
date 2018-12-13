@@ -19,12 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable(cache=True)
-def shadow_pricing_models():
-
-    return {'school': 'school_location', 'work': 'workplace_location'}
-
-
-@inject.injectable(cache=True)
 def size_terms():
     f = config.config_file_path('destination_choice_size_terms.csv')
     return pd.read_csv(f, comment='#', index_col='segment')

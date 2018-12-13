@@ -23,11 +23,11 @@ annotate_persons:
 # - shadow pricing
 
 MAX_SHADOW_PRICE_ITERATIONS: 5
-MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
+MAX_SHADOW_PRICE_ITERATIONS_SAVED: 1
 
 CHOOSER_TABLE_NAME: persons
 
-DESTINATION_SIZE_TABLE: school_destination_size
+DESTINATION_PREDICTED_SIZE_TABLE: school_destination_size
 
 # size_terms selector
 SELECTOR: school

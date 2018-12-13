@@ -38,6 +38,12 @@ class ShadowPriceCalculator(object):
 
     def __init__(self, model_settings, shared_data=None, shared_data_lock=None):
 
+        self.use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
+
+        full_model_run = config.setting('households_sample_size') == 0
+        if self.use_shadow_pricing and not full_model_run:
+            logging.warning("deprecated combination of use_shadow_pricing and not full_model_run")
+
         self.selector = model_settings['SELECTOR']  # informational
         self.segment_ids = model_settings['SEGMENT_IDS']
 
@@ -53,7 +59,7 @@ class ShadowPriceCalculator(object):
         self.fail_threshold = model_settings['FAIL_THRESHOLD']
 
         # - destination_size_table (predicted_size)
-        destination_size_table_name = model_settings['DESTINATION_SIZE_TABLE']
+        destination_size_table_name = model_settings['DESTINATION_PREDICTED_SIZE_TABLE']
         self.predicted_size = inject.get_table(destination_size_table_name).to_frame()
         assert set(self.predicted_size.columns) == set(self.segment_ids.keys())
 
@@ -65,11 +71,19 @@ class ShadowPriceCalculator(object):
         self.shared_data = shared_data
         self.shared_data_lock = shared_data_lock
 
-        # - load saved shadow_prices
-        self.shadow_prices = self.load_saved_shadow_prices(model_settings)
-        self.saved_shadow_prices = (self.shadow_prices is not None)
+        # - load saved shadow_prices (if available)
+        if self.use_shadow_pricing:
+            self.shadow_prices = self.load_saved_shadow_prices(model_settings)
 
-        # - if we couldn't load saved shadow_prices, init to ones
+            if self.saved_shadow_prices:
+                self.max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS_SAVED', 1)
+            else:
+                self.max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS', 5)
+        else:
+            self.shadow_prices = None
+            self.max_iterations = 1
+
+        # - if we did't load saved shadow_prices, init shadow_prices to all ones
         if self.shadow_prices is None:
             self.shadow_prices = \
                 pd.DataFrame(data=1.0,
@@ -79,8 +93,6 @@ class ShadowPriceCalculator(object):
         self.num_fail = pd.DataFrame(index=self.predicted_size.columns)
         self.max_abs_diff = pd.DataFrame(index=self.predicted_size.columns)
         self.max_rel_diff = pd.DataFrame(index=self.predicted_size.columns)
-
-        self.iter = 0
 
     def load_saved_shadow_prices(self, model_settings):
 
@@ -161,15 +173,15 @@ class ShadowPriceCalculator(object):
 
         self.modeled_size = self.synchronize_choices(modeled_size)
 
-    def check_fit(self, iter):
+    def check_fit(self, iteration):
         """
-        Check onvergence criteria fit of modeled_size to target predicted_size
+        Check convergence criteria fit of modeled_size to target predicted_size
         (For multiprocessing, this is global modeled_size summed across processes,
         so each process will independently calculate the same result.)
 
         Parameters
         ----------
-        iter: int
+        iteration: int
             iteration number (informational, for num_failand max_diff history columns)
 
         Returns
@@ -194,9 +206,9 @@ class ShadowPriceCalculator(object):
         # ignore zones where rel_diff < percent_tolerance
         rel_diff.where(rel_diff > (self.percent_tolerance / 100.0), 0, inplace=True)
 
-        self.num_fail['iter%s' % iter] = (rel_diff > 0).sum()
-        self.max_abs_diff['iter%s' % iter] = abs_diff.max()
-        self.max_rel_diff['iter%s' % iter] = rel_diff.max()
+        self.num_fail['iter%s' % iteration] = (rel_diff > 0).sum()
+        self.max_abs_diff['iter%s' % iteration] = abs_diff.max()
+        self.max_rel_diff['iter%s' % iteration] = rel_diff.max()
 
         total_fails = (rel_diff > 0).values.sum()
 
@@ -212,7 +224,7 @@ class ShadowPriceCalculator(object):
         #     print("  max rel diff %s" % (rel_diff[c].max()))
 
         logging.info("check_fit iteration: %s good_enough: %s max_fail: %s total_fails: %s" %
-                     (iter, good_enough, max_fail, total_fails))
+                     (iteration, good_enough, max_fail, total_fails))
 
         return good_enough
 
@@ -235,11 +247,13 @@ class ShadowPriceCalculator(object):
             previousShadowPrice + Math.Log(Math.Max(targ, .01) * 1D / Math.Max(prediction, .01));
         """
 
+        assert self.use_shadow_pricing
+
+        # can't update_shadow_prices until after first iteration
+        # modeled_size should have been set by set_choices at end of previous iteration
         assert self.modeled_size is not None
         assert self.predicted_size is not None
         assert self.shadow_prices is not None
-
-        targ = self.modeled_size
 
         new_scale_factor = self.predicted_size / self.modeled_size
 
@@ -269,11 +283,10 @@ def get_shadow_pricing_info():
     land_use = inject.get_table('land_use')
     size_terms = inject.get_injectable('size_terms')
 
-    blocks = OrderedDict()
-
     # shadow_pricing_models is dict of {<selector>: <model_name>}
-    shadow_pricing_models = inject.get_injectable('shadow_pricing_models')
+    shadow_pricing_models = config.setting('shadow_pricing_models')
 
+    blocks = OrderedDict()
     for selector in shadow_pricing_models:
 
         sp_rows = len(land_use)
@@ -372,7 +385,20 @@ def load_shadow_price_calculator(model_settings):
     return spc
 
 
-def add_predicted_size_table(shadow_pricing_models):
+def add_predicted_size_table():
+
+    use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
+    shadow_pricing_models = config.setting('shadow_pricing_models')
+    full_model_run = config.setting('households_sample_size') == 0
+
+    scale_predicted_size = use_shadow_pricing or full_model_run
+    if not scale_predicted_size:
+        logger.info("add_predicted_size_table using raw size "
+                    "(not scaling) since no shadow pricing and not full_model_run")
+
+    if shadow_pricing_models is None:
+        logger.warning('add_predicted_size_table: shadow_pricing_models not in settings')
+        return
 
     # shadow_pricing_models is dict of {<selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process
@@ -386,7 +412,7 @@ def add_predicted_size_table(shadow_pricing_models):
         segment_ids = model_settings['SEGMENT_IDS']
         chooser_table_name = model_settings['CHOOSER_TABLE_NAME']
         chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN']
-        size_table_name = model_settings['DESTINATION_SIZE_TABLE']
+        size_table_name = model_settings['DESTINATION_PREDICTED_SIZE_TABLE']
 
         choosers_df = inject.get_table(chooser_table_name).to_frame()
         if 'CHOOSER_FILTER_COLUMN' in model_settings:
@@ -412,20 +438,22 @@ def add_predicted_size_table(shadow_pricing_models):
             segment_scale_factors[c] = \
                 segment_chooser_counts[c] / np.maximum(segment_predicted_size, 1)
 
-        # - scaled_size = zone_size * (total_segment_modeled / total_segment_predicted)
         predicted_size = raw_size.astype(np.float64)
 
-        for c in predicted_size:
-            print("destination_predicted_size %s segment %s predicted %s" %
-                  (chooser_table_name, c, predicted_size[c].sum()))
-            print("destination_predicted_size %s segment %s modeled %s" %
-                  (chooser_table_name, c, segment_chooser_counts[c].sum()))
-            print("destination_predicted_size %s segment %s scale_factor %s" %
-                  (chooser_table_name, c, segment_scale_factors[c]))
+        if scale_predicted_size:
 
-            predicted_size[c] *= segment_scale_factors[c]
+            # - scaled_size = zone_size * (total_segment_modeled / total_segment_predicted)
+            for c in predicted_size:
+                logger.info("add_predicted_size_table %s segment %s "
+                            "predicted %s modeled %s scale_factor %s" %
+                            (chooser_table_name, c,
+                             predicted_size[c].sum(),
+                             segment_chooser_counts[c].sum(),
+                             segment_scale_factors[c]))
 
-        logger.info("destination_predicted_size selector: %s table_name: %s" %
+                predicted_size[c] *= segment_scale_factors[c]
+
+        logger.info("add_predicted_size_table selector: %s adding table: %s" %
                     (selector, size_table_name, ))
 
         inject.add_table(size_table_name, predicted_size)

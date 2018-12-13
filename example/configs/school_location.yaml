@@ -23,11 +23,11 @@ annotate_persons:
 # - shadow pricing
 
 MAX_SHADOW_PRICE_ITERATIONS: 5
-MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
+MAX_SHADOW_PRICE_ITERATIONS_SAVED: 1
 
+# required by initialize_households when creating school_destination_size table
 CHOOSER_TABLE_NAME: persons
-
-DESTINATION_SIZE_TABLE: school_destination_size
+DESTINATION_PREDICTED_SIZE_TABLE: school_destination_size
 
 # size_terms selector
 SELECTOR: school
@@ -41,9 +41,11 @@ SEGMENT_IDS:
   highschool: 2
   gradeschool: 1
 
-SHADOW_PRICE_TABLE: school_shadow_prices
-MODELED_SIZE_TABLE: school_modeled_size
+# model adds these tables (informational - not added if commented out)
+#SHADOW_PRICE_TABLE: school_shadow_prices
+#MODELED_SIZE_TABLE: school_modeled_size
 
+# not loaded if commented out
 #SAVED_SHADOW_PRICE_TABLE_NAME: school_shadow_prices.csv
 
 # ignore criteria for zones smaller than size_threshold

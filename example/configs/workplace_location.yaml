@@ -23,12 +23,12 @@ annotate_persons:
 # - shadow pricing
 
 MAX_SHADOW_PRICE_ITERATIONS: 5
-MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED: 1
+MAX_SHADOW_PRICE_ITERATIONS_SAVED: 1
 
 # income_segment is in households, but we want to count persons
 CHOOSER_TABLE_NAME: persons_merged
 
-DESTINATION_SIZE_TABLE: workplace_destination_size
+DESTINATION_PREDICTED_SIZE_TABLE: workplace_destination_size
 
 # size_terms selector
 SELECTOR: work
@@ -46,10 +46,11 @@ SEGMENT_IDS:
   work_high: 3
   work_veryhigh: 4
 
+# model adds these tables (informational - not added if commented out)
+#SHADOW_PRICE_TABLE: workplace_shadow_prices
+#MODELED_SIZE_TABLE: workplace_modeled_size
 
-SHADOW_PRICE_TABLE: workplace_shadow_prices
-MODELED_SIZE_TABLE: workplace_modeled_size
-
+# not loaded if commented out
 #SAVED_SHADOW_PRICE_TABLE_NAME: workplace_shadow_prices.csv
 
 # ignore criteria for zones smaller than size_threshold

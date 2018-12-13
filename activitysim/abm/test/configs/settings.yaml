@@ -37,3 +37,7 @@ skim_time_periods:
         - AM
         - MD
         - PM
+
+shadow_pricing_models:
+  school: school_location
+  work: workplace_location

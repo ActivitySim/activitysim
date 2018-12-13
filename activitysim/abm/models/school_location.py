@@ -375,12 +375,8 @@ def school_location(
     persons_merged_df = persons_merged.to_frame()
 
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+    max_iterations = spc.max_iterations
 
-    # - max_iterations
-    if spc.saved_shadow_prices:
-        max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS_WITH_SAVED', 1)
-    else:
-        max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS', 5)
     logging.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
     choices = None

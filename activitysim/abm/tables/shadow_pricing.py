@@ -75,7 +75,7 @@ class ShadowPriceCalculator(object):
         if self.use_shadow_pricing:
             self.shadow_prices = self.load_saved_shadow_prices(model_settings)
 
-            if self.saved_shadow_prices:
+            if self.shadow_prices:
                 self.max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS_SAVED', 1)
             else:
                 self.max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS', 5)

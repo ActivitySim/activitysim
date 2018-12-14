@@ -377,7 +377,7 @@ def school_location(
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
     max_iterations = spc.max_iterations
 
-    logging.debug("%s max_iterations: %s" % (trace_label, max_iterations))
+    logging.info("%s max_iterations: %s" % (trace_label, max_iterations))
 
     choices = None
     for iteration in range(max_iterations):
@@ -402,16 +402,16 @@ def school_location(
 
         spc.set_choices(choices_df)
 
-        number_of_failed_zones = spc.check_fit(iteration)
+        fit = spc.check_fit(iteration)
 
-        logging.info("%s iteration: %s number_of_failed_zones: %s" %
-                     (trace_label, iteration, number_of_failed_zones))
-
-        if number_of_failed_zones == 0:
+        if fit:
             break
 
-    # - print convergence stats
-    # print("\nshadow_pricing rms_error\n", spc.rms_error)
+    logging.info("check_fit converged: %s iteration: %s" % (fit, iter,))
+
+    # - convergence stats
+    print("\nshadow_pricing max_abs_diff\n", spc.max_abs_diff)
+    print("\nshadow_pricing max_rel_diff\n", spc.max_rel_diff)
     print("\nshadow_pricing num_fail\n", spc.num_fail)
 
     persons_df = persons.to_frame()

@@ -4,7 +4,7 @@ inherit_settings: True
 # raise error if any sub-process fails without waiting for others to complete
 fail_fast: True
 
-# - production config
+# - ------------------------- production config
 multiprocess: True
 profile: False
 strict: False
@@ -17,7 +17,14 @@ chunk_size:  90000000000
 num_processes: 60
 stagger: 5
 
-## - dev config
+# - full sample - 2732722 households on Standard_M128s
+#households_sample_size:  0
+#chunk_size:  0
+#num_processes: 124
+#stagger: 0
+
+
+## - ------------------------- dev config
 #multiprocess: True
 #profile: False
 #strict: False

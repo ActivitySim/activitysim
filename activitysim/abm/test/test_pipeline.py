@@ -46,6 +46,10 @@ def setup_dirs(configs_dir):
 
     tracing.config_logger()
 
+    tracing.delete_output_files('csv')
+    tracing.delete_output_files('txt')
+    tracing.delete_output_files('yaml')
+
 
 def teardown_function(func):
     inject.clear_cache()
@@ -144,7 +148,10 @@ def test_mini_pipeline_run():
 
     setup_dirs(configs_dir)
 
-    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+    inject_settings(configs_dir,
+                    households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+                    # use_shadow_pricing=True
+                    )
 
     _MODELS = [
         'initialize_landuse',
@@ -156,6 +163,11 @@ def test_mini_pipeline_run():
     ]
 
     pipeline.run(models=_MODELS, resume_after=None)
+
+    # data_dir = inject.get_injectable('data_dir')
+    # school_destination_size = pipeline.get_table("school_shadow_prices")
+    # school_destination_size.to_csv(os.path.join(data_dir, 'school_shadow_prices.csv'),
+    #                                index=True, header=True)
 
     regress_mini_auto()
 

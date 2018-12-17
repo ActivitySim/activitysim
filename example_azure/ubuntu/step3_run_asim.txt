@@ -27,8 +27,6 @@ scp example_mp/configs/school_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/
 scp example_mp/configs/workplace_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/workplace_location.yaml
 
 
-scp activitysim/abm/tables/shadow_pricing.py $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/activitysim/abm/tables/shadow_pricing.py
-
 ############### run
 
 ssh $AZ_USERNAME@$VM_IP
@@ -38,19 +36,21 @@ hash -r
 
 source activate asim
 
-cd /datadrive/work/activitysim
-git stash
-git pull
+# - git
+#cd /datadrive/work/activitysim
+#git stash
+#git pull
 #git stash pop
 #git stash drop
 
+
+# - copy shadow prices to data dir
+#cp output/final_school_shadow_prices.csv /datadrive/work/data/full/school_shadow_prices.csv
+#cp output/final_workplace_shadow_prices.csv /datadrive/work/data/full/workplace_shadow_prices.csv
+
 cd /datadrive/work/activitysim/example_mp
 
-# copy shadow prices to data dir
-cp output/final_school_shadow_prices.csv /datadrive/work/data/full/school_shadow_prices.csv
-cp output/final_workplace_shadow_prices.csv /datadrive/work/data/full/workplace_shadow_prices.csv
-
-nano configs/settings.yaml
+#nano configs/settings.yaml
 
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1

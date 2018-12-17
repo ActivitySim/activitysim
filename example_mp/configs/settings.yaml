@@ -15,9 +15,9 @@ load_saved_shadow_prices: True
 
 # - full sample - 2732722 households on 64 processor 432 GiB RAM
 households_sample_size:  0
-chunk_size:  90000000000
+chunk_size:  80000000000
 num_processes: 60
-stagger: 5
+stagger: 0
 
 # - full sample - 2732722 households on Standard_M128s
 #households_sample_size:  0
@@ -56,9 +56,11 @@ trace_od:
 #resume_after: trip_purpose_and_destination
 
 models:
+  ### mp_initialize step
   - initialize_landuse
   - compute_accessibility
   - initialize_households
+  ### mp_households step
   - school_location
   - workplace_location
   - auto_ownership_simulate
@@ -88,6 +90,7 @@ models:
   - trip_purpose_and_destination
   - trip_scheduling
   - trip_mode_choice
+  ### mp_summarize step
   - write_data_dictionary
   - write_tables
 

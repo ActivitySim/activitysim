@@ -14,6 +14,7 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
+from activitysim.core.mem import force_garbage_collect
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
@@ -301,6 +302,8 @@ def workplace_location(
             model_settings,
             chunk_size, trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
+
+        force_garbage_collect()
 
         choices_df = choices.to_frame('dest_choice')
         choices_df['segment_id'] = \

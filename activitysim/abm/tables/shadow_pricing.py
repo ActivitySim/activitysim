@@ -231,7 +231,7 @@ class ShadowPriceCalculator(object):
 
         total_fails = (rel_diff > 0).values.sum()
 
-        max_fail = (self.fail_threshold / 100.0) * predicted_size.shape[0]
+        max_fail = (self.fail_threshold / 100.0) * np.prod(predicted_size.shape)
 
         converged = (total_fails <= max_fail)
 

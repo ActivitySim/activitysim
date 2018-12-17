@@ -647,6 +647,7 @@ def run_multiprocess(run_list, injectables):
 
     # raise error if any sub-process fails without waiting for others to complete
     fail_fast = setting('fail_fast')
+    logger.info("run_multiprocess fail_fast: %s", fail_fast)
 
     def skip_phase(phase):
         skip = old_breadcrumbs and old_breadcrumbs.get(step_name, {}).get(phase, False)

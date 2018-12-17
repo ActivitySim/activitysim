@@ -15,7 +15,7 @@ logging:
   loggers:
 
     activitysim:
-      level: DEBUG
+      level: INFO
       handlers: [console, logfile]
       propagate: false
 
@@ -38,7 +38,7 @@ logging:
       stream: ext://sys.stdout
       formatter: simpleFormatter
       #level: WARNING
-      level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [INFO, NOTSET]
+      level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [WARNING, NOTSET]
 
   formatters:
 

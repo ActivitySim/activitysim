@@ -271,7 +271,7 @@ def run_workplace_location(
 def workplace_location(
         persons_merged, persons,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id, locutor):
 
     trace_label = 'workplace_location'
     model_settings = config.read_model_settings('workplace_location.yaml')
@@ -294,13 +294,10 @@ def workplace_location(
         if iteration > 0:
             spc.update_shadow_prices()
 
-        # - shadow_price adjusted predicted_size
-        shadow_price_adjusted_predicted_size = spc.predicted_size * spc.shadow_prices
-
         choices = run_workplace_location(
             persons_merged_df,
             skim_dict, skim_stack,
-            shadow_price_adjusted_predicted_size,
+            spc.shadow_price_adjusted_predicted_size(),
             model_settings,
             chunk_size, trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
@@ -313,15 +310,28 @@ def workplace_location(
 
         fit = spc.check_fit(iteration)
 
+        if locutor:
+            spc.write_trace_files(iteration)
+
         if fit:
             break
 
-    logging.info("check_fit converged: %s iteration: %s" % (fit, iter,))
+    if fit:
+        logging.info("%s converged after iteration %s" % (trace_label, iteration,))
+    else:
+        logging.info("%s did not converge after iteration %s" % (trace_label, iteration,))
 
     # - convergence stats
-    print("\nshadow_pricing max_abs_diff\n", spc.max_abs_diff)
-    print("\nshadow_pricing max_rel_diff\n", spc.max_rel_diff)
-    print("\nshadow_pricing num_fail\n", spc.num_fail)
+    logging.info("\nshadow_pricing max_abs_diff\n%s" % spc.max_abs_diff)
+    logging.info("\nshadow_pricing max_rel_diff\n%s" % spc.max_rel_diff)
+    logging.info("\nshadow_pricing num_fail\n%s" % spc.num_fail)
+
+    # - shadow price table
+    if locutor:
+        if 'SHADOW_PRICE_TABLE' in model_settings:
+            inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
+        if 'MODELED_SIZE_TABLE' in model_settings:
+            inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
 
     tracing.print_summary('workplace_taz', choices, describe=True)
 
@@ -332,12 +342,6 @@ def workplace_location(
     NO_WORKPLACE_TAZ = -1
     persons_df['workplace_taz'] = \
         choices.reindex(persons_df.index).fillna(NO_WORKPLACE_TAZ).astype(int)
-
-    # - shadow price table
-    if 'SHADOW_PRICE_TABLE' in model_settings:
-        inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
-    if 'MODELED_SIZE_TABLE' in model_settings:
-        inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
 
     # - annotate persons
     model_name = 'workplace_location'

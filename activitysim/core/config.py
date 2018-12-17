@@ -21,6 +21,13 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable(cache=True)
+def locutor():
+    # when multiprocessing, sometimes you only want one process to write trace files
+    # mp_tasks overrides this definition to designate a single sub-process as locutor
+    return True
+
+
+@inject.injectable(cache=True)
 def configs_dir():
     if not os.path.exists('configs'):
         raise RuntimeError("configs_dir: directory does not exist")

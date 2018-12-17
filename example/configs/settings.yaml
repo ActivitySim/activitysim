@@ -7,6 +7,22 @@ households_sample_size:  100
 # simulate all households
 #households_sample_size: 0
 
+chunk_size: 0
+
+# set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: False
+
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+use_shadow_pricing: True
+
+# global switch to enable/disable loading of saved shadow prices
+# (ignored if global use_shadow_pricing switch is False)
+load_saved_shadow_prices: True
+
+# - tracing
+
 #trace household id; comment out or leave empty for no trace
 #trace_hh_id: 1482966
 trace_hh_id:
@@ -15,13 +31,6 @@ trace_hh_id:
 #trace_od: [5, 11]
 trace_od:
 
-chunk_size: 0
-
-# set false to disable variability check in simple_simulate and interaction_simulate
-check_for_variability: False
-
-# set false to disable shadow_pricing
-use_shadow_pricing: False
 
 models:
   - initialize_landuse

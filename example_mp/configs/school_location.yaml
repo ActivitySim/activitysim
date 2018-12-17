@@ -2,7 +2,7 @@ inherit_settings: True
 
 # - shadow pricing
 
-MAX_SHADOW_PRICE_ITERATIONS: 5
+MAX_SHADOW_PRICE_ITERATIONS: 10
 MAX_SHADOW_PRICE_ITERATIONS_SAVED: 1
 
 # model adds these tables (informational - not added if commented out)

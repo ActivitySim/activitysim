@@ -27,8 +27,6 @@ MAX_SHADOW_PRICE_ITERATIONS_SAVED: 1
 
 CHOOSER_TABLE_NAME: persons
 
-DESTINATION_PREDICTED_SIZE_TABLE: school_destination_size
-
 # size_terms selector
 SELECTOR: school
 

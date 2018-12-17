@@ -28,8 +28,6 @@ MAX_SHADOW_PRICE_ITERATIONS_SAVED: 1
 # income_segment is in households, but we want to count persons
 CHOOSER_TABLE_NAME: persons_merged
 
-DESTINATION_PREDICTED_SIZE_TABLE: workplace_destination_size
-
 # size_terms selector
 SELECTOR: work
 

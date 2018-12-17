@@ -356,12 +356,13 @@ def allocate_shared_shadow_pricing_buffers():
     return shadow_pricing_buffers
 
 
-def setup_injectables_and_logging(injectables):
+def setup_injectables_and_logging(injectables, locutor=True):
 
     for k, v in iteritems(injectables):
         inject.add_injectable(k, v)
 
     inject.add_injectable("is_sub_task", True)
+    inject.add_injectable("locutor", locutor)
 
     filter_warnings()
 
@@ -430,12 +431,12 @@ def profile_path():
 """
 
 
-def mp_run_simulation(queue, injectables, step_info, resume_after, **kwargs):
+def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kwargs):
 
     shared_data_buffer = kwargs
     # handle_standard_args()
 
-    setup_injectables_and_logging(injectables)
+    setup_injectables_and_logging(injectables, locutor)
 
     mem.init_trace(setting('mem_tick'))
 
@@ -560,10 +561,11 @@ def run_sub_simulations(
     failed = set([])  # so we can log process failure when it happens
     drop_breadcrumb(step_name, 'completed', list(completed))
 
-    for process_name in process_names:
+    for i, process_name in enumerate(process_names):
         q = multiprocessing.Queue()
+        spokesman = (i == 0)
         p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
-                                    args=(q, injectables, step_info, resume_after,),
+                                    args=(spokesman, q, injectables, step_info, resume_after,),
                                     kwargs=shared_data_buffers)
         procs.append(p)
         queues.append(q)

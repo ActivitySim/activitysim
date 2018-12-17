@@ -10,6 +10,8 @@ profile: False
 strict: False
 mem_tick: 0
 use_shadow_pricing: True
+load_saved_shadow_prices: True
+
 
 # - full sample - 2732722 households on 64 processor 432 GiB RAM
 households_sample_size:  0
@@ -29,14 +31,15 @@ stagger: 5
 #profile: False
 #strict: False
 #mem_tick: 30
-#use_shadow_pricing: False
+#use_shadow_pricing: True
+#load_saved_shadow_prices: False
 #
 ## - small sample
 #households_sample_size:  5000
 #chunk_size: 500000000
 #num_processes: 2
 #stagger: 5
-
+#
 # - stride sample
 #households_sample_size:  0
 #chunk_size: 1000000000
@@ -103,54 +106,24 @@ multiprocess_steps:
   - name: mp_summarize
     begin: write_data_dictionary
 
-#multiprocess_steps:
-#  - name: mp_initialize_landuse
-#    begin: initialize_landuse
-#  - name: mp_accessibility
-#    begin: compute_accessibility
-#    num_processes: 2
-#    slice:
-#      tables:
-#        - accessibility
-#      except:
-#        - land_use
-#  - name: mp_initialize_households
-#    begin: initialize_households
-#  - name: mp_households
-#    begin: school_location
-#    # num_processes = 0 means use all available cpus
-#    num_processes: 2
-#    slice:
-#      tables:
-#        - households
-#        - persons
-#  - name: mp_summarize
-#    begin: write_data_dictionary
-
 
 output_tables:
   action: include
   prefix: final_
   tables:
-    - checkpoints
+#    - checkpoints
 #    - accessibility
 #    - land_use
 #    - households
 #    - persons
 #    - trips
 #    - tours
-#    - school_shadow_prices
-#    - school_destination_size
-#    - school_modeled_size
-#    - workplace_shadow_prices
-#    - workplace_destination_size
-#    - workplace_modeled_size
+    - school_shadow_prices
+    - raw_school_destination_size
+    - scaled_school_destination_size
+    - school_modeled_size
+    - workplace_shadow_prices
+    - raw_work_destination_size
+    - scaled_work_destination_size
+    - workplace_modeled_size
 
-coalesce:
-  names:
-    - pipeline_0.h5
-    - pipeline_1.h5
-  slice:
-    tables:
-      - households
-      - persons

@@ -171,7 +171,8 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.error("print_summary neither value_counts nor describe")
 
     if value_counts:
-        logger.info("%s value counts:\n%s" % (label, df.value_counts()))
+        n = 10
+        logger.info("%s top %s value counts:\n%s" % (label, n, df.value_counts().nlargest(n)))
 
     if describe:
         logger.info("%s summary:\n%s" % (label, df.describe()))

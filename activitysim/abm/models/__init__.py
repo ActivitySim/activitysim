@@ -16,8 +16,7 @@ from . import joint_tour_scheduling
 from . import non_mandatory_tour_frequency
 from . import non_mandatory_destination
 from . import non_mandatory_scheduling
-from . import school_location
-from . import workplace_location
+from . import location_choice
 from . import tour_mode_choice
 from . import cdap
 

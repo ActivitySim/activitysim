@@ -15,11 +15,9 @@ check_for_variability: False
 # - shadow pricing global switches
 
 # turn shadow_pricing on and off for all models (e.g. school and work)
-use_shadow_pricing: True
+# shadow pricing is deprecated for less than full samples
+use_shadow_pricing: False
 
-# global switch to enable/disable loading of saved shadow prices
-# (ignored if global use_shadow_pricing switch is False)
-load_saved_shadow_prices: True
 
 # - tracing
 
@@ -113,7 +111,4 @@ skim_time_periods:
         - MD
         - PM
 
-shadow_pricing_models:
-  school: school_location
-  work: workplace_location
 

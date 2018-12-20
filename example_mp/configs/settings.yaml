@@ -10,7 +10,6 @@ profile: False
 strict: False
 mem_tick: 0
 use_shadow_pricing: True
-load_saved_shadow_prices: True
 
 
 # - full sample - 2732722 households on 64 processor 432 GiB RAM
@@ -32,7 +31,6 @@ stagger: 0
 #strict: False
 #mem_tick: 30
 #use_shadow_pricing: True
-#load_saved_shadow_prices: False
 #
 ## - small sample
 #households_sample_size:  5000

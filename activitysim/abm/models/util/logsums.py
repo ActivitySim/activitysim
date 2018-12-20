@@ -39,7 +39,7 @@ def filter_chooser_columns(choosers, logsum_settings, model_settings):
 
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:
-        logger.info("filter_chooser_columns missing_columns %s" % missing_columns)
+        logger.debug("logsum.filter_chooser_columns missing_columns %s" % missing_columns)
 
     # ignore any columns not appearing in choosers df
     chooser_columns = [c for c in chooser_columns if c in choosers]
@@ -92,7 +92,7 @@ def compute_logsums(choosers,
     nest_spec = config.get_logit_model_settings(logsum_settings)
     constants = config.get_model_constants(logsum_settings)
 
-    logger.info("Running compute_logsums with %d choosers" % choosers.shape[0])
+    logger.debug("Running compute_logsums with %d choosers" % choosers.shape[0])
 
     # setup skim keys
     odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,

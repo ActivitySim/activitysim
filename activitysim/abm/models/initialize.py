@@ -53,7 +53,7 @@ def annotate_tables(model_settings, trace_label):
             expressions.assign_columns(
                 df=df,
                 model_settings=annotate,
-                trace_label=tracing.extend_trace_label(trace_label, 'annotate_%s' % tablename))
+                trace_label=trace_label)
 
         # fixme - narrow?
 
@@ -89,7 +89,7 @@ def initialize_households():
 
     # - initialize shadow_pricing predicted_size after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
-    shadow_pricing.add_predicted_size_table()
+    shadow_pricing.add_predicted_size_tables()
 
     # - preload person_windows
     t0 = tracing.print_elapsed_time()

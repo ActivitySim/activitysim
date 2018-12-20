@@ -125,16 +125,16 @@ Time to execute everything : 3596.278 seconds (59.9 minutes)
 Max RAM 233.90GB
 
 
-# with shadow pricing 5 iterations
+# with shadow pricing 10 iterations
 
 households_sample_size:  0
-chunk_size:  90000000000
+chunk_size:  80000000000
 num_processes: 60
-stagger: 5
+stagger: 0
 
-INFO - activitysim.core.mem - high water mark used: 325.70 timestamp: 14/12/2018 02:38:08 label: mp_households_15.non_mandatory_tour_destination.completed
-INFO - activitysim.core.mem - high water mark rss: 557.75 timestamp: 14/12/2018 02:38:08 label: mp_households_15.non_mandatory_tour_destination.completed
-INFO - activitysim.core.tracing - Time to execute everything : 6017.381 seconds (100.3 minutes)
+INFO - activitysim.core.mem - high water mark used: 342.87 timestamp: 18/12/2018 00:56:39 label: mp_households_50.non_mandatory_tour_scheduling.completed
+INFO - activitysim.core.mem - high water mark rss: 574.65 timestamp: 18/12/2018 00:56:39 label: mp_households_50.non_mandatory_tour_scheduling.completed
+INFO - activitysim.core.tracing - Time to execute everything : 8189.908 seconds (136.5 minutes)
 
 
 ------------ azure Windows 2TB 128 processors

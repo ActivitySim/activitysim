@@ -10,11 +10,18 @@ ALT_DEST_COL_NAME: alt_dest
 IN_PERIOD: 8
 OUT_PERIOD: 17
 
+DEST_CHOICE_COLUMN_NAME: school_taz
+
 SAMPLE_SPEC: school_location_sample.csv
 SPEC: school_location.csv
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 LOGSUM_PREPROCESSOR: nontour_preprocessor
+
+LOGSUM_TOUR_PURPOSE:
+  university: univ
+  highschool: school
+  gradeschool: school
 
 annotate_persons:
   SPEC: annotate_persons_school
@@ -22,16 +29,18 @@ annotate_persons:
 
 # - shadow pricing
 
-MAX_SHADOW_PRICE_ITERATIONS: 5
-MAX_SHADOW_PRICE_ITERATIONS_SAVED: 1
-
+# required by initialize_households when creating school_destination_size table
 CHOOSER_TABLE_NAME: persons
 
 # size_terms selector
 SELECTOR: school
 
 # chooser column with segment_id for this segment type
-CHOOSER_SEGMENT_COLUMN: school_segment
+CHOOSER_SEGMENT_COLUMN_NAME: school_segment
+
+# boolean column to filter choosers (True means keep)
+CHOOSER_FILTER_COLUMN_NAME: is_student
+
 
 # FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
 SEGMENT_IDS:
@@ -39,16 +48,9 @@ SEGMENT_IDS:
   highschool: 2
   gradeschool: 1
 
+# model adds these tables (informational - not added if commented out)
 SHADOW_PRICE_TABLE: school_shadow_prices
 MODELED_SIZE_TABLE: school_modeled_size
 
-#SAVED_SHADOW_PRICE_TABLE_NAME: school_shadow_prices.csv
-
-# ignore criteria for zones smaller than size_threshold
-SIZE_THRESHOLD: 100
-
-# zone passes if modeled is within percent_tolerance of  predicted_size
-PERCENT_TOLERANCE: 5
-
-# max percentage of zones allowed to fail
-FAIL_THRESHOLD: 5
+# not loaded if commented out
+SAVED_SHADOW_PRICE_TABLE_NAME: school_shadow_prices.csv

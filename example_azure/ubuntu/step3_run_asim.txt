@@ -59,6 +59,7 @@ export OMP_NUM_THREADS=1
 
 python simulation.py -d /datadrive/work/data/full
 
+tail -f output/log/mp_households_0-activitysim.log
 
 tar zcvf output.tar.gz output/log/ output/trace/
 

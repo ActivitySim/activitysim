@@ -37,7 +37,7 @@ TALLY_CHECKOUT = (1, -1)
 
 def size_table_name(selector, scaled=True):
     if scaled:
-        table_name = "scaled_%s_destination_size" % selector
+        table_name = "%s_destination_size" % selector
     else:
         table_name = "raw_%s_destination_size" % selector
     return table_name
@@ -47,15 +47,11 @@ def get_size_table(selector, scaled=True):
     return inject.get_table(size_table_name(selector, scaled)).to_frame()
 
 
-USE_RAW_SIZE = True
-
-
 class ShadowPriceCalculator(object):
 
     def __init__(self, model_settings, shared_data=None, shared_data_lock=None):
 
         self.use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
-        self.use_saved_shadow_prices = bool(config.setting('use_saved_shadow_prices'))
 
         self.selector = model_settings['SELECTOR']
 
@@ -68,17 +64,10 @@ class ShadowPriceCalculator(object):
         # - modeled_size (set by call to set_choices/synchronize_choices)
         self.modeled_size = None
 
-        # - convergence criteria for check_fit
-        # ignore criteria for zones smaller than size_threshold
-        self.size_threshold = model_settings['SIZE_THRESHOLD']
-        # zone passes if modeled is within percent_tolerance of  predicted_size
-        self.percent_tolerance = model_settings['PERCENT_TOLERANCE']
-        # max percentage of zones allowed to fail
-        self.fail_threshold = model_settings['FAIL_THRESHOLD']
+        if self.use_shadow_pricing:
+            self.shadow_settings = config.read_model_settings('shadow_pricing.yaml')
 
         # - destination_size_table (predicted_size)
-        if USE_RAW_SIZE:
-            self.raw_predicted_size = get_size_table(self.selector, scaled=False)
         self.predicted_size = get_size_table(self.selector, scaled=True)
 
         # - shared_data
@@ -92,13 +81,14 @@ class ShadowPriceCalculator(object):
         # - load saved shadow_prices (if available) and set max_iterations accordingly
         self.shadow_prices = None
         if self.use_shadow_pricing:
-            if self.load_saved_shadow_prices:
-                self.shadow_prices = self.load_saved_shadow_prices(model_settings)
+            if self.shadow_settings['LOAD_SAVED_SHADOW_PRICES']:
+                # read_saved_shadow_prices logs error and returns None if file not found
+                self.shadow_prices = self.read_saved_shadow_prices(model_settings)
 
             if self.shadow_prices is None:
-                self.max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS', 5)
+                self.max_iterations = self.shadow_settings.get('MAX_ITERATIONS', 5)
             else:
-                self.max_iterations = model_settings.get('MAX_SHADOW_PRICE_ITERATIONS_SAVED', 1)
+                self.max_iterations = self.shadow_settings.get('MAX_ITERATIONS_SAVED', 1)
         else:
             self.max_iterations = 1
 
@@ -114,7 +104,7 @@ class ShadowPriceCalculator(object):
         self.max_abs_diff = pd.DataFrame(index=self.predicted_size.columns)
         self.max_rel_diff = pd.DataFrame(index=self.predicted_size.columns)
 
-    def load_saved_shadow_prices(self, model_settings):
+    def read_saved_shadow_prices(self, model_settings):
 
         shadow_prices = None
 
@@ -125,7 +115,7 @@ class ShadowPriceCalculator(object):
             file_path = config.data_file_path(saved_shadow_price_file_name, mandatory=False)
             if file_path:
                 shadow_prices = pd.read_csv(file_path, index_col=0)
-                logging.info("loading saved_shadow_prices from %s" % (file_path))
+                logging.info("reading saved_shadow_prices from %s" % (file_path))
             else:
                 logging.warning("Could not find saved_shadow_prices file %s" % (file_path))
 
@@ -209,8 +199,20 @@ class ShadowPriceCalculator(object):
 
         """
 
+        if not self.use_shadow_pricing:
+            return False
+
         assert self.modeled_size is not None
         assert self.predicted_size is not None
+
+        # - convergence criteria for check_fit
+        # - convergence criteria for check_fit
+        # ignore convergence criteria for zones smaller than size_threshold
+        size_threshold = self.shadow_settings['SIZE_THRESHOLD']
+        # zone passes if modeled is within percent_tolerance of  predicted_size
+        percent_tolerance = self.shadow_settings['PERCENT_TOLERANCE']
+        # max percentage of zones allowed to fail
+        fail_threshold = self.shadow_settings['FAIL_THRESHOLD']
 
         modeled_size = self.modeled_size
         predicted_size = self.predicted_size
@@ -220,10 +222,10 @@ class ShadowPriceCalculator(object):
         rel_diff = abs_diff / modeled_size
 
         # ignore zones where predicted_size < threshold
-        rel_diff.where(predicted_size >= self.size_threshold, 0, inplace=True)
+        rel_diff.where(predicted_size >= size_threshold, 0, inplace=True)
 
         # ignore zones where rel_diff < percent_tolerance
-        rel_diff.where(rel_diff > (self.percent_tolerance / 100.0), 0, inplace=True)
+        rel_diff.where(rel_diff > (percent_tolerance / 100.0), 0, inplace=True)
 
         self.num_fail['iter%s' % iteration] = (rel_diff > 0).sum()
         self.max_abs_diff['iter%s' % iteration] = abs_diff.max()
@@ -231,7 +233,8 @@ class ShadowPriceCalculator(object):
 
         total_fails = (rel_diff > 0).values.sum()
 
-        max_fail = (self.fail_threshold / 100.0) * np.prod(predicted_size.shape)
+        # FIXME - should not count zones where predicted_size < threshold? (could calc in init)
+        max_fail = (fail_threshold / 100.0) * np.prod(predicted_size.shape)
 
         converged = (total_fails <= max_fail)
 
@@ -245,28 +248,19 @@ class ShadowPriceCalculator(object):
         logging.info("check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s" %
                      (self.selector, iteration, converged, max_fail, total_fails))
 
+        # - convergence stats
+        if converged or iteration == self.max_iterations:
+            logging.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
+            logging.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
+            logging.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
+
         return converged
 
     def update_shadow_prices(self):
-        """
-        CTRAMP:
-        if ( modeledDestinationLocationsByDestZone > 0 )
-            shadowPrice *= ( scaledSize / modeledDestinationLocationsByDestZone );
-        // else
-        //    shadowPrice *= scaledSize;
-
-        Daysim:
-        targ = prediction > total
-            ? Math.Min(prediction,
-                       Math.Min(total * (1 + percentTolerance / 100D), total + absoluteTolerance))
-            : Math.Max(prediction,
-                       Math.Max(total * (1 - percentTolerance / 100D), total - absoluteTolerance));
-
-        shadowPrice =
-            previousShadowPrice + Math.Log(Math.Max(targ, .01) * 1D / Math.Max(prediction, .01));
-        """
 
         assert self.use_shadow_pricing
+
+        shadow_price_method = self.shadow_settings['SHADOW_PRICE_METHOD']
 
         # can't update_shadow_prices until after first iteration
         # modeled_size should have been set by set_choices at end of previous iteration
@@ -274,30 +268,78 @@ class ShadowPriceCalculator(object):
         assert self.predicted_size is not None
         assert self.shadow_prices is not None
 
-        new_scale_factor = self.predicted_size / self.modeled_size
+        if shadow_price_method == 'ctramp':
+            # - CTRAMP
+            """
+            if ( modeledDestinationLocationsByDestZone > 0 )
+                shadowPrice *= ( scaledSize / modeledDestinationLocationsByDestZone );
+            // else
+            //    shadowPrice *= scaledSize;
+            """
+            damping_factor = self.shadow_settings['DAMPING_FACTOR']
+            assert 0 < damping_factor <= 1
 
-        # FIXME - need to decide if following CTRAMP code quoted above, and if so, which version
-        # following CTRAMP (original version - later commented out)
-        # avoid zero-divide for 0 modeled_size, by setting scale_factor same as modeled_size of 1
-        # new_scale_factor.where(self.modeled_size > 0, self.predicted_size)
+            new_scale_factor = self.predicted_size / self.modeled_size
+            damped_scale_factor = 1 + (new_scale_factor - 1) * damping_factor
+            new_shadow_prices = self.shadow_prices * damped_scale_factor
 
-        new_shadow_prices = self.shadow_prices * new_scale_factor
+            # following CTRAMP (revised version - with 0 dest zone case lines commented out)
+            # avoid zero-divide for 0 modeled_size, by leaving shadow_prices unchanged
+            new_shadow_prices.where(self.modeled_size > 0, self.shadow_prices, inplace=True)
 
-        # following CTRAMP (revised version - with 0 dest zone case lines commented out)
-        # avoid zero-divide for 0 modeled_size, by leaving shadow_prices unchanged
-        new_shadow_prices.where(self.modeled_size > 0, self.shadow_prices, inplace=True)
+        elif shadow_price_method == 'daysim':
+            # - Daysim
+            """
+            if predicted > modeled:  # if modeled is too low, increase shadow price
+              target = min(
+                predicted,
+                modeled + modeled * percent_tolerance,
+                modeled + absolute_tolerance)
+
+            if modeled > predicted  # modeled is too high, decrease shadow price
+                target = max of:
+                    predicted
+                    modeled - modeled * percentTolerance
+                    modeled - absoluteTolerance
+
+            shadow_price = shadow_price + log(np.maximum(target, 0.01) / np.maximum(modeled, 0.01))
+            """
+            # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?
+            absolute_tolerance = self.shadow_settings['DAYSIM_ABSOLUTE_TOLERANCE']
+            percent_tolerance = self.shadow_settings['DAYSIM_PERCENT_TOLERANCE'] / 100.0
+            assert 0 <= percent_tolerance <= 1
+
+            target = np.where(
+                self.predicted_size > self.modeled_size,
+                np.minimum(self.predicted_size,
+                           np.minimum(self.modeled_size * (1 + percent_tolerance),
+                                      self.modeled_size + absolute_tolerance)),
+                np.maximum(self.predicted_size,
+                           np.maximum(self.modeled_size * (1 - percent_tolerance),
+                                      self.modeled_size - absolute_tolerance)))
+
+            adjustment = np.log(np.maximum(target, 0.01) / np.maximum(self.modeled_size, 0.01))
+
+            # def like_df(data, df):
+            #     return pd.DataFrame(data=data, columns=df.columns, index=df.index)
+            # print("\ntarget\n", like_df(target, self.shadow_prices).head())
+            # print("\nadjustment\n", like_df(adjustment, self.shadow_prices).head())
+
+            new_shadow_prices = self.shadow_prices + adjustment
+
+        else:
+            raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % self.shadow_price_method)
 
         # print("\nself.predicted_size\n", self.predicted_size.head())
         # print("\nself.modeled_size\n", self.modeled_size.head())
+        # print("\nprevious shadow_prices\n", self.shadow_prices.head())
+        # print("\nnew_shadow_prices\n", new_shadow_prices.head())
 
         self.shadow_prices = new_shadow_prices
 
     def shadow_price_adjusted_predicted_size(self):
 
-        if USE_RAW_SIZE:
-            return self.raw_predicted_size * self.shadow_prices
-        else:
-            return self.predicted_size * self.shadow_prices
+        return self.predicted_size * self.shadow_prices
 
     def write_trace_files(self, iteration):
         logger.info("write_trace_files iteration %s" % iteration)
@@ -322,8 +364,10 @@ def get_shadow_pricing_info():
     land_use = inject.get_table('land_use')
     size_terms = inject.get_injectable('size_terms')
 
+    shadow_settings = config.read_model_settings('shadow_pricing.yaml')
+
     # shadow_pricing_models is dict of {<selector>: <model_name>}
-    shadow_pricing_models = config.setting('shadow_pricing_models')
+    shadow_pricing_models = shadow_settings['shadow_pricing_models']
 
     blocks = OrderedDict()
     for selector in shadow_pricing_models:
@@ -423,12 +467,15 @@ def load_shadow_price_calculator(model_settings):
     return spc
 
 
-def add_predicted_size_table():
+def add_predicted_size_tables():
 
-    shadow_pricing_models = config.setting('shadow_pricing_models')
+    use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
+
+    shadow_settings = config.read_model_settings('shadow_pricing.yaml')
+    shadow_pricing_models = shadow_settings['shadow_pricing_models']
 
     if shadow_pricing_models is None:
-        logger.warning('add_predicted_size_table: shadow_pricing_models not in settings')
+        logger.warning('shadow_pricing_models list not found in shadow_pricing settings')
         return
 
     # shadow_pricing_models is dict of {<selector>: <model_name>}
@@ -442,11 +489,12 @@ def add_predicted_size_table():
 
         segment_ids = model_settings['SEGMENT_IDS']
         chooser_table_name = model_settings['CHOOSER_TABLE_NAME']
-        chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN']
+        chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
 
         choosers_df = inject.get_table(chooser_table_name).to_frame()
-        if 'CHOOSER_FILTER_COLUMN' in model_settings:
-            choosers_df = choosers_df[choosers_df[model_settings['CHOOSER_FILTER_COLUMN']] != 0]
+        if 'CHOOSER_FILTER_COLUMN_NAME' in model_settings:
+            choosers_df = \
+                choosers_df[choosers_df[model_settings['CHOOSER_FILTER_COLUMN_NAME']] != 0]
 
         # - raw_predicted_size
         land_use = inject.get_table('land_use')
@@ -454,38 +502,41 @@ def add_predicted_size_table():
         raw_size = tour_destination_size_terms(land_use, size_terms, selector).astype(np.float64)
         assert set(raw_size.columns) == set(segment_ids.keys())
 
-        if USE_RAW_SIZE:
-            inject.add_table(size_table_name(selector, scaled=False), raw_size)
+        # this is just informational - for debugging shadow pricing
+        inject.add_table(size_table_name(selector, scaled=False), raw_size)
 
-        # - global number of choosers in each segment
-        segment_chooser_counts = \
-            {segment_name: (choosers_df[chooser_segment_column] == segment_id).sum()
-             for segment_name, segment_id in iteritems(segment_ids)}
+        if use_shadow_pricing:
 
-        # - segment scale factor (modeled / predicted) keyed by segment_name
-        # scaling reconciles differences between synthetic population and zone demographics
-        # in a partial sample, it also scales predicted_size targets to sample population
-        segment_scale_factors = {}
-        for c in raw_size:
-            # number of zone demographics predicted destination choices
-            segment_predicted_size = raw_size[c].astype(np.float64).sum()
+            # - segment scale factor (modeled / predicted) keyed by segment_name
+            # scaling reconciles differences between synthetic population and zone demographics
+            # in a partial sample, it also scales predicted_size targets to sample population
+            segment_scale_factors = {}
+            for c in raw_size:
+                # number of zone demographics predicted destination choices
+                segment_predicted_size = raw_size[c].astype(np.float64).sum()
 
-            # number of synthetic population choosers in segment
-            segment_chooser_count = (choosers_df[chooser_segment_column] == segment_ids[c]).sum()
+                # number of synthetic population choosers in segment
+                segment_chooser_count = \
+                    (choosers_df[chooser_segment_column] == segment_ids[c]).sum()
 
-            segment_scale_factors[c] = \
-                segment_chooser_count / np.maximum(segment_predicted_size, 1)
+                segment_scale_factors[c] = \
+                    segment_chooser_count / np.maximum(segment_predicted_size, 1)
 
-            logger.info("add_predicted_size_table %s segment %s "
-                        "predicted %s modeled %s scale_factor %s" %
-                        (chooser_table_name, c,
-                         segment_predicted_size,
-                         segment_chooser_count,
-                         segment_scale_factors[c]))
+                logger.info("add_predicted_size_tables %s segment %s "
+                            "predicted %s modeled %s scale_factor %s" %
+                            (chooser_table_name, c,
+                             segment_predicted_size,
+                             segment_chooser_count,
+                             segment_scale_factors[c]))
 
-            # segment_scale_factors[c] = \
-            #     segment_chooser_counts[c] / np.maximum(segment_predicted_size, 1)
+                # segment_scale_factors[c] = \
+                #     segment_chooser_counts[c] / np.maximum(segment_predicted_size, 1)
 
-        # - scaled_size = zone_size * (total_segment_modeled / total_segment_predicted)
-        scaled_size = raw_size * segment_scale_factors
+            # - scaled_size = zone_size * (total_segment_modeled / total_segment_predicted)
+            scaled_size = (raw_size * segment_scale_factors).round()
+
+        else:
+            # don't scale if not shadow_pricing (breaks partial sample replicability)
+            scaled_size = raw_size.copy()
+
         inject.add_table(size_table_name(selector, scaled=True), scaled_size)

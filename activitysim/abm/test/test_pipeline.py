@@ -164,11 +164,6 @@ def test_mini_pipeline_run():
 
     pipeline.run(models=_MODELS, resume_after=None)
 
-    # data_dir = inject.get_injectable('data_dir')
-    # school_destination_size = pipeline.get_table("school_shadow_prices")
-    # school_destination_size.to_csv(os.path.join(data_dir, 'school_shadow_prices.csv'),
-    #                                index=True, header=True)
-
     regress_mini_auto()
 
     pipeline.run_model('cdap_simulate')
@@ -325,7 +320,7 @@ def regress_tour_modes(tours_df):
     print("mode_df\n", tours_df[mode_cols])
 
     """
-    tour_id        tour_mode  person_id tour_type  tour_num  tour_category
+     tour_id        tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
     94247751     SHARED2FREE    3249922  othmaint         1          joint
     94247765        WALK_LOC    3249922      work         1      mandatory
@@ -419,7 +414,7 @@ def test_full_run2():
     pipeline.close_pipeline()
 
 
-def test_full_run_with_chunks():
+def test_full_run3_with_chunks():
 
     # should get the same result with different chunk size
 
@@ -437,7 +432,7 @@ def test_full_run_with_chunks():
     pipeline.close_pipeline()
 
 
-def test_full_run_stability():
+def test_full_run4_stability():
 
     # hh should get the same result with different sample size
 
@@ -452,7 +447,7 @@ def test_full_run_stability():
     pipeline.close_pipeline()
 
 
-def test_full_run_singleton():
+def test_full_run5_singleton():
 
     # should wrk with only one hh
 

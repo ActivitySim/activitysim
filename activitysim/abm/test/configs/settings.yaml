@@ -1,10 +1,10 @@
 input_store: mtc_asim.h5
 skims_file: skims.omx
 
-# area_types less than this are considered urban
-urban_threshold: 4
-cbd_threshold: 2
-rural_threshold: 6
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+use_shadow_pricing: True
 
 households_sample_size: 100
 
@@ -13,6 +13,11 @@ trace_hh_id: 961042
 
 # trace origin, destination in accessibility calculation
 #trace_od: [5, 11]
+
+# area_types less than this are considered urban
+urban_threshold: 4
+cbd_threshold: 2
+rural_threshold: 6
 
 grade_school_max_age: 14
 
@@ -38,7 +43,4 @@ skim_time_periods:
         - MD
         - PM
 
-shadow_pricing_models:
-  school: school_location
-  work: workplace_location
 

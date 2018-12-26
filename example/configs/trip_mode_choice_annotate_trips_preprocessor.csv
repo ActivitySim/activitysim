@@ -2,8 +2,7 @@ Description,Target,Expression
 ,is_joint,(df.number_of_participants > 1)
 ,is_indiv,(df.number_of_participants == 1)
 ,is_atwork_subtour,~df.parent_tour_id.isnull()
-,value_of_time,8
-,c_cost,(0.60 * c_ivt) / value_of_time
+,c_cost,(0.60 * c_ivt) / df.value_of_time
 #,,
 #atwork subtours,,
 #FIXME tripModeChoice uec wrongly conflates these with tour_mode_is_bike?,,

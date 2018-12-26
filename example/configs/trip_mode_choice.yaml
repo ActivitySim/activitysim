@@ -121,4 +121,5 @@ TOURS_MERGED_CHOOSER_COLUMNS:
   - parent_tour_id
   - tour_mode
   - duration
+  - value_of_time
 

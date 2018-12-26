@@ -78,7 +78,7 @@ output_tables:
 #    - accessibility
 #    - land_use
 #    - households
-#    - persons
+    - persons
 #    - trips
 #    - tours
 
@@ -111,4 +111,17 @@ skim_time_periods:
         - MD
         - PM
 
+# - value of time
 
+# value_of_time = lognormal(np.log(median_value_of_time * mu), sigma).clip(min_vot, max_vot)
+
+min_value_of_time: 0
+max_value_of_time: 50
+distributed_vot_mu: 0.684
+distributed_vot_sigma: 0.85
+
+household_median_value_of_time:
+  1: 6
+  2: 8
+  3: 10
+  4: 12

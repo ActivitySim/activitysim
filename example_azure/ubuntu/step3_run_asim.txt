@@ -22,6 +22,7 @@ VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.networ
 
 # copy settings to example_mp/configs
 scp example_mp/configs/settings.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/settings.yaml
+scp example_mp/configs/shadow_pricing.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/shadow_pricing.yaml
 #scp example_mp/configs/logging.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/logging.yaml
 scp example_mp/configs/school_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/school_location.yaml
 scp example_mp/configs/workplace_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/workplace_location.yaml
@@ -48,6 +49,10 @@ source activate asim
 #cp output/final_school_shadow_prices.csv /datadrive/work/data/full/school_shadow_prices.csv
 #cp output/final_workplace_shadow_prices.csv /datadrive/work/data/full/workplace_shadow_prices.csv
 
+# - delete shadow prices from data dir
+#rm /datadrive/work/data/full/school_shadow_prices.csv
+#rm /datadrive/work/data/full/workplace_shadow_prices.csv
+
 cd /datadrive/work/activitysim/example_mp
 
 #nano configs/settings.yaml
@@ -65,8 +70,8 @@ tar zcvf output.tar.gz output/log/ output/trace/
 
 exit
 
-TAR_TAG=azure-64-ubuntu-shadow2
-scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/output.tar.gz example_azure/output_ubuntu/$TAR_TAG-output.tar.gz
+TAR_TAG=azure-64-ubuntu-shadow_ctramp
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/sp_ctramp_output.tar.gz example_azure/output_ubuntu/$TAR_TAG-output.tar.gz
 
 ############### 
 

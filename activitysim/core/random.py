@@ -181,6 +181,11 @@ class SimpleChannel(object):
         seeded and fast-forwarded on-the-fly to the appropriate position in the channel's
         random number stream for each row in df.
 
+        WARNING:
+            since we are reusing a single underlying randomstate,
+            prng must be called when yielded as generated sequence,
+            not serialized and called later after iterator finishes
+
         Parameters
         ----------
         df : pandas.DataFrame
@@ -237,10 +242,67 @@ class SimpleChannel(object):
         assert self.step_name
         assert self.step_name == step_name
 
+        # - reminder: prng must be called when yielded as generated sequence, not serialized
         generators = self._generators_for_df(df)
+
         rands = np.asanyarray([prng.rand(n) for prng in generators])
         # update offset for rows we handled
         self.row_states.loc[df.index, 'offset'] += n
+        return rands
+
+    def lognormal_for_df(self, df, step_name, mu, sigma):
+        """
+        Return a floating point random number in lognormal distribution for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame or Series
+            df or series with index name and values corresponding to a registered channel
+
+        mu : float or pd.Series or array of floats with one value per df row
+        sigma : float or array of floats with one value per df row
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            array the same length as df, with n floats in range [0, 1) for each df row
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        def to_series(x):
+            if np.isscalar(x):
+                return [x] * len(df)
+            elif isinstance(x, pd.Series):
+                return x.values
+            return x
+
+        # - reminder: prng must be called when yielded as generated sequence, not serialized
+        generators = self._generators_for_df(df)
+
+        mu = to_series(mu)
+        sigma = to_series(sigma)
+
+        rands = \
+            np.asanyarray([prng.lognormal(mean=mu[i], sigma=sigma[i])
+                           for i, prng in enumerate(generators)])
+
+        # update offset for rows we handled
+        self.row_states.loc[df.index, 'offset'] += 1
+
         return rands
 
     def choice_for_df(self, df, step_name, a, size, replace):
@@ -535,6 +597,43 @@ class Random(object):
 
         channel = self.get_channel_for_df(df)
         rands = channel.random_for_df(df, self.step_name, n)
+        return rands
+
+    def lognormal_for_df(self, df, mu, sigma):
+        """
+        Return a single floating point random number in range [0, 1) for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        We assume that we can identify the channel to used based on the name of df.index
+        This channel should have already been registered by a call to add_channel (q.v.)
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        mu : float or array of floats with one value per df row
+        sigma : float or array of floats with one value per df row
+
+        Returns
+        -------
+        rands : 1-D ndarray the same length as df
+            a single float in lognormal distribution for each row in df
+        """
+
+        channel = self.get_channel_for_df(df)
+        rands = channel.lognormal_for_df(df, self.step_name, mu, sigma)
         return rands
 
     def choice_for_df(self, df, a, size, replace):

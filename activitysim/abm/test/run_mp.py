@@ -42,24 +42,27 @@ HH_ID = 1482966
 
 def regress_mini_auto():
 
-    auto_choice = pipeline.get_table("households").auto_ownership
-
     # regression test: these are among the first 10 households in households table
-    hh_ids = [961042, 608031, 93713]
-    choices = [0, 0, 1]
+    hh_ids = [702445, 93713, 2525286, 945700]
+    choices = [1, 1, 1, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')
 
-    print("auto_choice\n", auto_choice.head(3))
+    auto_choice = pipeline.get_table("households").auto_ownership
+    print("auto_choice\n", auto_choice.head(4))
+
+    auto_choice = auto_choice.reindex(hh_ids)
+
     """
     auto_choice
      household_id
-    961042     0
-    608031     0
+    702445     1
     93713      1
+    2525286    1
+    945700     0
     Name: auto_ownership, dtype: int64
     """
-    pdt.assert_series_equal(auto_choice.reindex(hh_ids), expected_choice)
+    pdt.assert_series_equal(auto_choice, expected_choice)
 
 
 def test_mp_run():

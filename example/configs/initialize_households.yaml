@@ -16,3 +16,9 @@ annotate_tables:
       TABLES:
         - persons
         - land_use
+  - tablename: persons
+    annotate:
+      SPEC: annotate_persons_after_hh
+      DF: persons
+      TABLES:
+        - households

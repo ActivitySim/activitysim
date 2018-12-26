@@ -6,16 +6,16 @@ inherit_settings: True
 LOAD_SAVED_SHADOW_PRICES: True
 
 # number of shadow price iterations for cold start
-MAX_ITERATIONS: 5
+MAX_ITERATIONS: 10
 
 # number of shadow price iterations for warm start (after loading saved shadow_prices)
 MAX_ITERATIONS_SAVED: 1
 
 # ignore criteria for zones smaller than size_threshold
-SIZE_THRESHOLD: 10
+SIZE_THRESHOLD: 50
 
 # zone passes if modeled is within percent_tolerance of  predicted_size
-PERCENT_TOLERANCE: 5
+PERCENT_TOLERANCE: 10
 
 # max percentage of zones allowed to fail
 FAIL_THRESHOLD: 10

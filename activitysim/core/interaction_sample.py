@@ -27,7 +27,7 @@ from . import pipeline
 
 logger = logging.getLogger(__name__)
 
-DUMP = True
+DUMP = False
 
 
 def make_sample_choices(

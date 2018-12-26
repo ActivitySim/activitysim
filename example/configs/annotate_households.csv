@@ -5,6 +5,13 @@ Description,Target,Expression
 income_in_thousands,income_in_thousands,(households.income / 1000).clip(lower=0)
 income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"
 #,,
+,_MIN_VOT,setting('min_value_of_time')
+,_MAX_VOT,setting('max_value_of_time')
+,_MU,setting('distributed_vot_mu')
+,_SIGMA,setting('distributed_vot_sigma')
+median_value_of_time,median_value_of_time,"income_segment.map({k: v for k, v in setting('household_median_value_of_time').items()})"
+hh_value_of_time,hh_value_of_time,"rng.lognormal_for_df(df, mu=np.log(median_value_of_time * _MU), sigma=_SIGMA).clip(_MIN_VOT, _MAX_VOT)"
+#,,
 #num_workers was renamed in import,,
 #,num_workers,households.workers
 number of non_workers,num_non_workers,households.hhsize - households.num_workers

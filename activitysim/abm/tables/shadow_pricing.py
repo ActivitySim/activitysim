@@ -52,6 +52,7 @@ class ShadowPriceCalculator(object):
     def __init__(self, model_settings, shared_data=None, shared_data_lock=None):
 
         self.use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
+        self.saved_shadow_price_file_path = None  # set by read_saved_shadow_prices if loaded
 
         self.selector = model_settings['SELECTOR']
 
@@ -115,7 +116,8 @@ class ShadowPriceCalculator(object):
             file_path = config.data_file_path(saved_shadow_price_file_name, mandatory=False)
             if file_path:
                 shadow_prices = pd.read_csv(file_path, index_col=0)
-                logging.info("reading saved_shadow_prices from %s" % (file_path))
+                self.saved_shadow_price_file_path = file_path  # informational
+                logging.info("loaded saved_shadow_prices from %s" % (file_path))
             else:
                 logging.warning("Could not find saved_shadow_prices file %s" % (file_path))
 
@@ -343,7 +345,7 @@ class ShadowPriceCalculator(object):
 
     def write_trace_files(self, iteration):
         logger.info("write_trace_files iteration %s" % iteration)
-        if iteration == 0:
+        if iteration == 1:
             tracing.write_csv(self.predicted_size,
                               'shadow_price_%s_predicted_size_%s' % (self.selector, iteration),
                               transpose=False)

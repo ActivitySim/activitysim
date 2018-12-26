@@ -16,6 +16,7 @@ import pandas as pd
 
 from activitysim.core import util
 from activitysim.core import config
+from activitysim.core import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +148,7 @@ def local_utilities():
         'reindex': util.reindex,
         'setting': config.setting,
         'other_than': util.other_than,
+        'rng': pipeline.get_rn_generator(),
     }
 
     return utility_dict

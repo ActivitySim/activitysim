@@ -99,24 +99,27 @@ def test_rng_access():
 
 def regress_mini_auto():
 
-    auto_choice = pipeline.get_table("households").auto_ownership
-
     # regression test: these are among the first 10 households in households table
-    hh_ids = [961042, 608031, 93713]
-    choices = [0, 0, 1]
+    hh_ids = [702445, 93713, 2525286, 945700]
+    choices = [1, 1, 1, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')
 
-    print("auto_choice\n", auto_choice.head(3))
+    auto_choice = pipeline.get_table("households").auto_ownership
+    print("auto_choice\n", auto_choice.head(4))
+
+    auto_choice = auto_choice.reindex(hh_ids)
+
     """
     auto_choice
      household_id
-    961042     0
-    608031     0
+    702445     1
     93713      1
+    2525286    1
+    945700     0
     Name: auto_ownership, dtype: int64
     """
-    pdt.assert_series_equal(auto_choice.reindex(hh_ids), expected_choice)
+    pdt.assert_series_equal(auto_choice, expected_choice)
 
 
 def regress_mini_mtf():
@@ -274,7 +277,8 @@ def full_run(resume_after=None, chunk_size=0,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_od=trace_od,
-        check_for_variability=check_for_variability)
+        check_for_variability=check_for_variability,
+        use_shadow_pricing=False)  # shadow pricing breaks replicability when sample_size varies
 
     MODELS = settings['models']
 
@@ -312,7 +316,8 @@ EXPECT_TOUR_COUNT = 308
 
 def regress_tour_modes(tours_df):
 
-    mode_cols = ['tour_mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
+    mode_cols = ['tour_mode', 'person_id', 'tour_type',
+                 'tour_num', 'tour_category']
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
     tours_df = tours_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
@@ -327,7 +332,7 @@ def regress_tour_modes(tours_df):
     94247744            WALK    3249922    eatout         1  non_mandatory
     94247771     SHARED3FREE    3249923       eat         1         atwork
     94247794        WALK_LOC    3249923      work         1      mandatory
-    94247773  DRIVEALONEFREE    3249923    social         1  non_mandatory
+    94247793  DRIVEALONEFREE    3249923    social         1  non_mandatory
     """
 
     EXPECT_PERSON_IDS = [
@@ -363,6 +368,18 @@ def regress_tour_modes(tours_df):
 
 
 def regress():
+
+    persons_df = pipeline.get_table('persons')
+    persons_df = persons_df[persons_df.household_id == HH_ID]
+    print("persons_df\n", persons_df[['value_of_time', 'distance_to_work']])
+
+    """
+    persons_df
+     person_id  value_of_time  distance_to_work
+    person_id
+    3249922        23.349532              0.62
+    3249923        23.349532              0.62
+    """
 
     tours_df = pipeline.get_table('tours')
 

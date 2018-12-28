@@ -1,39 +1,72 @@
 
 inherit_settings: True
 
-# - production config
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
 
+# - ------------------------- production config
 multiprocess: True
-mem_tick: 0
 profile: False
 strict: False
+mem_tick: 0
+use_shadow_pricing: True
 
-# Standard_E64s_v3
+
+# - full sample - 2732722 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
-#chunk_size:  90000000000
+#chunk_size:  80000000000
 #num_processes: 60
-#stagger: 5
+#stagger: 0
 
-# Standard_M128s
-households_sample_size:  0
-chunk_size:  0
-num_processes: 120
+# - full sample - 2732722 households on Standard_M128s
+#households_sample_size:  0
+#chunk_size:  0
+#num_processes: 124
+#stagger: 0
+
+# - 20% sample - 2732722 households on 64 processor 432 GiB RAM
+households_sample_size:  546544
+chunk_size:  20000000000
+num_processes: 15
 stagger: 0
 
+
+## - ------------------------- dev config
+#multiprocess: True
+#profile: False
+#strict: False
+#mem_tick: 30
+#use_shadow_pricing: True
+#
+## - small sample
+#households_sample_size:  5000
+#chunk_size: 500000000
+#num_processes: 2
+#stagger: 5
+#
+# - stride sample
+#households_sample_size:  0
+#chunk_size: 1000000000
+#num_processes: 1
+#households_sample_stride: [120,0]
 
 # - tracing
 trace_hh_id:
 trace_od:
+#trace_hh_id: 1482966
+#trace_od: [5, 11]
 
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_purpose_and_destination
 
 models:
+  ### mp_initialize step
   - initialize_landuse
   - compute_accessibility
   - initialize_households
+  ### mp_households step
   - school_location
-  - _workplace_location_sample
-  - _workplace_location_logsums
-  - workplace_location_simulate
+  - workplace_location
   - auto_ownership_simulate
   - cdap_simulate
   - mandatory_tour_frequency
@@ -61,6 +94,7 @@ models:
   - trip_purpose_and_destination
   - trip_scheduling
   - trip_mode_choice
+  ### mp_summarize step
   - write_data_dictionary
   - write_tables
 
@@ -69,6 +103,9 @@ multiprocess_steps:
     begin: initialize_landuse
   - name: mp_households
     begin: school_location
+    #num_processes: 9
+    #stagger: 30
+    #chunk_size: 1000000000
     slice:
       tables:
         - households
@@ -76,9 +113,18 @@ multiprocess_steps:
   - name: mp_summarize
     begin: write_data_dictionary
 
+
 output_tables:
   action: include
   prefix: final_
   tables:
-    - checkpoints
+#    - checkpoints
+#    - accessibility
+#    - land_use
+#    - households
+#    - persons
+#    - trips
+#    - tours
+    - school_shadow_prices
+    - workplace_shadow_prices
 

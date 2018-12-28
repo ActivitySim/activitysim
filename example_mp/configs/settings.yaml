@@ -120,11 +120,6 @@ output_tables:
 #    - trips
 #    - tours
     - school_shadow_prices
-    - raw_school_destination_size
-    - school_destination_size
-    - school_modeled_size
     - workplace_shadow_prices
-    - raw_workplace_destination_size
-    - workplace_destination_size
-    - workplace_modeled_size
+
 

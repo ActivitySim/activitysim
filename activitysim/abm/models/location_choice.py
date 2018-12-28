@@ -330,7 +330,7 @@ def iterate_location_choice(
     choices = None
     for iteration in range(1, max_iterations + 1):
 
-        if spc.use_shadow_pricing and iteration > 0:
+        if spc.use_shadow_pricing and iteration > 1:
             spc.update_shadow_prices()
 
         choices = run_location_choice(

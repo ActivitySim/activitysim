@@ -39,3 +39,14 @@ INFO - activitysim.core.tracing - Time to execute everything : 3212.896 seconds 
 
 school_location : 937.825 seconds (15.6 minutes)
 workplace_location : 2038.713 seconds (34.0 minutes)
+
+
+##########
+
+
+# - copy shadow prices to data dir
+scp ~/work/activitysim/example_azure/output_ubuntu/azure-64-ubuntu-shadow_daysim-output/trace/shadow_price_school_shadow_prices_9.csv $AZ_USERNAME@$VM_IP:/datadrive/work/data/full/school_shadow_prices.csv
+scp ~/work/activitysim/example_azure/output_ubuntu/azure-64-ubuntu-shadow_daysim-output/trace/shadow_price_workplace_shadow_prices_9.csv $AZ_USERNAME@$VM_IP:/datadrive/work/data/full/workplace_shadow_prices.csv
+
+
+scp ~/work/activitysim/example_azure/example_mp/settings.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/settings.yaml

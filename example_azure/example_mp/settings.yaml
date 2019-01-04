@@ -25,10 +25,10 @@ use_shadow_pricing: True
 #stagger: 0
 
 # - 20% sample - 2732722 households on 64 processor 432 GiB RAM
-households_sample_size:  546544
-chunk_size:  20000000000
-num_processes: 15
-stagger: 0
+#households_sample_size:  546544
+#chunk_size:  10000000000
+#num_processes: 15
+#stagger: 0
 
 
 ## - ------------------------- dev config

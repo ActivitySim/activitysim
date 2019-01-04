@@ -70,8 +70,8 @@ tar zcvf output.tar.gz output/log/ output/trace/
 
 exit
 
-TAR_TAG=azure-64-ubuntu-shadow_ctramp
-scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/sp_ctramp_output.tar.gz example_azure/output_ubuntu/$TAR_TAG-output.tar.gz
+TAR_TAG=azure-64-ubuntu-shadow_daysim_warm
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/output.tar.gz example_azure/output_ubuntu/$TAR_TAG-output.tar.gz
 
 ############### 
 

@@ -351,7 +351,7 @@ def allocate_shared_shadow_pricing_buffers():
     logger.info("allocate_shared_shadow_pricing_buffers")
 
     shadow_pricing_info = get_shadow_pricing_info()
-    shadow_pricing_buffers = buffers_for_shadow_pricing(shadow_pricing_info, shared=True)
+    shadow_pricing_buffers = buffers_for_shadow_pricing(shadow_pricing_info)
 
     return shadow_pricing_buffers
 

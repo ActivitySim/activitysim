@@ -310,7 +310,7 @@ def joint_tour_participation(
     pipeline.replace_table("joint_tour_participants", participants)
 
     # drop channel as we aren't using any more (and it has candidates that weren't chosen)
-    pipeline.get_rn_generator().drop_channel('joint_tours_participants')
+    pipeline.get_rn_generator().drop_channel('joint_tour_participants')
 
     # - assign joint tour 'point person' (participant_num == 1)
     point_persons = participants[participants.participant_num == 1]

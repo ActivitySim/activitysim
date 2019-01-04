@@ -312,7 +312,7 @@ class ShadowPriceCalculator(object):
 
         """
 
-        #fixme
+        # fixme
 
         if not self.use_shadow_pricing:
             return False

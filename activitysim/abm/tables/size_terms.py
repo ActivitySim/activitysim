@@ -60,14 +60,14 @@ def size_term(land_use, destination_choice_coeffs):
     return land_use[coeffs.index].dot(coeffs)
 
 
-def tour_destination_size_terms(land_use, size_terms, selector):
+def tour_destination_size_terms(land_use, size_terms, model_selector):
     """
 
     Parameters
     ----------
     land_use - pipeline table
     size_terms - pipeline table
-    selector - str
+    model_selector - str
 
     Returns
     -------
@@ -75,9 +75,9 @@ def tour_destination_size_terms(land_use, size_terms, selector):
    ::
 
      pandas.dataframe
-        one column per selector segment with index of land_use
-        e.g. for selector 'work', columns will be work_low, work_med, work_high, work_veryhigh
-        and for selector 'trip', columns will be eatout, escort, othdiscr, othmaint, ...
+        one column per model_selector segment with index of land_use
+        e.g. for model_selector 'workplace', columns will be work_low, work_med, ...
+        and for model_selector 'trip', columns will be eatout, escort, othdiscr, ...
 
                  work_low    work_med  work_high   work_veryhigh
         TAZ                                            ...
@@ -88,8 +88,8 @@ def tour_destination_size_terms(land_use, size_terms, selector):
 
     land_use = land_use.to_frame()
 
-    size_terms = size_terms[size_terms.selector == selector].copy()
-    del size_terms['selector']
+    size_terms = size_terms[size_terms.model_selector == model_selector].copy()
+    del size_terms['model_selector']
 
     df = pd.DataFrame({key: size_term(land_use, row) for key, row in size_terms.iterrows()},
                       index=land_use.index)
@@ -100,10 +100,5 @@ def tour_destination_size_terms(land_use, size_terms, selector):
 
     if not (df.dtypes == 'float64').all():
         logger.warning('Surprised to find that not all size_terms were float64!')
-
-    # - NARROW
-    # float16 has 3.3 decimal digits of precision, float32 has 7.2
-    df = df.astype(np.float16, errors='raise')
-    assert np.isfinite(df.values).all()
 
     return df

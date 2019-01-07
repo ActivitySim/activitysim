@@ -36,6 +36,20 @@ update_shadow_prices    how shadow_price coefficients are calculated
 synchronize_choices     interprocess communication to compute aggregate modeled_size
 check_fit               convergence criteria for shadow_pric iteration
 
+Import concepts and variables:
+
+model_selector: str
+    Identifies a specific location choice model (e.g. 'school', 'workplace')
+    The various models work similarly, but use different expression files, model settings, etc.
+
+segment: str
+    Identifies a specific demographic segment of a model (e.g. 'elementary' segment of 'school')
+    Models can have different size term coefficients (in destinatin_choice_size_terms file) and
+    different utility coefficients in models's location and location_sample csv expression files
+
+size_table: pandas.DataFrame
+
+
 """
 
 
@@ -53,24 +67,20 @@ TALLY_CHECKIN = (0, -1)
 TALLY_CHECKOUT = (1, -1)
 
 
-def size_table_name(selector):
+def size_table_name(model_selector):
     """
-    Returns canonical destination size table name
+    Returns canonical name of injected destination predicted_size table
 
     Parameters
     ----------
-    selector : str
+    model_selector : str
         e.g. school or workplace
 
     Returns
     -------
     table_name : str
     """
-    return "%s_destination_size" % selector
-
-
-def get_size_table(selector):
-    return inject.get_table(size_table_name(selector)).to_frame()
+    return "%s_destination_size" % model_selector
 
 
 class ShadowPriceCalculator(object):
@@ -96,7 +106,7 @@ class ShadowPriceCalculator(object):
         self.use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
         self.saved_shadow_price_file_path = None  # set by read_saved_shadow_prices if loaded
 
-        self.selector = model_settings['SELECTOR']
+        self.model_selector = model_settings['MODEL_SELECTOR']
 
         full_model_run = config.setting('households_sample_size') == 0
         if self.use_shadow_pricing and not full_model_run:
@@ -111,7 +121,7 @@ class ShadowPriceCalculator(object):
             self.shadow_settings = config.read_model_settings('shadow_pricing.yaml')
 
         # - destination_size_table (predicted_size)
-        self.predicted_size = get_size_table(self.selector)
+        self.predicted_size = inject.get_table(size_table_name(self.model_selector)).to_frame()
 
         # - shared_data
         if shared_data is not None:
@@ -171,9 +181,9 @@ class ShadowPriceCalculator(object):
             if file_path:
                 shadow_prices = pd.read_csv(file_path, index_col=0)
                 self.saved_shadow_price_file_path = file_path  # informational
-                logging.info("loaded saved_shadow_prices from %s" % (file_path))
+                logging.info("loaded saved_shadow_prices from %s" % file_path)
             else:
-                logging.warning("Could not find saved_shadow_prices file %s" % (file_path))
+                logging.warning("Could not find saved_shadow_prices file %s" % file_path)
 
         return shadow_prices
 
@@ -223,12 +233,12 @@ class ShadowPriceCalculator(object):
             with self.shared_data_lock:
                 return self.shared_data[t]
 
-        def wait(tally, target, tally_name):
+        def wait(tally, target):
             while get_tally(tally) != target:
                 time.sleep(1)
 
         # - nobody checks in until checkout clears
-        wait(TALLY_CHECKOUT, 0, 'TALLY_CHECKOUT')
+        wait(TALLY_CHECKOUT, 0)
 
         # - add local_modeled_size data, increment TALLY_CHECKIN
         with self.shared_data_lock:
@@ -239,7 +249,7 @@ class ShadowPriceCalculator(object):
             self.shared_data[TALLY_CHECKIN] += 1
 
         # - wait until everybody else has checked in
-        wait(TALLY_CHECKIN, num_processes, 'TALLY_CHECKIN')
+        wait(TALLY_CHECKIN, num_processes)
 
         # - copy shared data, increment TALLY_CHECKIN
         with self.shared_data_lock:
@@ -250,7 +260,7 @@ class ShadowPriceCalculator(object):
 
         # - first in waits until all other processes have checked out, and cleans tub
         if first_in:
-            wait(TALLY_CHECKOUT, num_processes, 'TALLY_CHECKOUT')
+            wait(TALLY_CHECKOUT, num_processes)
             with self.shared_data_lock:
                 # zero shared_data, clear TALLY_CHECKIN, and TALLY_CHECKOUT semaphores
                 self.shared_data[:] = 0
@@ -354,14 +364,14 @@ class ShadowPriceCalculator(object):
         converged = (total_fails <= max_fail)
 
         # for c in predicted_size:
-        #     print("check_fit %s segment %s" % (self.selector, c))
+        #     print("check_fit %s segment %s" % (self.model_selector, c))
         #     print("  modeled %s" % (modeled_size[c].sum()))
         #     print("  predicted %s" % (predicted_size[c].sum()))
         #     print("  max abs diff %s" % (abs_diff[c].max()))
         #     print("  max rel diff %s" % (rel_diff[c].max()))
 
         logging.info("check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s" %
-                     (self.selector, iteration, converged, max_fail, total_fails))
+                     (self.model_selector, iteration, converged, max_fail, total_fails))
 
         # - convergence stats
         if converged or iteration == self.max_iterations:
@@ -379,9 +389,9 @@ class ShadowPriceCalculator(object):
 
         The presumption is that shadow_price_adjusted_predicted_size (along with other attractors)
         is being used in a utility expression in a location choice model. The goal is to get the
-        aggregate location modeled size (choice aggregated by selector segment and zone) to match
-        predicted_size. Since the location choice model may not achieve that goal initially, we
-        create a 'shadow price' that tweaks the size_term to encourage the aggregate choices to
+        aggregate location modeled size (choice aggregated by model_selector segment and zone) to
+        match predicted_size. Since the location choice model may not achieve that goal initially,
+        we create a 'shadow price' that tweaks the size_term to encourage the aggregate choices to
         approach the desired target predicted_sizes.
 
         shadow_prices is a table of coefficient (for each zone and segment) that is increases or
@@ -495,7 +505,7 @@ class ShadowPriceCalculator(object):
         Write trace files for this iteration
         Writes predicted_size, modeled_size, and shadow_prices tables
 
-        Trace file names are tagged with selector and iteration number
+        Trace file names are tagged with model_selector and iteration number
         (e.g. self.predicted_size => shadow_price_school_predicted_size_1)
 
         Parameters
@@ -507,35 +517,36 @@ class ShadowPriceCalculator(object):
         if iteration == 1:
             # write predicted_size only on first iteration, as it doesn't change
             tracing.write_csv(self.predicted_size,
-                              'shadow_price_%s_predicted_size' % self.selector,
+                              'shadow_price_%s_predicted_size' % self.model_selector,
                               transpose=False)
 
         tracing.write_csv(self.modeled_size,
-                          'shadow_price_%s_modeled_size_%s' % (self.selector, iteration),
+                          'shadow_price_%s_modeled_size_%s' % (self.model_selector, iteration),
                           transpose=False)
         tracing.write_csv(self.shadow_prices,
-                          'shadow_price_%s_shadow_prices_%s' % (self.selector, iteration),
+                          'shadow_price_%s_shadow_prices_%s' % (self.model_selector, iteration),
                           transpose=False)
 
 
-def block_name(selector):
+def block_name(model_selector):
     """
-    return canonical block name for selector
+    return canonical block name for model_selector
 
-    Ordinarilly and ideally this wold just be selector, but since mp_tasks saves all shared data
-    blocks in a common dict to pass to sub-tasks, we want to be able to handle an possible
-    collision between selector names and skim names. Otherwise, just use selector name.
+    Ordinarily and ideally this would just be model_selector, but since mp_tasks saves all
+    shared data blocks in a common dict to pass to sub-tasks, we want to be able override
+    block naming convention to handle any collisions between model_selector names and skim names.
+    Until and unless that happens, we just use model_selector name.
 
     Parameters
     ----------
-    selector
+    model_selector
 
     Returns
     -------
     block_name : str
         canonical block name
     """
-    return selector
+    return model_selector
 
 
 def get_shadow_pricing_info():
@@ -549,7 +560,7 @@ def get_shadow_pricing_info():
     -------
     shadow_pricing_info: dict
         'dtype': <sp_dtype>,
-        'block_shapes': dict {<selector>: <block_shape>}
+        'block_shapes': dict {<model_selector>: <block_shape>}
     """
 
     land_use = inject.get_table('land_use')
@@ -557,17 +568,17 @@ def get_shadow_pricing_info():
 
     shadow_settings = config.read_model_settings('shadow_pricing.yaml')
 
-    # shadow_pricing_models is dict of {<selector>: <model_name>}
+    # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     shadow_pricing_models = shadow_settings['shadow_pricing_models']
 
     blocks = OrderedDict()
-    for selector in shadow_pricing_models:
+    for model_selector in shadow_pricing_models:
 
         sp_rows = len(land_use)
-        sp_cols = len(size_terms[size_terms.selector == selector])
+        sp_cols = len(size_terms[size_terms.model_selector == model_selector])
 
         # extra tally column for TALLY_CHECKIN and TALLY_CHECKOUT semaphores
-        blocks[block_name(selector)] = (sp_rows, sp_cols + 1)
+        blocks[block_name(model_selector)] = (sp_rows, sp_cols + 1)
 
     sp_dtype = np.int64
 
@@ -583,7 +594,8 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     """
     Allocate shared_data buffers for multiprocess shadow pricing
 
-    Allocates one buffer per selector. Buffer datatype and shape specified by shadow_pricing_info
+    Allocates one buffer per model_selector.
+    Buffer datatype and shape specified by shadow_pricing_info
 
     buffers are multiprocessing.Array (RawArray protected by a multiprocessing.Lock wrapper)
     We don't actually use the wrapped version as it slows access down and doesn't provide
@@ -597,8 +609,8 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
 
     Returns
     -------
-        data_buffers : dict {<selector> : <shared_data_buffer>}
-        dict of multiprocessing.Array keyed by selector
+        data_buffers : dict {<model_selector> : <shared_data_buffer>}
+        dict of multiprocessing.Array keyed by model_selector
     """
 
     dtype = shadow_pricing_info['dtype']
@@ -621,19 +633,19 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
 
         shared_data_buffer = multiprocessing.Array(typecode, buffer_size)
 
-        logger.info("buffer_for_shadow_pricing added block %s" % (block_key))
+        logger.info("buffer_for_shadow_pricing added block %s" % block_key)
 
         data_buffers[block_key] = shared_data_buffer
 
     return data_buffers
 
 
-def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, selector):
+def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_selector):
     """
 
     Parameters
     ----------
-    data_buffers : dict of {<selector_name> : <multiprocessing.Array>}
+    data_buffers : dict of {<model_selector> : <multiprocessing.Array>}
         multiprocessing.Array is simply a convenient way to bundle Array and Lock
         we extract the lock and wrap the RawArray in a numpy array for convenience in indexing
 
@@ -642,11 +654,11 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, selector):
     shadow_pricing_info : dict
         dict of useful info
           'dtype': sp_dtype,
-          'block_shapes' : OrderedDict({<selector>: <shape tuple>})
-            dict mapping selector to block shape (including extra column for semaphores)
+          'block_shapes' : OrderedDict({<model_selector>: <shape tuple>})
+            dict mapping model_selector to block shape (including extra column for semaphores)
             e.g. {'school': (num_zones, num_segments + 1)
-    selector : str
-        location type selector (e.g. school or workplace)
+    model_selector : str
+        location type model_selector (e.g. school or workplace)
 
     Returns
     -------
@@ -660,21 +672,21 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, selector):
     dtype = shadow_pricing_info['dtype']
     block_shapes = shadow_pricing_info['block_shapes']
 
-    if selector not in block_shapes:
-        raise RuntimeError("Selector %s not in shadow_pricing_info" % selector)
+    if model_selector not in block_shapes:
+        raise RuntimeError("Model selector %s not in shadow_pricing_info" % model_selector)
 
-    if block_name(selector) not in data_buffers:
-        raise RuntimeError("Block %s not in data_buffers" % block_name(selector))
+    if block_name(model_selector) not in data_buffers:
+        raise RuntimeError("Block %s not in data_buffers" % block_name(model_selector))
 
-    shape = block_shapes[selector]
-    data = data_buffers[block_name(selector)]
+    shape = block_shapes[model_selector]
+    data = data_buffers[block_name(model_selector)]
 
     return np.frombuffer(data.get_obj(), dtype=dtype).reshape(shape), data.get_lock()
 
 
 def load_shadow_price_calculator(model_settings):
     """
-    Initialize ShadowPriceCalculator for model selector (e.g. school or workplace)
+    Initialize ShadowPriceCalculator for model_selector (e.g. school or workplace)
 
     If multiprocessing, get the shared_data buffer to coordinate global_predicted_size
     calculation across sub-processes
@@ -688,7 +700,7 @@ def load_shadow_price_calculator(model_settings):
     spc : ShadowPriceCalculator
     """
 
-    selector = model_settings['SELECTOR']
+    model_selector = model_settings['MODEL_SELECTOR']
 
     # - get shared_data from data_buffers (if multiprocessing)
     data_buffers = inject.get_injectable('data_buffers', None)
@@ -702,7 +714,8 @@ def load_shadow_price_calculator(model_settings):
             inject.add_injectable('shadow_pricing_info', shadow_pricing_info)
 
         # - extract data buffer and reshape as numpy array
-        data, lock = shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, selector)
+        data, lock = \
+            shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_selector)
     else:
         data = None  # ShadowPriceCalculator will allocate its own data
         lock = None
@@ -717,9 +730,9 @@ def load_shadow_price_calculator(model_settings):
 
 def add_predicted_size_tables():
     """
-    inject tour_destination_size_terms tables for each selector (e.g. school, workplace)
+    inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 
-    Size tables are pandas dataframes with locations counts for selector by zone and segment
+    Size tables are pandas dataframes with locations counts for model_selector by zone and segment
     tour_destination_size_terms
 
     if using shadow pricing, we scale size_table counts to sample population
@@ -744,14 +757,14 @@ def add_predicted_size_tables():
         logger.warning('shadow_pricing_models list not found in shadow_pricing settings')
         return
 
-    # shadow_pricing_models is dict of {<selector>: <model_name>}
+    # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process
 
-    for selector, model_name in iteritems(shadow_pricing_models):
+    for model_selector, model_name in iteritems(shadow_pricing_models):
 
         model_settings = config.read_model_settings(model_name)
 
-        assert selector == model_settings['SELECTOR']
+        assert model_selector == model_settings['MODEL_SELECTOR']
 
         segment_ids = model_settings['SEGMENT_IDS']
         chooser_table_name = model_settings['CHOOSER_TABLE_NAME']
@@ -765,7 +778,7 @@ def add_predicted_size_tables():
         # - raw_predicted_size
         land_use = inject.get_table('land_use')
         size_terms = inject.get_injectable('size_terms')
-        raw_size = tour_destination_size_terms(land_use, size_terms, selector).astype(np.float64)
+        raw_size = tour_destination_size_terms(land_use, size_terms, model_selector)
         assert set(raw_size.columns) == set(segment_ids.keys())
 
         if use_shadow_pricing:
@@ -799,4 +812,4 @@ def add_predicted_size_tables():
             # don't scale if not shadow_pricing (breaks partial sample replicability)
             scaled_size = raw_size
 
-        inject.add_table(size_table_name(selector), scaled_size)
+        inject.add_table(size_table_name(model_selector), scaled_size)

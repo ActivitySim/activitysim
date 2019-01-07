@@ -32,8 +32,8 @@ annotate_persons:
 # required by initialize_households when creating school_destination_size table
 CHOOSER_TABLE_NAME: persons
 
-# size_terms selector
-SELECTOR: school
+# size_terms model_selector
+MODEL_SELECTOR: school
 
 # chooser column with segment_id for this segment type
 CHOOSER_SEGMENT_COLUMN_NAME: school_segment

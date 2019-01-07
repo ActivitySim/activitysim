@@ -1,4 +1,8 @@
 
+# list model_selectors and model_names of models that use shadow pricing
+# This list identifies which size_terms to preload (which must be done in single process mode
+# so predicted_size tables can be scaled to population)
+# (and allows models to be renamed without changing model_selectors)
 shadow_pricing_models:
   school: school_location
   workplace: workplace_location

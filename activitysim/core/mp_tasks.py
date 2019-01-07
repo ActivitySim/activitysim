@@ -1004,11 +1004,26 @@ def write_breadcrumbs(breadcrumbs):
         yaml.dump(breadcrumbs, f)
 
 
-def is_sub_task():
-
-    return inject.get_injectable('is_sub_task', False)
-
-
 def if_sub_task(if_is, if_isnt):
+    """
+    select one of two values depending whether current process is primary process or subtask
 
-    return if_is if is_sub_task() else if_isnt
+    This is primarily intended for use in yaml files to select between (e.g.) logging levels
+    so main log file can display only warnings and errors from subtasks
+
+    In yaml file, it can be used like this:
+
+    level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [WARNING, NOTSET]
+
+
+    Parameters
+    ----------
+    if_is : (any type) value to return if process is a subtask
+    if_isnt : (any type) value to return if process is not a subtask
+
+    Returns
+    -------
+    (any type) (one of parameters if_is or if_isnt)
+    """
+
+    return if_is if inject.get_injectable('is_sub_task', False) else if_isnt

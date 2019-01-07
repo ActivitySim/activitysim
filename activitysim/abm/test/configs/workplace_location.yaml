@@ -31,8 +31,8 @@ annotate_persons:
 # income_segment is in households, but we want to count persons
 CHOOSER_TABLE_NAME: persons_merged
 
-# size_terms selector
-SELECTOR: workplace
+# size_terms model_selector
+MODEL_SELECTOR: workplace
 
 # we can't use use household income_segment as this will also be set for non-workers
 CHOOSER_SEGMENT_COLUMN_NAME: income_segment

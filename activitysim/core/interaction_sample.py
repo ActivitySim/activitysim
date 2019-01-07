@@ -140,7 +140,7 @@ def _interaction_sample(
     be merged with choosers because there are interaction terms or
     because alternatives are being sampled.
 
-    Parameters are same as for public function interaction_simulate
+    Parameters are same as for public function interaction_sa,ple
 
     spec : dataframe
         one row per spec expression and one col with utility coefficient

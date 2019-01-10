@@ -29,21 +29,6 @@ def households_sample_size(settings, override_hh_ids):
 
 
 @inject.injectable(cache=True)
-def households_sample_stride(settings):
-
-    stride = settings.get('households_sample_stride', None)
-
-    if stride and not (isinstance(stride, list) and
-                       len(stride) == 2 and
-                       all(isinstance(x, int) for x in stride)):
-        logger.warning("setting households_sample_stride should be a list of length 2, but was %s" %
-                       stride)
-        stride = None
-
-    return stride
-
-
-@inject.injectable(cache=True)
 def override_hh_ids(settings):
 
     hh_ids_filename = settings.get('hh_ids', None)

@@ -85,7 +85,7 @@ def size_table_name(model_selector):
 
 class ShadowPriceCalculator(object):
 
-    def __init__(self, model_settings, shared_data=None, shared_data_lock=None):
+    def __init__(self, model_settings, num_processes, shared_data=None, shared_data_lock=None):
         """
 
         Presence of shared_data is used as a flag for multiprocessing
@@ -103,6 +103,7 @@ class ShadowPriceCalculator(object):
         shared_data_lock : numpy array wrapping multiprocessing.RawArray or None (if single process)
         """
 
+        self.num_processes = num_processes
         self.use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
         self.saved_shadow_price_file_path = None  # set by read_saved_shadow_prices if loaded
 
@@ -225,9 +226,7 @@ class ShadowPriceCalculator(object):
 
         # shouldn't be called if we are not multiprocessing
         assert self.shared_data is not None
-
-        num_processes = inject.get_injectable("num_processes")
-        assert num_processes > 1
+        assert self.num_processes > 1
 
         def get_tally(t):
             with self.shared_data_lock:
@@ -249,7 +248,7 @@ class ShadowPriceCalculator(object):
             self.shared_data[TALLY_CHECKIN] += 1
 
         # - wait until everybody else has checked in
-        wait(TALLY_CHECKIN, num_processes)
+        wait(TALLY_CHECKIN, self.num_processes)
 
         # - copy shared data, increment TALLY_CHECKIN
         with self.shared_data_lock:
@@ -260,7 +259,7 @@ class ShadowPriceCalculator(object):
 
         # - first in waits until all other processes have checked out, and cleans tub
         if first_in:
-            wait(TALLY_CHECKOUT, num_processes)
+            wait(TALLY_CHECKOUT, self.num_processes)
             with self.shared_data_lock:
                 # zero shared_data, clear TALLY_CHECKIN, and TALLY_CHECKOUT semaphores
                 self.shared_data[:] = 0
@@ -298,7 +297,7 @@ class ShadowPriceCalculator(object):
             modeled_size[c] = segment_choices.groupby('dest_choice').size()
         modeled_size = modeled_size.fillna(0).astype(int)
 
-        if self.shared_data is None:
+        if self.num_processes == 1:
             # - not multiprocessing
             self.modeled_size = modeled_size
         else:
@@ -700,6 +699,8 @@ def load_shadow_price_calculator(model_settings):
     spc : ShadowPriceCalculator
     """
 
+    num_processes = inject.get_injectable('num_processes', 1)
+
     model_selector = model_settings['MODEL_SELECTOR']
 
     # - get shared_data from data_buffers (if multiprocessing)
@@ -717,13 +718,14 @@ def load_shadow_price_calculator(model_settings):
         data, lock = \
             shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_selector)
     else:
+        assert num_processes == 1
         data = None  # ShadowPriceCalculator will allocate its own data
         lock = None
 
     # - ShadowPriceCalculator
     spc = ShadowPriceCalculator(
         model_settings,
-        data, lock)
+        num_processes, data, lock)
 
     return spc
 

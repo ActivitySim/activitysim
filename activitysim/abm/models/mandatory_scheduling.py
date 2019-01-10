@@ -52,13 +52,15 @@ def mandatory_tour_scheduling(tours,
     model_constants = config.get_model_constants(model_settings)
 
     logger.info("Running mandatory_tour_scheduling with %d tours", len(tours))
-    tdd_choices = vectorize_tour_scheduling(
+    tdd_choices, timetable = vectorize_tour_scheduling(
         mandatory_tours, persons_merged,
         tdd_alts,
         spec={'work': work_spec, 'school': school_spec},
         constants=model_constants,
         chunk_size=chunk_size,
         trace_label=trace_label)
+
+    timetable.replace_table()
 
     assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)

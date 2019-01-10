@@ -5,7 +5,6 @@ python simulation.py -s 2,0 -d /datadrive/work/data/full
 
 multiprocess: True
 mem_tick: 0
-profile: False
 strict: False
 
 households_sample_size:  0

@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @inject.table()
-def households(households_sample_size, households_sample_stride, override_hh_ids, trace_hh_id):
+def households(households_sample_size, override_hh_ids, trace_hh_id):
 
     df_full = read_input_table("households")
     households_sliced = False
@@ -78,24 +78,6 @@ def households(households_sample_size, households_sample_stride, override_hh_ids
 
     else:
         df = df_full
-
-    if households_sample_stride:
-
-        # - possibly resampling
-        if households_sliced:
-            df_full = df
-            if override_hh_ids is not None:
-                logger.warning("Applying stride slice to override_hh_ids households.")
-            if households_sample_size > 0:
-                logger.warning("Applying stride slice to sampled households.")
-
-        stride_len, offset, = households_sample_stride
-
-        df = df_full[np.asanyarray(list(range(df_full.shape[0]))) % stride_len == offset]
-        households_sliced = True
-
-        logger.info("stride (%s,%s) sliced %s of %s households" %
-                    (stride_len, offset, df.shape[0], df_full.shape[0]))
 
     # persons table
     inject.add_injectable('households_sliced', households_sliced)

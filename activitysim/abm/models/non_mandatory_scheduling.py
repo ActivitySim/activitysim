@@ -61,12 +61,14 @@ def non_mandatory_tour_scheduling(tours,
             locals_dict=locals_d,
             trace_label=trace_label)
 
-    tdd_choices = vectorize_tour_scheduling(
+    tdd_choices, timetable = vectorize_tour_scheduling(
         non_mandatory_tours, persons_merged,
         tdd_alts, model_spec,
         constants=constants,
         chunk_size=chunk_size,
         trace_label=trace_label)
+
+    timetable.replace_table()
 
     assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)

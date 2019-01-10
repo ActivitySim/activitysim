@@ -66,6 +66,7 @@ and compute logsums only for that sample, and finally chose from among the sampl
 With shadow pricing, and iterative treatment of each segment, the structure of the code is:
 
 ::
+
     repeat
         for each segment
             run_location_sample

@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     injectables = config.handle_standard_args()
 
-    mp_tasks.filter_warnings()
+    config.filter_warnings()
     tracing.config_logger()
 
     log_settings(injectables)
@@ -92,11 +92,10 @@ if __name__ == '__main__':
     else:
         injectables = None
 
-    if config.setting('profile', False):
-        import cProfile
-        cProfile.runctx('run(run_list, injectables)',
-                        globals(), locals(), filename=config.output_file_path('simulation.prof'))
-    else:
-        run(run_list, injectables)
+    run(run_list, injectables)
+
+    # pipeline will be close if multiprocessing
+    # if you want access to tables, BE SURE TO OPEN WITH '_' or all tables will be reinitialized
+    # pipeline.open_pipeline('_')
 
     t0 = tracing.print_elapsed_time("everything", t0)

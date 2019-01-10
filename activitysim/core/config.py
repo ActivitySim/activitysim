@@ -75,25 +75,6 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def str2stride(v):
-
-    try:
-        stride_len, offset = v.split(',', 1)
-        stride_len = int(stride_len)
-        offset = int(offset)
-
-    except Exception as err:
-        raise argparse.ArgumentTypeError('int list of length two expected.')
-
-    if stride_len == 0:
-        raise argparse.ArgumentTypeError('stride_len cannot be 0.')
-
-    if offset >= stride_len:
-        raise argparse.ArgumentTypeError('offset cannot be greater than stride_len.')
-
-    return [stride_len, offset]
-
-
 @inject.injectable(cache=True)
 def settings():
     return read_settings_file('settings.yaml', mandatory=True)
@@ -127,8 +108,6 @@ def handle_standard_args(parser=None):
     parser.add_argument("-m", "--multiprocess", type=str2bool, nargs='?', const=True,
                         help="run multiprocess (boolean flag, no arg defaults to true)")
 
-    parser.add_argument("-s", "--stride", type=str2stride,
-                        help="households_sample_stride stride_len and offset -e.g. --stride=4,0")
     parser.add_argument("-p", "--pipeline", help="pipeline file name")
 
     args = parser.parse_args()
@@ -139,40 +118,41 @@ def handle_standard_args(parser=None):
         inject.add_injectable(name, value)
         injectables.append(name)
 
+    def override_setting(key, value):
+        new_settings = inject.get_injectable('settings')
+        new_settings[key] = value
+        inject.add_injectable('settings', new_settings)
+
     if args.config:
         for dir in args.config:
             if not os.path.exists(dir):
                 raise IOError("Could not find configs dir '%s'" % dir)
         override_injectable("configs_dir", args.config)
+
     if args.data:
         for dir in args.data:
             if not os.path.exists(dir):
                 raise IOError("Could not find data dir '%s'" % dir)
         override_injectable("data_dir", args.data)
+
     if args.output:
         if not os.path.exists(args.output):
             raise IOError("Could not find output dir '%s'." % args.output)
         override_injectable("output_dir", args.output)
 
-    if args.stride:
-        override_injectable("households_sample_stride", args.stride)
     if args.pipeline:
         override_injectable("pipeline_file_name", args.pipeline)
 
     # - do these after potentially overriding configs_dir
+    # FIXME we don't currently pass settings as an injectable to mp_tasks.run_multiprocess
+    # these two make it through as they are incorporated into the run_list by parent
+    # but if a more extensible capability is desired, settings could be passed in injectables
     if args.resume is not None:
         override_setting('resume_after', args.resume)
     if args.multiprocess is not None:
         override_setting('multiprocess', args.multiprocess)
 
     return injectables
-
-
-def override_setting(key, value):
-
-    settings = inject.get_injectable('settings')
-    settings[key] = value
-    inject.add_injectable('settings', settings)
 
 
 def setting(key, default=None):
@@ -375,3 +355,16 @@ def read_settings_file(file_name, mandatory=True):
                            (file_name, configs_dir))
 
     return settings
+
+
+def filter_warnings():
+    """
+    set warning filter to 'strict' if specified in settings
+    """
+
+    if setting('strict', False):  # noqa: E402
+        import warnings
+        warnings.filterwarnings('error', category=Warning)
+        warnings.filterwarnings('default', category=PendingDeprecationWarning, module='future')
+        warnings.filterwarnings('default', category=FutureWarning, module='pandas')
+        warnings.filterwarnings('default', category=RuntimeWarning, module='numpy')

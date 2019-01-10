@@ -76,7 +76,7 @@ def joint_tour_scheduling(
             locals_dict=locals_d,
             trace_label=trace_label)
 
-    tdd_choices = vectorize_joint_tour_scheduling(
+    tdd_choices, timetable = vectorize_joint_tour_scheduling(
         joint_tours, joint_tour_participants,
         persons_merged,
         tdd_alts,
@@ -84,6 +84,8 @@ def joint_tour_scheduling(
         constants=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label)
+
+    timetable.replace_table()
 
     assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)

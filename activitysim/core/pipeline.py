@@ -41,6 +41,12 @@ CHECKPOINT_TABLE_NAME = 'checkpoints'
 # name of the first step/checkpoint created when teh pipeline is started
 INITIAL_CHECKPOINT_NAME = 'init'
 
+# special value for resume_after meaning last checkpoint
+LAST_CHECKPOINT = '_'
+
+# single character prefix for run_list model name to indicate that no checkpoint should be saved
+NO_CHECKPOINT_PREFIX = '_'
+
 
 class Pipeline(object):
     def __init__(self):
@@ -70,6 +76,12 @@ class Pipeline(object):
 
 
 _PIPELINE = Pipeline()
+
+
+def be_open():
+
+    if not _PIPELINE.is_open:
+        raise RuntimeError("Pipeline is not open!")
 
 
 def pipeline_table_key(table_name, checkpoint_name):
@@ -337,8 +349,7 @@ def load_checkpoint(checkpoint_name):
 
     checkpoints = read_df(CHECKPOINT_TABLE_NAME)
 
-    # '_' means load last checkpoint
-    if checkpoint_name == '_':
+    if checkpoint_name == LAST_CHECKPOINT:
         checkpoint_name = checkpoints[CHECKPOINT_NAME].iloc[-1]
         logger.info("loading checkpoint '%s'" % checkpoint_name)
 
@@ -449,7 +460,7 @@ def run_model(model_name):
         args = {}
 
     # check for no_checkpoint prefix
-    if step_name[0] == '_':
+    if step_name[0] == NO_CHECKPOINT_PREFIX:
         step_name = step_name[1:]
         checkpoint = False
     else:
@@ -484,7 +495,7 @@ def open_pipeline(resume_after=None):
         name of checkpoint to load from pipeline store
     """
 
-    logger.info("open_pipeline...")
+    logger.info("open_pipeline")
 
     if _PIPELINE.is_open:
         raise RuntimeError("Pipeline is already open!")
@@ -520,8 +531,7 @@ def last_checkpoint():
         name of last checkpoint
     """
 
-    if not _PIPELINE.is_open:
-        raise RuntimeError("Pipeline is not open!")
+    be_open()
 
     return _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
 
@@ -531,8 +541,7 @@ def close_pipeline():
     Close any known open files
     """
 
-    if not _PIPELINE.is_open:
-        raise RuntimeError("Pipeline is not open!")
+    be_open()
 
     close_open_files()
 
@@ -567,7 +576,7 @@ def run(models, resume_after=None):
     open_pipeline(resume_after)
     t0 = print_elapsed_time('open_pipeline', t0)
 
-    if resume_after == '_':
+    if resume_after == LAST_CHECKPOINT:
         resume_after = _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
 
     if resume_after:
@@ -609,6 +618,8 @@ def get_table(table_name, checkpoint_name=None):
     -------
     df : pandas.DataFrame
     """
+
+    be_open()
 
     # orca table not in checkpoints (e.g. a merged table)
     if table_name not in _PIPELINE.last_checkpoint and orca.is_table(table_name):
@@ -653,6 +664,8 @@ def get_checkpoints():
     """
     Get pandas dataframe of info about all checkpoints stored in pipeline
 
+    pipeline doesn't have to be open
+
     Returns
     -------
     checkpoints_df : pandas.DataFrame
@@ -695,6 +708,8 @@ def replace_table(table_name, df):
     df : pandas DataFrame
     """
 
+    be_open()
+
     rewrap(table_name, df)
 
     _PIPELINE.replaced_tables[table_name] = True
@@ -710,6 +725,8 @@ def extend_table(table_name, df, axis=0):
         orca/inject table name
     df : pandas DataFrame
     """
+
+    be_open()
 
     assert axis in [0, 1]
 
@@ -742,6 +759,8 @@ def extend_table(table_name, df, axis=0):
 
 
 def drop_table(table_name):
+
+    be_open()
 
     if orca.is_table(table_name):
 

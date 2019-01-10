@@ -2,7 +2,6 @@
 
 # run1
 mem_tick: 30
-profile: False
 strict: False
 households_sample_size:  0
 chunk_size: 20000000000
@@ -15,7 +14,6 @@ INFO - activitysim.core.tracing - Time to execute everything : 7731.622 seconds 
 
 # run2
 mem_tick: 30
-profile: False
 strict: False
 households_sample_size:  0
 chunk_size: 0
@@ -30,7 +28,6 @@ INFO - activitysim.core.tracing - Time to execute everything : 7880.258 seconds 
 
 multiprocess: True
 mem_tick: 30
-profile: False
 strict: False
 households_sample_size:  0
 chunk_size:  90000000000
@@ -64,7 +61,6 @@ export OMP_NUM_THREADS=1
 
 multiprocess: True
 mem_tick: 0
-profile: False
 strict: False
 
 households_sample_size:  0

@@ -335,6 +335,8 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     choices : Series
         A Series of choices where the index is the index of the tours
         DataFrame and the values are the index of the alts DataFrame.
+    timetable : TimeTable
+        persons timetable updated with tours (caller should replace_table for it to persist)
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'vectorize_tour_scheduling')
@@ -405,9 +407,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
-    timetable.replace_table()
-
-    return tdd
+    return tdd, timetable
 
 
 def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, spec,
@@ -575,6 +575,8 @@ def vectorize_joint_tour_scheduling(
     choices : Series
         A Series of choices where the index is the index of the tours
         DataFrame and the values are the index of the alts DataFrame.
+    persons_timetable : TimeTable
+        timetable updated with joint tours (caller should replace_table for it to persist)
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'vectorize_joint_tour_scheduling')
@@ -641,9 +643,7 @@ def vectorize_joint_tour_scheduling(
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
-    persons_timetable.replace_table()
-
     # print "participant windows after scheduling\n", \
     #     persons_timetable.slice_windows_by_row_id(joint_tour_participants.person_id)
 
-    return tdd
+    return tdd, persons_timetable

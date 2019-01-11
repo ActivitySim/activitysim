@@ -45,9 +45,8 @@ TOUR_TYPE_ID = OrderedDict([
 ])
 
 
-@inject.step()
 def joint_tour_destination_sample(
-        tours,
+        joint_tours,
         households_merged,
         skim_dict,
         land_use, size_terms,
@@ -79,9 +78,8 @@ def joint_tour_destination_sample(
 
     Parameters
     ----------
-    tours: pipeline table
-    households_merged : pipeline table
-        injected merge table created on the fly
+    joint_tours: pandas.DataFrame
+    households_merged : pandas.DataFrame
     skim_dict
     joint_tour_destination_sample_spec
     land_use
@@ -92,23 +90,14 @@ def joint_tour_destination_sample(
     Returns
     -------
 
-    none
+    choices : pandas.DataFrame
+        destination_sample df
 
     """
 
     trace_label = 'joint_tour_destination_sample'
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
     model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_destination_sample.csv')
-
-    joint_tours = tours.to_frame()
-    joint_tours = joint_tours[joint_tours.tour_category == 'joint']
-
-    # - if no joint tours
-    if joint_tours.shape[0] == 0:
-        tracing.no_results(trace_label)
-        return
-
-    households_merged = households_merged.to_frame()
 
     # same size terms as non_mandatory
     size_terms = tour_destination_size_terms(land_use, size_terms, 'non_mandatory')
@@ -186,18 +175,18 @@ def joint_tour_destination_sample(
     # - NARROW
     choices['tour_type_id'] = choices['tour_type_id'].astype(np.uint8)
 
-    inject.add_table('joint_tour_destination_sample', choices)
-
     if trace_hh_id:
         tracing.trace_df(choices,
                          label="joint_tour_destination_sample",
                          transpose=True)
 
+    return choices
 
-@inject.step()
+
 def joint_tour_destination_logsums(
-        tours,
+        joint_tours,
         persons_merged,
+        destination_sample,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id):
 
@@ -211,21 +200,9 @@ def joint_tour_destination_logsums(
 
     trace_label = 'joint_tour_destination_logsums'
 
-    # use inject.get_table as this won't exist if there are no joint_tours
-    destination_sample = inject.get_table('joint_tour_destination_sample', default=None)
-    if destination_sample is None:
-        tracing.no_results(trace_label)
-        return
-
-    destination_sample = destination_sample.to_frame()
-
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
-    joint_tours = tours.to_frame()
-    joint_tours = joint_tours[joint_tours.tour_category == 'joint']
-
-    persons_merged = persons_merged.to_frame()
     joint_tours_merged = pd.merge(joint_tours, persons_merged,
                                   left_on='person_id', right_index=True, how='left')
 
@@ -269,17 +246,18 @@ def joint_tour_destination_logsums(
     logsums = pd.concat(logsums_list)
 
     destination_sample['mode_choice_logsum'] = logsums
-    pipeline.replace_table("joint_tour_destination_sample", destination_sample)
 
     if trace_hh_id:
-        tracing.trace_df(destination_sample,
-                         label="joint_tour_destination_logsums")
+        tracing.trace_df(destination_sample, label="joint_tour_destination_logsums")
+
+    return destination_sample
 
 
 @inject.step()
 def joint_tour_destination_simulate(
-        tours,
+        joint_tours,
         households_merged,
+        destination_sample,
         skim_dict,
         land_use, size_terms,
         chunk_size, trace_hh_id):
@@ -290,25 +268,13 @@ def joint_tour_destination_simulate(
 
     trace_label = 'joint_tour_destination_simulate'
 
-    # use inject.get_table as this won't exist if there are no joint_tours
-    destination_sample = inject.get_table('joint_tour_destination_sample', default=None)
-    if destination_sample is None:
-        tracing.no_results(trace_label)
-        return
-
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
 
     # - tour types are subset of non_mandatory tour types and use same expressions
     model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_destination.csv')
 
-    destination_sample = destination_sample.to_frame()
-    tours = tours.to_frame()
-    joint_tours = tours[tours.tour_category == 'joint']
-
     # interaction_sample_simulate insists choosers appear in same order as alts
     joint_tours = joint_tours.sort_index()
-
-    households_merged = households_merged.to_frame()
 
     destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'non_mandatory')
 
@@ -379,6 +345,69 @@ def joint_tour_destination_simulate(
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
+
+    return choices
+
+
+@inject.step()
+def joint_tour_destination(
+        tours,
+        persons_merged,
+        households_merged,
+        skim_dict,
+        skim_stack,
+        land_use, size_terms,
+        chunk_size, trace_hh_id):
+    """
+    Run the three-part destination choice algorithm to choose a destination for each joint tour
+
+    Parameters
+    ----------
+    tours : injected table
+    households_merged : injected table
+    skim_dict : skim.SkimDict
+    land_use :  injected table
+    size_terms :  injected table
+    chunk_size : int
+    trace_hh_id : int or None
+
+    Returns
+    -------
+    adds/assigns choice column 'destination' for joint tours in tours table
+    """
+
+    tours = tours.to_frame()
+    joint_tours = tours[tours.tour_category == 'joint']
+
+    persons_merged = persons_merged.to_frame()
+    households_merged = households_merged.to_frame()
+
+    # - if no joint tours
+    if joint_tours.shape[0] == 0:
+        tracing.no_results('joint_tour_destination')
+        return
+
+    destination_sample = joint_tour_destination_sample(
+        joint_tours,
+        households_merged,
+        skim_dict,
+        land_use, size_terms,
+        chunk_size, trace_hh_id)
+
+    destination_sample = joint_tour_destination_logsums(
+        joint_tours,
+        persons_merged,
+        destination_sample,
+        skim_dict, skim_stack,
+        chunk_size, trace_hh_id)
+
+    choices = joint_tour_destination_simulate(
+        joint_tours,
+        households_merged,
+        destination_sample,
+        skim_dict,
+        land_use, size_terms,
+        chunk_size, trace_hh_id)
 
     # add column as we want joint_tours table for tracing.
     joint_tours['destination'] = choices

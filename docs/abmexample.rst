@@ -521,9 +521,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - joint_tour_frequency
     - joint_tour_composition
     - joint_tour_participation
-    - joint_tour_destination_sample
-    - joint_tour_destination_logsums
-    - joint_tour_destination_simulate
+    - joint_tour_destination
     - joint_tour_scheduling
     - non_mandatory_tour_frequency
     - non_mandatory_tour_destination

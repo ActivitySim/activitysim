@@ -24,17 +24,33 @@ logger = logging.getLogger(__name__)
 
 
 class OffsetMapper(object):
+    """
+    Utility to map skim zone ids to ordinal offsets (e.g. numpy array indices)
+
+    Can map either by a fixed offset (e.g. -1 to map 1-based to 0-based)
+    or by an explicit mapping of zone id to offset (slower but more flexible)
+    """
 
     def __init__(self, offset_int=None):
         self.offset_series = None
         self.offset_int = offset_int
 
     def set_offset_list(self, offset_list):
+        """
+        Specify the zone ids corresponding to the offsets (ordinal positions)
 
+        set_offset_list([10, 20, 30, 40])
+        map([30, 20, 40])
+        returns offsets [2, 1, 3]
+
+        Parameters
+        ----------
+        offset_list : list of int
+        """
         assert isinstance(offset_list, list)
         assert self.offset_int is None
 
-        # for performance, check if this is a simple int-based series
+        # - for performance, check if this is a simple int-based series
         first_offset = offset_list[0]
         if (offset_list == list(range(first_offset, len(offset_list)+first_offset))):
             offset_int = -1 * first_offset
@@ -49,6 +65,13 @@ class OffsetMapper(object):
             assert (offset_list == self.offset_series.index).all()
 
     def set_offset_int(self, offset_int):
+        """
+        specify fixed offset (e.g. -1 to map 1-based to 0-based)
+
+        Parameters
+        ----------
+        offset_int : int
+        """
 
         # should be some kind of integer
         assert int(offset_int) == offset_int
@@ -61,6 +84,17 @@ class OffsetMapper(object):
             assert offset_int == self.offset_int
 
     def map(self, zone_ids):
+        """
+        map zone_ids to offsets
+
+        Parameters
+        ----------
+        zone_ids
+
+        Returns
+        -------
+        offsets : numpy array of int
+        """
 
         # print "\nmap_offsets zone_ids", zone_ids
 
@@ -114,33 +148,6 @@ class SkimWrapper(object):
         values : 1D array
 
         """
-
-        # if False:  #fixme SLOWER
-        #     # fixme - I don't think we need to support nan orig, dest values
-        #
-        #     # only working with numpy in here
-        #     orig = np.asanyarray(orig)
-        #     dest = np.asanyarray(dest)
-        #     out_shape = orig.shape
-        #
-        #     # filter orig and dest to only the real-number pairs
-        #     notnan = ~(np.isnan(orig) | np.isnan(dest))
-        #
-        #     orig = orig[notnan].astype('int')
-        #     dest = dest[notnan].astype('int')
-        #
-        #     orig = self.offset_mapper.map(orig)
-        #     dest = self.offset_mapper.map(dest)
-        #
-        #     result = self.data[orig, dest]
-        #
-        #     # add the nans back to the result
-        #     # (np.empty ensures result type is np.float64 to support nans)
-        #     out = np.empty(out_shape)
-        #     out[notnan] = result
-        #     out[~notnan] = np.nan
-        #
-        #     return out
 
         # fixme - remove?
         assert not (np.isnan(orig) | np.isnan(dest)).any()
@@ -403,7 +410,7 @@ class SkimStack(object):
 
 class SkimStackWrapper(object):
     """
-    A SkimStackWrapper object wraps a skims object to add an additional wrinkle of
+    A SkimStackWrapper object wraps a SkimStack object to add an additional wrinkle of
     lookup functionality.  Upon init the separate skims objects are
     processed into a 3D matrix so that lookup of the different skims can
     be performed quickly for each row in the dataframe.  In this very

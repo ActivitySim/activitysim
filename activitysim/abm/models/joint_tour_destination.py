@@ -415,9 +415,6 @@ def joint_tour_destination(
     assign_in_place(tours, joint_tours[['destination']])
     pipeline.replace_table("tours", tours)
 
-    # drop bulky joint_tour_destination_sample table as we don't use it further
-    pipeline.drop_table('joint_tour_destination_sample')
-
     tracing.print_summary('destination', joint_tours.destination, describe=True)
 
     if trace_hh_id:

@@ -72,9 +72,7 @@ models:
   - non_mandatory_tour_scheduling
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
-  - _atwork_subtour_destination_sample
-  - _atwork_subtour_destination_logsums
-  - atwork_subtour_destination_simulate
+  - atwork_subtour_destination
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
   - stop_frequency

@@ -19,7 +19,7 @@ from activitysim.core import mp_tasks
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 1482966
+HH_ID = 1931818
 
 # [1062107 1098395 1115294 1482578 1482698 1482715 1482920
 # 1482966 1809757 2022863 2123123 2123582 2591312]
@@ -43,8 +43,8 @@ HH_ID = 1482966
 def regress_mini_auto():
 
     # regression test: these are among the first 10 households in households table
-    hh_ids = [702445, 93713, 2525286, 945700]
-    choices = [1, 1, 1, 0]
+    hh_ids = [257127, 566664, 2344918, 823865]
+    choices = [0, 1, 2, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')
 
@@ -56,10 +56,10 @@ def regress_mini_auto():
     """
     auto_choice
      household_id
-    702445     1
-    93713      1
-    2525286    1
-    945700     0
+    257127     0
+    566664     1
+    2344918    2
+    823865     0
     Name: auto_ownership, dtype: int64
     """
     pdt.assert_series_equal(auto_choice, expected_choice)

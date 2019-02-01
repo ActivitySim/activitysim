@@ -22,7 +22,8 @@ use_shadow_pricing: False
 # - tracing
 
 #trace household id; comment out or leave empty for no trace
-#trace_hh_id: 1482966
+# households with all tour types
+#  [ 728370 1234067 1402924 1594625 1595333 1747572 1896849 1931818 2222690 2344951 2677154]
 trace_hh_id:
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace

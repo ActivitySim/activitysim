@@ -134,8 +134,8 @@ def regress_mini_mtf():
     print("mtf_choice\n", mtf_choice[mtf_choice != ''].head(5))
     """
     mtf_choice
-     person_id           
-    29024     school1        
+     person_id
+    29024     school1
     107599      work1
     108875      work1
     109095      work1
@@ -326,7 +326,7 @@ def regress_tour_modes(tours_df):
 
     """
      tour_id         tour_mode  person_id tour_type  tour_num  tour_category
-    tour_id                                                                
+    tour_id
     138094270            WALK    4761871  othdiscr         1          joint
     138094266  DRIVEALONEFREE    4761871    escort         1  non_mandatory
     138094284     SHARED2FREE    4761871  shopping         2  non_mandatory

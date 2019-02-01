@@ -6,7 +6,14 @@
 import os
 import pandas as pd
 
-col_map = {"HHID":"household_id","AGE":"age", "SEX":"sex", "hworkers":"workers", "HINC":"income", "AREATYPE":"area_type"}
+col_map = {
+    "HHID": "household_id",
+    "AGE": "age",
+    "SEX": "sex",
+    "hworkers": "workers",
+    "HINC": "income",
+    "AREATYPE": "area_type"
+}
 
 source_data_dir = "~/work/activitysim-data/asim_verification_data"
 store_path = "/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data/mtc_asim.h5"
@@ -16,8 +23,6 @@ input_files = {
     "households": {'filename': "popsyn/hhFile.pba40_scen00_v12.2015.csv", 'index_col': 'HHID'},
     "persons": {'filename': "popsyn/personFile.pba40_scen00_v12.2015.csv", 'index_col': 'PERID'}
     }
-
-#sed '$ s/.$//' ~/work/activitysim-data/asim_verification_data/popsyn/hhFile.csv > ~/work/activitysim-data/asim_verification_data/popsyn/chomp_hhFile.csv
 
 print("writing store {}".format(store_path))
 

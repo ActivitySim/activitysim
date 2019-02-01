@@ -76,4 +76,3 @@ CREATE TABLE DAYPOP_TEMP (TAZ INT, PER VARCHAR(6), PERSONS INT, PERSONSNOTATHOME
 # create timeuse file
 
 # create treemap file
-

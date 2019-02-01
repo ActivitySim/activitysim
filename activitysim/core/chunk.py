@@ -179,9 +179,9 @@ def log_write_hwm():
     def check_chunk_size(hwm, chunk_size, label, max_leeway):
         elements = hwm['mark']
         if chunk_size and max_leeway and elements > chunk_size * max_leeway:  # too high
-            logger.warn("#chunk_hwm total_elements (%s) > %s (%s) %s : %s " %
-                        (commas(elements), label, commas(chunk_size),
-                         hwm['info'], hwm['trace_label']))
+            logger.warning("#chunk_hwm total_elements (%s) > %s (%s) %s : %s " %
+                           (commas(elements), label, commas(chunk_size),
+                            hwm['info'], hwm['trace_label']))
 
     # if we are in a chunker
     if len(HWM) > 1 and HWM[1]:

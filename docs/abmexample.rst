@@ -264,7 +264,7 @@ In order to run the example, you first need two input files in the ``data`` fold
 
 * input_store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
 
-    * land_use/taz_data - Zone-based land use data (population and employment for example)
+    * land_use_taz - Zone-based land use data (population and employment for example)
     * persons - Synthetic population person records
     * households - Synthetic population household records
     

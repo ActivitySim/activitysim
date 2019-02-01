@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @inject.table()
 def land_use():
 
-    df = read_input_table("land_use/taz_data")
+    df = read_input_table("land_use_taz")
 
     logger.info("loaded land_use %s" % (df.shape,))
 

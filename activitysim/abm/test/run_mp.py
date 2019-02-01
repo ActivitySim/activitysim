@@ -19,11 +19,9 @@ from activitysim.core import mp_tasks
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 1931818
+HH_ID = 1396417
 
-# [1062107 1098395 1115294 1482578 1482698 1482715 1482920
-# 1482966 1809757 2022863 2123123 2123582 2591312]
-
+#  [1081630 1396417 1511245 1594943 1747572 1931915 2222690 2366390 2727112]
 
 # def teardown_function(func):
 #     inject.clear_cache()
@@ -42,24 +40,27 @@ HH_ID = 1931818
 
 def regress_mini_auto():
 
-    # regression test: these are among the first 10 households in households table
-    hh_ids = [257127, 566664, 2344918, 823865]
-    choices = [0, 1, 2, 0]
+    # regression test: these are among the middle households in households table
+    # should be the same results as in test_pipeline (single-threaded) tests
+    hh_ids = [932147, 982875, 983048, 1024353]
+    choices = [1, 1, 1, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')
 
-    auto_choice = pipeline.get_table("households").auto_ownership
-    print("auto_choice\n", auto_choice.head(4))
+    auto_choice = pipeline.get_table("households").sort_index().auto_ownership
+
+    offset = HOUSEHOLDS_SAMPLE_SIZE // 2  # choose something midway as hh_id ordered by hh size
+    print("auto_choice\n", auto_choice.head(offset).tail(4))
 
     auto_choice = auto_choice.reindex(hh_ids)
 
     """
     auto_choice
      household_id
-    257127     0
-    566664     1
-    2344918    2
-    823865     0
+    932147     1
+    982875     1
+    983048     1
+    1024353    0
     Name: auto_ownership, dtype: int64
     """
     pdt.assert_series_equal(auto_choice, expected_choice)

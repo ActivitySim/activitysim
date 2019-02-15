@@ -44,3 +44,5 @@ FIXME,daily_parking_cost,0
 ,drive_ferry_available,drive_lrf_available & (odt_skims['DRV_LRF_WLK_FERRYIVT']>0) & (dot_skims['WLK_LRF_WLK_FERRYIVT']>0)
 #,,
 destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, df[dest_col_name]) < setting('cbd_threshold')) * 1"
+#,,FIXME diagnostic
+#,sov_dist_rt,(odt_skims['SOV_DIST'] + dot_skims['SOV_DIST'])

@@ -507,6 +507,7 @@ def hh_id_for_chooser(id, choosers):
     elif 'household_id' in choosers.columns:
         hh_id = choosers.loc[id]['household_id']
     else:
+        print(": hh_id_for_chooser: nada, \n", choosers.columns)
         hh_id = None
 
     return hh_id

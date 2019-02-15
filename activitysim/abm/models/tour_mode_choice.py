@@ -55,7 +55,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
                           primary_tours.tour_type, value_counts=True)
 
     primary_tours_merged = pd.merge(primary_tours, persons_merged, left_on='person_id',
-                                    right_index=True, how='left')
+                                    right_index=True, how='left', suffixes=('', '_r'))
 
     # setup skim keys
     orig_col_name = 'TAZ'

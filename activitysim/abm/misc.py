@@ -37,7 +37,7 @@ def override_hh_ids(settings):
 
     file_path = config.data_file_path(hh_ids_filename, mandatory=False)
     if not file_path:
-        logger.error("hh_ids file name '%s' specified in settings not found: %s" % hh_ids_filename)
+        logger.error("hh_ids file name '%s' specified in settings not found" % hh_ids_filename)
         return None
 
     df = pd.read_csv(file_path, comment='#')

@@ -26,6 +26,8 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
     df_full = read_input_table("households")
     households_sliced = False
 
+    logger.info("full household list contains %s households" % df_full.shape[0])
+
     # only using households listed in override_hh_ids
     if override_hh_ids is not None:
 

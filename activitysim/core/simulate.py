@@ -140,7 +140,7 @@ def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
     return spec
 
 
-def eval_utilities(spec, choosers, locals_d=None, trace_label=None):
+def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_targets=False):
 
     # fixme - restore tracing and _check_for_variability
 
@@ -173,14 +173,12 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None):
 
     exprs = spec.index
     expression_values = np.empty((spec.shape[0], choosers.shape[0]))
-    i = 0
-    for expr in exprs:
+    for i, expr in enumerate(exprs):
         try:
             if expr.startswith('@'):
                 expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
             else:
                 expression_values[i] = choosers.eval(expr)
-            i += 1
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
@@ -190,6 +188,29 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None):
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
 
     t0 = tracing.print_elapsed_time(" eval_utilities", t0)
+
+    if have_trace_targets:
+
+        # get int offsets of the trace_targets (offsets of bool=True values)
+        trace_targets = tracing.trace_targets(choosers)
+        offsets = np.nonzero(trace_targets)[0]
+
+        # get array of expression_values
+        # expression_values.shape = (len(spec), len(choosers))
+        # data.shape = (len(spec), len(offsets))
+        data = expression_values[:, offsets]
+
+        # columns is chooser index as str
+        column_labels = choosers.index[trace_targets].astype(str)
+        # index is utility expressions
+        index = spec.index
+
+        trace_df = pd.DataFrame(data=data, columns=column_labels, index=index)
+
+        tracing.trace_df(trace_df, '%s.expression_values' % trace_label,
+                         slicer=None, transpose=False,
+                         column_labels=column_labels,
+                         index_label='expression')
 
     return utilities
 
@@ -610,12 +631,13 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'eval_nl')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    assert trace_label
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label)
+    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:

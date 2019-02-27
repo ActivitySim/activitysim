@@ -1,10 +1,9 @@
 Description,Target,Expression
 #,, annotate persons table after school_location model has run
 local scalar distance skim,_DISTANCE_SKIM,"skim_dict.get('DIST')"
-distance_to_school,distance_to_school,"pd.Series(_DISTANCE_SKIM.get(persons.home_taz, persons.school_taz), index=persons.index)"
+,distance_to_school,"np.where(persons.school_taz>=0,_DISTANCE_SKIM.get(persons.home_taz, persons.school_taz),np.nan)"
 #,, this uses the free flow travel time in both directions. MTC TM1 was MD and MD
 local scalar distance skim,_SOVMD_SKIM,"skim_dict.get(('SOV_TIME', 'MD'))"
 temp auto_time_to_school,_auto_time_to_school,"_SOVMD_SKIM.get(persons.home_taz, persons.school_taz)"
 temp auto_time_return,_auto_time_return,"_SOVMD_SKIM.get(persons.school_taz, persons.home_taz)"
-free flow roundtrip_auto_time_to_school,roundtrip_auto_time_to_school,"_auto_time_to_school + _auto_time_return"
-#free flow roundtrip_auto_time_to_school,roundtrip_auto_time_to_school,"pd.Series(_auto_time_to_school + _auto_time_return, index=persons.index)"
+free flow roundtrip_auto_time_to_school,roundtrip_auto_time_to_school,"np.where(persons.school_taz>=0,_auto_time_to_school + _auto_time_return,0)"

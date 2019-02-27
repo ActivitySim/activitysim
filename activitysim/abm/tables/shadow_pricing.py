@@ -755,6 +755,10 @@ def add_predicted_size_tables():
     shadow_settings = config.read_model_settings('shadow_pricing.yaml')
     shadow_pricing_models = shadow_settings['shadow_pricing_models']
 
+    # probably ought not scale if not shadow_pricing (breaks partial sample replicability)
+    # but this allows compatability with existing CTRAMP behavior...
+    scale_size_table = shadow_settings.get('SCALE_SIZE_TABLE', False)
+
     if shadow_pricing_models is None:
         logger.warning('shadow_pricing_models list not found in shadow_pricing settings')
         return
@@ -783,7 +787,9 @@ def add_predicted_size_tables():
         raw_size = tour_destination_size_terms(land_use, size_terms, model_selector)
         assert set(raw_size.columns) == set(segment_ids.keys())
 
-        if use_shadow_pricing:
+        if use_shadow_pricing or scale_size_table:
+
+            inject.add_table('raw_' + size_table_name(model_selector), raw_size)
 
             # - scale size_table counts to sample population
             # scaled_size = zone_size * (total_segment_modeled / total_segment_predicted)
@@ -811,7 +817,6 @@ def add_predicted_size_tables():
             # FIXME - should we be rounding?
             scaled_size = (raw_size * segment_scale_factors).round()
         else:
-            # don't scale if not shadow_pricing (breaks partial sample replicability)
             scaled_size = raw_size
 
         inject.add_table(size_table_name(model_selector), scaled_size)

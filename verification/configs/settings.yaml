@@ -39,9 +39,9 @@ num_processes: 3
 hh_ids: 10_pct_hh_ids.csv
 
 # - tracing
-trace_hh_id: 324105
+#trace_hh_id: 324105
 trace_od:
-#trace_hh_id: 107599
+trace_hh_id: 107599
 #trace_od: [5, 11]
 
 # to resume after last successful checkpoint, specify resume_after: _
@@ -55,7 +55,7 @@ models:
   ### mp_households step
   - school_location
   - workplace_location
-#  - auto_ownership_simulate
+  - auto_ownership_simulate
 #  - cdap_simulate
 #  - mandatory_tour_frequency
 #  - mandatory_tour_scheduling

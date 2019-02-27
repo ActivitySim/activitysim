@@ -148,7 +148,7 @@ def run_location_sample(
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap("TAZ", "TAZ_r")
+    skims = skim_dict.wrap('TAZ_chooser', 'TAZ')
 
     locals_d = {
         'skims': skims,
@@ -271,7 +271,7 @@ def run_location_simulate(
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap("TAZ", alt_dest_col_name)
+    skims = skim_dict.wrap("TAZ_chooser", alt_dest_col_name)
 
     locals_d = {
         'skims': skims,
@@ -386,7 +386,7 @@ def run_location_choice(
 
 def iterate_location_choice(
         model_settings,
-        persons_merged, persons,
+        persons_merged, persons, households,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id, locutor,
         trace_label):
@@ -474,25 +474,41 @@ def iterate_location_choice(
     persons_df[dest_choice_column_name] = \
         choices.reindex(persons_df.index).fillna(NO_DEST_TAZ).astype(int)
 
-    # - annotate persons
-    expressions.assign_columns(
-        df=persons_df,
-        model_settings=model_settings.get('annotate_persons'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+    # - annotate persons table
+    if 'annotate_persons' in model_settings:
+        expressions.assign_columns(
+            df=persons_df,
+            model_settings=model_settings.get('annotate_persons'),
+            trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
 
-    pipeline.replace_table("persons", persons_df)
+        pipeline.replace_table("persons", persons_df)
 
-    if trace_hh_id:
-        tracing.trace_df(persons_df,
-                         label=trace_label,
-                         warn_if_empty=True)
+        if trace_hh_id:
+            tracing.trace_df(persons_df,
+                             label=trace_label,
+                             warn_if_empty=True)
+
+    # - annotate households table
+    if 'annotate_households' in model_settings:
+
+        households_df = households.to_frame()
+        expressions.assign_columns(
+            df=households_df,
+            model_settings=model_settings.get('annotate_households'),
+            trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
+        pipeline.replace_table("households", households_df)
+
+        if trace_hh_id:
+            tracing.trace_df(households_df,
+                             label=trace_label,
+                             warn_if_empty=True)
 
     return persons_df
 
 
 @inject.step()
 def workplace_location(
-        persons_merged, persons,
+        persons_merged, persons, households,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id, locutor):
     """
@@ -506,7 +522,7 @@ def workplace_location(
 
     iterate_location_choice(
         model_settings,
-        persons_merged, persons,
+        persons_merged, persons, households,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id, locutor, trace_label
     )
@@ -514,7 +530,7 @@ def workplace_location(
 
 @inject.step()
 def school_location(
-        persons_merged, persons,
+        persons_merged, persons, households,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id, locutor
         ):
@@ -529,7 +545,7 @@ def school_location(
 
     iterate_location_choice(
         model_settings,
-        persons_merged, persons,
+        persons_merged, persons, households,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id, locutor, trace_label
     )

@@ -30,8 +30,6 @@ non_family,non_family,households.HHT.isin(constants.HHT_NONFAMILY)
 family,family,households.HHT.isin(constants.HHT_FAMILY)
 home_is_urban,home_is_urban,"reindex(land_use.area_type, households.TAZ) < setting('urban_threshold')"
 home_is_rural,home_is_rural,"reindex(land_use.area_type, households.TAZ) > setting('rural_threshold')"
-#,, FIXME - fix this variable from auto ownership model
-work_tour_auto_time_savings,work_tour_auto_time_savings,0
 #,, default for work and school location logsums before auto_ownership model is run
 ,auto_ownership,households.VEHICL
 #home_taz,home_taz,households.TAZ

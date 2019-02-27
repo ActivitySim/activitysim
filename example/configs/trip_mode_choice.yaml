@@ -54,7 +54,6 @@ NESTS:
 CONSTANTS:
   orig_col_name: origin
   dest_col_name: destination
-#    valueOfTime: 8.00
   costPerMile: 18.48
   costShareSr2: 1.75
   costShareSr3: 2.50

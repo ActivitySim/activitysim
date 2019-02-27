@@ -220,7 +220,7 @@ def _interaction_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))

@@ -50,6 +50,7 @@ University student interaction with off-peak accessibility to retail,(ptype == 3
 Driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 6) * auOpRetail,,0.08233,
 Pre-driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 7) * auOpRetail,,0.08233,
 Pre-driving-age child who is too young for school interaction with off-peak accessibility to retail,(ptype == 8) * auOpRetail,,0.08233,
+# commented out because not used in mtctm1,,,,
 # Full-time worker interaction with usual work location is home,(ptype == 1) * usualWorkLocationIsHome,-1.758,,0.1813
 # Part-time worker interaction with usual work location is home,(ptype == 2) * usualWorkLocationIsHome,-1.758,,0.1813
 # Full-time worker interaction with no usual work location,(ptype == 1) * noUsualWorkLocation,-0.5935,,

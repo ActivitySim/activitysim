@@ -554,12 +554,12 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'eval_mnl')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    utilities = eval_utilities(spec, choosers, locals_d, trace_label)
+    utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
     chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
@@ -864,7 +864,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     # FIXME - untested and not currently used by any models...
 
     trace_label = tracing.extend_trace_label(trace_label, 'eval_mnl_logsums')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     logger.debug("running eval_mnl_logsums")
 
@@ -872,7 +872,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    utilities = eval_utilities(spec, choosers, locals_d, trace_label)
+    utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
     chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
@@ -904,13 +904,13 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'eval_nl_logsums')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     # trace choosers
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label)
+    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:

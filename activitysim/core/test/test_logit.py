@@ -124,14 +124,16 @@ def interaction_alts():
 def test_interaction_dataset_no_sample(interaction_choosers, interaction_alts):
     expected = pd.DataFrame({
         'attr': ['a'] * 4 + ['b'] * 4 + ['c'] * 4 + ['b'] * 4,
-        'prop': [10, 20, 30, 40] * 4,
-        'chooser_idx': ['w'] * 4 + ['x'] * 4 + ['y'] * 4 + ['z'] * 4},
+        'prop': [10, 20, 30, 40] * 4},
         index=[1, 2, 3, 4] * 4)
 
     interacted = logit.interaction_dataset(
         interaction_choosers, interaction_alts)
 
     interacted, expected = interacted.align(expected, axis=1)
+
+    print("interacted\n", interacted)
+    print("expected\n", expected)
     pdt.assert_frame_equal(interacted, expected)
 
 
@@ -139,8 +141,7 @@ def test_interaction_dataset_sampled(
         interaction_choosers, interaction_alts):
     expected = pd.DataFrame({
         'attr': ['a'] * 2 + ['b'] * 2 + ['c'] * 2 + ['b'] * 2,
-        'prop': [30, 40, 10, 30, 40, 10, 20, 10],
-        'chooser_idx': ['w'] * 2 + ['x'] * 2 + ['y'] * 2 + ['z'] * 2},
+        'prop': [30, 40, 10, 30, 40, 10, 20, 10]},
         index=[3, 4, 1, 3, 4, 1, 2, 1])
 
     interacted = logit.interaction_dataset(

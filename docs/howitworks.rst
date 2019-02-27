@@ -230,7 +230,7 @@ available in the expressions using ``@skims``.
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap("TAZ", "TAZ_r")
+    skims = skim_dict.wrap('TAZ', 'TAZ_r')
     locals_d = {
         'skims': skims
     }

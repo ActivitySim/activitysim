@@ -25,6 +25,12 @@ annotate_persons:
   TABLES:
     - land_use
 
+annotate_households:
+  SPEC: annotate_households_workplace
+  DF: households
+  TABLES:
+    - persons
+
 # - shadow pricing
 
 

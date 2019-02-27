@@ -89,7 +89,7 @@ def _interaction_sample_simulate(
     last_repeat = alternatives.index != np.roll(alternatives.index, -1)
     assert (choosers.shape[0] == 1) or choosers.index.equals(alternatives.index[last_repeat])
 
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
@@ -104,6 +104,7 @@ def _interaction_sample_simulate(
     if skims is not None:
         alternatives[alternatives.index.name] = alternatives.index
 
+    # - join choosers and alts
     # in vanilla interaction_simulate interaction_df is cross join of choosers and alternatives
     # interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
     # here, alternatives is sparsely repeated once for each (non-dup) sample
@@ -111,12 +112,7 @@ def _interaction_sample_simulate(
     # so we just need to left join alternatives with choosers
     assert alternatives.index.name == choosers.index.name
 
-    # interaction_df = pd.merge(
-    #     alternatives, choosers,
-    #     left_index=True, right_index=True,
-    #     suffixes=('', '_r'))
-
-    interaction_df = alternatives.join(choosers, how='left', rsuffix='_r')
+    interaction_df = alternatives.join(choosers, how='left', rsuffix='_chooser')
 
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 

@@ -118,7 +118,7 @@ def joint_tour_destination_sample(
     # and a TAZ in the alternatives which get merged during interaction
     # interaction_dataset adds '_r' suffix to duplicate columns,
     # so TAZ column from households is TAZ and TAZ column from alternatives becomes TAZ_r
-    skims = skim_dict.wrap("TAZ", "TAZ_r")
+    skims = skim_dict.wrap('TAZ_chooser', 'TAZ')
 
     locals_d = {
         'skims': skims

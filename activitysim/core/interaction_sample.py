@@ -190,7 +190,7 @@ def _interaction_sample(
             number of duplicate picks for chooser, alt
     """
 
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     assert len(choosers.index) > 0
 
@@ -210,7 +210,7 @@ def _interaction_sample(
     if skims is not None:
         alternatives[alternatives.index.name] = alternatives.index
 
-    # cross join choosers and alternatives (cartesian product)
+    # - cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     alternative_count = alternatives.shape[0]

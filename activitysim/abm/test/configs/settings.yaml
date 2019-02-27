@@ -86,17 +86,6 @@ rural_threshold: 6
 
 grade_school_max_age: 14
 
-county_map:
-    San Francisco: 1
-    San Mateo: 2
-    Santa Clara: 3
-    Alameda: 4
-    Contra Costa: 5
-    Solano: 6
-    Napa: 7
-    Sonoma: 8
-    Marin: 9
-
 skim_time_periods:
     hours:
         - 0

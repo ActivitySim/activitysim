@@ -230,7 +230,7 @@ def stop_frequency(
     trips = process_trips(tours, stop_frequency_alts)
     trips = pipeline.extend_table("trips", trips)
     tracing.register_traceable_table('trips', trips)
-    pipeline.get_rn_generator().add_channel(trips, 'trips')
+    pipeline.get_rn_generator().add_channel('trips', trips)
 
     if trace_hh_id:
         tracing.trace_df(tours,

@@ -54,3 +54,6 @@ Dummy for eating-out purpose and duration of 1 hour,(tour_type == 'business') & 
 Dummy for eating-out purpose and departure at 11,(tour_type == 'business') & (start == 11),1.511
 Dummy for eating-out purpose and departure at 12,(tour_type == 'business') & (start == 12),2.721
 Dummy for eating-out purpose and departure at 13,(tour_type == 'business') & (start == 13),2.122
+#,,
+#Mode Choice Logsum,mode_choice_logsum,0
+#,,

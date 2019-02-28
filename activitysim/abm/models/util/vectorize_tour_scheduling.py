@@ -107,6 +107,15 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     return alt_tdd
 
 
+def compute_logsums(alt_tdd, tours, tour_trace_label):
+
+    logger.info("%s compute_logsums for %s alts" % (tour_trace_label, len(alt_tdd)))
+
+    alt_tdd['mode_choice_logsum'] = 0
+
+    return alt_tdd
+
+
 def _schedule_tours(
         tours, persons_merged, alts, spec, constants,
         timetable, window_id_col,
@@ -141,8 +150,9 @@ def _schedule_tours(
         timetable of timewidows for person (or subtour) with rows for tours[window_id_col]
     window_id_col : str
         column name from tours that identifies timetable owner (or None if tours index)
-        person_id for non/mandatory tours, parent_tour_id for subtours,
-        None (tours index) for joint_tours since every tour potentially has different participants)
+        - person_id for non/mandatory tours
+        - parent_tour_id for subtours,
+        - None (tours index) for joint_tours since every tour may have different participants)
     previous_tour: Series
         series with value of tdd_alt choice for last previous tour scheduled for
     tour_owner_id_col : str
@@ -164,7 +174,9 @@ def _schedule_tours(
                      suffixes=('', '_y'))
     chunk.log_df(tour_trace_label, "tours", tours)
 
+    # - add explicit window_id_col for timetable owner if it is index
     # if no timetable window_id_col specified, then add index as an explicit column
+    # (this is not strictly necessary but its presence makes code simpler in several places)
     if window_id_col is None:
         window_id_col = tours.index.name
         tours[window_id_col] = tours.index
@@ -172,12 +184,7 @@ def _schedule_tours(
     # timetable can't handle multiple tours per window_id
     assert not tours[window_id_col].duplicated().any()
 
-    # merge previous tour columns (join on index)
-    tours = tours.join(get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts))
-
-    chunk.log_df(tour_trace_label, "tours", tours)
-
-    # build interaction dataset filtered to include only available tdd alts
+    # - build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
     choice_column = 'tdd'
@@ -185,6 +192,17 @@ def _schedule_tours(
                                       tour_trace_label)
     chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
+    # - merge in previous tour columns
+    # adds start_previous and end_previous, joins on index
+    tours = tours.join(get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts))
+    chunk.log_df(tour_trace_label, "tours", tours)
+
+    # - add logsums
+    alt_tdd = compute_logsums(alt_tdd, tours,
+                              tracing.extend_trace_label(tour_trace_label, 'logsums'))
+    chunk.log_df(tour_trace_label, "tours", tours)
+
+    # - make choices
     locals_d = {
         'tt': timetable
     }
@@ -201,8 +219,12 @@ def _schedule_tours(
         trace_label=tour_trace_label
     )
 
+    # - update previous_tour and timetable parameters
+
+    # update previous_tour (series with most recent previous tdd choices) with latest values
     previous_tour.loc[tours[tour_owner_id_col]] = choices.values
 
+    # update timetable with chosen tdd footprints
     timetable.assign(tours[window_id_col], choices)
 
     return choices

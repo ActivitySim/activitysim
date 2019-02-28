@@ -65,7 +65,7 @@ def create_households(trace_hh_id):
     df = pd.DataFrame({'household_id': [1, 2, 3], 'TAZ': {100, 100, 101}})
     inject.add_table('households', df)
 
-    pipeline.get_rn_generator().add_channel(df, 'households')
+    pipeline.get_rn_generator().add_channel('households', df)
 
     if trace_hh_id:
         tracing.register_traceable_table('households', df)

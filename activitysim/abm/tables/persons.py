@@ -39,7 +39,7 @@ def persons(households, trace_hh_id):
     # replace table function with dataframe
     inject.add_table('persons', df)
 
-    pipeline.get_rn_generator().add_channel(df, 'persons')
+    pipeline.get_rn_generator().add_channel('persons', df)
 
     if trace_hh_id:
         tracing.register_traceable_table('persons', df)

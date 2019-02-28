@@ -152,7 +152,7 @@ The various calls also setup logging, tracing, and stable random number manageme
     # replace table function with dataframe
     inject.add_table('persons', df)
 
-    pipeline.get_rn_generator().add_channel(df, 'persons')
+    pipeline.get_rn_generator().add_channel('persons', df)
 
     if trace_hh_id:
         tracing.register_traceable_table('persons', df)
@@ -194,7 +194,7 @@ The various calls also setup logging, tracing, and stable random number manageme
     # replace table function with dataframe
     inject.add_table('households', df)
 
-    pipeline.get_rn_generator().add_channel(df, 'households')
+    pipeline.get_rn_generator().add_channel('households', df)
 
     if trace_hh_id:
         tracing.register_traceable_table('households', df)

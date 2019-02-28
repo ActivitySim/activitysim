@@ -128,7 +128,6 @@ def test_register_tours(capsys):
     tracing.config_logger()
 
     inject.add_injectable('traceable_tables', ['households', 'tours'])
-    inject.add_injectable('traceable_table_refs', None)
 
     # in case another test injected this
     inject.add_injectable("trace_tours", [])
@@ -162,7 +161,8 @@ def test_register_tours(capsys):
     print(out)  # don't consume output
 
     # should be tracing tour with tour_id 3
-    assert inject.get_injectable('trace_tours') == [12]
+    traceable_table_ids = inject.get_injectable('traceable_table_ids')
+    assert traceable_table_ids['tours'] == [12]
 
     close_handlers()
 

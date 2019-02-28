@@ -84,12 +84,13 @@ def add_step(name, func):
     return orca.add_step(name, func)
 
 
-def add_table(table_name, table, cache=False):
+def add_table(table_name, table):
 
-    if orca.is_table(table_name):
+    if orca.is_table(table_name) and orca.table_type(table_name) == 'dataframe':
         logger.warning("inject add_table replacing existing table %s" % table_name)
+        assert False
 
-    return orca.add_table(table_name, table, cache=cache)
+    return orca.add_table(table_name, table, cache=False)
 
 
 # fixme remove?

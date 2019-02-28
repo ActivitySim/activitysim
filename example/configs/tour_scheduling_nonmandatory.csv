@@ -27,7 +27,8 @@ University student - arrive after 22,(ptype == 3) & (end > 22),0.5466
 Shopping tour - duration < 2 hours,"(tour_type == 'shopping') & (duration < 2)",0.5168
 Discretionary tour - duration < 2 hours,"(tour_type == 'othdiscr') & (duration < 2)",-0.6974
 Adult with children in HH - arrive 19 - 21,adult & (num_children > 0) & ( end > 18 ) & ( end < 22 ),0.336
-# Mode Choice Logsum,mode_choice_logsum,0
+#,,
+Mode Choice Logsum,mode_choice_logsum,0
 #,,
 Some previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.person_id, df.start)",-0.4562
 Some previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.person_id, df.end)",-0.3992

@@ -25,6 +25,7 @@ University student - arrive after 22,(ptype == 3) & (end > 22),0.5466
 Shopping tour - duration < 2 hours,"(tour_type == 'shopping') & (duration < 2)",0.5168
 Discretionary tour - duration < 2 hours,"(tour_type == 'othdiscr') & (duration < 2)",-0.6974
 Adult with children in HH - arrive 19 - 21,adult & (num_children > 0) & ( end > 18 ) & ( end < 22 ),0.336
+#,,
 #Mode Choice Logsum,mode_choice_logsum,0
 #,,
 #,, FIXME - pathological knowledge that tour_id is timetable window_id

@@ -12,8 +12,6 @@ import logging
 import logging.config
 import sys
 import time
-import contextlib
-from collections import OrderedDict
 
 import yaml
 
@@ -194,7 +192,6 @@ def register_traceable_table(table_name, df):
 
     trace_hh_id = inject.get_injectable("trace_hh_id", None)
 
-    trace_injectable = 'trace_%s' % table_name
     new_traced_ids = []
 
     if trace_hh_id is None:
@@ -210,14 +207,12 @@ def register_traceable_table(table_name, df):
         logger.error("Can't register table '%s' without index name" % table_name)
         return
 
-    traceable_table_refs = inject.get_injectable('traceable_table_refs', None)
+    traceable_table_ids = inject.get_injectable('traceable_table_ids')
+    traceable_table_indexes = inject.get_injectable('traceable_table_indexes')
 
-    # traceable_table_refs is OrderedDict so we can find first registered table to slice by ref_con
-    if traceable_table_refs is None:
-        traceable_table_refs = OrderedDict()
-    if idx_name in traceable_table_refs and traceable_table_refs[idx_name] != table_name:
+    if idx_name in traceable_table_indexes and traceable_table_indexes[idx_name] != table_name:
         logger.error("table '%s' index name '%s' already registered for table '%s'" %
-                     (table_name, idx_name, traceable_table_refs[idx_name]))
+                     (table_name, idx_name, traceable_table_indexes[idx_name]))
         return
 
     if table_name == 'households':
@@ -230,41 +225,43 @@ def register_traceable_table(table_name, df):
     else:
 
         # find first already registered ref_col we can use to slice this table
-        ref_con = next((c for c in traceable_table_refs if c in df.columns), None)
-        if ref_con is None:
+        ref_col = next((c for c in traceable_table_indexes if c in df.columns), None)
+        if ref_col is None:
             logger.error("can't find a registered table to slice table '%s' index name '%s'"
-                         " in traceable_table_refs: %s" %
-                         (table_name, idx_name, traceable_table_refs))
+                         " in traceable_table_indexes: %s" %
+                         (table_name, idx_name, traceable_table_indexes))
             return
 
-        # get traceable_ids for ref_con table
-        ref_con_trace_injectable = 'trace_%s' % traceable_table_refs[ref_con]
-        ref_con_traced_ids = inject.get_injectable(ref_con_trace_injectable, [])
+        # get traceable_ids for ref_col table
+        ref_col_table_name = traceable_table_indexes[ref_col]
+        ref_col_traced_ids = traceable_table_ids.get(ref_col_table_name, [])
 
         # inject list of ids in table we are tracing
         # this allows us to slice by id without requiring presence of a household id column
-        traced_df = df[df[ref_con].isin(ref_con_traced_ids)]
+        traced_df = df[df[ref_col].isin(ref_col_traced_ids)]
         new_traced_ids = traced_df.index.tolist()
         if len(new_traced_ids) == 0:
             logger.warning("register %s: no rows with %s in %s." %
-                           (table_name, ref_con, ref_con_traced_ids))
+                           (table_name, ref_col, ref_col_traced_ids))
 
-    # update traceable_table_refs with this traceable_table's ref_con
-    if idx_name not in traceable_table_refs:
-        traceable_table_refs[idx_name] = table_name
-        print("adding table %s.%s to traceable_table_refs" % (table_name, idx_name))
-        inject.add_injectable('traceable_table_refs', traceable_table_refs)
+    # update traceable_table_indexes with this traceable_table's idx_name
+    if idx_name not in traceable_table_indexes:
+        traceable_table_indexes[idx_name] = table_name
+        print("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
+        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
 
     # update the list of trace_ids for this table
-    prior_traced_ids = inject.get_injectable(trace_injectable, [])
-    if prior_traced_ids:
-        logger.info("register %s: adding %s ids to %s existing trace ids" %
-                    (table_name, len(new_traced_ids), len(prior_traced_ids)))
-    traced_ids = prior_traced_ids + new_traced_ids
-    logger.info("register %s: tracing ids %s in %s %s" %
-                (table_name, traced_ids, len(df.index), table_name))
+    prior_traced_ids = traceable_table_ids.get(table_name, [])
+
     if new_traced_ids:
-        inject.add_injectable(trace_injectable, traced_ids)
+        assert not set(prior_traced_ids) & set(new_traced_ids)
+        traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
+        inject.add_injectable('traceable_table_ids', traceable_table_ids)
+
+    logger.info("register %s: added %s new ids to %s existing trace ids" %
+                (table_name, len(new_traced_ids), len(prior_traced_ids)))
+    logger.info("register %s: tracing new ids %s in %s" %
+                (table_name, new_traced_ids, table_name))
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
@@ -443,14 +440,15 @@ def get_trace_target(df, slicer):
     if column is None and df.index.name != slicer:
         raise RuntimeError("bad slicer '%s' for df with index '%s'" % (slicer, df.index.name))
 
-    table_refs = inject.get_injectable('traceable_table_refs', {})
+    traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
 
     if df.empty:
         target_ids = None
-    elif slicer in table_refs:
+    elif slicer in traceable_table_indexes:
         # maps 'person_id' to 'persons', etc
-        table_name = table_refs[slicer]
-        target_ids = inject.get_injectable('trace_%s' % table_name, [])
+        table_name = traceable_table_indexes[slicer]
+        target_ids = traceable_table_ids.get(table_name, [])
     elif slicer == 'TAZ':
         target_ids = inject.get_injectable('trace_od', [])
 
@@ -590,17 +588,17 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     # slicer column name and id targets to use for chooser id added to model_design dataframe
     # currently we only ever slice by person_id, but that could change, so we check here...
 
-    table_refs = inject.get_injectable('traceable_table_refs', {})
+    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
 
-    if choosers.index.name == 'person_id' and inject.get_injectable('trace_persons', False):
+    if choosers.index.name == 'person_id' and 'persons' in traceable_table_ids:
         slicer_column_name = choosers.index.name
-        targets = inject.get_injectable('trace_persons', [])
-    elif 'household_id' in choosers.columns and inject.get_injectable('trace_hh_id', False):
+        targets = traceable_table_ids['persons']
+    elif 'household_id' in choosers.columns and 'households' in traceable_table_ids:
         slicer_column_name = 'household_id'
-        targets = inject.get_injectable('trace_hh_id', [])
-    elif 'person_id' in choosers.columns and inject.get_injectable('trace_persons', False):
+        targets = traceable_table_ids['households']
+    elif 'person_id' in choosers.columns and 'persons' in traceable_table_ids:
         slicer_column_name = 'person_id'
-        targets = inject.get_injectable('trace_persons', [])
+        targets = traceable_table_ids['persons']
     else:
         print(choosers.columns)
         raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"

@@ -437,7 +437,7 @@ class Random(object):
 
     # channel management
 
-    def add_channel(self, domain_df, channel_name):
+    def add_channel(self, channel_name, domain_df):
         """
         Create or extend a channel for generating random number streams for domain_df.
 

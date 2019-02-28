@@ -407,7 +407,7 @@ def load_checkpoint(checkpoint_name):
         for table_name in rng_channels:
             if table_name in loaded_tables:
                 logger.debug("adding channel %s" % (table_name,))
-                _PIPELINE.rng().add_channel(loaded_tables[table_name], channel_name=table_name)
+                _PIPELINE.rng().add_channel(table_name, loaded_tables[table_name])
 
 
 def split_arg(s, sep, default=''):

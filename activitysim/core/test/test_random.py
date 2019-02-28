@@ -54,8 +54,8 @@ def test_channel():
 
     rng.begin_step('test_step')
 
-    rng.add_channel(persons, channel_name='persons')
-    rng.add_channel(households, channel_name='households')
+    rng.add_channel('persons', persons)
+    rng.add_channel('households', households)
 
     rands = rng.random_for_df(persons)
 

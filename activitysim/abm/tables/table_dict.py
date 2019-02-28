@@ -6,6 +6,7 @@ from future.standard_library import install_aliases
 install_aliases()  # noqa: E402
 
 import logging
+from collections import OrderedDict
 
 from activitysim.core import inject
 
@@ -35,3 +36,16 @@ def traceable_tables():
     # e.g. 'persons' has to be registered AFTER 'households'
 
     return TRACEABLE_TABLES
+
+
+@inject.injectable()
+def traceable_table_indexes():
+    # traceable_table_indexes is OrderedDict {<index_name>: <table_name>}
+    # so we can find first registered table to slice by ref_col
+    return OrderedDict()
+
+
+@inject.injectable()
+def traceable_table_ids():
+    # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
+    return dict()

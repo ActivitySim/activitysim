@@ -109,8 +109,8 @@ def mandatory_tour_frequency(persons_merged,
     )
 
     tours = pipeline.extend_table("tours", mandatory_tours)
-    tracing.register_traceable_table('tours', tours)
-    pipeline.get_rn_generator().add_channel(mandatory_tours, 'tours')
+    tracing.register_traceable_table('tours', mandatory_tours)
+    pipeline.get_rn_generator().add_channel('tours', mandatory_tours)
 
     # - annotate persons
     persons = inject.get_table('persons').to_frame()

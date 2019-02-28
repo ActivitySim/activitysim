@@ -100,7 +100,7 @@ def joint_tour_frequency(
     tours = pipeline.extend_table("tours", joint_tours)
 
     tracing.register_traceable_table('tours', joint_tours)
-    pipeline.get_rn_generator().add_channel(joint_tours, 'tours')
+    pipeline.get_rn_generator().add_channel('tours', joint_tours)
 
     # - annotate households
     # add joint_tour_frequency and num_hh_joint_tours columns to households

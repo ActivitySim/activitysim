@@ -92,8 +92,8 @@ def atwork_subtour_frequency(tours,
 
     tours = pipeline.extend_table("tours", subtours)
 
-    tracing.register_traceable_table('tours', tours)
-    pipeline.get_rn_generator().add_channel(subtours, 'tours')
+    tracing.register_traceable_table('tours', subtours)
+    pipeline.get_rn_generator().add_channel('tours', subtours)
 
     if trace_hh_id:
         tracing.trace_df(tours,

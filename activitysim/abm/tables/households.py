@@ -95,7 +95,7 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
     # replace table function with dataframe
     inject.add_table('households', df)
 
-    pipeline.get_rn_generator().add_channel(df, 'households')
+    pipeline.get_rn_generator().add_channel('households', df)
 
     if trace_hh_id:
         tracing.register_traceable_table('households', df)

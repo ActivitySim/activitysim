@@ -248,7 +248,7 @@ def joint_tour_participation(
     # - create joint_tour_participation_candidates table
     candidates = joint_tour_participation_candidates(joint_tours, persons_merged)
     tracing.register_traceable_table('joint_tour_participants', candidates)
-    pipeline.get_rn_generator().add_channel(candidates, 'joint_tour_participants')
+    pipeline.get_rn_generator().add_channel('joint_tour_participants', candidates)
 
     logger.info("Running joint_tours_participation with %d potential participants (candidates)" %
                 candidates.shape[0])

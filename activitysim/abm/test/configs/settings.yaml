@@ -84,18 +84,20 @@ urban_threshold: 4
 cbd_threshold: 2
 rural_threshold: 6
 
-grade_school_max_age: 14
-
 skim_time_periods:
     hours:
         - 0
+        - 6
         - 11
         - 16
+        - 20
         - 24
     labels:
+        - EA
         - AM
         - MD
         - PM
+        - EV
 
 # - value of time
 

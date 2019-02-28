@@ -15,4 +15,4 @@ python simulation.py
 
 # 10% sample OSX single process - 3 shadow price iterations
 
-python simulation.py -o output_sp -c configs_3sp -c ../example/configs
+python simulation.py -o output_sp -c configs_sp -c ../example/configs

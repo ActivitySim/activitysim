@@ -344,7 +344,7 @@ def regress_tour_modes(tours_df):
     91533655  DRIVEALONEFREE    3156332      work         1      mandatory
     91533635     SHARED3FREE    3156332    escort         1  non_mandatory
     91533650        WALK_LOC    3156332  othmaint         2  non_mandatory
-    91533649        WALK_LOC    3156332  othdiscr         3  non_mandatory
+    91533649            BIKE    3156332  othdiscr         3  non_mandatory
     91533585     SHARED2FREE    3156333  shopping         1          joint
     91533680     SHARED3FREE    3156333    school         1      mandatory
     91533682            WALK    3156333  shopping         1  non_mandatory
@@ -407,7 +407,7 @@ def regress_tour_modes(tours_df):
         'DRIVEALONEFREE',
         'SHARED3FREE',
         'WALK_LOC',
-        'WALK_LOC',
+        'BIKE',
         'SHARED2FREE',
         'SHARED3FREE',
         'WALK',

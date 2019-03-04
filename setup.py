@@ -23,7 +23,7 @@ setup(
     long_description=long_description,
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
-        'numpy >= 1.13.0',
+        'numpy == 1.15.4',  # https://github.com/PyTables/PyTables/issues/719
         'openmatrix >= 0.3.4.1',
         'pandas >= 0.20.3',
         'pyyaml >= 3.0',

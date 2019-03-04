@@ -54,10 +54,22 @@ def mandatory_tour_scheduling(tours,
     chooser_columns = logsum_columns + [c for c in model_columns if c not in logsum_columns]
     persons_merged = expressions.filter_chooser_columns(persons_merged, chooser_columns)
 
-    #bug
+    # - add primary_purpose column
+    # mtctm1 segments mandatory_scheduling spec by tour_type
+    # (i.e. there are different specs for work and school tour_types)
+    # mtctm1 logsum coefficients are segmented by primary_purpose
+    # (i.e. there are different locsum coefficents for work, school, univ primary_purposes
+    # for simplicity managing these different segmentation schemes,
+    # we conflate them by segmenting the skims to align with primary_purpose
     if 'primary_purpose' not in mandatory_tours:
-        mandatory_tours['primary_purpose'] = mandatory_tours.tour_type.where((mandatory_tours.tour_type != 'school') | ~persons_merged.reindex(mandatory_tours.person_id).is_university, 'univ')
+        is_university_tour = \
+            (mandatory_tours.tour_type == 'school') & \
+            persons_merged.reindex(mandatory_tours.person_id).is_university
 
+        mandatory_tours['primary_purpose'] = \
+            mandatory_tours.tour_type.where(~is_university_tour, 'univ')
+
+    # - spec dict segmented by primary_purpose
     work_spec = simulate.read_model_spec(file_name='tour_scheduling_work.csv')
     school_spec = simulate.read_model_spec(file_name='tour_scheduling_school.csv')
     segment_specs = {

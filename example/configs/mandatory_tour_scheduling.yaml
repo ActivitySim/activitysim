@@ -24,10 +24,7 @@ SEGMENT_COL: primary_purpose
 
 #CHOOSER_ORIG_COL_NAME: TAZ
 
-tour_purpose_specific_settings:
-  work:
-    destination: workplace_taz
-  school:
-    destination: school_taz
-  univ:
-    destination: school_taz
+DESTINATION_FOR_TOUR_PURPOSE:
+  work: workplace_taz
+  school: school_taz
+  univ: school_taz

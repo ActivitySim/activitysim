@@ -4,4 +4,4 @@ annotate_persons:
   TABLES:
     - tours
 
-SEGMENT_COL: tour_purpose
+#SEGMENT_COL: tour_purpose

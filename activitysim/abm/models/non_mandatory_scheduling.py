@@ -43,7 +43,11 @@ def non_mandatory_tour_scheduling(tours,
     logger.info("Running non_mandatory_tour_scheduling with %d tours", len(tours))
 
     persons_merged = persons_merged.to_frame()
-    persons_merged = expressions.filter_chooser_columns(persons_merged, model_settings)
+
+    if 'SIMULATE_CHOOSER_COLUMNS' in model_settings:
+        persons_merged =\
+            expressions.filter_chooser_columns(persons_merged,
+                                               model_settings['SIMULATE_CHOOSER_COLUMNS'])
 
     constants = config.get_model_constants(model_settings)
 
@@ -64,7 +68,7 @@ def non_mandatory_tour_scheduling(tours,
     tdd_choices, timetable = vectorize_tour_scheduling(
         non_mandatory_tours, persons_merged,
         tdd_alts, model_spec,
-        constants=constants,
+        model_settings=model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)
 

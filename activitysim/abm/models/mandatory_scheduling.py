@@ -14,8 +14,9 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import timetable as tt
 
-from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 from .util import expressions
+from .util import vectorize_tour_scheduling as vts
+
 from activitysim.core.util import assign_in_place
 
 
@@ -35,8 +36,7 @@ def mandatory_tour_scheduling(tours,
     """
     trace_label = 'mandatory_tour_scheduling'
     model_settings = config.read_model_settings('mandatory_tour_scheduling.yaml')
-    work_spec = simulate.read_model_spec(file_name='tour_scheduling_work.csv')
-    school_spec = simulate.read_model_spec(file_name='tour_scheduling_school.csv')
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     tours = tours.to_frame()
     mandatory_tours = tours[tours.tour_category == 'mandatory']
@@ -47,16 +47,31 @@ def mandatory_tour_scheduling(tours,
         return
 
     persons_merged = persons_merged.to_frame()
-    persons_merged = expressions.filter_chooser_columns(persons_merged, model_settings)
 
-    model_constants = config.get_model_constants(model_settings)
+    # - filter chooser columns for both logsums and simulate
+    logsum_columns = logsum_settings.get('LOGSUM_CHOOSER_COLUMNS', [])
+    model_columns = model_settings.get('SIMULATE_CHOOSER_COLUMNS', [])
+    chooser_columns = logsum_columns + [c for c in model_columns if c not in logsum_columns]
+    persons_merged = expressions.filter_chooser_columns(persons_merged, chooser_columns)
+
+    #bug
+    if 'primary_purpose' not in mandatory_tours:
+        mandatory_tours['primary_purpose'] = mandatory_tours.tour_type.where((mandatory_tours.tour_type != 'school') | ~persons_merged.reindex(mandatory_tours.person_id).is_university, 'univ')
+
+    work_spec = simulate.read_model_spec(file_name='tour_scheduling_work.csv')
+    school_spec = simulate.read_model_spec(file_name='tour_scheduling_school.csv')
+    segment_specs = {
+        'work': work_spec,
+        'school': school_spec,
+        'univ': school_spec
+    }
 
     logger.info("Running mandatory_tour_scheduling with %d tours", len(tours))
-    tdd_choices, timetable = vectorize_tour_scheduling(
+    tdd_choices, timetable = vts.vectorize_tour_scheduling(
         mandatory_tours, persons_merged,
         tdd_alts,
-        spec={'work': work_spec, 'school': school_spec},
-        constants=model_constants,
+        spec=segment_specs,
+        model_settings=model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)
 

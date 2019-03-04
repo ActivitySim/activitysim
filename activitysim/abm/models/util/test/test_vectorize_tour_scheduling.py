@@ -64,7 +64,8 @@ def test_vts():
 
     tdd_choices, timetable = vectorize_tour_scheduling(
         tours, persons, alts, spec,
-        constants={}, chunk_size=0, trace_label='test_vts')
+        model_settings={},
+        chunk_size=0, trace_label='test_vts')
 
     # FIXME - dead reckoning regression
     # there's no real logic here - this is just what came out of the monte carlo

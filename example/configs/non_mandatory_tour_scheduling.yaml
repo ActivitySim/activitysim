@@ -7,7 +7,7 @@ preprocessor:
     - land_use
     - joint_tour_participants
 
-CHOOSER_COLUMNS:
+SIMULATE_CHOOSER_COLUMNS:
   - ptype
   - num_children
   - roundtrip_auto_time_to_work

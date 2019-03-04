@@ -1,5 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import os
 import logging
@@ -212,14 +215,11 @@ def annotate_preprocessors(
         assign_in_place(tours_df, results)
 
 
-def filter_chooser_columns(choosers, model_settings, column_list='CHOOSER_COLUMNS'):
-
-    chooser_columns = model_settings.get(column_list, [])
+def filter_chooser_columns(choosers, chooser_columns):
 
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:
         logger.warning("filter_chooser_columns missing_columns %s" % missing_columns)
-        assert False
 
     # ignore any columns not appearing in choosers df
     chooser_columns = [c for c in chooser_columns if c in choosers]

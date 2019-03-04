@@ -210,11 +210,7 @@ def run_location_logsums(
 
     logger.info("Running %s with %s rows" % (trace_label, len(location_sample_df.index)))
 
-    choosers = pd.merge(location_sample_df,
-                        persons_merged_df,
-                        left_index=True,
-                        right_index=True,
-                        how="left")
+    choosers = location_sample_df.join(persons_merged_df, how='left')
 
     tour_purpose = model_settings['LOGSUM_TOUR_PURPOSE']
     if isinstance(tour_purpose, dict):
@@ -261,7 +257,6 @@ def run_location_simulate(
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge additional alt columns into alt sample list
-
     alternatives = \
         pd.merge(location_sample_df, dest_size_terms,
                  left_on=alt_dest_col_name, right_index=True, how="left")

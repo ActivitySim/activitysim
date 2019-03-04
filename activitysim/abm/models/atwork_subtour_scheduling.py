@@ -75,7 +75,7 @@ def atwork_subtour_scheduling(
         subtours,
         persons_merged,
         tdd_alts, model_spec,
-        constants=constants,
+        model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)
 

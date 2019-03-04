@@ -124,7 +124,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
         alternatives,
     )
 
-    tours = pipeline.extend_table("tours", non_mandatory_tours)
+    pipeline.extend_table("tours", non_mandatory_tours)
 
     tracing.register_traceable_table('tours', non_mandatory_tours)
     pipeline.get_rn_generator().add_channel('tours', non_mandatory_tours)

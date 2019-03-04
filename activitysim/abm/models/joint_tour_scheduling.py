@@ -81,7 +81,7 @@ def joint_tour_scheduling(
         persons_merged,
         tdd_alts,
         spec=model_spec,
-        constants=locals_d,
+        model_settings=model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)
 

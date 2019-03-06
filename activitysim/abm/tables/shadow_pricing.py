@@ -476,6 +476,8 @@ class ShadowPriceCalculator(object):
             # print("\ntarget\n", like_df(target, self.shadow_prices).head())
             # print("\nadjustment\n", like_df(adjustment, self.shadow_prices).head())
 
+            #new_shadow_prices = adjustment
+
             new_shadow_prices = self.shadow_prices + adjustment
 
         else:
@@ -498,6 +500,33 @@ class ShadowPriceCalculator(object):
         """
 
         return self.predicted_size * self.shadow_prices
+
+    def xxx(self, segment):
+
+        assert segment in self.segment_ids
+
+        if self.use_shadow_pricing:
+
+            shadow_price_method = self.shadow_settings['SHADOW_PRICE_METHOD']
+
+            if shadow_price_method == 'ctramp':
+                adjusted_predicted_size = (self.predicted_size * self.shadow_prices)[segment]
+                utility_adjustment = 0
+            elif shadow_price_method == 'daysim':
+                adjusted_predicted_size = self.predicted_size[segment]
+                utility_adjustment = self.shadow_prices[segment]
+            else:
+                raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
+
+        else:
+
+            adjusted_predicted_size = self.predicted_size[segment]
+            utility_adjustment = 0
+
+        return pd.DataFrame({
+            'size_term': adjusted_predicted_size,
+            'shadow_price_utility_adjustment': utility_adjustment
+        })
 
     def write_trace_files(self, iteration):
         """

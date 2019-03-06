@@ -492,26 +492,23 @@ class ShadowPriceCalculator(object):
 
         assert segment in self.segment_ids
 
+        size_term_adjustment = 1
+        utility_adjustment = 0
+
         if self.use_shadow_pricing:
 
             shadow_price_method = self.shadow_settings['SHADOW_PRICE_METHOD']
 
             if shadow_price_method == 'ctramp':
-                adjusted_predicted_size = (self.predicted_size * self.shadow_prices)[segment]
-                utility_adjustment = 0
+                size_term_adjustment = self.shadow_prices[segment]
             elif shadow_price_method == 'daysim':
-                adjusted_predicted_size = self.predicted_size[segment]
                 utility_adjustment = self.shadow_prices[segment]
             else:
                 raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
-        else:
-
-            adjusted_predicted_size = self.predicted_size[segment]
-            utility_adjustment = 0
-
         return pd.DataFrame({
-            'size_term': adjusted_predicted_size,
+            'size_term': self.predicted_size[segment],
+            'shadow_price_size_term_adjustment': size_term_adjustment,
             'shadow_price_utility_adjustment': utility_adjustment
         })
 

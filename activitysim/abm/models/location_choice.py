@@ -134,14 +134,11 @@ def run_location_sample(
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SAMPLE_SPEC'])
 
-
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = persons_merged[chooser_columns]
 
     alternatives = dest_size_terms
-
-    print("alternatives\n", alternatives)
 
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
@@ -172,8 +169,6 @@ def run_location_sample(
         chunk_size=chunk_size,
         trace_label=trace_label)
 
-    print("alternatives\n", alternatives)
-    #bug
     return choices
 
 
@@ -328,8 +323,6 @@ def run_location_choice(
 
     chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
 
-    # dest_size_terms = spc.shadow_price_adjusted_predicted_size()
-
     # maps segment names to compact (integer) ids
     segment_ids = model_settings['SEGMENT_IDS']
 
@@ -338,7 +331,7 @@ def run_location_choice(
 
         choosers = persons_merged_df[persons_merged_df[chooser_segment_column] == segment_id]
 
-        dest_size_terms = spc.xxx(segment_name)
+        dest_size_terms = spc.dest_size_terms(segment_name)
 
         if choosers.shape[0] == 0:
             logger.info("%s skipping segment %s: no choosers", trace_label, segment_name)

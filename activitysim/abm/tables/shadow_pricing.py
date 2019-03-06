@@ -476,8 +476,6 @@ class ShadowPriceCalculator(object):
             # print("\ntarget\n", like_df(target, self.shadow_prices).head())
             # print("\nadjustment\n", like_df(adjustment, self.shadow_prices).head())
 
-            #new_shadow_prices = adjustment
-
             new_shadow_prices = self.shadow_prices + adjustment
 
         else:
@@ -490,18 +488,7 @@ class ShadowPriceCalculator(object):
 
         self.shadow_prices = new_shadow_prices
 
-    def shadow_price_adjusted_predicted_size(self):
-        """
-        return predicted_sizes adjusted by current shadow_price for use in utility expressions
-
-        Returns
-        -------
-        pandas.DataFrame with same shape as predicted_size
-        """
-
-        return self.predicted_size * self.shadow_prices
-
-    def xxx(self, segment):
+    def dest_size_terms(self, segment):
 
         assert segment in self.segment_ids
 

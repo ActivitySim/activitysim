@@ -26,7 +26,7 @@ SHADOW_PRICE_METHOD: ctramp
 #SHADOW_PRICE_METHOD: daysim
 
 # ctramp-style shadow_pricing_method parameters
-DAMPING_FACTOR: 0.3
+DAMPING_FACTOR: 0.7
 
 # daysim-style shadow_pricing_method parameters
 # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?

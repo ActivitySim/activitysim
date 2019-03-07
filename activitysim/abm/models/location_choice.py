@@ -455,7 +455,7 @@ def iterate_location_choice(
 
     # - shadow price table
     if locutor:
-        if 'SHADOW_PRICE_TABLE' in model_settings:
+        if spc.use_shadow_pricing and 'SHADOW_PRICE_TABLE' in model_settings:
             inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
         if 'MODELED_SIZE_TABLE' in model_settings:
             inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)

@@ -133,8 +133,11 @@ class ShadowPriceCalculator(object):
         self.shared_data_lock = shared_data_lock
 
         # - load saved shadow_prices (if available) and set max_iterations accordingly
-        self.shadow_prices = None
         if self.use_shadow_pricing:
+            self.shadow_prices = None
+            self.shadow_price_method = self.shadow_settings['SHADOW_PRICE_METHOD']
+            assert self.shadow_price_method in ['daysim', 'ctramp']
+
             if self.shadow_settings['LOAD_SAVED_SHADOW_PRICES']:
                 # read_saved_shadow_prices logs error and returns None if file not found
                 self.shadow_prices = self.read_saved_shadow_prices(model_settings)
@@ -143,16 +146,17 @@ class ShadowPriceCalculator(object):
                 self.max_iterations = self.shadow_settings.get('MAX_ITERATIONS', 5)
             else:
                 self.max_iterations = self.shadow_settings.get('MAX_ITERATIONS_SAVED', 1)
+
+            # initial_shadow_price if we did not load
+            if self.shadow_prices is None:
+                # initial value depends on method
+                initial_shadow_price = 1.0 if self.shadow_price_method == 'ctramp' else 0.0
+                self.shadow_prices = \
+                    pd.DataFrame(data=initial_shadow_price,
+                                 columns=self.predicted_size.columns,
+                                 index=self.predicted_size.index)
         else:
             self.max_iterations = 1
-
-        # - if we did't load saved shadow_prices, initialize all shadow_prices to one
-        # this will start first iteration with no shadow price adjustment,
-        if self.shadow_prices is None:
-            self.shadow_prices = \
-                pd.DataFrame(data=1.0,
-                             columns=self.predicted_size.columns,
-                             index=self.predicted_size.index)
 
         self.num_fail = pd.DataFrame(index=self.predicted_size.columns)
         self.max_abs_diff = pd.DataFrame(index=self.predicted_size.columns)
@@ -534,9 +538,11 @@ class ShadowPriceCalculator(object):
         tracing.write_csv(self.modeled_size,
                           'shadow_price_%s_modeled_size_%s' % (self.model_selector, iteration),
                           transpose=False)
-        tracing.write_csv(self.shadow_prices,
-                          'shadow_price_%s_shadow_prices_%s' % (self.model_selector, iteration),
-                          transpose=False)
+
+        if self.use_shadow_pricing:
+            tracing.write_csv(self.shadow_prices,
+                              'shadow_price_%s_shadow_prices_%s' % (self.model_selector, iteration),
+                              transpose=False)
 
 
 def block_name(model_selector):

@@ -464,7 +464,7 @@ def schedule_tours(
 
 
 def vectorize_tour_scheduling(tours, persons_merged, alts,
-                              spec,
+                              spec, segment_col,
                               model_settings,
                               chunk_size=0, trace_label=None):
     """
@@ -539,7 +539,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts,
 
         if isinstance(spec, dict):
 
-            segment_col = model_settings['SEGMENT_COL']
+            assert segment_col is not None
 
             for spec_segment in spec:
 
@@ -571,6 +571,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts,
             # unsegmented spec dict indicates no logsums
             # caller could use single-element spec dict if logsum support desired,
             # but this case nor required for mtctm1
+            assert segment_col is None
             logsum_segment = None
 
             choices = \

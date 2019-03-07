@@ -19,8 +19,6 @@ SIMULATE_CHOOSER_COLUMNS:
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
-SEGMENT_COL: primary_purpose
-
 
 #CHOOSER_ORIG_COL_NAME: TAZ
 

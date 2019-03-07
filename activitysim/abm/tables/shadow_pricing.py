@@ -330,7 +330,6 @@ class ShadowPriceCalculator(object):
         assert self.predicted_size is not None
 
         # - convergence criteria for check_fit
-        # - convergence criteria for check_fit
         # ignore convergence criteria for zones smaller than size_threshold
         size_threshold = self.shadow_settings['SIZE_THRESHOLD']
         # zone passes if modeled is within percent_tolerance of  predicted_size

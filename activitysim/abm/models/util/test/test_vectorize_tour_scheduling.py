@@ -59,11 +59,12 @@ def test_vts():
     spec = pd.DataFrame({"Coefficient": [1.2]},
                         index=["income"])
     spec.index.name = "Expression"
+    segment_col = None  # no segmentation of model_spec
 
     inject.add_injectable("check_for_variability", True)
 
     tdd_choices, timetable = vectorize_tour_scheduling(
-        tours, persons, alts, spec,
+        tours, persons, alts, spec, segment_col,
         model_settings={},
         chunk_size=0, trace_label='test_vts')
 

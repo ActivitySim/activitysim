@@ -14,6 +14,8 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import timetable as tt
 
+from activitysim.core.util import reindex
+
 from .util import expressions
 from .util import vectorize_tour_scheduling as vts
 
@@ -61,10 +63,12 @@ def mandatory_tour_scheduling(tours,
     # (i.e. there are different locsum coefficents for work, school, univ primary_purposes
     # for simplicity managing these different segmentation schemes,
     # we conflate them by segmenting the skims to align with primary_purpose
-    if 'primary_purpose' not in mandatory_tours:
+    segment_col = 'primary_purpose'
+    if segment_col not in mandatory_tours:
+
         is_university_tour = \
             (mandatory_tours.tour_type == 'school') & \
-            persons_merged.reindex(mandatory_tours.person_id).is_university
+            reindex(persons_merged.is_university, mandatory_tours.person_id)
 
         mandatory_tours['primary_purpose'] = \
             mandatory_tours.tour_type.where(~is_university_tour, 'univ')
@@ -82,7 +86,7 @@ def mandatory_tour_scheduling(tours,
     tdd_choices, timetable = vts.vectorize_tour_scheduling(
         mandatory_tours, persons_merged,
         tdd_alts,
-        spec=segment_specs,
+        spec=segment_specs, segment_col=segment_col,
         model_settings=model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)

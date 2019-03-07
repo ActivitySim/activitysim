@@ -35,7 +35,9 @@ def non_mandatory_tour_scheduling(tours,
 
     trace_label = 'non_mandatory_tour_scheduling'
     model_settings = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
+
     model_spec = simulate.read_model_spec(file_name='tour_scheduling_nonmandatory.csv')
+    segment_col = None  # no segmentation of model_spec
 
     tours = tours.to_frame()
     non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
@@ -67,7 +69,7 @@ def non_mandatory_tour_scheduling(tours,
 
     tdd_choices, timetable = vectorize_tour_scheduling(
         non_mandatory_tours, persons_merged,
-        tdd_alts, model_spec,
+        tdd_alts, model_spec, segment_col,
         model_settings=model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)

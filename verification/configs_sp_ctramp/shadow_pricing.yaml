@@ -6,7 +6,7 @@ inherit_settings: True
 LOAD_SAVED_SHADOW_PRICES: False
 
 # number of shadow price iterations for cold start
-MAX_ITERATIONS: 3
+MAX_ITERATIONS: 10
 
 # number of shadow price iterations for warm start (after loading saved shadow_prices)
 MAX_ITERATIONS_SAVED: 1
@@ -21,11 +21,11 @@ PERCENT_TOLERANCE: 5
 FAIL_THRESHOLD: 10
 
 # CTRAMP or daysim
+#SHADOW_PRICE_METHOD: ctramp
 SHADOW_PRICE_METHOD: ctramp
-#SHADOW_PRICE_METHOD: daysim
 
 # ctramp-style shadow_pricing_method parameters
-DAMPING_FACTOR: 1
+DAMPING_FACTOR: 1.0
 
 # daysim-style shadow_pricing_method parameters
 # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?

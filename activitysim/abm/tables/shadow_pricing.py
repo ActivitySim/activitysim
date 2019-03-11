@@ -403,7 +403,7 @@ class ShadowPriceCalculator(object):
 
         Since the location choice is being made according to a variety of utilities in the
         expression file, whose relative weights are unknown to this algorithm, the choice of
-        how to adjust the shadow_price is not completely straightforward. CTRAMP and daysim use
+        how to adjust the shadow_price is not completely straightforward. CTRAMP and Daysim use
         different strategies (see below) and there may not be a single method that works best for
         all expression files. This would be a nice project for the mathematically inclined.
 
@@ -444,17 +444,17 @@ class ShadowPriceCalculator(object):
         elif shadow_price_method == 'daysim':
             # - Daysim
             """
-            if predicted > modeled:  # if modeled is too low, increase shadow price
+            if modeled > predicted:  # if modeled is too high, increase shadow price
               target = min(
-                predicted,
-                modeled + modeled * percent_tolerance,
-                modeled + absolute_tolerance)
+                modeled,
+                predicted * (1 + percent_tolerance),
+                predicted + absolute_tolerance)
 
-            if modeled > predicted  # modeled is too high, decrease shadow price
-                target = max of:
-                    predicted
-                    modeled - modeled * percentTolerance
-                    modeled - absoluteTolerance
+            if modeled < predicted  # modeled is too low, decrease shadow price
+              target = max(
+                modeled,
+                predicted * (1 - percentTolerance),
+                predicted - absoluteTolerance)
 
             shadow_price = shadow_price + log(np.maximum(target, 0.01) / np.maximum(modeled, 0.01))
             """
@@ -464,13 +464,13 @@ class ShadowPriceCalculator(object):
             assert 0 <= percent_tolerance <= 1
 
             target = np.where(
-                self.predicted_size > self.modeled_size,
-                np.minimum(self.predicted_size,
-                           np.minimum(self.modeled_size * (1 + percent_tolerance),
-                                      self.modeled_size + absolute_tolerance)),
-                np.maximum(self.predicted_size,
-                           np.maximum(self.modeled_size * (1 - percent_tolerance),
-                                      self.modeled_size - absolute_tolerance)))
+                self.modeled_size > self.predicted_size,
+                np.minimum(self.modeled_size,
+                           np.minimum(self.predicted_size * (1 + percent_tolerance),
+                                      self.predicted_size + absolute_tolerance)),
+                np.maximum(self.modeled_size,
+                           np.maximum(self.predicted_size * (1 - percent_tolerance),
+                                      self.predicted_size - absolute_tolerance)))
 
             adjustment = np.log(np.maximum(target, 0.01) / np.maximum(self.modeled_size, 0.01))
 

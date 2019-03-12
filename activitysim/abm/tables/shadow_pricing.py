@@ -509,11 +509,12 @@ class ShadowPriceCalculator(object):
             else:
                 raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
+        #FIXME - should set index?
         return pd.DataFrame({
             'size_term': self.predicted_size[segment],
             'shadow_price_size_term_adjustment': size_term_adjustment,
-            'shadow_price_utility_adjustment': utility_adjustment
-        })
+            'shadow_price_utility_adjustment': utility_adjustment},
+            index=self.predicted_size.index)
 
     def write_trace_files(self, iteration):
         """

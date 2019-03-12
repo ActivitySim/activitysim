@@ -147,6 +147,7 @@ def run_location_sample(
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
+    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
     # the skims will be available under the name "skims" for any @ expressions
     skims = skim_dict.wrap('TAZ_chooser', 'TAZ')
 
@@ -308,8 +309,8 @@ def run_location_choice(
         persons table merged with households and land_use
     skim_dict : skim.SkimDict
     skim_stack : skim.SkimStack
-    dest_size_terms : pandas.DataFrame
-        shadow-price adjusted size terms with one row per zone and once column per segment
+    spc : ShadowPriceCalculator
+        to get size terms
     model_settings : dict
     chunk_size : int
     trace_hh_id : int
@@ -331,6 +332,7 @@ def run_location_choice(
 
         choosers = persons_merged_df[persons_merged_df[chooser_segment_column] == segment_id]
 
+        # size_term and shadow price adjustment - one row per zone
         dest_size_terms = spc.dest_size_terms(segment_name)
 
         if choosers.shape[0] == 0:

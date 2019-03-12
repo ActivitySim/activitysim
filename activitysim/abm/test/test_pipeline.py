@@ -334,17 +334,17 @@ def regress_tour_modes(tours_df):
     """
      tour_id        tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
-    91533577            WALK    3156330    escort         1  non_mandatory
+    91533577     SHARED3FREE    3156330    escort         1  non_mandatory
     91533578            WALK    3156330    escort         2  non_mandatory
-    91533576     SHARED3FREE    3156330    eatout         3  non_mandatory
-    91533606     SHARED2FREE    3156331    escort         1  non_mandatory
+    91533576            WALK    3156330    eatout         3  non_mandatory
+    91533606  DRIVEALONEFREE    3156331    escort         1  non_mandatory
     91533607  DRIVEALONEFREE    3156331    escort         2  non_mandatory
-    91533620            WALK    3156331  othdiscr         3  non_mandatory
+    91533620            BIKE    3156331  othdiscr         3  non_mandatory
     91533628            WALK    3156332  business         1         atwork
     91533655  DRIVEALONEFREE    3156332      work         1      mandatory
     91533635     SHARED3FREE    3156332    escort         1  non_mandatory
     91533650        WALK_LOC    3156332  othmaint         2  non_mandatory
-    91533649            BIKE    3156332  othdiscr         3  non_mandatory
+    91533649        WALK_LOC    3156332  othdiscr         3  non_mandatory
     91533585     SHARED2FREE    3156333  shopping         1          joint
     91533680     SHARED3FREE    3156333    school         1      mandatory
     91533682            WALK    3156333  shopping         1  non_mandatory
@@ -397,17 +397,17 @@ def regress_tour_modes(tours_df):
         ]
 
     EXPECT_MODES = [
-        'WALK',
-        'WALK',
         'SHARED3FREE',
-        'SHARED2FREE',
-        'DRIVEALONEFREE',
         'WALK',
+        'WALK',
+        'DRIVEALONEFREE',
+        'DRIVEALONEFREE',
+        'BIKE',
         'WALK',
         'DRIVEALONEFREE',
         'SHARED3FREE',
         'WALK_LOC',
-        'BIKE',
+        'WALK_LOC',
         'SHARED2FREE',
         'SHARED3FREE',
         'WALK',

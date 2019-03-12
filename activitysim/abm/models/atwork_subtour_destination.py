@@ -72,6 +72,7 @@ def atwork_subtour_destination_sample(
         chunk_size=chunk_size,
         trace_label=trace_label)
 
+    # remember person_id in chosen alts so we can merge with persons in subsequent steps
     choices['person_id'] = choosers.person_id
 
     return choices
@@ -83,7 +84,7 @@ def atwork_subtour_destination_logsums(
         skim_dict, skim_stack,
         chunk_size, trace_hh_id):
     """
-    add logsum column to existing atwork_subtour_destination_sample able
+    add logsum column to existing atwork_subtour_destination_sample table
 
     logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
     in atwork_subtour_destination_sample, and computing the logsum of all the utilities
@@ -138,7 +139,6 @@ def atwork_subtour_destination_logsums(
     return destination_sample
 
 
-@inject.step()
 def atwork_subtour_destination_simulate(
         subtours,
         persons_merged,

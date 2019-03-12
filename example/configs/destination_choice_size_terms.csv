@@ -6,8 +6,9 @@ workplace,work_veryhigh,0,0.093,0.27,0.241,0.146,0.004,0.246,0,0,0,0
 school,university,0,0,0,0,0,0,0,0,0,0.592,0.408
 school,gradeschool,0,0,0,0,0,0,0,1,0,0,0
 school,highschool,0,0,0,0,0,0,0,0,1,0,0
-non_mandatory,escort_kids,0,0.225,0,0.144,0,0,0,0.465,0.166,0,0
-non_mandatory,escort_nokids,0,0.225,0,0.144,0,0,0,0.465,0.166,0,0
+non_mandatory,escort,0,0.225,0,0.144,0,0,0,0.465,0.166,0,0
+#non_mandatory,escort_kids,0,0.225,0,0.144,0,0,0,0.465,0.166,0,0
+#non_mandatory,escort_nokids,0,0.225,0,0.144,0,0,0,0.465,0.166,0,0
 non_mandatory,shopping,0,1,0,0,0,0,0,0,0,0,0
 non_mandatory,eatout,0,0.742,0,0.258,0,0,0,0,0,0,0
 non_mandatory,othmaint,0,0.482,0,0.518,0,0,0,0,0,0,0

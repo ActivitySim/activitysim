@@ -25,6 +25,8 @@ from activitysim.core import simulate
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
+from .util import tour_destination
+
 from .util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
@@ -49,7 +51,7 @@ def joint_tour_destination_sample(
         joint_tours,
         households_merged,
         skim_dict,
-        land_use, size_terms,
+        size_term_calculator,
         chunk_size, trace_hh_id):
     """
     Chooses a sample of destinations from all possible tour destinations by choosing
@@ -82,8 +84,7 @@ def joint_tour_destination_sample(
     households_merged : pandas.DataFrame
     skim_dict
     joint_tour_destination_sample_spec
-    land_use
-    size_terms
+    size_term_calculator
     chunk_size
     trace_hh_id
 
@@ -99,9 +100,6 @@ def joint_tour_destination_sample(
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
     model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_destination_sample.csv')
 
-    # same size terms as non_mandatory
-    size_terms = tour_destination_size_terms(land_use, size_terms, 'non_mandatory')
-
     # choosers are tours - in a sense tours are choosing their destination
     choosers = pd.merge(joint_tours, households_merged,
                         left_on='household_id', right_index=True, how='left')
@@ -116,8 +114,8 @@ def joint_tour_destination_sample(
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
-    # interaction_dataset adds '_r' suffix to duplicate columns,
-    # so TAZ column from households is TAZ and TAZ column from alternatives becomes TAZ_r
+    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
+    # the skims will be available under the name "skims" for any @ expressions
     skims = skim_dict.wrap('TAZ_chooser', 'TAZ')
 
     locals_d = {
@@ -134,19 +132,17 @@ def joint_tour_destination_sample(
     # for tour_type, choosers_segment in choosers.groupby('tour_type'):
     for tour_type, tour_type_id in iteritems(TOUR_TYPE_ID):
 
-        locals_d['segment'] = tour_type
-
         choosers_segment = choosers[choosers.tour_type == tour_type]
 
         if choosers_segment.shape[0] == 0:
             logger.info("%s skipping tour_type %s: no tours", trace_label, tour_type)
             continue
 
-        # alts indexed by taz with one column containing size_term for  this tour_type
-        alternatives_segment = size_terms[[tour_type]]
+        # alts indexed by taz with one column containing size_term for this tour_type
+        alternatives_segment = size_term_calculator.dest_size_terms_df(tour_type)
 
         # FIXME - no point in considering impossible alternatives (where dest size term is zero)
-        alternatives_segment = alternatives_segment[alternatives_segment[tour_type] > 0]
+        alternatives_segment = alternatives_segment[alternatives_segment['size_term'] > 0]
 
         logger.info("Running segment '%s' of %d joint_tours %d alternatives" %
                     (tour_type, len(choosers_segment), len(alternatives_segment)))
@@ -259,7 +255,7 @@ def joint_tour_destination_simulate(
         households_merged,
         destination_sample,
         skim_dict,
-        land_use, size_terms,
+        size_term_calculator,
         chunk_size, trace_hh_id):
     """
     choose a joint tour destination from amont the destination sample alternatives
@@ -275,8 +271,6 @@ def joint_tour_destination_simulate(
 
     # interaction_sample_simulate insists choosers appear in same order as alts
     joint_tours = joint_tours.sort_index()
-
-    destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'non_mandatory')
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
@@ -322,8 +316,9 @@ def joint_tour_destination_simulate(
 
         # alternatives are pre-sampled and annotated with logsums and pick_count
         # but we have to merge size_terms column into alt sample list
-        alts_segment[tour_type] = \
-            reindex(destination_size_terms[tour_type], alts_segment[alt_dest_col_name])
+        alts_segment['size_term'] = \
+            reindex(size_term_calculator.dest_size_terms_series(tour_type),
+                    alts_segment[alt_dest_col_name])
 
         logger.info("Running segment '%s' of %d joint_tours %d alternatives" %
                     (tour_type, len(choosers_segment), len(alts_segment)))
@@ -387,11 +382,14 @@ def joint_tour_destination(
         tracing.no_results('joint_tour_destination')
         return
 
+    model_settings = config.read_model_settings('joint_tour_destination.yaml')
+    size_term_calculator = tour_destination.SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
+
     destination_sample = joint_tour_destination_sample(
         joint_tours,
         households_merged,
         skim_dict,
-        land_use, size_terms,
+        size_term_calculator,
         chunk_size, trace_hh_id)
 
     destination_sample = joint_tour_destination_logsums(
@@ -406,7 +404,7 @@ def joint_tour_destination(
         households_merged,
         destination_sample,
         skim_dict,
-        land_use, size_terms,
+        size_term_calculator,
         chunk_size, trace_hh_id)
 
     # add column as we want joint_tours table for tracing.

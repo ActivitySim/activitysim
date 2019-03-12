@@ -10,4 +10,3 @@ utility adjustment,@df['shadow_price_utility_adjustment'],1,1,1
 No attractions,@df['size_term']==0,-999,-999,-999
 Mode choice logsum,mode_choice_logsum,0.5358,0.5358,0.5358
 Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1,1,1
-

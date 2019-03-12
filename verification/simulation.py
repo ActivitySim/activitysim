@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.set_option.html
     # pd.set_option('display.max_columns', 50)
 
-    data_dir = "/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data"
+    data_dir = "E:/projects/clients/ASIM/data/mtc_tm1"
 
     # inject.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
     inject.add_injectable('data_dir', ['ancillary_data', data_dir])

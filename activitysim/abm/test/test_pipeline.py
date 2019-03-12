@@ -318,7 +318,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 376
+EXPECT_TOUR_COUNT = 374
 
 
 def regress_tour_modes(tours_df):
@@ -346,12 +346,13 @@ def regress_tour_modes(tours_df):
     91533650        WALK_LOC    3156332  othmaint         2  non_mandatory
     91533649        WALK_LOC    3156332  othdiscr         3  non_mandatory
     91533585     SHARED2FREE    3156333  shopping         1          joint
-    91533680     SHARED3FREE    3156333    school         1      mandatory
+    91533680            WALK    3156333    school         1      mandatory
     91533682            WALK    3156333  shopping         1  non_mandatory
     91533709            WALK    3156334    school         1      mandatory
     91533708     SHARED3FREE    3156334  othmaint         1  non_mandatory
-    91533738        WALK_LOC    3156335    school         1      mandatory
+    91533738            WALK    3156335    school         1      mandatory
     91533737     SHARED2FREE    3156335  othmaint         1  non_mandatory
+
     """
 
     EXPECT_PERSON_IDS = [
@@ -409,11 +410,11 @@ def regress_tour_modes(tours_df):
         'WALK_LOC',
         'WALK_LOC',
         'SHARED2FREE',
-        'SHARED3FREE',
         'WALK',
         'WALK',
+        'WALK',
         'SHARED3FREE',
-        'WALK_LOC',
+        'WALK',
         'SHARED2FREE',
         ]
 

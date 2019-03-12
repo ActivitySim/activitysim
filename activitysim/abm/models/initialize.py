@@ -87,9 +87,9 @@ def initialize_households():
     model_settings = config.read_model_settings('initialize_households.yaml', mandatory=True)
     annotate_tables(model_settings, trace_label)
 
-    # - initialize shadow_pricing predicted_size after annotating household and person tables
+    # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
-    shadow_pricing.add_predicted_size_tables()
+    shadow_pricing.add_size_tables()
 
     # - preload person_windows
     t0 = tracing.print_elapsed_time()

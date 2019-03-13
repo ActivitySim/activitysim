@@ -17,6 +17,7 @@ from activitysim.core import config
 from activitysim.core import inject
 
 from .util.tour_frequency import process_atwork_subtours
+from .util.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,15 @@ def atwork_subtour_frequency(tours,
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    # - preprocessor
+    preprocessor_settings = model_settings.get('preprocessor', None)
+    if preprocessor_settings:
+
+        assign_columns(
+            df=work_tours,
+            model_settings=preprocessor_settings,
+            trace_label=trace_label)
 
     choices = simulate.simple_simulate(
         choosers=work_tours,

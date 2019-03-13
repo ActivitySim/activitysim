@@ -26,10 +26,10 @@ Number of Adults (>= 16 years old),num_adult,"reindex_i(_HH_PERSON_COUNT('age >=
 ,num_univ_tours,(df.is_university) * num_school_tours
 #num_escort_tours already defined,,
 # indiv tour counts should not include joint tours by point_person,,
-,num_shop_tours,"reindex_i(df[~is_joint & (df.tour_type==SHOP_TOUR)].groupby('person_id').size(), df.person_id)"
-,num_maint_tours,"reindex_i(df[~is_joint & (df.tour_type==MAINT_TOUR)].groupby('person_id').size(), df.person_id)"
-,num_eatout_tours,"reindex_i(df[~is_joint & (df.tour_type==EATOUT_TOUR)].groupby('person_id').size(), df.person_id)"
-,num_social_tours,"reindex_i(df[~is_joint & (df.tour_type==SOCIAL_TOUR)].groupby('person_id').size(), df.person_id)"
+#,num_shop_tours,"reindex_i(df[~is_joint & (df.tour_type==SHOP_TOUR)].groupby('person_id').size(), df.person_id)"
+#,num_maint_tours,"reindex_i(df[~is_joint & (df.tour_type==MAINT_TOUR)].groupby('person_id').size(), df.person_id)"
+#,num_eatout_tours,"reindex_i(df[~is_joint & (df.tour_type==EATOUT_TOUR)].groupby('person_id').size(), df.person_id)"
+#,num_social_tours,"reindex_i(df[~is_joint & (df.tour_type==SOCIAL_TOUR)].groupby('person_id').size(), df.person_id)"
 #,,
 Number of subtours in the tour,num_atwork_subtours,"df.atwork_subtour_frequency.map(num_atwork_subtours_map, na_action='ignore').fillna(0).astype(np.int8)"
 #,,

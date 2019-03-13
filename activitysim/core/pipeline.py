@@ -360,7 +360,6 @@ def load_checkpoint(checkpoint_name):
     except IndexError:
         msg = "Couldn't find checkpoint '%s' in checkpoints" % (checkpoint_name,)
         print(checkpoints[CHECKPOINT_NAME])
-        bug
         logger.error(msg)
         raise RuntimeError(msg)
 

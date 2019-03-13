@@ -157,9 +157,6 @@ def run_destination_logsums(
         chunk_size, trace_hh_id,
         trace_label)
 
-    #bug
-    assert((destination_sample.index.values == logsums.index.values).all())
-
     destination_sample['mode_choice_logsum'] = logsums
 
     return destination_sample
@@ -274,9 +271,6 @@ def run_tour_destination(
                 segment_destination_size_terms,
                 chunk_size,
                 tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
-
-        #bug
-        assert choosers.index.equals(location_sample_df.index[~location_sample_df.index.duplicated(keep='first')])
 
         # - destination_logsums
         tour_purpose = segment_name  # tour_purpose is segment_name

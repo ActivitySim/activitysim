@@ -249,7 +249,6 @@ def joint_tour_destination_logsums(
     return destination_sample
 
 
-@inject.step()
 def joint_tour_destination_simulate(
         joint_tours,
         households_merged,
@@ -381,6 +380,9 @@ def joint_tour_destination(
     if joint_tours.shape[0] == 0:
         tracing.no_results('joint_tour_destination')
         return
+
+    # interaction_sample_simulate insists choosers appear in same order as alts
+    joint_tours = joint_tours.sort_index()
 
     model_settings = config.read_model_settings('joint_tour_destination.yaml')
     size_term_calculator = tour_destination.SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])

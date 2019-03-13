@@ -73,7 +73,7 @@ def run_destination_sample(
     model_spec = model_spec[[spec_segment_name]]
 
     # merge persons into tours
-    choosers = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
+    choosers = pd.merge(tours, persons_merged, left_on='person_id', right_index=True, how='left')
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
@@ -112,6 +112,7 @@ def run_destination_sample(
         trace_label=trace_label)
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
+    # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
     choices['person_id'] = choosers.person_id
 
     return choices
@@ -156,6 +157,9 @@ def run_destination_logsums(
         chunk_size, trace_hh_id,
         trace_label)
 
+    #bug
+    assert((destination_sample.index.values == logsums.index.values).all())
+
     destination_sample['mode_choice_logsum'] = logsums
 
     return destination_sample
@@ -179,13 +183,10 @@ def run_destination_simulate(
     model_spec = simulate.read_model_spec(file_name=model_spec_file_name)
     model_spec = model_spec[[spec_segment_name]]
 
-    # interaction_sample_simulate insists choosers appear in same order as alts
-    tours = tours.sort_index()
-
     # merge persons into tours
     choosers = pd.merge(tours,
                         persons_merged,
-                        left_on='person_id', right_index=True)
+                        left_on='person_id', right_index=True, how='left')
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
@@ -246,6 +247,9 @@ def run_tour_destination(
     # maps segment names to compact (integer) ids
     segments = model_settings['SEGMENTS']
 
+    # interaction_sample_simulate insists choosers appear in same order as alts
+    tours = tours.sort_index()
+
     choices_list = []
     for segment_name in segments:
 
@@ -270,6 +274,9 @@ def run_tour_destination(
                 segment_destination_size_terms,
                 chunk_size,
                 tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+
+        #bug
+        assert choosers.index.equals(location_sample_df.index[~location_sample_df.index.duplicated(keep='first')])
 
         # - destination_logsums
         tour_purpose = segment_name  # tour_purpose is segment_name

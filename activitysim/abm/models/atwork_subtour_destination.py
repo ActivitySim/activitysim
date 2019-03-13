@@ -224,9 +224,12 @@ def atwork_subtour_destination(
     subtours = tours[tours.tour_category == 'atwork']
 
     # - if no atwork subtours
-    if tours.shape[0] == 0:
+    if subtours.shape[0] == 0:
         tracing.no_results('atwork_subtour_destination')
         return
+
+    # interaction_sample_simulate insists choosers appear in same order as alts
+    subtours = subtours.sort_index()
 
     destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'atwork')
 

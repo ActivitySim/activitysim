@@ -194,9 +194,6 @@ def _interaction_sample(
 
     assert len(choosers.index) > 0
 
-    if alt_col_name is None:
-        alt_col_name = 'alt_%s' % alternatives.index.name
-
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
         tracing.trace_df(alternatives, tracing.extend_trace_label(trace_label, 'alternatives'),
@@ -372,7 +369,7 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
 
 def interaction_sample(
         choosers, alternatives, spec, sample_size,
-        alt_col_name=None, allow_zero_probs=False,
+        alt_col_name, allow_zero_probs=False,
         skims=None, locals_d=None, chunk_size=0,
         trace_label=None):
 
@@ -397,7 +394,7 @@ def interaction_sample(
     sample_size : int, optional
         Sample alternatives with sample of given size.  By default is None,
         which does not sample alternatives.
-    alt_col_name: str or None
+    alt_col_name: str
         name to give the sampled_alternative column
     skims : Skims object
         The skims object is used to contain multiple matrices of
@@ -433,6 +430,11 @@ def interaction_sample(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample')
+
+    # we return alternatives ordered in (index, alt_col_name)
+    # if choosers index is not ordered, it is probably a mistake, since the alts wont line up
+    assert alt_col_name is not None
+    assert choosers.index.is_monotonic
 
     assert sample_size > 0
     sample_size = min(sample_size, len(alternatives.index))

@@ -112,7 +112,7 @@ To setup and run the :ref:`example`, do the following:
   source activate asimtest
   
   #run example
-  python run_populationsim.py
+  python simulation.py
    
 * Review the outputs in the ``output`` folder
 

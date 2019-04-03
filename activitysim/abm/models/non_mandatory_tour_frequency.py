@@ -54,7 +54,8 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     # 'tot_tours' is used in model_spec expressions
     alternatives['tot_tours'] = alternatives.sum(axis=1)
 
-    no_tours_alt = list((alternatives.sum(axis=1) == 0).values).index(True)
+    # (we expect there to be an alt with no tours - which we can use to backfill non-travelers)
+    no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
 
     # - preprocessor
     preprocessor_settings = model_settings.get('preprocessor', None)

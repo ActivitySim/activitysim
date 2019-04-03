@@ -48,7 +48,7 @@ trace_hh_id: 107599
 #trace_od: [5, 11]
 
 # to resume after last successful checkpoint, specify resume_after: _
-resume_after: non_mandatory_tour_frequency
+#resume_after: compute_accessibility
 
 models:
   ### mp_initialize step
@@ -68,7 +68,7 @@ models:
   - joint_tour_destination
   - joint_tour_scheduling
   - non_mandatory_tour_frequency
-  - non_mandatory_tour_destination
+#  - non_mandatory_tour_destination
 #  - non_mandatory_tour_scheduling
 #  - tour_mode_choice_simulate
 #  - atwork_subtour_frequency
@@ -109,7 +109,7 @@ output_tables:
 #    - accessibility
     - land_use
 #    - households
-#    - persons
+    - persons
 #    - trips
 #    - tours
 #   - school_shadow_prices

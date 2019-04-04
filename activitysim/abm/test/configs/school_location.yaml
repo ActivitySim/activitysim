@@ -3,11 +3,12 @@ SAMPLE_SIZE: 30
 SIMULATE_CHOOSER_COLUMNS:
   - TAZ
   - school_segment
+  - household_id
 
 # model-specific logsum-related settings
 CHOOSER_ORIG_COL_NAME: TAZ
 ALT_DEST_COL_NAME: alt_dest
-IN_PERIOD: 17
+IN_PERIOD: 14
 OUT_PERIOD: 8
 
 DEST_CHOICE_COLUMN_NAME: school_taz

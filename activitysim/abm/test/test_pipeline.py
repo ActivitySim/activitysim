@@ -318,7 +318,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 386
+EXPECT_TOUR_COUNT = 232
 
 
 def regress_tour_modes(tours_df):
@@ -332,37 +332,23 @@ def regress_tour_modes(tours_df):
     print("mode_df\n", tours_df[mode_cols])
 
     """
-     tour_id        tour_mode  person_id tour_type  tour_num  tour_category
-    tour_id
-    91533577     SHARED3FREE    3156330    escort         1  non_mandatory
-    91533578            WALK    3156330    escort         2  non_mandatory
-    91533576            WALK    3156330    eatout         3  non_mandatory
-    91533606  DRIVEALONEFREE    3156331    escort         1  non_mandatory
-    91533607  DRIVEALONEFREE    3156331    escort         2  non_mandatory
-    91533620            BIKE    3156331  othdiscr         3  non_mandatory
-    91533647  DRIVEALONEFREE    3156332     maint         1         atwork
-    91533655  DRIVEALONEFREE    3156332      work         1      mandatory
-    91533635     SHARED3FREE    3156332    escort         1  non_mandatory
-    91533650        WALK_LOC    3156332  othmaint         2  non_mandatory
-    91533649        WALK_LOC    3156332  othdiscr         3  non_mandatory
-    91533585     SHARED2FREE    3156333  shopping         1          joint
-    91533680            WALK    3156333    school         1      mandatory
-    91533682            WALK    3156333  shopping         1  non_mandatory
-    91533709            WALK    3156334    school         1      mandatory
-    91533708     SHARED3FREE    3156334  othmaint         1  non_mandatory
-    91533738            WALK    3156335    school         1      mandatory
-    91533737     SHARED2FREE    3156335  othmaint         1  non_mandatory
+                 tour_mode  person_id tour_type  tour_num  tour_category
+    tour_id                                                            
+    91533592         WALK    3156330  othmaint         1  non_mandatory
+    91533620     WALK_LOC    3156331  othdiscr         1  non_mandatory
+    91533647  SHARED2FREE    3156332     maint         1         atwork
+    91533655         WALK    3156332      work         1      mandatory
+    91533650     WALK_LOC    3156332  othmaint         1  non_mandatory
+    91533583  SHARED2FREE    3156333  othmaint         1          joint
+    91533680         WALK    3156333    school         1      mandatory
+    91533683  SHARED2FREE    3156333    social         1  non_mandatory
+    91533709         WALK    3156334    school         1      mandatory
+    91533738         WALK    3156335    school         1      mandatory
     """
 
     EXPECT_PERSON_IDS = [
         3156330,
-        3156330,
-        3156330,
         3156331,
-        3156331,
-        3156331,
-        3156332,
-        3156332,
         3156332,
         3156332,
         3156332,
@@ -370,51 +356,33 @@ def regress_tour_modes(tours_df):
         3156333,
         3156333,
         3156334,
-        3156334,
-        3156335,
         3156335,
         ]
 
     EXPECT_TOUR_TYPES = [
-        'escort',
-        'escort',
-        'eatout',
-        'escort',
-        'escort',
+        'othmaint',
         'othdiscr',
         'maint',
         'work',
-        'escort',
         'othmaint',
-        'othdiscr',
-        'shopping',
-        'school',
-        'shopping',
-        'school',
         'othmaint',
         'school',
-        'othmaint',
+        'social',
+        'school',
+        'school',
         ]
 
     EXPECT_MODES = [
-        'SHARED3FREE',
         'WALK',
-        'WALK',
-        'DRIVEALONEFREE',
-        'DRIVEALONEFREE',
-        'BIKE',
-        'DRIVEALONEFREE',
-        'DRIVEALONEFREE',
-        'SHARED3FREE',
-        'WALK_LOC',
         'WALK_LOC',
         'SHARED2FREE',
         'WALK',
-        'WALK',
-        'WALK',
-        'SHARED3FREE',
+        'WALK_LOC',
+        'SHARED2FREE',
         'WALK',
         'SHARED2FREE',
+        'WALK',
+        'WALK',
         ]
 
     assert len(tours_df) == len(EXPECT_PERSON_IDS)

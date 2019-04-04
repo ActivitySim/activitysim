@@ -16,7 +16,7 @@ import logging
 from activitysim import abm
 
 from activitysim.core import tracing
-from activitysim.core.config import handle_standard_args
+from activitysim.core import config
 from activitysim.core.config import setting
 from activitysim.core import pipeline
 
@@ -24,13 +24,14 @@ logger = logging.getLogger('activitysim')
 
 
 def run():
-
-    handle_standard_args()
+    config.handle_standard_args()
 
     # specify None for a pseudo random base seed
     # inject.add_injectable('rng_base_seed', 0)
 
     tracing.config_logger()
+    config.filter_warnings()
+
     tracing.delete_csv_files()
 
     # If you provide a resume_after argument to pipeline.run

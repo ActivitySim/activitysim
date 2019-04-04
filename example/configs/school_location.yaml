@@ -3,6 +3,7 @@ SAMPLE_SIZE: 30
 SIMULATE_CHOOSER_COLUMNS:
   - TAZ
   - school_segment
+  - household_id
 
 # model-specific logsum-related settings
 CHOOSER_ORIG_COL_NAME: TAZ

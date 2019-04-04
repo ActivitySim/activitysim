@@ -77,7 +77,9 @@ def str2bool(v):
 
 @inject.injectable(cache=True)
 def settings():
-    return read_settings_file('settings.yaml', mandatory=True)
+    settings_dict = read_settings_file('settings.yaml', mandatory=True)
+
+    return settings_dict
 
 
 def handle_standard_args(parser=None):
@@ -338,14 +340,16 @@ def read_settings_file(file_name, mandatory=True):
         file_path = os.path.join(dir, file_name)
         if os.path.exists(file_path):
             if settings:
-                logger.debug("inherit settings for %s from %s" % (file_name, file_path))
+                logger.warn("read settings for %s from %s" % (file_name, file_path))
 
             with open(file_path) as f:
                 s = yaml.load(f)
             settings = backfill_settings(settings, s)
 
+            print("settings after %s\n%s\n\n" % (file_path, settings))
+
             if s.get('inherit_settings', False):
-                logger.debug("inherit_settings flag set for %s in %s" % (file_name, file_path))
+                logger.warn("inherit_settings flag set for %s in %s" % (file_name, file_path))
                 continue
             else:
                 break

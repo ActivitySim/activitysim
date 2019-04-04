@@ -68,7 +68,7 @@ def close_handlers():
 def inject_settings(configs_dir, **kwargs):
 
     with open(os.path.join(configs_dir, 'settings.yaml')) as f:
-        settings = yaml.load(f)
+        settings = yaml.load(f, Loader=yaml.SafeLoader)
 
         for k in kwargs:
             settings[k] = kwargs[k]

@@ -26,7 +26,7 @@ setup(
         'numpy == 1.15.4',  # https://github.com/PyTables/PyTables/issues/719
         'openmatrix >= 0.3.4.1',
         'pandas >= 0.20.3',
-        'pyyaml >= 3.0, <5.1',
+        'pyyaml >= 3.0',
         'tables >= 3.3.0',
         'toolz >= 0.8.1',
         'zbox >= 1.2',

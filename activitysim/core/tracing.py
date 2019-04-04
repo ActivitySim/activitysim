@@ -129,7 +129,8 @@ def config_logger(basic=False):
 
     if log_config_file:
         with open(log_config_file) as f:
-            config_dict = yaml.load(f)
+            # FIXME need alternative to yaml.UnsafeLoader?
+            config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
             config_dict = config_dict['logging']
             config_dict.setdefault('version', 1)
             logging.config.dictConfig(config_dict)

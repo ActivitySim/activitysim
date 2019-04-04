@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from . import initialize
 from . import accessibility
 from . import auto_ownership
+from . import free_parking
 from . import mandatory_tour_frequency
 from . import mandatory_scheduling
 from . import joint_tour_frequency

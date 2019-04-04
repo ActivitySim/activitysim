@@ -113,6 +113,7 @@ handling.
       - school_location
       - workplace_location
       - auto_ownership_simulate
+      - free_parking
       ### mp_summarize step
       - write_tables
 

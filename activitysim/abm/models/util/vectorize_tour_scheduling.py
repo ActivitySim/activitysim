@@ -134,6 +134,7 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_l
     assert 'in_period' not in alt_tdd
     alt_tdd['out_period'] = expressions.skim_time_period_label(alt_tdd['start'])
     alt_tdd['in_period'] = expressions.skim_time_period_label(alt_tdd['end'])
+    alt_tdd['duration'] = alt_tdd['end'] - alt_tdd['start']
 
     USE_BRUTE_FORCE = False
     if USE_BRUTE_FORCE:
@@ -141,10 +142,11 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_l
         logsums = _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_label)
         return logsums
 
-    # - get list of unique (tour_id, out_period, in_period) in alt_tdd_periods
+    # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
+    # we can cut the number of alts roughly in half (for mtctm1) by conflating duplicates
     index_name = alt_tdd.index.name
-    alt_tdd_periods = \
-        alt_tdd[['out_period', 'in_period']].reset_index().drop_duplicates().set_index(index_name)
+    alt_tdd_periods = alt_tdd[['out_period', 'in_period', 'duration']]\
+        .reset_index().drop_duplicates().set_index(index_name)
 
     # - compute logsums for the alt_tdd_periods
     alt_tdd_periods['logsums'] = \
@@ -154,7 +156,7 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_l
     logsums = pd.merge(
         alt_tdd.reset_index(),
         alt_tdd_periods.reset_index(),
-        on=[index_name, 'out_period', 'in_period'],
+        on=[index_name, 'out_period', 'in_period', 'duration'],
         how='left'
     ).set_index(index_name).logsums
 

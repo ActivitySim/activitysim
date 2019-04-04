@@ -24,9 +24,13 @@ nonstudent_to_school,nonstudent_to_school,"(persons.ptype.isin([constants.PTYPE_
 ,pstudent,"pstudent.where((persons.ptype!=constants.PTYPE_DRIVING) & (persons.ptype!=constants.PTYPE_SCHOOL), constants.PSTUDENT_GRADE_OR_HIGH)"
 #,,
 is_student,is_student,"pstudent.isin([constants.PSTUDENT_GRADE_OR_HIGH, constants.PSTUDENT_UNIVERSITY])"
-is_gradeschool,is_gradeschool,"(pstudent == constants.PSTUDENT_GRADE_OR_HIGH) & (persons.age <= constants.GRADE_SCHOOL_MAX_AGE)"
-is_highschool,is_highschool,"(pstudent == constants.PSTUDENT_GRADE_OR_HIGH) & (persons.age > constants.GRADE_SCHOOL_MAX_AGE)"
-is_university,is_university,"pstudent == constants.PSTUDENT_UNIVERSITY"
+#babies go to school like tm1 bug,is_student,"is_student.where(persons.age > constants.GRADE_SCHOOL_MIN_AGE, True)"
+#babies go to school like tm1 bug,pstudent,"pstudent.where(persons.age > constants.GRADE_SCHOOL_MIN_AGE, constants.PSTUDENT_GRADE_OR_HIGH)"
+babies dont go to school,is_student,"is_student.where(persons.age > constants.GRADE_SCHOOL_MIN_AGE, False)"
+babies dont go to school,pstudent,"pstudent.where(persons.age > constants.GRADE_SCHOOL_MIN_AGE, constants.PSTUDENT_NOT)"
+is_gradeschool,is_gradeschool,(pstudent == constants.PSTUDENT_GRADE_OR_HIGH) & (persons.age <= constants.GRADE_SCHOOL_MAX_AGE)
+is_highschool,is_highschool,(pstudent == constants.PSTUDENT_GRADE_OR_HIGH) & (persons.age > constants.GRADE_SCHOOL_MAX_AGE)
+is_university,is_university,pstudent == constants.PSTUDENT_UNIVERSITY
 school_segment gradeschool,school_segment,"np.where(is_gradeschool, constants.SCHOOL_SEGMENT_GRADE, constants.SCHOOL_SEGMENT_NONE)"
 school_segment highschool,school_segment,"np.where(is_highschool, constants.SCHOOL_SEGMENT_HIGH, school_segment)"
 school_segment university,school_segment,"np.where(is_university, constants.SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"

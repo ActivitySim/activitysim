@@ -90,6 +90,9 @@ def compute_logsums(choosers,
     choosers['in_period'] = expressions.skim_time_period_label(model_settings['IN_PERIOD'])
     choosers['out_period'] = expressions.skim_time_period_label(model_settings['OUT_PERIOD'])
 
+    assert ('duration' not in choosers)
+    choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
+
     nest_spec = config.get_logit_model_settings(logsum_settings)
     constants = config.get_model_constants(logsum_settings)
 

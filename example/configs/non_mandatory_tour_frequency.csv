@@ -24,12 +24,12 @@ Number of Joint Maintenance tours,num_hh_joint_maint_tours,0,0,0,0,0,0,0,0
 Number of Joint Eating Out tours,num_hh_joint_eatout_tours,-0.5866,0,0,-0.7727,0,0,0,0
 Number of Joint Visit tours,num_hh_joint_social_tours,0,0,0,0,0,0,0,0
 Number of Joint Discretionary tours,num_hh_joint_othdiscr_tours,0,0,0.6713,0,0,0,0,0
-"Logged Maximum Residual Window, tour frequency =0",max_window*(tot_tours == 0),0,0,1.1858,0,0,0,0,0
-"Logged Maximum Residual Window, tour frequency =1",max_window*(tot_tours == 1),1.2562,1.5748,1.4842,1.7637,1.8357,1.3298,1.3298,0
-"Logged Maximum Residual Window, tour frequency =2",max_window*(tot_tours == 2),1.2868,2.0026,1.4842,1.7928,2.2707,1.3759,1.3759,0
-"Logged Maximum Residual Window, tour frequency =3",max_window*(tot_tours == 3),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
-"Logged Maximum Residual Window, tour frequency =4",max_window*(tot_tours == 4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
-"Logged Maximum Residual Window, tour frequency =5+",max_window*(tot_tours >  4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
+"Logged Maximum Residual Window, tour frequency =0",log_max_window*(tot_tours == 0),0,0,1.1858,0,0,0,0,0
+"Logged Maximum Residual Window, tour frequency =1",log_max_window*(tot_tours == 1),1.2562,1.5748,1.4842,1.7637,1.8357,1.3298,1.3298,0
+"Logged Maximum Residual Window, tour frequency =2",log_max_window*(tot_tours == 2),1.2868,2.0026,1.4842,1.7928,2.2707,1.3759,1.3759,0
+"Logged Maximum Residual Window, tour frequency =3",log_max_window*(tot_tours == 3),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
+"Logged Maximum Residual Window, tour frequency =4",log_max_window*(tot_tours == 4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
+"Logged Maximum Residual Window, tour frequency =5+",log_max_window*(tot_tours >  4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
 Dummy for Mediumlow Income group (20K-50K) & tour frequency=1,medium_low_income & (tot_tours == 1),0.4981,0.5981,0,0.5709,0,0,0,0
 Dummy for Mediumlow Income group (20K-50K) & tour frequency=2,medium_low_income & (tot_tours == 2),0.8345,0.9178,0,0.8315,0,0,0,0
 Dummy for Mediumlow Income group (20K-50K) & tour frequency=3,medium_low_income & (tot_tours == 3),1.0213,1.7539,0,0.8315,0,0,0,0

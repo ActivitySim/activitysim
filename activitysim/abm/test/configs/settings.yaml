@@ -38,6 +38,7 @@ models:
   - school_location
   - workplace_location
   - auto_ownership_simulate
+  - free_parking
   - cdap_simulate
   - mandatory_tour_frequency
   - mandatory_tour_scheduling

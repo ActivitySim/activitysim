@@ -514,6 +514,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - workplace_location_logsums
     - workplace_location_simulate
     - auto_ownership_simulate
+    - free_parking
     - cdap_simulate
     - mandatory_tour_frequency
     - mandatory_tour_scheduling

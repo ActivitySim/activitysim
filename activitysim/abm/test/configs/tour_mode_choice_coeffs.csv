@@ -9,7 +9,8 @@ c_walktimeshort,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt
 c_walktimelong,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,-0.188
 c_biketimeshort,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,-0.0752
 c_biketimelong,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,-0.376
-c_cost,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.6*c_ivt) / valueOfTime
+#value_of_time is a person attribute so we cant compute c_cost as scalar here,,,,,,,,,,
+#c_cost,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.60 * c_ivt) / valueOfTime,(0.6*c_ivt) / valueOfTime
 c_short_i_wait,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376
 c_long_i_wait,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,-0.0188
 c_wacc,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376

@@ -97,3 +97,4 @@ LOGSUM_CHOOSER_COLUMNS:
   - tour_category
   - num_workers
   - value_of_time
+  - free_parking_at_work

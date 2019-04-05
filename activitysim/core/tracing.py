@@ -129,7 +129,8 @@ def config_logger(basic=False):
 
     if log_config_file:
         with open(log_config_file) as f:
-            config_dict = yaml.load(f)
+            # FIXME need alternative to yaml.UnsafeLoader?
+            config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
             config_dict = config_dict['logging']
             config_dict.setdefault('version', 1)
             logging.config.dictConfig(config_dict)
@@ -275,10 +276,9 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
         df.to_csv(file_path, mode='a', index=df.index.name is not None, header=need_header)
         return
 
-    df_t = df.transpose()
-    if df.index.name is not None:
-        df_t.index.name = df.index.name
-    elif index_label:
+    df_t = df.transpose() if df.index.name in df else df.reset_index().transpose()
+
+    if index_label:
         df_t.index.name = index_label
 
     if need_header:

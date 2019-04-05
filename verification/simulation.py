@@ -83,8 +83,8 @@ if __name__ == '__main__':
 
     injectables = config.handle_standard_args()
 
-    config.filter_warnings()
     tracing.config_logger()
+    config.filter_warnings()
 
     log_settings(injectables)
 

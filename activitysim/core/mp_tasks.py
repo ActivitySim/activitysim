@@ -1524,7 +1524,7 @@ def read_breadcrumbs():
     if not os.path.exists(file_path):
         raise IOError("Could not find saved breadcrumbs file '%s'" % file_path)
     with open(file_path, 'r') as f:
-        breadcrumbs = yaml.load(f)
+        breadcrumbs = yaml.load(f, Loader=yaml.SafeLoader)
     # convert array to ordered dict keyed by step name
     breadcrumbs = OrderedDict([(step['name'], step) for step in breadcrumbs])
     return breadcrumbs

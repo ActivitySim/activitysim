@@ -109,13 +109,13 @@ skim_time_periods:
 
 # value_of_time = lognormal(np.log(median_value_of_time * mu), sigma).clip(min_vot, max_vot)
 
-min_value_of_time: 0
+min_value_of_time: 1
 max_value_of_time: 50
 distributed_vot_mu: 0.684
 distributed_vot_sigma: 0.85
 
 household_median_value_of_time:
-  1: 6
-  2: 8
-  3: 10
-  4: 12
+  1: 6.01
+  2: 8.81
+  3: 10.44
+  4: 12.86

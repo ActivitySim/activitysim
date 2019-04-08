@@ -54,7 +54,7 @@ NESTS:
 CONSTANTS:
   orig_col_name: origin
   dest_col_name: destination
-  costPerMile: 18.48
+  costPerMile: 18.29
   costShareSr2: 1.75
   costShareSr3: 2.50
   waitThresh: 10.00

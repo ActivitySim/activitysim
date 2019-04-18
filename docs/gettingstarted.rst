@@ -41,19 +41,30 @@ Installation
 ::
     
   #required packages for running ActivitySim
-  pip install cytoolz numpy pandas tables pyyaml psutil
-  pip install orca openmatrix zbox
+  conda install cytoolz numpy pandas psutil future
+  conda install -c anaconda pytables pyyaml 
+  pip install openmatrix zbox
     
   #optional required packages for testing and building documentation
-  pip install pytest pytest-cov coveralls pycodestyle
-  pip install sphinx numpydoc sphinx_rtd_theme
+  conda install pytest pytest-cov coveralls pycodestyle
+  conda install sphinx numpydoc sphinx_rtd_theme
 
-5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages. For example:
+5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages. 
+
+For `conda` for example, create a `.condarc` file in your Anaconda installation folder with the following:
+
+::
+  
+  proxy_servers:
+    http: http://myproxy.org:8080
+    https: https://myproxy.org:8080
+  ssl_verify: false
+
+For `pip` for example:
      
 ::
 
   pip install --trusted-host pypi.python.org --proxy=myproxy.org:8080  openmatrix
-
 
 6. Get and install the ActivitySim package on the activated conda Python environment:
 
@@ -116,6 +127,9 @@ To setup and run the :ref:`example`, do the following:
    
 * Review the outputs in the ``output`` folder
 
+.. note::
+   Common configuration settings can be overidden at runtime.  See ``python simulation.py -h``.
+
 Hardware
 --------
 
@@ -126,9 +140,12 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 * the number and size of network skims by mode and time-of-day
 * the desired runtimes
 
-ActivitySim framework models utilize a significant amount of RAM since they store data in-memory to reduce 
-access time in order to minimize runtimes.  For example, the example MTC Travel Model One model has 2.7 million 
-households, 1475 zones, 826 skims and runs for approximately 19 hours in a single process/thread.  The full 
-scale (all households, zones, skims, and sub-models) Travel Model One example is run on a Windows 
-server with 164GB of RAM and 40 CPUs.  Parallelization is **NOT YET IMPLEMENTED** but is planned for 
-Fall 2018 and will make full use of the available CPUs.
+ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce 
+access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million 
+households, 1475 zones, 826 network skims and has been run between two hours and two days depending on the amount of 
+RAM and number of processors allocated.
+
+.. note::
+   ActivitySim has been run in the cloud, on both Windows and Linux OS using 
+   `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations, 
+   Azure scripts, runtimes, and costs are in the ``example_azure`` folder.

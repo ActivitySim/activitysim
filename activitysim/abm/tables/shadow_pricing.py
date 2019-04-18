@@ -285,8 +285,8 @@ class ShadowPriceCalculator(object):
         ----------
         choices_df : pandas.DataFrame
             dataframe with disaggregate location choices and at least two columns:
-                'segment_id' : segment id tag for this individual
-                'dest_choice' : zone id of location choice
+                segment_id : segment id tag for this individual
+                dest_choice : zone id of location choice
         Returns
         -------
         updates self.modeled_size
@@ -572,8 +572,8 @@ def get_shadow_pricing_info():
     Returns
     -------
     shadow_pricing_info: dict
-        'dtype': <sp_dtype>,
-        'block_shapes': dict {<model_selector>: <block_shape>}
+        dtype: <sp_dtype>,
+        block_shapes: dict {<model_selector>: <block_shape>}
     """
 
     land_use = inject.get_table('land_use')
@@ -661,15 +661,14 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_sele
     data_buffers : dict of {<model_selector> : <multiprocessing.Array>}
         multiprocessing.Array is simply a convenient way to bundle Array and Lock
         we extract the lock and wrap the RawArray in a numpy array for convenience in indexing
-
         The shared data buffer has shape (<num_zones, <num_segments> + 1)
         extra column is for reverse semaphores with TALLY_CHECKIN and TALLY_CHECKOUT
     shadow_pricing_info : dict
         dict of useful info
-          'dtype': sp_dtype,
-          'block_shapes' : OrderedDict({<model_selector>: <shape tuple>})
-            dict mapping model_selector to block shape (including extra column for semaphores)
-            e.g. {'school': (num_zones, num_segments + 1)
+           dtype: sp_dtype,
+           block_shapes : OrderedDict({<model_selector>: <shape tuple>})
+           dict mapping model_selector to block shape (including extra column for semaphores)
+           e.g. {'school': (num_zones, num_segments + 1)
     model_selector : str
         location type model_selector (e.g. school or workplace)
 

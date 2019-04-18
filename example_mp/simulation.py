@@ -66,7 +66,6 @@ def log_settings(injectables):
 
 if __name__ == '__main__':
 
-    # inject.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
     inject.add_injectable('data_dir', '../example/data')
     inject.add_injectable('configs_dir', ['configs', '../example/configs'])
 

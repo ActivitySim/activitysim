@@ -73,19 +73,19 @@ output_tables:
   prefix: final_
   tables:
     - checkpoints
-#    - accessibility
-#    - land_use
-#    - households
+    - accessibility
+    - land_use
+    - households
     - persons
-#    - trips
-#    - tours
+    - tours
+    - trips
 
 # area_types less than this are considered urban
 urban_threshold: 4
 cbd_threshold: 2
 rural_threshold: 6
 
-# upperEA	Upper limit on time of day for the Early morning time period		5
+#upperEA	Upper limit on time of day for the Early morning time period		5
 #upperAM	Upper limit on time of day for the AM peak time period		10
 #upperMD	Upper limit on time of day for the Midday time period		15
 #upperPM	Upper limit on time of day for the PM time peak period		19

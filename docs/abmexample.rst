@@ -30,14 +30,15 @@ individual decision-makers.
 Space
 ~~~~~
 
-TM1 uses the 1454-zone system developed for MTC's previous trip-based model.  The zones are fairly large, 
-which may distort the representation of transit access in mode choice. To ameliorate this problem, the 
-zones were further sub-divided into three categories of transit access: short walk, long walk, and not walkable. 
+TM1 uses the 1454-zone system developed for MTC's previous trip-based model.  The zones are fairly large for the region, 
+which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the 
+original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not 
+walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
+of activity-based models typically use an improved approach to spatial representation called multiple zone systems.  
 
-However, support for transit subzones is not included in the activitysim implementation since the latest generation
-of activity-based models typically use multiple zone systems instead.  In brief, all households are assigned to microzones 
-(such as Census blocks) and trips are assigned to origin and destination microzones.  When considering network
-level-of-service (LOS) indicators, different spatial resolutions can be used for different modes.  For example:
+In brief, under a multiple zone system approach, all households are assigned to microzones (which are smaller than traditional 
+TAZs) and trips are assigned to origin and destination microzones.  When considering network level-of-service (LOS) indicators, 
+the model uses different spatial resolutions for different travel modes.  For example:
 
   * TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model
   * Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims and a set of nearby maz-to-maz skims is input to the demand model
@@ -52,7 +53,8 @@ two input data sets, transit virtual path building (TVPB) is done to generate LO
   * alighting TAP to destination microzone using microzone to TAP LOS measures
 
 The resulting complete transit path LOS for the "best" or a "bundle" of paths is then used in the demand model
-for representing transit LOS at the microzone level.  This functionality is **NOT YET IMPLEMENTED**, but planned for a future release.
+for representing transit LOS at the microzone level.  Support for multiple zone systems is **NOT YET IMPLEMENTED**, but 
+planned for a future release.  For the time being, all travel is modeled at the TAZ level.  
 
 Decision-making units
 ~~~~~~~~~~~~~~~~~~~~~
@@ -96,7 +98,7 @@ with respect to age, work status, and school status.
 +-----------------------------------------------------------+---------+------------------+---------------+
 | Non-driving student                                       | 6 - 16  | None             | Pre-college   |
 +-----------------------------------------------------------+---------+------------------+---------------+
-| Pre-school child                                          | 0 - 5   | None             | None          |
+| Pre-school child                                          | 0 - 5   | None             | Preschool     |
 +-----------------------------------------------------------+---------+------------------+---------------+
 
 Household type segments are useful for pre-defining certain data items (such as destination
@@ -109,7 +111,6 @@ that modulates the relative weight the decision-maker places on time and cost. T
 distribution from which the value of time is sampled was derived from a toll choice model
 estimated using data from a stated preference survey performed for the SFCTA's Mobility, Access, and 
 Pricing Study, and is a lognormal distribution with a mean that varies by income segment.  
-Value of time assignment is **NOT YET IMPLEMENTED**.
 
 Activity type segmentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -129,11 +130,11 @@ simulation is assigned one of these activity types.
 +=====================+==========================================================================+===============+=======================================+
 | Work                | Working at regular workplace or work-related activities outside the home | Mandatory     | Workers and students                  |
 +---------------------+--------------------------------------------------------------------------+---------------+---------------------------------------+
-| University          | College or University                                                    | Mandatory     | Age 18+                               |
+| University          | College or university                                                    | Mandatory     | Age 18+                               |
 +---------------------+--------------------------------------------------------------------------+---------------+---------------------------------------+
 | High School         | Grades 9-12                                                              | Mandatory     | Age 14-17                             |
 +---------------------+--------------------------------------------------------------------------+---------------+---------------------------------------+
-| Grade School        | Grades K-8                                                               | Mandatory     | Age 5-13                              |
+| Grade School        | Grades preschool, K-8                                                    | Mandatory     | Age 0-13                              |
 +---------------------+--------------------------------------------------------------------------+---------------+---------------------------------------+
 | Escorting           | Pick-up/drop-off passengers (auto trips only)                            | NonMandatory  | Age 16+                               |
 +---------------------+--------------------------------------------------------------------------+---------------+---------------------------------------+
@@ -151,7 +152,7 @@ simulation is assigned one of these activity types.
 Treatment of time
 ~~~~~~~~~~~~~~~~~
 
-The model system functions at a temporal resolution of one hour. These one hour increments
+The TM1 example model system functions at a temporal resolution of one hour. These one hour increments
 begin with 3 AM and end with 3 AM the next day. Temporal integrity is ensured so that no
 activities are scheduled with conflicting time windows, with the exception of short
 activities/tours that are completed within a one hour increment. For example, a person may have
@@ -165,19 +166,19 @@ increments, LOS matrices are only created for five aggregate time periods. The t
 reference the appropriate transport network depending on their trip mode and the mid-point trip
 time. The definition of time periods for LOS matrices is given below.
 
-+---------------+-------------------+
-|  Time Period  | Start to End Hour |
-+===============+===================+
-|  EA           |  3 to 6           |
-+---------------+-------------------+
-|  AM           |  6 to 10          |
-+---------------+-------------------+
-|  MD           |  11 to 15         |
-+---------------+-------------------+
-|  PM           |  15 to 19         |
-+---------------+-------------------+
-|  EV           |  19 to 3          |
-+---------------+-------------------+
++---------------+------------+----------+
+|  Time Period  | Start Hour | End Hour |
++===============+============+==========+
+|  EA           |  3         |  6       |
++---------------+------------+----------+
+|  AM           |  6         |  11      |
++---------------+------------+----------+
+|  MD           |  11        |  15      |
++---------------+------------+----------+
+|  PM           |  15        |  20      |
++---------------+------------+----------+
+|  EV           |  20        |  3       |
++---------------+------------+----------+
 
 Trip modes
 ~~~~~~~~~~
@@ -255,6 +256,7 @@ The example has the following root folder/file setup:
 
   * configs - settings, expressions files, etc.
   * data - input data such as land use, synthetic population files, and skims
+  * output - outputs folder
   * simulation.py - main script to run the model
     
 Inputs
@@ -271,19 +273,18 @@ In order to run the example, you first need two input files in the ``data`` fold
 * skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.
 
 Both files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  Alternatively, 
-these files can be downloaded from the SF_25_zone_example folder on 
-MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  The full set of MTC 
-TM1 OMX skims are also on the box account. 
+these files can be downloaded from MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  The full set 
+of MTC TM1 OMX skims are also on the box account. 
 
 .. note::
 
   Input files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.  
 
-  The ``scripts\data_mover.ipynb`` was used to create the mtc_asim.h5 file from the raw CSV files.  
+  The ``scripts\mtc_inputs.py`` was used to create the mtc_asim.h5 file from the raw CSV files.  
   This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 file.
 
   The ``scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from 
-  Cube to OMX using the `Cube to OMX converter <https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter>`__.
+  Cube to OMX using the ``scripts\mtc_tm1_omx_export.s`` script.
 
   The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.
 
@@ -295,18 +296,22 @@ model utilities and form.  The first place to start in the ``configs`` folder is
 is the main settings file for the model run.  This file includes:
 
 * ``models`` - list of model steps to run - auto ownership, tour frequency, etc. - see :ref:`model_steps`
-* ``store`` - HDF5 inputs file
+* ``resume_after`` - to resume running the data pipeline after the last successful checkpoint
+* ``input_store`` - HDF5 inputs file
 * ``skims_file`` - skim matrices in one OMX file
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
 * ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
+* ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
+* ``output_tables`` - list of output tables to write to CSV
 * global variables that can be used in expressions tables and Python code such as:
 
     * ``urban_threshold`` - urban threshold area type max value
     * ``county_map`` - mapping of county codes to county names
     * ``skim_time_periods`` - time period upper bound values and labels
+    * ``household_median_value_of_time`` - various household and person value-of-time model settings
 
 .. _sub-model-spec-files:
 
@@ -322,8 +327,16 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
 +================================================+====================================================================+
+|  :ref:`initialize_landuse`                     |  - initialize_landuse.yaml                                         |
+|                                                |  - annotate_landuse.csv                                            |
++------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`accessibility`                          |  - accessibility.yaml                                              |
 |                                                |  - accessibility.csv                                               |
++------------------------------------------------+--------------------------------------------------------------------+
+|                                                |  - initialize_households.yaml                                      |
+|  :ref:`initialize_households`                  |  - annotate_persons.csv                                            |
+|                                                |  - annotate_households.csv                                         |
+|                                                |  - annotate_persons_after_hh.csv                                   |
 +------------------------------------------------+--------------------------------------------------------------------+
 |   :ref:`school_location`                       |  - school_location.yaml                                            |
 |                                                |  - annotate_persons_school.csv                                     |
@@ -331,19 +344,23 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - school_location.csv                                             |
 |                                                |  - destination_choice_size_terms.csv                               |
+|                                                |  - shadow_pricing.yaml                                             |
 +------------------------------------------------+--------------------------------------------------------------------+
 |    :ref:`work_location`                        |  - workplace_location.yaml                                         |
 |                                                |  - annotate_persons_workplace.csv                                  |
+|                                                |  - annotate_households_workplace.csv                               |
 |                                                |  - workplace_location_sample.csv                                   |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - workplace_location.csv                                          |
 |                                                |  - destination_choice_size_terms.csv                               |
+|                                                |  - shadow_pricing.yaml                                             |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`auto_ownership`                          |  - auto_ownership.yaml                                             |
 |                                                |  - auto_ownership.csv                                              |
 +------------------------------------------------+--------------------------------------------------------------------+
-| :ref:`freeparking`                             |  **NOT YET IMPLEMENTED**                                           |
-|                                                |                                                                    |
+| :ref:`freeparking`                             |  - free_parking.yaml                                               |
+|                                                |  - free_parking.csv                                                |
+|                                                |  - free_parking_annotate_persons_preprocessor.csv                  |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`cdap`                                    |  - cdap.yaml                                                       |
 |                                                |  - annotate_persons_cdap.csv                                       |
@@ -354,8 +371,8 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`mandatory_tour_frequency`               |  - mandatory_tour_frequency.yaml                                   |
 |                                                |  - mandatory_tour_frequency.csv                                    |
-|                                                |  - annotate_persons_mtf.csv                                        |
 |                                                |  - mandatory_tour_frequency_alternatives.csv                       |
+|                                                |  - annotate_persons_mtf.csv                                        |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`mandatory_tour_scheduling`               |  - mandatory_tour_scheduling.yaml                                  |
 |                                                |  - tour_scheduling_work.csv                                        |
@@ -363,6 +380,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_frequency`                    |  - joint_tour_frequency.yaml                                       |
+|                                                |  - annotate_persons_jtf.csv                                        |
 |                                                |  - joint_tour_frequency_annotate_households_preprocessor.csv       |
 |                                                |  - joint_tour_frequency_alternatives.csv                           |
 +------------------------------------------------+--------------------------------------------------------------------+
@@ -388,11 +406,13 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 | :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.yaml                               |
 |                                                |  - non_mandatory_tour_frequency.csv                                |
 |                                                |  - non_mandatory_tour_frequency_alternatives.csv                   |
+|                                                |  - non_mandatory_tour_frequency_annotate_persons_preprocessor.csv  |
 |                                                |  - annotate_persons_nmtf.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
-| :ref:`non_mandatory_tour_destination_choice`   |  - non_mandatory_tour_destination_choice.yaml                      |
-|                                                |  - non_mandatory_tour_destination.csv (**NOT YET IMPLEMENTED**)    |
+| :ref:`non_mandatory_tour_destination_choice`   |  - non_mandatory_tour_destination.yaml                             |
+|                                                |  - non_mandatory_tour_destination.csv                              |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
+|                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_scheduling`           |  - non_mandatory_tour_scheduling.yaml                              |
@@ -408,6 +428,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |  :ref:`atwork_subtour_frequency`               |  - atwork_subtour_frequency.yaml                                   |
 |                                                |  - atwork_subtour_frequency.csv                                    |
 |                                                |  - atwork_subtour_frequency_alternatives.csv                       |
+|                                                |  - atwork_subtour_frequency_annotate_tours_preprocessor.csv        |
 +------------------------------------------------+--------------------------------------------------------------------+
 |   :ref:`atwork_subtour_destination`            |  - atwork_subtour_destination.yaml                                 |
 |                                                |  - atwork_subtour_destination_sample.csv                           |
@@ -415,8 +436,9 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
-| :ref:`atwork_subtour_scheduling`               |  - atwork_subtour_scheduling.yaml                                  |
+| :ref:`atwork_subtour_scheduling`               |  - tour_scheduling_atwork.yaml                                     |
 |                                                |  - tour_scheduling_atwork.csv                                      |
+|                                                |  - tour_scheduling_atwork_preprocessor.csv                         |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`atwork_subtour_mode_choice`             |  - tour_mode_choice.yaml (and related files)                       |
@@ -441,6 +463,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - trip_purpose_probs.csv                                          |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`trip_destination_choice`                |  - trip_destination.yaml (+ trip_purpose_and_destination.yaml)     |
+|                                                |  - trip_destination.csv                                            |
 |                                                |  - trip_destination_annotate_trips_preprocessor.csv                |
 |                                                |  - trip_destination_sample.csv                                     |
 |                                                |  - trip_mode_choice.yaml (and related files)                       |
@@ -483,19 +506,6 @@ library and defines two key log files:
 
 Refer to the :ref:`tracing` section for more detail on tracing.
 
-
-Running the Example
--------------------
-
-To run the example, do the following:
-
-* Open a command line window in the ``example`` folder
-* Activate the correct conda environment if needed
-* Run ``python simulation.py`` to run the data pipeline (i.e. model steps)
-* ActivitySim should log some information and write outputs to the ``outputs`` folder.  
-
-The example should complete within a couple minutes since it is running a small sample of households.
-
 .. _model_steps :
 
 Pipeline
@@ -510,9 +520,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - compute_accessibility
     - initialize_households
     - school_location
-    - workplace_location_sample
-    - workplace_location_logsums
-    - workplace_location_simulate
+    - workplace_location
     - auto_ownership_simulate
     - free_parking
     - cdap_simulate
@@ -538,22 +546,49 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - trip_scheduling
     - trip_mode_choice
     - write_data_dictionary
+    - track_skim_usage
     - write_tables
 
 These model steps must be registered orca steps, as noted below.  If you provide a ``resume_after`` 
 argument to :func:`activitysim.core.pipeline.run` the pipeliner will load checkpointed tables from the checkpoint store 
-and resume pipeline processing on the next model step after the specified checkpoint.  
+and resume pipeline processing on the next model step after the specified checkpoint.
 
 ::
 
   resume_after = None
-  #resume_after = 'school_location_logsums'
+  #resume_after = 'school_location'
 
 The model is run by calling the :func:`activitysim.core.pipeline.run` method.
 
 ::
 
   pipeline.run(models=_MODELS, resume_after=resume_after)
+
+Running the Example
+-------------------
+
+To run the example, do the following:
+
+* Open a command line window in the ``example`` folder
+* Activate the correct conda environment if needed
+* Run ``python simulation.py`` to run the data pipeline (i.e. model steps)
+* ActivitySim should log some information and write outputs to the ``output`` folder.  
+
+The example should complete within a couple minutes since it is running a small sample of households.
+
+Multiprocessing
+~~~~~~~~~~~~~~~
+
+The model system is parallelized via :ref:`multiprocessing`.  To setup and run the :ref:`example` using
+multiprocessing, follow the same steps as above, but use the configuration in the ``example_mp`` folder:
+
+* Open a command prompt in the ``example_mp`` folder.  The data does not need to be copied into the folder since the mp setup inherits from the example single-processed setup.
+* Run ``python simulation.py``.
+
+The multiprocessing example also writes outputs to the ``output`` folder. 
+
+The default multiprocessed example is configured to run with two processors: ``num_processes: 2``.  Additional more performant configurations are
+included and commented out in the example settings file.  See :ref:`multiprocessing` for more information.   
 
 Outputs
 -------
@@ -569,72 +604,72 @@ restarting the pipeline at any step.
 +-----------------------------------+------------------------------------+------+------+
 | Table                             | Creator                            | NRow | NCol |
 +===================================+====================================+======+======+ 
-| accessibility                     | compute_accessibility              | 10   | 25   |
+| accessibility                     | compute_accessibility              | 1454 | 10   |
 +-----------------------------------+------------------------------------+------+------+
-| atwork_subtour_destination_sample | atwork_subtour_destination_sample  | 4    | 46   |
+| households                        | initialize                         | 100  | 65   |
 +-----------------------------------+------------------------------------+------+------+
-| atwork_subtour_destination_sample | atwork_subtour_destination_logsums | 5    | 46   |
+| households                        | workplace_location                 | 100  | 66   |
 +-----------------------------------+------------------------------------+------+------+
-| households                        | initialize                         | 64   | 100  |
+| households                        | cdap_simulate                      | 100  | 70   |
 +-----------------------------------+------------------------------------+------+------+
-| households                        | cdap_simulate                      | 68   | 100  |
+| households                        | joint_tour_frequency               | 100  | 72   |
 +-----------------------------------+------------------------------------+------+------+
-| households                        | joint_tour_frequency               | 70   | 100  |
+| joint_tour_participants           | joint_tour_participation           | 13   | 4    |
 +-----------------------------------+------------------------------------+------+------+
-| joint_tour_destination_sample     | joint_tour_destination_sample      | 4    | 30   |
+| land_use                          | initialize_landuse                 | 1454 | 44   |
 +-----------------------------------+------------------------------------+------+------+
-| joint_tour_destination_sample     | joint_tour_destination_logsums     | 4    | 30   |
+| person_windows                    | initialize_households              | 271  | 21   |
 +-----------------------------------+------------------------------------+------+------+
-| joint_tour_participants           | joint_tour_participation           | 4    | 4    |
+| persons                           | initialize_households              | 271  | 42   |
 +-----------------------------------+------------------------------------+------+------+
-| land_use                          | initialize                         | 45   | 25   |
+| persons                           | school_location                    | 271  | 45   |
 +-----------------------------------+------------------------------------+------+------+
-| person_windows                    | initialize                         | 21   | 157  |
+| persons                           | workplace_location                 | 271  | 52   |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | initialize                         | 40   | 157  |
+| persons                           | free_parking                       | 271  | 53   |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | school_location_simulate           | 43   | 157  |
+| persons                           | cdap_simulate                      | 271  | 59   |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | workplace_location_simulate        | 48   | 157  |
+| persons                           | mandatory_tour_frequency           | 271  | 64   |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | cdap_simulate                      | 54   | 157  |
+| persons                           | joint_tour_participation           | 271  | 65   |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | mandatory_tour_frequency           | 59   | 157  |
+| persons                           | non_mandatory_tour_frequency       | 271  | 73   |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | non_mandatory_tour_frequency       | 64   | 157  |
+| school_destination_size           | initialize_households              | 1454 | 3    |
 +-----------------------------------+------------------------------------+------+------+
-| school_location_sample            | school_location_sample             | 4    | 157  |
+| school_modeled_size               | school_location                    | 1454 | 3    |
 +-----------------------------------+------------------------------------+------+------+
-| school_location_sample            | school_location_logsums            | 5    | 157  |
+| tours                             | mandatory_tour_frequency           | 153  | 11   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | mandatory_tour_frequency           | 11   | 71   |
+| tours                             | mandatory_tour_scheduling          | 153  | 15   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | mandatory_tour_scheduling          | 15   | 71   |
+| tours                             | joint_tour_composition             | 159  | 16   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | joint_tour_composition             | 16   | 73   |
+| tours                             | tour_mode_choice_simulate          | 319  | 17   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | atwork_subtour_frequency           | 19   | 186  |
+| tours                             | atwork_subtour_frequency           | 344  | 19   |
 +-----------------------------------+------------------------------------+------+------+
-| tours                             | stop_frequency                     | 21   | 186  |
+| tours                             | stop_frequency                     | 344  | 21   |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | stop_frequency                     | 7    | 428  |
+| trips                             | stop_frequency                     | 859  | 7    |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | trip_purpose                       | 8    | 428  |
+| trips                             | trip_purpose                       | 859  | 8    |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | trip_destination                   | 11   | 428  |
+| trips                             | trip_destination                   | 859  | 11   |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | trip_scheduling                    | 12   | 428  |
+| trips                             | trip_scheduling                    | 859  | 11   |
 +-----------------------------------+------------------------------------+------+------+
-| trips                             | trip_mode_choic                    | 13   | 428  |
+| trips                             | trip_mode_choice                   | 859  | 12   |
 +-----------------------------------+------------------------------------+------+------+
-| workplace_location_sample         | workplace_location_sample          | 3    | 916  |
+| workplace_destination_size        | initialize_households              | 1454 | 4    |
 +-----------------------------------+------------------------------------+------+------+
-| workplace_location_sample         | workplace_location_logsums         | 4    | 916  |
+| workplace_modeled_size            | workplace_location                 | 1454 | 4    |
 +-----------------------------------+------------------------------------+------+------+
 
 The example ``simulation.py`` run model script also writes the final tables to CSV files
-for illustrative purposes by using the :func:`activitysim.core.pipeline.get_table` method.  This method
-returns a pandas DataFrame, which can then be written to a CSV with the ``to_csv(file_path)`` method.
+for illustrative purposes by using the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.  
+This method returns a pandas DataFrame, which can then be written to a CSV with the ``to_csv(file_path)`` method.
 
 ActivitySim also writes log and trace files to the ``outputs`` folder.  The activitysim.log file,
 which is the overall log file is always produced.  If tracing is specified, then trace files are

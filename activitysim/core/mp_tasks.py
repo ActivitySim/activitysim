@@ -292,12 +292,12 @@ def build_slice_rules(slice_info, pipeline_tables):
     has a ref_col to (column with the same same name as) the household table index. And the
     tours table can be sliced since it has a ref_col to persons. Tables can also be sliced
     by index. For instance the person_windows table can be sliced because it has an index with
-    the same names as the persons table. 
+    the same names as the persons table.
 
     slice_info from multiprocess_steps
-    
+
     ::
-    
+
         slice:
           tables:
             - households
@@ -318,9 +318,9 @@ def build_slice_rules(slice_info, pipeline_tables):
     +-----------------+--------------+---------------+
 
     generated slice_rules dict
-    
+
     ::
-    
+
         households:
            slice_by: primary       <- primary table is sliced in num_processors-sized strides
         persons:

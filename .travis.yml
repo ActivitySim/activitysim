@@ -14,7 +14,7 @@ install:
 - conda update -q conda
 - conda info -a
 - |
-  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz numpy==1.15.4 pandas pip pytables pyyaml toolz psutil future
+  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz numpy pandas pip pytables pyyaml toolz psutil future
 - source activate test-environment
 - pip install openmatrix zbox
 - conda install pytest pytest-cov coveralls pycodestyle

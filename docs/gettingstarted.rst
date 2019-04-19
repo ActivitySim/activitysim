@@ -14,7 +14,7 @@ This page describes how to get started with ActivitySim.
 Installation
 ------------
 
-1. Install `Anaconda 64bit Python 2.7 <https://www.continuum.io/downloads>`__.  It is best to use :ref:`anaconda_notes` with ActivitySim.
+1. Install `Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__.  It is best to use :ref:`anaconda_notes` with ActivitySim.
 2. If you access the internet from behind a firewall, then you need to configure your proxy server. To do so, create a .condarc file in your Anaconda installation folder, such as:
 
 ::
@@ -24,11 +24,11 @@ Installation
     https: https://myproxy.org:8080
   ssl_verify: false
  
-3. Create and activate an Anaconda environment (basically a Python install just for this project)
+3. Create and activate an Anaconda environment (basically a Python install just for this project) using Anaconda Prompt or the terminal.  
   
 ::
     
-  conda create -n asimtest python=2.7
+  conda create -n asimtest python=3.7
     
   #Windows
   activate asimtest
@@ -84,12 +84,13 @@ Anaconda
 
 .. note::
 
-  ActivitySim is a 64bit Python 2.7 library that uses a number of packages from the
+  ActivitySim is a 64bit Python 2 or 3 library that uses a number of packages from the
   scientific Python ecosystem, most notably `pandas <http://pandas.pydata.org>`__ 
-  and `numpy <http://numpy.org>`__. ActivitySim does not currently support Python 3.
+  and `numpy <http://numpy.org>`__. ActivitySim currently supports Python 2, but Python 2
+  will be `retired <https://pythonclock.org/>`__ at the end of 2019 so Python 3 is recommended.
    
   The recommended way to get your own scientific Python installation is to
-  install Anaconda 2 64bit, which contains many of the libraries upon which
+  install 64 bit Anaconda, which contains many of the libraries upon which
   ActivitySim depends + some handy Python installation management tools.  
 
   Anaconda includes the ``conda`` command line tool, which does a number of useful 
@@ -101,8 +102,11 @@ Anaconda
   You need to activate the activitysim environment each time you start a new command 
   session.  You can remove an environment with ``conda remove -n asimtest --all`` and 
   check the current active environment with ``conda info -e``.
+  
+  For more information on Anaconda, see Anaconda's `getting started 
+  <https://docs.anaconda.com/anaconda/user-guide/getting-started>`__ guide.
 
-  If numexpr (which numpy requires) fails to install, you may need 
+  If numexpr (which numpy requires) fails to install for Python 2.7, you may need 
   the `Microsoft Visual C++ Compiler for Python <http://aka.ms/vcpython27>`__. 
 
 Run the Example

@@ -29,13 +29,14 @@ debugging of problems with data and/or calculations.  It also allows for checkpo
 resources, such as the state of each person at a point in the model simulation.  Checkpointing also
 allows for regression testing of results at specified points in overall model run.
 
-`ORCA <https://github.com/udst/orca>`__ is an orchestration/pipeline tool that defines model steps, 
-dynamic data sources, and connects them to processing functions. ORCA defines dynamic data tables 
+Earlier versions of ActivitySim depended on `ORCA <https://github.com/udst/orca>`__, an orchestration/pipeline tool 
+that defines model steps, dynamic data sources, and connects them to processing functions. ORCA defined dynamic data tables 
 based on pandas DataFrames, columns based on pandas Series, and injectables (functions).  Model steps 
-are executed as steps registered with the ORCA engine.  ActivitySim extends ORCA's functionality by
-adding a :ref:`pipeline_in_detail`, that runs a series of ORCA model steps, manages the state of the data 
+were executed as steps registered with the ORCA engine.  Over time ActivitySim has extended ORCA's functionality by
+adding a :ref:`pipeline_in_detail` that runs a series of model steps, manages the state of the data 
 tables throughout the model run, allows for restarting at any model step, and integrates with the 
-random number generation procedures (see :ref:`random_in_detail`).
+random number generation procedures (see :ref:`random_in_detail`).  As a result, ORCA is no longer a dependency of
+the system.  See :mod:`activitysim.core.inject` for more information.
 
 Data Handling
 ~~~~~~~~~~~~~
@@ -61,13 +62,13 @@ and network skim matrices.  With this design, the Python code, which can be thou
 engine, and the specific model calculations, such as the utilities, are separate.  This helps to avoid 
 modifying the actual Python code when making changes to the models, such as during model calibration. An 
 example of model expressions is found in the example auto ownership model specification file - 
-`auto_ownership.csv <https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv>`__. 
+`auto_ownership.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/auto_ownership.csv>`__. 
 Refer to the :ref:`expressions` section for more detail.
 
 Many of the models have pre- and post-processor table annotators, which read a CSV file of expression, calculate 
 required additional table fields, and join the fields to the target tables.  An example table annotation expressions 
 file is found in the example configuration files for households for the CDAP model - 
-`annotate_households_cdap.csv <https://github.com/UDST/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
+`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
 Refer to :ref:`table_annotation` for more information and the :func:`activitysim.abm.models.util.expressions.assign_columns` function.
 
 Choice Models
@@ -92,13 +93,13 @@ Models
 An activitysim travel model is made up of a series of models, or steps in the data pipeline.  A model
 typically does the following:
 
-  * registers an orca step that is called by the model runner
+  * registers an ORCA step that is called by the model runner
   * sets up logging and tracing
-  * gets the relevant input data tables from orca
+  * gets the relevant input data tables from ORCA
   * gets all required settings, config files, etc.
   * runs a data preprocessor on each input table that needs additional fields for the calculation
-  * solves the models in chunks
-  * runs a data postprocessor on the outputs table that needs additional fields for later models
+  * solves the model in chunks of data table rows
+  * runs a data postprocessor on the output table data that needs additional fields for later models
   * writes the resulting table data to the pipeline
 
 See :ref:`models` for more information. 
@@ -109,7 +110,7 @@ Development Install
 
 The development version of ActivitySim can be installed as follows:
 
-* Clone or fork the source from the `GitHub repository <https://github.com/udst/activitysim>`__
+* Clone or fork the source from the `GitHub repository <https://github.com/activitysim/activitysim>`__
 * Activate the correct conda environment if needed
 * Navigate to your local activitysim git directory
 * Run the command ``python setup.py develop``

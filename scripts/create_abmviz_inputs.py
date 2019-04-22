@@ -1,5 +1,5 @@
 
-# create abmviz input files
+# create abmviz input files (partially complete)
 # Ben Stabler, ben.stabler@rsginc.com, 07/31/18
 
 import pandas as pd
@@ -25,10 +25,10 @@ trips['tour_start'] = tours.loc[trips['tour_id']]['start'].tolist()
 trips['tour_end'] = tours.loc[trips['tour_id']]['end'].tolist()
 
 trips['in_or_out'] = 0
-trips['in_or_out'][trips['outbound'] == True] = 10
+# trips['in_or_out'][trips['outbound'] == True] = 10
 
 trips['inbound'] = ~trips['outbound']
-trips = trips.sort_values(['tour_id','inbound','trip_num'])
+trips = trips.sort_values(['tour_id', 'inbound', 'trip_num'])
 
 trips['origin_purpose'] = 'Home'
 trips['destination_purpose'] = trips['purpose']
@@ -41,31 +41,29 @@ trips.to_csv(trips_filename)
 
 # create 3D animated map file
 
-## create remainder of the day at home table
-remainder = trips.groupby(['person_id']).max()[['home_taz','depart']]
-remainder = pd.crosstab(remainder["home_taz"],remainder["depart"])
+# create remainder of the day at home table
+remainder = trips.groupby(['person_id']).max()[['home_taz', 'depart']]
+remainder = pd.crosstab(remainder["home_taz"], remainder["depart"])
 
-## loop by period and add trips to DayPop table
-
-
-/* Person location by PERIOD of the day based on trips */
-		INSERT INTO DAYPOP_TEMP (TAZ, PER, PERSONS) SELECT ORIG_TAZ, @hrStr AS PER, COUNT(*) AS PERSONS
-		FROM TRIPS
-		WHERE ORIG_PURPOSE_START_PERIOD < (@hr+1) AND DEPART_PERIOD > (@hr-1)
-		GROUP BY ORIG_TAZ
-		
+# loop by period and add trips to DayPop table
 
 
-DECLARE @minPERIOD AS INT
-DECLARE @maxPERIOD AS INT
-DECLARE @hr AS INT
-DECLARE @hrStr AS VARCHAR(6)
+# /* Person location by PERIOD of the day based on trips */
+# 		INSERT INTO DAYPOP_TEMP (TAZ, PER, PERSONS) SELECT ORIG_TAZ, @hrStr AS PER, COUNT(*) AS PERSONS
+# 		FROM TRIPS
+# 		WHERE ORIG_PURPOSE_START_PERIOD < (@hr+1) AND DEPART_PERIOD > (@hr-1)
+# 		GROUP BY ORIG_TAZ
 
-SET @minPERIOD = 1
-SET @maxPERIOD = 48
+# DECLARE @minPERIOD AS INT
+# DECLARE @maxPERIOD AS INT
+# DECLARE @hr AS INT
+# DECLARE @hrStr AS VARCHAR(6)
 
-CREATE TABLE DAYPOP (TAZ INT, PER VARCHAR(6), PERSONS INT, PERSONSNOTATHOME INT)
-CREATE TABLE DAYPOP_TEMP (TAZ INT, PER VARCHAR(6), PERSONS INT, PERSONSNOTATHOME INT)
+# SET @minPERIOD = 1
+# SET @maxPERIOD = 48
+
+# CREATE TABLE DAYPOP (TAZ INT, PER VARCHAR(6), PERSONS INT, PERSONSNOTATHOME INT)
+# CREATE TABLE DAYPOP_TEMP (TAZ INT, PER VARCHAR(6), PERSONS INT, PERSONSNOTATHOME INT)
 
 # create bar chart and map file
 

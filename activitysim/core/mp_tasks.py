@@ -176,7 +176,7 @@ essentially the same tables and results as if the whole simulation had been run 
 shared data
 
 Although multiprocessing subprocesses each have their (apportioned) pipeline, they also share some
-data passed to them by the parent process. Ther are essentially two types of shared data.
+data passed to them by the parent process. There are essentially two types of shared data.
 
 read-only shared data
 
@@ -294,14 +294,17 @@ def build_slice_rules(slice_info, pipeline_tables):
     by index. For instance the person_windows table can be sliced because it has an index with
     the same names as the persons table.
 
-    # slice_info from multiprocess_steps:
+    slice_info from multiprocess_steps
+
     ::
+
         slice:
           tables:
             - households
             - persons
 
-    # tables from pipeline
+    tables from pipeline
+
     +-----------------+--------------+---------------+
     | Table Name      | Index        | ref_col       |
     +=================+==============+===============+
@@ -314,22 +317,24 @@ def build_slice_rules(slice_info, pipeline_tables):
     | accessibility   | zone_id      |               |
     +-----------------+--------------+---------------+
 
-    # generated slice_rules dict:
+    generated slice_rules dict
+
     ::
 
-    households:
-        slice_by: primary       <- primary table is sliced in num_processors-sized strides
-    persons:
-        source: households
-        slice_by: column
-        column:  household_id   <- slice by ref_col (foreign key) to households
-    person_windows:
-        source: persons
-        slice_by: index         <- slice by index of persons table
-    accessibility:
-        slice_by:               <- mirrored (non-dependent) tables don't get sliced
-    land_use:
-        slice_by:
+        households:
+           slice_by: primary       <- primary table is sliced in num_processors-sized strides
+        persons:
+           source: households
+           slice_by: column
+           column:  household_id   <- slice by ref_col (foreign key) to households
+        person_windows:
+           source: persons
+           slice_by: index         <- slice by index of persons table
+        accessibility:
+           slice_by:               <- mirrored (non-dependent) tables don't get sliced
+        land_use:
+           slice_by:
+
 
     Parameters
     ----------
@@ -1258,7 +1263,9 @@ def get_run_list():
     If resuming, read breadcrumbs file for info on previous run execution status
 
     # annotated run_list with two steps, the second with 2 processors
+
     ::
+
         resume_after: None
         multiprocess: True
         models:

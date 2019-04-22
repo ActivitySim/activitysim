@@ -3,9 +3,6 @@ use_setuptools()  # nopep8
 
 from setuptools import setup, find_packages
 
-with open('README.rst') as file:
-    long_description = file.read()
-
 setup(
     name='activitysim',
     version='0.8',
@@ -15,19 +12,19 @@ setup(
     license='BSD-3',
     url='https://github.com/activitysim/activitysim',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
         'License :: OSI Approved :: BSD License'
     ],
-    long_description=long_description,
     packages=find_packages(exclude=['*.tests']),
+    include_package_data=True,
     install_requires=[
-        'numpy == 1.15.4',  # https://github.com/PyTables/PyTables/issues/719
+        'numpy == 1.16.1',
         'openmatrix >= 0.3.4.1',
-        'pandas >= 0.20.3',
-        'pyyaml >= 3.0',
-        'tables >= 3.3.0',
+        'pandas >= 0.24.1',
+        'pyyaml >= 5.1',
+        'tables >= 3.5.1',
         'toolz >= 0.8.1',
         'zbox >= 1.2',
         'psutil >= 4.1',

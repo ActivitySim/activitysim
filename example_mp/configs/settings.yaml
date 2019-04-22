@@ -10,7 +10,6 @@ fail_fast: True
 #mem_tick: 0
 #use_shadow_pricing: True
 
-
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
 #chunk_size:  80000000000
@@ -24,17 +23,25 @@ fail_fast: True
 #stagger: 0
 
 
-## - ------------------------- dev config
+# - ------------------------- dev config
 multiprocess: True
 strict: False
 mem_tick: 30
 use_shadow_pricing: False
 
-# - small sample
-households_sample_size:  5000
-chunk_size: 500000000
+
+## - small sample
+#households_sample_size:  5000
+#chunk_size: 500000000
+#num_processes: 2
+#stagger: 5
+
+
+## - example sample
+households_sample_size:  100
+chunk_size: 0
 num_processes: 2
-stagger: 5
+stagger: 0
 
 
 # - tracing
@@ -102,13 +109,13 @@ output_tables:
   action: include
   prefix: final_
   tables:
-#    - checkpoints
-#    - accessibility
-#    - land_use
-#    - households
-#    - persons
-#    - trips
-#    - tours
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
     - school_shadow_prices
     - workplace_shadow_prices
 

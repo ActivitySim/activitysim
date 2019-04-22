@@ -21,11 +21,11 @@ PERCENT_TOLERANCE: 5
 FAIL_THRESHOLD: 10
 
 # CTRAMP or daysim
-#SHADOW_PRICE_METHOD: ctramp
 SHADOW_PRICE_METHOD: ctramp
+#SHADOW_PRICE_METHOD: daysim
 
 # ctramp-style shadow_pricing_method parameters
-DAMPING_FACTOR: 1.0
+DAMPING_FACTOR: 1
 
 # daysim-style shadow_pricing_method parameters
 # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?

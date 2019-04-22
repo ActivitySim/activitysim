@@ -2,7 +2,7 @@
 How the System Works
 ====================
 
-This page describes describes how the ActivitySim software works and the example data schema.
+This page describes how the software works, how multiprocessing works, and the example model data schema.
 
 .. _how_the_system_works:
 
@@ -14,15 +14,13 @@ The example model run starts by running ``simulation.py``.
 Initialization
 ~~~~~~~~~~~~~~
 
-The first steps of ``simulation.py`` are:
+The first significant step of ``simulation.py`` is:
 
 ::
 
-  import orca
   from activitysim import abm 
   
-which starts orca, which will now take over running the system and defines the orca/pandas tables and their data 
-sources but does not load the data.  The second statement loads :mod:`activitysim.abm.__init__`, which calls:
+which loads :mod:`activitysim.abm.__init__`, which calls:
 
 ::
 
@@ -30,124 +28,180 @@ sources but does not load the data.  The second statement loads :mod:`activitysi
    import tables
    import models
 
-which then loads the misc, tables, and models class definitions.  Loading :mod:`activitysim.abm.misc` defines orca injectables 
-(functions) for the ``settings`` object based on the setting yaml file, the ``store`` based on the HDF5 input 
-file, and the trace settings.  The Python decorator ``@inject.injectable`` overrides the function definition ``store`` 
-to execute this function whenever ``store`` is called by orca.  The ``misc`` class depends on 
-:mod:`activitysim.core.inject` and :mod:`activitysim.core.pipeline`, which wrap orca and manage the data pipeline.  
+which then loads the misc, tables, and models class definitions.  Loading :mod:`activitysim.abm.misc` calls:
 
 :: 
 
-  @inject.injectable(cache=True)
-  def store(data_dir, settings):
-    #...
-    file = pd.HDFStore(fname, mode='r')
-    pipeline.close_on_exit(file, fname)
-    return file
+   from activitysim.core import config
+   from activitysim.core import inject
+
+which loads the config and inject classes.  These define `ORCA <https://github.com/udst/orca>`__ inspired injectables (functions) and 
+helper functions for running models.  For example, the Python decorator ``@inject.injectable`` overrides the function definition ``settings`` to 
+execute this function whenever the ``settings`` object is called by the system.  The :mod:`activitysim.core.inject` manages the data 
+pipeline.  The inject class does everything ORCA did in previous versions of ActivitySim and so ORCA is no longer a dependency.
+
+:: 
+
+   @inject.injectable(cache=True)
+   def settings():
+       settings_dict = read_settings_file('settings.yaml', mandatory=True)
+       return settings_dict
 
 Next, the tables module executes the following import statements in :mod:`activitysim.abm.tables.__init__` to 
-define the dynamic orca tables (households, 
-persons, skims, etc.), but does not load them. It also defines the core dynamic orca injectables (functions) 
-defined in the classes. The Python decorator ``@inject.table`` override the function definitions so the function name
-becomes the table name.  Additional implementation specific table fields are defined in annotation preprocessors for
-each step, as discussed later.  
+define the dynamic inject tables (households, persons, skims, etc.), but does not load them. It also defines the 
+core dynamic injectables (functions) defined in the classes. The Python decorator ``@inject.table`` override the function 
+definitions so the name of the function becomes the name of the table when dynamically called by the system. 
 
 ::
 
-  import households
-  import persons
+  from . import households
+  from . import persons
   #etc...
   
   #then in households.py
   @inject.table()
-  def households(store, households_sample_size, trace_hh_id):
+  def households(households_sample_size, override_hh_ids, trace_hh_id):
   
-The models module then loads all the sub-models, which are registered as orca model steps with 
-the ``@inject.step()`` decorator.  These steps will eventually be run by the pipeline manager.
+The models module then loads all the sub-models, which are registered as model steps with 
+the ``@inject.step()`` decorator.  These steps will eventually be run by the data pipeliner.
 
 ::
 
-  import initialize
-  import accessibility
-  import auto_ownership
+  from . import accessibility
+  from . import atwork_subtour_destination
+  from . import atwork_subtour_frequency
   #etc...
   
   #then in accessibility.py
   @inject.step()
-  def compute_accessibility(settings, accessibility_spec,
-                          accessibility_settings,
-                          skim_dict, omx_file, land_use, trace_od):
+  def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
 
-Back in the main ``simulation.py`` script, the next steps are to load the pipeline manager.
+Back in the main ``simulation.py`` script, the next steps are to load the tracing, configuration, setting, and pipeline classe
+to get the system management components up and running.  
 
 ::
 
+  from activitysim.core import tracing
+  from activitysim.core import config
+  from activitysim.core.config import setting
   from activitysim.core import pipeline
 
 
-The next step in the example is to read and run the pipeline.  The ``resume_after`` argument is set to None
-in order to start the pipeline from the beginning.
+The next step in the example is to define the ``run`` method, call it if the script is being run as the program entry point, and handle the 
+arguments passed in via the command line.  
+
+::
+
+  def run():
+    #etc...
+
+  if __name__ == '__main__':
+    run()
+
+
+.. note::
+   For more information on run options, type ``python simulation.py -h`` on the command line
+
+
+The first key thing that happens in the ``run`` function is ``resume_after = setting('resume_after', None)``, which causes the system
+to go looking for ``setting``.  Earlier we saw that ``setting`` was defined as an injectable and so the system gets this object if it 
+is already in memory, or if not, calls this function which loads the ``config/settings.yaml`` file.  This is called lazy loading or 
+on-demand loading. Next, the system loads the models list and starts the pipeline:
 
 ::
   
-  MODELS = setting('models')
-  
-  pipeline.run(models=MODELS, resume_after=None)
+  pipeline.run(models=setting('models'), resume_after=resume_after)
 
-The :func:`activitysim.core.pipeline.run` method loops through the list of models, calls ``inject.run(model_step)``, 
-and manages the data pipeline.  The first microsimulation model run is school location.  The school location 
-model is broken into three steps:
+The :func:`activitysim.core.pipeline.run` method loops through the list of models, calls ``inject.run([step_name])``, 
+and manages the data pipeline.  The first disaggregate data processing step (or model) run is ``initialize_households``, defined in 
+:mod:`activitysim.abm.models.initialize`.  The ``initialize_households`` step is responsible for requesting reading of the raw 
+households and persons into memory. 
 
-  * school_location_sample - selects a sample of alternative school locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
-  * school_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative school location.
-  * school_location_simulate - starts with the table created above and chooses a final school location, this time with the mode choice logsum included.
+Initialize Households
+~~~~~~~~~~~~~~~~~~~~~
 
-School Location Sample
-~~~~~~~~~~~~~~~~~~~~~~
-
-The school location sample model is run via:
+The initialize households step/model is run via:
 
 ::
   
-  #run model step
-  inject.run(["school_location_sample"])
-          
-  #define model step
-  @inject.step()
-  def school_location_sample(persons_merged,
-                             school_location_sample_spec,
-                             school_location_settings,
-                             skim_dict,
-                             destination_size_terms,
-                             chunk_size,
-                             trace_hh_id):
+   @inject.step()
+   def initialize_households():
+
+      trace_label = 'initialize_households'
+      model_settings = config.read_model_settings('initialize_households.yaml', mandatory=True)
+      annotate_tables(model_settings, trace_label)
                              
-The ``school_location_sample`` step requires the objects defined in the function definition 
-above.  Since they are not yet loaded, orca goes looking for them.  This is called lazy 
-loading (or on-demand loading).  The steps to get the persons data loaded is illustrated below.
-The various calls also setup logging, tracing, and stable random number management. 
+This step reads the ``initialize_households.yaml`` config file, which defines the :ref:`table_annotation` below.  Each table
+annotation applies the expressions specified in the annotate spec to the relevant table.  For example, the ``persons`` table
+is annotated with the results of the expressions in ``annotate_persons.csv``.  If the table is not already in memory, then 
+inject goes looking for it as explained below.  
+
+::
+  
+   #initialize_households.yaml
+   annotate_tables:
+     - tablename: persons
+       annotate:
+         SPEC: annotate_persons
+         DF: persons
+         TABLES:
+           - households
+     - tablename: households
+       column_map:
+         PERSONS: hhsize
+         workers: num_workers
+       annotate:
+         SPEC: annotate_households
+         DF: households
+         TABLES:
+           - persons
+           - land_use
+     - tablename: persons
+       annotate:
+         SPEC: annotate_persons_after_hh
+         DF: persons
+         TABLES:
+           - households
+
+   #initialize.py
+   def annotate_tables(model_settings, trace_label):
+
+    annotate_tables = model_settings.get('annotate_tables', [])
+
+    for table_info in annotate_tables:
+
+        tablename = table_info['tablename']
+        df = inject.get_table(tablename).to_frame()
+
+        # - annotate
+        annotate = table_info.get('annotate', None)
+        if annotate:
+            logger.info("annotated %s SPEC %s" % (tablename, annotate['SPEC'],))
+            expressions.assign_columns(
+                df=df,
+                model_settings=annotate,
+                trace_label=trace_label)
+
+        # - write table to pipeline
+        pipeline.replace_table(tablename, df)
+
+
+Remember that the ``persons`` table was previously registred as an injectable table when the persons table class was
+imported.  Now that the ``persons`` table is needed, inject calls this function, which requires the ``households`` and 
+``trace_hh_id`` objects as well.  Since ``households`` has yet to be loaded, the system run the households inject table operation
+as well.  The various calls also setup logging, tracing, stable random number management, etc. 
 
 ::
 
-  #persons_merged is in the step function signature
-  
-  #persons_merged is defined in persons.py and needs persons
+  #persons in persons.py requires households, trace_hh_id
   @inject.table()
-  def persons_merged(persons, households, land_use, accessibility):
-    return inject.merge_tables(persons.name, tables=[
-        persons, households, land_use, accessibility])
-        
-  #persons in persons.py requires store, households_sample_size, households, trace_hh_id
-  @inject.table()
-  def persons(store, households_sample_size, households, trace_hh_id):
+  def persons(households, trace_hh_id):
 
-    df = store["persons"]
-
-    if households_sample_size > 0:
-        # keep all persons in the sampled households
-        df = df[df.household_id.isin(households.index)]
+    df = read_raw_persons(households)
 
     logger.info("loaded persons %s" % (df.shape,))
+
+    df.index.name = 'person_id'
 
     # replace table function with dataframe
     inject.add_table('persons', df)
@@ -156,81 +210,78 @@ The various calls also setup logging, tracing, and stable random number manageme
 
     if trace_hh_id:
         tracing.register_traceable_table('persons', df)
-        tracing.trace_df(df, "persons", warn_if_empty=True)
+        tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
     return df
   
-  #households requires store, households_sample_size, trace_hh_id
+  #households requires households_sample_size, override_hh_ids, trace_hh_id
   @inject.table()
-  def households(store, households_sample_size, trace_hh_id):
+  def households(households_sample_size, override_hh_ids, trace_hh_id):
 
-    df_full = store["households"]
-
-    # if we are tracing hh exclusively
-    if trace_hh_id and households_sample_size == 1:
-
-        # df contains only trace_hh (or empty if not in full store)
-        df = tracing.slice_ids(df_full, trace_hh_id)
-
-    # if we need sample a subset of full store
-    elif households_sample_size > 0 and len(df_full.index) > households_sample_size:
-
-        # take the requested random sample
-        df = asim.random_rows(df_full, households_sample_size)
-
-        # if tracing and we missed trace_hh in sample, but it is in full store
-        if trace_hh_id and trace_hh_id not in df.index and trace_hh_id in df_full.index:
-                # replace first hh in sample with trace_hh
-                logger.debug("replacing household %s with %s in household sample" %
-                             (df.index[0], trace_hh_id))
-                df_hh = tracing.slice_ids(df_full, trace_hh_id)
-                df = pd.concat([df_hh, df[1:]])
-
-    else:
-        df = df_full
-
-    logger.info("loaded households %s" % (df.shape,))
-
-    # replace table function with dataframe
-    inject.add_table('households', df)
-
-    pipeline.get_rn_generator().add_channel('households', df)
-
-    if trace_hh_id:
-        tracing.register_traceable_table('households', df)
-        tracing.trace_df(df, "households", warn_if_empty=True)
-
-    return df
+    df_full = read_input_table("households")
   
-  #etc.... until all the required dependencies are resolved 
 
-``school_location_sample`` also sets the persons merged table as choosers, reads the expressions 
-specification file, settings yaml file, and destination_size_terms file, and also sets the chunk 
-size and trace id if specified.  The skims dictionary is also passed in, as explained next.
+The process continues until all the dependencies are resolved.  It is the ``read_input_table`` function that 
+actually reads the input tables from the input HDF5 file.
 
 ::
 
-  def school_location_sample(persons_merged,
-                             school_location_sample_spec,
-                             school_location_settings,
-                             skim_dict,
-                             destination_size_terms,
-                             chunk_size,
-                             trace_hh_id):
+  #def read_input_table(table_name):
+  #...
+  
+  df = pd.read_hdf(input_store_path, table_name).
+
+School Location
+~~~~~~~~~~~~~~~
+
+Now that the persons, households, and other data are in memory, and also annotated with additional fields 
+for later calculations, the school location model can be run.  The school location model is defined
+in :mod:`activitysim.abm.models.location_choice`.  As shown below, the school location model
+actually uses the ``persons_merged`` table, which includes joined household, land use, and accessibility
+tables as well.  The school location model also requires the skims dictionary object, which is discussed next.  
+Before running the generic iterate location choice function, the model reads the model settings file, which 
+defines various settings, including the expression files, sample size, mode choice logsum 
+calulcation settings, time periods for skim lookups, shadow pricing settings, etc.  
+
+::
+
+   #persons.py
+   # another common merge for persons
+   @inject.table()
+   def persons_merged(persons, households, land_use, accessibility):
+        return inject.merge_tables(persons.name, tables=[persons, households, land_use, accessibility])
+
+   #location_choice.py
+   @inject.step()
+   def school_location(
+        persons_merged, persons, households,
+        skim_dict, skim_stack,
+        chunk_size, trace_hh_id, locutor
+        ):
+
+     trace_label = 'school_location'
+     model_settings = config.read_model_settings('school_location.yaml')
+
+     iterate_location_choice(
+        model_settings,
+        persons_merged, persons, households,
+        skim_dict, skim_stack,
+        chunk_size, trace_hh_id, locutor, trace_label
+
     
-Inside the method, the skim matrix lookups required for this model are configured. The following code 
-set the keys for looking up the skim values for this model. In this case there is a ``TAZ`` column 
-in the choosers, which was in the ``households`` table that was joined with ``persons`` to make 
-``persons_merged`` and a ``TAZ`` in the alternatives generation code which get merged during 
-interaction as renamed ``TAZ_r``.  The skims are lazy loaded under the name "skims" and are 
-available in the expressions using ``@skims``.
+Deep inside the method calls, the skim matrix lookups required for this model are configured. The following code 
+sets the keys for looking up the skim values for this model. In this case there is a ``TAZ`` column 
+in the households table that is renamed to `TAZ_chooser`` and a ``TAZ`` in the alternatives generation code.  
+The skims are lazy loaded under the name "skims" and are available in the expressions using the ``@skims`` expression.
 
 ::
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
+    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap('TAZ', 'TAZ_r')
+    skims = skim_dict.wrap('TAZ_chooser', 'TAZ')
+
     locals_d = {
         'skims': skims
     }
@@ -243,23 +294,24 @@ trace labels are passed in.
 
 :: 
 
-  choices = interaction_sample(
-                choosers_segment,
-                alternatives_segment,
-                sample_size=sample_size,
-                alt_col_name=alt_col_name,
-                spec=school_location_sample_spec[[school_type]],
-                skims=skims,
-                locals_d=locals_d,
-                chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(trace_label, school_type))
+    #interaction_sample
+    choices = interaction_sample(
+       choosers,
+       alternatives,
+       sample_size=sample_size,
+       alt_col_name=alt_dest_col_name,
+       spec=spec_for_segment(model_spec, segment_name),
+       skims=skims,
+       locals_d=locals_d,
+       chunk_size=chunk_size,
+       trace_label=trace_label)
     
 This function solves the utilities, calculates probabilities, draws random numbers, selects choices with 
 replacement, and returns the choices. This is done in a for loop of chunks of chooser records in order to avoid 
 running out of RAM when building the often large data tables. This method does a lot, and eventually 
 calls :func:`activitysim.core.interaction_simulate.eval_interaction_utilities`, which loops through each 
 expression in  the expression file and solves it at once for all records in the chunked chooser 
-table using either pandas' eval() or Python's eval().
+table using Python's ``eval``.
 
 The :func:`activitysim.core.interaction_sample.interaction_sample` method is currently only a multinomial 
 logit choice model.  The :func:`activitysim.core.simulate.simple_simulate` method supports both MNL and NL as specified by 
@@ -284,11 +336,12 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
+                                 trace_label=trace_label, trace_choosers=choosers)
 
     choices_df = make_sample_choices(
-        choosers, probs, interaction_utilities,
-        sample_size, alternative_count, alt_col_name, trace_label)
+        choosers, probs, alternatives, sample_size, alternative_count, alt_col_name,
+        allow_zero_probs=allow_zero_probs, trace_label=trace_label)
 
     # pick_count is number of duplicate picks
     pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
@@ -306,117 +359,134 @@ and selecting numpy array items with vector indexes returns a vector.  Trace dat
 
     return choices_df
 
-The model creates the ``school_location_sample`` table using the choices above.  This table is 
+The model creates the ``location_sample_df`` table using the choices above.  This table is 
 then used for the next model step - solving the logsums for the sample.
 
 :: 
 
-    inject.add_table('school_location_sample', choices)
-    
+     # - location_logsums
+     location_sample_df = run_location_logsums(
+                segment_name,
+                choosers,
+                skim_dict, skim_stack,
+                location_sample_df,
+                model_settings,
+                chunk_size,
+                trace_hh_id,
+                tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
 
-School Location Logsums
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The school location logsums model is called via:
-
-::
-
-  #run model step
-  inject.run(["school_location_logsums"])
-          
-  #define model step
-  @inject.step()
-  def school_location_logsums(
-        persons_merged,
-        land_use,
-        skim_dict, skim_stack,
-        school_location_sample,
-        configs_dir,
-        chunk_size,
-        trace_hh_id):
-                             
-The ``school_location_logsums`` step requires the objects defined in the function definition 
-above.  Some of these are not yet loaded, so orca goes looking for them.  The next steps are
-similar to what the sampling model does, except this time the sampled locations table is the choosers
-and the model is calculating and adding the mode choice logsums using the logsums expression files:
+The next steps are similar to what the sampling model does, except this time the sampled locations 
+table is the choosers and the model is calculating and adding the tour mode choice logsums using the 
+logsums settings and expression files.  The resulting logsums are added to the chooser table as the 
+``mode_choice_logsum`` column.
 
 ::
 
-    for school_type, school_type_id in iteritems(SCHOOL_TYPE_ID):
+    #inside run_location_logsums() defined in location_choice.py
+    logsums = logsum.compute_logsums(
+       choosers,
+       tour_purpose,
+       logsum_settings, model_settings,
+       skim_dict, skim_stack,
+       chunk_size, trace_hh_id,
+       trace_label)
 
-        segment = 'university' if school_type == 'university' else 'school'
-        logsum_spec = get_segment_and_unstack(omnibus_logsum_spec, segment)
-        
-        choosers = location_sample[location_sample['school_type'] == school_type_id]
-
-        choosers = pd.merge(
-            choosers,
-            persons_merged,
-            left_index=True,
-            right_index=True,
-            how="left")
-
-        logsums = logsum.compute_logsums(
-            choosers, logsum_spec,
-            logsum_settings, school_location_settings,
-            skim_dict, skim_stack,
-            chunk_size, trace_hh_id,
-            tracing.extend_trace_label(trace_label, school_type))
-
-    inject.add_column("school_location_sample", "mode_choice_logsum", logsums)
+    location_sample_df['mode_choice_logsum'] = logsums
 
 The :func:`activitysim.abm.models.util.logsums.compute_logsums` method goes through a similar series
 of steps as the interaction_sample function but ends up calling 
 :func:`activitysim.core.simulate.simple_simulate_logsums` since it supports nested logit models, which 
 are required for the mode choice logsum calculation.  The 
 :func:`activitysim.core.simulate.simple_simulate_logsums` returns a vector of logsums (instead of a vector 
-choices). The resulting logsums are added to the ``school_location_sample`` table as the 
-``mode_choice_logsum`` column.
+choices). 
 
-School Location Final Choice 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The final school location choice model operates on the ``school_location_sample`` table created 
+The final school location choice model operates on the ``location_sample_df`` table created 
 above and is called as follows:
 
 :: 
 
-  #run model step
-  inject.run(["school_location_simulate"])
-  
-  #define model step
-  @inject.step()
-  def school_location_simulate(persons_merged, persons,
-                             school_location_sample,
-                             school_location_spec,
-                             school_location_settings,
-                             skim_dict,
-                             land use, size_terms,
-                             chunk_size,
-                             trace_hh_id):
+	  # - location_simulate
+	  choices = \
+	      run_location_simulate(
+	          segment_name,
+	          choosers,
+	          location_sample_df,
+	          skim_dict,
+	          dest_size_terms,
+	          model_settings,
+	          chunk_size,
+	          tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
 
-The ``school_location_simulate`` step requires the objects defined in the function definition 
-above.  The operations executed by this model are very similar to the earlier models, except 
+	  choices_list.append(choices)
+
+The operations executed by this model are very similar to the earlier models, except 
 this time the sampled locations table is the choosers and the model selects one alternative for
 each chooser using the school location simulate expression files and the 
 :func:`activitysim.core.interaction_sample_simulate.interaction_sample_simulate` function.  
 
-The model adds the choices as a column to the ``persons`` table and adds 
-additional output columns using a postprocessor table annotation.  Refer to :ref:`table_annotation` 
-for more information and the :func:`activitysim.abm.models.util.expressions.assign_columns` function.
+Back in ``iterate_location_choice()``, the model adds the choices as a column to the ``persons`` table and adds 
+additional output columns using a postprocessor table annotation if specified in the settings file.  Refer 
+to :ref:`table_annotation` for more information and the :func:`activitysim.abm.models.util.expressions.assign_columns` 
+function.  The overall school location model is run within a shadow pricing iterative loop as shown below.  Refer 
+to :ref:`shadow_pricing` for more information.
 
 :: 
 
-   # We only chose school locations for the subset of persons who go to school
-   # so we backfill the empty choices with -1 to code as no school location
-   persons['school_taz'] = choices.reindex(persons.index).fillna(-1).astype(int)
    
-   expressions.assign_columns(
-        df=persons,
-        model_settings=school_location_settings.get('annotate_persons'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+   # in iterate_location_choice() in location_choice.py
+	 for iteration in range(1, max_iterations + 1):
 
-    pipeline.replace_table("persons", persons)
+        if spc.use_shadow_pricing and iteration > 1:
+            spc.update_shadow_prices()
+
+        choices = run_location_choice(
+            persons_merged_df,
+            skim_dict, skim_stack,
+            spc,
+            model_settings,
+            chunk_size, trace_hh_id,
+            trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
+
+        choices_df = choices.to_frame('dest_choice')
+        choices_df['segment_id'] = \
+            persons_merged_df[chooser_segment_column].reindex(choices_df.index)
+
+        spc.set_choices(choices_df)
+
+        if locutor:
+            spc.write_trace_files(iteration)
+
+        if spc.use_shadow_pricing and spc.check_fit(iteration):
+            logging.info("%s converged after iteration %s" % (trace_label, iteration,))
+            break
+
+    # - shadow price table
+    if locutor:
+        if spc.use_shadow_pricing and 'SHADOW_PRICE_TABLE' in model_settings:
+            inject.add_table(model_settings['SHADOW_PRICE_TABLE'], spc.shadow_prices)
+        if 'MODELED_SIZE_TABLE' in model_settings:
+            inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
+
+    dest_choice_column_name = model_settings['DEST_CHOICE_COLUMN_NAME']
+    tracing.print_summary(dest_choice_column_name, choices, value_counts=True)
+
+    persons_df = persons.to_frame()
+
+    # We only chose school locations for the subset of persons who go to school
+    # so we backfill the empty choices with -1 to code as no school location
+    NO_DEST_TAZ = -1
+    persons_df[dest_choice_column_name] = \
+        choices.reindex(persons_df.index).fillna(NO_DEST_TAZ).astype(int)
+
+    # - annotate persons table
+    if 'annotate_persons' in model_settings:
+        expressions.assign_columns(
+            df=persons_df,
+            model_settings=model_settings.get('annotate_persons'),
+            trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+
+        pipeline.replace_table("persons", persons_df)
+                
 
 Finishing Up 
 ~~~~~~~~~~~~
@@ -424,12 +494,12 @@ Finishing Up
 The last models to be run by the data pipeline are:
 
 * ``write_data_dictionary``, which writes the table_name, number of rows, number of columns, and number of bytes for each checkpointed table
+* ``track_skim_usage``, which tracks skim data memory usage
 * ``write_tables``, which writes pipeline tables as csv files as specified by the output_tables setting
 
 Back in the main ``simulation.py`` script, the final steps are to:
 
 * close the data pipeline (and attached HDF5 file)
-* print the elapsed model runtime
 
 Additional Notes
 ----------------
@@ -447,27 +517,22 @@ In addition to calculating the mandatory tour frequency for a person, the model 
 Once the number of tours is known, then the next step is to create tours records for subsequent models.  This is done by the 
 :func:`activitysim.abm.models.util.tour_frequency.process_tours` function, which is called by the 
 :func:`activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency` function, which adds the tours to 
-the ``tours`` table managed in the data pipeline.  This is the same basic pattern used for creating all new tables - 
-tours, trips, etc.
+the ``tours`` table managed in the data pipeline.  This is the same basic pattern used for creating new tables - tours, trips, etc.
 
 ::
 
   @inject.step()
-  def mandatory_tour_frequency(persons, persons_merged,
-                             mandatory_tour_frequency_spec,
-                             mandatory_tour_frequency_settings,
-                             mandatory_tour_frequency_alternatives,
-                             chunk_size,
-                             trace_hh_id):
+  def mandatory_tour_frequency(persons_merged, chunk_size, trace_hh_id):
   
-  mandatory_tours = process_mandatory_tours(
-      persons=persons[~persons.mandatory_tour_frequency.isnull()],
-      mandatory_tour_frequency_alts=mandatory_tour_frequency_alternatives
-  )
+    choosers['mandatory_tour_frequency'] = choices
+      mandatory_tours = process_mandatory_tours(
+        persons=choosers,
+        mandatory_tour_frequency_alts=alternatives
+    )
 
-  tours = pipeline.extend_table("tours", mandatory_tours)
+    tours = pipeline.extend_table("tours", mandatory_tours)
 
-    
+  
 Vectorized 3D Skim Indexing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -530,6 +595,124 @@ to origin zone and write them to the datastore.
     )
 
 
+.. index:: multiprocessing
+
+.. _multiprocessing:
+
+Multiprocessing
+---------------
+
+Most models can be implemented as a series of independent vectorized operations on pandas DataFrames and 
+numpy arrays. These vectorized operations are much faster than sequential Python because they are 
+implemented by native code (compiled C) and are to some extent multi-threaded. But the benefits of 
+numpy multi-processing are limited because they only apply to atomic numpy or pandas calls, and as 
+soon as control returns to Python it is single-threaded and slow.
+
+Multi-threading is not an attractive strategy to get around the Python performance problem because
+of the limitations imposed by Python's global interpreter lock (GIL). Rather than struggling with
+Python multi-threading, ActivitySim uses the 
+Python `multiprocessing <https://docs.python.org/2/library/multiprocessing.html>`__ library to parallelize 
+most models.
+
+ActivitySim's modular and extensible architecture makes it possible to not hardwire the multiprocessing
+architecture. The specification of which models should be run in parallel, how many processers
+should be used, and the segmentation of the data between processes are all specified in the
+settings config file.
+
+Mutliprocessing Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The multiprocess_steps setting below indicate that the simulation should be broken into three steps.
+
+::
+
+    models:
+      ### mp_initialize step
+      - initialize_landuse
+      - compute_accessibility
+      - initialize_households
+      ### mp_households step
+      - school_location
+      - workplace_location
+      - auto_ownership_simulate
+      - free_parking
+      ### mp_summarize step
+      - write_tables
+
+    multiprocess_steps:
+      - name: mp_initialize
+        begin: initialize_landuse
+      - name: mp_households
+        begin: school_location
+        num_processes: 2
+        slice:
+          tables:
+            - households
+            - persons
+      - name: mp_summarize
+        begin: write_tables
+
+
+The first multiprocess_step, ``mp_initialize``, begins with the initialize landuse step and is
+implicity single-process because there is no 'slice' key indicating how to apportion the tables.
+This first step includes all models listed in the 'models' setting up until the first step
+in the next multiprocess_steps.
+
+The second multiprocess_step, ``mp_households``, starts with the school location model and continues
+through auto ownership. The 'slice' info indicates that the tables should be sliced by
+``households``, and that ``persons`` is a dependent table and so ``persons`` with a ref_col (foreign key
+column with the same name as the ``Households`` table index) referencing a household record should be
+taken to 'belong' to that household. Similarly, any other table that either share an index
+(i.e. having the same name) with either the ``households`` or ``persons`` table, or have a ref_col to
+either of their indexes, should also be considered a dependent table.
+
+The num_processes setting of 2 indicates that the pipeline should be split in two, and half of the
+households should be apportioned into each subprocess pipeline, and all dependent tables should
+likewise be apportioned accordingly. All other tables (e.g. ``land_use``) that do share an index (name)
+or have a ref_col should be considered mirrored and be included in their entirety.
+
+The primary table is sliced by num_processes-sized strides. (e.g. for num_processes == 2, the
+sub-processes get every second record starting at offsets 0 and 1 respectively. All other dependent
+tables slices are based (directly or indirectly) on this primary stride segmentation of the primary
+table index.
+
+Two separate sub-process are launched (num_processes == 2) and each passed the name of their
+apportioned pipeline file. They execute independently and if they terminate successfully, their
+contents are then coalesced into a single pipeline file whose tables should then be essentially
+the same as it had been generated by a single process.
+
+We assume that any new tables that are created by the sub-processes are directly dependent on the
+previously primary tables or are mirrored. Thus we can coalesce the sub-process pipelines by
+concatenating the primary and dependent tables and simply retaining any copy of the mirrored tables
+(since they should all be identical.)
+
+The third multiprocess_step, ``mp_summarize``, then is handled in single-process mode and runs the
+``write_tables`` model, writing the results, but also leaving the tables in the pipeline, with
+essentially the same tables and results as if the whole simulation had been run as a single process.
+
+Shared Data
+~~~~~~~~~~~
+
+Although multiprocessing subprocesses each have their apportioned pipeline, they also share some
+data passed to them by the parent process:
+ 
+  * read-only shared data such as skim matrices
+  * read-write shared memory when needed.  For example when school and work modeled destinations by zone are compared to target zone sizes (as calculated by the size terms).
+
+Outputs
+~~~~~~~
+
+When multiprocessing is run, the following additional outputs are created, which are useful for understanding how multiprocessing works:
+
+  * run_list.txt - which contains the expanded model run list with additional annotation for single and multiprocessed steps
+  * Log files for each multiprocess step and process, for example ``mp_households_0-activitysim.log`` and ``mp_households_1-activitysim.log``
+  * Pipeline file for each multiprocess step and process, for example ``mp_households_0-pipeline.h5``
+  * mem.csv - memory used for each step
+  * breadcrumbs.yaml - multiprocess global info
+  
+See the :ref:`multiprocessing_in_detail` section for more detail.  
+
+
 .. index:: data tables
 .. index:: tables
 .. index:: data schema
@@ -542,9 +725,9 @@ the example model.  These tables and skims are defined in the :mod:`activitysim.
 
 .. index:: constants
 .. index:: households
+.. index:: input store
 .. index:: land use
 .. index:: persons
-.. index:: random channels
 .. index:: size terms
 .. index:: time windows table
 .. index:: tours 
@@ -564,10 +747,12 @@ The following tables are currently implemented:
 
 A few additional tables are also used, which are not really tables, but classes:
 
-  * constants - various codes used throughout the model system, such as person type codes
-  * random channels - random channel management settings 
+  * input store - reads input data tables from the input data store
+  * constants - various constants used throughout the model system, such as person type codes
+  * shadow pricing - shadow price calculator and associated utility methods, see :ref:`shadow_pricing` 
   * size terms - created by reading the ``destination_choice_size_terms.csv`` input file.  Index - ``segment`` (see ``activitysim.abm.tables.size_terms.py``)
   * skims - see :ref:`skims` 
+  * table dictionary - stores which tables should be registered as random number generator channels for restartability of the pipeline
   
 Data Schema
 ~~~~~~~~~~~
@@ -576,477 +761,553 @@ The following table lists the pipeline data tables, each final field, the data t
 number of columns and rows in the table at the time of creation.  The ``scripts\make_pipeline_output.py`` script 
 uses the information stored in the pipeline file to create the table below for a small sample of households.  
 
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| Table                             | Field                         | DType   | Creator                            |NCol|NRow |
-+===================================+===============================+=========+====================================+====+=====+
-| households                        | TAZ                           | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | SERIALNO                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | PUMA5                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | income                        | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hhsize                        | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | HHT                           | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | UNITTYPE                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | NOC                           | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | BLDGSZ                        | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | TENURE                        | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | VEHICL                        | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hinccat1                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hinccat2                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hhagecat                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hsizecat                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hfamily                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hunittype                     | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hNOCcat                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hwrkrcat                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h0004                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h0511                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h1215                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h1617                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h1824                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h2534                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h3549                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h5064                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h6579                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | h80up                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_workers                   | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hwork_f                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hwork_p                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | huniv                         | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hnwork                        | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hretire                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hpresch                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hschpred                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hschdriv                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | htypdwel                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hownrent                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hadnwst                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hadwpst                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hadkids                       | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | bucketBin                     | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | originalPUMA                  | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | hmultiunit                    | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | chunk_id                      | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | income_in_thousands           | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | income_segment                | int32   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_non_workers               | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_drivers                   | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_adults                    | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_children                  | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_young_children            | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_children_5_to_15          | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_children_16_to_17         | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_college_age               | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_young_adults              | float64 | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | non_family                    | bool    | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | family                        | bool    | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | home_is_urban                 | bool    | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | home_is_rural                 | bool    | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | work_tour_auto_time_savings   | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | auto_ownership                | int64   | initialize                         | 64 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_under16_not_at_school     | int32   | cdap_simulate                      | 68 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_travel_active             | int32   | cdap_simulate                      | 68 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_travel_active_adults      | int32   | cdap_simulate                      | 68 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_travel_active_children    | int32   | cdap_simulate                      | 68 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | joint_tour_frequency          | object  | joint_tour_frequency               | 70 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| households                        | num_hh_joint_tours            | int8    | joint_tour_frequency               | 70 | 100 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | DISTRICT                      | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | SD                            | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | county_id                     | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | TOTHH                         | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | HHPOP                         | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | TOTPOP                        | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | EMPRES                        | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | SFDU                          | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | MFDU                          | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | HHINCQ1                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | HHINCQ2                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | HHINCQ3                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | HHINCQ4                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | TOTACRE                       | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | RESACRE                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | CIACRE                        | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | SHPOP62P                      | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | TOTEMP                        | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | AGE0004                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | AGE0519                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | AGE2044                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | AGE4564                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | AGE65P                        | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | RETEMPN                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | FPSEMPN                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | HEREMPN                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | OTHEMPN                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | AGREMPN                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | MWTEMPN                       | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | PRKCST                        | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | OPRKCST                       | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | area_type                     | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | HSENROLL                      | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | COLLFTE                       | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | COLLPTE                       | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | TOPOLOGY                      | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | TERMINAL                      | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | ZERO                          | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | hhlds                         | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | sftaz                         | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | gqpop                         | int64   | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | household_density             | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | employment_density            | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | density_index                 | float64 | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| land_use                          | county_name                   | object  | initialize                         | 45 | 25  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 4                             | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 5                             | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 6                             | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 7                             | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 8                             | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 9                             | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 10                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 11                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 12                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 13                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 14                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 15                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 16                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 17                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 18                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 19                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 20                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 21                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 22                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 23                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| person_windows                    | 24                            | int8    | initialize                         | 21 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | household_id                  | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | age                           | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | RELATE                        | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | ESR                           | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | GRADE                         | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | PNUM                          | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | PAUG                          | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | DDP                           | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | sex                           | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | WEEKS                         | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | HOURS                         | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | MSP                           | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | POVERTY                       | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | EARNS                         | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | pagecat                       | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | pemploy                       | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | pstudent                      | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | ptype                         | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | padkid                        | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | age_16_to_19                  | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | age_16_p                      | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | adult                         | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | male                          | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | female                        | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_non_worker                | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_retiree                   | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_preschool_kid             | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_driving_kid               | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_school_kid                | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_full_time                 | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_part_time                 | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_university                | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | student_is_employed           | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | nonstudent_to_school          | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_worker                     | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_student                    | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_gradeschool                | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_highschool                 | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | is_university                 | bool    | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | home_taz                      | int64   | initialize                         | 40 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | school_taz                    | int32   | school_location_simulate           | 43 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | distance_to_school            | float64 | school_location_simulate           | 43 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | roundtrip_auto_time_to_school | float64 | school_location_simulate           | 43 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | workplace_taz                 | int32   | workplace_location_simulate        | 48 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | distance_to_work              | float64 | workplace_location_simulate        | 48 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | roundtrip_auto_time_to_work   | float64 | workplace_location_simulate        | 48 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | workplace_in_cbd              | bool    | workplace_location_simulate        | 48 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | work_taz_area_type            | float64 | workplace_location_simulate        | 48 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | cdap_activity                 | object  | cdap_simulate                      | 54 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | cdap_rank                     | int64   | cdap_simulate                      | 54 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | travel_active                 | bool    | cdap_simulate                      | 54 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | under16_not_at_school         | bool    | cdap_simulate                      | 54 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_preschool_kid_at_home     | bool    | cdap_simulate                      | 54 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | has_school_kid_at_home        | bool    | cdap_simulate                      | 54 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | mandatory_tour_frequency      | object  | mandatory_tour_frequency           | 59 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | work_and_school_and_worker    | bool    | mandatory_tour_frequency           | 59 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | work_and_school_and_student   | bool    | mandatory_tour_frequency           | 59 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_mand                      | int8    | mandatory_tour_frequency           | 59 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_work_tours                | int8    | mandatory_tour_frequency           | 59 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | non_mandatory_tour_frequency  | float64 | non_mandatory_tour_frequency       | 64 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_non_mand                  | float64 | non_mandatory_tour_frequency       | 64 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_escort_tours              | float64 | non_mandatory_tour_frequency       | 64 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_non_escort_tours          | float64 | non_mandatory_tour_frequency       | 64 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| persons                           | num_eatout_tours              | float64 | non_mandatory_tour_frequency       | 64 | 157 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | person_id                     | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_type                     | object  | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_type_count               | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_type_num                 | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_num                      | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_count                    | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_category                 | object  | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | number_of_participants        | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | destination                   | int32   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | origin                        | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | household_id                  | int64   | mandatory_tour_frequency           | 11 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | start                         | int64   | mandatory_tour_scheduling          | 15 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | end                           | int64   | mandatory_tour_scheduling          | 15 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | duration                      | int64   | mandatory_tour_scheduling          | 15 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tdd                           | int64   | mandatory_tour_scheduling          | 15 | 71  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | composition                   | object  | joint_tour_composition             | 16 | 73  |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | tour_mode                     | object  | joint_tour_mode_choice             | 17 | 183 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | atwork_subtour_frequency      | object  | atwork_subtour_frequency           | 19 | 186 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | parent_tour_id                | float64 | atwork_subtour_frequency           | 19 | 186 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | stop_frequency                | object  | stop_frequency                     | 21 | 186 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| tours                             | primary_purpose               | object  | stop_frequency                     | 21 | 186 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | person_id                     | int64   | stop_frequency                     | 7  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | household_id                  | int64   | stop_frequency                     | 7  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | tour_id                       | int64   | stop_frequency                     | 7  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | primary_purpose               | object  | stop_frequency                     | 7  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | trip_num                      | int64   | stop_frequency                     | 7  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | outbound                      | bool    | stop_frequency                     | 7  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | trip_count                    | int64   | stop_frequency                     | 7  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | purpose                       | object  | trip_purpose                       | 8  | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | destination                   | int32   | trip_destination                   | 11 | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | origin                        | int32   | trip_destination                   | 11 | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | failed                        | bool    | trip_destination                   | 11 | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | depart                        | int64   | trip_scheduling                    | 12 | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
-| trips                             | trip_mode                     | int64   | trip_mode_choice                   | 13 | 428 |
-+-----------------------------------+-------------------------------+---------+------------------------------------+----+-----+
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| Table                      | Field                         | DType   | Creator                      |NCol  |NRow  |
++============================+===============================+=========+==============================+======+======+
+| accessibility              | auPkRetail                    | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | auPkTotal                     | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | auOpRetail                    | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | auOpTotal                     | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | trPkRetail                    | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | trPkTotal                     | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | trOpRetail                    | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | trOpTotal                     | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | nmRetail                      | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| accessibility              | nmTotal                       | float32 | compute_accessibility        | 10   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | TAZ                           | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | SERIALNO                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | PUMA5                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | income                        | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hhsize                        | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | HHT                           | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | UNITTYPE                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | NOC                           | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | BLDGSZ                        | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | TENURE                        | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | VEHICL                        | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hinccat1                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hinccat2                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hhagecat                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hsizecat                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hfamily                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hunittype                     | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hNOCcat                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hwrkrcat                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h0004                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h0511                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h1215                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h1617                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h1824                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h2534                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h3549                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h5064                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h6579                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | h80up                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_workers                   | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hwork_f                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hwork_p                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | huniv                         | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hnwork                        | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hretire                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hpresch                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hschpred                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hschdriv                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | htypdwel                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hownrent                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hadnwst                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hadwpst                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hadkids                       | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | bucketBin                     | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | originalPUMA                  | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hmultiunit                    | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | chunk_id                      | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | income_in_thousands           | float64 | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | income_segment                | int32   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | median_value_of_time          | float64 | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hh_value_of_time              | float64 | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_non_workers               | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_drivers                   | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_adults                    | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_children                  | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_young_children            | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_children_5_to_15          | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_children_16_to_17         | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_college_age               | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_young_adults              | int8    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | non_family                    | bool    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | family                        | bool    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | home_is_urban                 | bool    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | home_is_rural                 | bool    | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | auto_ownership                | int64   | initialize_households        | 65   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | hh_work_auto_savings_ratio    | float32 | workplace_location           | 66   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_under16_not_at_school     | int8    | cdap_simulate                | 70   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_travel_active             | int8    | cdap_simulate                | 70   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_travel_active_adults      | int8    | cdap_simulate                | 70   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_travel_active_children    | int8    | cdap_simulate                | 70   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | joint_tour_frequency          | object  | joint_tour_frequency         | 72   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_hh_joint_tours            | int8    | joint_tour_frequency         | 72   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| joint_tour_participants    | tour_id                       | int64   | joint_tour_participation     | 4    | 13   |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| joint_tour_participants    | household_id                  | int64   | joint_tour_participation     | 4    | 13   |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| joint_tour_participants    | person_id                     | int64   | joint_tour_participation     | 4    | 13   |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| joint_tour_participants    | participant_num               | int64   | joint_tour_participation     | 4    | 13   |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | DISTRICT                      | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | SD                            | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | county_id                     | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | TOTHH                         | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | HHPOP                         | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | TOTPOP                        | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | EMPRES                        | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | SFDU                          | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | MFDU                          | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | HHINCQ1                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | HHINCQ2                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | HHINCQ3                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | HHINCQ4                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | TOTACRE                       | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | RESACRE                       | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | CIACRE                        | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | SHPOP62P                      | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | TOTEMP                        | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | AGE0004                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | AGE0519                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | AGE2044                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | AGE4564                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | AGE65P                        | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | RETEMPN                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | FPSEMPN                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | HEREMPN                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | OTHEMPN                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | AGREMPN                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | MWTEMPN                       | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | PRKCST                        | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | OPRKCST                       | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | area_type                     | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | HSENROLL                      | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | COLLFTE                       | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | COLLPTE                       | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | TOPOLOGY                      | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | TERMINAL                      | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | ZERO                          | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | hhlds                         | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | sftaz                         | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | gqpop                         | int64   | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | household_density             | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | employment_density            | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| land_use                   | density_index                 | float64 | initialize_landuse           | 44   | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 4                             | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 5                             | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 6                             | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 7                             | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 8                             | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 9                             | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 10                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 11                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 12                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 13                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 14                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 15                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 16                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 17                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 18                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 19                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 20                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 21                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 22                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 23                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| person_windows             | 24                            | int8    | initialize_households        | 21   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | household_id                  | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | age                           | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | RELATE                        | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | ESR                           | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | GRADE                         | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | PNUM                          | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | PAUG                          | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | DDP                           | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | sex                           | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | WEEKS                         | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | HOURS                         | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | MSP                           | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | POVERTY                       | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | EARNS                         | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | pagecat                       | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | pemploy                       | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | pstudent                      | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | ptype                         | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | padkid                        | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | age_16_to_19                  | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | age_16_p                      | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | adult                         | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | male                          | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | female                        | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_non_worker                | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_retiree                   | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_preschool_kid             | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_driving_kid               | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_school_kid                | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_full_time                 | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_part_time                 | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_university                | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | student_is_employed           | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | nonstudent_to_school          | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | is_student                    | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | is_gradeschool                | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | is_highschool                 | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | is_university                 | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | school_segment                | int8    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | is_worker                     | bool    | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | home_taz                      | int64   | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | value_of_time                 | float64 | initialize_households        | 42   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | school_taz                    | int32   | school_location              | 45   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | distance_to_school            | float32 | school_location              | 45   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | roundtrip_auto_time_to_school | float32 | school_location              | 45   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | workplace_taz                 | int32   | workplace_location           | 52   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | distance_to_work              | float32 | workplace_location           | 52   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | workplace_in_cbd              | bool    | workplace_location           | 52   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | work_taz_area_type            | float64 | workplace_location           | 52   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | roundtrip_auto_time_to_work   | float32 | workplace_location           | 52   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | work_auto_savings             | float32 | workplace_location           | 52   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | work_auto_savings_ratio       | float32 | workplace_location           | 52   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | free_parking_at_work          | bool    | free_parking                 | 53   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | cdap_activity                 | object  | cdap_simulate                | 59   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | cdap_rank                     | int64   | cdap_simulate                | 59   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | travel_active                 | bool    | cdap_simulate                | 59   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | under16_not_at_school         | bool    | cdap_simulate                | 59   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_preschool_kid_at_home     | bool    | cdap_simulate                | 59   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | has_school_kid_at_home        | bool    | cdap_simulate                | 59   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | mandatory_tour_frequency      | object  | mandatory_tour_frequency     | 64   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | work_and_school_and_worker    | bool    | mandatory_tour_frequency     | 64   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | work_and_school_and_student   | bool    | mandatory_tour_frequency     | 64   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_mand                      | int8    | mandatory_tour_frequency     | 64   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_work_tours                | int8    | mandatory_tour_frequency     | 64   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_joint_tours               | int8    | joint_tour_participation     | 65   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | non_mandatory_tour_frequency  | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_non_mand                  | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_escort_tours              | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_eatout_tours              | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_shop_tours                | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_maint_tours               | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_social_tours              | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_non_escort_tours          | int8    | non_mandatory_tour_frequency | 73   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| school_destination_size    | gradeschool                   | float64 | initialize_households        | 3    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| school_destination_size    | highschool                    | float64 | initialize_households        | 3    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| school_destination_size    | university                    | float64 | initialize_households        | 3    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| school_modeled_size        | gradeschool                   | int32   | school_location              | 3    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| school_modeled_size        | highschool                    | int32   | school_location              | 3    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| school_modeled_size        | university                    | int32   | school_location              | 3    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | person_id                     | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tour_type                     | object  | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tour_type_count               | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tour_type_num                 | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tour_num                      | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tour_count                    | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tour_category                 | object  | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | number_of_participants        | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | destination                   | int32   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | origin                        | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | household_id                  | int64   | mandatory_tour_frequency     | 11   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | start                         | int8    | mandatory_tour_scheduling    | 15   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | end                           | int8    | mandatory_tour_scheduling    | 15   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | duration                      | int8    | mandatory_tour_scheduling    | 15   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tdd                           | int64   | mandatory_tour_scheduling    | 15   | 153  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | composition                   | object  | joint_tour_composition       | 16   | 159  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | tour_mode                     | object  | tour_mode_choice_simulate    | 17   | 319  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | atwork_subtour_frequency      | object  | atwork_subtour_frequency     | 19   | 344  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | parent_tour_id                | float64 | atwork_subtour_frequency     | 19   | 344  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | stop_frequency                | object  | stop_frequency               | 21   | 344  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| tours                      | primary_purpose               | object  | stop_frequency               | 21   | 344  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | person_id                     | int64   | stop_frequency               | 7    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | household_id                  | int64   | stop_frequency               | 7    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | tour_id                       | int64   | stop_frequency               | 7    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | primary_purpose               | object  | stop_frequency               | 7    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | trip_num                      | int64   | stop_frequency               | 7    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | outbound                      | bool    | stop_frequency               | 7    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | trip_count                    | int64   | stop_frequency               | 7    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | purpose                       | object  | trip_purpose                 | 8    | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | destination                   | int32   | trip_destination             | 11   | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | origin                        | int32   | trip_destination             | 11   | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | failed                        | bool    | trip_destination             | 11   | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | depart                        | float64 | trip_scheduling              | 11   | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| trips                      | trip_mode                     | object  | trip_mode_choice             | 12   | 859  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_destination_size | work_high                     | float64 | initialize_households        | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_destination_size | work_low                      | float64 | initialize_households        | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_destination_size | work_med                      | float64 | initialize_households        | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_destination_size | work_veryhigh                 | float64 | initialize_households        | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_modeled_size     | work_high                     | int32   | workplace_location           | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_modeled_size     | work_low                      | int32   | workplace_location           | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_modeled_size     | work_med                      | int32   | workplace_location           | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| workplace_modeled_size     | work_veryhigh                 | int32   | workplace_location           | 4    | 1454 |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
 
 .. index:: skims
 .. index:: omx_file

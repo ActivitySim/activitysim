@@ -53,7 +53,7 @@ COEFFS: tour_mode_choice_coeffs.csv
 
 CONSTANTS:
     #valueOfTime: 8.00
-    costPerMile: 18.48
+    costPerMile: 18.29
     costShareSr2: 1.75
     costShareSr3: 2.50
     waitThresh: 10.00

@@ -215,7 +215,10 @@ def annotate_jtp(model_settings, trace_label):
 def add_null_results(model_settings, trace_label):
     logger.info("Skipping %s: joint tours", trace_label)
     # participants table is used downstream in non-joint tour expressions
-    participants = pd.DataFrame(columns=['person_id'])
+
+    PARTICIPANT_COLS = ['tour_id', 'household_id', 'person_id', 'participant_num']
+
+    participants = pd.DataFrame(columns=PARTICIPANT_COLS)
     participants.index.name = 'participant_id'
     pipeline.replace_table("joint_tour_participants", participants)
 

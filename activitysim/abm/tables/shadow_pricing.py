@@ -121,6 +121,9 @@ class ShadowPriceCalculator(object):
         if self.use_shadow_pricing:
             self.shadow_settings = config.read_model_settings('shadow_pricing.yaml')
 
+            for k in self.shadow_settings:
+                logger.debug("shadow_settings %s: %s" % (k, self.shadow_settings.get(k)))
+
         # - destination_size_table (desired_size)
         self.desired_size = inject.get_table(size_table_name(self.model_selector)).to_frame()
 
@@ -600,6 +603,9 @@ def get_shadow_pricing_info():
         'block_shapes': blocks,
     }
 
+    for k in shadow_pricing_info:
+        logger.debug("shadow_pricing_info %s: %s" % (k, shadow_pricing_info.get(k)))
+
     return shadow_pricing_info
 
 
@@ -636,11 +642,11 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
         buffer_size = int(np.prod(block_shape))
 
         csz = buffer_size * np.dtype(dtype).itemsize
-        logger.info("allocating shared buffer %s %s buffer_size %s (%s)" %
-                    (block_key, buffer_size, block_shape, util.GB(csz)))
+        logger.info("allocating shared buffer %s %s buffer_size %s bytes %s (%s)" %
+                    (block_key, buffer_size, block_shape, csz, util.GB(csz)))
 
         if np.issubdtype(dtype, np.int64):
-            typecode = ctypes.c_long
+            typecode = ctypes.c_int64
         else:
             raise RuntimeError("buffer_for_shadow_pricing unrecognized dtype %s" % dtype)
 

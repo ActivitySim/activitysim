@@ -22,8 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 def GB(bytes):
-    gb = (bytes / (1024 * 1024 * 1024.0))
-    return "%s GB" % (round(gb, 2), )
+    # symbols = ('', 'K', 'M', 'G', 'T')
+    symbols = ('', ' KB', ' MB', ' GB', ' TB')
+    fmt = "%.1f%s"
+    for i, s in enumerate(symbols):
+        units = 1 << i * 10
+        if bytes < units * 1024:
+            return fmt % (bytes / units, s)
 
 
 def df_size(df):

@@ -198,7 +198,7 @@ influenced or constrained in light of aggregate choices.
 Currently school and workplace location choice are the only such aggregate constraints.
 The details of these are handled by the shadow_pricing module (q.v.), and our only concern here
 is the need to provide shared read-write data buffers for communication between processes.
-It is worth noting here that the sahred buffers are instances of multiprocessing.Array which
+It is worth noting here that the shared buffers are instances of multiprocessing.Array which
 incorporates a multiprocessing.Lock object to mediate access of the underlying data. You might
 think that the existence of such a lock would make shared access pretty straightforward, but
 this is not the case as the level of locking is very low, reportedly not very performant, and

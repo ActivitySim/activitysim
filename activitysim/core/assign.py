@@ -247,7 +247,13 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             logger.warning("assign_variables target obscures local_d name '%s'", str(target))
 
         if is_temp_scalar(target) or is_throwaway(target):
-            x = eval(expression, globals(), _locals_dict)
+            try:
+                x = eval(expression, globals(), _locals_dict)
+            except Exception as err:
+                logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
+                logger.error("assign_variables expression: %s = %s", str(target), str(expression))
+                raise err
+
             if not is_throwaway(target):
                 _locals_dict[target] = x
                 if trace_assigned_locals is not None:

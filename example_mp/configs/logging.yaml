@@ -15,7 +15,7 @@ logging:
   loggers:
 
     activitysim:
-      level: INFO
+      level: DEBUG
       handlers: [console, logfile]
       propagate: false
 

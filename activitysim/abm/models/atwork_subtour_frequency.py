@@ -54,7 +54,7 @@ def atwork_subtour_frequency(tours,
     work_tours = tours[tours.tour_type == 'work']
 
     # - if no work_tours
-    if work_tours.shape[0] == 0:
+    if len(work_tours) == 0:
         add_null_results(trace_label, tours)
         return
 

@@ -96,6 +96,6 @@ Unavailable: Non-working adult,ptype == 4,,,,-999,-999
 Unavailable: Retired,ptype == 5,,,,-999,-999
 Unavailable: Driving-age child,ptype == 6,-999,-999,,,
 Unavailable: Pre-driving age child who is in school,ptype == 7,,-999,,,-999
-Unavailable: Pre-driving age child who is not in school,ptype == 8,-999,-999,,,-999
+Unavailable: Pre-driving age child who is not in school,ptype == 8,-999,-999,,-999,-999
 Unavailable: Work tours for those with no usual work location,~(workplace_taz > -1),-999,-999,,,-999
 Unavailable: School tours for those with no usual school location,~(school_taz > -1),,,-999,-999,-999

@@ -129,7 +129,7 @@ def regress_mini_mtf():
     mtf_choice = pipeline.get_table("persons").sort_index().mandatory_tour_frequency
 
     # these choices are for pure regression - their appropriateness has not been checked
-    per_ids = [2877283, 2877284, 2877285]
+    per_ids = [2566698, 2877284, 2877287]
     choices = ['work1', 'work_and_school', 'school1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='person_id'),
                                 name='mandatory_tour_frequency')
@@ -142,11 +142,11 @@ def regress_mini_mtf():
     """
     mtf_choice
      person_id
+    2458502            school1
+    2458503            school1
     2566698              work1
-    2877282              work1
-    2877283              work1
     2877284    work_and_school
-    2877285            school1
+    2877287            school1
     Name: mandatory_tour_frequency, dtype: object
     """
     pdt.assert_series_equal(mtf_choice.reindex(per_ids), expected_choice)
@@ -318,7 +318,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 232
+EXPECT_TOUR_COUNT = 210
 
 
 def regress_tour_modes(tours_df):

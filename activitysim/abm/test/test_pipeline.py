@@ -23,9 +23,9 @@ from activitysim.core import config
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 1396417
+HH_ID = 1402945
 
-#  [1081630 1396417 1511245 1594943 1747572 1931915 2222690 2366390 2727112]
+# [1402945 1511245 1931827 1931908 2224336 2307195 2366390 2408855 2727112 1196229  932096  932412]
 
 # SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
@@ -318,7 +318,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 210
+EXPECT_TOUR_COUNT = 205
 
 
 def regress_tour_modes(tours_df):
@@ -334,54 +334,46 @@ def regress_tour_modes(tours_df):
     """
                  tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
-    91533592         WALK    3156330  othmaint         1  non_mandatory
-    91533620     WALK_LOC    3156331  othdiscr         1  non_mandatory
-    91533647  SHARED2FREE    3156332     maint         1         atwork
-    91533655         WALK    3156332      work         1      mandatory
-    91533650     WALK_LOC    3156332  othmaint         1  non_mandatory
-    91533583  SHARED2FREE    3156333  othmaint         1          joint
-    91533680         WALK    3156333    school         1      mandatory
-    91533683  SHARED2FREE    3156333    social         1  non_mandatory
-    91533709         WALK    3156334    school         1      mandatory
-    91533738         WALK    3156335    school         1      mandatory
+    92466005         WALK    3188482      work         1      mandatory
+    92465999         WALK    3188482  othdiscr         1  non_mandatory
+    92466034     WALK_LOC    3188483      work         1      mandatory
+    92466040         WALK    3188484       eat         1         atwork
+    92465989  SHARED2FREE    3188484  othdiscr         1          joint
+    92466063     WALK_LOC    3188484      work         1      mandatory
+    92466059     WALK_LOC    3188484    school         2      mandatory
+    92466092         WALK    3188485      work         1      mandatory
     """
 
     EXPECT_PERSON_IDS = [
-        3156330,
-        3156331,
-        3156332,
-        3156332,
-        3156332,
-        3156333,
-        3156333,
-        3156333,
-        3156334,
-        3156335,
+        3188482,
+        3188482,
+        3188483,
+        3188484,
+        3188484,
+        3188484,
+        3188484,
+        3188485,
         ]
 
     EXPECT_TOUR_TYPES = [
-        'othmaint',
-        'othdiscr',
-        'maint',
         'work',
-        'othmaint',
-        'othmaint',
+        'othdiscr',
+        'work',
+        'eat',
+        'othdiscr',
+        'work',
         'school',
-        'social',
-        'school',
-        'school',
+        'work',
         ]
 
     EXPECT_MODES = [
         'WALK',
-        'WALK_LOC',
-        'SHARED2FREE',
         'WALK',
         'WALK_LOC',
-        'SHARED2FREE',
         'WALK',
         'SHARED2FREE',
-        'WALK',
+        'WALK_LOC',
+        'WALK_LOC',
         'WALK',
         ]
 

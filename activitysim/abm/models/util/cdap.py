@@ -14,6 +14,7 @@ import pandas as pd
 from zbox import toolz as tz, gen
 
 from activitysim.core import simulate
+from activitysim.core import pipeline
 
 from activitysim.core import chunk
 from activitysim.core import logit
@@ -90,7 +91,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     than 5 people, the cdapPersonArray is the same as the person array."
 
     We diverge from the above description in that a cdap_rank is assigned to all persons,
-    including 'extra' householld members, whose activity is assigned subsequently.
+    including 'extra' household members, whose activity is assigned subsequently.
     The pair _hh_id_, cdap_rank will uniquely identify each household member.
 
     Parameters
@@ -130,10 +131,19 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     del children
 
     # choose up to MAX_HHSIZE, preferring anyone already chosen
+    # others = \
+    #     persons[[_hh_id_, 'cdap_rank']]\
+    #     .sort_values(by=[_hh_id_, 'cdap_rank'], ascending=[True, True])\
+    #     .groupby(_hh_id_).head(MAX_HHSIZE)
+
+    # choose up to MAX_HHSIZE, choosing randomly
+    others = persons[[_hh_id_, 'cdap_rank']].copy()
+    others['random_order'] = pipeline.get_rn_generator().random_for_df(persons)
     others = \
-        persons[[_hh_id_, 'cdap_rank']]\
-        .sort_values(by=[_hh_id_, 'cdap_rank'], ascending=[True, True])\
+        others\
+        .sort_values(by=[_hh_id_, 'random_order'], ascending=[True, True])\
         .groupby(_hh_id_).head(MAX_HHSIZE)
+
     # tag the backfilled persons
     persons.loc[others[others.cdap_rank == RANK_UNASSIGNED].index, 'cdap_rank'] \
         = RANK_BACKFILL

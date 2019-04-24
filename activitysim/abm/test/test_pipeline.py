@@ -23,9 +23,10 @@ from activitysim.core import config
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 1402945
+HH_ID = 257341
 
-# [1402945 1511245 1931827 1931908 2224336 2307195 2366390 2408855 2727112 1196229  932096  932412]
+#  [ 257341 1234246 1402915 1511245 1931827 1931908 2307195 2366390 2408855
+# 2518594 2549865  982981 1594365 1057690 1234121 2098971]
 
 # SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
@@ -318,7 +319,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 205
+EXPECT_TOUR_COUNT = 203
 
 
 def regress_tour_modes(tours_df):
@@ -334,46 +335,38 @@ def regress_tour_modes(tours_df):
     """
                  tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
-    92466005         WALK    3188482      work         1      mandatory
-    92465999         WALK    3188482  othdiscr         1  non_mandatory
-    92466034     WALK_LOC    3188483      work         1      mandatory
-    92466040         WALK    3188484       eat         1         atwork
-    92465989  SHARED2FREE    3188484  othdiscr         1          joint
-    92466063     WALK_LOC    3188484      work         1      mandatory
-    92466059     WALK_LOC    3188484    school         2      mandatory
-    92466092         WALK    3188485      work         1      mandatory
+    13327106  SHARED3FREE     325051  othdiscr         1          joint
+    13327130         WALK     325051      work         1      mandatory
+    13327131  SHARED2FREE     325051      work         2      mandatory
+    13327155         WALK     325052     maint         1         atwork
+    13327171         WALK     325052      work         1      mandatory
+    13327138         WALK     325052    eatout         1  non_mandatory
     """
 
     EXPECT_PERSON_IDS = [
-        3188482,
-        3188482,
-        3188483,
-        3188484,
-        3188484,
-        3188484,
-        3188484,
-        3188485,
+        325051,
+        325051,
+        325051,
+        325052,
+        325052,
+        325052,
         ]
 
     EXPECT_TOUR_TYPES = [
-        'work',
         'othdiscr',
         'work',
-        'eat',
-        'othdiscr',
         'work',
-        'school',
+        'maint',
         'work',
+        'eatout',
         ]
 
     EXPECT_MODES = [
-        'WALK',
-        'WALK',
-        'WALK_LOC',
+        'SHARED3FREE',
         'WALK',
         'SHARED2FREE',
-        'WALK_LOC',
-        'WALK_LOC',
+        'WALK',
+        'WALK',
         'WALK',
         ]
 

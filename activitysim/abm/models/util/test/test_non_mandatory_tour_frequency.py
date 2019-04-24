@@ -29,8 +29,11 @@ def test_nmtf():
         index=[0, 1, 2, 3]
     )
 
-    nmt = process_non_mandatory_tours(persons,
-                                      non_mandatory_tour_frequency_alts)
+    tour_counts = non_mandatory_tour_frequency_alts.loc[persons.non_mandatory_tour_frequency]
+    tour_counts.index = persons.index  # assign person ids to the index
+
+    # - create the non_mandatory tours
+    nmt = process_non_mandatory_tours(persons, tour_counts)
 
     idx = nmt.index
 

@@ -30,7 +30,7 @@ individual decision-makers.
 Space
 ~~~~~
 
-TM1 uses the 1454-zone system developed for MTC's previous trip-based model.  The zones are fairly large for the region, 
+TM1 uses the 1454-zone system developed for the previous MTC trip-based model.  The zones are fairly large for the region, 
 which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the 
 original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not 
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
@@ -48,11 +48,11 @@ the model uses different spatial resolutions for different travel modes.  For ex
 Since trips are modeled in the demand model from microzone to microzone, but transit network LOS is split across
 two input data sets, transit virtual path building (TVPB) is done to generate LOS measures from:
 
-  * the trip's origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures
+  * the trip origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures
   * boarding TAP to alighting TAP LOS measures (TAP to TAP skims)
   * alighting TAP to destination microzone using microzone to TAP LOS measures
 
-The resulting complete transit path LOS for the "best" or a "bundle" of paths is then used in the demand model
+The resulting complete transit path LOS for the best, or a bundle of, paths is then used in the demand model
 for representing transit LOS at the microzone level.  Support for multiple zone systems is **NOT YET IMPLEMENTED**, but 
 planned for a future release.  For the time being, all travel is modeled at the TAZ level.  
 
@@ -106,10 +106,10 @@ choice size terms) so that these data items can be pre-calculated for each segme
 of these data items reduces model complexity and runtime. The segmentation is based on household income, 
 and includes four segments - low, medium, high, very high.
 
-In the model, the persons in each household are assigned a simulated but fixed "value of time"
+In the model, the persons in each household are assigned a simulated but fixed value of time
 that modulates the relative weight the decision-maker places on time and cost. The probability
 distribution from which the value of time is sampled was derived from a toll choice model
-estimated using data from a stated preference survey performed for the SFCTA's Mobility, Access, and 
+estimated using data from a stated preference survey performed for the SFCTA Mobility, Access, and 
 Pricing Study, and is a lognormal distribution with a mean that varies by income segment.  
 
 Activity type segmentation
@@ -273,7 +273,7 @@ In order to run the example, you first need two input files in the ``data`` fold
 * skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.
 
 Both files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  Alternatively, 
-these files can be downloaded from MTC's `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  The full set 
+these files can be downloaded from the MTC `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  The full set 
 of MTC TM1 OMX skims are also on the box account. 
 
 .. note::
@@ -407,6 +407,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - non_mandatory_tour_frequency.csv                                |
 |                                                |  - non_mandatory_tour_frequency_alternatives.csv                   |
 |                                                |  - non_mandatory_tour_frequency_annotate_persons_preprocessor.csv  |
+|                                                |  - non_mandatory_tour_frequency_extension_probs.csv                |
 |                                                |  - annotate_persons_nmtf.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_destination_choice`   |  - non_mandatory_tour_destination.yaml                             |
@@ -692,5 +693,5 @@ file:
 
 * ``accessibility.result.csv`` - accessibility expression results for the OD pair
 
-With the set of output CSV files, the user can trace ActivitySim's calculations in order to ensure they are correct and/or to
+With the set of output CSV files, the user can trace ActivitySim calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.

@@ -75,6 +75,7 @@ if __name__ == '__main__':
 
     data_dir = "E:/projects/clients/ASIM/data/mtc_tm1"
     data_dir = '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data'
+    data_dir = '../example/data'
 
     # inject.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
     inject.add_injectable('data_dir', ['ancillary_data', data_dir])

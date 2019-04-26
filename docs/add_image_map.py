@@ -35,7 +35,7 @@ imageMap = """\n   <map name="image-map">
 
 print("add image map to " + fileName)
 
-with open(fileName) as file:
+with open(fileName, encoding="utf8") as file:
     lines = file.readlines()
 
 with open(fileName, 'w') as file:

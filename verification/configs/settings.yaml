@@ -69,19 +69,19 @@ models:
   - joint_tour_destination
   - joint_tour_scheduling
   - non_mandatory_tour_frequency
-#  - non_mandatory_tour_destination
-#  - non_mandatory_tour_scheduling
-#  - tour_mode_choice_simulate
-#  - atwork_subtour_frequency
-#  - atwork_subtour_destination
-#  - atwork_subtour_scheduling
-#  - atwork_subtour_mode_choice
-#  - stop_frequency
-#  - trip_purpose
-#  - trip_destination
-#  - trip_purpose_and_destination
-#  - trip_scheduling
-#  - trip_mode_choice
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
   ### mp_summarize step
   - write_data_dictionary
   - write_tables

@@ -1,6 +1,7 @@
 
 # create table of pipeline table fields by creator
 # Ben Stabler, ben.stabler@rsginc.com, 06/06/18
+# C:\projects\development\activitysim\example>python ../scripts/make_pipeline_output.py
 
 import pandas as pd
 

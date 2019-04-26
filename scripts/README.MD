@@ -11,4 +11,5 @@
 ### Other scripts
   - create_sf_example.py - create SF county only MTC TM1 example inputs - land use, syn pop, and skims - for testing the entire system with full functionality but less memory requirements.
   - make_pipeline_output.py - create table of pipeline table fields by creator for the rst docs
+  - verify_results.py - compare results for each submodel against TM1 results, see verification page in the wiki
   - create_abmviz_inputs.py - create abmviz input files (this script is not yet complete)

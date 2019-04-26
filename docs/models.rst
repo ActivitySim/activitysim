@@ -396,7 +396,7 @@ It also adds non-mandatory tours to the tours in the data pipeline. The individu
 operates in two stages:
 
   * A choice is made using a random utility model between combinations of tours containing zero, one, and two or more escort tours, and between zero and one or more tours of each other purpose. 
-  * Up to two additional tours of each purpose are added according to fixed extension probabilities.  The extension probabilities are **NOT YET IMPLEMENTED**
+  * Up to two additional tours of each purpose are added according to fixed extension probabilities.
 
 The main interface to the non-mandatory tour purpose frequency model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency` 

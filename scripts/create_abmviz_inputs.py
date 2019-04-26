@@ -4,15 +4,14 @@
 
 import pandas as pd
 
-pipeline_filename = 'output\pipeline.h5'
-
-trips_filename = 'output\ABMVIZ_trips.csv'
-animatedmap_filename = 'output\ABMVIZ_3DAnimatedMapData.csv'
-barchartandmap_filename = 'output\ABMVIZ_BarChartAndMapData.csv'
-barchart_filename = 'output\ABMVIZ_BarChartData.csv'
-radarchart_filename = 'output\ABMVIZ_RadarChartsData.csv'
-timeuse_filename = 'output\ABMVIZ_TimeUseData.csv'
-treemap_filename = 'output\ABMVIZ_TreeMapData.csv'
+pipeline_filename = 'output/pipeline.h5'
+trips_filename = 'output/ABMVIZ_trips.csv'
+animatedmap_filename = 'output/ABMVIZ_3DAnimatedMapData.csv'
+barchartandmap_filename = 'output/ABMVIZ_BarChartAndMapData.csv'
+barchart_filename = 'output/ABMVIZ_BarChartData.csv'
+radarchart_filename = 'output/ABMVIZ_RadarChartsData.csv'
+timeuse_filename = 'output/ABMVIZ_TimeUseData.csv'
+treemap_filename = 'output/ABMVIZ_TreeMapData.csv'
 
 # get pipeline trips table and add other required fields
 pipeline = pd.io.pytables.HDFStore(pipeline_filename)

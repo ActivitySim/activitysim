@@ -1,11 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import range
 
-from math import ceil
+from future.utils import listvalues
+
+
+import sys
 import os
 import logging
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -14,11 +21,11 @@ from .skim import SkimDictWrapper, SkimStackWrapper
 from . import logit
 from . import tracing
 from . import pipeline
-
+from . import config
 from . import util
 from . import assign
-
 from . import chunk
+from . import mem
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +41,37 @@ def random_rows(df, n):
         return df
 
 
-def read_model_spec(fpath, fname,
+def uniquify_spec_index(spec):
+
+    # uniquify spec index inplace
+    # ensure uniqueness of spec index by appending comment with dupe count
+    # this allows us to use pandas dot to compute_utilities
+    dict = OrderedDict()
+    for expr in spec.index:
+        dict[assign.uniquify_key(dict, expr, template="{} # ({})")] = expr
+
+    # bug
+    prev_index_name = spec.index.name
+    spec.index = list(dict.keys())
+    spec.index.name = prev_index_name
+
+    assert spec.index.is_unique
+
+
+def read_model_alts(file_path, set_index=None):
+    df = pd.read_csv(file_path, comment='#')
+    if set_index:
+        df.set_index(set_index, inplace=True)
+    return df
+
+
+def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
                     description_name="Description",
                     expression_name="Expression"):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
+
+    file_path : str   absolute or relative path to file
 
     The CSV is expected to have columns for component descriptions
     and expressions, plus one or more alternatives.
@@ -49,10 +82,13 @@ def read_model_spec(fpath, fname,
 
     Parameters
     ----------
-    fpath : str
-        path to directory containing file.
-    fname : str
-        Name of a CSV spec file
+    model_settings : dict
+        name of spec_file is in model_settings['SPEC'] and file is relative to configs
+    file_name : str
+        file_name id spec file in configs folder (or in spec_dir is specified)
+    spec_dir : str
+        directory in which to fine spec file if not in configs
+
     description_name : str, optional
         Name of the column in `fname` that contains the component description.
     expression_name : str, optional
@@ -65,8 +101,23 @@ def read_model_spec(fpath, fname,
         expression values are set as the table index.
     """
 
-    with open(os.path.join(fpath, fname)) as f:
-        spec = pd.read_csv(f, comment='#')
+    assert (model_settings or file_name) and not (model_settings and file_name), \
+        "expect either model_spec or file_name argument"
+
+    if model_settings is not None:
+        assert isinstance(model_settings, dict)
+        file_name = model_settings['SPEC']
+    else:
+        assert isinstance(file_name, str)
+        if not file_name.lower().endswith('.csv'):
+            file_name = '%s.csv' % (file_name,)
+
+    if spec_dir is not None:
+        file_path = os.path.join(spec_dir, file_name)
+    else:
+        file_path = config.config_file_path(file_name)
+
+    spec = pd.read_csv(file_path, comment='#')
 
     spec = spec.dropna(subset=[expression_name])
 
@@ -76,16 +127,95 @@ def read_model_spec(fpath, fname,
 
     spec = spec.set_index(expression_name).fillna(0)
 
+    # ensure uniqueness of spec index by appending comment with dupe count
+    # this allows us to use pandas dot to compute_utilities
+    uniquify_spec_index(spec)
+
     # drop any rows with all zeros since they won't have any effect (0 marginal utility)
     zero_rows = (spec == 0).all(axis=1)
     if zero_rows.any():
-        logger.debug("dropping %s all-zero rows from %s" % (zero_rows.sum(), fname))
+        logger.debug("dropping %s all-zero rows from %s" % (zero_rows.sum(), file_path))
         spec = spec.loc[~zero_rows]
 
     return spec
 
 
-def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
+def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_targets=False):
+
+    # fixme - restore tracing and _check_for_variability
+
+    t0 = tracing.print_elapsed_time()
+
+    # if False:  #fixme SLOWER
+    #     expression_values = eval_variables(spec.index, choosers, locals_d)
+    #     # chunk.log_df(trace_label, 'expression_values', expression_values)
+    #     # if trace_label and tracing.has_trace_targets(choosers):
+    #     #     tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
+    #     #                      column_labels=['expression', None])
+    #     # if config.setting('check_for_variability'):
+    #     #     _check_for_variability(expression_values, trace_label)
+    #     utilities = compute_utilities(expression_values, spec)
+    #
+    #     # chunk.log_df(trace_label, 'expression_values', None)
+    #     t0 = tracing.print_elapsed_time(" eval_utilities SLOWER", t0)
+    #
+    #     return utilities
+
+    # - eval spec expressions
+
+    # avoid altering caller's passed-in locals_d parameter (they may be looping)
+    locals_dict = assign.local_utilities()
+    if locals_d is not None:
+        locals_dict.update(locals_d)
+    globals_dict = {}
+
+    locals_dict['df'] = choosers
+
+    exprs = spec.index
+    expression_values = np.empty((spec.shape[0], choosers.shape[0]))
+    for i, expr in enumerate(exprs):
+        try:
+            if expr.startswith('@'):
+                expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
+            else:
+                expression_values[i] = choosers.eval(expr)
+        except Exception as err:
+            logger.exception("Variable evaluation failed for: %s" % str(expr))
+            raise err
+
+    # - compute_utilities
+    utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
+    utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
+
+    t0 = tracing.print_elapsed_time(" eval_utilities", t0)
+
+    if have_trace_targets:
+
+        # get int offsets of the trace_targets (offsets of bool=True values)
+        trace_targets = tracing.trace_targets(choosers)
+        offsets = np.nonzero(trace_targets)[0]
+
+        # get array of expression_values
+        # expression_values.shape = (len(spec), len(choosers))
+        # data.shape = (len(spec), len(offsets))
+        data = expression_values[:, offsets]
+
+        # columns is chooser index as str
+        column_labels = choosers.index[trace_targets].astype(str)
+        # index is utility expressions
+        index = spec.index
+
+        trace_df = pd.DataFrame(data=data, columns=column_labels, index=index)
+
+        tracing.trace_df(trace_df, '%s.expression_values' % trace_label,
+                         slicer=None, transpose=False,
+                         column_labels=column_labels,
+                         index_label='expression')
+
+    return utilities
+
+
+def eval_variables(exprs, df, locals_d=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -101,6 +231,10 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     Users should take care that these expressions must result in
     a Pandas Series.
 
+    # FIXME - for performance, it is essential that spec and expression_values
+    # FIXME - not contain booleans when dotted with spec values
+    # FIXME - or the arrays will be converted to dtype=object within dot()
+
     Parameters
     ----------
     exprs : sequence of str
@@ -108,8 +242,6 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    target_type: dtype or None
-        type to coerce results or None if no coercion desired
 
     Returns
     -------
@@ -125,37 +257,42 @@ def eval_variables(exprs, df, locals_d=None, target_type=np.float64):
 
     locals_dict['df'] = df
 
-    def to_series(x):
-        if np.isscalar(x):
-            return pd.Series([x] * len(df), index=df.index)
-        return x
+    def to_array(x):
 
-    value_list = []
-    print('eval_variables', end='')  # print ... for each expression
+        if x is None or np.isscalar(x):
+            a = np.asanyarray([x] * len(df.index))
+        elif isinstance(x, pd.Series):
+            # fixme
+            # assert x.index.equals(df.index)
+            # save a little RAM
+            a = x.values
+        else:
+            a = x
+
+        # FIXME - for performance, it is essential that spec and expression_values
+        # FIXME - not contain booleans when dotted with spec values
+        # FIXME - or the arrays will be converted to dtype=object within dot()
+        if not np.issubdtype(a.dtype, np.number):
+            a = a.astype(np.int8)
+
+        return a
+
+    values = OrderedDict()
     for expr in exprs:
-        print('.', end='')  # print ...
-        # logger.debug("eval_variables: %s" % expr)
-        # logger.debug("eval_variables %s" % util.memory_info())
         try:
             if expr.startswith('@'):
-                expr_values = to_series(eval(expr[1:], globals_dict, locals_dict))
+                expr_values = to_array(eval(expr[1:], globals_dict, locals_dict))
             else:
-                expr_values = df.eval(expr)
-            value_list.append((expr, expr_values))
+                expr_values = to_array(df.eval(expr))
+            # read model spec should ensure uniqueness, otherwise we should uniquify
+            assert expr not in values
+            values[expr] = expr_values
         except Exception as err:
-            print()  # print ...
             logger.exception("Variable evaluation failed for: %s" % str(expr))
 
             raise err
-    print()  # print ...
 
-    values = pd.DataFrame.from_items(value_list)
-
-    # FIXME - for performance, it is essential that spec and expression_values
-    # FIXME - not contain booleans when dotted with spec values
-    # FIXME - or the arrays will be converted to dtype=object within dot()
-    if target_type is not None:
-        values = values.astype(target_type)
+    values = util.df_from_dict(values, index=df.index)
 
     return values
 
@@ -172,6 +309,12 @@ def compute_utilities(expression_values, spec):
     # FIXME - or the arrays will be converted to dtype=object within dot()
 
     spec = spec.astype(np.float64)
+
+    # pandas.dot depends on column names of expression_values matching spec index values
+    # expressions should have been uniquified when spec was read
+    # we could do it here if need be, and then set spec.index and expression_values.columns equal
+    assert spec.index.is_unique
+    assert (spec.index.values == expression_values.columns.values).all()
 
     utilities = expression_values.dot(spec)
 
@@ -205,7 +348,7 @@ def set_skim_wrapper_targets(df, skims):
     elif isinstance(skims, dict):
         # it it is a dict, then check for known types, ignore anything we don't recognize as a skim
         # (this allows putting skim column names in same dict as skims for use in locals_dicts)
-        for skim in skims.values():
+        for skim in listvalues(skims):
             if isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper):
                 skim.set_df(df)
     else:
@@ -243,10 +386,10 @@ def _check_for_variability(expression_values, trace_label):
             has_missing_vals += 1
 
     if no_variability > 0:
-        logger.warn("%s: %s columns have no variability" % (trace_label, no_variability))
+        logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
 
     if has_missing_vals > 0:
-        logger.warn("%s: %s columns have missing values" % (trace_label, has_missing_vals))
+        logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
 
 
 def compute_nested_exp_utilities(raw_utilities, nest_spec):
@@ -343,7 +486,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
     ----------
     nested_probabilities : pandas.DataFrame
         dataframe with the nested probabilities for nest leafs and nodes
-    nest_spec : dict
+    nests : dict
         Nest tree dict from the model spec yaml file
     spec : pandas.Dataframe
         simple simulate spec so we can return columns in appropriate order
@@ -410,32 +553,24 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
         of `spec`.
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'mnl')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
-
-    check_for_variability = tracing.check_for_variability()
-
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-
-    if check_for_variability:
-        _check_for_variability(expression_values, trace_label)
-
-    # matrix product of spec expression_values with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-    # pandas.dot depends on column names of expression_values matching spec index values
-
-    utilities = compute_utilities(expression_values, spec)
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_mnl')
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
-        # report these now in case utils_to_probs throws error on zero-probs
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
+
+    utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
+    chunk.log_df(trace_label, "utilities", utilities)
+
+    if have_trace_targets:
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    chunk.log_df(trace_label, "probs", probs)
+
+    del utilities
+    chunk.log_df(trace_label, 'utilities', None)
 
     if have_trace_targets:
         # report these now in case make_choices throws error on bad_choices
@@ -448,12 +583,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     else:
         choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-
-    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "probs", probs, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
+    del probs
+    chunk.log_df(trace_label, 'probs', None)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -499,43 +630,53 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         of `spec`.
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'nl')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_nl')
+    assert trace_label
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
-    check_for_variability = tracing.check_for_variability()
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    # column names of expression_values match spec index values
-    expression_values = eval_variables(spec.index, choosers, locals_d)
+    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
+    chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
-    if check_for_variability:
-        _check_for_variability(expression_values, trace_label)
-
-    # raw utilities of all the leaves
-    raw_utilities = compute_utilities(expression_values, spec)
+    if have_trace_targets:
+        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
 
     # exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+    chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
+
+    del raw_utilities
+    chunk.log_df(trace_label, 'raw_utilities', None)
+
+    if have_trace_targets:
+        tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
 
     # probabilities of alternatives relative to siblings sharing the same nest
-    nested_probabilities = compute_nested_probabilities(nested_exp_utilities, nest_spec,
-                                                        trace_label=trace_label)
+    nested_probabilities = \
+        compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label=trace_label)
+    chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
+
+    del nested_exp_utilities
+    chunk.log_df(trace_label, 'nested_exp_utilities', None)
+
+    if have_trace_targets:
+        tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'])
 
     # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
     base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
+    chunk.log_df(trace_label, "base_probabilities", base_probabilities)
+
+    del nested_probabilities
+    chunk.log_df(trace_label, 'nested_probabilities', None)
 
     if have_trace_targets:
-        # report these now in case of no_choices
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
-        tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
-        tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
-                         column_labels=['alternative', 'probability'])
         tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
                          column_labels=['alternative', 'probability'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
     # note base_probabilities could all be zero since we allowed all probs for nests to be zero
     # check here to print a clear message but make_choices will raise error if probs don't sum to 1
@@ -558,13 +699,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     else:
         choices, rands = logit.make_choices(base_probabilities, trace_label=trace_label)
 
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-    cum_size = chunk.log_df_size(trace_label, "expression_values", expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "nested_exp_utils", nested_exp_utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "nested_probs", nested_probabilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "base_probs", base_probabilities, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
+    del base_probabilities
+    chunk.log_df(trace_label, 'base_probabilities', None)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -641,8 +777,8 @@ def simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -682,10 +818,8 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     assert len(choosers) > 0
 
-    rows_per_chunk = simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
-
-    logger.info("simple_simulate rows_per_chunk %s num_choosers %s" %
-                (rows_per_chunk, len(choosers.index)))
+    rows_per_chunk, effective_chunk_size = \
+        simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
@@ -696,12 +830,16 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
             custom_chooser,
             chunk_trace_label,
             trace_choice_name)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 
@@ -723,45 +861,34 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
         Index will be that of `choosers`, values will be logsum across spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'mnl')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    # FIXME - untested and not currently used by any models...
 
-    check_for_variability = tracing.check_for_variability()
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_mnl_logsums')
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     logger.debug("running eval_mnl_logsums")
-    # t0 = tracing.print_elapsed_time()
 
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    # t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
+    # trace choosers
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    if check_for_variability:
-        _check_for_variability(expression_values, trace_label)
-
-    # utility values
-    utilities = compute_utilities(expression_values, spec)
-    # t0 = tracing.print_elapsed_time("compute_utilities", t0, debug=True)
-
-    # logsum is log of exponentiated utilities summed across columns of each chooser row
-    utils_arr = utilities.as_matrix().astype('float')
-    logsums = np.log(np.exp(utils_arr).sum(axis=1))
-    logsums = pd.Series(logsums, index=choosers.index)
-
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "utilities", utilities, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
+    utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
+    chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        # add logsum to utilities for tracing
-        utilities['logsum'] = logsums
-
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(utilities, '%s.utilities' % trace_label,
+        tracing.trace_df(utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
+
+    # - logsums
+    # logsum is log of exponentiated utilities summed across columns of each chooser row
+    logsums = np.log(np.exp(utilities.values).sum(axis=1))
+    logsums = pd.Series(logsums, index=choosers.index)
+    chunk.log_df(trace_label, "logsums", logsums)
+
+    # trace utilities
+    if have_trace_targets:
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
 
     return logsums
 
@@ -776,53 +903,42 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'nl')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_nl_logsums')
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
-    check_for_variability = tracing.check_for_variability()
+    # trace choosers
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    logger.debug("running eval_nl_logsums")
-    # t0 = tracing.print_elapsed_time()
+    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
+    chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
-    # column names of expression_values match spec index values
-    expression_values = eval_variables(spec.index, choosers, locals_d)
-    # t0 = tracing.print_elapsed_time("eval_variables", t0, debug=True)
+    if have_trace_targets:
+        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
 
-    if check_for_variability:
-        _check_for_variability(expression_values, trace_label)
-        # t0 = tracing.print_elapsed_time("_check_for_variability", t0, debug=True)
-
-    # raw utilities of all the leaves
-    raw_utilities = compute_utilities(expression_values, spec)
-    # t0 = tracing.print_elapsed_time("expression_values.dot", t0, debug=True)
-
-    # exponentiated utilities of leaves and nests
+    # - exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    # t0 = tracing.print_elapsed_time("compute_nested_exp_utilities", t0, debug=True)
+    chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
+    del raw_utilities  # done with raw_utilities
+    chunk.log_df(trace_label, 'raw_utilities', None)
+
+    # - logsums
     logsums = np.log(nested_exp_utilities.root)
     logsums = pd.Series(logsums, index=choosers.index)
-    # t0 = tracing.print_elapsed_time("logsums", t0, debug=True)
-
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-    cum_size = chunk.log_df_size(trace_label, 'expression_values', expression_values, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "raw_utilities", raw_utilities, cum_size)
-    cum_size = chunk.log_df_size(trace_label, "nested_exp_utils", nested_exp_utilities, cum_size)
-    chunk.log_chunk_size(trace_label, cum_size)
+    chunk.log_df(trace_label, "logsums", logsums)
 
     if have_trace_targets:
         # add logsum to nested_exp_utilities for tracing
         nested_exp_utilities['logsum'] = logsums
-
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
         tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
         tracing.trace_df(logsums, '%s.logsums' % trace_label,
                          column_labels=['alternative', 'logsum'])
-        tracing.trace_df(expression_values, '%s.expression_values' % trace_label,
-                         column_labels=['expression', None])
+
+    del nested_exp_utilities  # done with nested_exp_utilities
+    chunk.log_df(trace_label, 'nested_exp_utilities', None)
 
     return logsums
 
@@ -857,8 +973,8 @@ def simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_lab
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -866,8 +982,8 @@ def simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_lab
         # expression_values for each spec row
         # utilities for each alt
         extra_columns = spec.shape[0] + spec.shape[1]
-        logger.warn("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
-                    " so chunk sizing might be a bit off")
+        logger.warning("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
+                       " so chunk sizing might be a bit off")
     else:
         # expression_values for each spec row
         # raw_utilities for each alt
@@ -898,9 +1014,8 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     assert len(choosers) > 0
 
-    rows_per_chunk = simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
-    logger.info("%s chunk_size %s num_choosers %s, rows_per_chunk %s" %
-                (trace_label, chunk_size, len(choosers.index), rows_per_chunk))
+    rows_per_chunk, effective_chunk_size = \
+        simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
@@ -911,10 +1026,14 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
             chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(logsums)
 

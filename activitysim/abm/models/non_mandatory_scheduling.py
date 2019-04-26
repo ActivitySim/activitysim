@@ -1,17 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
-import pandas as pd
-
-from activitysim.core import simulate as asim
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import timetable as tt
+from activitysim.core import simulate
 
 from .util import expressions
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
@@ -22,16 +23,10 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@inject.injectable()
-def tour_scheduling_nonmandatory_spec(configs_dir):
-    return asim.read_model_spec(configs_dir, 'tour_scheduling_nonmandatory.csv')
-
-
 @inject.step()
 def non_mandatory_tour_scheduling(tours,
                                   persons_merged,
                                   tdd_alts,
-                                  tour_scheduling_nonmandatory_spec,
                                   chunk_size,
                                   trace_hh_id):
     """
@@ -39,19 +34,27 @@ def non_mandatory_tour_scheduling(tours,
     """
 
     trace_label = 'non_mandatory_tour_scheduling'
-    model_settinsg = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
+    model_settings = config.read_model_settings('non_mandatory_tour_scheduling.yaml')
+
+    model_spec = simulate.read_model_spec(file_name='tour_scheduling_nonmandatory.csv')
+    segment_col = None  # no segmentation of model_spec
 
     tours = tours.to_frame()
-    persons_merged = persons_merged.to_frame()
-
     non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
 
-    logger.info("Running non_mandatory_tour_scheduling with %d tours" % len(tours))
+    logger.info("Running non_mandatory_tour_scheduling with %d tours", len(tours))
 
-    constants = config.get_model_constants(model_settinsg)
+    persons_merged = persons_merged.to_frame()
+
+    if 'SIMULATE_CHOOSER_COLUMNS' in model_settings:
+        persons_merged =\
+            expressions.filter_chooser_columns(persons_merged,
+                                               model_settings['SIMULATE_CHOOSER_COLUMNS'])
+
+    constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settinsg.get('preprocessor', None)
+    preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
         locals_d = {}
@@ -64,12 +67,14 @@ def non_mandatory_tour_scheduling(tours,
             locals_dict=locals_d,
             trace_label=trace_label)
 
-    tdd_choices = vectorize_tour_scheduling(
+    tdd_choices, timetable = vectorize_tour_scheduling(
         non_mandatory_tours, persons_merged,
-        tdd_alts, tour_scheduling_nonmandatory_spec,
-        constants=constants,
+        tdd_alts, model_spec, segment_col,
+        model_settings=model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)
+
+    timetable.replace_table()
 
     assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)

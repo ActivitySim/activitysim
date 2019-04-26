@@ -1,6 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import range
+from builtins import object
+
 import logging
 
 import numpy as np
@@ -79,7 +85,7 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
     agenda = agenda.reshape(n_persons, n_periods)
 
     scheduled = np.zeros_like(agenda, dtype=int)
-    row_ix_map = pd.Series(range(n_persons), index=persons.index)
+    row_ix_map = pd.Series(list(range(n_persons)), index=persons.index)
 
     # construct with strings so we can create runs of strings using char * int
     w_strings = [
@@ -97,7 +103,7 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
         tour_sigil = sigil[tour_type]
 
         # numpy array with one time window row for each row in nth_tours
-        tour_windows = window_periods_df.loc[nth_tours.tdd].as_matrix()
+        tour_windows = window_periods_df.loc[nth_tours.tdd].values
 
         # row idxs of tour_df group rows in windows
         row_ixs = nth_tours[persons_id_col].map(row_ix_map).values
@@ -113,6 +119,9 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
 
     # a = pd.Series([' '.join(a) for a in agenda], index=persons.index)
     a = pd.DataFrame(data=agenda, columns=[str(w) for w in range(min_period, max_period+1)])
+
+    a.index = persons.index
+    a.index.name = persons_id_col
 
     return a
 
@@ -132,7 +141,7 @@ def create_timetable_windows(rows, tdd_alts):
     so if start is 5 and end is 23, we return something like this:
 
              4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24
-    PERID
+    person_id
     30       0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
     109      0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
 
@@ -146,7 +155,7 @@ def create_timetable_windows(rows, tdd_alts):
     assert rows.index is not None
 
     # pad windows at both ends of day
-    windows = range(tdd_alts.start.min() - 1, tdd_alts.end.max() + 2)
+    windows = list(range(tdd_alts.start.min() - 1, tdd_alts.end.max() + 2))
 
     # hdf5 store converts these to strs, se we conform
     window_cols = [str(w) for w in windows]
@@ -186,13 +195,13 @@ class TimeTable(object):
         self.windows_table_name = table_name
 
         self.windows_df = windows_df
-        self.windows = self.windows_df.as_matrix()
+        self.windows = self.windows_df.values
 
         # series to map window row index value to window row's ordinal index
-        self.window_row_ix = pd.Series(range(len(windows_df.index)), index=windows_df.index)
+        self.window_row_ix = pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
 
         int_time_periods = [int(c) for c in windows_df.columns.values]
-        self.time_ix = pd.Series(range(len(windows_df.columns)), index=int_time_periods)
+        self.time_ix = pd.Series(list(range(len(windows_df.columns))), index=int_time_periods)
 
         # - pre-compute window state footprints for every tdd_alt
         min_period = min(int_time_periods)
@@ -204,9 +213,10 @@ class TimeTable(object):
             (C_END if row.duration > 0 else C_START_END) +
             (C_EMPTY * (max_period - row.end))
             for idx, row in tdd_alts_df.iterrows()]
-        footprints = np.asanyarray([list(r) for r in w_strings]).astype(int)
-        self.tdd_footprints_df = pd.DataFrame(data=footprints, index=tdd_alts_df.index)
-        # print "\tdd_footprints_df\n", self.tdd_footprints_df
+
+        # we want range index so we can use raw numpy
+        assert (tdd_alts_df.index == list(range(tdd_alts_df.shape[0]))).all()
+        self.tdd_footprints = np.asanyarray([list(r) for r in w_strings]).astype(int)
 
     def slice_windows_by_row_id(self, window_row_ids):
         """
@@ -233,11 +243,10 @@ class TimeTable(object):
     def get_windows_df(self):
 
         # It appears that assignments into windows write through to underlying pandas table.
-        # Because we set windows = windows_df.as_matrix, though as_matrix does not
-        # document this feature.
-
+        # because we set windows = windows_df.values, and since all the columns are the same type
         # so no need to refresh pandas dataframe, but if we had to it would go here
 
+        # assert (self.windows_df.values == self.windows).all()
         return self.windows_df
 
     def replace_table(self):
@@ -275,13 +284,8 @@ class TimeTable(object):
 
         assert len(window_row_ids) == len(tdds)
 
-        # t0 = tracing.print_elapsed_time()
-
         # numpy array with one tdd_footprints_df row for tdds
-        tour_footprints = util.quick_loc_df(tdds, self.tdd_footprints_df).as_matrix()
-
-        # t0 = tracing.print_elapsed_time("tour_footprints", t0, debug=True)
-        # assert (tour_footprints == self.tdd_footprints_df.loc[tdds].as_matrix()).all
+        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # numpy array with one windows row for each person
         windows = self.slice_windows_by_row_id(window_row_ids)
@@ -292,8 +296,6 @@ class TimeTable(object):
 
         available = ~np.isin(x, COLLISION_LIST).any(axis=1)
         available = pd.Series(available, index=window_row_ids.index)
-
-        # t0 = tracing.print_elapsed_time("available", t0, debug=True)
 
         return available
 
@@ -317,11 +319,8 @@ class TimeTable(object):
         # vectorization doesn't work duplicates
         assert len(window_row_ids.index) == len(np.unique(window_row_ids.values))
 
-        # df with one tdd_footprint row for each person tdd
-        tour_footprints = self.tdd_footprints_df.loc[tdds]
-
-        # numpy array with one time window row for each row in df
-        tour_footprints = tour_footprints.as_matrix()
+        # numpy array with one time window row for each person tdd
+        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
         row_ixs = window_row_ids.map(self.window_row_ix).values
@@ -357,11 +356,8 @@ class TimeTable(object):
         self.windows.fill(0)
         self.assign(window_row_ids, tdds)
 
-        # df with one tdd_footprint row for each person tdd
-        tour_footprints = self.tdd_footprints_df.loc[tdds]
-
-        # numpy array with one time window row for each row in df
-        tour_footprints = tour_footprints.as_matrix()
+        # numpy array with one time window row for each person tdd
+        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
         row_ixs = window_row_ids.map(self.window_row_ix).values

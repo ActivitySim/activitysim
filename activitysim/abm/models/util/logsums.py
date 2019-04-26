@@ -1,11 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
-import os
 import logging
-
-import numpy as np
-import pandas as pd
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -13,8 +12,8 @@ from activitysim.core import config
 
 from activitysim.core.assign import evaluate_constants
 
-from mode import tour_mode_choice_spec
-from mode import tour_mode_choice_coeffecients_spec
+from .mode import tour_mode_choice_spec
+from .mode import tour_mode_choice_coeffecients_spec
 
 
 from . import expressions
@@ -41,7 +40,7 @@ def filter_chooser_columns(choosers, logsum_settings, model_settings):
 
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:
-        logger.info("filter_chooser_columns missing_columns %s" % missing_columns)
+        logger.debug("logsum.filter_chooser_columns missing_columns %s" % missing_columns)
 
     # ignore any columns not appearing in choosers df
     chooser_columns = [c for c in chooser_columns if c in choosers]
@@ -60,7 +59,7 @@ def compute_logsums(choosers,
     Parameters
     ----------
     choosers
-    logsum_spec
+    tour_purpose
     logsum_settings
     model_settings
     skim_dict
@@ -91,10 +90,13 @@ def compute_logsums(choosers,
     choosers['in_period'] = expressions.skim_time_period_label(model_settings['IN_PERIOD'])
     choosers['out_period'] = expressions.skim_time_period_label(model_settings['OUT_PERIOD'])
 
+    assert ('duration' not in choosers)
+    choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
+
     nest_spec = config.get_logit_model_settings(logsum_settings)
     constants = config.get_model_constants(logsum_settings)
 
-    logger.info("Running compute_logsums with %d choosers" % choosers.shape[0])
+    logger.debug("Running compute_logsums with %d choosers" % choosers.shape[0])
 
     # setup skim keys
     odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,

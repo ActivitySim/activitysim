@@ -3,3 +3,5 @@ annotate_persons:
   DF: persons
   TABLES:
     - tours
+
+#SEGMENT_COL: tour_purpose

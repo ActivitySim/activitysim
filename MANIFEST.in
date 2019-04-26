@@ -1,2 +1,4 @@
 include ez_setup.py
 include README.rst
+include activitysim\abm\test\data\mtc_asim.h5
+include activitysim\abm\test\data\skims.omx

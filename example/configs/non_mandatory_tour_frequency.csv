@@ -24,12 +24,12 @@ Number of Joint Maintenance tours,num_hh_joint_maint_tours,0,0,0,0,0,0,0,0
 Number of Joint Eating Out tours,num_hh_joint_eatout_tours,-0.5866,0,0,-0.7727,0,0,0,0
 Number of Joint Visit tours,num_hh_joint_social_tours,0,0,0,0,0,0,0,0
 Number of Joint Discretionary tours,num_hh_joint_othdiscr_tours,0,0,0.6713,0,0,0,0,0
-"Logged Maximum Residual Window, tour frequency =0",max_window*(tot_tours == 0),0,0,1.1858,0,0,0,0,0
-"Logged Maximum Residual Window, tour frequency =1",max_window*(tot_tours == 1),1.2562,1.5748,1.4842,1.7637,1.8357,1.3298,1.3298,0
-"Logged Maximum Residual Window, tour frequency =2",max_window*(tot_tours == 2),1.2868,2.0026,1.4842,1.7928,2.2707,1.3759,1.3759,0
-"Logged Maximum Residual Window, tour frequency =3",max_window*(tot_tours == 3),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
-"Logged Maximum Residual Window, tour frequency =4",max_window*(tot_tours == 4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
-"Logged Maximum Residual Window, tour frequency =5+",max_window*(tot_tours >  4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
+"Logged Maximum Residual Window, tour frequency =0",((num_mand > 0) | (num_hh_joint_tours > 0)) * log_max_window*(tot_tours == 0),0,0,1.1858,0,0,0,0,0
+"Logged Maximum Residual Window, tour frequency =1",((num_mand > 0) | (num_hh_joint_tours > 0)) * log_max_window*(tot_tours == 1),1.2562,1.5748,1.4842,1.7637,1.8357,1.3298,1.3298,0
+"Logged Maximum Residual Window, tour frequency =2",((num_mand > 0) | (num_hh_joint_tours > 0)) * log_max_window*(tot_tours == 2),1.2868,2.0026,1.4842,1.7928,2.2707,1.3759,1.3759,0
+"Logged Maximum Residual Window, tour frequency =3",((num_mand > 0) | (num_hh_joint_tours > 0)) * log_max_window*(tot_tours == 3),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
+"Logged Maximum Residual Window, tour frequency =4",((num_mand > 0) | (num_hh_joint_tours > 0)) * log_max_window*(tot_tours == 4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
+"Logged Maximum Residual Window, tour frequency =5+",((num_mand > 0) | (num_hh_joint_tours > 0)) * log_max_window*(tot_tours >  4),1.3993,2.0026,1.4842,1.7928,4.4023,3.2808,3.2808,0
 Dummy for Mediumlow Income group (20K-50K) & tour frequency=1,medium_low_income & (tot_tours == 1),0.4981,0.5981,0,0.5709,0,0,0,0
 Dummy for Mediumlow Income group (20K-50K) & tour frequency=2,medium_low_income & (tot_tours == 2),0.8345,0.9178,0,0.8315,0,0,0,0
 Dummy for Mediumlow Income group (20K-50K) & tour frequency=3,medium_low_income & (tot_tours == 3),1.0213,1.7539,0,0.8315,0,0,0,0
@@ -75,16 +75,16 @@ Dummy for zero car ownership & tour frequency =2,no_cars & (tot_tours == 2),-0.3
 Dummy for zero car ownership & tour frequency =3,no_cars & (tot_tours == 3),-0.3486,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
 Dummy for zero car ownership & tour frequency =4,no_cars & (tot_tours == 4),-0.3486,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
 Dummy for zero car ownership & tour frequency =5+,no_cars & (tot_tours >  4),-0.3486,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
-Dummy for Car Shortage vs Workers & tour frequency =1,(car_sufficiency < 0) & (tot_tours == 1),0,-0.5498,-0.581,-0.3623,0,-0.6369,-0.6369,0
-Dummy for Car Shortage vs Workers & tour frequency =2,(car_sufficiency < 0) & (tot_tours == 2),0,-0.5498,-0.581,-1.272,0,-0.6369,-0.6369,0
-Dummy for Car Shortage vs Workers & tour frequency =3,(car_sufficiency < 0) & (tot_tours == 3),0,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
-Dummy for Car Shortage vs Workers & tour frequency =4,(car_sufficiency < 0) & (tot_tours == 4),0,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
-Dummy for Car Shortage vs Workers & tour frequency =5+,(car_sufficiency < 0) & (tot_tours > 4),0,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
-Dummy for Car Surplus vs Workers & tour frequency =1,(car_sufficiency > 0) & (tot_tours == 1),0.1304,0,0,0.7738,0.7965,0.2902,0.2902,0
-Dummy for Car Surplus vs Workers & tour frequency =2,(car_sufficiency > 0) & (tot_tours == 2),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
-Dummy for Car Surplus vs Workers & tour frequency =3,(car_sufficiency > 0) & (tot_tours == 3),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
-Dummy for Car Surplus vs Workers & tour frequency =4,(car_sufficiency > 0) & (tot_tours == 4),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
-Dummy for Car Surplus vs Workers & tour frequency =5+,(car_sufficiency > 0) & (tot_tours > 4),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
+Dummy for Car Shortage vs Workers & tour frequency =1,~no_cars & (car_sufficiency < 0) & (tot_tours == 1),0,-0.5498,-0.581,-0.3623,0,-0.6369,-0.6369,0
+Dummy for Car Shortage vs Workers & tour frequency =2,~no_cars & (car_sufficiency < 0) & (tot_tours == 2),0,-0.5498,-0.581,-1.272,0,-0.6369,-0.6369,0
+Dummy for Car Shortage vs Workers & tour frequency =3,~no_cars & (car_sufficiency < 0) & (tot_tours == 3),0,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
+Dummy for Car Shortage vs Workers & tour frequency =4,~no_cars & (car_sufficiency < 0) & (tot_tours == 4),0,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
+Dummy for Car Shortage vs Workers & tour frequency =5+,~no_cars & (car_sufficiency < 0) & (tot_tours > 4),0,-0.5498,-0.581,-1.9307,0,-0.6369,-0.6369,0
+Dummy for Car Surplus vs Workers & tour frequency =1,~no_cars & (car_sufficiency > 0) & (tot_tours == 1),0.1304,0,0,0.7738,0.7965,0.2902,0.2902,0
+Dummy for Car Surplus vs Workers & tour frequency =2,~no_cars & (car_sufficiency > 0) & (tot_tours == 2),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
+Dummy for Car Surplus vs Workers & tour frequency =3,~no_cars & (car_sufficiency > 0) & (tot_tours == 3),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
+Dummy for Car Surplus vs Workers & tour frequency =4,~no_cars & (car_sufficiency > 0) & (tot_tours == 4),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
+Dummy for Car Surplus vs Workers & tour frequency =5+,~no_cars & (car_sufficiency > 0) & (tot_tours > 4),0.1304,0,0,0.7738,2.1302,2.0352,2.0352,0
 Dummy for Presence of Non-Worker(other than modeled person) & tour frequency =1,has_non_worker & (tot_tours == 1),0,0,-0.8506,-0.3763,0.224,0,0,0
 Dummy for Presence of Non-Worker(other than modeled person) & tour frequency =2,has_non_worker & (tot_tours == 2),0,0,-1.1804,-0.719,0.2436,-0.6571,-0.6571,0
 Dummy for Presence of Non-Worker(other than modeled person) & tour frequency =3,has_non_worker & (tot_tours == 3),0,0,-1.1804,-1.0229,0.62,-1.4044,-1.4044,0

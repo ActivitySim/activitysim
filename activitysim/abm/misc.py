@@ -1,43 +1,22 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-import warnings
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
-import numpy as np
 import pandas as pd
-import yaml
 
-from activitysim.core import pipeline
+from activitysim.core import config
 from activitysim.core import inject
 
 # FIXME
-warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
+# warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 pd.options.mode.chained_assignment = None
 
 logger = logging.getLogger(__name__)
-
-
-@inject.injectable(cache=True)
-def store(data_dir, settings):
-    if 'store' not in settings:
-        logger.error("store file name not specified in settings")
-        raise RuntimeError("store file name not specified in settings")
-    fname = os.path.join(data_dir, settings["store"])
-    if not os.path.exists(fname):
-        logger.error("store file not found: %s" % fname)
-        raise RuntimeError("store file not found: %s" % fname)
-
-    file = pd.HDFStore(fname, mode='r')
-    pipeline.close_on_exit(file, fname)
-
-    return file
-
-
-@inject.injectable(cache=True)
-def cache_skim_key_values(settings):
-    return settings['skim_time_periods']['labels']
 
 
 @inject.injectable(cache=True)
@@ -50,18 +29,18 @@ def households_sample_size(settings, override_hh_ids):
 
 
 @inject.injectable(cache=True)
-def override_hh_ids(settings, configs_dir):
+def override_hh_ids(settings):
 
     hh_ids_filename = settings.get('hh_ids', None)
     if hh_ids_filename is None:
         return None
 
-    f = os.path.join(configs_dir, hh_ids_filename)
-    if not os.path.exists(f):
-        logger.error('hh_ids file name specified in settings, but file not found: %s' % f)
+    file_path = config.data_file_path(hh_ids_filename, mandatory=False)
+    if not file_path:
+        logger.error("hh_ids file name '%s' specified in settings not found" % hh_ids_filename)
         return None
 
-    df = pd.read_csv(f, comment='#')
+    df = pd.read_csv(file_path, comment='#')
 
     if 'household_id' not in df.columns:
         logger.error("No 'household_id' column in hh_ids file %s" % hh_ids_filename)
@@ -85,7 +64,7 @@ def trace_hh_id(settings):
     id = settings.get('trace_hh_id', None)
 
     if id and not isinstance(id, int):
-        logger.warn("setting trace_hh_id is wrong type, should be an int, but was %s" % type(id))
+        logger.warning("setting trace_hh_id is wrong type, should be an int, but was %s" % type(id))
         id = None
 
     return id
@@ -97,7 +76,7 @@ def trace_od(settings):
     od = settings.get('trace_od', None)
 
     if od and not (isinstance(od, list) and len(od) == 2 and all(isinstance(x, int) for x in od)):
-        logger.warn("setting trace_od is wrong type, should be a list of length 2, but was %s" % od)
+        logger.warning("setting trace_od should be a list of length 2, but was %s" % od)
         od = None
 
     return od

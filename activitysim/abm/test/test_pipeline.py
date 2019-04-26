@@ -1,41 +1,58 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import os
-import tempfile
 import logging
 
-import numpy as np
-import orca
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 import yaml
-import openmatrix as omx
 
-from activitysim.abm import __init__
-from activitysim.abm.tables import size_terms
-
+from activitysim.core import random
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
+from activitysim.core import config
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
-HH_ID = 1269102
+HH_ID = 257341
 
-# test households with all tour types
-# [ 897044 1062044 1227638 1227783 1583265 2124082]
+#  [ 257341 1234246 1402915 1511245 1931827 1931908 2307195 2366390 2408855
+# 2518594 2549865  982981 1594365 1057690 1234121 2098971]
 
-
-SKIP_FULL_RUN = True
+# SKIP_FULL_RUN = True
 SKIP_FULL_RUN = False
 
 
+def setup_dirs(configs_dir):
+
+    inject.add_injectable("configs_dir", configs_dir)
+
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    inject.add_injectable("output_dir", output_dir)
+
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    inject.add_injectable("data_dir", data_dir)
+
+    inject.clear_cache()
+
+    tracing.config_logger()
+
+    tracing.delete_output_files('csv')
+    tracing.delete_output_files('txt')
+    tracing.delete_output_files('yaml')
+
+
 def teardown_function(func):
-    orca.clear_cache()
+    inject.clear_cache()
     inject.reinject_decorated_tables()
 
 
@@ -49,22 +66,15 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def inject_settings(configs_dir, households_sample_size, chunk_size=None,
-                    trace_hh_id=None, trace_od=None, check_for_variability=None):
+def inject_settings(configs_dir, **kwargs):
 
     with open(os.path.join(configs_dir, 'settings.yaml')) as f:
-        settings = yaml.load(f)
-        settings['households_sample_size'] = households_sample_size
-        if chunk_size is not None:
-            settings['chunk_size'] = chunk_size
-        if trace_hh_id is not None:
-            settings['trace_hh_id'] = trace_hh_id
-        if trace_od is not None:
-            settings['trace_od'] = trace_od
-        if check_for_variability is not None:
-            settings['check_for_variability'] = check_for_variability
+        settings = yaml.load(f, Loader=yaml.SafeLoader)
 
-    orca.add_injectable("settings", settings)
+        for k in kwargs:
+            settings[k] = kwargs[k]
+
+        inject.add_injectable("settings", settings)
 
     return settings
 
@@ -72,114 +82,105 @@ def inject_settings(configs_dir, households_sample_size, chunk_size=None,
 def test_rng_access():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    setup_dirs(configs_dir)
 
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
-
-    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
-
-    orca.clear_cache()
-
-    pipeline.set_rn_generator_base_seed(0)
+    inject.add_injectable('rng_base_seed', 0)
 
     pipeline.open_pipeline()
 
-    with pytest.raises(RuntimeError) as excinfo:
-        pipeline.set_rn_generator_base_seed(0)
-    assert "call set_rn_generator_base_seed before the first step" in str(excinfo.value)
-
     rng = pipeline.get_rn_generator()
 
+    assert isinstance(rng, random.Random)
+
     pipeline.close_pipeline()
-    orca.clear_cache()
+    inject.clear_cache()
+
+
+def regress_mini_auto():
+
+    # regression test: these are among the middle households in households table
+    # should be the same results as in run_mp (multiprocessing) test case
+    hh_ids = [932147, 982875, 983048, 1024353]
+    choices = [1, 1, 1, 0]
+    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
+                                name='auto_ownership')
+
+    auto_choice = pipeline.get_table("households").sort_index().auto_ownership
+
+    offset = HOUSEHOLDS_SAMPLE_SIZE // 2  # choose something midway as hh_id ordered by hh size
+    print("auto_choice\n", auto_choice.head(offset).tail(4))
+
+    auto_choice = auto_choice.reindex(hh_ids)
+
+    """
+    auto_choice
+     household_id
+    932147     1
+    982875     1
+    983048     1
+    1024353    0
+    Name: auto_ownership, dtype: int64
+    """
+    pdt.assert_series_equal(auto_choice, expected_choice)
+
+
+def regress_mini_mtf():
+
+    mtf_choice = pipeline.get_table("persons").sort_index().mandatory_tour_frequency
+
+    # these choices are for pure regression - their appropriateness has not been checked
+    per_ids = [2566698, 2877284, 2877287]
+    choices = ['work1', 'work_and_school', 'school1']
+    expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='person_id'),
+                                name='mandatory_tour_frequency')
+
+    mtf_choice = mtf_choice[mtf_choice != '']  # drop null (empty string) choices
+
+    offset = len(mtf_choice) // 2  # choose something midway as hh_id ordered by hh size
+    print("mtf_choice\n", mtf_choice.head(offset).tail(5))
+
+    """
+    mtf_choice
+     person_id
+    2458502            school1
+    2458503            school1
+    2566698              work1
+    2877284    work_and_school
+    2877287            school1
+    Name: mandatory_tour_frequency, dtype: object
+    """
+    pdt.assert_series_equal(mtf_choice.reindex(per_ids), expected_choice)
 
 
 def test_mini_pipeline_run():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    setup_dirs(configs_dir)
 
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
-
-    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
-
-    orca.clear_cache()
-
-    tracing.config_logger()
-
-    # assert len(orca.get_table("households").index) == HOUSEHOLDS_SAMPLE_SIZE
+    inject_settings(configs_dir,
+                    households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+                    # use_shadow_pricing=True
+                    )
 
     _MODELS = [
-        'initialize',
+        'initialize_landuse',
         'compute_accessibility',
-        'school_location_sample',
-        'school_location_logsums',
-        'school_location_simulate',
-        'workplace_location_sample',
-        'workplace_location_logsums',
-        'workplace_location_simulate',
+        'initialize_households',
+        'school_location',
+        'workplace_location',
         'auto_ownership_simulate'
     ]
 
     pipeline.run(models=_MODELS, resume_after=None)
 
-    auto_choice = pipeline.get_table("households").auto_ownership
-
-    # regression test: these are among the first 10 households in households table
-    hh_ids = [464138, 1918238, 2201602]
-    choices = [1, 2, 0]
-    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
-                                name='auto_ownership')
-
-    print "auto_choice\n", auto_choice.head(10)
-    pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
+    regress_mini_auto()
 
     pipeline.run_model('cdap_simulate')
     pipeline.run_model('mandatory_tour_frequency')
 
-    mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
-
-    # these choices are for pure regression - their appropriateness has not been checked
-    per_ids = [92233, 172595, 524152]
-    choices = ['work1', 'school1', 'work_and_school']
-    expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
-                                name='mandatory_tour_frequency')
-
-    print "mtf_choice\n", mtf_choice.dropna().head(20)
-    """
-    mtf_choice
-    PERID
-    92233               work1
-    92382               work1
-    92744               work2
-    92823               work1
-    93172               work1
-    172491              work2
-    172595            school1
-    172596            school1
-    327171              work1
-    327172              work1
-    327912              work1
-    481948            school1
-    481949            school1
-    481959              work1
-    481961              work1
-    523907              work2
-    524151            school1
-    524152    work_and_school
-    524153            school1
-    821808              work1
-    Name: mandatory_tour_frequency, dtype: object
-    """
-    pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
+    regress_mini_mtf()
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
@@ -192,8 +193,7 @@ def test_mini_pipeline_run():
     assert "not in checkpoints" in str(excinfo.value)
 
     pipeline.close_pipeline()
-    orca.clear_cache()
-
+    inject.clear_cache()
     close_handlers()
 
 
@@ -204,37 +204,21 @@ def test_mini_pipeline_run2():
     # when we restart pipeline
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
-
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
+    setup_dirs(configs_dir)
 
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
-
-    orca.clear_cache()
 
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
     prev_checkpoint_count = len(checkpoints_df.index)
 
     # print "checkpoints_df\n", checkpoints_df[['checkpoint_name']]
-    assert prev_checkpoint_count == 11
+    assert prev_checkpoint_count == 8
 
     pipeline.open_pipeline('auto_ownership_simulate')
 
-    auto_choice = pipeline.get_table("households").auto_ownership
-
-    # regression test: these are the same as in test_mini_pipeline_run1
-    hh_ids = [464138, 1918238, 2201602]
-    choices = [1, 2, 0]
-    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="HHID"),
-                                name='auto_ownership')
-
-    print "auto_choice\n", auto_choice.head(4)
-    pdt.assert_series_equal(auto_choice[hh_ids], expected_choice)
+    regress_mini_auto()
 
     # try to run a model already in pipeline
     with pytest.raises(RuntimeError) as excinfo:
@@ -245,23 +229,46 @@ def test_mini_pipeline_run2():
     pipeline.run_model('cdap_simulate')
     pipeline.run_model('mandatory_tour_frequency')
 
-    mtf_choice = pipeline.get_table("persons").mandatory_tour_frequency
-
-    # this is what we got in run 1
-    per_ids = [92233, 172595, 524152]
-    choices = ['work1', 'school1', 'work_and_school']
-    expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='PERID'),
-                                name='mandatory_tour_frequency')
-
-    print "mtf_choice\n", mtf_choice.head(20)
-    pdt.assert_series_equal(mtf_choice[per_ids], expected_choice)
+    regress_mini_mtf()
 
     # should be able to get this before pipeline is closed (from existing open store)
     checkpoints_df = pipeline.get_checkpoints()
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
+    # - write list of override_hh_ids to override_hh_ids.csv in data for use in next test
+    num_hh_ids = 10
+    hh_ids = pipeline.get_table("households").head(num_hh_ids).index.values
+    hh_ids = pd.DataFrame({'household_id': hh_ids})
+
+    data_dir = inject.get_injectable('data_dir')
+    hh_ids.to_csv(os.path.join(data_dir, 'override_hh_ids.csv'), index=False, header=True)
+
     pipeline.close_pipeline()
-    orca.clear_cache()
+    inject.clear_cache()
+    close_handlers()
+
+
+def test_mini_pipeline_run3():
+
+    # test that hh_ids setting overrides household sampling
+
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    setup_dirs(configs_dir)
+    inject_settings(configs_dir, hh_ids='override_hh_ids.csv')
+
+    households = inject.get_table('households').to_frame()
+
+    override_hh_ids = pd.read_csv(config.data_file_path('override_hh_ids.csv'))
+
+    print("\noverride_hh_ids\n", override_hh_ids)
+
+    print("\nhouseholds\n", households.index)
+
+    assert households.shape[0] == override_hh_ids.shape[0]
+    assert households.index.isin(override_hh_ids.household_id).all()
+
+    inject.clear_cache()
+    close_handlers()
 
 
 def full_run(resume_after=None, chunk_size=0,
@@ -269,13 +276,8 @@ def full_run(resume_after=None, chunk_size=0,
              trace_hh_id=None, trace_od=None, check_for_variability=None):
 
     configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example', 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
 
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
-
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    setup_dirs(configs_dir)
 
     settings = inject_settings(
         configs_dir,
@@ -283,11 +285,8 @@ def full_run(resume_after=None, chunk_size=0,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_od=trace_od,
-        check_for_variability=check_for_variability)
-
-    orca.clear_cache()
-
-    tracing.config_logger()
+        check_for_variability=check_for_variability,
+        use_shadow_pricing=False)  # shadow pricing breaks replicability when sample_size varies
 
     MODELS = settings['models']
 
@@ -295,10 +294,6 @@ def full_run(resume_after=None, chunk_size=0,
 
     tours = pipeline.get_table('tours')
     tour_count = len(tours.index)
-
-    # pipeline.close_pipeline()
-    #
-    # orca.clear_cache()
 
     return tour_count
 
@@ -324,91 +319,76 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 186
+EXPECT_TOUR_COUNT = 203
 
 
 def regress_tour_modes(tours_df):
 
-    mode_cols = ['tour_mode', 'person_id', 'tour_type', 'tour_num', 'tour_category']
+    mode_cols = ['tour_mode', 'person_id', 'tour_type',
+                 'tour_num', 'tour_category']
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
     tours_df = tours_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
 
-    print "mode_df\n", tours_df[mode_cols]
+    print("mode_df\n", tours_df[mode_cols])
 
     """
-    tour_id        tour_mode  person_id tour_type  tour_num  tour_category
+                 tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
-    84543800     SHARED2FREE    2915303  othmaint         1          joint
-    84543820            WALK    2915304       eat         1         atwork
-    84543843        WALK_LOC    2915304      work         1      mandatory
-    84543823  DRIVEALONEFREE    2915304    escort         1  non_mandatory
-    84543897        WALK_LOC    2915306    school         1      mandatory
-    84543900     SHARED2FREE    2915306    social         1  non_mandatory
-    84543926        WALK_LOC    2915307    school         1      mandatory
-    84543910     SHARED2FREE    2915307    escort         1  non_mandatory
-    84543911     SHARED2FREE    2915307    escort         2  non_mandatory
-    84543929     SHARED2FREE    2915307    social         3  non_mandatory
-    84543955        WALK_LOC    2915308    school         1      mandatory
-    84543957            WALK    2915308  shopping         1  non_mandatory
-    84543953     SHARED2FREE    2915308  othdiscr         2  non_mandatory
-    84543938            WALK    2915308    eatout         3  non_mandatory
+    13327106  SHARED3FREE     325051  othdiscr         1          joint
+    13327130         WALK     325051      work         1      mandatory
+    13327131  SHARED2FREE     325051      work         2      mandatory
+    13327155         WALK     325052     maint         1         atwork
+    13327171         WALK     325052      work         1      mandatory
+    13327138         WALK     325052    eatout         1  non_mandatory
     """
 
     EXPECT_PERSON_IDS = [
-        2915303,
-        2915304,
-        2915304,
-        2915304,
-        2915306,
-        2915306,
-        2915307,
-        2915307,
-        2915307,
-        2915307,
-        2915308,
-        2915308,
-        2915308,
-        2915308]
+        325051,
+        325051,
+        325051,
+        325052,
+        325052,
+        325052,
+        ]
 
     EXPECT_TOUR_TYPES = [
-        'othmaint',
-        'eat',
-        'work',
-        'escort',
-        'school',
-        'social',
-        'school',
-        'escort',
-        'escort',
-        'social',
-        'school',
-        'shopping',
         'othdiscr',
-        'eatout']
+        'work',
+        'work',
+        'maint',
+        'work',
+        'eatout',
+        ]
 
     EXPECT_MODES = [
-        'SHARED2FREE',
-        'WALK',
-        'WALK_LOC',
-        'DRIVEALONEFREE',
-        'WALK_LOC',
-        'SHARED2FREE',
-        'WALK_LOC',
-        'SHARED2FREE',
-        'SHARED2FREE',
-        'SHARED2FREE',
-        'WALK_LOC',
+        'SHARED3FREE',
         'WALK',
         'SHARED2FREE',
-        'WALK']
+        'WALK',
+        'WALK',
+        'WALK',
+        ]
 
+    assert len(tours_df) == len(EXPECT_PERSON_IDS)
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()
     assert (tours_df.tour_type.values == EXPECT_TOUR_TYPES).all()
     assert (tours_df.tour_mode.values == EXPECT_MODES).all()
 
 
 def regress():
+
+    persons_df = pipeline.get_table('persons')
+    persons_df = persons_df[persons_df.household_id == HH_ID]
+    print("persons_df\n", persons_df[['value_of_time', 'distance_to_work']])
+
+    """
+    persons_df
+     person_id  value_of_time  distance_to_work
+    person_id
+    3249922        23.349532              0.62
+    3249923        23.349532              0.62
+    """
 
     tours_df = pipeline.get_table('tours')
 
@@ -435,7 +415,7 @@ def test_full_run1():
     tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
-    print "tour_count", tour_count
+    print("tour_count", tour_count)
 
     assert(tour_count == EXPECT_TOUR_COUNT)
 
@@ -460,7 +440,7 @@ def test_full_run2():
     pipeline.close_pipeline()
 
 
-def test_full_run_with_chunks():
+def test_full_run3_with_chunks():
 
     # should get the same result with different chunk size
 
@@ -478,7 +458,7 @@ def test_full_run_with_chunks():
     pipeline.close_pipeline()
 
 
-def test_full_run_stability():
+def test_full_run4_stability():
 
     # hh should get the same result with different sample size
 
@@ -493,8 +473,23 @@ def test_full_run_stability():
     pipeline.close_pipeline()
 
 
+def test_full_run5_singleton():
+
+    # should wrk with only one hh
+
+    if SKIP_FULL_RUN:
+        return
+
+    tour_count = full_run(trace_hh_id=HH_ID,
+                          households_sample_size=1)
+
+    regress()
+
+    pipeline.close_pipeline()
+
+
 if __name__ == "__main__":
 
-    print "running test_full_run1"
+    print("running test_full_run1")
     test_full_run1()
     # teardown_function(None)

@@ -1,10 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
-import numpy as np
 import pandas as pd
 
 from activitysim.core import simulate
@@ -21,11 +23,6 @@ from activitysim.core.util import reindex
 from .util.overlap import person_time_window_overlap
 
 logger = logging.getLogger(__name__)
-
-
-@inject.injectable()
-def joint_tour_participation_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'joint_tour_participation.csv')
 
 
 def joint_tour_participation_candidates(joint_tours, persons_merged):
@@ -60,7 +57,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     MAX_PNUM = 100
     if candidates.PNUM.max() > MAX_PNUM:
         # if this happens, channel random seeds will overlap at MAX_PNUM (not probably a big deal)
-        logger.warn("max persons.PNUM (%s) > MAX_PNUM (%s)" % (candidates.PNUM.max(), MAX_PNUM))
+        logger.warning("max persons.PNUM (%s) > MAX_PNUM (%s)", candidates.PNUM.max(), MAX_PNUM)
 
     candidates['participant_id'] = (candidates[joint_tours.index.name] * MAX_PNUM) + candidates.PNUM
     candidates.set_index('participant_id', drop=True, inplace=True, verify_integrity=True)
@@ -151,7 +148,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
     rands_list = []
 
     num_tours_remaining = len(candidates.tour_id.unique())
-    logger.info('%s %s joint tours to satisfy.' % (trace_label, num_tours_remaining,))
+    logger.info('%s %s joint tours to satisfy.', trace_label, num_tours_remaining,)
 
     iter = 0
     while candidates.shape[0] > 0:
@@ -159,12 +156,12 @@ def participants_chooser(probs, choosers, spec, trace_label):
         iter += 1
 
         if iter > MAX_ITERATIONS:
-            logger.warn('%s max iterations exceeded (%s).' % (trace_label, MAX_ITERATIONS))
+            logger.warning('%s max iterations exceeded (%s).', trace_label, MAX_ITERATIONS)
             diagnostic_cols = ['tour_id', 'household_id', 'composition', 'adult']
             unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
             tracing.write_csv(unsatisfied_candidates,
                               file_name='%s.UNSATISFIED' % trace_label, transpose=False)
-            print unsatisfied_candidates.head(20)
+            print(unsatisfied_candidates.head(20))
             assert False
 
         choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
@@ -199,23 +196,39 @@ def participants_chooser(probs, choosers, spec, trace_label):
     assert choices.index.equals(choosers.index)
     assert rands.index.equals(choosers.index)
 
-    logger.info('%s %s iterations to satisfy all joint tours.' % (trace_label, iter,))
+    logger.info('%s %s iterations to satisfy all joint tours.', trace_label, iter,)
 
     return choices, rands
 
 
-def add_null_results(trace_label):
-    logger.info("Skipping %s: joint tours" % trace_label)
+def annotate_jtp(model_settings, trace_label):
+
+    # - annotate persons
+    persons = inject.get_table('persons').to_frame()
+    expressions.assign_columns(
+        df=persons,
+        model_settings=model_settings.get('annotate_persons'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
+    pipeline.replace_table("persons", persons)
+
+
+def add_null_results(model_settings, trace_label):
+    logger.info("Skipping %s: joint tours", trace_label)
     # participants table is used downstream in non-joint tour expressions
-    participants = pd.DataFrame(columns=['person_id'])
+
+    PARTICIPANT_COLS = ['tour_id', 'household_id', 'person_id', 'participant_num']
+
+    participants = pd.DataFrame(columns=PARTICIPANT_COLS)
     participants.index.name = 'participant_id'
     pipeline.replace_table("joint_tour_participants", participants)
+
+    # - run annotations
+    annotate_jtp(model_settings, trace_label)
 
 
 @inject.step()
 def joint_tour_participation(
         tours, persons_merged,
-        joint_tour_participation_spec,
         chunk_size,
         trace_hh_id):
     """
@@ -223,21 +236,22 @@ def joint_tour_participation(
     """
     trace_label = 'joint_tour_participation'
     model_settings = config.read_model_settings('joint_tour_participation.yaml')
+    model_spec = simulate.read_model_spec(file_name='joint_tour_participation.csv')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
 
     # - if no joint tours
     if joint_tours.shape[0] == 0:
-        add_null_results(trace_label)
+        add_null_results(model_settings, trace_label)
         return
 
     persons_merged = persons_merged.to_frame()
 
     # - create joint_tour_participation_candidates table
     candidates = joint_tour_participation_candidates(joint_tours, persons_merged)
-    tracing.register_traceable_table('participants', candidates)
-    pipeline.get_rn_generator().add_channel(candidates, 'joint_tour_participants')
+    tracing.register_traceable_table('joint_tour_participants', candidates)
+    pipeline.get_rn_generator().add_channel('joint_tour_participants', candidates)
 
     logger.info("Running joint_tours_participation with %d potential participants (candidates)" %
                 candidates.shape[0])
@@ -264,7 +278,7 @@ def joint_tour_participation(
 
     choices = simulate.simple_simulate(
         choosers=candidates,
-        spec=joint_tour_participation_spec,
+        spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
         chunk_size=chunk_size,
@@ -274,9 +288,9 @@ def joint_tour_participation(
 
     # choice is boolean (participate or not)
     choice_col = model_settings.get('participation_choice', 'participate')
-    assert choice_col in joint_tour_participation_spec.columns, \
+    assert choice_col in model_spec.columns, \
         "couldn't find participation choice column '%s' in spec"
-    PARTICIPATE_CHOICE = joint_tour_participation_spec.columns.get_loc(choice_col)
+    PARTICIPATE_CHOICE = model_spec.columns.get_loc(choice_col)
 
     participate = (choices == PARTICIPATE_CHOICE)
 
@@ -298,8 +312,8 @@ def joint_tour_participation(
 
     pipeline.replace_table("joint_tour_participants", participants)
 
-    # FIXME drop channel if we aren't using any more?
-    # pipeline.get_rn_generator().drop_channel('joint_tours_participants')
+    # drop channel as we aren't using any more (and it has candidates that weren't chosen)
+    pipeline.get_rn_generator().drop_channel('joint_tour_participants')
 
     # - assign joint tour 'point person' (participant_num == 1)
     point_persons = participants[participants.participant_num == 1]
@@ -311,6 +325,9 @@ def joint_tour_participation(
     assign_in_place(tours, joint_tours[['person_id', 'number_of_participants']])
 
     pipeline.replace_table("tours", tours)
+
+    # - run annotations
+    annotate_jtp(model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(participants,

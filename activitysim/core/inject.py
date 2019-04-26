@@ -1,7 +1,15 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
+from future.utils import iteritems
+
 import logging
 
-import pandas as pd
-import orca
+from . import orca
 
 _DECORATED_STEPS = {}
 _DECORATED_TABLES = {}
@@ -50,24 +58,6 @@ def table():
     return decorator
 
 
-# def column(table_name, cache=False):
-#     def decorator(func):
-#         name = func.__name__
-#
-#         logger.debug("inject column %s.%s" % (table_name, name))
-#
-#         column_key = (table_name, name)
-#
-#         assert not _DECORATED_COLUMNS.get(column_key, False), \
-#             "column '%s' already decorated." % name
-#         _DECORATED_COLUMNS[column_key] = {'func': func, 'cache': cache}
-#
-#         orca.add_column(table_name, name, func, cache=cache)
-#
-#         return func
-#     return decorator
-
-
 def injectable(cache=False, override=False):
     def decorator(func):
         name = func.__name__
@@ -94,14 +84,16 @@ def add_step(name, func):
     return orca.add_step(name, func)
 
 
-def add_table(table_name, table, cache=False):
+def add_table(table_name, table):
 
-    if orca.is_table(table_name):
-        logger.warn("inject add_table replacing existing table %s" % table_name)
+    if orca.is_table(table_name) and orca.table_type(table_name) == 'dataframe':
+        logger.warning("inject add_table replacing existing table %s" % table_name)
+        assert False
 
-    return orca.add_table(table_name, table, cache=cache)
+    return orca.add_table(table_name, table, cache=False)
 
 
+# fixme remove?
 def add_column(table_name, column_name, column, cache=False):
     return orca.add_column(table_name, column_name, column, cache=cache)
 
@@ -132,6 +124,11 @@ def get_injectable(name, default=_NO_DEFAULT):
         return default
 
 
+def remove_injectable(name):
+
+    orca._INJECTABLES.pop(name, None)
+
+
 def reinject_decorated_tables():
     """
     reinject the decorated tables (and columns)
@@ -140,23 +137,27 @@ def reinject_decorated_tables():
     logger.info("reinject_decorated_tables")
 
     # need to clear any non-decorated tables that were added during the previous run
-    orca.orca._TABLES.clear()
-    orca.orca._COLUMNS.clear()
-    orca.orca._TABLE_CACHE.clear()
-    orca.orca._COLUMN_CACHE.clear()
+    orca._TABLES.clear()
+    orca._COLUMNS.clear()
+    orca._TABLE_CACHE.clear()
+    orca._COLUMN_CACHE.clear()
 
-    for name, func in _DECORATED_TABLES.iteritems():
+    for name, func in iteritems(_DECORATED_TABLES):
         logger.debug("reinject decorated table %s" % name)
         orca.add_table(name, func)
 
-    for column_key, args in _DECORATED_COLUMNS.iteritems():
+    for column_key, args in iteritems(_DECORATED_COLUMNS):
         table_name, column_name = column_key
         logger.debug("reinject decorated column %s.%s" % (table_name, column_name))
         orca.add_column(table_name, column_name, args['func'], cache=args['cache'])
 
-    for name, args in _DECORATED_INJECTABLES.iteritems():
+    for name, args in iteritems(_DECORATED_INJECTABLES):
         logger.debug("reinject decorated injectable %s" % name)
         orca.add_injectable(name, args['func'], cache=args['cache'])
+
+
+def clear_cache():
+    return orca.clear_cache()
 
 
 def set_step_args(args=None):
@@ -174,3 +175,9 @@ def get_step_arg(arg_name, default=_NO_DEFAULT):
         raise "step arg '%s' not found and no default" % arg_name
 
     return args.get(arg_name, default)
+
+
+def dump_state():
+
+    print("_DECORATED_STEPS", list(_DECORATED_STEPS.keys()))
+    print("orca._STEPS", list(orca._STEPS.keys()))

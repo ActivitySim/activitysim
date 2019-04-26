@@ -1,49 +1,51 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import os
-import tempfile
 import logging
-
-import numpy as np
-import orca
-import pandas as pd
-import pandas.util.testing as pdt
 import pytest
-import yaml
 
-import extensions
+import tables
 
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
+
+from .extensions import steps
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
 HH_ID = 961042
 
 
-def setup():
+def setup_function():
 
-    orca.orca._INJECTABLES.pop('skim_dict', None)
-    orca.orca._INJECTABLES.pop('skim_stack', None)
+    inject.reinject_decorated_tables()
+
+    inject.remove_injectable('skim_dict')
+    inject.remove_injectable('skim_stack')
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    orca.add_injectable("data_dir", data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
-    orca.clear_cache()
+    inject.clear_cache()
 
     tracing.config_logger()
 
 
 def teardown_function(func):
-    orca.clear_cache()
+    inject.clear_cache()
     inject.reinject_decorated_tables()
 
 
@@ -57,9 +59,14 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
+# @pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_pipeline_run():
 
-    setup()
+    inject.add_step('step1', steps.step1)
+    inject.add_step('step2', steps.step2)
+    inject.add_step('step3', steps.step3)
+    inject.add_step('step_add_col', steps.step_add_col)
+    inject.dump_state()
 
     _MODELS = [
         'step1',
@@ -71,7 +78,7 @@ def test_pipeline_run():
     pipeline.run(models=_MODELS, resume_after=None)
 
     checkpoints = pipeline.get_checkpoints()
-    print "checkpoints\n", checkpoints
+    print("checkpoints\n", checkpoints)
 
     c2 = pipeline.get_table("table2").c2
 
@@ -100,7 +107,11 @@ def test_pipeline_run():
 
 def test_pipeline_checkpoint_drop():
 
-    setup()
+    inject.add_step('step1', steps.step1)
+    inject.add_step('step2', steps.step2)
+    inject.add_step('step3', steps.step3)
+    inject.add_step('step_add_col', steps.step_add_col)
+    inject.add_step('step_forget_tab', steps.step_forget_tab)
 
     _MODELS = [
         'step1',
@@ -113,7 +124,7 @@ def test_pipeline_checkpoint_drop():
     pipeline.run(models=_MODELS, resume_after=None)
 
     checkpoints = pipeline.get_checkpoints()
-    print "checkpoints\n", checkpoints
+    print("checkpoints\n", checkpoints)
 
     pipeline.get_table("table1")
 

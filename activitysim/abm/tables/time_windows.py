@@ -1,25 +1,32 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
+import numpy as np
 import pandas as pd
 
-
 from activitysim.core import inject
+from activitysim.core import config
 from activitysim.core import timetable as tt
 
 logger = logging.getLogger(__name__)
 
 
 @inject.injectable(cache=True)
-def tdd_alts(configs_dir):
+def tdd_alts():
     # right now this file just contains the start and end hour
-    f = os.path.join(configs_dir, 'tour_departure_and_duration_alternatives.csv')
+    f = config.config_file_path('tour_departure_and_duration_alternatives.csv')
     df = pd.read_csv(f)
 
     df['duration'] = df.end - df.start
+
+    # - NARROW
+    df = df.astype(np.int8)
 
     return df
 

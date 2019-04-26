@@ -1,6 +1,12 @@
-import os
-import psutil
-import gc
+# ActivitySim
+# See full license in LICENSE.txt.
+
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
+from builtins import zip
+
 import logging
 
 from operator import itemgetter
@@ -10,29 +16,24 @@ import pandas as pd
 
 from zbox import toolz as tz
 
+from . import mem
+
 logger = logging.getLogger(__name__)
 
 
 def GB(bytes):
-    gb = (bytes / (1024 * 1024 * 1024.0))
-    return "%s GB" % (round(gb, 2), )
+    # symbols = ('', 'K', 'M', 'G', 'T')
+    symbols = ('', ' KB', ' MB', ' GB', ' TB')
+    fmt = "%.1f%s"
+    for i, s in enumerate(symbols):
+        units = 1 << i * 10
+        if bytes < units * 1024:
+            return fmt % (bytes / units, s)
 
 
 def df_size(df):
     bytes = df.memory_usage(index=True).sum()
     return "%s %s" % (df.shape, GB(bytes))
-
-
-def memory_info():
-
-    mi = psutil.Process().memory_full_info()
-    return "memory_info: vms: %s rss: %s uss: %s" % (GB(mi.vms), GB(mi.rss), GB(mi.uss))
-
-
-def force_garbage_collect():
-
-    gc.collect()
-    logger.debug("force_garbage_collect %s" % memory_info())
 
 
 def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):
@@ -233,7 +234,7 @@ def quick_loc_series(loc_list, target_series):
         left_df = pd.DataFrame({left_on: loc_list.values})
     elif isinstance(loc_list, pd.Series):
         left_df = loc_list.to_frame(name=left_on)
-    elif isinstance(loc_list, np.ndarray):
+    elif isinstance(loc_list, np.ndarray) or isinstance(loc_list, list):
         left_df = pd.DataFrame({left_on: loc_list})
     else:
         raise RuntimeError("quick_loc_series loc_list of unexpected type %s" % type(loc_list))
@@ -284,8 +285,8 @@ def assign_in_place(df, df2):
                 try:
                     df[c] = df[c].astype(old_dtype)
                 except ValueError:
-                    logger.warn("assign_in_place changed dtype %s of column %s to %s" %
-                                (old_dtype, c, df[c].dtype))
+                    logger.warning("assign_in_place changed dtype %s of column %s to %s" %
+                                   (old_dtype, c, df[c].dtype))
 
             # if both df and df2 column were ints, but result is not
             if np.issubdtype(old_dtype, np.integer) \
@@ -294,10 +295,25 @@ def assign_in_place(df, df2):
                 try:
                     df[c] = df[c].astype(old_dtype)
                 except ValueError:
-                    logger.warn("assign_in_place changed dtype %s of column %s to %s" %
-                                (old_dtype, c, df[c].dtype))
+                    logger.warning("assign_in_place changed dtype %s of column %s to %s" %
+                                   (old_dtype, c, df[c].dtype))
 
     # add new columns (in order they appear in df2)
     new_columns = [c for c in df2.columns if c not in df.columns]
 
     df[new_columns] = df2[new_columns]
+
+
+def df_from_dict(values, index=None):
+
+    df = pd.DataFrame.from_dict(values)
+    if index is not None:
+        df.index = index
+
+    # 2x slower but users less peak RAM
+    # df = pd.DataFrame(index = index)
+    # for c in values.keys():
+    #     df[c] = values[c]
+    #     del values[c]
+
+    return df

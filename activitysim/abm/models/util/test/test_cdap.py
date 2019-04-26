@@ -2,7 +2,6 @@
 # See full license in LICENSE.txt.
 
 import os.path
-from itertools import product
 
 import pandas as pd
 import pandas.util.testing as pdt
@@ -10,13 +9,17 @@ import pytest
 
 from .. import cdap
 
-from activitysim.core.simulate import read_model_spec
-from activitysim.core.simulate import compute_utilities
+from activitysim.core import simulate
 
 
 @pytest.fixture(scope='module')
 def data_dir():
     return os.path.join(os.path.dirname(__file__), 'data')
+
+
+@pytest.fixture(scope='module')
+def configs_dir():
+    return os.path.join(os.path.dirname(__file__), 'configs')
 
 
 @pytest.fixture(scope='module')
@@ -27,13 +30,13 @@ def people(data_dir):
 
 
 @pytest.fixture(scope='module')
-def cdap_indiv_and_hhsize1(data_dir):
-    return read_model_spec(data_dir, 'cdap_indiv_and_hhsize1.csv')
+def cdap_indiv_and_hhsize1(configs_dir):
+    return simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv', spec_dir=configs_dir)
 
 
 @pytest.fixture(scope='module')
-def cdap_interaction_coefficients(data_dir):
-    f = os.path.join(data_dir, 'cdap_interaction_coefficients.csv')
+def cdap_interaction_coefficients(configs_dir):
+    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
     coefficients = pd.read_csv(f, comment='#')
     coefficients = cdap.preprocess_interaction_coefficients(coefficients)
     return coefficients
@@ -45,21 +48,9 @@ def individual_utils(
     return cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
 
-# @pytest.fixture
-# def hh_utils(individual_utils, people, hh_id_col):
-#     hh_utils = cdap.initial_household_utilities(
-#         individual_utils, people, hh_id_col)
-#     return hh_utils
-#
-#
-# @pytest.fixture
-# def hh_choices(random_seed, hh_utils):
-#     return cdap.make_household_choices(hh_utils)
+def test_bad_coefficients(configs_dir):
 
-
-def test_bad_coefficients(data_dir):
-
-    f = os.path.join(data_dir, 'cdap_interaction_coefficients.csv')
+    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
     coefficients = pd.read_csv(f, comment='#')
 
     coefficients.loc[2, 'activity'] = 'AA'
@@ -123,11 +114,11 @@ def test_build_cdap_spec_hhsize2(people, cdap_indiv_and_hhsize1, cdap_interactio
 
     choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
 
-    spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize=hhsize)
+    spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize=hhsize, cache=False)
 
-    vars = cdap.eval_variables(spec.index, choosers)
+    vars = simulate.eval_variables(spec.index, choosers)
 
-    utils = compute_utilities(vars, spec)
+    utils = simulate.compute_utilities(vars, spec)
 
     expected = pd.DataFrame([
         [0, 3, 0, 3, 7, 3, 0, 3, 0],  # household 3

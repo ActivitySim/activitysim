@@ -1,70 +1,216 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from math import ceil
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
+from builtins import input
+
 import logging
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 
-from .skim import SkimDictWrapper, SkimStackWrapper
-from . import logit
-from . import tracing
-from . import pipeline
 from . import util
+from . import mem
 
 logger = logging.getLogger(__name__)
 
+# dict of table_dicts keyed by trace_label
+# table_dicts are dicts tuples of {table_name: (elements, bytes, mem), ...}
+CHUNK_LOG = OrderedDict()
 
-def log_df_size(trace_label, table_name, df, cum_size):
+# array of chunk_size active CHUNK_LOG
+CHUNK_SIZE = []
+EFFECTIVE_CHUNK_SIZE = []
 
-    if isinstance(df, pd.Series):
-        elements = df.shape[0]
-        bytes = df.memory_usage(index=True)
-    elif isinstance(df, pd.DataFrame):
-        elements = df.shape[0] * df.shape[1]
-        bytes = df.memory_usage(index=True).sum()
+HWM = [{}]
+
+
+def GB(bytes):
+    # symbols = ('', 'K', 'M', 'G', 'T')
+    symbols = ('', ' KB', ' MB', ' GB', ' TB')
+    fmt = "%.1f%s"
+    for i, s in enumerate(symbols):
+        units = 1 << i * 10
+        if bytes < units * 1024:
+            return fmt % (bytes / units, s)
+
+
+def commas(x):
+    x = int(x)
+    if x < 10000:
+        return str(x)
+    result = ''
+    while x >= 1000:
+        x, r = divmod(x, 1000)
+        result = ",%03d%s" % (r, result)
+    return "%d%s" % (x, result)
+
+
+def log_open(trace_label, chunk_size, effective_chunk_size):
+
+    # nested chunkers should be unchunked
+    if len(CHUNK_LOG) > 0:
+        assert chunk_size == 0
+        assert trace_label not in CHUNK_LOG
+
+    logger.debug("log_open chunker %s chunk_size %s effective_chunk_size %s" %
+                 (trace_label, commas(chunk_size), commas(effective_chunk_size)))
+
+    CHUNK_LOG[trace_label] = OrderedDict()
+    CHUNK_SIZE.append(chunk_size)
+    EFFECTIVE_CHUNK_SIZE.append(effective_chunk_size)
+
+    HWM.append({})
+
+
+def log_close(trace_label):
+
+    assert CHUNK_LOG and next(reversed(CHUNK_LOG)) == trace_label
+
+    logger.debug("log_close %s" % trace_label)
+
+    # if we are closing base level chunker
+    if len(CHUNK_LOG) == 1:
+        log_write_hwm()
+
+    label, _ = CHUNK_LOG.popitem(last=True)
+    assert label == trace_label
+    CHUNK_SIZE.pop()
+    EFFECTIVE_CHUNK_SIZE.pop()
+
+    HWM.pop()
+
+
+def log_df(trace_label, table_name, df):
+
+    if df is None:
+        # FIXME force_garbage_collect on delete?
+        mem.force_garbage_collect()
+
+    cur_chunker = next(reversed(CHUNK_LOG))
+
+    if df is None:
+        CHUNK_LOG.get(cur_chunker).pop(table_name)
+        op = 'del'
+
+        logger.debug("log_df del %s : %s " % (table_name, trace_label))
+
     else:
-        assert False
 
-    # logger.debug("%s #chunk log_df_size %s %s %s %s" %
-    #              (trace_label, table_name, df.shape, elements, util.GB(bytes)))
+        shape = df.shape
+        elements = np.prod(shape)
+        op = 'add'
 
-    if cum_size:
-        elements += cum_size[0]
-        bytes += cum_size[1]
+        if isinstance(df, pd.Series):
+            bytes = df.memory_usage(index=True)
+        elif isinstance(df, pd.DataFrame):
+            bytes = df.memory_usage(index=True).sum()
+        elif isinstance(df, np.ndarray):
+            bytes = df.nbytes
+        else:
+            logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
+            assert False
 
-    return elements, bytes
+        CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
+
+        # log this df
+        logger.debug("log_df add %s elements: %s bytes: %s shape: %s : %s " %
+                     (table_name, commas(elements), GB(bytes), shape, trace_label))
+
+    total_elements, total_bytes = _chunk_totals()  # new chunk totals
+    cur_mem = mem.get_memory_info()
+    hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
+
+    # logger.debug("total_elements: %s, total_bytes: %s cur_mem: %s: %s " %
+    #              (total_elements, GB(total_bytes), GB(cur_mem), hwm_trace_label))
+
+    mem.trace_memory_info(hwm_trace_label)
+
+    # - check high_water_marks
+
+    info = "elements: %s bytes: %s mem: %s chunk_size: %s effective_chunk_size: %s" % \
+           (commas(total_elements), GB(total_bytes), GB(cur_mem),
+            commas(CHUNK_SIZE[0]), commas(EFFECTIVE_CHUNK_SIZE[0]))
+
+    check_hwm('elements', total_elements, info, hwm_trace_label)
+    check_hwm('bytes', total_bytes, info, hwm_trace_label)
+    check_hwm('mem', cur_mem, info, hwm_trace_label)
 
 
-def log_chunk_size(trace_label, cum):
+def _chunk_totals():
 
-    elements = cum[0]
-    bytes = cum[1]
+    total_elements = 0
+    total_bytes = 0
+    for label in CHUNK_LOG:
+        tables = CHUNK_LOG[label]
+        for table_name in tables:
+            elements, bytes = tables[table_name]
+            total_elements += elements
+            total_bytes += bytes
 
-    logger.debug("%s #chunk CUM %s %s" % (trace_label, elements, util.GB(bytes)))
-    # logger.debug("%s %s" % (trace_label, util.memory_info()))
+    return total_elements, total_bytes
+
+
+def check_hwm(tag, value, info, trace_label):
+
+    for d in HWM:
+
+        hwm = d.setdefault(tag, {})
+
+        if value > hwm.get('mark', 0):
+            hwm['mark'] = value
+            hwm['info'] = info
+            hwm['trace_label'] = trace_label
+
+
+def log_write_hwm():
+
+    d = HWM[0]
+    for tag in d:
+        hwm = d[tag]
+        logger.debug("#chunk_hwm high_water_mark %s: %s (%s) in %s" %
+                     (tag, hwm['mark'], hwm['info'], hwm['trace_label']), )
+
+    # - elements shouldn't exceed chunk_size or effective_chunk_size of base chunker
+    def check_chunk_size(hwm, chunk_size, label, max_leeway):
+        elements = hwm['mark']
+        if chunk_size and max_leeway and elements > chunk_size * max_leeway:  # too high
+            logger.warning("#chunk_hwm total_elements (%s) > %s (%s) %s : %s " %
+                           (commas(elements), label, commas(chunk_size),
+                            hwm['info'], hwm['trace_label']))
+
+    # if we are in a chunker
+    if len(HWM) > 1 and HWM[1]:
+        assert 'elements' in HWM[1]  # expect an 'elements' hwm dict for base chunker
+        hwm = HWM[1].get('elements')
+        check_chunk_size(hwm, EFFECTIVE_CHUNK_SIZE[0],  'effective_chunk_size', max_leeway=1.1)
+        check_chunk_size(hwm, CHUNK_SIZE[0], 'chunk_size', max_leeway=1)
 
 
 def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
 
-    # closest number of chooser rows to achieve chunk_size
-    rpc = int(round(chunk_size / float(row_size)))
+    if chunk_size > 0:
+        # closest number of chooser rows to achieve chunk_size without exceeding
+        rpc = int(chunk_size / float(row_size))
+    else:
+        rpc = num_choosers
+
     rpc = max(rpc, 1)
     rpc = min(rpc, num_choosers)
 
     # chunks = int(ceil(num_choosers / float(rpc)))
-    # effective_chunk_size = row_size * rpc
+    effective_chunk_size = row_size * rpc
+    num_chunks = (num_choosers // rpc) + (num_choosers % rpc > 0)
 
-    # logger.debug("%s #chunk_calc chunk_size %s" % (trace_label, chunk_size))
-    # logger.debug("%s #chunk_calc num_choosers %s" % (trace_label, num_choosers))
-    # logger.debug("%s #chunk_calc total row_size %s" % (trace_label, row_size))
-    # logger.debug("%s #chunk_calc rows_per_chunk %s" % (trace_label, rpc))
-    # logger.debug("%s #chunk_calc effective_chunk_size %s" % (trace_label, effective_chunk_size))
-    # logger.debug("%s #chunk_calc chunks %s" % (trace_label, chunks))
+    logger.debug("#chunk_calc num_chunks: %s, rows_per_chunk: %s, "
+                 "effective_chunk_size: %s, num_choosers: %s : %s" %
+                 (num_chunks, rpc, effective_chunk_size, num_choosers, trace_label))
 
-    return rpc
+    return rpc, effective_chunk_size
 
 
 def chunked_choosers(choosers, rows_per_chunk):
@@ -117,7 +263,7 @@ def chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
     """
 
     # if not choosers.index.is_monotonic_increasing:
-    #     logger.warn('chunked_choosers_and_alts sorting choosers because not monotonic increasing')
+    #     logger.warning('sorting choosers because not monotonic increasing')
     #     choosers = choosers.sort_index()
 
     # alternatives index should match choosers (except with duplicate repeating alt rows)

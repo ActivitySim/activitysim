@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import misc
-import tables
-import models
+from __future__ import absolute_import
+
+from . import misc
+from . import tables
+from . import models

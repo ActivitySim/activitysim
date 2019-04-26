@@ -5,7 +5,6 @@ import os
 import pytest
 import pandas as pd
 import numpy as np
-import orca
 
 import pandas.util.testing as pdt
 
@@ -17,7 +16,7 @@ from ..vectorize_tour_scheduling import get_previous_tour_by_tourid, \
 
 def test_vts():
 
-    orca.add_injectable("settings", {})
+    inject.add_injectable("settings", {})
 
     # note: need 0 duration tour on one end of day to guarantee at least one available tour
     alts = pd.DataFrame({
@@ -25,7 +24,7 @@ def test_vts():
         "end": [1, 4, 5, 6]
     })
     alts['duration'] = alts.end - alts.start
-    orca.add_injectable("tdd_alts", alts)
+    inject.add_injectable("tdd_alts", alts)
 
     current_tour_person_ids = pd.Series(['b', 'c'],
                                         index=['d', 'e'])
@@ -54,15 +53,20 @@ def test_vts():
     persons = pd.DataFrame({
         "income": [20, 30, 25]
     }, index=[1, 2, 3])
-    orca.add_table('persons', persons)
+
+    inject.add_table('persons', persons)
 
     spec = pd.DataFrame({"Coefficient": [1.2]},
                         index=["income"])
     spec.index.name = "Expression"
+    segment_col = None  # no segmentation of model_spec
 
-    orca.add_injectable("check_for_variability", True)
+    inject.add_injectable("check_for_variability", True)
 
-    tdd_choices = vectorize_tour_scheduling(tours, persons, alts, spec)
+    tdd_choices, timetable = vectorize_tour_scheduling(
+        tours, persons, alts, spec, segment_col,
+        model_settings={},
+        chunk_size=0, trace_label='test_vts')
 
     # FIXME - dead reckoning regression
     # there's no real logic here - this is just what came out of the monte carlo

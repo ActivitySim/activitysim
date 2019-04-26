@@ -1,16 +1,44 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import zip
+from builtins import object
+from future.utils import iteritems
+
 import logging
-import os
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 
 from activitysim.core import util
 from activitysim.core import config
+from activitysim.core import pipeline
 
 logger = logging.getLogger(__name__)
+
+
+def uniquify_key(dict, key, template="{} ({})"):
+    """
+    rename key so there are no duplicates with keys in dict
+
+    e.g. if there is already a key named "dog", the second key will be reformatted to "dog (2)"
+    """
+    n = 1
+    new_key = key
+    while new_key in dict:
+        n += 1
+        new_key = template.format(key, n)
+
+    return new_key
+
+
+def read_constant_spec(file_path):
+
+    return pd.read_csv(file_path, comment='#', index_col='Expression')
 
 
 def evaluate_constants(expressions, constants):
@@ -36,42 +64,10 @@ def evaluate_constants(expressions, constants):
 
     # FIXME why copy?
     d = {}
-    for k, v in expressions.iteritems():
+    for k, v in iteritems(expressions):
         d[k] = eval(str(v), d.copy(), constants)
 
     return d
-
-
-def undupe_column_names(df, template="{} ({})"):
-    """
-    rename df column names so there are no duplicates (in place)
-
-    e.g. if there are two columns named "dog", the second column will be reformatted to "dog (2)"
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        dataframe whose column names should be de-duplicated
-    template : template taking two arguments (old_name, int) to use to rename columns
-
-    Returns
-    -------
-    df : pandas.DataFrame
-        dataframe that was renamed in place, for convenience in chaining
-    """
-
-    new_names = []
-    seen = set()
-    for name in df.columns:
-        n = 1
-        new_name = name
-        while new_name in seen:
-            n += 1
-            new_name = template.format(name, n)
-        new_names.append(new_name)
-        seen.add(new_name)
-    df.columns = new_names
-    return df
 
 
 def read_assignment_spec(fname,
@@ -152,6 +148,7 @@ def local_utilities():
         'reindex': util.reindex,
         'setting': config.setting,
         'other_than': util.other_than,
+        'rng': pipeline.get_rn_generator(),
     }
 
     return utility_dict
@@ -199,13 +196,16 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
     np_logger = NumpyLogger(logger)
 
-    def is_local(target):
+    def is_throwaway(target):
+        return target == '_'
+
+    def is_temp_scalar(target):
         return target.startswith('_') and target.isupper()
 
     def is_temp(target):
         return target.startswith('_')
 
-    def to_series(x, target=None):
+    def to_series(x):
         if x is None or np.isscalar(x):
             return pd.Series([x] * len(df.index), index=df.index)
         return x
@@ -217,8 +217,8 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         # convert to numpy array so we can slice ndarrays as well as series
         trace_rows = np.asanyarray(trace_rows)
         if trace_rows.any():
-            trace_results = []
-            trace_assigned_locals = {}
+            trace_results = OrderedDict()
+            trace_assigned_locals = OrderedDict()
 
     # avoid touching caller's passed-in locals_d parameter (they may be looping)
     _locals_dict = local_utilities()
@@ -228,25 +228,36 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         _locals_dict[df_alias] = df
     else:
         _locals_dict['df'] = df
-    local_keys = _locals_dict.keys()
+    local_keys = list(_locals_dict.keys())
 
-    target_history = []
+    # build a dataframe of eval results for non-temp targets
+    # since we allow targets to be recycled, we want to only keep the last usage
+    variables = OrderedDict()
+
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
         target, expression = e
 
         assert isinstance(target, str), \
-            "expected target '%s' for expression '%s' to be string" % (target, expression)
+            "expected target '%s' for expression '%s' to be string not %s" % \
+            (target, expression, type(target))
 
         if target in local_keys:
-            logger.warn("assign_variables target obscures local_d name '%s'" % str(target))
+            logger.warning("assign_variables target obscures local_d name '%s'", str(target))
 
-        if is_local(target):
-            x = eval(expression, globals(), _locals_dict)
-            _locals_dict[target] = x
-            if trace_assigned_locals is not None:
-                trace_assigned_locals[target] = x
+        if is_temp_scalar(target) or is_throwaway(target):
+            try:
+                x = eval(expression, globals(), _locals_dict)
+            except Exception as err:
+                logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
+                logger.error("assign_variables expression: %s = %s", str(target), str(expression))
+                raise err
+
+            if not is_throwaway(target):
+                _locals_dict[target] = x
+                if trace_assigned_locals is not None:
+                    trace_assigned_locals[uniquify_key(trace_assigned_locals, target)] = x
             continue
 
         try:
@@ -259,55 +270,35 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
             # FIXME should whitelist globals for security?
             globals_dict = {}
-            values = to_series(eval(expression, globals_dict, _locals_dict), target=target)
+            expr_values = to_series(eval(expression, globals_dict, _locals_dict))
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)
 
         except Exception as err:
-            logger.error("assign_variables error: %s: %s" % (type(err).__name__, str(err)))
-
-            logger.error("assign_variables expression: %s = %s"
-                         % (str(target), str(expression)))
-
-            # values = to_series(None, target=target)
+            logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
+            logger.error("assign_variables expression: %s = %s", str(target), str(expression))
             raise err
 
-        target_history.append((target, values))
+        if not is_temp(target):
+            variables[target] = expr_values
 
         if trace_results is not None:
-            trace_results.append((target, values[trace_rows]))
+            trace_results[uniquify_key(trace_results, target)] = expr_values[trace_rows]
 
         # update locals to allows us to ref previously assigned targets
-        _locals_dict[target] = values
-
-    # build a dataframe of eval results for non-temp targets
-    # since we allow targets to be recycled, we want to only keep the last usage
-    # we scan through targets in reverse order and add them to the front of the list
-    # the first time we see them so they end up in execution order
-    variables = []
-    seen = set()
-    for statement in reversed(target_history):
-        # statement is a tuple (<target_name>, <eval results in pandas.Series>)
-        target_name = statement[0]
-        if not is_temp(target_name) and target_name not in seen:
-            variables.insert(0, statement)
-            seen.add(target_name)
-
-    # DataFrame from list of tuples [<target_name>, <eval results>), ...]
-    variables = pd.DataFrame.from_items(variables)
-    # in case items were numpy arrays not pandas series, fix index
-    variables.index = df.index
+        _locals_dict[target] = expr_values
 
     if trace_results is not None:
 
-        trace_results = pd.DataFrame.from_items(trace_results)
+        trace_results = pd.DataFrame.from_dict(trace_results)
 
         trace_results.index = df[trace_rows].index
 
-        trace_results = undupe_column_names(trace_results)
-
         # add df columns to trace_results
         trace_results = pd.concat([df[trace_rows], trace_results], axis=1)
+
+    # we stored result in dict - convert to df
+    variables = util.df_from_dict(variables, index=df.index)
 
     return variables, trace_results, trace_assigned_locals

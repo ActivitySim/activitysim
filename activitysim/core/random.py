@@ -1,23 +1,42 @@
-import collections
+# ActivitySim
+# See full license in LICENSE.txt.
+
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import range
+from builtins import object
+
+import logging
+import hashlib
 
 import numpy as np
 import pandas as pd
 
-import inject
 from .tracing import print_elapsed_time
 
-
-import logging
 
 logger = logging.getLogger(__name__)
 
 # one more than 0xFFFFFFFF so we can wrap using: int64 % _MAX_SEED
 _MAX_SEED = (1 << 32)
+_SEED_MASK = 0xffffffff
 
-# not arbitrary, as we count on incrementing step_num from NULL_STEP_NUM to 0
-NULL_STEP_NUM = -1
 
-MAX_STEPS = 100
+def hash32(s):
+    """
+
+    Parameters
+    ----------
+    s: str
+
+    Returns
+    -------
+        32 bit unsigned hash
+    """
+    s = s.encode('utf8')
+    h = hashlib.md5(s).hexdigest()
+    return int(h, base=16) & _SEED_MASK
 
 
 class SimpleChannel(object):
@@ -38,91 +57,96 @@ class SimpleChannel(object):
     speed matters because we reseed on-the-fly for every call because creating a different
     RandomState object for each row uses too much memory (5K per RandomState object)
 
-    So instead, multiply the domain_df index by the number of steps required for the channel
-    add the step_num to the row_seed to get a unique seed for each (domain_df index, step_num)
-    tuple.
-
-    Currently, it is possible that random streams for rows in different tables may coincide.
-    This would be easy to avoid with either seed arrays or fast jump/offset.
-
     numpy random seeds are unsigned int32 so there are 4,294,967,295 available seeds.
     That is probably just about enough to distribute evenly, for most cities, depending on the
     number of households, persons, tours, trips, and steps.
+
+    So we use (global_seed + channel_seed + step_seed + row_index) % (1 << 32)
+    to get an int32 seed rather than a tuple.
 
     We do read in the whole households and persons tables at start time, so we could note the
     max index values. But we might then want a way to ensure stability between the test, example,
     and full datasets. I am punting on this for now.
     """
 
-    def __init__(self, channel_name, base_seed, domain_df, step_num):
+    def __init__(self, channel_name, base_seed, domain_df, step_name):
 
-        self.name = channel_name
         self.base_seed = base_seed
 
         # ensure that every channel is different, even for the same df index values and max_steps
-        self.unique_channel_seed = hash(self.name) % _MAX_SEED
+        self.channel_name = channel_name
+        self.channel_seed = hash32(self.channel_name)
 
-        assert (step_num == NULL_STEP_NUM) or step_num >= 0
-        self.step_num = step_num
-
-        assert (self.step_num < MAX_STEPS)
+        self.step_name = None
+        self.step_seed = None
+        self.row_states = None
 
         # create dataframe to hold state for every df row
-        self.row_states = self.create_row_states_for_domain(domain_df)
+        self.extend_domain(domain_df)
+        assert self.row_states.shape[0] == domain_df.shape[0]
 
-    def create_row_states_for_domain(self, domain_df):
+        if step_name:
+            self.begin_step(step_name)
+
+    def init_row_states_for_step(self, row_states):
         """
-        Create a dataframe with same index as domain_df and a single column
+        initialize row states (in place) for new step
+
         with stable, predictable, repeatable row_seeds for that domain_df index value
 
         See notes on the seed generation strategy in class comment above.
 
         Parameters
         ----------
-        domain_df : pandas.dataframe
-            domain dataframe with index values for which random streams are to be generated
-
-        Returns
-        -------
-        row_states : pandas.DataFrame
+        row_states
         """
 
-        # dataframe to hold state for every df row
-        row_states = pd.DataFrame(columns=['row_seed', 'offset'], index=domain_df.index)
+        assert self.step_name
 
-        if not row_states.empty:
-            row_states['row_seed'] = (self.base_seed + self.unique_channel_seed +
-                                      row_states.index * MAX_STEPS) % _MAX_SEED
+        if self.step_name and not row_states.empty:
+
+            row_states['row_seed'] = (self.base_seed +
+                                      self.channel_seed +
+                                      self.step_seed +
+                                      row_states.index) % _MAX_SEED
+
+            # number of rands pulled this step
             row_states['offset'] = 0
 
         return row_states
 
     def extend_domain(self, domain_df):
         """
-        Extend existing row_state df by adding seed info for each row in domain_df
+        Extend or create row_state df by adding seed info for each row in domain_df
 
-        It is assumed that the index values of the component tables are disjoint and
-        there will be no ambiguity/collisions between them
+        If extending, the index values of new tables must be disjoint so
+        there will be no ambiguity/collisions between rows
 
         Parameters
         ----------
         domain_df : pandas.DataFrame
             domain dataframe with index values for which random streams are to be generated
             and well-known index name corresponding to the channel
-
-        step_name : str or None
-            provided when reloading so we can restore step_name and step_num
-
-        step_num : int or None
         """
 
-        # these should be new rows, no intersection with existing row_states
-        assert len(self.row_states.index.intersection(domain_df.index)) == 0
+        if domain_df.empty:
+            logger.warning("extend_domain for channel %s for empty domain_df" % self.channel_name)
 
-        new_row_states = self.create_row_states_for_domain(domain_df)
-        self.row_states = pd.concat([self.row_states, new_row_states])
+        # dataframe to hold state for every df row
+        row_states = pd.DataFrame(columns=['row_seed', 'offset'], index=domain_df.index)
 
-    def begin_step(self, step_num):
+        if self.step_name and not row_states.empty:
+            self.init_row_states_for_step(row_states)
+
+        if self.row_states is None:
+            self.row_states = row_states
+        else:
+            # row_states already exists, so we are extending
+            # if extending, these should be new rows, no intersection with existing row_states
+            assert len(self.row_states.index.intersection(domain_df.index)) == 0
+            self.row_states = pd.concat([self.row_states, row_states])
+
+    def begin_step(self, step_name):
         """
         Reset channel state for a new state
 
@@ -132,23 +156,35 @@ class SimpleChannel(object):
             pipeline step name for this step
         """
 
-        self.step_num = step_num
+        assert self.step_name is None
 
-        if self.step_num >= MAX_STEPS:
-            raise RuntimeError("Too many steps: %s (max %s) for channel '%s'"
-                               % (self.step_num, MAX_STEPS, self.name))
+        self.step_name = step_name
+        self.step_seed = hash32(self.step_name)
 
-        # number of rands pulled this step
-        self.row_states['offset'] = 0
+        self.init_row_states_for_step(self.row_states)
 
         # standard constant to use for choice_for_df instead of fast-forwarding rand stream
         self.multi_choice_offset = None
+
+    def end_step(self, step_name):
+
+        assert self.step_name == step_name
+
+        self.step_name = None
+        self.step_seed = None
+        self.row_states['offset'] = 0
+        self.row_states['row_seed'] = 0
 
     def _generators_for_df(self, df):
         """
         Python generator function for iterating over numpy prngs (nomenclature collision!)
         seeded and fast-forwarded on-the-fly to the appropriate position in the channel's
         random number stream for each row in df.
+
+        WARNING:
+            since we are reusing a single underlying randomstate,
+            prng must be called when yielded as generated sequence,
+            not serialized and called later after iterator finishes
 
         Parameters
         ----------
@@ -165,8 +201,7 @@ class SimpleChannel(object):
         prng = np.random.RandomState()
         for row in df_row_states.itertuples():
 
-            seed = (row.row_seed + self.step_num) % _MAX_SEED
-            prng.seed(seed)
+            prng.seed(row.row_seed)
 
             if row.offset:
                 # consume rands
@@ -203,10 +238,71 @@ class SimpleChannel(object):
         rands : 2-D ndarray
             array the same length as df, with n floats in range [0, 1) for each df row
         """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        # - reminder: prng must be called when yielded as generated sequence, not serialized
         generators = self._generators_for_df(df)
+
         rands = np.asanyarray([prng.rand(n) for prng in generators])
         # update offset for rows we handled
         self.row_states.loc[df.index, 'offset'] += n
+        return rands
+
+    def lognormal_for_df(self, df, step_name, mu, sigma):
+        """
+        Return a floating point random number in lognormal distribution for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame or Series
+            df or series with index name and values corresponding to a registered channel
+
+        mu : float or pd.Series or array of floats with one value per df row
+        sigma : float or array of floats with one value per df row
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            array the same length as df, with n floats in range [0, 1) for each df row
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        def to_series(x):
+            if np.isscalar(x):
+                return [x] * len(df)
+            elif isinstance(x, pd.Series):
+                return x.values
+            return x
+
+        # - reminder: prng must be called when yielded as generated sequence, not serialized
+        generators = self._generators_for_df(df)
+
+        mu = to_series(mu)
+        sigma = to_series(sigma)
+
+        rands = \
+            np.asanyarray([prng.lognormal(mean=mu[i], sigma=sigma[i])
+                           for i, prng in enumerate(generators)])
+
+        # update offset for rows we handled
+        self.row_states.loc[df.index, 'offset'] += 1
+
         return rands
 
     def choice_for_df(self, df, step_name, a, size, replace):
@@ -245,6 +341,9 @@ class SimpleChannel(object):
             The generated random samples for each row concatenated into a single (flat) array
         """
 
+        assert self.step_name
+        assert self.step_name == step_name
+
         # initialize the generator iterator
         generators = self._generators_for_df(df)
 
@@ -253,7 +352,7 @@ class SimpleChannel(object):
         if not self.multi_choice_offset:
             # FIXME - if replace, should we estimate rands_consumed?
             if replace:
-                logger.warn("choice_for_df MULTI_CHOICE_FF with replace")
+                logger.warning("choice_for_df MULTI_CHOICE_FF with replace")
             # update offset for rows we handled
             self.row_states.loc[df.index, 'offset'] += size
 
@@ -264,47 +363,15 @@ class Random(object):
 
     def __init__(self):
 
-        # dict mapping df index_name to channel (table) name
-        self.index_to_channel_map = {}
-
         self.channels = {}
+
+        # dict mapping df index name to channel name
+        self.index_to_channel = {}
+
         self.step_name = None
-        self.step_num = NULL_STEP_NUM
         self.step_seed = None
         self.base_seed = 0
         self.global_rng = np.random.RandomState()
-
-    def set_channel_info(self, channel_info):
-
-        assert len(self.channels) == 0
-        assert len(self.index_to_channel_map) == 0
-
-        # for mapping index name to channel name
-        self.index_to_channel_map = \
-            {index_name: channel_name for channel_name, index_name in channel_info.iteritems()}
-
-    def get_channel_name_for_df(self, df):
-        """
-        Return the channel name corresponding to the index name of df
-
-        We expect that the random number channel can be determined by the name of the index of the
-        dataframe accompanying the request. This mapping was specified in channel_info
-
-        This function internally encapsulates the knowledge of that mapping.
-
-        Parameters
-        ----------
-        df : pandas.DataFrame
-            domain_df or a df passed to random number/choice methods with well known index name
-
-        Returns
-        -------
-            channel_name : str
-        """
-        channel_name = self.index_to_channel_map.get(df.index.name, None)
-        if channel_name is None:
-            raise RuntimeError("No channel with index name '%s'" % df.index.name)
-        return channel_name
 
     def get_channel_for_df(self, df):
         """
@@ -316,9 +383,10 @@ class Random(object):
             either a domain_df for a channel being added or extended
             or a df for which random values are to be generated
         """
-        channel_name = self.get_channel_name_for_df(df)
-        if channel_name not in self.channels:
-            raise RuntimeError("Channel '%s' has not yet been added." % channel_name)
+
+        channel_name = self.index_to_channel.get(df.index.name, None)
+        if channel_name is None:
+            raise RuntimeError("No channel with index name '%s'" % df.index.name)
         return self.channels[channel_name]
 
     # step handling
@@ -336,18 +404,16 @@ class Random(object):
 
         assert self.step_name is None
         assert step_name is not None
-        assert step_name != self.step_name
 
         self.step_name = step_name
-        self.step_num += 1
 
-        self.step_seed = hash(step_name) % _MAX_SEED
+        self.step_seed = hash32(step_name)
 
         seed = [self.base_seed, self.step_seed]
         self.global_rng = np.random.RandomState(seed)
 
         for c in self.channels:
-            self.channels[c].begin_step(self.step_num)
+            self.channels[c].begin_step(self.step_name)
 
     def end_step(self, step_name):
         """
@@ -362,13 +428,16 @@ class Random(object):
         assert self.step_name is not None
         assert self.step_name == step_name
 
+        for c in self.channels:
+            self.channels[c].end_step(self.step_name)
+
         self.step_name = None
         self.step_seed = None
         self.global_rng = None
 
     # channel management
 
-    def add_channel(self, domain_df, channel_name):
+    def add_channel(self, channel_name, domain_df):
         """
         Create or extend a channel for generating random number streams for domain_df.
 
@@ -385,18 +454,11 @@ class Random(object):
         channel_name : str
             expected channel name provided as a consistency check
 
-        step_name : str or None
-            for channels being loaded (resumed) we need the step_name and step_num to maintain
-            consistent step numbering
-
-        step_num : int or NULL_STEP_NUM
-            for channels being loaded (resumed) we need the step_name and step_num to maintain
-            consistent step numbering
         """
 
-        assert channel_name == self.get_channel_name_for_df(domain_df)
-
         if channel_name in self.channels:
+
+            assert channel_name == self.index_to_channel[domain_df.index.name]
             logger.debug("Random: extending channel '%s' %s ids" %
                          (channel_name, len(domain_df.index)))
             channel = self.channels[channel_name]
@@ -404,44 +466,31 @@ class Random(object):
             channel.extend_domain(domain_df)
 
         else:
-            logger.debug("Random: adding channel '%s' %s ids" %
-                         (channel_name, len(domain_df.index)))
+            logger.debug("Adding channel '%s' %s ids" % (channel_name, len(domain_df.index)))
 
             channel = SimpleChannel(channel_name,
                                     self.base_seed,
                                     domain_df,
-                                    self.step_num
+                                    self.step_name
                                     )
 
             self.channels[channel_name] = channel
+            self.index_to_channel[domain_df.index.name] = channel_name
 
-    def load_channels(self, step_num):
+    def drop_channel(self, channel_name):
         """
-        Called on resume to initialize channels for existing saved tables
-        All channels should have been registered by a call to set_channel_info.
-        This method checks to see if any of them have an injectable table
+        Drop channel that won't be used again (saves memory)
 
         Parameters
         ----------
-        step_num
-
-        Returns
-        -------
-
+        channel_name
         """
 
-        self.step_num = step_num
-        for index_name in self.index_to_channel_map:
-
-            channel_name = self.index_to_channel_map[index_name]
-            df = inject.get_table(channel_name, None)
-
-            if df is not None:
-                logger.debug("loading channel %s" % (channel_name,))
-                self.add_channel(df, channel_name=channel_name)
-                self.channels[channel_name].begin_step(step_num)
-            else:
-                logger.debug("skipping channel %s" % (channel_name,))
+        if channel_name in self.channels:
+            logger.debug("Dropping channel '%s'" % (channel_name, ))
+            del self.channels[channel_name]
+        else:
+            logger.error("drop_channel called with unknown channel '%s'" % (channel_name,))
 
     def set_base_seed(self, seed=None):
         """
@@ -466,7 +515,7 @@ class Random(object):
         if self.step_name is not None or self.channels:
             raise RuntimeError("Can only call set_base_seed before the first step.")
 
-        assert len(self.channels.keys()) == 0
+        assert len(list(self.channels.keys())) == 0
 
         if seed is None:
             self.base_seed = np.random.RandomState().randint(_MAX_SEED)
@@ -496,6 +545,16 @@ class Random(object):
         """
         assert self.step_name is not None
         return self.global_rng
+
+    def get_external_rng(self, one_off_step_name):
+        """
+        Return a numpy random number generator for step-independent one_off use
+
+        exists to allow sampling of input tables consistent no matter what step they are called in
+        """
+
+        seed = [self.base_seed, hash32(one_off_step_name)]
+        return np.random.RandomState(seed)
 
     def random_for_df(self, df, n=1):
         """
@@ -538,6 +597,43 @@ class Random(object):
 
         channel = self.get_channel_for_df(df)
         rands = channel.random_for_df(df, self.step_name, n)
+        return rands
+
+    def lognormal_for_df(self, df, mu, sigma):
+        """
+        Return a single floating point random number in range [0, 1) for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        We assume that we can identify the channel to used based on the name of df.index
+        This channel should have already been registered by a call to add_channel (q.v.)
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        mu : float or array of floats with one value per df row
+        sigma : float or array of floats with one value per df row
+
+        Returns
+        -------
+        rands : 1-D ndarray the same length as df
+            a single float in lognormal distribution for each row in df
+        """
+
+        channel = self.get_channel_for_df(df)
+        rands = channel.lognormal_for_df(df, self.step_name, mu, sigma)
         return rands
 
     def choice_for_df(self, df, a, size, replace):

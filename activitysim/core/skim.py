@@ -1,7 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import range
+from builtins import object
+
+from future.utils import iteritems
+from future.utils import listvalues
+
 import logging
+
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -13,43 +24,77 @@ logger = logging.getLogger(__name__)
 
 
 class OffsetMapper(object):
+    """
+    Utility to map skim zone ids to ordinal offsets (e.g. numpy array indices)
+
+    Can map either by a fixed offset (e.g. -1 to map 1-based to 0-based)
+    or by an explicit mapping of zone id to offset (slower but more flexible)
+    """
 
     def __init__(self, offset_int=None):
         self.offset_series = None
         self.offset_int = offset_int
 
     def set_offset_list(self, offset_list):
+        """
+        Specify the zone ids corresponding to the offsets (ordinal positions)
 
+        set_offset_list([10, 20, 30, 40])
+        map([30, 20, 40])
+        returns offsets [2, 1, 3]
+
+        Parameters
+        ----------
+        offset_list : list of int
+        """
         assert isinstance(offset_list, list)
         assert self.offset_int is None
 
-        # for performance, check if this is a simple int-based series
+        # - for performance, check if this is a simple int-based series
         first_offset = offset_list[0]
-        if (offset_list == range(first_offset, len(offset_list)+first_offset)):
+        if (offset_list == list(range(first_offset, len(offset_list)+first_offset))):
             offset_int = -1 * first_offset
             # print "set_offset_list substituting offset_int of %s" % offset_int
             self.set_offset_int(offset_int)
             return
 
         if self.offset_series is None:
-            self.offset_series = pd.Series(data=range(len(offset_list)), index=offset_list)
+            self.offset_series = pd.Series(data=list(range(len(offset_list))), index=offset_list)
         else:
             # make sure it offsets are the same
             assert (offset_list == self.offset_series.index).all()
 
     def set_offset_int(self, offset_int):
+        """
+        specify fixed offset (e.g. -1 to map 1-based to 0-based)
+
+        Parameters
+        ----------
+        offset_int : int
+        """
 
         # should be some kind of integer
-        assert long(offset_int) == offset_int
+        assert int(offset_int) == offset_int
         assert self.offset_series is None
 
         if self.offset_int is None:
-            self.offset_int = offset_int
+            self.offset_int = int(offset_int)
         else:
             # make sure it is the same
             assert offset_int == self.offset_int
 
     def map(self, zone_ids):
+        """
+        map zone_ids to offsets
+
+        Parameters
+        ----------
+        zone_ids
+
+        Returns
+        -------
+        offsets : numpy array of int
+        """
 
         # print "\nmap_offsets zone_ids", zone_ids
 
@@ -60,8 +105,6 @@ class OffsetMapper(object):
             offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series))
 
         elif self.offset_int:
-            # should be some kind of integer
-            assert long(self.offset_int) == self.offset_int
             assert (self.offset_series is None)
             offsets = zone_ids + self.offset_int
         else:
@@ -105,27 +148,20 @@ class SkimWrapper(object):
         values : 1D array
 
         """
-        # only working with numpy in here
-        orig = np.asanyarray(orig)
-        dest = np.asanyarray(dest)
-        out_shape = orig.shape
 
-        # filter orig and dest to only the real-number pairs
-        notnan = ~(np.isnan(orig) | np.isnan(dest))
-        orig = orig[notnan].astype('int')
-        dest = dest[notnan].astype('int')
+        # fixme - remove?
+        assert not (np.isnan(orig) | np.isnan(dest)).any()
+
+        # only working with numpy in here
+        orig = np.asanyarray(orig).astype(int)
+        dest = np.asanyarray(dest).astype(int)
 
         orig = self.offset_mapper.map(orig)
         dest = self.offset_mapper.map(dest)
 
         result = self.data[orig, dest]
 
-        # add the nans back to the result
-        out = np.empty(out_shape)
-        out[notnan] = result
-        out[~notnan] = np.nan
-
-        return out
+        return result
 
 
 class SkimDict(object):
@@ -137,39 +173,21 @@ class SkimDict(object):
     Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
 
-    def __init__(self):
-        self.skims = {}
+    def __init__(self, skim_data, skim_info):
+
+        self.skim_info = skim_info
+        self.skim_data = skim_data
+
         self.offset_mapper = OffsetMapper()
+        self.usage = set()
 
-    def set(self, key, skim_data):
-        """
-        Set skim data for key
+    def touch(self, key):
 
-        Parameters
-        ----------
-        key : hashable
-             The key (identifier) for this skim object
-        skim_data : Skim
-             The skim object
-
-        Returns
-        -------
-        Nothing
-        """
-
-        if not isinstance(key, str):
-            assert isinstance(key, tuple) and len(key) == 2
-            assert isinstance(key[0], str) and isinstance(key[1], str)
-
-        self.skims[key] = np.asanyarray(skim_data)
-
-        # print "\n### %s" % (key,)
-        # print "type(skim_data)", type(skim_data)
-        # print "skim_data.shape", skim_data.shape
+        self.usage.add(key)
 
     def get(self, key):
         """
-        Get an available skim object (not the lookup)
+        Get an available wrapped skim object (not the lookup)
 
         Parameters
         ----------
@@ -181,7 +199,15 @@ class SkimDict(object):
         skim: Skim
              The skim object
         """
-        return SkimWrapper(self.skims[key], self.offset_mapper)
+
+        block, offset = self.skim_info['block_offsets'].get(key)
+        block_data = self.skim_data[block]
+
+        self.touch(key)
+
+        data = block_data[:, :, offset]
+
+        return SkimWrapper(data, self.offset_mapper)
 
     def wrap(self, left_key, right_key):
         """
@@ -318,62 +344,55 @@ class SkimStack(object):
 
     def __init__(self, skim_dict):
 
-        self.skims_data = {}
-        self.skim_keys_to_indexes = {}
         self.offset_mapper = skim_dict.offset_mapper
+        self.skim_dict = skim_dict
 
-        # pass to make dictionary of dictionaries where highest level is unique
-        # first items of the tuples and the 2nd level is the second items of
-        # the tuples
-        for key, skim_data in skim_dict.skims.iteritems():
-            if not isinstance(key, tuple) or not len(key) == 2:
-                logger.debug("SkimStack __init__ skipping key: %s" % key)
+        # - key1_blocks dict maps key1 to block number
+        # DISTWALK: 0,
+        # DRV_COM_WLK_BOARDS: 0, ...
+        key1_block_offsets = skim_dict.skim_info['key1_block_offsets']
+        self.key1_blocks = {k: v[0] for k, v in iteritems(key1_block_offsets)}
+
+        # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
+        # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
+        block_offsets = skim_dict.skim_info['block_offsets']
+        skim_dim3 = OrderedDict()
+        for skim_key in block_offsets:
+
+            if not isinstance(skim_key, tuple):
                 continue
-            logger.debug("SkimStack __init__ loading key: %s" % (key,))
-            skim_key1, skim_key2 = key
-            # logger.debug("SkimStack init key: key1='%s' key2='%s'" % (skim_key1, skim_key2))
-            # FIXME - this copys object reference
-            self.skims_data.setdefault(skim_key1, {})[skim_key2] = skim_data
 
-            # print "\n### %s" % (key,)
-            # print "type(skim_data)", type(skim_data)
-            # print "skim_data.shape", skim_data.shape
+            key1, key2 = skim_key
+            block, offset = block_offsets[skim_key]
 
-        # second pass to turn the each highest level value into a 3D array
-        # with a dictionary to make second level keys to indexes
-        for skim_key1, value in self.skims_data.iteritems():
-            # FIXME - this actually copies/creates new stacked data
-            self.skims_data[skim_key1] = np.dstack(value.values())
-            self.skim_keys_to_indexes[skim_key1] = dict(zip(value.keys(), range(len(value))))
+            assert block == self.key1_blocks[key1]
+
+            skim_dim3.setdefault(key1, OrderedDict())[key2] = offset
+
+        self.skim_dim3 = skim_dim3
 
         logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
-                    % (len(self.skim_keys_to_indexes),
-                       sum([len(d) for d in self.skim_keys_to_indexes.values()])))
+                    % (len(self.skim_dim3),
+                       sum([len(d) for d in listvalues(self.skim_dim3)])))
 
-    def __str__(self):
+        self.usage = set()
 
-        return "\n".join(
-            "%s %s" % (key1, sub_dict)
-            for key1, sub_dict in self.skim_keys_to_indexes.iteritems())
-
-    # def key_count(self):
-    #     return len(self.skim_keys_to_indexes.keys())
-    #
-    # def contains(self, key):
-    #     return key in self.skims_data
-
-    def get(self, key):
-        return self.skims_data[key], self.skim_keys_to_indexes[key]
+    def touch(self, key):
+        self.usage.add(key)
 
     def lookup(self, orig, dest, dim3, key):
 
         orig = self.offset_mapper.map(orig)
         dest = self.offset_mapper.map(dest)
 
-        assert key in self.skims_data, "SkimStack key %s missing" % key
+        assert key in self.key1_blocks, "SkimStack key %s missing" % key
+        assert key in self.skim_dim3, "SkimStack key %s missing" % key
 
-        stacked_skim_data = self.skims_data[key]
-        skim_keys_to_indexes = self.skim_keys_to_indexes[key]
+        block = self.key1_blocks[key]
+        stacked_skim_data = self.skim_dict.skim_data[block]
+        skim_keys_to_indexes = self.skim_dim3[key]
+
+        self.touch(key)
 
         # skim_indexes = dim3.map(skim_keys_to_indexes).astype('int')
         # this should be faster than map
@@ -391,7 +410,7 @@ class SkimStack(object):
 
 class SkimStackWrapper(object):
     """
-    A SkimStackWrapper object wraps a skims object to add an additional wrinkle of
+    A SkimStackWrapper object wraps a SkimStack object to add an additional wrinkle of
     lookup functionality.  Upon init the separate skims objects are
     processed into a 3D matrix so that lookup of the different skims can
     be performed quickly for each row in the dataframe.  In this very
@@ -509,7 +528,7 @@ class DataFrameMatrix(object):
         """
 
         self.df = df
-        self.data = df.as_matrix()
+        self.data = df.values
 
         self.offset_mapper = OffsetMapper()
         self.offset_mapper.set_offset_list(list(df.index))

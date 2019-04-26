@@ -1,7 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
 import pandas as pd
@@ -14,47 +17,25 @@ from activitysim.core import inject
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
-
-from activitysim.core.util import reindex
-from activitysim.core.util import left_merge_on_index_and_col
-
-from .util import expressions
 from activitysim.core.util import assign_in_place
 
 from .util import logsums as logsum
-
-from .util.expressions import skim_time_period_label
-from .util.tour_destination import tour_destination_size_terms
+from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
 logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@inject.injectable()
-def atwork_subtour_destination_sample_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'atwork_subtour_destination_sample.csv')
-
-
-@inject.step()
-def atwork_subtour_destination_sample(tours,
-                                      persons_merged,
-                                      atwork_subtour_destination_sample_spec,
-                                      skim_dict,
-                                      land_use, size_terms,
-                                      chunk_size, trace_hh_id):
+def atwork_subtour_destination_sample(
+        tours,
+        persons_merged,
+        skim_dict,
+        destination_size_terms,
+        chunk_size, trace_hh_id):
 
     trace_label = 'atwork_subtour_location_sample'
     model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
-
-    persons_merged = persons_merged.to_frame()
-
-    tours = tours.to_frame()
-    tours = tours[tours.tour_category == 'atwork']
-
-    # - if no atwork subtours
-    if tours.shape[0] == 0:
-        tracing.no_results(trace_label)
-        return
+    model_spec = simulate.read_model_spec(file_name='atwork_subtour_destination_sample.csv')
 
     # merge persons into tours
     choosers = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
@@ -62,14 +43,12 @@ def atwork_subtour_destination_sample(tours,
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alternatives = tour_destination_size_terms(land_use, size_terms, 'atwork')
-
     constants = config.get_model_constants(model_settings)
 
     sample_size = model_settings["SAMPLE_SIZE"]
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
-    logger.info("Running atwork_subtour_location_sample with %d tours" % len(choosers))
+    logger.info("Running atwork_subtour_location_sample with %d tours", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a workplace_taz
     # in the choosers and a TAZ in the alternatives which get merged during interaction
@@ -84,59 +63,52 @@ def atwork_subtour_destination_sample(tours,
 
     choices = interaction_sample(
         choosers,
-        alternatives,
+        alternatives=destination_size_terms,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
-        spec=atwork_subtour_destination_sample_spec,
+        spec=model_spec,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label)
 
+    # remember person_id in chosen alts so we can merge with persons in subsequent steps
     choices['person_id'] = choosers.person_id
 
-    inject.add_table('atwork_subtour_destination_sample', choices)
+    return choices
 
 
-@inject.step()
-def atwork_subtour_destination_logsums(persons_merged,
-                                       skim_dict, skim_stack,
-                                       configs_dir, chunk_size, trace_hh_id):
+def atwork_subtour_destination_logsums(
+        persons_merged,
+        destination_sample,
+        skim_dict, skim_stack,
+        chunk_size, trace_hh_id):
     """
-    add logsum column to existing workplace_location_sample able
+    add logsum column to existing atwork_subtour_destination_sample table
 
     logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
-    in workplace_location_sample, and computing the logsum of all the utilities
+    in atwork_subtour_destination_sample, and computing the logsum of all the utilities
 
-    +-------+--------------+----------------+------------+----------------+
-    | PERID | dest_TAZ     | rand           | pick_count | logsum (added) |
-    +=======+==============+================+============+================+
-    | 23750 |  14          | 0.565502716034 | 4          |  1.85659498857 |
-    +-------+--------------+----------------+------------+----------------+
-    + 23750 | 16           | 0.711135838871 | 6          | 1.92315598631  |
-    +-------+--------------+----------------+------------+----------------+
-    + ...   |              |                |            |                |
-    +-------+--------------+----------------+------------+----------------+
-    | 23751 | 12           | 0.408038878552 | 1          | 2.40612135416  |
-    +-------+--------------+----------------+------------+----------------+
-    | 23751 | 14           | 0.972732479292 | 2          |  1.44009018355 |
-    +-------+--------------+----------------+------------+----------------+
+    +-----------+--------------+----------------+------------+----------------+
+    | person_id | dest_TAZ     | rand           | pick_count | logsum (added) |
+    +===========+==============+================+============+================+
+    | 23750     |  14          | 0.565502716034 | 4          |  1.85659498857 |
+    +-----------+--------------+----------------+------------+----------------+
+    + 23750     | 16           | 0.711135838871 | 6          | 1.92315598631  |
+    +-----------+--------------+----------------+------------+----------------+
+    + ...       |              |                |            |                |
+    +-----------+--------------+----------------+------------+----------------+
+    | 23751     | 12           | 0.408038878552 | 1          | 2.40612135416  |
+    +-----------+--------------+----------------+------------+----------------+
+    | 23751     | 14           | 0.972732479292 | 2          |  1.44009018355 |
+    +-----------+--------------+----------------+------------+----------------+
 
     """
 
     trace_label = 'atwork_subtour_destination_logsums'
 
-    # use inject.get_table as this won't exist if there are no atwork subtours
-    destination_sample = inject.get_table('atwork_subtour_destination_sample', default=None)
-    if destination_sample is None:
-        tracing.no_results(trace_label)
-        return
-
     model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
-
-    destination_sample = destination_sample.to_frame()
-    persons_merged = persons_merged.to_frame()
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
@@ -148,7 +120,7 @@ def atwork_subtour_destination_logsums(persons_merged,
                         right_index=True,
                         how="left")
 
-    logger.info("Running %s with %s rows" % (trace_label, len(choosers)))
+    logger.info("Running %s with %s rows", trace_label, len(choosers))
 
     tracing.dump_df(DUMP, persons_merged, trace_label, 'persons_merged')
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
@@ -162,25 +134,18 @@ def atwork_subtour_destination_logsums(persons_merged,
         chunk_size, trace_hh_id,
         trace_label)
 
-    # "add_column series should have an index matching the table to which it is being added"
-    # when the index has duplicates, however, in the special case that the series index exactly
-    # matches the table index, then the series value order is preserved. logsums does have a
-    # matching index, since atwork_subtour_destination_sample was on left side of merge
-    inject.add_column("atwork_subtour_destination_sample", "mode_choice_logsum", logsums)
+    destination_sample['mode_choice_logsum'] = logsums
+
+    return destination_sample
 
 
-@inject.injectable()
-def atwork_subtour_destination_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'atwork_subtour_destination.csv')
-
-
-@inject.step()
-def atwork_subtour_destination_simulate(tours,
-                                        persons_merged,
-                                        atwork_subtour_destination_spec,
-                                        skim_dict,
-                                        land_use, size_terms,
-                                        chunk_size, trace_hh_id):
+def atwork_subtour_destination_simulate(
+        subtours,
+        persons_merged,
+        destination_sample,
+        skim_dict,
+        destination_size_terms,
+        chunk_size, trace_hh_id):
     """
     atwork_subtour_destination model on atwork_subtour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
@@ -188,25 +153,15 @@ def atwork_subtour_destination_simulate(tours,
 
     trace_label = 'atwork_subtour_destination_simulate'
 
-    # use inject.get_table as this won't exist if there are no atwork subtours
-    destination_sample = inject.get_table('atwork_subtour_destination_sample', default=None)
-    if destination_sample is None:
-        tracing.no_results(trace_label)
-        return
-
-    destination_sample = destination_sample.to_frame()
-
     model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
-
-    tours = tours.to_frame()
-    subtours = tours[tours.tour_category == 'atwork']
+    model_spec = simulate.read_model_spec(file_name='atwork_subtour_destination.csv')
 
     # interaction_sample_simulate insists choosers appear in same order as alts
     subtours = subtours.sort_index()
 
     # merge persons into tours
     choosers = pd.merge(subtours,
-                        persons_merged.to_frame(),
+                        persons_merged,
                         left_on='person_id', right_index=True)
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -216,9 +171,7 @@ def atwork_subtour_destination_simulate(tours,
     chooser_col_name = 'workplace_taz'
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
-    # but we have to merge additional alt columns into alt sample list
-    destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'atwork')
-
+    # but we have to merge destination_size_terms columns into alt sample list
     alternatives = \
         pd.merge(destination_sample, destination_size_terms,
                  left_on=alt_dest_col_name, right_index=True, how="left")
@@ -227,7 +180,7 @@ def atwork_subtour_destination_simulate(tours,
 
     constants = config.get_model_constants(model_settings)
 
-    logger.info("Running atwork_subtour_destination_simulate with %d persons" % len(choosers))
+    logger.info("Running atwork_subtour_destination_simulate with %d persons", len(choosers))
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
@@ -245,7 +198,7 @@ def atwork_subtour_destination_simulate(tours,
     choices = interaction_sample_simulate(
         choosers,
         alternatives,
-        spec=atwork_subtour_destination_spec,
+        spec=model_spec,
         choice_column=alt_dest_col_name,
         skims=skims,
         locals_d=locals_d,
@@ -253,17 +206,63 @@ def atwork_subtour_destination_simulate(tours,
         trace_label=trace_label,
         trace_choice_name='workplace_location')
 
+    return choices
+
+
+@inject.step()
+def atwork_subtour_destination(
+        tours,
+        persons_merged,
+        skim_dict,
+        skim_stack,
+        land_use, size_terms,
+        chunk_size, trace_hh_id):
+
+    persons_merged = persons_merged.to_frame()
+
+    tours = tours.to_frame()
+    subtours = tours[tours.tour_category == 'atwork']
+
+    # - if no atwork subtours
+    if subtours.shape[0] == 0:
+        tracing.no_results('atwork_subtour_destination')
+        return
+
+    # interaction_sample_simulate insists choosers appear in same order as alts
+    subtours = subtours.sort_index()
+
+    destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'atwork')
+
+    destination_sample = atwork_subtour_destination_sample(
+        subtours,
+        persons_merged,
+        skim_dict,
+        destination_size_terms,
+        chunk_size, trace_hh_id)
+
+    destination_sample = atwork_subtour_destination_logsums(
+        persons_merged,
+        destination_sample,
+        skim_dict, skim_stack,
+        chunk_size, trace_hh_id)
+
+    choices = atwork_subtour_destination_simulate(
+        subtours,
+        persons_merged,
+        destination_sample,
+        skim_dict,
+        destination_size_terms,
+        chunk_size, trace_hh_id)
+
     subtours['destination'] = choices
 
     assign_in_place(tours, subtours[['destination']])
 
     pipeline.replace_table("tours", tours)
 
-    pipeline.drop_table('atwork_subtour_destination_sample')
-
     tracing.print_summary('subtour destination', subtours.destination, describe=True)
 
     if trace_hh_id:
         tracing.trace_df(tours,
-                         label=trace_label,
+                         label='atwork_subtour_destination',
                          columns=['destination'])

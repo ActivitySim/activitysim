@@ -58,23 +58,31 @@ def test_offset_list(data):
         [52, 99, 16])
 
 
-def test_skim_nans(data):
-    sk = skim.SkimWrapper(data)
-
-    orig = [5, np.nan, 1, 2]
-    dest = [np.nan, 9, 6, 4]
-
-    npt.assert_array_equal(
-        sk.get(orig, dest),
-        [np.nan, np.nan, 16, 24])
+# fixme - nan support disabled in skim.py (not sure we need it?)
+# def test_skim_nans(data):
+#     sk = skim.SkimWrapper(data)
+#
+#     orig = [5, np.nan, 1, 2]
+#     dest = [np.nan, 9, 6, 4]
+#
+#     npt.assert_array_equal(
+#         sk.get(orig, dest),
+#         [np.nan, np.nan, 16, 24])
 
 
 def test_skims(data):
 
-    skim_dict = skim.SkimDict()
+    skims_shape = data.shape + (2,)
 
-    skim_dict.set('AM', data)
-    skim_dict.set('PM', data*10)
+    skim_data = np.zeros(skims_shape, dtype=data.dtype)
+    skim_data[:, :, 0] = data
+    skim_data[:, :, 1] = data*10
+
+    skim_info = {
+        'block_offsets': {'AM': (0, 0), 'PM': (0, 1)}
+    }
+
+    skim_dict = skim.SkimDict([skim_data], skim_info)
 
     skims = skim_dict.wrap("taz_l", "taz_r")
 
@@ -90,7 +98,7 @@ def test_skims(data):
         pd.Series(
             [12, 93, 47],
             index=[0, 1, 2]
-        ).astype('float64')
+        ).astype(data.dtype)
     )
 
     pdt.assert_series_equal(
@@ -98,16 +106,23 @@ def test_skims(data):
         pd.Series(
             [120, 930, 470],
             index=[0, 1, 2]
-        ).astype('float64')
+        ).astype(data.dtype)
     )
 
 
 def test_3dskims(data):
 
-    skim_dict = skim.SkimDict()
+    skims_shape = data.shape + (2,)
 
-    skim_dict.set(("SOV", "AM"), data)
-    skim_dict.set(("SOV", "PM"), data*10)
+    skim_data = np.zeros(skims_shape, dtype=int)
+    skim_data[:, :, 0] = data
+    skim_data[:, :, 1] = data*10
+
+    skim_info = {
+        'block_offsets': {('SOV', 'AM'): (0, 0), ('SOV', 'PM'): (0, 1)},
+        'key1_block_offsets': {'SOV': (0, 0)}
+    }
+    skim_dict = skim.SkimDict([skim_data], skim_info)
 
     stack = skim.SkimStack(skim_dict)
 

@@ -1,12 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
-import os
 
 import pandas as pd
 
-from activitysim.core import simulate as asim
+from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
@@ -19,25 +22,25 @@ logger = logging.getLogger(__name__)
 
 
 @inject.injectable()
-def cdap_indiv_spec(configs_dir):
+def cdap_indiv_spec():
     """
     spec to compute the activity utilities for each individual hh member
     with no interactions with other household members taken into account
     """
-    return asim.read_model_spec(configs_dir, 'cdap_indiv_and_hhsize1.csv')
+    return simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv')
 
 
 @inject.injectable()
-def cdap_interaction_coefficients(configs_dir):
+def cdap_interaction_coefficients():
     """
     Rules and coefficients for generating interaction specs for different household sizes
     """
-    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
+    f = config.config_file_path('cdap_interaction_coefficients.csv')
     return pd.read_csv(f, comment='#')
 
 
 @inject.injectable()
-def cdap_fixed_relative_proportions(configs_dir):
+def cdap_fixed_relative_proportions():
     """
     spec to compute/specify the relative proportions of each activity (M, N, H)
     that should be used to choose activities for additional household members
@@ -47,7 +50,7 @@ def cdap_fixed_relative_proportions(configs_dir):
     EXCEPT that the values computed are relative proportions, not utilities
     (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
     """
-    return asim.read_model_spec(configs_dir, 'cdap_fixed_relative_proportions.csv')
+    return simulate.read_model_spec(file_name='cdap_fixed_relative_proportions.csv')
 
 
 @inject.step()
@@ -73,7 +76,7 @@ def cdap_simulate(persons_merged, persons, households,
 
     constants = config.get_model_constants(model_settings)
 
-    logger.info("Running cdap_simulate with %d persons" % len(persons_merged.index))
+    logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 
     choices = run_cdap(persons=persons_merged,
                        cdap_indiv_spec=cdap_indiv_spec,
@@ -107,7 +110,8 @@ def cdap_simulate(persons_merged, persons, households,
     pipeline.replace_table("households", households)
 
     tracing.print_summary('cdap_activity', persons.cdap_activity, value_counts=True)
-    print pd.crosstab(persons.ptype, persons.cdap_activity, margins=True)
+    logger.info("cdap crosstabs:\n%s" %
+                pd.crosstab(persons.ptype, persons.cdap_activity, margins=True))
 
     if trace_hh_id:
 

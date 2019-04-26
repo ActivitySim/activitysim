@@ -1,5 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import logging
 
@@ -54,7 +57,7 @@ def cleanup_failed_trips(trips):
     """
 
     if trips.failed.any():
-        logger.info("cleanup_failed_trips dropping %s sidelined failed trips" % trips.failed.sum())
+        logger.warning("cleanup_failed_trips dropping %s failed trips" % trips.failed.sum())
 
         trips['patch'] = False
         flag_failed_trip_leg_mates(trips, 'patch')

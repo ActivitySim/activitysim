@@ -1,21 +1,31 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import next
+from builtins import map
+from builtins import object
+
+from future.utils import iteritems
+
 import os
-import time
+import logging
 import datetime as dt
 
-import cPickle
-
-import numpy as np
 import pandas as pd
-import orca
 
-import logging
-import inject
-from util import memory_info
-from util import df_size
+from . import orca
+from . import inject
+from . import config
+from . import random
+from . import tracing
+from . import mem
 
-import random
-import tracing
-from tracing import print_elapsed_time
+from . import util
+from .tracing import print_elapsed_time
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +33,19 @@ logger = logging.getLogger(__name__)
 # (which are also columns in the checkpoints dataframe stored in hte pipeline store)
 TIMESTAMP = 'timestamp'
 CHECKPOINT_NAME = 'checkpoint_name'
-PRNG_STEP_NUM = 'prng_step_num'
-NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP, PRNG_STEP_NUM]
+NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP]
 
 # name used for storing the checkpoints dataframe to the pipeline store
 CHECKPOINT_TABLE_NAME = 'checkpoints'
 
 # name of the first step/checkpoint created when teh pipeline is started
 INITIAL_CHECKPOINT_NAME = 'init'
+
+# special value for resume_after meaning last checkpoint
+LAST_CHECKPOINT = '_'
+
+# single character prefix for run_list model name to indicate that no checkpoint should be saved
+NO_CHECKPOINT_PREFIX = '_'
 
 
 class Pipeline(object):
@@ -53,6 +68,8 @@ class Pipeline(object):
 
         self.pipeline_store = None
 
+        self.is_open = False
+
     def rng(self):
 
         return self._rng
@@ -61,14 +78,28 @@ class Pipeline(object):
 _PIPELINE = Pipeline()
 
 
+def be_open():
+
+    if not _PIPELINE.is_open:
+        raise RuntimeError("Pipeline is not open!")
+
+
+def pipeline_table_key(table_name, checkpoint_name):
+    if checkpoint_name:
+        key = "%s/%s" % (table_name, checkpoint_name)
+    else:
+        key = table_name
+    return key
+
+
 def close_on_exit(file, name):
     assert name not in _PIPELINE.open_files
     _PIPELINE.open_files[name] = file
 
 
 def close_open_files():
-    for name, file in _PIPELINE.open_files.iteritems():
-        print "Closing %s" % name
+    for name, file in iteritems(_PIPELINE.open_files):
+        print("Closing %s" % name)
         file.close()
     _PIPELINE.open_files.clear()
 
@@ -86,7 +117,7 @@ def open_pipeline_store(overwrite=False):
     if _PIPELINE.pipeline_store is not None:
         raise RuntimeError("Pipeline store is already open!")
 
-    pipeline_file_path = orca.get_injectable('pipeline_path')
+    pipeline_file_path = config.pipeline_file_path(inject.get_injectable('pipeline_file_name'))
 
     if overwrite:
         try:
@@ -95,7 +126,7 @@ def open_pipeline_store(overwrite=False):
                 os.unlink(pipeline_file_path)
         except Exception as e:
             print(e)
-            logger.warn("Error removing %s: %s" % (e,))
+            logger.warning("Error removing %s: %s" % (pipeline_file_path, e))
 
     _PIPELINE.pipeline_store = pd.HDFStore(pipeline_file_path, mode='a')
 
@@ -117,34 +148,7 @@ def get_rn_generator():
     -------
     activitysim.random.Random
     """
-
     return _PIPELINE.rng()
-
-
-def set_rn_generator_base_seed(seed):
-    """
-    Like seed for numpy.random.RandomState, but generalized for use with all random streams.
-
-    Provide a base seed that will be added to the seeds of all random streams.
-    The default base seed value is 0, so set_base_seed(0) is a NOP
-
-    set_rn_generator_base_seed(1) will (e.g.) provide a different set of random streams
-    than the default, but will provide repeatable results re-running or resuming the simulation
-
-    set_rn_generator_base_seed(None) will set the base seed to a random and unpredictable integer
-    and so provides "fully pseudo random" non-repeatable streams with different results every time
-
-    Must be called before open_pipeline() or pipeline.run()
-
-    Parameters
-    ----------
-    seed : int or None
-    """
-
-    if _PIPELINE.last_checkpoint:
-        raise RuntimeError("Can only call set_rn_generator_base_seed before the first step.")
-
-    _PIPELINE.rng().set_base_seed(seed)
 
 
 def read_df(table_name, checkpoint_name=None):
@@ -170,13 +174,8 @@ def read_df(table_name, checkpoint_name=None):
 
     """
 
-    if checkpoint_name:
-        key = "%s/%s" % (table_name, checkpoint_name)
-    else:
-        key = table_name
-
     store = get_pipeline_store()
-    df = store[key]
+    df = store[pipeline_table_key(table_name, checkpoint_name)]
 
     return df
 
@@ -203,14 +202,11 @@ def write_df(df, table_name, checkpoint_name=None):
     # coerce column names to str as unicode names will cause PyTables to pickle them
     df.columns = df.columns.astype(str)
 
-    if checkpoint_name:
-        key = "%s/%s" % (table_name, checkpoint_name)
-    else:
-        key = table_name
-
     store = get_pipeline_store()
 
-    store[key] = df
+    store[pipeline_table_key(table_name, checkpoint_name)] = df
+
+    store.flush()
 
 
 def rewrap(table_name, df=None):
@@ -253,10 +249,11 @@ def rewrap(table_name, df=None):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
-            orca.orca._COLUMNS.pop((table_name, column_name), None)
+            # fixme
+            orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca.orca._TABLES.pop(table_name, None)
+        orca._TABLES.pop(table_name, None)
 
     assert df is not None
 
@@ -294,7 +291,7 @@ def add_checkpoint(checkpoint_name):
             continue
 
         logger.debug("add_checkpoint '%s' table '%s' %s" %
-                     (checkpoint_name, table_name, df_size(df)))
+                     (checkpoint_name, table_name, util.df_size(df)))
         write_df(df, table_name, checkpoint_name)
 
         # remember which checkpoint it was last written
@@ -305,13 +302,11 @@ def add_checkpoint(checkpoint_name):
     _PIPELINE.last_checkpoint[CHECKPOINT_NAME] = checkpoint_name
     _PIPELINE.last_checkpoint[TIMESTAMP] = timestamp
 
-    # current state of the random number generator
-    _PIPELINE.last_checkpoint[PRNG_STEP_NUM] = _PIPELINE.rng().step_num
-
     # append to the array of checkpoint history
     _PIPELINE.checkpoints.append(_PIPELINE.last_checkpoint.copy())
 
     # create a pandas dataframe of the checkpoint history, one row per checkpoint
+
     checkpoints = pd.DataFrame(_PIPELINE.checkpoints)
 
     # convert empty values to str so PyTables doesn't pickle object types
@@ -334,10 +329,8 @@ def checkpointed_tables():
     Return a list of the names of all checkpointed tables
     """
 
-    return [name for name, checkpoint_name in _PIPELINE.last_checkpoint.iteritems()
+    return [name for name, checkpoint_name in iteritems(_PIPELINE.last_checkpoint)
             if checkpoint_name and name not in NON_TABLE_COLUMNS]
-
-    return [name for name in _PIPELINE.last_checkpoint.keys() if name not in NON_TABLE_COLUMNS]
 
 
 def load_checkpoint(checkpoint_name):
@@ -356,8 +349,9 @@ def load_checkpoint(checkpoint_name):
 
     checkpoints = read_df(CHECKPOINT_TABLE_NAME)
 
-    if checkpoint_name == '_':
+    if checkpoint_name == LAST_CHECKPOINT:
         checkpoint_name = checkpoints[CHECKPOINT_NAME].iloc[-1]
+        logger.info("loading checkpoint '%s'" % checkpoint_name)
 
     try:
         # truncate rows after target checkpoint
@@ -365,6 +359,7 @@ def load_checkpoint(checkpoint_name):
         checkpoints = checkpoints.loc[:i]
     except IndexError:
         msg = "Couldn't find checkpoint '%s' in checkpoints" % (checkpoint_name,)
+        print(checkpoints[CHECKPOINT_NAME])
         logger.error(msg)
         raise RuntimeError(msg)
 
@@ -373,7 +368,7 @@ def load_checkpoint(checkpoint_name):
 
     # drop tables with empty names
     for checkpoint in checkpoints:
-        for key in checkpoint.keys():
+        for key in list(checkpoint.keys()):
             if key not in NON_TABLE_COLUMNS and not checkpoint[key]:
                 del checkpoint[key]
 
@@ -399,13 +394,19 @@ def load_checkpoint(checkpoint_name):
         loaded_tables[table_name] = df
 
     # register for tracing in order that tracing.register_traceable_table wants us to register them
-    for table_name in tracing.traceable_tables():
+    traceable_tables = inject.get_injectable('traceable_tables', [])
+    for table_name in traceable_tables:
         if table_name in loaded_tables:
             tracing.register_traceable_table(table_name, loaded_tables[table_name])
 
-    # set random state to pickled state at end of last checkpoint
-    logger.debug("resetting random state")
-    _PIPELINE.rng().load_channels(_PIPELINE.last_checkpoint[PRNG_STEP_NUM])
+    # add tables of known rng channels
+    rng_channels = inject.get_injectable('rng_channels', [])
+    if rng_channels:
+        logger.debug("loading random channels %s" % rng_channels)
+        for table_name in rng_channels:
+            if table_name in loaded_tables:
+                logger.debug("adding channel %s" % (table_name,))
+                _PIPELINE.rng().add_channel(table_name, loaded_tables[table_name])
 
 
 def split_arg(s, sep, default=''):
@@ -413,7 +414,7 @@ def split_arg(s, sep, default=''):
     split str s in two at first sep, returning empty string as second result if no sep
     """
     r = s.split(sep, 2)
-    r = map(str.strip, r)
+    r = list(map(str.strip, r))
 
     arg = r[0]
 
@@ -438,7 +439,7 @@ def run_model(model_name):
         model_name is assumed to be the name of a registered orca step
     """
 
-    if not _PIPELINE.last_checkpoint:
+    if not _PIPELINE.is_open:
         raise RuntimeError("Pipeline not initialized! Did you call open_pipeline?")
 
     # can't run same model more than once
@@ -458,7 +459,7 @@ def run_model(model_name):
         args = {}
 
     # check for no_checkpoint prefix
-    if step_name[0] == '_':
+    if step_name[0] == NO_CHECKPOINT_PREFIX:
         step_name = step_name[1:]
         checkpoint = False
     else:
@@ -466,17 +467,18 @@ def run_model(model_name):
 
     inject.set_step_args(args)
 
+    t0 = print_elapsed_time()
     orca.run([step_name])
+    t0 = print_elapsed_time("run_model step '%s'" % model_name, t0, debug=True)
 
     inject.set_step_args(None)
 
     _PIPELINE.rng().end_step(model_name)
     if checkpoint:
-        t0 = print_elapsed_time()
         add_checkpoint(model_name)
-        t0 = print_elapsed_time("add_checkpoint '%s'" % model_name, t0, debug=True)
+        t0 = print_elapsed_time("run_model add_checkpoint '%s'" % model_name, t0, debug=True)
     else:
-        logger.warn("##### skipping %s checkpoint for %s\n" % (step_name, model_name))
+        logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
 
 def open_pipeline(resume_after=None):
@@ -492,13 +494,15 @@ def open_pipeline(resume_after=None):
         name of checkpoint to load from pipeline store
     """
 
-    logger.info("open_pipeline...")
+    logger.info("open_pipeline")
 
-    if orca.is_injectable('channel_info'):
-        channel_info = inject.get_injectable('channel_info', None)
-        if channel_info:
-            logger.info("initialize ran_generator channel_info")
-            get_rn_generator().set_channel_info(channel_info)
+    if _PIPELINE.is_open:
+        raise RuntimeError("Pipeline is already open!")
+
+    _PIPELINE.init_state()
+    _PIPELINE.is_open = True
+
+    get_rn_generator().set_base_seed(inject.get_injectable('rng_base_seed', 0))
 
     if resume_after:
         # open existing pipeline
@@ -517,10 +521,26 @@ def open_pipeline(resume_after=None):
     logger.debug("open_pipeline complete")
 
 
+def last_checkpoint():
+    """
+
+    Returns
+    -------
+    last_checkpoint: str
+        name of last checkpoint
+    """
+
+    be_open()
+
+    return _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
+
+
 def close_pipeline():
     """
     Close any known open files
     """
+
+    be_open()
 
     close_open_files()
 
@@ -550,13 +570,18 @@ def run(models, resume_after=None):
         model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
     """
 
-    if resume_after and resume_after in models:
-        models = models[models.index(resume_after) + 1:]
-
     t0 = print_elapsed_time()
 
     open_pipeline(resume_after)
     t0 = print_elapsed_time('open_pipeline', t0)
+
+    if resume_after == LAST_CHECKPOINT:
+        resume_after = _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
+
+    if resume_after:
+        logger.info("resume_after %s" % resume_after)
+        if resume_after in models:
+            models = models[models.index(resume_after) + 1:]
 
     # preload any bulky injectables (e.g. skims) not in pipeline
     if orca.is_injectable('preload_injectables'):
@@ -565,13 +590,10 @@ def run(models, resume_after=None):
 
     t0 = print_elapsed_time()
     for model in models:
-        t1 = print_elapsed_time()
+
         run_model(model)
-        t1 = print_elapsed_time("run_model %s" % model, t1)
 
-        logger.debug('#mem after %s, %s' % (model, memory_info()))
-
-    t0 = print_elapsed_time("run (%s models)" % len(models), t0)
+    t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 
     # don't close the pipeline, as the user may want to read intermediate results from the store
 
@@ -595,6 +617,8 @@ def get_table(table_name, checkpoint_name=None):
     -------
     df : pandas.DataFrame
     """
+
+    be_open()
 
     # orca table not in checkpoints (e.g. a merged table)
     if table_name not in _PIPELINE.last_checkpoint and orca.is_table(table_name):
@@ -639,6 +663,8 @@ def get_checkpoints():
     """
     Get pandas dataframe of info about all checkpoints stored in pipeline
 
+    pipeline doesn't have to be open
+
     Returns
     -------
     checkpoints_df : pandas.DataFrame
@@ -650,13 +676,13 @@ def get_checkpoints():
     if store:
         df = store[CHECKPOINT_TABLE_NAME]
     else:
-        pipeline_file_path = orca.get_injectable('pipeline_path')
+        pipeline_file_path = config.pipeline_file_path(orca.get_injectable('pipeline_file_name'))
         df = pd.read_hdf(pipeline_file_path, CHECKPOINT_TABLE_NAME)
 
     # non-table columns first (column order in df is random because created from a dict)
     table_names = [name for name in df.columns.values if name not in NON_TABLE_COLUMNS]
 
-    df.index.name = 'step_num'
+    df = df[NON_TABLE_COLUMNS + table_names]
 
     return df
 
@@ -681,12 +707,14 @@ def replace_table(table_name, df):
     df : pandas DataFrame
     """
 
+    be_open()
+
     rewrap(table_name, df)
 
     _PIPELINE.replaced_tables[table_name] = True
 
 
-def extend_table(table_name, df):
+def extend_table(table_name, df, axis=0):
     """
     add new table or extend (add rows) to an existing table
 
@@ -697,17 +725,32 @@ def extend_table(table_name, df):
     df : pandas DataFrame
     """
 
+    be_open()
+
+    assert axis in [0, 1]
+
     if orca.is_table(table_name):
 
-        extend_df = orca.get_table(table_name).to_frame()
+        table_df = orca.get_table(table_name).to_frame()
 
-        # don't expect indexes to overlap
-        assert len(extend_df.index.intersection(df.index)) == 0
+        if axis == 0:
+            # don't expect indexes to overlap
+            assert len(table_df.index.intersection(df.index)) == 0
+            missing_df_str_columns = [c for c in table_df.columns
+                                      if c not in df.columns and table_df[c].dtype == 'O']
+        else:
+            # expect indexes be same
+            assert table_df.index.equals(df.index)
+            new_df_columns = [c for c in df.columns if c not in table_df.columns]
+            df = df[new_df_columns]
 
-        # preserve existing column order (concat reorders columns)
-        columns = list(extend_df.columns) + [c for c in df.columns if c not in extend_df.columns]
+        # preserve existing column order
+        df = pd.concat([table_df, df], sort=False, axis=axis)
 
-        df = pd.concat([extend_df, df])[columns]
+        # backfill missing df columns that were str (object) type in table_df
+        if axis == 0:
+            for c in missing_df_str_columns:
+                df[c] = df[c].fillna('')
 
     replace_table(table_name, df)
 
@@ -715,6 +758,8 @@ def extend_table(table_name, df):
 
 
 def drop_table(table_name):
+
+    be_open()
 
     if orca.is_table(table_name):
 
@@ -726,10 +771,10 @@ def drop_table(table_name):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
-            orca.orca._COLUMNS.pop((table_name, column_name), None)
+            orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca.orca._TABLES.pop(table_name, None)
+        orca._TABLES.pop(table_name, None)
 
     if table_name in _PIPELINE.replaced_tables:
 

@@ -1,8 +1,8 @@
-selector,segment,TOTHH,RETEMPN,FPSEMPN,HEREMPN,OTHEMPN,AGREMPN,MWTEMPN,AGE0519,HSENROLL,COLLFTE,COLLPTE
-work,work_low,0,0.129,0.193,0.383,0.12,0.01,0.164,0,0,0,0
-work,work_med,0,0.12,0.197,0.325,0.139,0.008,0.21,0,0,0,0
-work,work_high,0,0.11,0.207,0.284,0.154,0.006,0.239,0,0,0,0
-work,work_veryhigh,0,0.093,0.27,0.241,0.146,0.004,0.246,0,0,0,0
+model_selector,segment,TOTHH,RETEMPN,FPSEMPN,HEREMPN,OTHEMPN,AGREMPN,MWTEMPN,AGE0519,HSENROLL,COLLFTE,COLLPTE
+workplace,work_low,0,0.129,0.193,0.383,0.12,0.01,0.164,0,0,0,0
+workplace,work_med,0,0.12,0.197,0.325,0.139,0.008,0.21,0,0,0,0
+workplace,work_high,0,0.11,0.207,0.284,0.154,0.006,0.239,0,0,0,0
+workplace,work_veryhigh,0,0.093,0.27,0.241,0.146,0.004,0.246,0,0,0,0
 school,university,0,0,0,0,0,0,0,0,0,0.592,0.408
 school,gradeschool,0,0,0,0,0,0,0,1,0,0,0
 school,highschool,0,0,0,0,0,0,0,0,1,0,0

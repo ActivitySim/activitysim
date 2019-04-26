@@ -1,11 +1,12 @@
 
 # create table of pipeline table fields by creator
 # Ben Stabler, ben.stabler@rsginc.com, 06/06/18
+# C:\projects\development\activitysim\example>python ../scripts/make_pipeline_output.py
 
 import pandas as pd
 
-pipeline_filename = 'output\pipeline.h5'
-out_fields_filename = 'output\pipeline_fields.csv'
+pipeline_filename = 'output\\pipeline.h5'
+out_fields_filename = 'output\\pipeline_fields.csv'
 
 # get pipeline tables
 pipeline = pd.io.pytables.HDFStore(pipeline_filename)

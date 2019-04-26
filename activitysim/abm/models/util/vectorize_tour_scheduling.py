@@ -1,5 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import logging
 
@@ -7,19 +10,157 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core import config
 from activitysim.core import tracing
 from activitysim.core import inject
+from activitysim.core import mem
+
+from activitysim.core import chunk
+from activitysim.core import simulate
+from activitysim.core import assign
+from activitysim.core import logit
 
 from activitysim.core import timetable as tt
 
-from activitysim.core.util import memory_info
-from activitysim.core.util import df_size
-from activitysim.core.util import force_garbage_collect
 from activitysim.core.util import reindex
 
-from activitysim.core import chunk
+from . import expressions
+from . import mode
 
 logger = logging.getLogger(__name__)
+
+
+def get_logsum_spec(model_settings):
+
+    return mode.tour_mode_choice_spec(model_settings)
+
+
+def get_coeffecients_spec(model_settings):
+    return mode.tour_mode_choice_coeffecients_spec(model_settings)
+
+
+def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_label):
+    """
+    compute logsums for tours using skims for alt_tdd out_period and in_period
+    """
+
+    trace_label = tracing.extend_trace_label(trace_label, 'logsums')
+
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
+
+    choosers = alt_tdd.join(tours_merged, how='left', rsuffix='_chooser')
+    logger.info("%s compute_logsums for %d choosers%s alts" %
+                (trace_label, choosers.shape[0], alt_tdd.shape[0]))
+
+    # - setup skims
+
+    skim_dict = inject.get_injectable('skim_dict')
+    skim_stack = inject.get_injectable('skim_stack')
+
+    orig_col_name = 'TAZ'
+    dest_col_name = model_settings.get('DESTINATION_FOR_TOUR_PURPOSE').get(tour_purpose)
+
+    odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,
+                                             skim_key='out_period')
+    dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
+                                             skim_key='in_period')
+    od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
+
+    skims = {
+        "odt_skims": odt_skim_stack_wrapper,
+        "dot_skims": dot_skim_stack_wrapper,
+        "od_skims": od_skim_stack_wrapper,
+        'orig_col_name': orig_col_name,
+        'dest_col_name': dest_col_name,
+    }
+
+    # - locals_dict
+    constants = config.get_model_constants(logsum_settings)
+
+    omnibus_coefficient_spec = get_coeffecients_spec(logsum_settings)
+    coefficient_spec = omnibus_coefficient_spec[tour_purpose]
+    coefficients = assign.evaluate_constants(coefficient_spec, constants=constants)
+
+    locals_dict = {}
+    locals_dict.update(coefficients)
+    locals_dict.update(constants)
+    locals_dict.update(skims)
+
+    # - run preprocessor to annotate choosers
+    # allow specification of alternate preprocessor for nontour choosers
+    preprocessor = model_settings.get('LOGSUM_PREPROCESSOR', 'preprocessor')
+    preprocessor_settings = logsum_settings[preprocessor]
+
+    if preprocessor_settings:
+
+        simulate.set_skim_wrapper_targets(choosers, skims)
+
+        expressions.assign_columns(
+            df=choosers,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_dict,
+            trace_label=trace_label)
+
+    # - compute logsums
+    logsum_spec = get_logsum_spec(logsum_settings)
+    nest_spec = config.get_logit_model_settings(logsum_settings)
+
+    logsums = simulate.simple_simulate_logsums(
+        choosers,
+        logsum_spec,
+        nest_spec,
+        skims=skims,
+        locals_d=locals_dict,
+        chunk_size=0,
+        trace_label=trace_label)
+
+    return logsums
+
+
+def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_label):
+    """
+    Compute logsums for the tour alt_tdds, which will differ based on their different start, stop
+    times of day, which translate to different odt_skim out_period and in_periods.
+
+    In mtctm1, tdds are hourly, but there are only 5 skim time periods, so some of the tdd_alts
+    will be the same, once converted to skim time periods. With 5 skim time periods there are
+    15 unique out-out period pairs but 190 tdd alternatives.
+
+    For efficiency, rather compute a lot of redundant logsums, we compute logsums for the unique
+    (out-period, in-period) pairs and then join them back to the alt_tdds.
+    """
+    # - in_period and out_period
+    assert 'out_period' not in alt_tdd
+    assert 'in_period' not in alt_tdd
+    alt_tdd['out_period'] = expressions.skim_time_period_label(alt_tdd['start'])
+    alt_tdd['in_period'] = expressions.skim_time_period_label(alt_tdd['end'])
+    alt_tdd['duration'] = alt_tdd['end'] - alt_tdd['start']
+
+    USE_BRUTE_FORCE = False
+    if USE_BRUTE_FORCE:
+        # compute logsums for all the tour alt_tdds (inefficient)
+        logsums = _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_label)
+        return logsums
+
+    # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
+    # we can cut the number of alts roughly in half (for mtctm1) by conflating duplicates
+    index_name = alt_tdd.index.name
+    alt_tdd_periods = alt_tdd[['out_period', 'in_period', 'duration']]\
+        .reset_index().drop_duplicates().set_index(index_name)
+
+    # - compute logsums for the alt_tdd_periods
+    alt_tdd_periods['logsums'] = \
+        _compute_logsums(alt_tdd_periods, tours_merged, tour_purpose, model_settings, trace_label)
+
+    # - join the alt_tdd_period logsums to alt_tdd to get logsums for alt_tdd
+    logsums = pd.merge(
+        alt_tdd.reset_index(),
+        alt_tdd_periods.reset_index(),
+        on=[index_name, 'out_period', 'in_period', 'duration'],
+        how='left'
+    ).set_index(index_name).logsums
+
+    return logsums
 
 
 def get_previous_tour_by_tourid(current_tour_window_ids,
@@ -64,7 +205,7 @@ def get_previous_tour_by_tourid(current_tour_window_ids,
     return previous_tour_by_tourid
 
 
-def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col):
+def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col, trace_label):
     """
     interaction_sample_simulate expects
     alts index same as choosers (e.g. tour_id)
@@ -94,16 +235,15 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     tour_ids = np.repeat(tours.index, len(alts.index))
     window_row_ids = np.repeat(tours[window_id_col], len(alts.index))
 
-    alt_tdd = alts.take(alts_ids).copy()
+    alt_tdd = alts.take(alts_ids)
+
     alt_tdd.index = tour_ids
     alt_tdd[window_id_col] = window_row_ids
     alt_tdd[choice_column] = alts_ids
 
     # slice out all non-available tours
     available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
-
     assert available.any()
-
     alt_tdd = alt_tdd[available]
 
     # FIXME - don't need this any more after slicing
@@ -113,7 +253,9 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 
 
 def _schedule_tours(
-        tours, persons_merged, alts, spec, constants,
+        tours, persons_merged, alts,
+        spec, logsum_tour_purpose,
+        model_settings,
         timetable, window_id_col,
         previous_tour, tour_owner_id_col,
         tour_trace_label):
@@ -140,14 +282,14 @@ def _schedule_tours(
         unavailable alternatives
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
-    constants : dict
-        dict of model-specific constants for eval
+    model_settings : dict
     timetable : TimeTable
         timetable of timewidows for person (or subtour) with rows for tours[window_id_col]
     window_id_col : str
         column name from tours that identifies timetable owner (or None if tours index)
-        person_id for non/mandatory tours, parent_tour_id for subtours,
-        None (tours index) for joint_tours since every tour potentially has different participants)
+        - person_id for non/mandatory tours
+        - parent_tour_id for subtours,
+        - None (tours index) for joint_tours since every tour may have different participants)
     previous_tour: Series
         series with value of tdd_alt choice for last previous tour scheduled for
     tour_owner_id_col : str
@@ -167,8 +309,11 @@ def _schedule_tours(
     # avoid dual suffix for redundant columns names (e.g. household_id) that appear in both
     tours = pd.merge(tours, persons_merged, left_on='person_id', right_index=True,
                      suffixes=('', '_y'))
+    chunk.log_df(tour_trace_label, "tours", tours)
 
+    # - add explicit window_id_col for timetable owner if it is index
     # if no timetable window_id_col specified, then add index as an explicit column
+    # (this is not strictly necessary but its presence makes code simpler in several places)
     if window_id_col is None:
         window_id_col = tours.index.name
         tours[window_id_col] = tours.index
@@ -176,19 +321,33 @@ def _schedule_tours(
     # timetable can't handle multiple tours per window_id
     assert not tours[window_id_col].duplicated().any()
 
-    # merge previous tour columns (join on index)
-    previous_tour_info = get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts)
-    tours = tours.join(previous_tour_info)
-
-    # build interaction dataset filtered to include only available tdd alts
+    # - build interaction dataset filtered to include only available tdd alts
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
     choice_column = 'tdd'
-    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col)
+    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
+                                      tour_trace_label)
+    chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
+    # - add logsums
+    if logsum_tour_purpose:
+        logsums = \
+            compute_logsums(alt_tdd, tours, logsum_tour_purpose, model_settings, tour_trace_label)
+    else:
+        logsums = 0
+    alt_tdd['mode_choice_logsum'] = logsums
+
+    # - merge in previous tour columns
+    # adds start_previous and end_previous, joins on index
+    tours = \
+        tours.join(get_previous_tour_by_tourid(tours[tour_owner_id_col], previous_tour, alts))
+    chunk.log_df(tour_trace_label, "tours", tours)
+
+    # - make choices
     locals_d = {
         'tt': timetable
     }
+    constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
 
@@ -202,13 +361,13 @@ def _schedule_tours(
         trace_label=tour_trace_label
     )
 
+    # - update previous_tour and timetable parameters
+
+    # update previous_tour (series with most recent previous tdd choices) with latest values
     previous_tour.loc[tours[tour_owner_id_col]] = choices.values
 
+    # update timetable with chosen tdd footprints
     timetable.assign(tours[window_id_col], choices)
-
-    cum_size = chunk.log_df_size(tour_trace_label, "tours", tours, cum_size=None)
-    cum_size = chunk.log_df_size(tour_trace_label, "alt_tdd", alt_tdd, cum_size)
-    chunk.log_chunk_size(tour_trace_label, cum_size)
 
     return choices
 
@@ -218,8 +377,8 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
     num_choosers = len(tours.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = tours.shape[1]
     sample_size = alternatives.shape[0]
@@ -241,7 +400,9 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
 
 
 def schedule_tours(
-        tours, persons_merged, alts, spec, constants,
+        tours, persons_merged, alts,
+        spec, logsum_tour_purpose,
+        model_settings,
         timetable, timetable_window_id_col,
         previous_tour, tour_owner_id_col,
         chunk_size, tour_trace_label):
@@ -267,13 +428,8 @@ def schedule_tours(
     else:
         assert not tours[timetable_window_id_col].duplicated().any()
 
-    # persons_merged columns plus 2 previous tour columns
-    extra_chooser_columns = persons_merged.shape[1] + 2
-
-    rows_per_chunk = \
+    rows_per_chunk, effective_chunk_size = \
         calc_rows_per_chunk(chunk_size, tours, persons_merged, alts, trace_label=tour_trace_label)
-
-    logger.info("chunk_size %s rows_per_chunk %s" % (chunk_size, rows_per_chunk))
 
     result_list = []
     for i, num_chunks, chooser_chunk \
@@ -284,15 +440,19 @@ def schedule_tours(
         chunk_trace_label = tracing.extend_trace_label(tour_trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else tour_trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
         choices = _schedule_tours(chooser_chunk, persons_merged,
-                                  alts, spec, constants,
+                                  alts, spec, logsum_tour_purpose,
+                                  model_settings,
                                   timetable, timetable_window_id_col,
                                   previous_tour, tour_owner_id_col,
                                   tour_trace_label=chunk_trace_label)
 
+        chunk.log_close(chunk_trace_label)
+
         result_list.append(choices)
 
-        force_garbage_collect()
+        mem.force_garbage_collect()
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
@@ -305,8 +465,9 @@ def schedule_tours(
     return choices
 
 
-def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
-                              constants={},
+def vectorize_tour_scheduling(tours, persons_merged, alts,
+                              spec, segment_col,
+                              model_settings,
                               chunk_size=0, trace_label=None):
     """
     The purpose of this method is fairly straightforward - it takes tours
@@ -322,6 +483,9 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     start_previous and end_previous are undefined, so make sure to protect
     with a tour_num >= 2 in the variable computation.
 
+
+
+
     Parameters
     ----------
     tours : DataFrame
@@ -335,13 +499,15 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (or dict of specs keyed on tour_type if tour_types is not None)
-    constants : dict
-        dict of model-specific constants for eval
+    model_settings : dict
+
     Returns
     -------
     choices : Series
         A Series of choices where the index is the index of the tours
         DataFrame and the values are the index of the alts DataFrame.
+    timetable : TimeTable
+        persons timetable updated with tours (caller should replace_table for it to persist)
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'vectorize_tour_scheduling')
@@ -361,6 +527,9 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
     # initialize with first trip from alts
     previous_tour_by_personid = pd.Series(alts.index[0], index=tours.person_id.unique())
 
+    timetable_window_id_col = 'person_id'
+    tour_owner_id_col = 'person_id'
+
     # no more than one tour per person per call to schedule_tours
     # tours must be scheduled in increasing trip_num order
     # second trip of type must be in group immediately following first
@@ -372,47 +541,73 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, spec,
 
         if isinstance(spec, dict):
 
-            for tour_type in spec:
+            assert segment_col is not None
 
-                if (nth_tours.tour_type == tour_type).any():
-                    choices = \
-                        schedule_tours(nth_tours[nth_tours.tour_type == tour_type],
-                                       persons_merged, alts,
-                                       spec[tour_type], constants,
-                                       timetable, 'person_id',
-                                       previous_tour_by_personid, 'person_id',
-                                       chunk_size,
-                                       tracing.extend_trace_label(tour_trace_label, tour_type))
+            for spec_segment in spec:
 
-                    choice_list.append(choices)
+                segment_trace_label = tracing.extend_trace_label(tour_trace_label, spec_segment)
+
+                in_segment = nth_tours[segment_col] == spec_segment
+
+                if not in_segment.any():
+                    logger.info("skipping empty segment %s")
+                    continue
+
+                # assume segmentation of spec and logsum coefficients are aligned
+                logsum_tour_purpose = spec_segment
+
+                choices = \
+                    schedule_tours(nth_tours[in_segment],
+                                   persons_merged, alts,
+                                   spec[spec_segment], logsum_tour_purpose,
+                                   model_settings,
+                                   timetable, timetable_window_id_col,
+                                   previous_tour_by_personid, tour_owner_id_col,
+                                   chunk_size,
+                                   segment_trace_label)
+
+                choice_list.append(choices)
 
         else:
+
+            # unsegmented spec dict indicates no logsums
+            # caller could use single-element spec dict if logsum support desired,
+            # but this case nor required for mtctm1
+            assert segment_col is None
+            logsum_segment = None
 
             choices = \
                 schedule_tours(nth_tours,
                                persons_merged, alts,
-                               spec, constants,
-                               timetable, 'person_id',
-                               previous_tour_by_personid, 'person_id',
-                               chunk_size, tour_trace_label)
+                               spec, logsum_segment,
+                               model_settings,
+                               timetable, timetable_window_id_col,
+                               previous_tour_by_personid, tour_owner_id_col,
+                               chunk_size,
+                               tour_trace_label)
 
             choice_list.append(choices)
 
     choices = pd.concat(choice_list)
 
     # add the start, end, and duration from tdd_alts
-    tdd = alts.loc[choices]
-    tdd.index = choices.index
+    # use np instead of (slower) loc[] since alts has rangeindex
+    tdd = pd.DataFrame(data=alts.values[choices.values],
+                       columns=alts.columns,
+                       index=choices.index)
+
+    # tdd = alts.loc[choices]
+    # tdd.index = choices.index
+
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
-    timetable.replace_table()
-
-    return tdd
+    return tdd, timetable
 
 
 def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, spec,
-                                 constants, chunk_size=0, trace_label=None):
+                                 model_settings,
+                                 chunk_size=0, trace_label=None):
     """
     Like vectorize_tour_scheduling but specifically for atwork subtours
 
@@ -437,8 +632,8 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (all subtours share same spec regardless of subtour type)
-    constants : dict
-        dict of model-specific constants for eval    chunk_size
+    model_settings : dict
+    chunk_size
     trace_label
 
     Returns
@@ -453,6 +648,10 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     assert len(subtours.index) > 0
     assert 'tour_num' in subtours.columns
     assert 'tour_type' in subtours.columns
+
+    timetable_window_id_col = 'parent_tour_id'
+    tour_owner_id_col = 'parent_tour_id'
+    segment = None
 
     # timetable with a window for each parent tour
     parent_tour_windows = tt.create_timetable_windows(parent_tours, alts)
@@ -490,9 +689,10 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
         choices = \
             schedule_tours(nth_tours,
                            persons_merged, alts,
-                           spec, constants,
-                           timetable, 'parent_tour_id',
-                           previous_tour_by_parent_tour_id, 'parent_tour_id',
+                           spec, segment,
+                           model_settings,
+                           timetable, timetable_window_id_col,
+                           previous_tour_by_parent_tour_id, tour_owner_id_col,
                            chunk_size, tour_trace_label)
 
         choice_list.append(choices)
@@ -500,8 +700,14 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     choices = pd.concat(choice_list)
 
     # add the start, end, and duration from tdd_alts
-    tdd = alts.loc[choices]
-    tdd.index = choices.index
+    # assert (alts.index == list(range(alts.shape[0]))).all()
+    tdd = pd.DataFrame(data=alts.values[choices.values],
+                       columns=alts.columns,
+                       index=choices.index)
+
+    # tdd = alts.loc[choices]
+    # tdd.index = choices.index
+
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
@@ -540,7 +746,7 @@ def build_joint_tour_timetables(joint_tours, joint_tour_participants, persons_ti
 def vectorize_joint_tour_scheduling(
         joint_tours, joint_tour_participants,
         persons_merged, alts, spec,
-        constants={},
+        model_settings,
         chunk_size=0, trace_label=None):
     """
     Like vectorize_tour_scheduling but specifically for joint tours
@@ -562,13 +768,15 @@ def vectorize_joint_tour_scheduling(
     spec : DataFrame
         The spec which will be passed to interaction_simulate.
         (or dict of specs keyed on tour_type if tour_types is not None)
-    constants : dict
-        dict of model-specific constants for eval
+    model_settings : dict
+
     Returns
     -------
     choices : Series
         A Series of choices where the index is the index of the tours
         DataFrame and the values are the index of the alts DataFrame.
+    persons_timetable : TimeTable
+        timetable updated with joint tours (caller should replace_table for it to persist)
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'vectorize_joint_tour_scheduling')
@@ -576,6 +784,10 @@ def vectorize_joint_tour_scheduling(
     assert len(joint_tours.index) > 0
     assert 'tour_num' in joint_tours.columns
     assert 'tour_type' in joint_tours.columns
+
+    timetable_window_id_col = None
+    tour_owner_id_col = 'household_id'
+    segment = None
 
     persons_timetable = inject.get_injectable("timetable")
     choice_list = []
@@ -608,9 +820,10 @@ def vectorize_joint_tour_scheduling(
         choices = \
             schedule_tours(nth_tours,
                            persons_merged, alts,
-                           spec, constants,
-                           timetable, None,
-                           previous_tour_by_householdid, 'household_id',
+                           spec, segment,
+                           model_settings,
+                           timetable, timetable_window_id_col,
+                           previous_tour_by_householdid, tour_owner_id_col,
                            chunk_size, tour_trace_label)
 
         # - update timetables of all joint tour participants
@@ -623,14 +836,19 @@ def vectorize_joint_tour_scheduling(
     choices = pd.concat(choice_list)
 
     # add the start, end, and duration from tdd_alts
-    tdd = alts.loc[choices]
+    # assert (alts.index == list(range(alts.shape[0]))).all()
+    tdd = pd.DataFrame(data=alts.values[choices.values],
+                       columns=alts.columns,
+                       index=choices.index)
+
+    # tdd = alts.loc[choices]
+    # tdd.index = choices.index
+
     tdd.index = choices.index
     # include the index of the choice in the tdd alts table
     tdd['tdd'] = choices
 
-    persons_timetable.replace_table()
-
     # print "participant windows after scheduling\n", \
     #     persons_timetable.slice_windows_by_row_id(joint_tour_participants.person_id)
 
-    return tdd
+    return tdd, persons_timetable

@@ -1,7 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
 import numpy as np
@@ -20,22 +23,11 @@ from activitysim.core.util import reindex
 logger = logging.getLogger(__name__)
 
 
-def get_stop_frequency_spec(tour_type):
-
-    configs_dir = inject.get_injectable('configs_dir')
-    file_name = 'stop_frequency_%s.csv' % tour_type
-
-    if not os.path.exists(os.path.join(configs_dir, file_name)):
-        return None
-
-    return simulate.read_model_spec(configs_dir, file_name)
-
-
 @inject.injectable()
-def stop_frequency_alts(configs_dir):
+def stop_frequency_alts():
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
-    f = os.path.join(configs_dir, 'stop_frequency_alternatives.csv')
-    df = pd.read_csv(f, comment='#')
+    file_path = config.config_file_path('stop_frequency_alternatives.csv')
+    df = pd.read_csv(file_path, comment='#')
     df.set_index('alt', inplace=True)
     return df
 
@@ -49,6 +41,7 @@ def process_trips(tours, stop_frequency_alts):
     # get the actual alternatives for each person - have to go back to the
     # stop_frequency_alts dataframe to get this - the stop_frequency choice
     # column has the index values for the chosen alternative
+
     trips = stop_frequency_alts.loc[tours.stop_frequency]
 
     # assign tour ids to the index
@@ -203,7 +196,7 @@ def stop_frequency(
         logging.info("%s running segment %s with %s chooser rows" %
                      (trace_label, segment_type, choosers.shape[0]))
 
-        spec = get_stop_frequency_spec(segment_type)
+        spec = simulate.read_model_spec(file_name='stop_frequency_%s.csv' % segment_type)
 
         assert spec is not None, "spec for segment_type %s not found" % segment_type
 
@@ -237,7 +230,7 @@ def stop_frequency(
     trips = process_trips(tours, stop_frequency_alts)
     trips = pipeline.extend_table("trips", trips)
     tracing.register_traceable_table('trips', trips)
-    pipeline.get_rn_generator().add_channel(trips, 'trips')
+    pipeline.get_rn_generator().add_channel('trips', trips)
 
     if trace_hh_id:
         tracing.trace_df(tours,

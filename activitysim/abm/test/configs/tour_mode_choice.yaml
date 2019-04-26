@@ -52,8 +52,8 @@ SPEC: tour_mode_choice.csv
 COEFFS: tour_mode_choice_coeffs.csv
 
 CONSTANTS:
-    valueOfTime: 8.00
-    costPerMile: 18.48
+    #valueOfTime: 8.00
+    costPerMile: 18.29
     costShareSr2: 1.75
     costShareSr3: 2.50
     waitThresh: 10.00
@@ -96,3 +96,5 @@ LOGSUM_CHOOSER_COLUMNS:
   - number_of_participants
   - tour_category
   - num_workers
+  - value_of_time
+  - free_parking_at_work

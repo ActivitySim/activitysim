@@ -1,17 +1,27 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import zip
+
 import logging
 
 import numpy as np
 import pandas as pd
+from collections import OrderedDict
 
 from . import logit
 from . import tracing
+from . import config
 from .simulate import set_skim_wrapper_targets
 from . import chunk
+from . import mem
 
-from activitysim.core.util import force_garbage_collect
+from . import assign
+
+from activitysim.core.mem import force_garbage_collect
 
 
 logger = logging.getLogger(__name__)
@@ -76,11 +86,11 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
         # # convert to numpy array so we can slice ndarrays as well as series
         # trace_rows = np.asanyarray(trace_rows)
         assert type(trace_rows) == np.ndarray
-        trace_eval_results = []
+        trace_eval_results = OrderedDict()
     else:
         trace_eval_results = None
 
-    check_for_variability = tracing.check_for_variability()
+    check_for_variability = config.setting('check_for_variability')
 
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
@@ -90,6 +100,21 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
 
     for expr, coefficient in zip(spec.index, spec.iloc[:, 0]):
         try:
+
+            # - allow temps of form _od_DIST@od_skim['DIST']
+            if expr.startswith('_'):
+                target = expr[:expr.index('@')]
+                rhs = expr[expr.index('@') + 1:]
+                v = to_series(eval(rhs, globals(), locals_d))
+
+                # update locals to allows us to ref previously assigned targets
+                locals_d[target] = v
+
+                if trace_eval_results is not None:
+                    trace_eval_results[expr] = v[trace_rows]
+
+                # mem.trace_memory_info("eval_interaction_utilities TEMP: %s" % expr)
+                continue
 
             if expr.startswith('@'):
                 v = to_series(eval(expr[1:], globals(), locals_d))
@@ -108,27 +133,32 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
             utilities.utility += (v * coefficient).astype('float')
 
             if trace_eval_results is not None:
-                trace_eval_results.append((expr,
-                                           v[trace_rows]))
-                trace_eval_results.append(('partial utility (coefficient = %s)' % coefficient,
-                                           v[trace_rows]*coefficient))
+
+                # expressions should have been uniquified when spec was read
+                # (though we could do it here if need be...)
+                # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
+                assert expr not in trace_eval_results
+
+                trace_eval_results[expr] = v[trace_rows]
+                k = 'partial utility (coefficient = %s) for %s' % (coefficient, expr)
+                trace_eval_results[k] = v[trace_rows] * coefficient
 
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
 
+        # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
+
     if no_variability > 0:
-        logger.warn("%s: %s columns have no variability" % (trace_label, no_variability))
+        logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
 
     if has_missing_vals > 0:
-        logger.warn("%s: %s columns have missing values" % (trace_label, has_missing_vals))
+        logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
 
     if trace_eval_results is not None:
+        trace_eval_results['total utility'] = utilities.utility[trace_rows]
 
-        trace_eval_results.append(('total utility',
-                                   utilities.utility[trace_rows]))
-
-        trace_eval_results = pd.DataFrame.from_items(trace_eval_results)
+        trace_eval_results = pd.DataFrame.from_dict(trace_eval_results)
         trace_eval_results.index = df[trace_rows].index
 
         # add df columns to trace_results
@@ -190,7 +220,7 @@ def _interaction_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
-    have_trace_targets = trace_label and tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
@@ -216,11 +246,10 @@ def _interaction_simulate(
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
+    chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if skims is not None:
         set_skim_wrapper_targets(interaction_df, skims)
-
-    cum_size = chunk.log_df_size(trace_label, 'interaction_df', interaction_df, cum_size=None)
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
@@ -239,6 +268,7 @@ def _interaction_simulate(
 
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
+    chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
@@ -251,8 +281,9 @@ def _interaction_simulate(
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
-        interaction_utilities.as_matrix().reshape(len(choosers), sample_size),
+        interaction_utilities.values.reshape(len(choosers), sample_size),
         index=choosers.index)
+    chunk.log_df(trace_label, 'utilities', utilities)
 
     if have_trace_targets:
         tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
@@ -263,6 +294,7 @@ def _interaction_simulate(
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+    chunk.log_df(trace_label, 'probs', probs)
 
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
@@ -271,27 +303,27 @@ def _interaction_simulate(
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
-    positions, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+    positions, rands = \
+        logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+    chunk.log_df(trace_label, 'positions', positions)
+    chunk.log_df(trace_label, 'rands', rands)
 
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
     # tranche of this choosers alternatives created by cross join of alternatives and choosers
-
     # offsets is the offset into model_design df of first row of chooser alternatives
     offsets = np.arange(len(positions)) * sample_size
-    # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
+    # resulting Int64Index has one element per chooser row and is in same order as choosers
     choices = interaction_utilities.index.take(positions + offsets)
-
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
+    chunk.log_df(trace_label, 'choices', choices)
 
     if have_trace_targets:
         tracing.trace_df(choices, tracing.extend_trace_label(trace_label, 'choices'),
                          columns=[None, trace_choice_name])
         tracing.trace_df(rands, tracing.extend_trace_label(trace_label, 'rands'),
                          columns=[None, 'rand'])
-
-    chunk.log_chunk_size(trace_label, cum_size)
 
     return choices
 
@@ -301,8 +333,8 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, skims, 
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -382,13 +414,10 @@ def interaction_simulate(
 
     assert len(choosers) > 0
 
-    rows_per_chunk = \
+    rows_per_chunk, effective_chunk_size = \
         calc_rows_per_chunk(chunk_size, choosers, alternatives=alternatives,
                             sample_size=sample_size, skims=skims,
                             trace_label=trace_label)
-
-    logger.info("interaction_simulate chunk_size %s num_choosers %s" %
-                (chunk_size, len(choosers.index)))
 
     result_list = []
     for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
@@ -398,10 +427,14 @@ def interaction_simulate(
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
 
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,
                                         chunk_trace_label,
                                         trace_choice_name)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

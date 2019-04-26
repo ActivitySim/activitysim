@@ -1,0 +1,53 @@
+########################## resize managed storage
+
+#https://docs.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks
+
+DISK_NAME=datadisk$AZ_VM_NUMBER
+
+
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+az disk list \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --query '[*].{Name:name,Gb:diskSizeGb,Tier:accountType}' \
+    --output table
+
+az disk update \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --name $DISK_NAME \
+    --size-gb 200
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv)
+
+ssh $AZ_USERNAME@$VM_IP
+
+sudo umount /dev/sdc1
+
+sudo parted /dev/sdc
+	print
+		# Model: Msft Virtual Disk (scsi)
+		# Disk /dev/sdc: 215GB
+		# Sector size (logical/physical): 512B/4096B
+		# Partition Table: msdos
+		# Disk Flags: 
+		# 
+		# Number  Start   End    Size   Type     File system  Flags
+		#  1      1049kB  107GB  107GB  primary  ext4
+	resizepart                                                       
+		# Partition number? 1                                                       
+		# End?  [107GB]? 215GB                                                      
+		# (parted) quit                                                             
+		# Information: You may need to update /etc/fstab.
+	quit
+
+sudo e2fsck -f /dev/sdc1
+	
+sudo resize2fs /dev/sdc1
+
+sudo mount /dev/sdc1 /datadrive
+
+
+# make sure it worked
+df -h

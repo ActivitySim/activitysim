@@ -5,13 +5,13 @@ import os.path
 
 import numpy as np
 import pandas as pd
-import orca
 
 import pandas.util.testing as pdt
 import pytest
 
 from ..simulate import eval_variables
 from .. import logit
+from .. import inject
 
 
 @pytest.fixture(scope='module')
@@ -22,10 +22,10 @@ def data_dir():
 def add_canonical_dirs():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
 
 # this is lifted straight from urbansim's test_mnl.py
@@ -65,7 +65,7 @@ def utilities(choosers, spec, test_data):
     vars = eval_variables(spec.index, choosers)
     utils = vars.dot(spec).astype('float')
     return pd.DataFrame(
-        utils.as_matrix().reshape(test_data['probabilities'].shape),
+        utils.values.reshape(test_data['probabilities'].shape),
         columns=test_data['probabilities'].columns)
 
 
@@ -78,7 +78,7 @@ def test_utils_to_probs_raises():
 
     add_canonical_dirs()
 
-    idx = pd.Index(name='HHID', data=[1])
+    idx = pd.Index(name='household_id', data=[1])
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(pd.DataFrame([[1, 2, np.inf, 3]], index=idx), trace_label=None)
     assert "infinite exponentiated utilities" in str(excinfo.value)
@@ -124,14 +124,16 @@ def interaction_alts():
 def test_interaction_dataset_no_sample(interaction_choosers, interaction_alts):
     expected = pd.DataFrame({
         'attr': ['a'] * 4 + ['b'] * 4 + ['c'] * 4 + ['b'] * 4,
-        'prop': [10, 20, 30, 40] * 4,
-        'chooser_idx': ['w'] * 4 + ['x'] * 4 + ['y'] * 4 + ['z'] * 4},
+        'prop': [10, 20, 30, 40] * 4},
         index=[1, 2, 3, 4] * 4)
 
     interacted = logit.interaction_dataset(
         interaction_choosers, interaction_alts)
 
     interacted, expected = interacted.align(expected, axis=1)
+
+    print("interacted\n", interacted)
+    print("expected\n", expected)
     pdt.assert_frame_equal(interacted, expected)
 
 
@@ -139,8 +141,7 @@ def test_interaction_dataset_sampled(
         interaction_choosers, interaction_alts):
     expected = pd.DataFrame({
         'attr': ['a'] * 2 + ['b'] * 2 + ['c'] * 2 + ['b'] * 2,
-        'prop': [30, 40, 10, 30, 40, 10, 20, 10],
-        'chooser_idx': ['w'] * 2 + ['x'] * 2 + ['y'] * 2 + ['z'] * 2},
+        'prop': [30, 40, 10, 30, 40, 10, 20, 10]},
         index=[3, 4, 1, 3, 4, 1, 2, 1])
 
     interacted = logit.interaction_dataset(

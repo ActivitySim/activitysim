@@ -1,16 +1,12 @@
-Description,Expression,Alt
-"Distance, piecewise linear from 0 to 1 miles",@skims['DIST'].clip(1),-0.8428
-"Distance, piecewise linear from 1 to 2 miles","@(skims['DIST']-1).clip(0,1)",-0.3104
-"Distance, piecewise linear from 2 to 5 miles","@(skims['DIST']-2).clip(0,3)",-0.3783
-"Distance, piecewise linear from 5 to 15 miles","@(skims['DIST']-5).clip(0,10)",-0.1285
-"Distance, piecewise linear for 15+ miles",@(skims['DIST']-15.0).clip(0),-0.0917
-"Distance 0 to 5 mi, high and very high income",@(df.income_segment>=3)*skims['DIST'].clip(upper=5),0.15
-"Distance 5+ mi, high and very high income",@(df.income_segment>=3)*(skims['DIST']-5).clip(0),0.02
-"Size variable full-time worker, low income","@(df.income_segment==1)*df['work_low'].apply(np.log1p)",1
-"Size variable full-time worker, medium income","@(df.income_segment==2)*df['work_med'].apply(np.log1p)",1
-"Size variable full-time worker, high income","@(df.income_segment==3)*df['work_high'].apply(np.log1p)",1
-"Size variable full-time worker, very high income","@(df.income_segment==4)*df['work_veryhigh'].apply(np.log1p)",1
-"No attractions full-time worker, low income","@(df.income_segment==1)&(df['work_low']==0)",-999
-"No attractions full-time worker, medium income","@(df.income_segment==2)&(df['work_med']==0)",-999
-"No attractions full-time worker, high income","@(df.income_segment==3)&(df['work_high']==0)",-999
-"No attractions full-time worker, very high income","@(df.income_segment==4)&(df['work_veryhigh']==0)",-999
+Description,Expression,work_low,work_med,work_high,work_veryhigh
+,_DIST@skims['DIST'],1,1,1,1
+"Distance, piecewise linear from 0 to 1 miles",@_DIST.clip(1),-0.8428,-0.8428,-0.8428,-0.8428
+"Distance, piecewise linear from 1 to 2 miles","@(_DIST-1).clip(0,1)",-0.3104,-0.3104,-0.3104,-0.3104
+"Distance, piecewise linear from 2 to 5 miles","@(_DIST-2).clip(0,3)",-0.3783,-0.3783,-0.3783,-0.3783
+"Distance, piecewise linear from 5 to 15 miles","@(_DIST-5).clip(0,10)",-0.1285,-0.1285,-0.1285,-0.1285
+"Distance, piecewise linear for 15+ miles",@(_DIST-15.0).clip(0),-0.0917,-0.0917,-0.0917,-0.0917
+"Distance 0 to 5 mi, high and very high income",@_DIST.clip(upper=5),0.0,0.0,0.15,0.15
+"Distance 5+ mi, high and very high income",@(_DIST-5).clip(0),0.0,0.0,0.02,0.02
+Size variable,@(df['size_term'] * df['shadow_price_size_term_adjustment']).apply(np.log1p),1.0000,1.0000,1.0000,1.0000
+utility adjustment,@df['shadow_price_utility_adjustment'],1.0000,1.0000,1.0000,1.0000
+No attractions,@df['size_term']==0,-999.0000,-999.0000,-999.0000,-999.0000

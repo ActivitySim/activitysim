@@ -14,15 +14,18 @@ local,_DF_IS_TOUR,'tour_type' in df.columns
 ,is_indiv,~is_joint
 ,is_atwork_subtour,(df.tour_category=='atwork') if 'tour_category' in df.columns else False
 #,,
-,value_of_time,8
-,c_cost,(0.60 * c_ivt) / value_of_time
+,c_cost,(0.60 * c_ivt) / df.value_of_time
 #,,
 ,dest_topology,"reindex(land_use.TOPOLOGY, df[dest_col_name])"
 ,terminal_time,"reindex(land_use.TERMINAL, df[dest_col_name])"
 ,dest_density_index,"reindex(land_use.density_index, df[dest_col_name])"
 FIXME,origin_walk_time,0
 FIXME,destination_walk_time,0
-FIXME,daily_parking_cost,0
+#,,
+,_free_parking_available,"(df.tour_type == 'work') & df.free_parking_at_work if _DF_IS_TOUR else False"
+,_dest_hourly_peak_parking_cost,"reindex(land_use.PRKCST, df[dest_col_name])"
+,_hourly_parking_cost,"np.where(_free_parking_available, 0, _dest_hourly_peak_parking_cost)"
+,daily_parking_cost,_hourly_parking_cost * df.duration
 #,,
 ,drive_commuter_available,(odt_skims['DRV_COM_WLK_TOTIVT']>0) & (dot_skims['WLK_COM_DRV_TOTIVT']>0) & (odt_skims['DRV_COM_WLK_KEYIVT']>0) & (dot_skims['WLK_COM_DRV_KEYIVT']>0)
 ,drive_express_available,(odt_skims['DRV_EXP_WLK_TOTIVT']>0) & (dot_skims['WLK_EXP_DRV_TOTIVT']>0) & (odt_skims['DRV_EXP_WLK_KEYIVT']>0) & (dot_skims['WLK_EXP_DRV_KEYIVT']>0)
@@ -45,3 +48,5 @@ FIXME,daily_parking_cost,0
 ,drive_ferry_available,drive_lrf_available & (odt_skims['DRV_LRF_WLK_FERRYIVT']>0) & (dot_skims['WLK_LRF_WLK_FERRYIVT']>0)
 #,,
 destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, df[dest_col_name]) < setting('cbd_threshold')) * 1"
+#,,FIXME diagnostic
+#,sov_dist_rt,(odt_skims['SOV_DIST'] + dot_skims['SOV_DIST'])

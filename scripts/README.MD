@@ -1,9 +1,15 @@
 
 ## Scripts
-Potentially out-of-date scripts used for various data processing activities:
-  - stack_mode_choice.py - reformat the very complicated MTC TM1 mode choice UEC Excel files into a more straightforward csv file.  Unfortunately, there were some manual steps - for tour mode choice you have to run it twice since there are two slightly different variable sets that seem to occur.  Hopefully we never will have to do this again so I'm not documenting this throughly.  Not sure I could if I wanted to.
-  - stack_mode_choice2.py - has a couple of custom edits for trip_mode_choice rather than tour_mode choice.
-  - data_mover.ipynb - create HDF5 example data store from raw CSV files
-  - build_omx.py - create one big OMX file for all the MTC TM1 skims.  Requires skim_manifest.csv.
+
+### Create Asim TM1 inputs from CT-RAMP TM1 model data
+
+  - Open a DOS prompt in the mtc tm1 skims folder
+  - Run mtc_tm1_omx_export.s to convert Cube matrices to OMX (you need Cube 6.4.3 or 6.4.2 + OMXLib-x64.dll)
+  - Run build_omx.py to build one OMX file. Requires skim_manifest.csv.
+  - Run mtc_inputs.py to build mtc_asim.h5 (taz data and syn pop files)
+
+### Other scripts
   - create_sf_example.py - create SF county only MTC TM1 example inputs - land use, syn pop, and skims - for testing the entire system with full functionality but less memory requirements.
-  - SandagNetworkLOS.py - convert SANDAG network los files on MTC box account to ActivitySim NetworkLOS format
+  - make_pipeline_output.py - create table of pipeline table fields by creator for the rst docs
+  - verify_results.py - compare results for each submodel against TM1 results, see verification page in the wiki
+  - create_abmviz_inputs.py - create abmviz input files (this script is not yet complete)

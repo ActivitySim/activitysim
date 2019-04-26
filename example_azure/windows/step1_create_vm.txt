@@ -1,0 +1,117 @@
+# 128 GiB SSD Temp - want enough temp to create 64GB swap
+AZ_VM_SIZE=Standard_D16s_v3
+
+
+########################## create vm
+
+az vm create \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --name $AZ_VM_NAME \
+    --image $AZ_VM_IMAGE \
+	--admin-username $AZ_USERNAME \
+    --size $AZ_VM_SIZE
+
+
+########################## add a standard sdd managed disk
+
+#https://docs.microsoft.com/en-us/azure/virtual-machines/windows/attach-managed-disk-portal
+
+MANAGED_DISK_NAME=datadisk_w$AZ_VM_NUMBER
+DISK_SIZE_GB=200
+DISK_SKU=StandardSSD_LRS
+# Premium_LRS, StandardSSD_LRS, Standard_LRS, UltraSSD_LRS
+
+az vm disk attach \
+   -g $AZ_RESOURCE_GROUP \
+   --vm-name $AZ_VM_NAME \
+   --disk $MANAGED_DISK_NAME \
+   --new \
+   --size-gb $DISK_SIZE_GB \
+   --sku $DISK_SKU
+
+
+
+########################## connect to vm
+
+choose connect link in azure portal to open remote desktop
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+#VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv)
+
+
+
+########################## initialize managed disk
+
+Initialize a new data disk as E: drive
+* Connect to the VM.
+* Select the Windows Start menu inside the running VM and enter diskmgmt.msc in the search box. The Disk Management console opens.
+* Disk Management recognizes that you have a new, uninitialized disk and the Initialize Disk window appears.
+* Verify the new disk is selected and then select OK to initialize it.
+* The new disk appears as unallocated. Right-click anywhere on the disk and select New simple volume. The New Simple Volume Wizard window opens.
+* Proceed through the wizard, keeping all of the defaults, and when you're done select Finish.
+* Close Disk Management.
+* A pop-up window appears notifying you that you need to format the new disk before you can use it. Select Format disk.
+* In the Format new disk window, check the settings, and then select Start.
+* A warning appears notifying you that formatting the disks erases all of the data. Select OK.
+* When the formatting is complete, select OK.
+
+
+########################## mount smb disk
+
+smb disk:
+https://docs.microsoft.com/en-us/azure/storage/files/storage-how-to-use-files-windows
+
+# Install Azure PowerShell with PowerShellGet
+# https://docs.microsoft.com/en-us/powershell/azure/install-azurerm-ps?view=azurermps-6.13.0
+Install-Module -Name AzureRM -AllowClobber
+
+
+$resourceGroupName = "<your-resource-group-name>"
+$storageAccountName = "<your-storage-account-name>"
+
+$resourceGroupName = "jeffdoyle"
+$storageAccountName = "mystorageacct32320"
+
+# Ensure port 445 is open
+Test-NetConnection -ComputerName $storageAccountName.file.core.windows.net -Port 445
+
+# log in to azure
+Login-AzureRmAccount
+
+# These commands require you to be logged into your Azure account, run Login-AzureRmAccount if you haven't
+# already logged in.
+$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName
+$storageAccountKeys = Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -Name $storageAccountName
+
+# The cmdkey utility is a command-line (rather than PowerShell) tool. We use Invoke-Expression to allow us to
+# consume the appropriate values from the storage account variables. The value given to the add parameter of the
+# cmdkey utility is the host address for the storage account, <storage-account>.file.core.windows.net for Azure
+# Public Regions. $storageAccount.Context.FileEndpoint is used because non-Public Azure regions, such as sovereign
+# clouds or Azure Stack deployments, will have different hosts for Azure file shares (and other storage resources).
+Invoke-Expression -Command "cmdkey /add:$([System.Uri]::new($storageAccount.Context.FileEndPoint).Host)/user:AZURE\$($storageAccount.StorageAccountName) /pass:$($storageAccountKeys[0].Value)"
+
+# trust but verify
+cmdkey /list
+
+
+# Mount the Azure file share with PowerShell (persist)
+
+$fileShareName = "myshare"
+$driveLetter = "F"
+
+$fileShare = Get-AzureStorageShare -Context $storageAccount.Context | Where-Object {
+    $_.Name -eq $fileShareName -and $_.IsSnapshot -eq $false
+}
+
+if ($fileShare -eq $null) {
+    throw [System.Exception]::new("Azure file share not found")
+}
+
+# The value given to the root parameter of the New-PSDrive cmdlet is the host address for the storage account,
+# <storage-account>.file.core.windows.net for Azure Public Regions. $fileShare.StorageUri.PrimaryUri.Host is
+# used because non-Public Azure regions, such as sovereign clouds or Azure Stack deployments, will have different
+# hosts for Azure file shares (and other storage resources).
+$password = ConvertTo-SecureString -String $storageAccountKeys[0].Value -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential -ArgumentList "AZURE\$($storageAccount.StorageAccountName)", $password
+New-PSDrive -Name $driveLetter -PSProvider FileSystem -Root "\\$($fileShare.StorageUri.PrimaryUri.Host)\$($fileShare.Name)" -Credential $credential -Persist

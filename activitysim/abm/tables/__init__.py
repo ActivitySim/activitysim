@@ -1,14 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import households
-import persons
-import landuse
-import skims
-import tours
-import size_terms
-import trips
-import time_windows
+from __future__ import absolute_import
 
-import constants
-import random_channels
+from . import input_store
+
+from . import households
+from . import persons
+from . import landuse
+from . import skims
+from . import tours
+from . import size_terms
+from . import trips
+from . import time_windows
+from . import shadow_pricing
+
+from . import constants
+from . import table_dict

@@ -8,19 +8,21 @@ Models
 The currently implemented example ActivitySim AB models are described below.  See the example 
 model :ref:`sub-model-spec-files` for more information.
 
-.. _initialize:
+.. _initialize_landuse:
+.. _initialize_households:
 
 Initialize
 ----------
 
-The initialize model isn't really a model, but a step in the data pipeline.  This step pre-loads the land_use, 
-households, persons, and person_windows tables because random seeds are set differently for each step 
-and therefore the sampling of households depends on which step they are initially loaded in.  So, we 
-load them explicitly up front. 
+The initialize model isn't really a model, but rather a few data processing steps in the data pipeline.  
+The initialize data processing steps code variables used in downstream models, such as household and person
+value-of-time.  This step also pre-loads the land_use, households, persons, and person_windows tables because 
+random seeds are set differently for each step and therefore the sampling of households depends on which step 
+they are initially loaded in. 
 
-The main interface to the initialize model is the :py:func:`~activitysim.abm.models.initialize.initialize` 
-function.  This function is registered as an orca step in the example Pipeline.
-
+The main interface to the initialize land use step is the :py:func:`~activitysim.abm.models.initialize.initialize_landuse` 
+function. The main interface to the initialize household step is the :py:func:`~activitysim.abm.models.initialize.initialize_households` 
+function.  These functions are registered as orca steps in the example Pipeline.
 
 .. automodule:: activitysim.abm.models.initialize
    :members:
@@ -73,12 +75,13 @@ Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O
    :members:
 
 .. _school_location:
+.. _work_location:
 
 School Location
 ---------------
 
 The usual school location choice models assign a usual school location for the primary
-mandatory activity of each school-aged child and university student in the
+mandatory activity of each child and university student in the
 synthetic population. The models are composed of a set of accessibility-based parameters
 (including one-way distance between home and primary destination and the tour mode choice
 logsum - the expected maximum utility in the mode choice model which is given by the
@@ -86,27 +89,21 @@ logarithm of the sum of exponentials in the denominator of the logit formula) an
 which describe the quantity of grade-school or university opportunities in each possible
 destination.
 
-The school location model is made up of three model steps:
-  * school_location_sample - selects a sample of alternative school locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
-  * school_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative school location.
-  * school_location_simulate - starts with the table created above and chooses a final school location, this time with the mode choice logsum included.
+The school location model is made up of four steps:
+  * sampling - selects a sample of alternative school locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
+  * logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative school location.
+  * simulate - starts with the table created above and chooses a final school location, this time with the mode choice logsum included.
+  * shadow prices - compare modeled zonal destinations to target zonal size terms and calculate updated shadow prices.
+  
+These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`. 
 
-The interfaces to the model steps are 
-:py:func:`~activitysim.abm.models.school_location.school_location_sample`,
-:py:func:`~activitysim.abm.models.school_location.school_location_logsums`,
-:py:func:`~activitysim.abm.models.school_location.school_location_simulate`.  
-These functions are registered as orca steps in the example Pipeline.
+The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.school_location` function.  
+This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``persons`` | Result Field: ``school_taz`` | Skims Keys: ``TAZ, TAZ_r``
+Core Table: ``persons`` | Result Field: ``school_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, MD time period``
 
-
-.. automodule:: activitysim.abm.models.school_location
-   :members:
-
-.. _work_location:
-
-Workplace Location
-------------------
+Work Location
+-------------
  
 The usual work location choice models assign a usual work location for the primary
 mandatory activity of each employed person in the
@@ -116,21 +113,33 @@ logsum - the expected maximum utility in the mode choice model which is given by
 logarithm of the sum of exponentials in the denominator of the logit formula) and size terms,
 which describe the quantity of work opportunities in each possible destination.
 
-The work location model is made up of three model steps:
-  * workplace_location_sample - selects a sample of alternative work locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
-  * workplace_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative work location.
-  * workplace_location_simulate - starts with the table created above and chooses a final work location, this time with the mode choice logsum included.
+The work location model is made up of four steps:
+  * sample - selects a sample of alternative work locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
+  * logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative work location.
+  * simulate - starts with the table created above and chooses a final work location, this time with the mode choice logsum included.
+  * shadow prices - compare modeled zonal destinations to target zonal size terms and calculate updated shadow prices.
 
-The interfaces to the model steps are 
-:py:func:`~activitysim.abm.models.workplace_location.workplace_location_sample`,
-:py:func:`~activitysim.abm.models.workplace_location.workplace_location_logsums`,
-:py:func:`~activitysim.abm.models.workplace_location.workplace_location_simulate`.  
-These functions are registered as orca steps in the example Pipeline.
+These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`.
 
-Core Table: ``persons`` | Result Field: ``workplace_taz`` | Skims Keys: ``TAZ, TAZ_r``
+The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.workplace_location` function.  
+This function is registered as an orca step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``workplace_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, PM time period``
 
 
-.. automodule:: activitysim.abm.models.workplace_location
+.. automodule:: activitysim.abm.models.location_choice
+   :members:
+
+.. index:: shadow pricing
+
+.. _shadow_pricing:
+
+Shadow Pricing
+--------------
+
+The shadow pricing calculator used by work and school location choice. 
+
+.. automodule:: activitysim.abm.tables.shadow_pricing
    :members:
 
 .. _auto_ownership:
@@ -156,17 +165,19 @@ Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
 Free Parking Eligibility
 ------------------------
 
-**NOT YET IMPLEMENTED**
-
 The Free Parking Eligibility model predicts the availability of free parking at a person's
-workplace for people who work in zones that have parking charges, which are generally located
-in the Central Business Districts. The purpose of the model is to adequately reflect the cost 
-of driving to work in subsequent models, particularly in mode choice. 
+workplace.  It is applied for people who work in zones that have parking charges, which are 
+generally located in the Central Business Districts. The purpose of the model is to adequately 
+reflect the cost of driving to work in subsequent models, particularly in mode choice. 
 
 The main interface to the free parking eligibility model is the 
-XXXXX function.  This function is registered as an orca step in the example Pipeline.
+:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered 
+as an orca step in the example Pipeline.
 
-Core Table: ``persons`` | Result Field: ``XXXXX`` | Skims Keys: NA
+Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
+
+.. automodule:: activitysim.abm.models.free_parking
+   :members:
 
 
 .. _cdap:
@@ -184,7 +195,7 @@ follows:
 
 The CDAP model is a sequence of vectorized table operations:
 
-* create a person level table and rank each person in the household for inclusion in the CDAP model
+* create a person level table and rank each person in the household for inclusion in the CDAP model.  Priority is given to full time workers (up to two), then to part time workers (up to two workers, of any type), then to children (youngest to oldest, up to three).  Additional members up to five are randomly included for the CDAP calculation.
 * solve individual M/N/H utilities for each person
 * take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
 * select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions
@@ -239,7 +250,7 @@ The main interface to the mandatory tour purpose scheduling model is the
 :py:func:`~activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling` 
 function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: NA
+Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``TAZ, workplace_taz, school_taz, start, end``
 
 
 .. automodule:: activitysim.abm.models.mandatory_scheduling
@@ -339,17 +350,14 @@ based on spatial, temporal, and modal characteristics of the inbound and outboun
 the primary destination.
 
 The joint tour destination choice model is made up of three model steps:
-  * joint_tour_destination_sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
-  * joint_tour_destination_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.
-  * joint_tour_destination_simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
+  * sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
+  * logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.
+  * simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
 
-The interfaces to the model steps are 
-:py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination_sample`,
-:py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination_logsums`,
-:py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination_simulate`.  
-These functions are registered as orca steps in the example Pipeline.
+The main interface to the model is the :py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination`
+function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``tours`` | Result Fields: ``destination`` | Skims Keys: ``TAZ, TAZ_r``
+Core Table: ``tours`` | Result Fields: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period``
 
 
 .. automodule:: activitysim.abm.models.joint_tour_destination
@@ -365,12 +373,13 @@ period as well) for each joint tour.  This model uses person :ref:`time_windows`
 models are accessibility-based parameters such
 as the auto travel time for the departure/arrival hour combination, demographics, and time
 pattern characteristics such as the time windows available from previously scheduled tours.
+The joint tour scheduling model does not use mode choice logsums. 
 
 The main interface to the joint tour purpose scheduling model is the 
 :py:func:`~activitysim.abm.models.joint_tour_scheduling.joint_tour_scheduling` 
 function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: NA
+Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: `` TAZ, destination, MD time period, MD time period``
 
 
 .. automodule:: activitysim.abm.models.joint_tour_scheduling
@@ -387,7 +396,7 @@ It also adds non-mandatory tours to the tours in the data pipeline. The individu
 operates in two stages:
 
   * A choice is made using a random utility model between combinations of tours containing zero, one, and two or more escort tours, and between zero and one or more tours of each other purpose. 
-  * Up to two additional tours of each purpose are added according to fixed extension probabilities.  The extension probabilities are **NOT YET IMPLEMENTED**
+  * Up to two additional tours of each purpose are added according to fixed extension probabilities.
 
 The main interface to the non-mandatory tour purpose frequency model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency` 
@@ -406,13 +415,13 @@ Non-Mandatory Tour Destination Choice
 
 The non-mandatory tour destination choice model chooses a destination zone for
 non-mandatory tours.  The three step (sample, logsums, final choice) process also used for 
-mandatory tour destination choice is **NOT YET IMPLEMENTED** for non-mandatory tour destination choice.
+mandatory tour destination choice is used for non-mandatory tour destination choice.
 
 The main interface to the non-mandatory tour destination choice model is the 
-:py:func:`~activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination_choice` 
+:py:func:`~activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination` 
 function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``tours`` | Result Field: ``destination`` | Skims Keys: ``TAZ, TAZ_r``
+Core Table: ``tours`` | Result Field: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period, MD time period``
 
 
 .. automodule:: activitysim.abm.models.non_mandatory_destination
@@ -425,13 +434,14 @@ Non-Mandatory Tour Scheduling
 -----------------------------
 
 The non-mandatory tour scheduling model selects a tour departure and duration period (and therefore a start and end 
-period as well) for each non-mandatory tour.  This model uses person :ref:`time_windows`.
+period as well) for each non-mandatory tour.  This model uses person :ref:`time_windows`.  
+The non-mandatory tour scheduling model does not use mode choice logsums. 
 
 The main interface to the non-mandatory tour purpose scheduling model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling` 
 function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: NA
+Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``TAZ, destination, MD time period, MD time period``
 
 
 .. automodule:: activitysim.abm.models.non_mandatory_scheduling
@@ -443,20 +453,20 @@ Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: NA
 Tour Mode Choice
 ----------------
 
-The mandatory, individual non-mandatory, at-work, and joint tour mode choice model assigns to each tour the "primary" mode that 
+The mandatory, non-mandatory, and joint tour mode choice model assigns to each tour the "primary" mode that 
 is used to get from the origin to the primary destination. The tour-based modeling approach requires a reconsideration
 of the conventional mode choice structure. Instead of a single mode choice model used in a fourstep
 structure, there are two different levels where the mode choice decision is modeled: (a) the
 tour mode level (upper-level choice); and, (b) the trip mode level (lower-level choice conditional
 upon the upper-level choice).
 
-The mandatory, individual non-mandatory, at-work, and joint tour mode level represents the decisions that apply to the entire tour, and 
+The mandatory, non-mandatory, and joint tour mode level represents the decisions that apply to the entire tour, and 
 that will affect the alternatives available for each individual trip or joint trip. These decisions include the choice to use a private
 car versus using public transit, walking, or biking; whether carpooling will be considered; and
 whether transit will be accessed by car or by foot. Trip-level decisions correspond to details of
 the exact mode used for each trip, which may or may not change over the trips in the tour.
 
-The mandatory, individual non-mandatory, at-work, and joint tour mode choice structure is a nested logit model which separates 
+The mandatory, non-mandatory, and joint tour mode choice structure is a nested logit model which separates 
 similar modes into different nests to more accurately model the cross-elasticities between the alternatives. The
 eighteen modes are incorporated into the nesting structure specified in the model settings file. The 
 first level of nesting represents the use a private car, non-motorized
@@ -469,14 +479,11 @@ from the automobile in-vehicle time coefficient and the persons' modeled value o
 characteristics of the destination zone, demographics, and the household's level of auto
 ownership.
 
-The main interface to the mandatory, individual non-mandatory, at-work, and joint tour tour mode model is the 
+The main interface to the mandatory, non-mandatory, and joint tour tour mode model is the 
 :py:func:`~activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate` function.  This function is 
 called in the orca step ``tour_mode_choice_simulate`` and is registered as an orca step in the example Pipeline.
 
-Core Table: ``tours`` | Result Field: ``mode`` | Skims od_skims Keys: ``TAZ, destination`` | 
-SkimStackWrapper odt_skims Keys: ``TAZ, destination, in_period`` | SkimStackWrapper dot_skims Keys: 
-``destination, TAZ, out_period``
-
+Core Table: ``tours`` | Result Field: ``mode`` | Skims Keys: ``TAZ, destination, start, end``
 
 .. automodule:: activitysim.abm.models.tour_mode_choice
    :members:
@@ -516,22 +523,19 @@ At-work Subtours Destination Choice
 
 The at-work subtours destination choice model is made up of three model steps:
 
-  * atwork_subtour_destination_sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
-  * atwork_subtour_destination_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.
-  * atwork_subtour_destination_simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
+  * sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
+  * logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.
+  * simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
 
-Core Table: ``tours`` | Result Table: ``destination`` | Skims Keys: ``workplace_taz, alt zone, MD time period``
+Core Table: ``tours`` | Result Table: ``destination`` | Skims Keys: ``workplace_taz, alt_dest, MD time period``
 
-The interfaces to the models are:
-  * :py:func:`~activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_sample` 
-  * :py:func:`~activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums` 
-  * :py:func:`~activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate` 
-
-These functions are registered as orca steps in the example Pipeline.
+The main interface to the at-work subtour destination model is the 
+:py:func:`~activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination` 
+function.  This function is registered as an orca step in the example Pipeline.
 
 .. automodule:: activitysim.abm.models.atwork_subtour_destination
    :members:
-   
+
 .. _atwork_subtour_scheduling:
 
 At-work Subtour Scheduling
@@ -541,9 +545,9 @@ The at-work subtours scheduling model selects a tour departure and duration peri
 period as well) for each at-work subtour.  This model uses person :ref:`time_windows`.
 
 This model is the same as the mandatory tour scheduling model except it operates on the at-work tours and 
-constrains the alternative set to available person :ref:`time_windows`.  Unlike the other departure time and duration models, 
-the at-work subtour model does not require mode choice logsums. The at-work subtour frequency model can choose multiple 
-tours so this model must process all first tours and then second tours since isFirstAtWorkTour is an explanatory variable.
+constrains the alternative set to available person :ref:`time_windows`.  The at-work subtour scheduling model does not use mode choice logsums. 
+The at-work subtour frequency model can choose multiple tours so this model must process all first tours and then second 
+tours since isFirstAtWorkTour is an explanatory variable.
 
 Choosers: at-work tours
 Alternatives: alternative departure time and arrival back at origin time pairs WITHIN the work tour departure time and arrival time back at origin AND the person time window. If no time window is available for the tour, make the first and last time periods within the work tour available, make the choice, and log the number of times this occurs.
@@ -554,8 +558,7 @@ The main interface to the at-work subtours scheduling model is the
 :py:func:`~activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling` 
 function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``tours`` | Result Field: ``start,end,duration`` | Skims Keys: **NOT YEY IMPLEMENTED**
-
+Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``workplace_taz, alt_dest, MD time period, MD time period``
 
 .. automodule:: activitysim.abm.models.atwork_subtour_scheduling
    :members:
@@ -573,10 +576,7 @@ The main interface to the at-work subtour mode choice model is the
 function.  This function is called in the orca step ``atwork_subtour_mode_choice`` and
 is registered as an orca step in the example Pipeline.  
 
-Core Table: ``tour`` | Result Field: ``tour_mode`` | Skims od_skims Keys: ``workplace_taz,destination`` |
-SkimStackWrapper odt_skims Keys: ``workplace_taz,destination,out_period`` | 
-SkimStackWrapper dot_skims Keys: ``destination,workplace_taz,in_period``
-
+Core Table: ``tour`` | Result Field: ``tour_mode`` | Skims Keys: ``workplace_taz, destination, start, end``
 
 .. automodule:: activitysim.abm.models.atwork_subtour_mode_choice
    :members:
@@ -672,7 +672,7 @@ The main interface to the trip destination choice model is the
 :py:func:`~activitysim.abm.models.trip_destination.trip_destination` function.  
 This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``trips`` | Result Field: ``destination`` | Skims Keys: NA
+Core Table: ``trips`` | Result Field: ``(trip) destination`` | Skims Keys: ``origin, (tour primary) destination, dest_taz, trip_period``
 
 .. note::
    Trip purpose and trip destination choice can be run iteratively together via :ref:`trip_purpose_and_destination`.
@@ -693,7 +693,7 @@ The main interface to the trip purpose model is the
 :py:func:`~activitysim.abm.models.trip_purpose_and_destination.trip_purpose_and_destination` 
 function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``trips`` | Result Field: ``purpose,destination`` | Skims Keys: NA
+Core Table: ``trips`` | Result Field: ``purpose, destination`` | Skims Keys: ``origin, (tour primary) destination, dest_taz, trip_period``
 
 .. automodule:: activitysim.abm.models.trip_purpose_and_destination
    :members:
@@ -717,6 +717,7 @@ the time period selected for an earlier trip in a half-tour makes selection of a
 period impossible (or very low probability). Thus, the sampling is re-run until a feasible set of trip time 
 periods is found. If a trip can't be scheduled after the max iterations, then the trip is assigned 
 the previous trip's choice (i.e. assumed to happen right after the previous trip) or dropped, as configured by the user.
+The trip scheduling model does not use mode choice logsums. 
 
 Alternatives: Available time periods in the tour window (i.e. tour start and end period).  When processing stops on 
 work tours, the available time periods is constrained by the at-work subtour start and end period as well.
@@ -752,8 +753,7 @@ variables, and alternative-specific constants segmented by tour mode.
 The main interface to the trip mode choice model is the 
 :py:func:`~activitysim.abm.models.trip_mode_choice.trip_mode_choice` function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims od_skims Keys: ``origin,destination`` |
-SkimStackWrapper odt_skims Keys: ``origin,destination,trip_period`` 
+Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims Keys: ``origin, destination, trip_period``
 
 .. automodule:: activitysim.abm.models.trip_mode_choice
    :members:
@@ -780,7 +780,7 @@ not park in the destination zone.
 The main interface to the CBD parking model is the 
 XXXXX function.  This function is registered as an orca step in the example Pipeline.
 
-Core Table: ``trips`` | Result Field: ``XXXXX`` | Skims Keys: NA
+Core Table: ``trips`` | Result Field: ``XXXXX`` | Skims Keys: ``XXXXX``
 
 
 .. _utility_steps:
@@ -805,7 +805,7 @@ Expressions
 The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate 
 a number of additional table fields, and join the fields to the target table.  An example table annotation expressions 
 file is found in the example configuration files for households for the CDAP model - 
-`annotate_households_cdap.csv <https://github.com/UDST/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
+`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
 
 .. automodule:: activitysim.abm.models.util.expressions
    :members:
@@ -846,8 +846,8 @@ Trip
 .. automodule:: activitysim.abm.models.util.trip
    :members:
    
-Tour Scheduling 
-~~~~~~~~~~~~~~~
+Vectorize Tour Scheduling 
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: activitysim.abm.models.util.vectorize_tour_scheduling
    :members:

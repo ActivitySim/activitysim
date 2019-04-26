@@ -1,19 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
-import numpy as np
 import pandas as pd
 
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
-from activitysim.core import simulate
 from activitysim.core import inject
 
-from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
 from activitysim.abm.models.trip_purpose import run_trip_purpose
@@ -64,26 +64,32 @@ def trip_purpose_and_destination(
     model_settings = config.read_model_settings('trip_purpose_and_destination.yaml')
 
     MAX_ITERATIONS = model_settings.get('MAX_ITERATIONS', 5)
-    CLEANUP = model_settings.get('cleanup', True)
 
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
+
+    if trips_df.empty:
+        logger.info("%s - no trips. Nothing to do." % trace_label)
+        return
 
     # FIXME could allow MAX_ITERATIONS=0 to allow for cleanup-only run
     # in which case, we would need to drop bad trips, WITHOUT failing bad_trip leg_mates
     assert (MAX_ITERATIONS > 0)
 
     # if trip_destination has been run before, keep only failed trips (and leg_mates) to retry
-    if 'failed' in trips_df:
-        logger.info('trip_destination has already been run. Rerunning failed trips')
-        flag_failed_trip_leg_mates(trips_df, 'failed')
-        trips_df = trips_df[trips_df.failed]
-        tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
-        logger.info('Rerunning %s failed trips and leg-mates' % trips_df.shape[0])
-
-    if trips_df.empty:
-        logger.info("%s - no trips. Nothing to do." % trace_label)
-        return
+    if 'destination' in trips_df:
+        if trips_df.failed.any():
+            logger.info('trip_destination has already been run. Rerunning failed trips')
+            flag_failed_trip_leg_mates(trips_df, 'failed')
+            trips_df = trips_df[trips_df.failed]
+            tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
+            logger.info('Rerunning %s failed trips and leg-mates' % trips_df.shape[0])
+        else:
+            # no failed trips from prior run of trip_destination
+            logger.info("%s - no failed trips from prior model run." % trace_label)
+            del trips_df['failed']
+            pipeline.replace_table("trips", trips_df)
+            return
 
     results = []
     i = 0
@@ -93,7 +99,8 @@ def trip_purpose_and_destination(
         i += 1
 
         for c in RESULT_COLUMNS:
-            del trips_df[c]
+            if c in trips_df:
+                del trips_df[c]
 
         trips_df = run_trip_purpose_and_destination(
             trips_df,
@@ -109,7 +116,7 @@ def trip_purpose_and_destination(
             results.append(trips_df[RESULT_COLUMNS])
             break
 
-        logger.warn("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
+        logger.warning("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
         file_name = "%s_i%s_failed_trips" % (trace_label, i)
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
@@ -117,7 +124,7 @@ def trip_purpose_and_destination(
         # if max iterations reached, add remaining trips to results and give up
         # note that we do this BEFORE failing leg_mates so resulting trip legs are complete
         if i >= MAX_ITERATIONS:
-            logger.warn("%s too many iterations %s" % (trace_label, i))
+            logger.warning("%s too many iterations %s" % (trace_label, i))
             results.append(trips_df[RESULT_COLUMNS])
             break
 
@@ -139,10 +146,7 @@ def trip_purpose_and_destination(
     trips_df = trips.to_frame()
     assign_in_place(trips_df, results)
 
-    if CLEANUP:
-        trips_df = cleanup_failed_trips(trips_df)
-    elif trips_df.failed.any():
-        logger.warn("%s keeping %s sidelined failed trips" % (trace_label, trips_df.failed.sum()))
+    trips_df = cleanup_failed_trips(trips_df)
 
     pipeline.replace_table("trips", trips_df)
 

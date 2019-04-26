@@ -1,15 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, )
+
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import os.path
 import logging
-
 import pytest
 
-import orca
 import pandas as pd
 
-from .. import tracing as tracing
+from .. import tracing
+from .. import inject
 
 
 def close_handlers():
@@ -24,48 +27,13 @@ def close_handlers():
 
 def add_canonical_dirs():
 
+    inject.clear_cache()
+
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
-
-
-def test_bad_custom_config_file(capsys):
-
-    add_canonical_dirs()
-
-    custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'xlogging.yaml')
-    tracing.config_logger(custom_config_file=custom_config_file)
-
-    logger = logging.getLogger('activitysim')
-
-    file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]
-    assert len(file_handlers) == 1
-    asim_logger_baseFilename = file_handlers[0].baseFilename
-
-    logger = logging.getLogger(__name__)
-    logger.info('test_bad_custom_config_file')
-    logger.info('log_info')
-    logger.warn('log_warn1')
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    assert "could not find conf file" in out
-    assert 'log_warn1' in out
-    assert 'log_info' not in out
-
-    close_handlers()
-
-    logger.warn('log_warn2')
-
-    with open(asim_logger_baseFilename, 'r') as content_file:
-        content = content_file.read()
-    assert 'log_warn1' in content
-    assert 'log_warn2' not in content
+    inject.add_injectable("output_dir", output_dir)
 
 
 def test_config_logger(capsys):
@@ -80,16 +48,16 @@ def test_config_logger(capsys):
     assert len(file_handlers) == 1
     asim_logger_baseFilename = file_handlers[0].baseFilename
 
-    print "handlers:", logger.handlers
+    print("handlers:", logger.handlers)
 
     logger.info('test_config_logger')
     logger.info('log_info')
-    logger.warn('log_warn1')
+    logger.warning('log_warn1')
 
     out, err = capsys.readouterr()
 
     # don't consume output
-    print out
+    print(out)
 
     assert "could not find conf file" not in out
     assert 'log_warn1' in out
@@ -98,38 +66,13 @@ def test_config_logger(capsys):
     close_handlers()
 
     logger = logging.getLogger(__name__)
-    logger.warn('log_warn2')
+    logger.warning('log_warn2')
 
     with open(asim_logger_baseFilename, 'r') as content_file:
         content = content_file.read()
-        print content
+        print(content)
     assert 'log_warn1' in content
     assert 'log_warn2' not in content
-
-
-def test_custom_config_logger(capsys):
-
-    add_canonical_dirs()
-
-    custom_config_file = os.path.join(os.path.dirname(__file__), 'configs', 'custom_logging.yaml')
-    tracing.config_logger(custom_config_file)
-
-    logger = logging.getLogger('activitysim')
-
-    logger.warn('custom_log_warn')
-
-    asim_logger_filename = os.path.join(os.path.dirname(__file__), 'output', 'xasim.log')
-
-    with open(asim_logger_filename, 'r') as content_file:
-        content = content_file.read()
-    assert 'custom_log_warn' in content
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    assert 'custom_log_warn' in out
 
 
 def test_print_summary(capsys):
@@ -138,12 +81,12 @@ def test_print_summary(capsys):
 
     tracing.config_logger()
 
-    tracing.print_summary('label', df=None, describe=False, value_counts=False)
+    tracing.print_summary('label', df=pd.DataFrame(), describe=False, value_counts=False)
 
     out, err = capsys.readouterr()
 
     # don't consume output
-    print out
+    print(out)
 
     assert 'print_summary neither value_counts nor describe' in out
 
@@ -158,18 +101,22 @@ def test_register_households(capsys):
 
     df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
 
-    tracing.register_households(df, 5)
+    inject.add_injectable('traceable_tables', ['households'])
+    inject.add_injectable("trace_hh_id", 5)
 
+    tracing.register_traceable_table('households', df)
     out, err = capsys.readouterr()
+    # print out   # don't consume output
 
-    # don't consume output
-    print out
+    assert "Can't register table 'households' without index name" in out
+
+    df.index.name = 'household_id'
+    tracing.register_traceable_table('households', df)
+    out, err = capsys.readouterr()
+    # print out   # don't consume output
 
     # should warn that household id not in index
     assert 'trace_hh_id 5 not in dataframe' in out
-
-    # should warn and rename index if index name is None
-    assert "households table index had no name. renamed index 'household_id'" in out
 
     close_handlers()
 
@@ -180,43 +127,42 @@ def test_register_tours(capsys):
 
     tracing.config_logger()
 
+    inject.add_injectable('traceable_tables', ['households', 'tours'])
+
     # in case another test injected this
-    orca.add_injectable("trace_person_ids", [])
+    inject.add_injectable("trace_tours", [])
 
-    df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[1, 2, 3])
+    tours_df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[10, 11, 12])
+    tours_df.index.name = 'tour_id'
 
-    tracing.register_tours(df, 5)
-
-    out, err = capsys.readouterr()
-
-    # don't consume output
-    print out
-
-    assert "no person ids registered for trace_hh_id 5" in out
-
-    close_handlers()
-
-
-def test_register_persons(capsys):
-
-    add_canonical_dirs()
-
-    tracing.config_logger()
-
-    df = pd.DataFrame({'household_id': [1, 2, 3]}, index=[11, 12, 13])
-
-    tracing.register_persons(df, 5)
+    tracing.register_traceable_table('tours', tours_df)
 
     out, err = capsys.readouterr()
+    # print out  # don't consume output
 
-    # don't consume output
-    print out
+    assert "can't find a registered table to slice table 'tours' index name 'tour_id'" in out
 
-    # should warn that household id not in index
-    assert 'trace_hh_id 5 not found' in out
+    inject.add_injectable("trace_hh_id", 3)
+    households_df = pd.DataFrame({'dzing': ['a', 'b', 'c']}, index=[1, 2, 3])
+    households_df.index.name = 'household_id'
+    tracing.register_traceable_table('households', households_df)
 
-    # should warn and rename index if index name is None
-    assert "persons table index had no name. renamed index 'person_id'" in out
+    tracing.register_traceable_table('tours', tours_df)
+
+    out, err = capsys.readouterr()
+    # print out  # don't consume output
+    assert "can't find a registered table to slice table 'tours'" in out
+
+    tours_df['household_id'] = [1, 5, 3]
+
+    tracing.register_traceable_table('tours', tours_df)
+
+    out, err = capsys.readouterr()
+    print(out)  # don't consume output
+
+    # should be tracing tour with tour_id 3
+    traceable_table_ids = inject.get_injectable('traceable_table_ids')
+    assert traceable_table_ids['tours'] == [12]
 
     close_handlers()
 
@@ -232,10 +178,9 @@ def test_write_csv(capsys):
 
     out, err = capsys.readouterr()
 
-    # don't consume output
-    print out
+    print(out)  # don't consume output
 
-    assert "write_df_csv object 'baddie' of unexpected type" in out
+    assert "unexpected type" in out
 
     close_handlers()
 
@@ -263,10 +208,10 @@ def test_basic(capsys):
     close_handlers()
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    orca.add_injectable("configs_dir", configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []
@@ -282,12 +227,12 @@ def test_basic(capsys):
     logger.info('test_basic')
     logger.debug('log_debug')
     logger.info('log_info')
-    logger.warn('log_warn')
+    logger.warning('log_warn')
 
     out, err = capsys.readouterr()
 
     # don't consume output
-    print out
+    print(out)
 
     assert 'log_warn' in out
     assert 'log_info' in out

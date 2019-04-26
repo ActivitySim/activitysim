@@ -1,0 +1,104 @@
+
+#AZ_VM_SIZE=Standard_D16s_v3
+
+
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
+#AZ_VM_SIZE=Standard_E64s_v3
+
+# 128 cpu 2TB ram $13.34/hour
+#AZ_VM_SIZE=Standard_M128s
+
+############### resize
+
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+az vm resize --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME --size $AZ_VM_SIZE
+
+
+############### start
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv)
+
+
+# copy settings to example_mp/configs
+scp example_mp/configs/settings.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/settings.yaml
+scp example_mp/configs/shadow_pricing.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/shadow_pricing.yaml
+#scp example_mp/configs/logging.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/logging.yaml
+scp example_mp/configs/school_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/school_location.yaml
+scp example_mp/configs/workplace_location.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/workplace_location.yaml
+
+
+############### run
+
+ssh $AZ_USERNAME@$VM_IP
+
+export PATH="/datadrive/work/miniconda/bin:$PATH"
+hash -r
+
+source activate asim
+
+# - git
+#cd /datadrive/work/activitysim
+#git stash
+#git pull
+#git stash pop
+#git stash drop
+
+
+# - copy shadow prices to data dir
+#cp output/final_school_shadow_prices.csv /datadrive/work/data/full/school_shadow_prices.csv
+#cp output/final_workplace_shadow_prices.csv /datadrive/work/data/full/workplace_shadow_prices.csv
+
+# - delete shadow prices from data dir
+#rm /datadrive/work/data/full/school_shadow_prices.csv
+#rm /datadrive/work/data/full/workplace_shadow_prices.csv
+
+cd /datadrive/work/activitysim/example_mp
+
+#nano configs/settings.yaml
+
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export OMP_NUM_THREADS=1
+
+python simulation.py -d /datadrive/work/data/full
+
+tail -f output/log/mp_households_0-activitysim.log
+
+tar zcvf output.tar.gz output/log/ output/trace/
+
+exit
+
+TAR_TAG=azure-64-ubuntu-shadow_daysim_warm
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/output.tar.gz example_azure/output_ubuntu/$TAR_TAG-output.tar.gz
+
+############### 
+
+az vm stop --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+
+############### mount smb
+
+# on dev
+
+STORAGEKEY=$(az storage account keys list \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --account-name $STORAGEACCT \
+    --query "[0].value" | tr -d '"')
+
+echo "STORAGEKEY=$STORAGEKEY"
+
+# on ubuntu
+
+STORAGEKEY=<xxx>
+STORAGEACCT=mystorageacct32320
+SHARE_NAME=myshare
+sudo mkdir /mnt/fileshare
+sudo mount -t cifs //$STORAGEACCT.file.core.windows.net/$SHARE_NAME /mnt/fileshare -o vers=3.0,username=$STORAGEACCT,password=$STORAGEKEY,dir_mode=0777,file_mode=0777,serverino
+
+FILE_NAME=windows1_128_run_1.zip
+DEST_DIR=output_windows
+scp $AZ_USERNAME@$VM_IP:/mnt/fileshare/work/$FILE_NAME $DEST_DIR/$FILE_NAME
+

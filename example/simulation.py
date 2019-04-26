@@ -1,40 +1,52 @@
-import orca
+# ActivitySim
+# See full license in LICENSE.txt.
+
+from __future__ import print_function
+
+# import sys
+# if not sys.warnoptions:  # noqa: E402
+#     import warnings
+#     warnings.filterwarnings('error', category=Warning)
+#     warnings.filterwarnings('ignore', category=PendingDeprecationWarning, module='future')
+#     warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
+
+import logging
+
+# activitysim.abm imported for its side-effects (dependency injection)
 from activitysim import abm
+
 from activitysim.core import tracing
-import pandas as pd
-import numpy as np
-import os
-
-from activitysim.core.tracing import print_elapsed_time
-from activitysim.core.config import handle_standard_args
+from activitysim.core import config
 from activitysim.core.config import setting
-
 from activitysim.core import pipeline
 
-handle_standard_args()
-
-# comment out the line below to default base seed to 0 random seed
-# so that run results are reproducible
-# pipeline.set_rn_generator_base_seed(seed=None)
-
-tracing.config_logger()
-
-t0 = print_elapsed_time()
-
-MODELS = setting('models')
+logger = logging.getLogger('activitysim')
 
 
-# If you provide a resume_after argument to pipeline.run
-# the pipeline manager will attempt to load checkpointed tables from the checkpoint store
-# and resume pipeline processing on the next submodel step after the specified checkpoint
-resume_after = setting('resume_after', None)
+def run():
+    config.handle_standard_args()
 
-if resume_after:
-    print "resume_after", resume_after
+    # specify None for a pseudo random base seed
+    # inject.add_injectable('rng_base_seed', 0)
 
-pipeline.run(models=MODELS, resume_after=resume_after)
+    tracing.config_logger()
+    config.filter_warnings()
 
-# tables will no longer be available after pipeline is closed
-pipeline.close_pipeline()
+    tracing.delete_csv_files()
 
-t0 = print_elapsed_time("all models", t0)
+    # If you provide a resume_after argument to pipeline.run
+    # the pipeline manager will attempt to load checkpointed tables from the checkpoint store
+    # and resume pipeline processing on the next submodel step after the specified checkpoint
+    resume_after = setting('resume_after', None)
+
+    if resume_after:
+        print("resume_after", resume_after)
+
+    pipeline.run(models=setting('models'), resume_after=resume_after)
+
+    # tables will no longer be available after pipeline is closed
+    pipeline.close_pipeline()
+
+
+if __name__ == '__main__':
+    run()

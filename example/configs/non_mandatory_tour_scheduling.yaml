@@ -6,3 +6,12 @@ preprocessor:
   TABLES:
     - land_use
     - joint_tour_participants
+
+SIMULATE_CHOOSER_COLUMNS:
+  - ptype
+  - num_children
+  - roundtrip_auto_time_to_work
+  - num_mand
+  - num_escort_tours
+  - num_non_escort_tours
+  - adult

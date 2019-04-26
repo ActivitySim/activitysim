@@ -1,10 +1,10 @@
 sandbox/
-sandbox.py
 example/data/*
 .idea
 .ipynb_checkpoints
 .coverage*
 .pytest_cache
+.vagrant
 
 
 # Byte-compiled / optimized / DLL files

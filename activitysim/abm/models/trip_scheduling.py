@@ -1,7 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import range
+
 import logging
 
 import numpy as np
@@ -41,13 +45,6 @@ FAILFIX = 'FAILFIX'
 FAILFIX_CHOOSE_MOST_INITIAL = 'choose_most_initial'
 FAILFIX_DROP_AND_CLEANUP = 'drop_and_cleanup'
 FAILFIX_DEFAULT = FAILFIX_CHOOSE_MOST_INITIAL
-
-
-def trip_scheduling_probs(configs_dir):
-
-    f = os.path.join(configs_dir, 'trip_scheduling_probs.csv')
-    df = pd.read_csv(f, comment='#')
-    return df
 
 
 def set_tour_hour(trips, tours):
@@ -214,6 +211,10 @@ def schedule_nth_trips(
     # left join trips to probs (there may be multiple rows per trip for multiple depart ranges)
     choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
                         how='left').set_index('trip_id')
+    chunk.log_df(trace_label, "choosers", choosers)
+
+    if trace_hh_id and tracing.has_trace_targets(trips):
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
     # choosers should now match trips row for row
     assert choosers.index.is_unique
@@ -222,6 +223,8 @@ def schedule_nth_trips(
     # zero out probs outside earliest-latest window
     chooser_probs = clip_probs(trips, choosers[probs_cols], model_settings)
 
+    chunk.log_df(trace_label, "chooser_probs", chooser_probs)
+
     if first_trip_in_leg:
         # probs should sum to 1 unless all zero
         chooser_probs = chooser_probs.div(chooser_probs.sum(axis=1), axis=0).fillna(0)
@@ -229,13 +232,25 @@ def schedule_nth_trips(
     # probs should sum to 1 with residual probs resulting in choice of 'fail'
     chooser_probs['fail'] = 1 - chooser_probs.sum(axis=1).clip(0, 1)
 
+    if trace_hh_id and tracing.has_trace_targets(trips):
+        tracing.trace_df(chooser_probs, '%s.chooser_probs' % trace_label)
+
     choices, rands = logit.make_choices(
         chooser_probs,
         trace_label=trace_label, trace_choosers=choosers)
 
+    chunk.log_df(trace_label, "choices", choices)
+    chunk.log_df(trace_label, "rands", rands)
+
+    if trace_hh_id and tracing.has_trace_targets(trips):
+        tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'depart'])
+        tracing.trace_df(rands, '%s.rands' % trace_label, columns=[None, 'rand'])
+
     # convert alt choice index to depart time (setting failed choices to -1)
     failed = (choices == chooser_probs.columns.get_loc('fail'))
     choices = (choices + depart_alt_base).where(~failed, -1)
+
+    chunk.log_df(trace_label, "failed", failed)
 
     # report failed trips while we have the best diagnostic info
     if report_failed_trips and failed.any():
@@ -248,8 +263,6 @@ def schedule_nth_trips(
 
     # trace before removing failures
     if trace_hh_id and tracing.has_trace_targets(trips):
-        tracing.trace_df(choosers, '%s.choosers' % trace_label)
-        tracing.trace_df(chooser_probs, '%s.chooser_probs' % trace_label)
         tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'depart'])
         tracing.trace_df(rands, '%s.rands' % trace_label, columns=[None, 'rand'])
 
@@ -324,6 +337,8 @@ def schedule_trips_in_leg(
 
         nth_trace_label = tracing.extend_trace_label(trace_label, 'num_%s' % i)
 
+        chunk.log_open(nth_trace_label, chunk_size=0, effective_chunk_size=0)
+
         choices = schedule_nth_trips(
             nth_trips,
             probs_spec,
@@ -333,6 +348,8 @@ def schedule_trips_in_leg(
             trace_hh_id=trace_hh_id,
             trace_label=nth_trace_label)
 
+        chunk.log_close(nth_trace_label)
+
         # if outbound, this trip's depart constrains next trip's earliest depart option
         # if inbound, we are handling in reverse order, so it constrains latest depart instead
         ADJUST_NEXT_DEPART_COL = 'earliest' if outbound else 'latest'
@@ -340,8 +357,8 @@ def schedule_trips_in_leg(
         # most initial departure (when no choice was made because all probs were zero)
         if last_iteration and (failfix == FAILFIX_CHOOSE_MOST_INITIAL):
             choices = choices.reindex(nth_trips.index)
-            logger.warn("%s coercing %s depart choices to most initial" %
-                        (nth_trace_label, choices.isna().sum()))
+            logger.warning("%s coercing %s depart choices to most initial" %
+                           (nth_trace_label, choices.isna().sum()))
             choices = choices.fillna(trips[ADJUST_NEXT_DEPART_COL])
 
         # adjust allowed depart range of next trip
@@ -362,15 +379,14 @@ def schedule_trips_in_leg(
     return choices
 
 
-# calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
-def trip_scheduling_rpc(chunk_size, choosers, spec, trace_label=None):
+def trip_scheduling_rpc(chunk_size, choosers, spec, trace_label):
 
     # NOTE we chunk chunk_id
     num_choosers = choosers['chunk_id'].max() + 1
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     # extra columns from spec
     extra_columns = spec.shape[1]
@@ -378,7 +394,7 @@ def trip_scheduling_rpc(chunk_size, choosers, spec, trace_label=None):
     chooser_row_size = choosers.shape[1] + extra_columns
 
     # scale row_size by average number of chooser rows per chunk_id
-    rows_per_chunk_id = choosers.shape[0] / float(num_choosers)
+    rows_per_chunk_id = choosers.shape[0] / num_choosers
     row_size = (rows_per_chunk_id * chooser_row_size)
 
     # print "num_choosers", num_choosers
@@ -404,10 +420,8 @@ def run_trip_scheduling(
 
     set_tour_hour(trips, tours)
 
-    rows_per_chunk = trip_scheduling_rpc(chunk_size, trips, probs_spec, trace_label)
-
-    # logger.info("%s rows_per_chunk %s num_choosers %s" %
-    #             (trace_label, rows_per_chunk, len(trips.index)))
+    rows_per_chunk, effective_chunk_size = \
+        trip_scheduling_rpc(chunk_size, trips, probs_spec, trace_label)
 
     result_list = []
     for i, num_chunks, trips_chunk in chunk.chunked_choosers_by_chunk_id(trips, rows_per_chunk):
@@ -418,6 +432,8 @@ def run_trip_scheduling(
         else:
             chunk_trace_label = trace_label
 
+        leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'outbound')
+        chunk.log_open(leg_trace_label, chunk_size, effective_chunk_size)
         choices = \
             schedule_trips_in_leg(
                 outbound=True,
@@ -426,9 +442,12 @@ def run_trip_scheduling(
                 model_settings=model_settings,
                 last_iteration=last_iteration,
                 trace_hh_id=trace_hh_id,
-                trace_label=tracing.extend_trace_label(chunk_trace_label, 'outbound'))
+                trace_label=leg_trace_label)
         result_list.append(choices)
+        chunk.log_close(leg_trace_label)
 
+        leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
+        chunk.log_open(leg_trace_label, chunk_size, effective_chunk_size)
         choices = \
             schedule_trips_in_leg(
                 outbound=False,
@@ -437,8 +456,9 @@ def run_trip_scheduling(
                 model_settings=model_settings,
                 last_iteration=last_iteration,
                 trace_hh_id=trace_hh_id,
-                trace_label=tracing.extend_trace_label(chunk_trace_label, 'inbound'))
+                trace_label=leg_trace_label)
         result_list.append(choices)
+        chunk.log_close(leg_trace_label)
 
     choices = pd.concat(result_list)
 
@@ -449,7 +469,6 @@ def run_trip_scheduling(
 def trip_scheduling(
         trips,
         tours,
-        configs_dir,
         chunk_size,
         trace_hh_id):
 
@@ -506,13 +525,14 @@ def trip_scheduling(
 
     failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
 
-    probs_spec = trip_scheduling_probs(configs_dir)
+    probs_spec = pd.read_csv(config.config_file_path('trip_scheduling_probs.csv'), comment='#')
 
     trips_df = trips.to_frame()
     tours = tours.to_frame()
 
     # add tour-based chunk_id so we can chunk all trips in tour together
-    trips_df['chunk_id'] = reindex(pd.Series(range(tours.shape[0]), tours.index), trips_df.tour_id)
+    trips_df['chunk_id'] = \
+        reindex(pd.Series(list(range(tours.shape[0])), tours.index), trips_df.tour_id)
 
     max_iterations = model_settings.get('MAX_ITERATIONS', 1)
     assert max_iterations > 0
@@ -525,7 +545,7 @@ def trip_scheduling(
         last_iteration = (i == max_iterations)
 
         trace_label_i = tracing.extend_trace_label(trace_label, "i%s" % i)
-        logger.info("%s scheduling %s trips" % (trace_label_i, trips_df.shape[0]))
+        logger.info("%s scheduling %s trips", trace_label_i, trips_df.shape[0])
 
         choices = \
             run_trip_scheduling(
@@ -540,7 +560,7 @@ def trip_scheduling(
 
         # boolean series of trips whose individual trip scheduling failed
         failed = choices.reindex(trips_df.index).isnull()
-        logger.info("%s %s failed" % (trace_label_i, failed.sum()))
+        logger.info("%s %s failed", trace_label_i, failed.sum())
 
         if not last_iteration:
             # boolean series of trips whose leg scheduling failed
@@ -555,11 +575,11 @@ def trip_scheduling(
     choices = pd.concat(choices_list)
     choices = choices.reindex(trips_df.index)
     if choices.isnull().any():
-        logger.warn("%s of %s trips could not be scheduled after %s iterations" %
-                    (choices.isnull().sum(), trips_df.shape[0], i))
+        logger.warning("%s of %s trips could not be scheduled after %s iterations" %
+                       (choices.isnull().sum(), trips_df.shape[0], i))
 
         if failfix != FAILFIX_DROP_AND_CLEANUP:
-            raise RuntimeError("%s setting '%' not enabled in settings" %
+            raise RuntimeError("%s setting '%s' not enabled in settings" %
                                (FAILFIX, FAILFIX_DROP_AND_CLEANUP))
 
         trips_df['failed'] = choices.isnull()

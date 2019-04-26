@@ -1,20 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
-import os
-import copy
-import string
 import pandas as pd
-import numpy as np
 
-from activitysim.core import tracing
-from activitysim.core import inject
 from activitysim.core import simulate
-
+from activitysim.core import config
 from activitysim.core.assign import evaluate_constants
-from activitysim.core.util import assign_in_place
 
-import expressions
+from . import expressions
 
 
 """
@@ -26,21 +22,18 @@ looks like the other specs.
 
 def tour_mode_choice_spec(model_settings):
 
-    configs_dir = inject.get_injectable('configs_dir')
-
     assert 'SPEC' in model_settings
-    return simulate.read_model_spec(configs_dir, model_settings['SPEC'])
+
+    return simulate.read_model_spec(file_name=model_settings['SPEC'])
 
 
 def tour_mode_choice_coeffecients_spec(model_settings):
 
-    configs_dir = inject.get_injectable('configs_dir')
-
     assert 'COEFFS' in model_settings
     coeffs_file_name = model_settings['COEFFS']
 
-    with open(os.path.join(configs_dir, coeffs_file_name)) as f:
-        return pd.read_csv(f, comment='#', index_col='Expression')
+    file_path = config.config_file_path(coeffs_file_name)
+    return pd.read_csv(file_path, comment='#', index_col='Expression')
 
 
 def run_tour_mode_choice_simulate(
@@ -69,7 +62,7 @@ def run_tour_mode_choice_simulate(
     choosers['in_period'] = expressions.skim_time_period_label(choosers[in_time])
     choosers['out_period'] = expressions.skim_time_period_label(choosers[out_time])
 
-    annotate_preprocessors(
+    expressions.annotate_preprocessors(
         choosers, locals_dict, skims,
         model_settings, trace_label)
 
@@ -84,33 +77,6 @@ def run_tour_mode_choice_simulate(
         trace_choice_name=trace_choice_name)
 
     alts = spec.columns
-    choices = choices.map(dict(zip(range(len(alts)), alts)))
+    choices = choices.map(dict(list(zip(list(range(len(alts))), alts))))
 
     return choices
-
-
-def annotate_preprocessors(
-        tours_df, locals_dict, skims,
-        model_settings, trace_label):
-
-    locals_d = {}
-    locals_d.update(locals_dict)
-    locals_d.update(skims)
-
-    preprocessor_settings = model_settings.get('preprocessor', [])
-    if not isinstance(preprocessor_settings, list):
-        assert isinstance(preprocessor_settings, dict)
-        preprocessor_settings = [preprocessor_settings]
-
-    simulate.set_skim_wrapper_targets(tours_df, skims)
-
-    annotations = None
-    for model_settings in preprocessor_settings:
-
-        results = expressions.compute_columns(
-            df=tours_df,
-            model_settings=model_settings,
-            locals_dict=locals_d,
-            trace_label=trace_label)
-
-        assign_in_place(tours_df, results)

@@ -26,14 +26,24 @@ First of 2+ work tours- duration<8 hrs,((tour_count>1) & (tour_num == 1)) & (dur
 Subsequent of 2+ work tours- duration<8 hrs,(tour_num == 2) & (duration < 8),2.582
 Work+school tours by worker- duration<8 hrs,(mandatory_tour_frequency == 'work_and_school') & is_worker & (duration < 8),0.9126
 School+work tours by student- duration<8 hrs,(mandatory_tour_frequency == 'work_and_school') & is_student & (duration < 8),2.582
-# Mode Choice Logsum,mode_choice_logsum,1.027
+#,,
+Mode Choice Logsum,mode_choice_logsum,1.027
 #,,
 Previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.person_id, df.start)",-0.8935
 Previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.person_id, df.end)",-1.334
-Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_before(df.person_id, df.start)",0.1771
-Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_after(df.person_id, df.end)",0.3627
-Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_before(df.person_id, df.start)",-0.2123
-Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_after(df.person_id, df.end)",-0.1012
+#,,
+#,, FIXME - use temps as timetable ops can be very time-consuming
+#Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_before(df.person_id, df.start)",0.1771
+#Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_after(df.person_id, df.end)",0.3627
+#Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_before(df.person_id, df.start)",-0.2123
+#Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_after(df.person_id, df.end)",-0.1012
+,"_adjacent_window_before@tt.adjacent_window_before(df.person_id, df.start)",1
+,"_adjacent_window_after@tt.adjacent_window_after(df.person_id, df.end)",1
+Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & _adjacent_window_before",0.1771
+Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & _adjacent_window_after",0.3627
+Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) & _adjacent_window_before",-0.2123
+Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) & _adjacent_window_after",-0.1012
+#,,
 Remaining work/school tours to be scheduled / number of unscheduled hours,"@((df.tour_count>1) & (df.tour_num == 1)) * 1.0 / tt.remaining_periods_available(df.person_id, df.start, df.end)",-18.68
 #,,
 Departure Constants -- Early (up to 5),start < 6,-0.95272527

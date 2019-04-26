@@ -1,0 +1,28 @@
+
+SIMULATE_CHOOSER_COLUMNS:
+  - ptype
+  - hhsize
+  - roundtrip_auto_time_to_work
+  - num_workers
+  - income_in_thousands
+  - work_and_school_and_worker
+  - work_and_school_and_student
+  - workplace_in_cbd
+  - home_is_rural
+  - mandatory_tour_frequency
+  - is_worker
+  - is_student
+  - is_university
+  - workplace_taz
+  - school_taz
+  - TAZ
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+
+
+#CHOOSER_ORIG_COL_NAME: TAZ
+
+DESTINATION_FOR_TOUR_PURPOSE:
+  work: workplace_taz
+  school: school_taz
+  univ: school_taz

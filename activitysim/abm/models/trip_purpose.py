@@ -1,7 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
 import numpy as np
@@ -14,16 +17,13 @@ from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import pipeline
 
-from activitysim.core.util import assign_in_place
 from .util import expressions
-from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
 
 
 def trip_purpose_probs():
-    configs_dir = inject.get_injectable('configs_dir')
-    f = os.path.join(configs_dir, 'trip_purpose_probs.csv')
+    f = config.config_file_path('trip_purpose_probs.csv')
     df = pd.read_csv(f, comment='#')
     return df
 
@@ -36,8 +36,8 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
     num_choosers = len(choosers.index)
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = len(choosers.columns)
 
@@ -46,9 +46,9 @@ def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
 
     row_size = chooser_row_size + extra_columns
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    # logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
-    # logger.debug("%s #chunk_calc extra_columns %s" % (trace_label, extra_columns))
+    # logger.debug("%s #chunk_calc choosers %s", trace_label, choosers.shape)
+    # logger.debug("%s #chunk_calc spec %s", trace_label, spec.shape)
+    # logger.debug("%s #chunk_calc extra_columns %s", trace_label, extra_columns)
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -78,6 +78,8 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
                         how='left').set_index('trip_id')
 
+    chunk.log_df(trace_label, 'choosers', choosers)
+
     # select the matching depart range (this should result on in exactly one chooser row per trip)
     choosers = choosers[(choosers.start >= choosers['depart_range_start']) & (
                 choosers.start <= choosers['depart_range_end'])]
@@ -89,9 +91,6 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     choices, rands = logit.make_choices(
         choosers[purpose_cols],
         trace_label=trace_label, trace_choosers=choosers)
-
-    cum_size = chunk.log_df_size(trace_label, 'choosers', choosers, cum_size=None)
-    chunk.log_chunk_size(trace_label, cum_size)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'trip_purpose'])
@@ -129,17 +128,17 @@ def run_trip_purpose(
     last_trip = (trips_df.trip_num == trips_df.trip_count)
     purpose = trips_df.primary_purpose[last_trip & trips_df.outbound]
     result_list.append(purpose)
-    logger.info("assign purpose to %s last outbound trips" % purpose.shape[0])
+    logger.info("assign purpose to %s last outbound trips", purpose.shape[0])
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
     purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
     purpose = pd.Series(np.where(purpose == 'atwork', 'Work', 'Home'), index=purpose.index)
     result_list.append(purpose)
-    logger.info("assign purpose to %s last inbound trips" % purpose.shape[0])
+    logger.info("assign purpose to %s last inbound trips", purpose.shape[0])
 
     # - intermediate stops (non-last trips) purpose assigned by probability table
     trips_df = trips_df[~last_trip]
-    logger.info("assign purpose to %s intermediate trips" % trips_df.shape[0])
+    logger.info("assign purpose to %s intermediate trips", trips_df.shape[0])
 
     preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
@@ -150,24 +149,25 @@ def run_trip_purpose(
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    rows_per_chunk = \
+    rows_per_chunk, effective_chunk_size = \
         trip_purpose_rpc(chunk_size, trips_df, probs_spec, trace_label=trace_label)
-
-    logger.info("%s rows_per_chunk %s num_choosers %s" %
-                (trace_label, rows_per_chunk, len(trips_df.index)))
 
     for i, num_chunks, trips_chunk in chunk.chunked_choosers(trips_df, rows_per_chunk):
 
-        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(trips_chunk)))
+        logger.info("Running chunk %s of %s size %d", i, num_chunks, len(trips_chunk))
 
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
             if num_chunks > 1 else trace_label
+
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,
             trace_hh_id,
             trace_label=chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

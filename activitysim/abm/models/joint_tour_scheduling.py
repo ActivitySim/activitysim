@@ -1,17 +1,17 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import logging
-
-import pandas as pd
 
 from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-from activitysim.core import timetable as tt
 
 from .util import expressions
 from .util.vectorize_tour_scheduling import vectorize_joint_tour_scheduling
@@ -20,18 +20,11 @@ from activitysim.core.util import assign_in_place
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def joint_tour_scheduling_spec(configs_dir):
-    return simulate.read_model_spec(configs_dir, 'tour_scheduling_joint.csv')
-
-
 @inject.step()
 def joint_tour_scheduling(
         tours,
         persons_merged,
         tdd_alts,
-        joint_tour_scheduling_spec,
-        configs_dir,
         chunk_size,
         trace_hh_id):
     """
@@ -39,6 +32,7 @@ def joint_tour_scheduling(
     """
     trace_label = 'joint_tour_scheduling'
     model_settings = config.read_model_settings('joint_tour_scheduling.yaml')
+    model_spec = simulate.read_model_spec(file_name='tour_scheduling_joint.csv')
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -53,7 +47,7 @@ def joint_tour_scheduling(
 
     persons_merged = persons_merged.to_frame()
 
-    logger.info("Running %s with %d joint tours" % (trace_label, joint_tours.shape[0]))
+    logger.info("Running %s with %d joint tours", trace_label, joint_tours.shape[0])
 
     # it may seem peculiar that we are concerned with persons rather than households
     # but every joint tour is (somewhat arbitrarily) assigned a "primary person"
@@ -82,14 +76,16 @@ def joint_tour_scheduling(
             locals_dict=locals_d,
             trace_label=trace_label)
 
-    tdd_choices = vectorize_joint_tour_scheduling(
+    tdd_choices, timetable = vectorize_joint_tour_scheduling(
         joint_tours, joint_tour_participants,
         persons_merged,
         tdd_alts,
-        spec=joint_tour_scheduling_spec,
-        constants=locals_d,
+        spec=model_spec,
+        model_settings=model_settings,
         chunk_size=chunk_size,
         trace_label=trace_label)
+
+    timetable.replace_table()
 
     assign_in_place(tours, tdd_choices)
     pipeline.replace_table("tours", tours)

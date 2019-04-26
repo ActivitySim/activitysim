@@ -1,27 +1,34 @@
+from __future__ import division
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 import logging
 import itertools
+import os
 
 import numpy as np
 import pandas as pd
 from zbox import toolz as tz, gen
 
-from activitysim.core.simulate import eval_variables
-from activitysim.core.simulate import compute_utilities
+from activitysim.core import simulate
+from activitysim.core import pipeline
 
 from activitysim.core import chunk
 from activitysim.core import logit
 from activitysim.core import tracing
+from activitysim.core import inject
+from activitysim.core import config
 
 logger = logging.getLogger(__name__)
 
 # FIXME - this allows us to turn some dev debug table dump code on and off - eventually remove?
 # DUMP = False
 
-_persons_index_ = 'PERID'
-_hh_index_ = 'HHID'
+_persons_index_ = 'person_id'
+_hh_index_ = 'household_id'
 _hh_size_ = 'hhsize'
 
 _hh_id_ = 'household_id'
@@ -84,7 +91,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     than 5 people, the cdapPersonArray is the same as the person array."
 
     We diverge from the above description in that a cdap_rank is assigned to all persons,
-    including 'extra' householld members, whose activity is assigned subsequently.
+    including 'extra' household members, whose activity is assigned subsequently.
     The pair _hh_id_, cdap_rank will uniquely identify each household member.
 
     Parameters
@@ -124,10 +131,19 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
     del children
 
     # choose up to MAX_HHSIZE, preferring anyone already chosen
+    # others = \
+    #     persons[[_hh_id_, 'cdap_rank']]\
+    #     .sort_values(by=[_hh_id_, 'cdap_rank'], ascending=[True, True])\
+    #     .groupby(_hh_id_).head(MAX_HHSIZE)
+
+    # choose up to MAX_HHSIZE, choosing randomly
+    others = persons[[_hh_id_, 'cdap_rank']].copy()
+    others['random_order'] = pipeline.get_rn_generator().random_for_df(persons)
     others = \
-        persons[[_hh_id_, 'cdap_rank']]\
-        .sort_values(by=[_hh_id_, 'cdap_rank'], ascending=[True, True])\
+        others\
+        .sort_values(by=[_hh_id_, 'random_order'], ascending=[True, True])\
         .groupby(_hh_id_).head(MAX_HHSIZE)
+
     # tag the backfilled persons
     persons.loc[others[others.cdap_rank == RANK_UNASSIGNED].index, 'cdap_rank'] \
         = RANK_BACKFILL
@@ -178,20 +194,13 @@ def individual_utilities(
     """
 
     # calculate single person utilities
-    individual_vars = eval_variables(cdap_indiv_spec.index, persons, locals_d)
-    indiv_utils = compute_utilities(individual_vars, cdap_indiv_spec)
+    indiv_utils = simulate.eval_utilities(cdap_indiv_spec, persons, locals_d, trace_label)
 
     # add columns from persons to facilitate building household interactions
     useful_columns = [_hh_id_, _ptype_, 'cdap_rank', _hh_size_]
     indiv_utils[useful_columns] = persons[useful_columns]
 
-    # if DUMP:
-    #     tracing.trace_df(indiv_utils, '%s.DUMP.indiv_utils' % trace_label,
-    #                      transpose=False, slicer='NONE')
-
     if trace_hh_id:
-        tracing.trace_df(individual_vars, '%s.individual_vars' % trace_label,
-                         column_labels=['expression', 'person'])
         tracing.trace_df(indiv_utils, '%s.indiv_utils' % trace_label,
                          column_labels=['activity', 'person'])
 
@@ -242,14 +251,54 @@ def preprocess_interaction_coefficients(interaction_coefficients):
     return coefficients
 
 
+def cached_spec_name(hhsize):
+    return 'cdap_spec_%s.csv' % hhsize
+
+
+def cached_spec_path(spec_name):
+    return config.output_file_path(spec_name)
+
+
+def get_cached_spec(hhsize):
+
+    spec_name = cached_spec_name(hhsize)
+
+    spec = inject.get_injectable(spec_name, None)
+    if spec is not None:
+        logger.info("build_cdap_spec returning cached injectable spec %s", spec_name)
+        return spec
+
+    # # try configs dir
+    # spec_path = config.config_file_path(spec_name, mandatory=False)
+    # if spec_path:
+    #     logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
+    #     return pd.read_csv(spec_path, index_col='Expression')
+
+    # try data dir
+    if os.path.exists(config.output_file_path(spec_name)):
+        spec_path = config.output_file_path(spec_name)
+        logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
+        return pd.read_csv(spec_path, index_col='Expression')
+
+    return None
+
+
+def cache_spec(hhsize, spec):
+    spec_name = cached_spec_name(hhsize)
+    # cache as injectable
+    inject.add_injectable(spec_name, spec)
+    # cache as csv in output_dir
+    spec.to_csv(config.output_file_path(spec_name), index=True)
+
+
 def build_cdap_spec(interaction_coefficients, hhsize,
-                    trace_spec=False, trace_label=None):
+                    trace_spec=False, trace_label=None, cache=True):
     """
     Build a spec file for computing utilities of alternative household member interaction patterns
     for households of specified size.
 
     We generate this spec automatically from a table of rules and coefficients because the
-    interaction rulkes are fairly simple and can be expressed compactly whereas
+    interaction rules are fairly simple and can be expressed compactly whereas
     there is a lot of redundancy between the spec files for different household sizes, as well as
     in the vectorized expression of the interaction alternatives within the spec file itself
 
@@ -286,6 +335,9 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     spec: pandas.DataFrame
 
     """
+
+    t0 = tracing.print_elapsed_time()
+
     # if DUMP:
     #     # dump the interaction_coefficients table because it has been preprocessed
     #     tracing.trace_df(interaction_coefficients,
@@ -294,6 +346,11 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
     # cdap spec is same for all households of MAX_HHSIZE and greater
     hhsize = min(hhsize, MAX_HHSIZE)
+
+    if cache:
+        spec = get_cached_spec(hhsize)
+        if spec is not None:
+            return spec
 
     expression_name = "Expression"
 
@@ -321,7 +378,7 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
             # list of alternative columns where person pnum has expression activity
             # e.g. for M_p1 we want the columns where activity M is in position p1
-            alternative_columns = filter(lambda alt: alt[pnum - 1] == activity, alternatives)
+            alternative_columns = [alt for alt in alternatives if alt[pnum - 1] == activity]
             spec.loc[new_row_index, alternative_columns] = 1
 
     # ignore rows whose cardinality exceeds hhsize
@@ -347,13 +404,13 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
             continue
 
-        if row.cardinality not in range(1, MAX_INTERACTION_CARDINALITY+1):
+        if not (0 <= row.cardinality <= MAX_INTERACTION_CARDINALITY):
             raise RuntimeError("Bad row cardinality %d for %s" % (row.cardinality, row.slug))
 
         # for all other interaction rules, we need to generate a row in the spec for each
         # possible combination of interacting persons
         # e.g. for (1, 2), (1,3), (2,3) for a coefficient with cardinality 2 in hhsize 3
-        for tup in itertools.combinations(range(1, hhsize+1), row.cardinality):
+        for tup in itertools.combinations(list(range(1, hhsize+1)), row.cardinality):
 
             # determine the name of the chooser column with the ptypes for this interaction
             if row.cardinality == 1:
@@ -368,8 +425,10 @@ def build_cdap_spec(interaction_coefficients, hhsize,
 
             # create list of columns with names matching activity for each of the persons in tup
             # e.g. ['MMM', 'MMN', 'MMH'] for an interaction between p1 and p3 with activity 'M'
+            # alternative_columns = \
+            #     filter(lambda alt: all([alt[p - 1] == row.activity for p in tup]), alternatives)
             alternative_columns = \
-                filter(lambda alt: all([alt[p - 1] == row.activity for p in tup]), alternatives)
+                [alt for alt in alternatives if all([alt[p - 1] == row.activity for p in tup])]
 
             # a row for this interaction may already exist,
             # e.g. if there are rules for both HH13 and MM13, we don't need to add rows for both
@@ -388,6 +447,8 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     # eval expression goes in the index
     spec.set_index(expression_name, inplace=True)
 
+    simulate.uniquify_spec_index(spec)
+
     if trace_spec:
         tracing.trace_df(spec, '%s.hhsize%d_spec' % (trace_label, hhsize),
                          transpose=False, slicer='NONE')
@@ -401,6 +462,11 @@ def build_cdap_spec(interaction_coefficients, hhsize,
     if trace_spec:
         tracing.trace_df(spec, '%s.hhsize%d_spec_patched' % (trace_label, hhsize),
                          transpose=False, slicer='NONE')
+
+    if cache:
+        cache_spec(hhsize, spec)
+
+    t0 = tracing.print_elapsed_time("build_cdap_spec hh_size %s" % hhsize, t0)
 
     return spec
 
@@ -532,7 +598,7 @@ def hh_choosers(indiv_utils, hhsize):
 
     # add interaction columns for all 2 and 3 person interactions
     for i in range(2, min(hhsize, MAX_INTERACTION_CARDINALITY)+1):
-        for tup in itertools.combinations(range(1, hhsize+1), i):
+        for tup in itertools.combinations(list(range(1, hhsize+1)), i):
             add_interaction_column(choosers, tup)
 
     return choosers
@@ -582,9 +648,7 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
                                trace_spec=(trace_hh_id in choosers.index),
                                trace_label=trace_label)
 
-        vars = eval_variables(spec.index, choosers)
-
-        utils = compute_utilities(vars, spec)
+        utils = simulate.eval_utilities(spec, choosers, trace_label=trace_label)
 
     if len(utils.index) == 0:
         return pd.Series()
@@ -602,8 +666,6 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
 
         if hhsize > 1:
             tracing.trace_df(choosers, '%s.hhsize%d_choosers' % (trace_label, hhsize),
-                             column_labels=['expression', 'person'])
-            tracing.trace_df(vars, '%s.hhsize%d_vars' % (trace_label, hhsize),
                              column_labels=['expression', 'person'])
 
         tracing.trace_df(utils, '%s.hhsize%d_utils' % (trace_label, hhsize),
@@ -697,6 +759,8 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
         list of alternatives chosen for all extra members, indexed by _persons_index_
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'extra_hh_member_choices')
+
     # extra household members have cdap_ran > MAX_HHSIZE
     choosers = persons[persons['cdap_rank'] > MAX_HHSIZE]
 
@@ -704,10 +768,10 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
         return pd.Series()
 
     # eval the expression file
-    model_design = eval_variables(cdap_fixed_relative_proportions.index, choosers, locals_d)
+    values = simulate.eval_variables(cdap_fixed_relative_proportions.index, choosers, locals_d)
 
     # cdap_fixed_relative_proportions computes relative proportions by ptype, not utilities
-    proportions = model_design.dot(cdap_fixed_relative_proportions)
+    proportions = values.dot(cdap_fixed_relative_proportions)
 
     # convert relative proportions to probability
     probs = proportions.div(proportions.sum(axis=1), axis=0)
@@ -762,7 +826,7 @@ def _run_cdap(
     assign_cdap_rank(persons, trace_hh_id, trace_label)
 
     # Calculate CDAP utilities for each individual, ignoring interactions
-    # ind_utils has index of `PERID` and a column for each alternative
+    # ind_utils has index of 'person_id' and a column for each alternative
     # i.e. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
     indiv_utils = individual_utilities(persons[persons.cdap_rank <= MAX_HHSIZE],
                                        cdap_indiv_spec, locals_d,
@@ -811,22 +875,20 @@ def _run_cdap(
     #     tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
     #                      transpose=False, slicer='NONE')
 
-    cum_size = chunk.log_df_size(trace_label, 'persons', persons, cum_size=None)
-    chunk.log_chunk_size(trace_label, cum_size)
+    chunk.log_df(trace_label, 'persons', persons)
 
     # return dataframe with two columns
     return cdap_results
 
 
-# calc_rows_per_chunk(chunk_size, persons, by_chunk_id=True)
 def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
 
     # NOTE we chunk chunk_id
     num_choosers = choosers['chunk_id'].max() + 1
 
     # if not chunking, then return num_choosers
-    if chunk_size == 0:
-        return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
 
     chooser_row_size = choosers.shape[1]
 
@@ -887,7 +949,8 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
-    rows_per_chunk = calc_rows_per_chunk(chunk_size, persons, trace_label=trace_label)
+    rows_per_chunk, effective_chunk_size = \
+        calc_rows_per_chunk(chunk_size, persons, trace_label=trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
@@ -897,12 +960,16 @@ def run_cdap(
 
         chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i)
 
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+
         choices = _run_cdap(persons_chunk,
                             cdap_indiv_spec,
                             cdap_interaction_coefficients,
                             cdap_fixed_relative_proportions,
                             locals_d,
                             trace_hh_id, chunk_trace_label)
+
+        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

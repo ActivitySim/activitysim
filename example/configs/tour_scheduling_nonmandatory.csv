@@ -1,13 +1,13 @@
 Description,Expression,Coefficient
 Subsequent tour must start after previous tour for this purpose ends,(start < end_previous) & (tour_type_num > 1),-999
 Free-flow round trip auto time shift effects - duration,roundtrip_auto_time_to_work * duration,0.004741
-Shopping tour - departure shift effects,"(tour_type == 'shopping') * start",-0.06015
-Shopping tour - duration shift effects,"(tour_type == 'shopping') * duration",-0.1208
-Maintenance tour - departure shift effects,"(tour_type == 'othmaint') * start",-0.1489
-Maintenance tour - departure shift effects,"(tour_type == 'othmaint') * duration",-0.08372
-Visit tour - departure shift effects,"(tour_type == 'social') * start",0.09688
-Visit tour - departure shift effects,"(tour_type == 'social') * duration",0.1638
-Eat Out tour - departure shift effects,"(tour_type == 'eatout') * start",0.07549
+Shopping tour - departure shift effects,(tour_type == 'shopping') * start,-0.06015
+Shopping tour - duration shift effects,(tour_type == 'shopping') * duration,-0.1208
+Maintenance tour - departure shift effects,(tour_type == 'othmaint') * start,-0.1489
+Maintenance tour - departure shift effects,(tour_type == 'othmaint') * duration,-0.08372
+Visit tour - departure shift effects,(tour_type == 'social') * start,0.09688
+Visit tour - departure shift effects,(tour_type == 'social') * duration,0.1638
+Eat Out tour - departure shift effects,(tour_type == 'eatout') * start,0.07549
 School child age 16+ - departure shift effects,(ptype == 6) * start,0.07266
 School child age 16+ - duration shift effects,(ptype == 6) * duration,0.2095
 School child age under 16 - departure shift effects,(ptype == 7) * start,0.04657
@@ -19,15 +19,16 @@ Number of escort tours - departure shift effects,num_escort_tours * start,0.0201
 Number of idividual non-mandatory tours (excluding escort) - departure shift effects,num_non_escort_tours * start,0.03896
 First of 2+ tours for same purpose - departure shift effect,((tour_type_count>1) & (tour_type_num == 1)) * start,-0.2364
 subsequent of 2+ tours for same purpose - duration shift effect,(tour_type_num > 1) * duration,-0.1731
-Maintenance tour - depart before 7,"(tour_type == 'othmaint') & (start < 7)",-0.8826
-Shopping tour - depart before 8,"(tour_type == 'shopping') & (start < 8)",-1.037
-Shopping tour - arrive after 22,"(tour_type == 'shopping') & (end > 22)",-0.6027
+Maintenance tour - depart before 7,(tour_type == 'othmaint') & (start < 7),-0.8826
+Shopping tour - depart before 8,(tour_type == 'shopping') & (start < 8),-1.037
+Shopping tour - arrive after 22,(tour_type == 'shopping') & (end > 22),-0.6027
 School child under 16 - arrive after 22,(ptype == 7) & (end > 22),-1.18
 University student - arrive after 22,(ptype == 3) & (end > 22),0.5466
-Shopping tour - duration < 2 hours,"(tour_type == 'shopping') & (duration < 2)",0.5168
-Discretionary tour - duration < 2 hours,"(tour_type == 'othdiscr') & (duration < 2)",-0.6974
+Shopping tour - duration < 2 hours,(tour_type == 'shopping') & (duration < 2),0.5168
+Discretionary tour - duration < 2 hours,(tour_type == 'othdiscr') & (duration < 2),-0.6974
 Adult with children in HH - arrive 19 - 21,adult & (num_children > 0) & ( end > 18 ) & ( end < 22 ),0.336
-# Mode Choice Logsum,mode_choice_logsum,0
+#,,
+#Mode Choice Logsum,mode_choice_logsum,0
 #,,
 Some previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.person_id, df.start)",-0.4562
 Some previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.person_id, df.end)",-0.3992
@@ -37,57 +38,57 @@ Adjacent window exists before this departure hour - second+ tour interaction,"@(
 Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_type_num > 1) & tt.adjacent_window_after(df.person_id, df.end)",-0.02734
 Remaining individual non-mandatory tours to be scheduled / number of unscheduled hours,"@((1.0 + df.tour_count - df.tour_num)) / tt.remaining_periods_available(df.person_id, df.start, df.end)",-13.63
 #,,
-Departure Constants -- Early (up to 5),"(tour_type != 'escort') & (start < 6)",-1.740135661
-Departure Constants -- AM peak 1 (6),"(tour_type != 'escort') & (start == 6)",-0.654163573
-Departure Constants -- AM peak 2 (7),"(tour_type != 'escort') & (start == 7)",0.554282571
-Departure Constants -- AM peak 3 (8),"(tour_type != 'escort') & (start == 8)",1.050561087
-Departure Constants -- AM peak 4 (9),"(tour_type != 'escort') & (start == 9)",0.971568228
-Departure Constants -- Midday 1 (10 to 12),"(tour_type != 'escort') & (start > 9) & (start < 13)",0.881991986
-Departure Constants -- Midday 2 (13 to 15),"(tour_type != 'escort') & (start > 12) & (start < 16)",0.411103634
-Departure Constants -- PM peak (16 to 18),"(tour_type != 'escort') & (start > 15) & (start < 19)",0
-Departure Constants -- Evening (19 to 21),"(tour_type != 'escort') & (start > 18) & (start < 22)",-1.856475096
-Departure Constants -- Late (22 and later),"(tour_type != 'escort') & (start > 21)",-8.228880141
-Arrival Constants -- Early (up to 6),"(tour_type != 'escort') & (end < 7)",-0.051990748
-Arrival Constants -- AM peak (7 to 9),"(tour_type != 'escort') & (end > 6) & (end < 10)",-1.814822602
-Arrival Constants -- Midday 1 (10 to 12),"(tour_type != 'escort') & (end > 9) & (end < 13)",0.000371501
-Arrival Constants -- Midday 2 (13 to 14),"(tour_type != 'escort') & (end > 12) & (end < 15)",0.532116031
-Arrival Constants -- PM peak 1 (15),"(tour_type != 'escort') & (end == 15)",0.628481567
-Arrival Constants -- PM peak 2 (16),"(tour_type != 'escort') & (end == 16)",0.650521416
-Arrival Constants -- PM peak 3 (17),"(tour_type != 'escort') & (end == 17)",0.402894406
-Arrival Constants -- PM peak 4 (18),"(tour_type != 'escort') & (end == 18)",0.154213293
-Arrival Constants -- Evening (19 to 21),"(tour_type != 'escort') & (end > 18) & (end < 22)",0
-Arrival Constants -- Late (22 and later),"(tour_type != 'escort') & (end > 21)",-0.866671315
-Duration Constants -- 0 to 1 hours,"(tour_type != 'escort') & (duration < 2)",0
-Duration Constants -- 2 to 3 hours,"(tour_type != 'escort') & (duration > 1) & (duration < 4)",0.051385565
-Duration Constants -- 4 to 5 hours,"(tour_type != 'escort') & (duration > 3) & (duration < 6)",-0.593951321
-Duration Constants -- 6 to 7 hours,"(tour_type != 'escort') & (duration > 5) & (duration < 8)",-0.951155328
-Duration Constants -- 8 to 10 hours,"(tour_type != 'escort') & (duration > 7) & (duration < 11)",-0.828108399
-Duration Constants -- 11 to 13 hours,"(tour_type != 'escort') & (duration > 10) & (duration < 14)",-0.955635554
-Duration Constants -- 14 to 18 hours,"(tour_type != 'escort') & (duration > 13) & (duration < 19)",-1.042580879
-Escort Tour Departure Constants -- Early (up to 5),"(tour_type == 'escort') & (start < 6)",-1.740135661
-Escort Tour Departure Constants -- AM peak 1 (6),"(tour_type == 'escort') & (start == 6)",-1.112357753
-Escort Tour Departure Constants -- AM peak 2 (7),"(tour_type == 'escort') & (start == 7)",0.698788185
-Escort Tour Departure Constants -- AM peak 3 (8),"(tour_type == 'escort') & (start == 8)",1.196268813
-Escort Tour Departure Constants -- AM peak 4 (9),"(tour_type == 'escort') & (start == 9)",-0.225258221
-Escort Tour Departure Constants -- Midday 1 (10 to 12),"(tour_type == 'escort') & (start > 9) & (start < 13)",0.028662017
-Escort Tour Departure Constants -- Midday 2 (13 to 15),"(tour_type == 'escort') & (start > 12) & (start < 16)",0
-Escort Tour Departure Constants -- PM peak (16 to 18),"(tour_type == 'escort') & (start > 15) & (start < 19)",-1.180140161
-Escort Tour Departure Constants -- Evening (19 to 21),"(tour_type == 'escort') & (start > 18) & (start < 22)",-3.948732811
-Escort Tour Departure Constants -- Late (22 and later),"(tour_type == 'escort') & (start > 21)",-8.228880141
-Escort Tour Arrival Constants -- Early (up to 6),"(tour_type == 'escort') & (end < 7)",0
-Escort Tour Arrival Constants -- AM peak (7 to 9),"(tour_type == 'escort') & (end > 6) & (end < 10)",0
-Escort Tour Arrival Constants -- Midday 1 (10 to 12),"(tour_type == 'escort') & (end > 9) & (end < 13)",0
-Escort Tour Arrival Constants -- Midday 2 (13 to 14),"(tour_type == 'escort') & (end > 12) & (end < 15)",0
-Escort Tour Arrival Constants -- PM peak 1 (15),"(tour_type == 'escort') & (end == 15)",0
-Escort Tour Arrival Constants -- PM peak 2 (16),"(tour_type == 'escort') & (end == 16)",0
-Escort Tour Arrival Constants -- PM peak 3 (17),"(tour_type == 'escort') & (end == 17)",0
-Escort Tour Arrival Constants -- PM peak 4 (18),"(tour_type == 'escort') & (end == 18)",0
-Escort Tour Arrival Constants -- Evening (19 to 21),"(tour_type == 'escort') & (end > 18) & (end < 22)",-0.536918728
-Escort Tour Arrival Constants -- Late (22 and later),"(tour_type == 'escort') & (end > 21)",-1.008290213
-Escort Tour Duration Constants -- 0 to 1 hours,"(tour_type == 'escort') & (duration < 2)",0
-Escort Tour Duration Constants -- 2 to 3 hours,"(tour_type == 'escort') & (duration > 1) & (duration < 4)",-2.042013897
-Escort Tour Duration Constants -- 4 to 5 hours,"(tour_type == 'escort') & (duration > 3) & (duration < 6)",-2.880293896
-Escort Tour Duration Constants -- 6 to 7 hours,"(tour_type == 'escort') & (duration > 5) & (duration < 8)",-2.973533731
-Escort Tour Duration Constants -- 8 to 10 hours,"(tour_type == 'escort') & (duration > 7) & (duration < 11)",-3.020213758
-Escort Tour Duration Constants -- 11 to 13 hours,"(tour_type == 'escort') & (duration > 10) & (duration < 14)",-2.974364976
-Escort Tour Duration Constants -- 14 to 18 hours,"(tour_type == 'escort') & (duration > 13) & (duration < 19)",-2.507447146
+Departure Constants -- Early (up to 5),(tour_type != 'escort') & (start < 6),-1.740135661
+Departure Constants -- AM peak 1 (6),(tour_type != 'escort') & (start == 6),-0.654163573
+Departure Constants -- AM peak 2 (7),(tour_type != 'escort') & (start == 7),0.554282571
+Departure Constants -- AM peak 3 (8),(tour_type != 'escort') & (start == 8),1.050561087
+Departure Constants -- AM peak 4 (9),(tour_type != 'escort') & (start == 9),0.971568228
+Departure Constants -- Midday 1 (10 to 12),(tour_type != 'escort') & (start > 9) & (start < 13),0.881991986
+Departure Constants -- Midday 2 (13 to 15),(tour_type != 'escort') & (start > 12) & (start < 16),0.411103634
+Departure Constants -- PM peak (16 to 18),(tour_type != 'escort') & (start > 15) & (start < 19),0
+Departure Constants -- Evening (19 to 21),(tour_type != 'escort') & (start > 18) & (start < 22),-1.856475096
+Departure Constants -- Late (22 and later),(tour_type != 'escort') & (start > 21),-8.228880141
+Arrival Constants -- Early (up to 6),(tour_type != 'escort') & (end < 7),-0.051990748
+Arrival Constants -- AM peak (7 to 9),(tour_type != 'escort') & (end > 6) & (end < 10),-1.814822602
+Arrival Constants -- Midday 1 (10 to 12),(tour_type != 'escort') & (end > 9) & (end < 13),0.000371501
+Arrival Constants -- Midday 2 (13 to 14),(tour_type != 'escort') & (end > 12) & (end < 15),0.532116031
+Arrival Constants -- PM peak 1 (15),(tour_type != 'escort') & (end == 15),0.628481567
+Arrival Constants -- PM peak 2 (16),(tour_type != 'escort') & (end == 16),0.650521416
+Arrival Constants -- PM peak 3 (17),(tour_type != 'escort') & (end == 17),0.402894406
+Arrival Constants -- PM peak 4 (18),(tour_type != 'escort') & (end == 18),0.154213293
+Arrival Constants -- Evening (19 to 21),(tour_type != 'escort') & (end > 18) & (end < 22),0
+Arrival Constants -- Late (22 and later),(tour_type != 'escort') & (end > 21),-0.866671315
+Duration Constants -- 0 to 1 hours,(tour_type != 'escort') & (duration < 2),0
+Duration Constants -- 2 to 3 hours,(tour_type != 'escort') & (duration > 1) & (duration < 4),0.051385565
+Duration Constants -- 4 to 5 hours,(tour_type != 'escort') & (duration > 3) & (duration < 6),-0.593951321
+Duration Constants -- 6 to 7 hours,(tour_type != 'escort') & (duration > 5) & (duration < 8),-0.951155328
+Duration Constants -- 8 to 10 hours,(tour_type != 'escort') & (duration > 7) & (duration < 11),-0.828108399
+Duration Constants -- 11 to 13 hours,(tour_type != 'escort') & (duration > 10) & (duration < 14),-0.955635554
+Duration Constants -- 14 to 18 hours,(tour_type != 'escort') & (duration > 13) & (duration < 19),-1.042580879
+Escort Tour Departure Constants -- Early (up to 5),(tour_type == 'escort') & (start < 6),-1.740135661
+Escort Tour Departure Constants -- AM peak 1 (6),(tour_type == 'escort') & (start == 6),-1.112357753
+Escort Tour Departure Constants -- AM peak 2 (7),(tour_type == 'escort') & (start == 7),0.698788185
+Escort Tour Departure Constants -- AM peak 3 (8),(tour_type == 'escort') & (start == 8),1.196268813
+Escort Tour Departure Constants -- AM peak 4 (9),(tour_type == 'escort') & (start == 9),-0.225258221
+Escort Tour Departure Constants -- Midday 1 (10 to 12),(tour_type == 'escort') & (start > 9) & (start < 13),0.028662017
+Escort Tour Departure Constants -- Midday 2 (13 to 15),(tour_type == 'escort') & (start > 12) & (start < 16),0
+Escort Tour Departure Constants -- PM peak (16 to 18),(tour_type == 'escort') & (start > 15) & (start < 19),-1.180140161
+Escort Tour Departure Constants -- Evening (19 to 21),(tour_type == 'escort') & (start > 18) & (start < 22),-3.948732811
+Escort Tour Departure Constants -- Late (22 and later),(tour_type == 'escort') & (start > 21),-8.228880141
+Escort Tour Arrival Constants -- Early (up to 6),(tour_type == 'escort') & (end < 7),0
+Escort Tour Arrival Constants -- AM peak (7 to 9),(tour_type == 'escort') & (end > 6) & (end < 10),0
+Escort Tour Arrival Constants -- Midday 1 (10 to 12),(tour_type == 'escort') & (end > 9) & (end < 13),0
+Escort Tour Arrival Constants -- Midday 2 (13 to 14),(tour_type == 'escort') & (end > 12) & (end < 15),0
+Escort Tour Arrival Constants -- PM peak 1 (15),(tour_type == 'escort') & (end == 15),0
+Escort Tour Arrival Constants -- PM peak 2 (16),(tour_type == 'escort') & (end == 16),0
+Escort Tour Arrival Constants -- PM peak 3 (17),(tour_type == 'escort') & (end == 17),0
+Escort Tour Arrival Constants -- PM peak 4 (18),(tour_type == 'escort') & (end == 18),0
+Escort Tour Arrival Constants -- Evening (19 to 21),(tour_type == 'escort') & (end > 18) & (end < 22),-0.536918728
+Escort Tour Arrival Constants -- Late (22 and later),(tour_type == 'escort') & (end > 21),-1.008290213
+Escort Tour Duration Constants -- 0 to 1 hours,(tour_type == 'escort') & (duration < 2),0
+Escort Tour Duration Constants -- 2 to 3 hours,(tour_type == 'escort') & (duration > 1) & (duration < 4),-2.042013897
+Escort Tour Duration Constants -- 4 to 5 hours,(tour_type == 'escort') & (duration > 3) & (duration < 6),-2.880293896
+Escort Tour Duration Constants -- 6 to 7 hours,(tour_type == 'escort') & (duration > 5) & (duration < 8),-2.973533731
+Escort Tour Duration Constants -- 8 to 10 hours,(tour_type == 'escort') & (duration > 7) & (duration < 11),-3.020213758
+Escort Tour Duration Constants -- 11 to 13 hours,(tour_type == 'escort') & (duration > 10) & (duration < 14),-2.974364976
+Escort Tour Duration Constants -- 14 to 18 hours,(tour_type == 'escort') & (duration > 13) & (duration < 19),-2.507447146

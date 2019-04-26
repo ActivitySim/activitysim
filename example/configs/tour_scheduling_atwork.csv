@@ -1,4 +1,59 @@
 Description,Expression,Coefficient
-Free-flow round trip auto time shift effects - departure,roundtrip_auto_time_to_work * start,-0.00114
-Free-flow round trip auto time shift effects - duration,roundtrip_auto_time_to_work * duration,0.00221
-Part-time worker departure shift effects,(ptype == 2) * start,0.06736
+# Departure Constants,,
+Early start at 5,start < 6,-7.765548476
+AM peak start at 6,start == 6,-6.156717827
+AM peak start at 7,start == 7,-4.061708142
+AM peak start at 8,start == 8,-2.330535201
+AM peak start at 9,start == 9,-1.881593386
+Midday start at 10/11/12,(start > 9) & (start < 13),0
+Midday start at 13/14/15,(start > 12) & (start < 16),-0.77502158
+PM peak start at 16/17/18,(start > 15) & (start < 19),-0.227528489
+Evening start at 19/20/21,(start > 18) & (start < 22),-1.015090023
+Late start at 22/23,start > 21,-0.737570054
+# Arrival Constants,,
+Early end at 5/6 ,end < 7,-2.928312295
+AM peak end,(end > 6) & (end < 10),-2.928312295
+Midday end at 10/11/12,(end > 9) & (end < 13),-2.297264374
+Midday end at 13/14,(end > 12) & (end < 15),0
+PM peak end at 15,end == 15,-0.578344457
+PM peak end at 16,end == 16,-1.09408722
+PM peak end at 17,end == 17,-1.1658466
+PM peak end at 18,end == 18,-1.496131081
+Evening end at 19/20/21,(end > 18) & (end < 22),-2.31998226
+Late end at 22/23,end > 21,-2.31998226
+#,,
+Duration of 0 hours,duration==0,-0.906681512
+Duration of 1 hour,duration==1,0
+Duration of 2 to 3 hours,(duration >=1) and (duration <= 4),-1.362175802
+Duration of 4 to 5 hours,(duration >=4) and (duration <=5),-0.819617616
+Duration of 6 to 7 hours,(duration >=6) and (duration <=7),1.088111072
+Duration of 8 to 10 hours,(duration >=8) and (duration <=10),1.734038505
+Duration of 11 to 13 hours,(duration >=11) and (duration <=13),0.3
+Duration of 14 to 18 hours,(duration >=14) and (duration <=18),0
+#,,
+Start shift for outbound auto travel time for off-peak,"@df.start * np.minimum(df.sovtimemd, time_cap)",0.00065
+Start shift for inbound auto travel time for off-peak,"@df.start * np.minimum(df.sovtimemd_t, time_cap)",0.00065
+Duration shift for outbound auto travel time for off-peak,"@df.duration * np.minimum(df.sovtimemd, time_cap)",0.00981
+Duration shift for inbound auto travel time for off-peak,"@df.duration * np.minimum(df.sovtimemd_t, time_cap)",0.00981
+#,,
+Start shift for business-related sub-tour purpose,(tour_type == 'business') * start,-0.1113
+Duration shift for business-related sub-tour purpose,(tour_type == 'business') * duration,0.2646
+Start shift for first sub-tour of the same work tour,(tour_type_num == 1) * start,-0.5433
+Duration shift for first sub-tour of the same work tour,(tour_type_num == 1) * duration,-0.3992
+Start shift for subsequent sub-tour of the same work tour,(tour_type_num == 2) * start,-0.1844
+Duration shift for subsequent sub-tour of the same work tour,(tour_type_num == 2) * duration,-0.1844
+Start shift for number of mandatory tours made by the person,start * num_mand,-0.0193
+Duration shift for number of mandatory tours made by the person,duration * num_mand,-0.7702
+Start shift for number of joint tours in which the person participated,start * num_joint_tours,-0.0206
+Duration shift for number of joint tours in which the person participated,duration * num_joint_tours,-0.2497
+Start shift for number of individual nonm tours (including escort) made by the person,start * num_non_mand,-0.0128
+Duration shift for number of individual nonm tours (including escort) made by the person,duration * num_non_mand,-0.0422
+#,,
+Dummy for business-related purpose and duration from 0 to 1,(tour_type == 'business') & (duration <=1),-1.543
+Dummy for eating-out purpose and duration of 1 hour,(tour_type == 'business') & (duration ==1),0.3999
+Dummy for eating-out purpose and departure at 11,(tour_type == 'business') & (start == 11),1.511
+Dummy for eating-out purpose and departure at 12,(tour_type == 'business') & (start == 12),2.721
+Dummy for eating-out purpose and departure at 13,(tour_type == 'business') & (start == 13),2.122
+#,,
+#Mode Choice Logsum,mode_choice_logsum,0
+#,,

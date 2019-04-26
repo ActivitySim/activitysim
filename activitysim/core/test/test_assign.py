@@ -1,18 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os.path
+from __future__ import (absolute_import, division, print_function, )
 
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
+
+import os.path
 import logging
 import logging.config
 
-import numpy.testing as npt
 import numpy as np
 import pandas as pd
-import pandas.util.testing as pdt
 import pytest
-
-import orca
 
 from .. import assign
 from .. import tracing
@@ -30,7 +31,7 @@ def close_handlers():
 
 
 def teardown_function(func):
-    orca.clear_cache()
+    inject.clear_cache()
     inject.reinject_decorated_tables()
 
 
@@ -77,7 +78,7 @@ def test_assign_variables(capsys, spec_name, data):
     results, trace_results, trace_assigned_locals \
         = assign.assign_variables(spec, data, locals_d, trace_rows=None)
 
-    print results
+    print(results)
 
     assert list(results.columns) == ['target1', 'target2', 'target3']
     assert list(results.target1) == [True, False, False]
@@ -95,7 +96,7 @@ def test_assign_variables(capsys, spec_name, data):
     assert list(results.target3) == [530, 530, 550]
 
     # should assign trace_results for second row in data
-    print trace_results
+    print(trace_results)
 
     assert trace_results is not None
     assert '_scalar' in trace_results.columns
@@ -106,7 +107,7 @@ def test_assign_variables(capsys, spec_name, data):
     assert list(trace_results['_temp']) == [9]
     assert list(trace_results['target3']) == [530]
 
-    print "trace_assigned_locals", trace_assigned_locals
+    print("trace_assigned_locals", trace_assigned_locals)
     assert trace_assigned_locals['_DF_COL_NAME'] == 'thing2'
 
     # shouldn't have been changed even though it was a target
@@ -130,7 +131,7 @@ def test_assign_variables_aliased(capsys, data):
         = assign.assign_variables(spec, data, locals_d,
                                   df_alias='aliased_df', trace_rows=trace_rows)
 
-    print results
+    print(results)
 
     assert list(results.columns) == ['target1', 'target2', 'target3']
     assert list(results.target1) == [True, False, False]
@@ -138,7 +139,7 @@ def test_assign_variables_aliased(capsys, data):
     assert list(results.target3) == [530, 530, 550]
 
     # should assign trace_results for second row in data
-    print trace_results
+    print(trace_results)
 
     assert trace_results is not None
     assert '_scalar' in trace_results.columns
@@ -159,7 +160,7 @@ def test_assign_variables_failing(capsys, data):
     close_handlers()
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    orca.add_injectable("output_dir", output_dir)
+    inject.add_injectable("output_dir", output_dir)
 
     tracing.config_logger(basic=True)
 
@@ -179,7 +180,7 @@ def test_assign_variables_failing(capsys, data):
 
     out, err = capsys.readouterr()
     # don't consume output
-    print out
+    print(out)
 
     # undefined variable should raise error
     assert "'undefined_variable' is not defined" in str(excinfo.value)

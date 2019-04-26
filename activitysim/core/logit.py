@@ -1,15 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import division
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+from builtins import object
 
 import logging
 
 import numpy as np
 import pandas as pd
 
-import tracing
-import pipeline
+from . import tracing
+from . import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +101,9 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     """
     trace_label = tracing.extend_trace_label(trace_label, 'utils_to_probs')
 
-    utils_arr = utils.as_matrix().astype('float')
+    # fixme - conversion to float not needed in either case?
+    # utils_arr = utils.values.astype('float')
+    utils_arr = utils.values
     if not exponentiated:
         utils_arr = np.exp(utils_arr)
 
@@ -127,7 +132,8 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
                            trace_choosers=trace_choosers)
 
     # if allow_zero_probs, this may cause a RuntimeWarning: invalid value encountered in divide
-    with np.errstate(invalid='ignore' if allow_zero_probs else 'warn'):
+    with np.errstate(invalid='ignore' if allow_zero_probs else 'warn',
+                     divide='ignore' if allow_zero_probs else 'warn'):
         np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
 
     PROB_MIN = 0.0
@@ -187,7 +193,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
 
     rands = pipeline.get_rn_generator().random_for_df(probs)
 
-    probs_arr = probs.as_matrix().cumsum(axis=1) - rands
+    probs_arr = probs.values.cumsum(axis=1) - rands
 
     # rows, cols = np.where(probs_arr > 0)
     # choices = [s.iat[0] for _, s in pd.Series(cols).groupby(rows)]
@@ -246,32 +252,15 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
         sample = np.tile(alts_idx, numchoosers)
 
     alts_sample = alternatives.take(sample).copy()
-    alts_sample['chooser_idx'] = np.repeat(choosers.index.values, sample_size)
 
     logger.debug("interaction_dataset pre-merge choosers %s alternatives %s alts_sample %s" %
                  (choosers.shape, alternatives.shape, alts_sample.shape))
 
-    AVOID_PD_MERGE = True
-    if AVOID_PD_MERGE:
-
-        for c in choosers.columns:
-            c_alts = ('%s_r' % c) if c in alts_sample.columns else c
-            alts_sample[c_alts] = np.repeat(choosers[c].values, sample_size)
-
-    else:
-
-        # FIXME - merge throws error trying to merge df with two many rows - may be a pandas bug?
-        # this sets limits to max chunk size  - might work to merge in chunks and join
-        # no pressing as there is currently no obvious performance gain to larger chunk size
-        # DEBUG - merge choosers (564016, 4) alternatives (1443, 16) alts_sample (813875088, 17)
-        #
-        #   File "..\pandas\core\internals.py", line 5573, in is_na
-        #     for i in range(0, total_len, chunk_len):
-        # OverflowError: Python int too large to convert to C long
-
-        alts_sample = pd.merge(
-            alts_sample, choosers, left_on='chooser_idx', right_index=True,
-            suffixes=('', '_r'))
+    # no need to do an expensive merge of alts and choosers
+    # we can simply assign repeated chooser values
+    for c in choosers.columns:
+        c_chooser = (c + '_chooser') if c in alts_sample.columns else c
+        alts_sample[c_chooser] = np.repeat(choosers[c].values, sample_size)
 
     logger.debug("interaction_dataset merged alts_sample %s" % (alts_sample.shape, ))
 

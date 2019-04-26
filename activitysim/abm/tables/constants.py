@@ -1,4 +1,9 @@
+# ActivitySim
+# See full license in LICENSE.txt.
 
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
 
 HHT_NONE = 0
 HHT_FAMILY_MARRIED = 1
@@ -16,6 +21,19 @@ HHT_FAMILY = [1, 2, 3]
 PSTUDENT_GRADE_OR_HIGH = 1
 PSTUDENT_UNIVERSITY = 2
 PSTUDENT_NOT = 3
+
+GRADE_SCHOOL_MAX_AGE = 14
+GRADE_SCHOOL_MIN_AGE = 5
+
+SCHOOL_SEGMENT_NONE = 0
+SCHOOL_SEGMENT_GRADE = 1
+SCHOOL_SEGMENT_HIGH = 2
+SCHOOL_SEGMENT_UNIV = 3
+
+INCOME_SEGMENT_LOW = 1
+INCOME_SEGMENT_MED = 2
+INCOME_SEGMENT_HIGH = 3
+INCOME_SEGMENT_VERYHIGH = 4
 
 PEMPLOY_FULL = 1
 PEMPLOY_PART = 2

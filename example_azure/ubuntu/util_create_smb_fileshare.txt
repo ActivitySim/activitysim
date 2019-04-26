@@ -1,0 +1,38 @@
+
+########################## SMB File Share
+
+STORAGE_QUOTA_GB=2048
+SHARE_NAME=myshare
+
+STORAGEACCT=$(az storage account create \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --name "mystorageacct$RANDOM" \
+    --location $AZ_LOCATION \
+    --sku Standard_LRS \
+    --query "name" | tr -d '"')
+
+
+
+STORAGEKEY=$(az storage account keys list \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --account-name $STORAGEACCT \
+    --query "[0].value" | tr -d '"')
+
+az storage share create --name $SHARE_NAME \
+    --quota $STORAGE_QUOTA_GB \
+    --account-name $STORAGEACCT \
+    --account-key $STORAGEKEY
+
+
+echo $STORAGEACCT
+echo $STORAGEKEY
+
+
+# mount on local windows machine
+
+# assign $STORAGEACCT and $STORAGEKEY to Windows variables
+
+Test-NetConnection -ComputerName $STORAGEACCT.file.core.windows.net -Port 445
+
+net use Z: \\$STORAGEACCT.file.core.windows.net\myshare /u:AZURE\$STORAGEACCT $STORAGEKEY
+	

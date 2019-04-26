@@ -1,14 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import print_function
 
 import os.path
 
 import numpy.testing as npt
+import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 
-import orca
+from .. import inject
 
 from .. import simulate
 
@@ -26,7 +28,8 @@ def spec_name(data_dir):
 @pytest.fixture(scope='module')
 def spec(data_dir, spec_name):
     return simulate.read_model_spec(
-        data_dir, spec_name,
+        file_name=spec_name,
+        spec_dir=data_dir,
         description_name='description',
         expression_name='expression')
 
@@ -39,43 +42,42 @@ def data(data_dir):
 def test_read_model_spec(data_dir, spec_name):
 
     spec = simulate.read_model_spec(
-        data_dir, spec_name,
+        file_name=spec_name,
+        spec_dir=data_dir,
         description_name='description', expression_name='expression')
 
     assert len(spec) == 4
     assert spec.index.name == 'expression'
     assert list(spec.columns) == ['alt0', 'alt1']
     npt.assert_array_equal(
-        spec.as_matrix(),
+        spec.values,
         [[1.1, 11], [2.2, 22], [3.3, 33], [4.4, 44]])
 
 
 def test_eval_variables(spec, data):
 
-    result = simulate.eval_variables(spec.index, data, target_type=None)
+    result = simulate.eval_variables(spec.index, data)
 
-    expected_result = pd.DataFrame([
-            [True, False, 4, 1],
-            [False, True, 4, 1],
-            [False, True, 5, 1]],
+    expected = pd.DataFrame([
+            [1, 0, 4, 1],
+            [0, 1, 4, 1],
+            [0, 1, 5, 1]],
             index=data.index, columns=spec.index)
 
-    pdt.assert_frame_equal(result, expected_result, check_names=False)
+    expected[expected.columns[0]] = expected[expected.columns[0]].astype(np.int8)
+    expected[expected.columns[1]] = expected[expected.columns[1]].astype(np.int8)
+    expected[expected.columns[2]] = expected[expected.columns[2]].astype(np.int64)
+    expected[expected.columns[3]] = expected[expected.columns[3]].astype(int)
 
-    result = simulate.eval_variables(spec.index, data, target_type=float)
+    print("\nexpected\n", expected.dtypes)
+    print("\nresult\n", result.dtypes)
 
-    expected_result = pd.DataFrame([
-            [1.0, 0.0, 4.0, 1.0],
-            [0.0, 1.0, 4.0, 1.0],
-            [0.0, 1.0, 5.0, 1.0]],
-            index=data.index, columns=spec.index)
-
-    pdt.assert_frame_equal(result, expected_result, check_names=False)
+    pdt.assert_frame_equal(result, expected, check_names=False)
 
 
 def test_simple_simulate(data, spec):
 
-    orca.add_injectable("check_for_variability", False)
+    inject.add_injectable("settings", {'check_for_variability': False})
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
@@ -84,7 +86,7 @@ def test_simple_simulate(data, spec):
 
 def test_simple_simulate_chunked(data, spec):
 
-    orca.add_injectable("check_for_variability", False)
+    inject.add_injectable("settings", {'check_for_variability': False})
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None, chunk_size=2)
     expected = pd.Series([1, 1, 1], index=data.index)

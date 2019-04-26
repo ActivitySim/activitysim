@@ -1,1 +1,33 @@
 SAMPLE_SIZE: 30
+
+
+SIZE_TERM_SELECTOR: non_mandatory
+
+# we can't use use household income_segment as this will also be set for non-workers
+CHOOSER_SEGMENT_COLUMN_NAME: tour_type
+
+
+
+SEGMENTS:
+  - shopping
+  - othmaint
+  - othdiscr
+  - eatout
+  - social
+  - escort
+
+SAMPLE_SPEC: non_mandatory_tour_destination_sample.csv
+SPEC: non_mandatory_tour_destination.csv
+
+SIMULATE_CHOOSER_COLUMNS:
+  - tour_type
+  - TAZ
+  - person_id
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: TAZ
+ALT_DEST_COL_NAME: alt_dest
+IN_PERIOD: 14
+OUT_PERIOD: 14

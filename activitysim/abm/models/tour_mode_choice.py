@@ -1,24 +1,23 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
+from __future__ import (absolute_import, division, print_function, )
+from future.standard_library import install_aliases
+install_aliases()  # noqa: E402
+
 import logging
 
 import pandas as pd
-import yaml
 
-from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-from activitysim.core.util import force_garbage_collect
+from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 from .util.mode import tour_mode_choice_spec
-
 from .util.mode import run_tour_mode_choice_simulate
-from .util.mode import annotate_preprocessors
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +55,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
                           primary_tours.tour_type, value_counts=True)
 
     primary_tours_merged = pd.merge(primary_tours, persons_merged, left_on='person_id',
-                                    right_index=True, how='left')
+                                    right_index=True, how='left', suffixes=('', '_r'))
 
     # setup skim keys
     orig_col_name = 'TAZ'

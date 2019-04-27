@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Models &mdash; ActivitySim 0.7
+  <title>Models &mdash; ActivitySim 0.8
  documentation</title>
   
 
@@ -18,13 +18,20 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
@@ -32,21 +39,16 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="How the System Works" href="howitworks.html" />
     <link rel="prev" title="Example" href="abmexample.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -60,7 +62,7 @@
             
             
               <div class="version">
-                0.7
+                0.8
 
               </div>
             
@@ -91,8 +93,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#initialize">Initialize</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#accessibility">Accessibility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#school-location">School Location</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#workplace-location">Workplace Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#work-location">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shadow-pricing">Shadow Pricing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#auto-ownership">Auto Ownership</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#free-parking-eligibility">Free Parking Eligibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#coordinated-daily-activity-pattern">Coordinated Daily Activity Pattern</a></li>
@@ -119,7 +122,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#trip-mode-choice">Trip Mode Choice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#trip-cbd-parking">Trip CBD Parking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#util">Util</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id24">CDAP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id25">CDAP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expressions">Expressions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-activitysim.abm.models.util.logsums">Logsums</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-activitysim.abm.models.util.mode">Mode</a></li>
@@ -127,7 +130,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-activitysim.abm.models.util.tour_destination">Tour Destination</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-activitysim.abm.models.util.tour_frequency">Tour Frequency</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-activitysim.abm.models.util.trip">Trip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.abm.models.util.vectorize_tour_scheduling">Tour Scheduling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.abm.models.util.vectorize_tour_scheduling">Vectorize Tour Scheduling</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#tests">Tests</a></li>
@@ -205,22 +208,16 @@
 <p>The currently implemented example ActivitySim AB models are described below.  See the example
 model <a class="reference internal" href="abmexample.html#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a> for more information.</p>
 <div class="section" id="initialize">
-<span id="id2"></span><h2>Initialize<a class="headerlink" href="#initialize" title="Permalink to this headline">¶</a></h2>
-<p>The initialize model isn’t really a model, but a step in the data pipeline.  This step pre-loads the land_use,
-households, persons, and person_windows tables because random seeds are set differently for each step
-and therefore the sampling of households depends on which step they are initially loaded in.  So, we
-load them explicitly up front.</p>
-<p>The main interface to the initialize model is the <a class="reference internal" href="#activitysim.abm.models.initialize.initialize" title="activitysim.abm.models.initialize.initialize"><code class="xref py py-func docutils literal notranslate"><span class="pre">initialize()</span></code></a>
-function.  This function is registered as an orca step in the example Pipeline.</p>
+<span id="initialize-households"></span><span id="initialize-landuse"></span><h2>Initialize<a class="headerlink" href="#initialize" title="Permalink to this headline">¶</a></h2>
+<p>The initialize model isn’t really a model, but rather a few data processing steps in the data pipeline.
+The initialize data processing steps code variables used in downstream models, such as household and person
+value-of-time.  This step also pre-loads the land_use, households, persons, and person_windows tables because
+random seeds are set differently for each step and therefore the sampling of households depends on which step
+they are initially loaded in.</p>
+<p>The main interface to the initialize land use step is the <code class="xref py py-func docutils literal notranslate"><span class="pre">initialize_landuse()</span></code>
+function. The main interface to the initialize household step is the <code class="xref py py-func docutils literal notranslate"><span class="pre">initialize_households()</span></code>
+function.  These functions are registered as orca steps in the example Pipeline.</p>
 <span class="target" id="module-activitysim.abm.models.initialize"></span><dl class="function">
-<dt id="activitysim.abm.models.initialize.initialize">
-<code class="descclassname">activitysim.abm.models.initialize.</code><code class="descname">initialize</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.initialize.initialize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Because random seed is set differently for each step, the sampling of households depends
-on which step they are initially loaded in so we force them to load here and they get
-stored to the pipeline,</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.abm.models.initialize.preload_injectables">
 <code class="descclassname">activitysim.abm.models.initialize.</code><code class="descname">preload_injectables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.initialize.preload_injectables" title="Permalink to this definition">¶</a></dt>
 <dd><p>preload bulky injectables up front - stuff that isn’t inserted into the pipeline</p>
@@ -228,7 +225,7 @@ stored to the pipeline,</p>
 
 </div>
 <div class="section" id="accessibility">
-<span id="id3"></span><h2>Accessibility<a class="headerlink" href="#accessibility" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Accessibility<a class="headerlink" href="#accessibility" title="Permalink to this headline">¶</a></h2>
 <p>The accessibilities model is an aggregate model that calculates multiple origin-based accessibility
 measures by origin zone to all destination zones.</p>
 <p>The accessibility measure first multiplies an employment variable by a mode-specific decay function.  The
@@ -264,7 +261,7 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">skims</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">accessibility</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">O-D,</span> <span class="pre">D-O</span></code></p>
 <span class="target" id="module-activitysim.abm.models.accessibility"></span><dl class="class">
 <dt id="activitysim.abm.models.accessibility.AccessibilitySkims">
-<em class="property">class </em><code class="descclassname">activitysim.abm.models.accessibility.</code><code class="descname">AccessibilitySkims</code><span class="sig-paren">(</span><em>skim_dict</em>, <em>omx</em>, <em>length</em>, <em>transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.accessibility.AccessibilitySkims" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.abm.models.accessibility.</code><code class="descname">AccessibilitySkims</code><span class="sig-paren">(</span><em>skim_dict</em>, <em>orig_zones</em>, <em>dest_zones</em>, <em>transpose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.accessibility.AccessibilitySkims" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper for skim arrays to facilitate use of skims by accessibility model</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -293,7 +290,7 @@ array is correct shape to match (flattened) O-D tiled columns in the od datafram
 
 <dl class="function">
 <dt id="activitysim.abm.models.accessibility.compute_accessibility">
-<code class="descclassname">activitysim.abm.models.accessibility.</code><code class="descname">compute_accessibility</code><span class="sig-paren">(</span><em>accessibility_spec</em>, <em>skim_dict</em>, <em>omx_file</em>, <em>land_use</em>, <em>trace_od</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.accessibility.compute_accessibility" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.accessibility.</code><code class="descname">compute_accessibility</code><span class="sig-paren">(</span><em>accessibility</em>, <em>skim_dict</em>, <em>land_use</em>, <em>trace_od</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.accessibility.compute_accessibility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute accessibility for each zone in land use file using expressions from accessibility_spec</p>
 <p>The actual results depend on the expressions in accessibility_spec, but this is initially
 intended to permit implementation of the mtc accessibility calculation as implemented by
@@ -308,10 +305,10 @@ steeper than automobile or transit.  The minimum accessibility is zero.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="school-location">
-<span id="id4"></span><h2>School Location<a class="headerlink" href="#school-location" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="work-location">
+<span id="school-location"></span><span id="id3"></span><h2>School Location<a class="headerlink" href="#work-location" title="Permalink to this headline">¶</a></h2>
 <p>The usual school location choice models assign a usual school location for the primary
-mandatory activity of each school-aged child and university student in the
+mandatory activity of each child and university student in the
 synthetic population. The models are composed of a set of accessibility-based parameters
 (including one-way distance between home and primary destination and the tour mode choice
 logsum - the expected maximum utility in the mode choice model which is given by the
@@ -319,101 +316,22 @@ logarithm of the sum of exponentials in the denominator of the logit formula) an
 which describe the quantity of grade-school or university opportunities in each possible
 destination.</p>
 <dl class="docutils">
-<dt>The school location model is made up of three model steps:</dt>
+<dt>The school location model is made up of four steps:</dt>
 <dd><ul class="first last simple">
-<li>school_location_sample - selects a sample of alternative school locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
-<li>school_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative school location.</li>
-<li>school_location_simulate - starts with the table created above and chooses a final school location, this time with the mode choice logsum included.</li>
+<li>sampling - selects a sample of alternative school locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
+<li>logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative school location.</li>
+<li>simulate - starts with the table created above and chooses a final school location, this time with the mode choice logsum included.</li>
+<li>shadow prices - compare modeled zonal destinations to target zonal size terms and calculate updated shadow prices.</li>
 </ul>
 </dd>
 </dl>
-<p>The interfaces to the model steps are
-<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_sample" title="activitysim.abm.models.school_location.school_location_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">school_location_sample()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_logsums" title="activitysim.abm.models.school_location.school_location_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">school_location_logsums()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.school_location.school_location_simulate" title="activitysim.abm.models.school_location.school_location_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">school_location_simulate()</span></code></a>.
-These functions are registered as orca steps in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
-<span class="target" id="module-activitysim.abm.models.school_location"></span><dl class="function">
-<dt id="activitysim.abm.models.school_location.school_location_logsums">
-<code class="descclassname">activitysim.abm.models.school_location.</code><code class="descname">school_location_logsums</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>school_location_sample</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_location.school_location_logsums" title="Permalink to this definition">¶</a></dt>
-<dd><p>add logsum column to existing school_location_sample able</p>
-<p>logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
-in school_location_sample, and computing the logsum of all the utilities</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="11%" />
-<col width="22%" />
-<col width="25%" />
-<col width="18%" />
-<col width="25%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">PERID</th>
-<th class="head">dest_TAZ</th>
-<th class="head">rand</th>
-<th class="head">pick_count</th>
-<th class="head">logsum (added)</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>23750</td>
-<td>14</td>
-<td>0.565502716034</td>
-<td>4</td>
-<td>1.85659498857</td>
-</tr>
-<tr class="row-odd"><td rowspan="2">23750</td>
-<td rowspan="2">16</td>
-<td rowspan="2">0.711135838871</td>
-<td rowspan="2">6</td>
-<td rowspan="2">1.92315598631</td>
-</tr>
-<tr class="row-even"></tr>
-<tr class="row-odd"><td rowspan="2">…</td>
-<td rowspan="2">&#160;</td>
-<td rowspan="2">&#160;</td>
-<td rowspan="2">&#160;</td>
-<td rowspan="2">&#160;</td>
-</tr>
-<tr class="row-even"></tr>
-<tr class="row-odd"><td>23751</td>
-<td>12</td>
-<td>0.408038878552</td>
-<td>1</td>
-<td>2.40612135416</td>
-</tr>
-<tr class="row-even"><td>23751</td>
-<td>14</td>
-<td>0.972732479292</td>
-<td>2</td>
-<td>1.44009018355</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.abm.models.school_location.school_location_sample">
-<code class="descclassname">activitysim.abm.models.school_location.</code><code class="descname">school_location_sample</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>school_location_sample_spec</em>, <em>skim_dict</em>, <em>land_use</em>, <em>size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_location.school_location_sample" title="Permalink to this definition">¶</a></dt>
-<dd><p>build a table of persons * all zones to select a sample of alternative school locations.</p>
-<p>PERID,  dest_TAZ, rand,            pick_count
-23750,  14,       0.565502716034,  4
-23750,  16,       0.711135838871,  6
-…
-23751,  12,       0.408038878552,  1
-23751,  14,       0.972732479292,  2</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.abm.models.school_location.school_location_simulate">
-<code class="descclassname">activitysim.abm.models.school_location.</code><code class="descname">school_location_simulate</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>persons</em>, <em>school_location_sample</em>, <em>school_location_spec</em>, <em>skim_dict</em>, <em>land_use</em>, <em>size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_location.school_location_simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>School location model on school_location_sample annotated with mode_choice logsum
-to select a school_taz from sample alternatives</p>
-</dd></dl>
-
+<p>These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See <a class="reference internal" href="#shadow-pricing"><span class="std std-ref">Shadow Pricing</span></a>.</p>
+<p>The main interfaces to the model is the <a class="reference internal" href="#activitysim.abm.models.location_choice.school_location" title="activitysim.abm.models.location_choice.school_location"><code class="xref py py-func docutils literal notranslate"><span class="pre">school_location()</span></code></a> function.
+This function is registered as an orca step in the example Pipeline.</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">alt_dest,</span> <span class="pre">AM</span> <span class="pre">time</span> <span class="pre">period,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 </div>
-<div class="section" id="workplace-location">
-<span id="work-location"></span><h2>Workplace Location<a class="headerlink" href="#workplace-location" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h2>Work Location<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>The usual work location choice models assign a usual work location for the primary
 mandatory activity of each employed person in the
 synthetic population. The models are composed of a set of accessibility-based parameters
@@ -422,33 +340,117 @@ logsum - the expected maximum utility in the mode choice model which is given by
 logarithm of the sum of exponentials in the denominator of the logit formula) and size terms,
 which describe the quantity of work opportunities in each possible destination.</p>
 <dl class="docutils">
-<dt>The work location model is made up of three model steps:</dt>
+<dt>The work location model is made up of four steps:</dt>
 <dd><ul class="first last simple">
-<li>workplace_location_sample - selects a sample of alternative work locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
-<li>workplace_location_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative work location.</li>
-<li>workplace_location_simulate - starts with the table created above and chooses a final work location, this time with the mode choice logsum included.</li>
+<li>sample - selects a sample of alternative work locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
+<li>logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative work location.</li>
+<li>simulate - starts with the table created above and chooses a final work location, this time with the mode choice logsum included.</li>
+<li>shadow prices - compare modeled zonal destinations to target zonal size terms and calculate updated shadow prices.</li>
 </ul>
 </dd>
 </dl>
-<p>The interfaces to the model steps are
-<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_sample" title="activitysim.abm.models.workplace_location.workplace_location_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">workplace_location_sample()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_logsums" title="activitysim.abm.models.workplace_location.workplace_location_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">workplace_location_logsums()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.workplace_location.workplace_location_simulate" title="activitysim.abm.models.workplace_location.workplace_location_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">workplace_location_simulate()</span></code></a>.
-These functions are registered as orca steps in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
-<span class="target" id="module-activitysim.abm.models.workplace_location"></span><dl class="function">
-<dt id="activitysim.abm.models.workplace_location.workplace_location_logsums">
-<code class="descclassname">activitysim.abm.models.workplace_location.</code><code class="descname">workplace_location_logsums</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>workplace_location_sample</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.workplace_location.workplace_location_logsums" title="Permalink to this definition">¶</a></dt>
-<dd><p>add logsum column to existing workplace_location_sample able</p>
+<p>These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See <a class="reference internal" href="#shadow-pricing"><span class="std std-ref">Shadow Pricing</span></a>.</p>
+<p>The main interfaces to the model is the <a class="reference internal" href="#activitysim.abm.models.location_choice.workplace_location" title="activitysim.abm.models.location_choice.workplace_location"><code class="xref py py-func docutils literal notranslate"><span class="pre">workplace_location()</span></code></a> function.
+This function is registered as an orca step in the example Pipeline.</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">workplace_taz</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">alt_dest,</span> <span class="pre">AM</span> <span class="pre">time</span> <span class="pre">period,</span> <span class="pre">PM</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
+<span class="target" id="module-activitysim.abm.models.location_choice"></span><dl class="function">
+<dt id="activitysim.abm.models.location_choice.iterate_location_choice">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">iterate_location_choice</code><span class="sig-paren">(</span><em>model_settings</em>, <em>persons_merged</em>, <em>persons</em>, <em>households</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em>, <em>locutor</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.iterate_location_choice" title="Permalink to this definition">¶</a></dt>
+<dd><p>iterate run_location_choice updating shadow pricing until convergence criteria satisfied
+or max_iterations reached.</p>
+<p>(If use_shadow_pricing not enabled, then just iterate once)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>model_settings</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
+<dt><strong>persons_merged</strong> <span class="classifier-delimiter">:</span> <span class="classifier">injected table</span></dt>
+<dd></dd>
+<dt><strong>persons</strong> <span class="classifier-delimiter">:</span> <span class="classifier">injected table</span></dt>
+<dd></dd>
+<dt><strong>skim_dict</strong> <span class="classifier-delimiter">:</span> <span class="classifier">skim.SkimDict</span></dt>
+<dd></dd>
+<dt><strong>skim_stack</strong> <span class="classifier-delimiter">:</span> <span class="classifier">skim.SkimStack</span></dt>
+<dd></dd>
+<dt><strong>chunk_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+<dt><strong>trace_hh_id</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+<dt><strong>locutor</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">whether this process is the privileged logger of shadow_pricing when multiprocessing</p>
+</dd>
+<dt><strong>trace_label</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>adds choice column model_settings[‘DEST_CHOICE_COLUMN_NAME’] and annotations to persons table</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.location_choice.run_location_choice">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">run_location_choice</code><span class="sig-paren">(</span><em>persons_merged_df</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>spc</em>, <em>model_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_choice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the three-part location choice algorithm to generate a location choice for each chooser</p>
+<p>Handle the various segments separately and in turn for simplicity of expression files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>persons_merged_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">persons table merged with households and land_use</p>
+</dd>
+<dt><strong>skim_dict</strong> <span class="classifier-delimiter">:</span> <span class="classifier">skim.SkimDict</span></dt>
+<dd></dd>
+<dt><strong>skim_stack</strong> <span class="classifier-delimiter">:</span> <span class="classifier">skim.SkimStack</span></dt>
+<dd></dd>
+<dt><strong>spc</strong> <span class="classifier-delimiter">:</span> <span class="classifier">ShadowPriceCalculator</span></dt>
+<dd><p class="first last">to get size terms</p>
+</dd>
+<dt><strong>model_settings</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
+<dt><strong>chunk_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+<dt><strong>trace_hh_id</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+<dt><strong>trace_label</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>pandas.Series</dt>
+<dd><p class="first last">location choices (zone ids) indexed by persons_merged_df.index</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.location_choice.run_location_logsums">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">run_location_logsums</code><span class="sig-paren">(</span><em>segment_name</em>, <em>persons_merged_df</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>location_sample_df</em>, <em>model_settings</em>, <em>chunk_size</em>, <em>trace_hh_id</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_logsums" title="Permalink to this definition">¶</a></dt>
+<dd><p>add logsum column to existing location_sample table</p>
 <p>logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
-in workplace_location_sample, and computing the logsum of all the utilities</p>
+in location_sample, and computing the logsum of all the utilities</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="11%" />
-<col width="22%" />
-<col width="25%" />
-<col width="18%" />
-<col width="25%" />
+<col width="16%" />
+<col width="20%" />
+<col width="23%" />
+<col width="17%" />
+<col width="23%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">PERID</th>
@@ -496,27 +498,292 @@ in workplace_location_sample, and computing the logsum of all the utilities</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.abm.models.workplace_location.workplace_location_sample">
-<code class="descclassname">activitysim.abm.models.workplace_location.</code><code class="descname">workplace_location_sample</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>workplace_location_sample_spec</em>, <em>skim_dict</em>, <em>land_use</em>, <em>size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.workplace_location.workplace_location_sample" title="Permalink to this definition">¶</a></dt>
-<dd><p>build a table of workers * all zones in order to select a sample of alternative work locations.</p>
-<p>PERID,  dest_TAZ, rand,            pick_count
-23750,  14,       0.565502716034,  4
-23750,  16,       0.711135838871,  6
+<dt id="activitysim.abm.models.location_choice.run_location_sample">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">run_location_sample</code><span class="sig-paren">(</span><em>segment_name</em>, <em>persons_merged</em>, <em>skim_dict</em>, <em>dest_size_terms</em>, <em>model_settings</em>, <em>chunk_size</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>select a sample of alternative locations.</p>
+<p>Logsum calculations are expensive, so we build a table of persons * all zones
+and then select a sample subset of potential locations</p>
+<p>The sample subset is generated by making multiple choices (&lt;sample_size&gt; number of choices)
+which results in sample containing up to &lt;sample_size&gt; choices for each choose (e.g. person)
+and a pick_count indicating how many times that choice was selected for that chooser.)</p>
+<p>person_id,  dest_TAZ, rand,            pick_count
+23750,      14,       0.565502716034,  4
+23750,      16,       0.711135838871,  6
 …
-23751,  12,       0.408038878552,  1
-23751,  14,       0.972732479292,  2</p>
+23751,      12,       0.408038878552,  1
+23751,      14,       0.972732479292,  2</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.abm.models.workplace_location.workplace_location_simulate">
-<code class="descclassname">activitysim.abm.models.workplace_location.</code><code class="descname">workplace_location_simulate</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>persons</em>, <em>workplace_location_sample</em>, <em>workplace_location_spec</em>, <em>skim_dict</em>, <em>land_use</em>, <em>size_terms</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.workplace_location.workplace_location_simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Workplace location model on workplace_location_sample annotated with mode_choice logsum
-to select a work_taz from sample alternatives</p>
+<dt id="activitysim.abm.models.location_choice.run_location_simulate">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">run_location_simulate</code><span class="sig-paren">(</span><em>segment_name</em>, <em>persons_merged</em>, <em>location_sample_df</em>, <em>skim_dict</em>, <em>dest_size_terms</em>, <em>model_settings</em>, <em>chunk_size</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>run location model on location_sample annotated with mode_choice logsum
+to select a dest zone from sample alternatives</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.location_choice.school_location">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">school_location</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>persons</em>, <em>households</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em>, <em>locutor</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.school_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>School location choice model</p>
+<p>iterate_location_choice adds location choice column and annotations to persons table</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.location_choice.spec_for_segment">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">spec_for_segment</code><span class="sig-paren">(</span><em>model_spec</em>, <em>segment_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.spec_for_segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select spec for specified segment from omnibus spec containing columns for each segment</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>model_spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">omnibus spec file with expressions in index and one column per segment</p>
+</dd>
+<dt><strong>segment_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">segment_name that is also column name in model_spec</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>pandas.dataframe</dt>
+<dd><p class="first last">canonical spec file with expressions in index and single column with utility coefficients</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.location_choice.workplace_location">
+<code class="descclassname">activitysim.abm.models.location_choice.</code><code class="descname">workplace_location</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>persons</em>, <em>households</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em>, <em>locutor</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.workplace_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>workplace location choice model</p>
+<p>iterate_location_choice adds location choice column and annotations to persons table</p>
+</dd></dl>
+
+</div>
+<div class="section" id="shadow-pricing">
+<span id="index-1"></span><span id="id5"></span><h2>Shadow Pricing<a class="headerlink" href="#shadow-pricing" title="Permalink to this headline">¶</a></h2>
+<p>The shadow pricing calculator used by work and school location choice.</p>
+<span class="target" id="module-activitysim.abm.tables.shadow_pricing"></span><dl class="function">
+<dt id="activitysim.abm.tables.shadow_pricing.add_size_tables">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">add_size_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.add_size_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)</p>
+<p>Size tables are pandas dataframes with locations counts for model_selector by zone and segment
+tour_destination_size_terms</p>
+<p>if using shadow pricing, we scale size_table counts to sample population
+(in which case, they have to be created while single-process)</p>
+<p>Scaling is problematic as it breaks household result replicability across sample sizes
+It also changes the magnitude of the size terms so if they are used as utilities in
+expression files, their importance will diminish relative to other utilities as the sample
+size decreases.</p>
+<p>Scaling makes most sense for a full sample in conjunction with shadow pricing, where
+shadow prices can be adjusted iteratively to bring modelled counts into line with desired
+(size table) counts.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.tables.shadow_pricing.block_name">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">block_name</code><span class="sig-paren">(</span><em>model_selector</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.block_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>return canonical block name for model_selector</p>
+<p>Ordinarily and ideally this would just be model_selector, but since mp_tasks saves all
+shared data blocks in a common dict to pass to sub-tasks, we want to be able override
+block naming convention to handle any collisions between model_selector names and skim names.
+Until and unless that happens, we just use model_selector name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>model_selector</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>block_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">canonical block name</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">buffers_for_shadow_pricing</code><span class="sig-paren">(</span><em>shadow_pricing_info</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocate shared_data buffers for multiprocess shadow pricing</p>
+<p>Allocates one buffer per model_selector.
+Buffer datatype and shape specified by shadow_pricing_info</p>
+<p>buffers are multiprocessing.Array (RawArray protected by a multiprocessing.Lock wrapper)
+We don’t actually use the wrapped version as it slows access down and doesn’t provide
+protection for numpy-wrapped arrays, but it does provide a convenient way to bundle
+RawArray and an associated lock. (ShadowPriceCalculator uses the lock to coordinate access to
+the numpy-wrapped RawArray.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>shadow_pricing_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>data_buffers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict {&lt;model_selector&gt;</span></dt>
+<dd><p class="first last">dict of multiprocessing.Array keyed by model_selector</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">get_shadow_pricing_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>return dict with info about dtype and shapes of desired and modeled size tables</p>
+<p>block shape is (num_zones, num_segments + 1)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>shadow_pricing_info: dict</dt>
+<dd><p class="first last">dtype: &lt;sp_dtype&gt;,
+block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.tables.shadow_pricing.load_shadow_price_calculator">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">load_shadow_price_calculator</code><span class="sig-paren">(</span><em>model_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.load_shadow_price_calculator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize ShadowPriceCalculator for model_selector (e.g. school or workplace)</p>
+<p>If multiprocessing, get the shared_data buffer to coordinate global_desired_size
+calculation across sub-processes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>model_settings</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>spc</strong> <span class="classifier-delimiter">:</span> <span class="classifier">ShadowPriceCalculator</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="activitysim.abm.tables.shadow_pricing.logger">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">logger</code><em class="property"> = &lt;logging.Logger object&gt;</em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>ShadowPriceCalculator and associated utility methods</p>
+<p>See docstrings for documentation on:</p>
+<p>update_shadow_prices    how shadow_price coefficients are calculated
+synchronize_choices     interprocess communication to compute aggregate modeled_size
+check_fit               convergence criteria for shadow_pric iteration</p>
+<p>Import concepts and variables:</p>
+<dl class="docutils">
+<dt>model_selector: str</dt>
+<dd>Identifies a specific location choice model (e.g. ‘school’, ‘workplace’)
+The various models work similarly, but use different expression files, model settings, etc.</dd>
+<dt>segment: str</dt>
+<dd>Identifies a specific demographic segment of a model (e.g. ‘elementary’ segment of ‘school’)
+Models can have different size term coefficients (in destinatin_choice_size_terms file) and
+different utility coefficients in models’s location and location_sample csv expression files</dd>
+</dl>
+<p>size_table: pandas.DataFrame</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">shadow_price_data_from_buffers</code><span class="sig-paren">(</span><em>data_buffers</em>, <em>shadow_pricing_info</em>, <em>model_selector</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>data_buffers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict of {&lt;model_selector&gt;</span></dt>
+<dd><p class="first last">multiprocessing.Array is simply a convenient way to bundle Array and Lock
+we extract the lock and wrap the RawArray in a numpy array for convenience in indexing
+The shared data buffer has shape (&lt;num_zones, &lt;num_segments&gt; + 1)
+extra column is for reverse semaphores with TALLY_CHECKIN and TALLY_CHECKOUT</p>
+</dd>
+<dt><strong>shadow_pricing_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><dl class="first last docutils">
+<dt>dict of useful info</dt>
+<dd><p class="first last">dtype: sp_dtype,
+block_shapes : OrderedDict({&lt;model_selector&gt;: &lt;shape tuple&gt;})
+dict mapping model_selector to block shape (including extra column for semaphores)
+e.g. {‘school’: (num_zones, num_segments + 1)</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>model_selector</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">location type model_selector (e.g. school or workplace)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>shared_data, shared_data_lock</dt>
+<dd><p class="first last">shared_data : multiprocessing.Array or None (if single process)
+shared_data_lock : numpy array wrapping multiprocessing.RawArray or None (if single process)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.tables.shadow_pricing.size_table_name">
+<code class="descclassname">activitysim.abm.tables.shadow_pricing.</code><code class="descname">size_table_name</code><span class="sig-paren">(</span><em>model_selector</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.size_table_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns canonical name of injected destination desired_size table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>model_selector</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">e.g. school or workplace</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>table_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
 <div class="section" id="auto-ownership">
-<span id="id5"></span><h2>Auto Ownership<a class="headerlink" href="#auto-ownership" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2>Auto Ownership<a class="headerlink" href="#auto-ownership" title="Permalink to this headline">¶</a></h2>
 <p>The auto ownership model selects a number of autos for each household in the simulation.
 The primary model components are household demographics, zonal density, and accessibility.</p>
 <p>The main interface to the auto ownership model is the
@@ -525,7 +792,7 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">households</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">auto_ownership</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.auto_ownership"></span><dl class="function">
 <dt id="activitysim.abm.models.auto_ownership.auto_ownership_simulate">
-<code class="descclassname">activitysim.abm.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>households</em>, <em>households_merged</em>, <em>auto_ownership_spec</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.auto_ownership.</code><code class="descname">auto_ownership_simulate</code><span class="sig-paren">(</span><em>households</em>, <em>households_merged</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.auto_ownership.auto_ownership_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Auto ownership is a standard model which predicts how many cars a household
 with given characteristics owns</p>
 </dd></dl>
@@ -533,14 +800,19 @@ with given characteristics owns</p>
 </div>
 <div class="section" id="free-parking-eligibility">
 <span id="freeparking"></span><h2>Free Parking Eligibility<a class="headerlink" href="#free-parking-eligibility" title="Permalink to this headline">¶</a></h2>
-<p><strong>NOT YET IMPLEMENTED</strong></p>
 <p>The Free Parking Eligibility model predicts the availability of free parking at a person’s
-workplace for people who work in zones that have parking charges, which are generally located
-in the Central Business Districts. The purpose of the model is to adequately reflect the cost
-of driving to work in subsequent models, particularly in mode choice.</p>
+workplace.  It is applied for people who work in zones that have parking charges, which are
+generally located in the Central Business Districts. The purpose of the model is to adequately
+reflect the cost of driving to work in subsequent models, particularly in mode choice.</p>
 <p>The main interface to the free parking eligibility model is the
-XXXXX function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">XXXXX</span></code> | Skims Keys: NA</p>
+<a class="reference internal" href="#activitysim.abm.models.free_parking.free_parking" title="activitysim.abm.models.free_parking.free_parking"><code class="xref py py-func docutils literal notranslate"><span class="pre">free_parking()</span></code></a> function.  This function is registered
+as an orca step in the example Pipeline.</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">free_parking_at_work</span></code> | Skims Keys: NA</p>
+<span class="target" id="module-activitysim.abm.models.free_parking"></span><dl class="function">
+<dt id="activitysim.abm.models.free_parking.free_parking">
+<code class="descclassname">activitysim.abm.models.free_parking.</code><code class="descname">free_parking</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>persons</em>, <em>households</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em>, <em>locutor</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.free_parking.free_parking" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="coordinated-daily-activity-pattern">
 <span id="cdap"></span><h2>Coordinated Daily Activity Pattern<a class="headerlink" href="#coordinated-daily-activity-pattern" title="Permalink to this headline">¶</a></h2>
@@ -556,7 +828,7 @@ follows:</p>
 </div></blockquote>
 <p>The CDAP model is a sequence of vectorized table operations:</p>
 <ul class="simple">
-<li>create a person level table and rank each person in the household for inclusion in the CDAP model</li>
+<li>create a person level table and rank each person in the household for inclusion in the CDAP model.  Priority is given to full time workers (up to two), then to part time workers (up to two workers, of any type), then to children (youngest to oldest, up to three).  Additional members up to five are randomly included for the CDAP calculation.</li>
 <li>solve individual M/N/H utilities for each person</li>
 <li>take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another</li>
 <li>select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions</li>
@@ -571,7 +843,7 @@ at <a class="reference internal" href="#module-activitysim.abm.models.util.cdap"
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">cdap_activity</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.cdap"></span><dl class="function">
 <dt id="activitysim.abm.models.cdap.cdap_fixed_relative_proportions">
-<code class="descclassname">activitysim.abm.models.cdap.</code><code class="descname">cdap_fixed_relative_proportions</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.cdap.cdap_fixed_relative_proportions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.cdap.</code><code class="descname">cdap_fixed_relative_proportions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.cdap.cdap_fixed_relative_proportions" title="Permalink to this definition">¶</a></dt>
 <dd><p>spec to compute/specify the relative proportions of each activity (M, N, H)
 that should be used to choose activities for additional household members
 not handled by CDAP</p>
@@ -582,14 +854,14 @@ EXCEPT that the values computed are relative proportions, not utilities
 
 <dl class="function">
 <dt id="activitysim.abm.models.cdap.cdap_indiv_spec">
-<code class="descclassname">activitysim.abm.models.cdap.</code><code class="descname">cdap_indiv_spec</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.cdap.cdap_indiv_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.cdap.</code><code class="descname">cdap_indiv_spec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.cdap.cdap_indiv_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>spec to compute the activity utilities for each individual hh member
 with no interactions with other household members taken into account</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="activitysim.abm.models.cdap.cdap_interaction_coefficients">
-<code class="descclassname">activitysim.abm.models.cdap.</code><code class="descname">cdap_interaction_coefficients</code><span class="sig-paren">(</span><em>configs_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.cdap.cdap_interaction_coefficients" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.cdap.</code><code class="descname">cdap_interaction_coefficients</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.cdap.cdap_interaction_coefficients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rules and coefficients for generating interaction specs for different household sizes</p>
 </dd></dl>
 
@@ -606,7 +878,7 @@ simply applies those utilities using the simulation framework.</p>
 
 </div>
 <div class="section" id="mandatory-tour-frequency">
-<span id="id6"></span><h2>Mandatory Tour Frequency<a class="headerlink" href="#mandatory-tour-frequency" title="Permalink to this headline">¶</a></h2>
+<span id="id7"></span><h2>Mandatory Tour Frequency<a class="headerlink" href="#mandatory-tour-frequency" title="Permalink to this headline">¶</a></h2>
 <p>The individual mandatory tour frequency model predicts the number of work and school tours
 taken by each person with a mandatory DAP. The primary drivers of mandatory tour frequency
 are demographics, accessibility-based parameters such as drive time to work, and household
@@ -617,14 +889,14 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">mandatory_tour_frequency</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.mandatory_tour_frequency"></span><dl class="function">
 <dt id="activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency">
-<code class="descclassname">activitysim.abm.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>mandatory_tour_frequency_spec</em>, <em>mandatory_tour_frequency_alternatives</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.mandatory_tour_frequency.</code><code class="descname">mandatory_tour_frequency</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the frequency of making mandatory trips (see the
 alternatives above) - these trips include work and school in some combination.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="mandatory-tour-scheduling">
-<span id="id7"></span><h2>Mandatory Tour Scheduling<a class="headerlink" href="#mandatory-tour-scheduling" title="Permalink to this headline">¶</a></h2>
+<span id="id8"></span><h2>Mandatory Tour Scheduling<a class="headerlink" href="#mandatory-tour-scheduling" title="Permalink to this headline">¶</a></h2>
 <p>The mandatory tour scheduling model selects a tour departure and duration period (and therefore a
 start and end period as well) for each mandatory tour.   The primary drivers in the model are
 accessibility-based parameters such as the mode choice logsum for the departure/arrival hour
@@ -633,16 +905,16 @@ from previously scheduled tours. This model uses person <a class="reference inte
 <p>The main interface to the mandatory tour purpose scheduling model is the
 <a class="reference internal" href="#activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling" title="activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">mandatory_tour_scheduling()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,end,duration</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,</span> <span class="pre">end,</span> <span class="pre">duration</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">workplace_taz,</span> <span class="pre">school_taz,</span> <span class="pre">start,</span> <span class="pre">end</span></code></p>
 <span class="target" id="module-activitysim.abm.models.mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling">
-<code class="descclassname">activitysim.abm.models.mandatory_scheduling.</code><code class="descname">mandatory_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>tour_scheduling_work_spec</em>, <em>tour_scheduling_school_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.mandatory_scheduling.</code><code class="descname">mandatory_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the departure time and duration of each activity for mandatory tours</p>
 </dd></dl>
 
 </div>
 <div class="section" id="joint-tour-frequency">
-<span id="id8"></span><h2>Joint Tour Frequency<a class="headerlink" href="#joint-tour-frequency" title="Permalink to this headline">¶</a></h2>
+<span id="id9"></span><h2>Joint Tour Frequency<a class="headerlink" href="#joint-tour-frequency" title="Permalink to this headline">¶</a></h2>
 <p>The joint tour generation models are divided into three sub-models: the joint tour frequency
 model, the party composition model, and the person participation model. In the joint tour
 frequency model, the household chooses the purposes and number (up to two) of its fully joint
@@ -653,14 +925,14 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">households</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">num_hh_joint_tours</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.joint_tour_frequency"></span><dl class="function">
 <dt id="activitysim.abm.models.joint_tour_frequency.joint_tour_frequency">
-<code class="descclassname">activitysim.abm.models.joint_tour_frequency.</code><code class="descname">joint_tour_frequency</code><span class="sig-paren">(</span><em>households</em>, <em>persons</em>, <em>joint_tour_frequency_spec</em>, <em>joint_tour_frequency_alternatives</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_frequency.joint_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.joint_tour_frequency.</code><code class="descname">joint_tour_frequency</code><span class="sig-paren">(</span><em>households</em>, <em>persons</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_frequency.joint_tour_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the frequency of making fully joint trips (see the
 alternatives above).</p>
 </dd></dl>
 
 </div>
 <div class="section" id="joint-tour-composition">
-<span id="id9"></span><h2>Joint Tour Composition<a class="headerlink" href="#joint-tour-composition" title="Permalink to this headline">¶</a></h2>
+<span id="id10"></span><h2>Joint Tour Composition<a class="headerlink" href="#joint-tour-composition" title="Permalink to this headline">¶</a></h2>
 <p>In the joint tour party composition model, the makeup of the travel party (adults, children, or
 mixed - adults and children) is determined for each joint tour.  The party composition determines the
 general makeup of the party of participants in each joint tour in order to allow the micro-simulation
@@ -672,13 +944,13 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">composition</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.joint_tour_composition"></span><dl class="function">
 <dt id="activitysim.abm.models.joint_tour_composition.joint_tour_composition">
-<code class="descclassname">activitysim.abm.models.joint_tour_composition.</code><code class="descname">joint_tour_composition</code><span class="sig-paren">(</span><em>tours</em>, <em>households</em>, <em>persons</em>, <em>joint_tour_composition_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_composition.joint_tour_composition" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.joint_tour_composition.</code><code class="descname">joint_tour_composition</code><span class="sig-paren">(</span><em>tours</em>, <em>households</em>, <em>persons</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_composition.joint_tour_composition" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the makeup of the travel party (adults, children, or mixed).</p>
 </dd></dl>
 
 </div>
 <div class="section" id="joint-tour-participation">
-<span id="id10"></span><h2>Joint Tour Participation<a class="headerlink" href="#joint-tour-participation" title="Permalink to this headline">¶</a></h2>
+<span id="id11"></span><h2>Joint Tour Participation<a class="headerlink" href="#joint-tour-participation" title="Permalink to this headline">¶</a></h2>
 <p>In the joint tour person participation model, each eligible person sequentially makes a
 choice to participate or not participate in each joint tour.  Since the party composition model
 determines what types of people are eligible to join a given tour, the person participation model
@@ -695,7 +967,7 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">number_of_participants,</span> <span class="pre">person_id</span> <span class="pre">(for</span> <span class="pre">the</span> <span class="pre">point</span> <span class="pre">person)</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.joint_tour_participation"></span><dl class="function">
 <dt id="activitysim.abm.models.joint_tour_participation.joint_tour_participation">
-<code class="descclassname">activitysim.abm.models.joint_tour_participation.</code><code class="descname">joint_tour_participation</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>joint_tour_participation_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_participation.joint_tour_participation" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.joint_tour_participation.</code><code class="descname">joint_tour_participation</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_participation.joint_tour_participation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predicts for each eligible person to participate or not participate in each joint tour.</p>
 </dd></dl>
 
@@ -745,7 +1017,7 @@ indicating that the participant has been chosen to participate in the tour</p>
 
 </div>
 <div class="section" id="joint-tour-destination-choice">
-<span id="id11"></span><h2>Joint Tour Destination Choice<a class="headerlink" href="#joint-tour-destination-choice" title="Permalink to this headline">¶</a></h2>
+<span id="id12"></span><h2>Joint Tour Destination Choice<a class="headerlink" href="#joint-tour-destination-choice" title="Permalink to this headline">¶</a></h2>
 <p>The joint tour destination choice model operate similarly to the usual work and
 school location choice model, selecting the primary destination for travel tours. The only
 procedural difference between the models is that the usual work and school location choice
@@ -763,21 +1035,54 @@ the primary destination.</p>
 <dl class="docutils">
 <dt>The joint tour destination choice model is made up of three model steps:</dt>
 <dd><ul class="first last simple">
-<li>joint_tour_destination_sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
-<li>joint_tour_destination_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.</li>
-<li>joint_tour_destination_simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.</li>
+<li>sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
+<li>logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.</li>
+<li>simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.</li>
 </ul>
 </dd>
 </dl>
-<p>The interfaces to the model steps are
-<a class="reference internal" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_sample" title="activitysim.abm.models.joint_tour_destination.joint_tour_destination_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">joint_tour_destination_sample()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_logsums" title="activitysim.abm.models.joint_tour_destination.joint_tour_destination_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">joint_tour_destination_logsums()</span></code></a>,
-<a class="reference internal" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_simulate" title="activitysim.abm.models.joint_tour_destination.joint_tour_destination_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">joint_tour_destination_simulate()</span></code></a>.
-These functions are registered as orca steps in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
+<p>The main interface to the model is the <a class="reference internal" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination" title="activitysim.abm.models.joint_tour_destination.joint_tour_destination"><code class="xref py py-func docutils literal notranslate"><span class="pre">joint_tour_destination()</span></code></a>
+function.  This function is registered as an orca step in the example Pipeline.</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">alt_dest,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 <span class="target" id="module-activitysim.abm.models.joint_tour_destination"></span><dl class="function">
+<dt id="activitysim.abm.models.joint_tour_destination.joint_tour_destination">
+<code class="descclassname">activitysim.abm.models.joint_tour_destination.</code><code class="descname">joint_tour_destination</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>households_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>land_use</em>, <em>size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the three-part destination choice algorithm to choose a destination for each joint tour</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tours</strong> <span class="classifier-delimiter">:</span> <span class="classifier">injected table</span></dt>
+<dd></dd>
+<dt><strong>households_merged</strong> <span class="classifier-delimiter">:</span> <span class="classifier">injected table</span></dt>
+<dd></dd>
+<dt><strong>skim_dict</strong> <span class="classifier-delimiter">:</span> <span class="classifier">skim.SkimDict</span></dt>
+<dd></dd>
+<dt><strong>land_use</strong> <span class="classifier-delimiter">:</span> <span class="classifier">injected table</span></dt>
+<dd></dd>
+<dt><strong>size_terms</strong> <span class="classifier-delimiter">:</span> <span class="classifier">injected table</span></dt>
+<dd></dd>
+<dt><strong>chunk_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+<dt><strong>trace_hh_id</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or None</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>adds/assigns choice column ‘destination’ for joint tours in tours table</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.abm.models.joint_tour_destination.joint_tour_destination_logsums">
-<code class="descclassname">activitysim.abm.models.joint_tour_destination.</code><code class="descname">joint_tour_destination_logsums</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_logsums" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.joint_tour_destination.</code><code class="descname">joint_tour_destination_logsums</code><span class="sig-paren">(</span><em>joint_tours</em>, <em>persons_merged</em>, <em>destination_sample</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_logsums" title="Permalink to this definition">¶</a></dt>
 <dd><p>add logsum column to existing joint_tour_destination_sample table</p>
 <p>logsum is calculated by computing the mode_choice model utilities for each
 sampled (joint_tour, dest_taz) destination alternative in joint_tour_destination_sample,
@@ -786,7 +1091,7 @@ and computing the logsum of all the utilities for each destination.</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.joint_tour_destination.joint_tour_destination_sample">
-<code class="descclassname">activitysim.abm.models.joint_tour_destination.</code><code class="descname">joint_tour_destination_sample</code><span class="sig-paren">(</span><em>tours</em>, <em>households_merged</em>, <em>joint_tour_destination_sample_spec</em>, <em>skim_dict</em>, <em>land_use</em>, <em>size_terms</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_sample" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.joint_tour_destination.</code><code class="descname">joint_tour_destination_sample</code><span class="sig-paren">(</span><em>joint_tours</em>, <em>households_merged</em>, <em>skim_dict</em>, <em>size_term_calculator</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Chooses a sample of destinations from all possible tour destinations by choosing
 &lt;sample_size&gt; times from among destination alternatives.
 Since choice is with replacement, the number of sampled alternative may be smaller
@@ -853,20 +1158,15 @@ joint_tour_destination_simulate choice model is run subsequently.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>tours: pipeline table</strong></dt>
+<dt><strong>joint_tours: pandas.DataFrame</strong></dt>
 <dd></dd>
-<dt><strong>households_merged</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pipeline table</span></dt>
-<dd><p class="first last">injected merge table created on the fly</p>
-</dd>
+<dt><strong>households_merged</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd></dd>
 <dt><strong>skim_dict</strong></dt>
 <dd></dd>
 <dt><strong>joint_tour_destination_sample_spec</strong></dt>
 <dd></dd>
-<dt><strong>land_use</strong></dt>
-<dd></dd>
-<dt><strong>size_terms</strong></dt>
-<dd></dd>
-<dt><strong>configs_dir</strong></dt>
+<dt><strong>size_term_calculator</strong></dt>
 <dd></dd>
 <dt><strong>chunk_size</strong></dt>
 <dd></dd>
@@ -876,8 +1176,9 @@ joint_tour_destination_simulate choice model is run subsequently.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>none</strong></dt>
-<dd></dd>
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">destination_sample df</p>
+</dd>
 </dl>
 </td>
 </tr>
@@ -887,39 +1188,40 @@ joint_tour_destination_simulate choice model is run subsequently.</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.joint_tour_destination.joint_tour_destination_simulate">
-<code class="descclassname">activitysim.abm.models.joint_tour_destination.</code><code class="descname">joint_tour_destination_simulate</code><span class="sig-paren">(</span><em>tours</em>, <em>households_merged</em>, <em>joint_tour_destination_spec</em>, <em>skim_dict</em>, <em>land_use</em>, <em>size_terms</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.joint_tour_destination.</code><code class="descname">joint_tour_destination_simulate</code><span class="sig-paren">(</span><em>joint_tours</em>, <em>households_merged</em>, <em>destination_sample</em>, <em>skim_dict</em>, <em>size_term_calculator</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_destination.joint_tour_destination_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>choose a joint tour destination from amont the destination sample alternatives
 (annotated with logsums) and add destination TAZ column to joint_tours table</p>
 </dd></dl>
 
 </div>
 <div class="section" id="joint-tour-scheduling">
-<span id="id12"></span><h2>Joint Tour Scheduling<a class="headerlink" href="#joint-tour-scheduling" title="Permalink to this headline">¶</a></h2>
+<span id="id13"></span><h2>Joint Tour Scheduling<a class="headerlink" href="#joint-tour-scheduling" title="Permalink to this headline">¶</a></h2>
 <p>The joint tour scheduling model selects a tour departure and duration period (and therefore a start and end
 period as well) for each joint tour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>. The primary drivers in the
 models are accessibility-based parameters such
 as the auto travel time for the departure/arrival hour combination, demographics, and time
-pattern characteristics such as the time windows available from previously scheduled tours.</p>
+pattern characteristics such as the time windows available from previously scheduled tours.
+The joint tour scheduling model does not use mode choice logsums.</p>
 <p>The main interface to the joint tour purpose scheduling model is the
 <a class="reference internal" href="#activitysim.abm.models.joint_tour_scheduling.joint_tour_scheduling" title="activitysim.abm.models.joint_tour_scheduling.joint_tour_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">joint_tour_scheduling()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,end,duration</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,</span> <span class="pre">end,</span> <span class="pre">duration</span></code> | Skims Keys: `` TAZ, destination, MD time period, MD time period``</p>
 <span class="target" id="module-activitysim.abm.models.joint_tour_scheduling"></span><dl class="function">
 <dt id="activitysim.abm.models.joint_tour_scheduling.joint_tour_scheduling">
-<code class="descclassname">activitysim.abm.models.joint_tour_scheduling.</code><code class="descname">joint_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>joint_tour_scheduling_spec</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_scheduling.joint_tour_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.joint_tour_scheduling.</code><code class="descname">joint_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.joint_tour_scheduling.joint_tour_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the departure time and duration of each joint tour</p>
 </dd></dl>
 
 </div>
 <div class="section" id="non-mandatory-tour-frequency">
-<span id="id13"></span><h2>Non-Mandatory Tour Frequency<a class="headerlink" href="#non-mandatory-tour-frequency" title="Permalink to this headline">¶</a></h2>
+<span id="id14"></span><h2>Non-Mandatory Tour Frequency<a class="headerlink" href="#non-mandatory-tour-frequency" title="Permalink to this headline">¶</a></h2>
 <p>The non-mandatory tour frequency model selects the number of non-mandatory tours made by each person on the simulation day.
 It also adds non-mandatory tours to the tours in the data pipeline. The individual non-mandatory tour frequency model
 operates in two stages:</p>
 <blockquote>
 <div><ul class="simple">
 <li>A choice is made using a random utility model between combinations of tours containing zero, one, and two or more escort tours, and between zero and one or more tours of each other purpose.</li>
-<li>Up to two additional tours of each purpose are added according to fixed extension probabilities.  The extension probabilities are <strong>NOT YET IMPLEMENTED</strong></li>
+<li>Up to two additional tours of each purpose are added according to fixed extension probabilities.</li>
 </ul>
 </div></blockquote>
 <p>The main interface to the non-mandatory tour purpose frequency model is the
@@ -927,8 +1229,57 @@ operates in two stages:</p>
 function.  This function is registered as an orca step in the example Pipeline.</p>
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Fields: <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.non_mandatory_tour_frequency"></span><dl class="function">
+<dt id="activitysim.abm.models.non_mandatory_tour_frequency.extend_tour_counts">
+<code class="descclassname">activitysim.abm.models.non_mandatory_tour_frequency.</code><code class="descname">extend_tour_counts</code><span class="sig-paren">(</span><em>persons</em>, <em>tour_counts</em>, <em>alternatives</em>, <em>trace_hh_id</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_tour_frequency.extend_tour_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>extend tour counts based on a probability table</p>
+<p>counts can only be extended if original count is between 1 and 4
+and tours can only be extended if their count is at the max possible
+(e.g. 2 for escort, 1 otherwise) so escort might be increased to 3 or 4
+and other tour types might be increased to 2 or 3</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>persons: pandas dataframe</strong></dt>
+<dd><p class="first last">(need this for join columns)</p>
+</dd>
+<dt><strong>tour_counts: pandas dataframe</strong></dt>
+<dd><p class="first last">one row per person, once column per tour_type</p>
+</dd>
+<dt><strong>alternatives</strong></dt>
+<dd><p class="first last">alternatives from nmtv interaction_simulate
+only need this to know max possible frequency for a tour type</p>
+</dd>
+<dt><strong>trace_hh_id</strong></dt>
+<dd></dd>
+<dt><strong>trace_label</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>extended tour_counts</dt>
+<dd></dd>
+<dt>tour_counts looks like this:</dt>
+<dd><p class="first last">escort  shopping  othmaint  othdiscr    eatout    social</p>
+</dd>
+<dt>parent_id</dt>
+<dd></dd>
+<dt>2588676         2         0         0         1         1         0</dt>
+<dd></dd>
+<dt>2588677         0         1         0         1         0         0</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">
-<code class="descclassname">activitysim.abm.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>persons</em>, <em>persons_merged</em>, <em>non_mandatory_tour_frequency_alts</em>, <em>non_mandatory_tour_frequency_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.non_mandatory_tour_frequency.</code><code class="descname">non_mandatory_tour_frequency</code><span class="sig-paren">(</span><em>persons</em>, <em>persons_merged</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the frequency of making non-mandatory trips
 (alternatives for this model come from a separate csv file which is
 configured by the user) - these trips include escort, shopping, othmaint,
@@ -937,17 +1288,17 @@ othdiscr, eatout, and social trips in various combination.</p>
 
 </div>
 <div class="section" id="non-mandatory-tour-destination-choice">
-<span id="id14"></span><h2>Non-Mandatory Tour Destination Choice<a class="headerlink" href="#non-mandatory-tour-destination-choice" title="Permalink to this headline">¶</a></h2>
+<span id="id15"></span><h2>Non-Mandatory Tour Destination Choice<a class="headerlink" href="#non-mandatory-tour-destination-choice" title="Permalink to this headline">¶</a></h2>
 <p>The non-mandatory tour destination choice model chooses a destination zone for
 non-mandatory tours.  The three step (sample, logsums, final choice) process also used for
-mandatory tour destination choice is <strong>NOT YET IMPLEMENTED</strong> for non-mandatory tour destination choice.</p>
+mandatory tour destination choice is used for non-mandatory tour destination choice.</p>
 <p>The main interface to the non-mandatory tour destination choice model is the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">non_mandatory_tour_destination_choice()</span></code>
+<a class="reference internal" href="#activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination" title="activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination"><code class="xref py py-func docutils literal notranslate"><span class="pre">non_mandatory_tour_destination()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">TAZ_r</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">alt_dest,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 <span class="target" id="module-activitysim.abm.models.non_mandatory_destination"></span><dl class="function">
 <dt id="activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination">
-<code class="descclassname">activitysim.abm.models.non_mandatory_destination.</code><code class="descname">non_mandatory_tour_destination</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>skim_dict</em>, <em>non_mandatory_tour_destination_spec</em>, <em>land_use</em>, <em>size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.non_mandatory_destination.</code><code class="descname">non_mandatory_tour_destination</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given the tour generation from the above, each tour needs to have a
 destination, so in this case tours are the choosers (with the associated
 person that’s making the tour)</p>
@@ -955,34 +1306,35 @@ person that’s making the tour)</p>
 
 </div>
 <div class="section" id="non-mandatory-tour-scheduling">
-<span id="id15"></span><h2>Non-Mandatory Tour Scheduling<a class="headerlink" href="#non-mandatory-tour-scheduling" title="Permalink to this headline">¶</a></h2>
+<span id="id16"></span><h2>Non-Mandatory Tour Scheduling<a class="headerlink" href="#non-mandatory-tour-scheduling" title="Permalink to this headline">¶</a></h2>
 <p>The non-mandatory tour scheduling model selects a tour departure and duration period (and therefore a start and end
-period as well) for each non-mandatory tour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.</p>
+period as well) for each non-mandatory tour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.
+The non-mandatory tour scheduling model does not use mode choice logsums.</p>
 <p>The main interface to the non-mandatory tour purpose scheduling model is the
 <a class="reference internal" href="#activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling" title="activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">non_mandatory_tour_scheduling()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,end,duration</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,</span> <span class="pre">end,</span> <span class="pre">duration</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">destination,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 <span class="target" id="module-activitysim.abm.models.non_mandatory_scheduling"></span><dl class="function">
 <dt id="activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling">
-<code class="descclassname">activitysim.abm.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>tour_scheduling_nonmandatory_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.non_mandatory_scheduling.</code><code class="descname">non_mandatory_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the departure time and duration of each activity for non-mandatory tours</p>
 </dd></dl>
 
 </div>
 <div class="section" id="tour-mode-choice">
-<span id="id16"></span><h2>Tour Mode Choice<a class="headerlink" href="#tour-mode-choice" title="Permalink to this headline">¶</a></h2>
-<p>The mandatory, individual non-mandatory, at-work, and joint tour mode choice model assigns to each tour the “primary” mode that
+<span id="id17"></span><h2>Tour Mode Choice<a class="headerlink" href="#tour-mode-choice" title="Permalink to this headline">¶</a></h2>
+<p>The mandatory, non-mandatory, and joint tour mode choice model assigns to each tour the “primary” mode that
 is used to get from the origin to the primary destination. The tour-based modeling approach requires a reconsideration
 of the conventional mode choice structure. Instead of a single mode choice model used in a fourstep
 structure, there are two different levels where the mode choice decision is modeled: (a) the
 tour mode level (upper-level choice); and, (b) the trip mode level (lower-level choice conditional
 upon the upper-level choice).</p>
-<p>The mandatory, individual non-mandatory, at-work, and joint tour mode level represents the decisions that apply to the entire tour, and
+<p>The mandatory, non-mandatory, and joint tour mode level represents the decisions that apply to the entire tour, and
 that will affect the alternatives available for each individual trip or joint trip. These decisions include the choice to use a private
 car versus using public transit, walking, or biking; whether carpooling will be considered; and
 whether transit will be accessed by car or by foot. Trip-level decisions correspond to details of
 the exact mode used for each trip, which may or may not change over the trips in the tour.</p>
-<p>The mandatory, individual non-mandatory, at-work, and joint tour mode choice structure is a nested logit model which separates
+<p>The mandatory, non-mandatory, and joint tour mode choice structure is a nested logit model which separates
 similar modes into different nests to more accurately model the cross-elasticities between the alternatives. The
 eighteen modes are incorporated into the nesting structure specified in the model settings file. The
 first level of nesting represents the use a private car, non-motorized
@@ -993,12 +1345,10 @@ the auto nests into free or pay alternatives and the transit nests into the spec
 from the automobile in-vehicle time coefficient and the persons’ modeled value of time),
 characteristics of the destination zone, demographics, and the household’s level of auto
 ownership.</p>
-<p>The main interface to the mandatory, individual non-mandatory, at-work, and joint tour tour mode model is the
+<p>The main interface to the mandatory, non-mandatory, and joint tour tour mode model is the
 <a class="reference internal" href="#activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate" title="activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">tour_mode_choice_simulate()</span></code></a> function.  This function is
 called in the orca step <code class="docutils literal notranslate"><span class="pre">tour_mode_choice_simulate</span></code> and is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">mode</span></code> | Skims od_skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">destination</span></code> |
-SkimStackWrapper odt_skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">destination,</span> <span class="pre">in_period</span></code> | SkimStackWrapper dot_skims Keys:
-<code class="docutils literal notranslate"><span class="pre">destination,</span> <span class="pre">TAZ,</span> <span class="pre">out_period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">mode</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">destination,</span> <span class="pre">start,</span> <span class="pre">end</span></code></p>
 <span class="target" id="module-activitysim.abm.models.tour_mode_choice"></span><dl class="data">
 <dt id="activitysim.abm.models.tour_mode_choice.logger">
 <code class="descclassname">activitysim.abm.models.tour_mode_choice.</code><code class="descname">logger</code><em class="property"> = &lt;logging.Logger object&gt;</em><a class="headerlink" href="#activitysim.abm.models.tour_mode_choice.logger" title="Permalink to this definition">¶</a></dt>
@@ -1031,7 +1381,7 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">atwork_subtour_frequency</span></code> | Skims Keys: NA</p>
 <span class="target" id="module-activitysim.abm.models.atwork_subtour_frequency"></span><dl class="function">
 <dt id="activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency">
-<code class="descclassname">activitysim.abm.models.atwork_subtour_frequency.</code><code class="descname">atwork_subtour_frequency</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>atwork_subtour_frequency_spec</em>, <em>atwork_subtour_frequency_alternatives</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.atwork_subtour_frequency.</code><code class="descname">atwork_subtour_frequency</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the frequency of making at-work subtour tours
 (alternatives for this model come from a separate csv file which is
 configured by the user).</p>
@@ -1043,38 +1393,31 @@ configured by the user).</p>
 <p>The at-work subtours destination choice model is made up of three model steps:</p>
 <blockquote>
 <div><ul class="simple">
-<li>atwork_subtour_destination_sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
-<li>atwork_subtour_destination_logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.</li>
-<li>atwork_subtour_destination_simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.</li>
+<li>sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.</li>
+<li>logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.</li>
+<li>simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.</li>
 </ul>
 </div></blockquote>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,</span> <span class="pre">alt</span> <span class="pre">zone,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
-<dl class="docutils">
-<dt>The interfaces to the models are:</dt>
-<dd><ul class="first last simple">
-<li><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_destination_sample()</span></code></li>
-<li><a class="reference internal" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums" title="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_destination_logsums()</span></code></a></li>
-<li><a class="reference internal" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate" title="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_destination_simulate()</span></code></a></li>
-</ul>
-</dd>
-</dl>
-<p>These functions are registered as orca steps in the example Pipeline.</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Table: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,</span> <span class="pre">alt_dest,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
+<p>The main interface to the at-work subtour destination model is the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_destination()</span></code>
+function.  This function is registered as an orca step in the example Pipeline.</p>
 <span class="target" id="module-activitysim.abm.models.atwork_subtour_destination"></span><dl class="function">
 <dt id="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums">
-<code class="descclassname">activitysim.abm.models.atwork_subtour_destination.</code><code class="descname">atwork_subtour_destination_logsums</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums" title="Permalink to this definition">¶</a></dt>
-<dd><p>add logsum column to existing workplace_location_sample able</p>
+<code class="descclassname">activitysim.abm.models.atwork_subtour_destination.</code><code class="descname">atwork_subtour_destination_logsums</code><span class="sig-paren">(</span><em>persons_merged</em>, <em>destination_sample</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_logsums" title="Permalink to this definition">¶</a></dt>
+<dd><p>add logsum column to existing atwork_subtour_destination_sample table</p>
 <p>logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
-in workplace_location_sample, and computing the logsum of all the utilities</p>
+in atwork_subtour_destination_sample, and computing the logsum of all the utilities</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="11%" />
-<col width="22%" />
-<col width="25%" />
-<col width="18%" />
-<col width="25%" />
+<col width="16%" />
+<col width="20%" />
+<col width="23%" />
+<col width="17%" />
+<col width="23%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">PERID</th>
+<tr class="row-odd"><th class="head">person_id</th>
 <th class="head">dest_TAZ</th>
 <th class="head">rand</th>
 <th class="head">pick_count</th>
@@ -1120,7 +1463,7 @@ in workplace_location_sample, and computing the logsum of all the utilities</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate">
-<code class="descclassname">activitysim.abm.models.atwork_subtour_destination.</code><code class="descname">atwork_subtour_destination_simulate</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>atwork_subtour_destination_spec</em>, <em>skim_dict</em>, <em>land_use</em>, <em>size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.atwork_subtour_destination.</code><code class="descname">atwork_subtour_destination_simulate</code><span class="sig-paren">(</span><em>subtours</em>, <em>persons_merged</em>, <em>destination_sample</em>, <em>skim_dict</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>atwork_subtour_destination model on atwork_subtour_destination_sample
 annotated with mode_choice logsum to select a destination from sample alternatives</p>
 </dd></dl>
@@ -1131,9 +1474,9 @@ annotated with mode_choice logsum to select a destination from sample alternativ
 <p>The at-work subtours scheduling model selects a tour departure and duration period (and therefore a start and end
 period as well) for each at-work subtour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.</p>
 <p>This model is the same as the mandatory tour scheduling model except it operates on the at-work tours and
-constrains the alternative set to available person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.  Unlike the other departure time and duration models,
-the at-work subtour model does not require mode choice logsums. The at-work subtour frequency model can choose multiple
-tours so this model must process all first tours and then second tours since isFirstAtWorkTour is an explanatory variable.</p>
+constrains the alternative set to available person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.  The at-work subtour scheduling model does not use mode choice logsums.
+The at-work subtour frequency model can choose multiple tours so this model must process all first tours and then second
+tours since isFirstAtWorkTour is an explanatory variable.</p>
 <p>Choosers: at-work tours
 Alternatives: alternative departure time and arrival back at origin time pairs WITHIN the work tour departure time and arrival time back at origin AND the person time window. If no time window is available for the tour, make the first and last time periods within the work tour available, make the choice, and log the number of times this occurs.
 Dependent tables: skims, person, land use, work tour
@@ -1141,10 +1484,10 @@ Outputs: at-work tour departure time and arrival back at origin time, updated pe
 <p>The main interface to the at-work subtours scheduling model is the
 <a class="reference internal" href="#activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling" title="activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_scheduling()</span></code></a>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,end,duration</span></code> | Skims Keys: <strong>NOT YEY IMPLEMENTED</strong></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tours</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">start,</span> <span class="pre">end,</span> <span class="pre">duration</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,</span> <span class="pre">alt_dest,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 <span class="target" id="module-activitysim.abm.models.atwork_subtour_scheduling"></span><dl class="function">
 <dt id="activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling">
-<code class="descclassname">activitysim.abm.models.atwork_subtour_scheduling.</code><code class="descname">atwork_subtour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>tour_scheduling_atwork_spec</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.atwork_subtour_scheduling.</code><code class="descname">atwork_subtour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>tdd_alts</em>, <em>skim_dict</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>This model predicts the departure time and duration of each activity for at work subtours tours</p>
 </dd></dl>
 
@@ -1156,9 +1499,7 @@ function.  This function is registered as an orca step in the example Pipeline.<
 <a class="reference internal" href="#activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice" title="activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice"><code class="xref py py-func docutils literal notranslate"><span class="pre">atwork_subtour_mode_choice()</span></code></a>
 function.  This function is called in the orca step <code class="docutils literal notranslate"><span class="pre">atwork_subtour_mode_choice</span></code> and
 is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tour</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">tour_mode</span></code> | Skims od_skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,destination</span></code> |
-SkimStackWrapper odt_skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,destination,out_period</span></code> |
-SkimStackWrapper dot_skims Keys: <code class="docutils literal notranslate"><span class="pre">destination,workplace_taz,in_period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">tour</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">tour_mode</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">workplace_taz,</span> <span class="pre">destination,</span> <span class="pre">start,</span> <span class="pre">end</span></code></p>
 <span class="target" id="module-activitysim.abm.models.atwork_subtour_mode_choice"></span><dl class="function">
 <dt id="activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice">
 <code class="descclassname">activitysim.abm.models.atwork_subtour_mode_choice.</code><code class="descname">atwork_subtour_mode_choice</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice" title="Permalink to this definition">¶</a></dt>
@@ -1167,7 +1508,7 @@ SkimStackWrapper dot_skims Keys: <code class="docutils literal notranslate"><spa
 
 </div>
 <div class="section" id="intermediate-stop-frequency">
-<span id="id17"></span><h2>Intermediate Stop Frequency<a class="headerlink" href="#intermediate-stop-frequency" title="Permalink to this headline">¶</a></h2>
+<span id="id18"></span><h2>Intermediate Stop Frequency<a class="headerlink" href="#intermediate-stop-frequency" title="Permalink to this headline">¶</a></h2>
 <p>The stop frequency model assigns to each tour the number of intermediate destinations a person
 will travel to on each leg of the tour from the origin to tour primary destination and back.
 The model incorporates the ability for more than one stop in each direction,
@@ -1210,7 +1551,7 @@ and four corresponding trips: three outbound, and one inbound.</p>
 
 </div>
 <div class="section" id="trip-purpose">
-<span id="id18"></span><h2>Trip Purpose<a class="headerlink" href="#trip-purpose" title="Permalink to this headline">¶</a></h2>
+<span id="id19"></span><h2>Trip Purpose<a class="headerlink" href="#trip-purpose" title="Permalink to this headline">¶</a></h2>
 <p>For trip other than the last trip outbound or inbound, assign a purpose based on an
 observed frequency distribution.  The distribution is segmented by tour purpose, tour
 direction and person type. Work tours are also segmented by departure or arrival time period.</p>
@@ -1232,7 +1573,7 @@ which assigns relative weights (summing to 1) to the possible purpose choices</p
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>purpose: pandas.Series of purpose (str) indexed by trip_id</strong></dt>
+<dt>purpose: pandas.Series of purpose (str) indexed by trip_id</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1254,7 +1595,7 @@ and, optionally, trip depart time .</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>purpose: pandas.Series of purpose (str) indexed by trip_id</strong></dt>
+<dt>purpose: pandas.Series of purpose (str) indexed by trip_id</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1278,7 +1619,7 @@ and, optionally, trip depart time .</p>
 
 </div>
 <div class="section" id="trip-destination-choice">
-<span id="id19"></span><h2>Trip Destination Choice<a class="headerlink" href="#trip-destination-choice" title="Permalink to this headline">¶</a></h2>
+<span id="id20"></span><h2>Trip Destination Choice<a class="headerlink" href="#trip-destination-choice" title="Permalink to this headline">¶</a></h2>
 <p>The trip (or stop) location choice model predicts the location of trips (or stops) along the tour other than the primary
 destination. The stop-location model is structured as a multinomial logit model using a zone
 attraction size variable and route deviation measure as impedance. The alternatives are sampled from
@@ -1304,7 +1645,7 @@ impedance between the first stop on the return leg and the tour origin, and so o
 <p>The main interface to the trip destination choice model is the
 <a class="reference internal" href="#activitysim.abm.models.trip_destination.trip_destination" title="activitysim.abm.models.trip_destination.trip_destination"><code class="xref py py-func docutils literal notranslate"><span class="pre">trip_destination()</span></code></a> function.
 This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">destination</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">(trip)</span> <span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">origin,</span> <span class="pre">(tour</span> <span class="pre">primary)</span> <span class="pre">destination,</span> <span class="pre">dest_taz,</span> <span class="pre">trip_period</span></code></p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Trip purpose and trip destination choice can be run iteratively together via <a class="reference internal" href="#trip-purpose-and-destination"><span class="std std-ref">Trip Purpose and Destination</span></a>.</p>
@@ -1320,7 +1661,7 @@ for each alternative since we need out-of-direction logsum
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>adds od_logsum and dp_logsum columns to trips (in place)</strong></dt>
+<dt>adds od_logsum and dp_logsum columns to trips (in place)</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1382,7 +1723,7 @@ and home for inbound trips.)</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>destination_sample: pandas.dataframe</strong></dt>
+<dt>destination_sample: pandas.dataframe</dt>
 <dd><p class="first">choices_df from interaction_sample with (up to) sample_size alts for each chooser row
 index (non unique) is trip_id from trips (duplicated for each alt)
 and columns dest_taz, prob, and pick_count</p>
@@ -1414,7 +1755,7 @@ and columns dest_taz, prob, and pick_count</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>choices - pandas.Series</strong></dt>
+<dt>choices - pandas.Series</dt>
 <dd><p class="first last">destination alt chosen</p>
 </dd>
 </dl>
@@ -1449,7 +1790,7 @@ dp_skims - SkimDictWrapper: trip alt_dest, trip primary_dest</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>dict containing skims, keyed by canonical names relative to tour orientation</strong></dt>
+<dt>dict containing skims, keyed by canonical names relative to tour orientation</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1460,16 +1801,16 @@ dp_skims - SkimDictWrapper: trip alt_dest, trip primary_dest</p>
 
 </div>
 <div class="section" id="trip-purpose-and-destination">
-<span id="id20"></span><h2>Trip Purpose and Destination<a class="headerlink" href="#trip-purpose-and-destination" title="Permalink to this headline">¶</a></h2>
+<span id="id21"></span><h2>Trip Purpose and Destination<a class="headerlink" href="#trip-purpose-and-destination" title="Permalink to this headline">¶</a></h2>
 <p>After running trip purpose and trip destination separately, the two model can be ran together in an iterative fashion on
 the remaining failed trips (i.e. trips that cannot be assigned a destination).  Each iteration uses new random numbers.</p>
 <p>The main interface to the trip purpose model is the
 <code class="xref py py-func docutils literal notranslate"><span class="pre">trip_purpose_and_destination()</span></code>
 function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">purpose,destination</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">purpose,</span> <span class="pre">destination</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">origin,</span> <span class="pre">(tour</span> <span class="pre">primary)</span> <span class="pre">destination,</span> <span class="pre">dest_taz,</span> <span class="pre">trip_period</span></code></p>
 <span class="target" id="module-activitysim.abm.models.trip_purpose_and_destination"></span></div>
 <div class="section" id="trip-scheduling">
-<span id="id21"></span><h2>Trip Scheduling<a class="headerlink" href="#trip-scheduling" title="Permalink to this headline">¶</a></h2>
+<span id="id22"></span><h2>Trip Scheduling<a class="headerlink" href="#trip-scheduling" title="Permalink to this headline">¶</a></h2>
 <p>For each trip, assign a departure hour based on an input lookup table of percents by tour purpose,
 direction (inbound/outbound), tour hour, and trip index.</p>
 <blockquote>
@@ -1484,7 +1825,8 @@ direction (inbound/outbound), tour hour, and trip index.</p>
 the time period selected for an earlier trip in a half-tour makes selection of a later trip time
 period impossible (or very low probability). Thus, the sampling is re-run until a feasible set of trip time
 periods is found. If a trip can’t be scheduled after the max iterations, then the trip is assigned
-the previous trip’s choice (i.e. assumed to happen right after the previous trip) or dropped, as configured by the user.</p>
+the previous trip’s choice (i.e. assumed to happen right after the previous trip) or dropped, as configured by the user.
+The trip scheduling model does not use mode choice logsums.</p>
 <p>Alternatives: Available time periods in the tour window (i.e. tour start and end period).  When processing stops on
 work tours, the available time periods is constrained by the at-work subtour start and end period as well.</p>
 <p>The main interface to the trip scheduling model is the
@@ -1513,7 +1855,7 @@ e.g. depart_alt_base = 5 means first column (column 0) represents 5 am</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>probs: pd.DataFrame</strong></dt>
+<dt>probs: pd.DataFrame</dt>
 <dd><p class="first last">clipped version of probs</p>
 </dd>
 </dl>
@@ -1587,7 +1929,7 @@ e.g. depart_alt_base = 5 means first column (column 0) represents 5 am</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>choices: pd.Series</strong></dt>
+<dt>choices: pd.Series</dt>
 <dd><p class="first last">time periods depart choices, one per trip (except for trips with zero probs)</p>
 </dd>
 </dl>
@@ -1623,7 +1965,7 @@ e.g. depart_alt_base = 5 means first column (column 0) represents 5 am</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>choices: pd.Series</strong></dt>
+<dt>choices: pd.Series</dt>
 <dd><p class="first last">depart choice for trips, indexed by trip_id</p>
 </dd>
 </dl>
@@ -1650,7 +1992,7 @@ e.g. depart_alt_base = 5 means first column (column 0) represents 5 am</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>modifies trips in place</strong></dt>
+<dt>modifies trips in place</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1661,7 +2003,7 @@ e.g. depart_alt_base = 5 means first column (column 0) represents 5 am</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.trip_scheduling.trip_scheduling">
-<code class="descclassname">activitysim.abm.models.trip_scheduling.</code><code class="descname">trip_scheduling</code><span class="sig-paren">(</span><em>trips</em>, <em>tours</em>, <em>configs_dir</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.trip_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.trip_scheduling.</code><code class="descname">trip_scheduling</code><span class="sig-paren">(</span><em>trips</em>, <em>tours</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_scheduling.trip_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trip scheduling assigns depart times for trips within the start, end limits of the tour.</p>
 <p>The algorithm is simplistic:</p>
 <p>The first outbound trip starts at the tour start time, and subsequent outbound trips are
@@ -1699,7 +2041,7 @@ be made a model setting…</p>
 
 </div>
 <div class="section" id="trip-mode-choice">
-<span id="id22"></span><h2>Trip Mode Choice<a class="headerlink" href="#trip-mode-choice" title="Permalink to this headline">¶</a></h2>
+<span id="id23"></span><h2>Trip Mode Choice<a class="headerlink" href="#trip-mode-choice" title="Permalink to this headline">¶</a></h2>
 <p>The trip mode choice model assigns a travel mode for each trip on a given tour. It
 operates similarly to the tour mode choice model, but only certain trip modes are available for
 each tour mode. The correspondence rules are defined according to the following principles:</p>
@@ -1717,8 +2059,7 @@ between the trip origin and destination according to the time period for the tou
 variables, and alternative-specific constants segmented by tour mode.</p>
 <p>The main interface to the trip mode choice model is the
 <a class="reference internal" href="#activitysim.abm.models.trip_mode_choice.trip_mode_choice" title="activitysim.abm.models.trip_mode_choice.trip_mode_choice"><code class="xref py py-func docutils literal notranslate"><span class="pre">trip_mode_choice()</span></code></a> function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">trip_mode</span></code> | Skims od_skims Keys: <code class="docutils literal notranslate"><span class="pre">origin,destination</span></code> |
-SkimStackWrapper odt_skims Keys: <code class="docutils literal notranslate"><span class="pre">origin,destination,trip_period</span></code></p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">trip_mode</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">origin,</span> <span class="pre">destination,</span> <span class="pre">trip_period</span></code></p>
 <span class="target" id="module-activitysim.abm.models.trip_mode_choice"></span><dl class="function">
 <dt id="activitysim.abm.models.trip_mode_choice.trip_mode_choice">
 <code class="descclassname">activitysim.abm.models.trip_mode_choice.</code><code class="descname">trip_mode_choice</code><span class="sig-paren">(</span><em>trips</em>, <em>tours_merged</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_mode_choice.trip_mode_choice" title="Permalink to this definition">¶</a></dt>
@@ -1730,7 +2071,7 @@ coefficient values (stored in trip_mode_choice_coeffs.csv coefficient file.)</p>
 
 </div>
 <div class="section" id="trip-cbd-parking">
-<span id="id23"></span><h2>Trip CBD Parking<a class="headerlink" href="#trip-cbd-parking" title="Permalink to this headline">¶</a></h2>
+<span id="id24"></span><h2>Trip CBD Parking<a class="headerlink" href="#trip-cbd-parking" title="Permalink to this headline">¶</a></h2>
 <p><strong>NOT YET IMPLEMENTED</strong></p>
 <p>The parking location choice model is applied to tours with a destination in the urban area/city center
 with parking charges. The model incorporates three of the following interrelated sub-models to
@@ -1747,13 +2088,13 @@ the modeled destination zone. At the lower level, the choice of parking zone is 
 not park in the destination zone.</p>
 <p>The main interface to the CBD parking model is the
 XXXXX function.  This function is registered as an orca step in the example Pipeline.</p>
-<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">XXXXX</span></code> | Skims Keys: NA</p>
+<p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">XXXXX</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">XXXXX</span></code></p>
 </div>
 <div class="section" id="util">
 <span id="utility-steps"></span><h2>Util<a class="headerlink" href="#util" title="Permalink to this headline">¶</a></h2>
 <p>Additional helper classes</p>
-<div class="section" id="id24">
-<h3>CDAP<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id25">
+<h3>CDAP<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.abm.models.util.cdap"></span><dl class="function">
 <dt id="activitysim.abm.models.util.cdap.add_interaction_column">
 <code class="descclassname">activitysim.abm.models.util.cdap.</code><code class="descname">add_interaction_column</code><span class="sig-paren">(</span><em>choosers</em>, <em>p_tup</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.add_interaction_column" title="Permalink to this definition">¶</a></dt>
@@ -1814,7 +2155,7 @@ part time workers (up to two workers, of any type), then to children (youngest
 to oldest, up to three). If the method is called for a household with less
 than 5 people, the cdapPersonArray is the same as the person array.”</p>
 <p>We diverge from the above description in that a cdap_rank is assigned to all persons,
-including ‘extra’ householld members, whose activity is assigned subsequently.
+including ‘extra’ household members, whose activity is assigned subsequently.
 The pair _hh_id_, cdap_rank will uniquely identify each household member.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1840,11 +2181,11 @@ The pair _hh_id_, cdap_rank will uniquely identify each household member.</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.cdap.build_cdap_spec">
-<code class="descclassname">activitysim.abm.models.util.cdap.</code><code class="descname">build_cdap_spec</code><span class="sig-paren">(</span><em>interaction_coefficients</em>, <em>hhsize</em>, <em>trace_spec=False</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.build_cdap_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.cdap.</code><code class="descname">build_cdap_spec</code><span class="sig-paren">(</span><em>interaction_coefficients</em>, <em>hhsize</em>, <em>trace_spec=False</em>, <em>trace_label=None</em>, <em>cache=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.build_cdap_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a spec file for computing utilities of alternative household member interaction patterns
 for households of specified size.</p>
 <p>We generate this spec automatically from a table of rules and coefficients because the
-interaction rulkes are fairly simple and can be expressed compactly whereas
+interaction rules are fairly simple and can be expressed compactly whereas
 there is a lot of redundancy between the spec files for different household sizes, as well as
 in the vectorized expression of the interaction alternatives within the spec file itself</p>
 <dl class="docutils">
@@ -1885,7 +2226,7 @@ with the coefficient slugs, dump the spec file, and then replace the slugs with 
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>spec: pandas.DataFrame</strong></dt>
+<dt>spec: pandas.DataFrame</dt>
 <dd></dd>
 </dl>
 </td>
@@ -2164,11 +2505,11 @@ e.g. ‘MNHH’ for a 4 person household with activities Mandatory, NonMandatory
 
 </div>
 <div class="section" id="expressions">
-<span id="table-annotation"></span><span id="index-1"></span><h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
+<span id="table-annotation"></span><span id="index-2"></span><h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
 <p>The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate
 a number of additional table fields, and join the fields to the target table.  An example table annotation expressions
 file is found in the example configuration files for households for the CDAP model -
-<a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/annotate_households_cdap.csv">annotate_households_cdap.csv</a>.</p>
+<a class="reference external" href="https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv">annotate_households_cdap.csv</a>.</p>
 <span class="target" id="module-activitysim.abm.models.util.expressions"></span><dl class="function">
 <dt id="activitysim.abm.models.util.expressions.assign_columns">
 <code class="descclassname">activitysim.abm.models.util.expressions.</code><code class="descname">assign_columns</code><span class="sig-paren">(</span><em>df</em>, <em>model_settings</em>, <em>locals_dict={}</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.expressions.assign_columns" title="Permalink to this definition">¶</a></dt>
@@ -2211,7 +2552,7 @@ TABLES - list of pipeline tables to load and make available as (read only) local
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>results: pandas.DataFrame</strong></dt>
+<dt>results: pandas.DataFrame</dt>
 <dd><p class="first last">one column for each expression (except temps with ALL_CAP target names)
 same index as df</p>
 </dd>
@@ -2263,7 +2604,7 @@ helpful in expression files that compute counts (e.g. num_work_tours)</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas Series</strong></dt>
+<dt>pandas Series</dt>
 <dd><p class="first last">string time period labels</p>
 </dd>
 </dl>
@@ -2286,7 +2627,7 @@ helpful in expression files that compute counts (e.g. num_work_tours)</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>choosers</strong></dt>
 <dd></dd>
-<dt><strong>logsum_spec</strong></dt>
+<dt><strong>tour_purpose</strong></dt>
 <dd></dd>
 <dt><strong>logsum_settings</strong></dt>
 <dd></dd>
@@ -2306,7 +2647,7 @@ helpful in expression files that compute counts (e.g. num_work_tours)</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>logsums: pandas series</strong></dt>
+<dt>logsums: pandas series</dt>
 <dd><p class="first last">computed logsums with same index as choosers</p>
 </dd>
 </dl>
@@ -2389,81 +2730,27 @@ runs of any values. (Might prove useful in future?…)</p>
 </div>
 <div class="section" id="module-activitysim.abm.models.util.tour_destination">
 <span id="tour-destination"></span><h3>Tour Destination<a class="headerlink" href="#module-activitysim.abm.models.util.tour_destination" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
-<dt id="activitysim.abm.models.util.tour_destination.size_term">
-<code class="descclassname">activitysim.abm.models.util.tour_destination.</code><code class="descname">size_term</code><span class="sig-paren">(</span><em>land_use</em>, <em>destination_choice_coeffs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_destination.size_term" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method takes the land use data and multiplies various columns of the
-land use data by coefficients from the spec table in order
-to yield a size term (a linear combination of land use variables).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>land_use</strong> <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
-<dd><p class="first last">A dataframe of land use attributes - the column names should match
-the index of destination_choice_coeffs</p>
-</dd>
-<dt><strong>destination_choice_coeffs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
-<dd><p class="first last">A series of coefficients for the land use attributes - the index
-describes the link to the land use table, and the values are floating
-points numbers used to do the linear combination</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>values</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
-<dd><p class="first last">The index will be the same as land use, and the values will the
-linear combination of the land use table columns specified by the
-coefficients series.</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="class">
+<dt id="activitysim.abm.models.util.tour_destination.SizeTermCalculator">
+<em class="property">class </em><code class="descclassname">activitysim.abm.models.util.tour_destination.</code><code class="descname">SizeTermCalculator</code><span class="sig-paren">(</span><em>size_term_selector</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_destination.SizeTermCalculator" title="Permalink to this definition">¶</a></dt>
+<dd><p>convenience object to provide size_terms for a selector (e.g. non_mandatory)
+for various segments (e.g. tour_type or purpose)
+returns size terms for specified segment in df or series form</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.abm.models.util.tour_destination.tour_destination_size_terms">
-<code class="descclassname">activitysim.abm.models.util.tour_destination.</code><code class="descname">tour_destination_size_terms</code><span class="sig-paren">(</span><em>land_use</em>, <em>size_terms</em>, <em>selector</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_destination.tour_destination_size_terms" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>land_use - pipeline table</strong></dt>
-<dd><p class="first last">size_terms - pipeline table
-selector - str</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>::</strong></dt>
-<dd><blockquote class="first">
-<div><dl class="docutils">
-<dt>pandas.dataframe</dt>
-<dd><p class="first">one column per selector segment with index of land_use
-e.g. for selector ‘work’, columns will be work_low, work_med, work_high, work_veryhigh
-and for selector ‘trip’, columns will be eatout, escort, othdiscr, othmaint, …</p>
-<blockquote>
-<div><p>work_low    work_med  work_high   work_veryhigh</p>
-</div></blockquote>
-<p class="last">TAZ                                            …
-1      1267.00000     522.000  1108.000  1540.0000 …
-2      1991.00000     824.500  1759.000  2420.0000 …</p>
-</dd>
-</dl>
-</div></blockquote>
-<p class="last">…</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="activitysim.abm.models.util.tour_destination.run_destination_logsums">
+<code class="descclassname">activitysim.abm.models.util.tour_destination.</code><code class="descname">run_destination_logsums</code><span class="sig-paren">(</span><em>tour_purpose</em>, <em>persons_merged</em>, <em>destination_sample</em>, <em>model_settings</em>, <em>skim_dict</em>, <em>skim_stack</em>, <em>chunk_size</em>, <em>trace_hh_id</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_destination.run_destination_logsums" title="Permalink to this definition">¶</a></dt>
+<dd><p>add logsum column to existing tour_destination_sample table</p>
+<p>logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
+in destination_sample, and computing the logsum of all the utilities</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.util.tour_destination.run_destination_simulate">
+<code class="descclassname">activitysim.abm.models.util.tour_destination.</code><code class="descname">run_destination_simulate</code><span class="sig-paren">(</span><em>spec_segment_name</em>, <em>tours</em>, <em>persons_merged</em>, <em>destination_sample</em>, <em>model_settings</em>, <em>skim_dict</em>, <em>destination_size_terms</em>, <em>chunk_size</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_destination.run_destination_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>run destination_simulate on tour_destination_sample
+annotated with mode_choice logsum to select a destination from sample alternatives</p>
 </dd></dl>
 
 </div>
@@ -2479,8 +2766,50 @@ and for selector ‘trip’, columns will be eatout, escort, othdiscr, othmaint,
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>list of canonical tour labels in alphabetical order</strong></dt>
+<dt>list of canonical tour labels in alphabetical order</dt>
 <dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.abm.models.util.tour_frequency.create_tours">
+<code class="descclassname">activitysim.abm.models.util.tour_frequency.</code><code class="descname">create_tours</code><span class="sig-paren">(</span><em>tour_counts</em>, <em>tour_category</em>, <em>parent_col='person_id'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.create_tours" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method processes the tour_frequency column that comes
+out of the model of the same name and turns into a DataFrame that
+represents the tours that were generated</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tour_counts: DataFrame</strong></dt>
+<dd><p class="first last">table specifying how many tours of each type to create
+one row per person (or parent_tour for atwork subtours)
+one (int) column per tour_type, with number of tours to create</p>
+</dd>
+<dt><strong>tour_category</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>tours</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first">An example of a tours DataFrame is supplied as a comment in the
+source code - it has an index which is a unique tour identifier,
+a person_id column, and a tour type column which comes from the
+column names of the alternatives DataFrame supplied above.</p>
+<p class="last">tours.tour_type       - tour type (e.g. school, work, shopping, eat)
+tours.tour_type_num   - if there are two ‘school’ type tours, they will be numbered 1 and 2
+tours.tour_type_count - number of tours of tour_type parent has (parent’s max tour_type_num)
+tours.tour_num        - index of tour (of any type) for parent
+tours.tour_count      - number of tours of any type) for parent (parent’s max tour_num)
+tours.tour_category   - one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
+</dd>
 </dl>
 </td>
 </tr>
@@ -2605,7 +2934,7 @@ depends on the is_worker column: work tours first for workers, second for non-wo
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.tour_frequency.process_non_mandatory_tours">
-<code class="descclassname">activitysim.abm.models.util.tour_frequency.</code><code class="descname">process_non_mandatory_tours</code><span class="sig-paren">(</span><em>persons</em>, <em>non_mandatory_tour_frequency_alts</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.process_non_mandatory_tours" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.tour_frequency.</code><code class="descname">process_non_mandatory_tours</code><span class="sig-paren">(</span><em>persons</em>, <em>tour_counts</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.process_non_mandatory_tours" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method processes the non_mandatory_tour_frequency column that comes
 out of the model of the same name and turns into a DataFrame that
 represents the non mandatory tours that were generated</p>
@@ -2655,7 +2984,7 @@ represents the tours that were generated</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>tour_frequency: Series</strong></dt>
-<dd><p class="first last">A series which has person id as the index and the chosen alternative
+<dd><p class="first last">A series which has &lt;parent_col&gt; as the index and the chosen alternative
 index as the value</p>
 </dd>
 <dt><strong>tour_frequency_alts: DataFrame</strong></dt>
@@ -2667,30 +2996,27 @@ social, etc.  A row would be an alternative which might be to take
 one shopping trip and zero trips of other purposes, etc.</p>
 </dd>
 <dt><strong>tour_category</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’
-to add consistent tour_category columns
-or None (as in the case of joint tours) if no tour_category fields should be added to tours</p>
+<dd><p class="first last">one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
+</dd>
+<dt><strong>parent_col: str</strong></dt>
+<dd><p class="first last">the name of the index (parent_tour_id for atwork subtours, otherwise person_id)</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>tours</strong> <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
-<dd><p class="first last">An example of a tours DataFrame is supplied as a comment in the
+<dt><strong>tours</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first">An example of a tours DataFrame is supplied as a comment in the
 source code - it has an index which is a unique tour identifier,
 a person_id column, and a tour type column which comes from the
 column names of the alternatives DataFrame supplied above.</p>
+<p class="last">tours.tour_type       - tour type (e.g. school, work, shopping, eat)
+tours.tour_type_num   - if there are two ‘school’ type tours, they will be numbered 1 and 2
+tours.tour_type_count - number of tours of tour_type parent has (parent’s max tour_type_num)
+tours.tour_num        - index of tour (of any type) for parent
+tours.tour_count      - number of tours of any type) for parent (parent’s max tour_num)
+tours.tour_category   - one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
 </dd>
-<dt><strong>tours.tour_type       - tour type (e.g. school, work, shopping, eat)</strong></dt>
-<dd></dd>
-<dt><strong>tours.tour_type_num   - if there are two ‘school’ type tours, they will be numbered 1 and 2</strong></dt>
-<dd></dd>
-<dt><strong>tours.tour_type_count - number of tours of tour_type parent has (parent’s max tour_type_num)</strong></dt>
-<dd></dd>
-<dt><strong>tours.tour_num        - index of tour (of any type) for parent</strong></dt>
-<dd></dd>
-<dt><strong>tours.tour_count      - number of tours of any type) for parent (parent’s max tour_num)</strong></dt>
-<dd></dd>
 </dl>
 </td>
 </tr>
@@ -2744,7 +3070,19 @@ next_trip_id    assign id of next trip in leg after failed trips are dropped</p>
 
 </div>
 <div class="section" id="module-activitysim.abm.models.util.vectorize_tour_scheduling">
-<span id="tour-scheduling"></span><h3>Tour Scheduling<a class="headerlink" href="#module-activitysim.abm.models.util.vectorize_tour_scheduling" title="Permalink to this headline">¶</a></h3>
+<span id="vectorize-tour-scheduling"></span><h3>Vectorize Tour Scheduling<a class="headerlink" href="#module-activitysim.abm.models.util.vectorize_tour_scheduling" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="activitysim.abm.models.util.vectorize_tour_scheduling.compute_logsums">
+<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">compute_logsums</code><span class="sig-paren">(</span><em>alt_tdd</em>, <em>tours_merged</em>, <em>tour_purpose</em>, <em>model_settings</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.compute_logsums" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute logsums for the tour alt_tdds, which will differ based on their different start, stop
+times of day, which translate to different odt_skim out_period and in_periods.</p>
+<p>In mtctm1, tdds are hourly, but there are only 5 skim time periods, so some of the tdd_alts
+will be the same, once converted to skim time periods. With 5 skim time periods there are
+15 unique out-out period pairs but 190 tdd alternatives.</p>
+<p>For efficiency, rather compute a lot of redundant logsums, we compute logsums for the unique
+(out-period, in-period) pairs and then join them back to the alt_tdds.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="activitysim.abm.models.util.vectorize_tour_scheduling.get_previous_tour_by_tourid">
 <code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">get_previous_tour_by_tourid</code><span class="sig-paren">(</span><em>current_tour_window_ids</em>, <em>previous_tour_by_window_id</em>, <em>alts</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.get_previous_tour_by_tourid" title="Permalink to this definition">¶</a></dt>
@@ -2787,7 +3125,7 @@ interaction.</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.vectorize_tour_scheduling.schedule_tours">
-<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">schedule_tours</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>constants</em>, <em>timetable</em>, <em>timetable_window_id_col</em>, <em>previous_tour</em>, <em>tour_owner_id_col</em>, <em>chunk_size</em>, <em>tour_trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.schedule_tours" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">schedule_tours</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>logsum_tour_purpose</em>, <em>model_settings</em>, <em>timetable</em>, <em>timetable_window_id_col</em>, <em>previous_tour</em>, <em>tour_owner_id_col</em>, <em>chunk_size</em>, <em>tour_trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.schedule_tours" title="Permalink to this definition">¶</a></dt>
 <dd><p>chunking wrapper for _schedule_tours</p>
 <p>While interaction_sample_simulate provides chunking support, the merged tours, persons
 dataframe and the tdd_interaction_dataset are very big, so we want to create them inside
@@ -2797,7 +3135,7 @@ and pass a chunk_size of 0 to interaction_sample_simulate to disable its chunkin
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.vectorize_tour_scheduling.tdd_interaction_dataset">
-<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">tdd_interaction_dataset</code><span class="sig-paren">(</span><em>tours</em>, <em>alts</em>, <em>timetable</em>, <em>choice_column</em>, <em>window_id_col</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.tdd_interaction_dataset" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">tdd_interaction_dataset</code><span class="sig-paren">(</span><em>tours</em>, <em>alts</em>, <em>timetable</em>, <em>choice_column</em>, <em>window_id_col</em>, <em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.tdd_interaction_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>interaction_sample_simulate expects
 alts index same as choosers (e.g. tour_id)
 name of choice column in alts</p>
@@ -2835,7 +3173,7 @@ index: tour_id</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_joint_tour_scheduling">
-<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">vectorize_joint_tour_scheduling</code><span class="sig-paren">(</span><em>joint_tours</em>, <em>joint_tour_participants</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>constants={}</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_joint_tour_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">vectorize_joint_tour_scheduling</code><span class="sig-paren">(</span><em>joint_tours</em>, <em>joint_tour_participants</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>model_settings</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_joint_tour_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>Like vectorize_tour_scheduling but specifically for joint tours</p>
 <p>joint tours have a few peculiarities necessitating separate treatment:</p>
 <p>Timetable has to be initialized to set all timeperiods…</p>
@@ -2843,7 +3181,7 @@ index: tour_id</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>tours</strong> <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
 <dd><p class="first last">DataFrame of tours containing tour attributes, as well as a person_id
 column to define the nth tour for each person.</p>
@@ -2859,16 +3197,18 @@ interaction_simulate in batches for each nth tour.</p>
 <dd><p class="first last">The spec which will be passed to interaction_simulate.
 (or dict of specs keyed on tour_type if tour_types is not None)</p>
 </dd>
-<dt><strong>constants</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd><p class="first last">dict of model-specific constants for eval</p>
-</dd>
-<dt><strong>Returns</strong></dt>
+<dt><strong>model_settings</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd></dd>
-<dt><strong>——-</strong></dt>
-<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
 <dd><p class="first last">A Series of choices where the index is the index of the tours
 DataFrame and the values are the index of the alts DataFrame.</p>
+</dd>
+<dt><strong>persons_timetable</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TimeTable</span></dt>
+<dd><p class="first last">timetable updated with joint tours (caller should replace_table for it to persist)</p>
 </dd>
 </dl>
 </td>
@@ -2879,7 +3219,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_subtour_scheduling">
-<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">vectorize_subtour_scheduling</code><span class="sig-paren">(</span><em>parent_tours</em>, <em>subtours</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>constants</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_subtour_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">vectorize_subtour_scheduling</code><span class="sig-paren">(</span><em>parent_tours</em>, <em>subtours</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>model_settings</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_subtour_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>Like vectorize_tour_scheduling but specifically for atwork subtours</p>
 <p>subtours have a few peculiarities necessitating separate treatment:</p>
 <p>Timetable has to be initialized to set all timeperiods outside parent tour footprint as
@@ -2908,9 +3248,10 @@ interaction_simulate in batches for each nth tour.</p>
 <dd><p class="first last">The spec which will be passed to interaction_simulate.
 (all subtours share same spec regardless of subtour type)</p>
 </dd>
-<dt><strong>constants</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd><p class="first last">dict of model-specific constants for eval    chunk_size</p>
-</dd>
+<dt><strong>model_settings</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
+<dt><strong>chunk_size</strong></dt>
+<dd></dd>
 <dt><strong>trace_label</strong></dt>
 <dd></dd>
 </dl>
@@ -2930,7 +3271,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
 
 <dl class="function">
 <dt id="activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_tour_scheduling">
-<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">vectorize_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>constants={}</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_tour_scheduling" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.abm.models.util.vectorize_tour_scheduling.</code><code class="descname">vectorize_tour_scheduling</code><span class="sig-paren">(</span><em>tours</em>, <em>persons_merged</em>, <em>alts</em>, <em>spec</em>, <em>segment_col</em>, <em>model_settings</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.vectorize_tour_scheduling.vectorize_tour_scheduling" title="Permalink to this definition">¶</a></dt>
 <dd><p>The purpose of this method is fairly straightforward - it takes tours
 and schedules them into time slots.  Alternatives should be specified so
 as to define those time slots (usually with start and end times).</p>
@@ -2946,7 +3287,7 @@ with a tour_num &gt;= 2 in the variable computation.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>tours</strong> <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
 <dd><p class="first last">DataFrame of tours containing tour attributes, as well as a person_id
 column to define the nth tour for each person.</p>
@@ -2962,16 +3303,18 @@ interaction_simulate in batches for each nth tour.</p>
 <dd><p class="first last">The spec which will be passed to interaction_simulate.
 (or dict of specs keyed on tour_type if tour_types is not None)</p>
 </dd>
-<dt><strong>constants</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd><p class="first last">dict of model-specific constants for eval</p>
-</dd>
-<dt><strong>Returns</strong></dt>
+<dt><strong>model_settings</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd></dd>
-<dt><strong>——-</strong></dt>
-<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
 <dd><p class="first last">A Series of choices where the index is the index of the tours
 DataFrame and the values are the index of the alts DataFrame.</p>
+</dd>
+<dt><strong>timetable</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TimeTable</span></dt>
+<dd><p class="first last">persons timetable updated with tours (caller should replace_table for it to persist)</p>
 </dd>
 </dl>
 </td>
@@ -2999,7 +3342,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
         <a href="howitworks.html" class="btn btn-neutral float-right" title="How the System Works" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="abmexample.html" class="btn btn-neutral" title="Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="abmexample.html" class="btn btn-neutral float-left" title="Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -3008,7 +3351,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright contributing authors.
+        &copy; Copyright contributing authors
 
     </p>
   </div>
@@ -3025,33 +3368,16 @@ DataFrame and the values are the index of the alts DataFrame.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.7',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example &mdash; ActivitySim 0.7
+  <title>Example &mdash; ActivitySim 0.8
  documentation</title>
   
 
@@ -18,13 +18,20 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
@@ -32,21 +39,16 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Models" href="models.html" />
     <link rel="prev" title="Getting Started" href="gettingstarted.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -60,7 +62,7 @@
             
             
               <div class="version">
-                0.7
+                0.8
 
               </div>
             
@@ -105,10 +107,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#sub-model-specification-files">Sub-Model Specification Files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#chunk-size">Chunk size</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#running-the-example">Running the Example</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiprocessing">Multiprocessing</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a><ul>
@@ -205,13 +208,14 @@ methods capture aggregate outcomes through the representation of the behavior of
 individual decision-makers.</p>
 <div class="section" id="space">
 <h3>Space<a class="headerlink" href="#space" title="Permalink to this headline">¶</a></h3>
-<p>TM1 uses the 1454-zone system developed for MTC’s previous trip-based model.  The zones are fairly large,
-which may distort the representation of transit access in mode choice. To ameliorate this problem, the
-zones were further sub-divided into three categories of transit access: short walk, long walk, and not walkable.</p>
-<p>However, support for transit subzones is not included in the activitysim implementation since the latest generation
-of activity-based models typically use multiple zone systems instead.  In brief, all households are assigned to microzones
-(such as Census blocks) and trips are assigned to origin and destination microzones.  When considering network
-level-of-service (LOS) indicators, different spatial resolutions can be used for different modes.  For example:</p>
+<p>TM1 uses the 1454-zone system developed for the previous MTC trip-based model.  The zones are fairly large for the region,
+which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the
+original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
+walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
+of activity-based models typically use an improved approach to spatial representation called multiple zone systems.</p>
+<p>In brief, under a multiple zone system approach, all households are assigned to microzones (which are smaller than traditional
+TAZs) and trips are assigned to origin and destination microzones.  When considering network level-of-service (LOS) indicators,
+the model uses different spatial resolutions for different travel modes.  For example:</p>
 <blockquote>
 <div><ul class="simple">
 <li>TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model</li>
@@ -224,13 +228,14 @@ level-of-service (LOS) indicators, different spatial resolutions can be used for
 two input data sets, transit virtual path building (TVPB) is done to generate LOS measures from:</p>
 <blockquote>
 <div><ul class="simple">
-<li>the trip’s origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures</li>
+<li>the trip origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures</li>
 <li>boarding TAP to alighting TAP LOS measures (TAP to TAP skims)</li>
 <li>alighting TAP to destination microzone using microzone to TAP LOS measures</li>
 </ul>
 </div></blockquote>
-<p>The resulting complete transit path LOS for the “best” or a “bundle” of paths is then used in the demand model
-for representing transit LOS at the microzone level.  This functionality is <strong>NOT YET IMPLEMENTED</strong>, but planned for a future release.</p>
+<p>The resulting complete transit path LOS for the best, or a bundle of, paths is then used in the demand model
+for representing transit LOS at the microzone level.  Support for multiple zone systems is <strong>NOT YET IMPLEMENTED</strong>, but
+planned for a future release.  For the time being, all travel is modeled at the TAZ level.</p>
 </div>
 <div class="section" id="decision-making-units">
 <h3>Decision-making units<a class="headerlink" href="#decision-making-units" title="Permalink to this headline">¶</a></h3>
@@ -306,7 +311,7 @@ with respect to age, work status, and school status.</p>
 <tr class="row-odd"><td>Pre-school child</td>
 <td>0 - 5</td>
 <td>None</td>
-<td>None</td>
+<td>Preschool</td>
 </tr>
 </tbody>
 </table>
@@ -314,12 +319,11 @@ with respect to age, work status, and school status.</p>
 choice size terms) so that these data items can be pre-calculated for each segment. Precalculation
 of these data items reduces model complexity and runtime. The segmentation is based on household income,
 and includes four segments - low, medium, high, very high.</p>
-<p>In the model, the persons in each household are assigned a simulated but fixed “value of time”
+<p>In the model, the persons in each household are assigned a simulated but fixed value of time
 that modulates the relative weight the decision-maker places on time and cost. The probability
 distribution from which the value of time is sampled was derived from a toll choice model
-estimated using data from a stated preference survey performed for the SFCTA’s Mobility, Access, and
-Pricing Study, and is a lognormal distribution with a mean that varies by income segment.
-Value of time assignment is <strong>NOT YET IMPLEMENTED</strong>.</p>
+estimated using data from a stated preference survey performed for the SFCTA Mobility, Access, and
+Pricing Study, and is a lognormal distribution with a mean that varies by income segment.</p>
 </div>
 <div class="section" id="activity-type-segmentation">
 <h3>Activity type segmentation<a class="headerlink" href="#activity-type-segmentation" title="Permalink to this headline">¶</a></h3>
@@ -353,7 +357,7 @@ simulation is assigned one of these activity types.</p>
 <td>Workers and students</td>
 </tr>
 <tr class="row-odd"><td>University</td>
-<td>College or University</td>
+<td>College or university</td>
 <td>Mandatory</td>
 <td>Age 18+</td>
 </tr>
@@ -363,9 +367,9 @@ simulation is assigned one of these activity types.</p>
 <td>Age 14-17</td>
 </tr>
 <tr class="row-odd"><td>Grade School</td>
-<td>Grades K-8</td>
+<td>Grades preschool, K-8</td>
 <td>Mandatory</td>
-<td>Age 5-13</td>
+<td>Age 0-13</td>
 </tr>
 <tr class="row-even"><td>Escorting</td>
 <td>Pick-up/drop-off passengers (auto trips only)</td>
@@ -402,7 +406,7 @@ simulation is assigned one of these activity types.</p>
 </div>
 <div class="section" id="treatment-of-time">
 <h3>Treatment of time<a class="headerlink" href="#treatment-of-time" title="Permalink to this headline">¶</a></h3>
-<p>The model system functions at a temporal resolution of one hour. These one hour increments
+<p>The TM1 example model system functions at a temporal resolution of one hour. These one hour increments
 begin with 3 AM and end with 3 AM the next day. Temporal integrity is ensured so that no
 activities are scheduled with conflicting time windows, with the exception of short
 activities/tours that are completed within a one hour increment. For example, a person may have
@@ -416,29 +420,36 @@ reference the appropriate transport network depending on their trip mode and the
 time. The definition of time periods for LOS matrices is given below.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="44%" />
-<col width="56%" />
+<col width="41%" />
+<col width="32%" />
+<col width="27%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Time Period</th>
-<th class="head">Start to End Hour</th>
+<th class="head">Start Hour</th>
+<th class="head">End Hour</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>EA</td>
-<td>3 to 6</td>
+<td>3</td>
+<td>6</td>
 </tr>
 <tr class="row-odd"><td>AM</td>
-<td>6 to 10</td>
+<td>6</td>
+<td>11</td>
 </tr>
 <tr class="row-even"><td>MD</td>
-<td>11 to 15</td>
+<td>11</td>
+<td>15</td>
 </tr>
 <tr class="row-odd"><td>PM</td>
-<td>15 to 19</td>
+<td>15</td>
+<td>20</td>
 </tr>
 <tr class="row-even"><td>EV</td>
-<td>19 to 3</td>
+<td>20</td>
+<td>3</td>
 </tr>
 </tbody>
 </table>
@@ -543,6 +554,7 @@ can be aggregated into travel demand matrices for network loading.</p>
 <div><ul class="simple">
 <li>configs - settings, expressions files, etc.</li>
 <li>data - input data such as land use, synthetic population files, and skims</li>
+<li>output - outputs folder</li>
 <li>simulation.py - main script to run the model</li>
 </ul>
 </div></blockquote>
@@ -551,11 +563,10 @@ can be aggregated into travel demand matrices for network loading.</p>
 <h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
 <p>In order to run the example, you first need two input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code> file:</p>
 <ul>
-<li><p class="first">store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:</p>
+<li><p class="first">input_store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:</p>
 <blockquote>
 <div><ul class="simple">
-<li>skims/accessibility - Zone-based accessibility measures</li>
-<li>land_use/taz_data - Zone-based land use data (population and employment for example)</li>
+<li>land_use_taz - Zone-based land use data (population and employment for example)</li>
 <li>persons - Synthetic population person records</li>
 <li>households - Synthetic population household records</li>
 </ul>
@@ -565,16 +576,15 @@ can be aggregated into travel demand matrices for network loading.</p>
 </li>
 </ul>
 <p>Both files are used in the tests as well and are in the <code class="docutils literal notranslate"><span class="pre">activitysim\abm\test\data</span></code> folder.  Alternatively,
-these files can be downloaded from the SF_25_zone_example folder on
-MTC’s <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  The full set of MTC
-TM1 OMX skims are also on the box account.</p>
+these files can be downloaded from the MTC <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  The full set
+of MTC TM1 OMX skims are also on the box account.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>Input files can be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">scripts\data_mover.ipynb</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
+<p>The <code class="docutils literal notranslate"><span class="pre">scripts\mtc_inputs.py</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
 This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 file.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">scripts\build_omx.py</span></code> script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
-Cube to OMX using the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/Cube-OMX-Converter">Cube to OMX converter</a>.</p>
+Cube to OMX using the <code class="docutils literal notranslate"><span class="pre">scripts\mtc_tm1_omx_export.s</span></code> script.</p>
 <p class="last">The example inputs were created by the <code class="docutils literal notranslate"><span class="pre">scripts\create_sf_example.py</span></code> script, which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.</p>
 </div>
 </div>
@@ -586,7 +596,9 @@ is the main settings file for the model run.  This file includes:</p>
 <ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">models</span></code> - list of model steps to run - auto ownership, tour frequency, etc. - see <a class="reference internal" href="#model-steps"><span class="std std-ref">Pipeline</span></a></p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">store</span></code> - HDF5 inputs file</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">resume_after</span></code> - to resume running the data pipeline after the last successful checkpoint</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">input_store</span></code> - HDF5 inputs file</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p>
 </li>
@@ -600,12 +612,17 @@ is the main settings file for the model run.  This file includes:</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p>
 </li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> - turn shadow_pricing on and off for work and school location</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">output_tables</span></code> - list of output tables to write to CSV</p>
+</li>
 <li><p class="first">global variables that can be used in expressions tables and Python code such as:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</li>
 <li><code class="docutils literal notranslate"><span class="pre">county_map</span></code> - mapping of county codes to county names</li>
 <li><code class="docutils literal notranslate"><span class="pre">skim_time_periods</span></code> - time period upper bound values and labels</li>
+<li><code class="docutils literal notranslate"><span class="pre">household_median_value_of_time</span></code> - various household and person value-of-time model settings</li>
 </ul>
 </div></blockquote>
 </li>
@@ -629,10 +646,26 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#initialize-landuse"><span class="std std-ref">Initialize</span></a></td>
+<td><ul class="first last simple">
+<li>initialize_landuse.yaml</li>
+<li>annotate_landuse.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a></td>
 <td><ul class="first last simple">
 <li>accessibility.yaml</li>
 <li>accessibility.csv</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="models.html#initialize-households"><span class="std std-ref">Initialize</span></a></td>
+<td><ul class="first last simple">
+<li>initialize_households.yaml</li>
+<li>annotate_persons.csv</li>
+<li>annotate_households.csv</li>
+<li>annotate_persons_after_hh.csv</li>
 </ul>
 </td>
 </tr>
@@ -644,17 +677,20 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <li>tour_mode_choice.yaml (and related files)</li>
 <li>school_location.csv</li>
 <li>destination_choice_size_terms.csv</li>
+<li>shadow_pricing.yaml</li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#work-location"><span class="std std-ref">Workplace Location</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="models.html#work-location"><span class="std std-ref">School Location</span></a></td>
 <td><ul class="first last simple">
 <li>workplace_location.yaml</li>
 <li>annotate_persons_workplace.csv</li>
+<li>annotate_households_workplace.csv</li>
 <li>workplace_location_sample.csv</li>
 <li>tour_mode_choice.yaml (and related files)</li>
 <li>workplace_location.csv</li>
 <li>destination_choice_size_terms.csv</li>
+<li>shadow_pricing.yaml</li>
 </ul>
 </td>
 </tr>
@@ -666,7 +702,12 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="models.html#freeparking"><span class="std std-ref">Free Parking Eligibility</span></a></td>
-<td><strong>NOT YET IMPLEMENTED</strong></td>
+<td><ul class="first last simple">
+<li>free_parking.yaml</li>
+<li>free_parking.csv</li>
+<li>free_parking_annotate_persons_preprocessor.csv</li>
+</ul>
+</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a></td>
 <td><ul class="first last simple">
@@ -683,8 +724,8 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <td><ul class="first last simple">
 <li>mandatory_tour_frequency.yaml</li>
 <li>mandatory_tour_frequency.csv</li>
-<li>annotate_persons_mtf.csv</li>
 <li>mandatory_tour_frequency_alternatives.csv</li>
+<li>annotate_persons_mtf.csv</li>
 </ul>
 </td>
 </tr>
@@ -700,6 +741,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <tr class="row-even"><td><a class="reference internal" href="models.html#joint-tour-frequency"><span class="std std-ref">Joint Tour Frequency</span></a></td>
 <td><ul class="first last simple">
 <li>joint_tour_frequency.yaml</li>
+<li>annotate_persons_jtf.csv</li>
 <li>joint_tour_frequency_annotate_households_preprocessor.csv</li>
 <li>joint_tour_frequency_alternatives.csv</li>
 </ul>
@@ -745,15 +787,18 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <li>non_mandatory_tour_frequency.yaml</li>
 <li>non_mandatory_tour_frequency.csv</li>
 <li>non_mandatory_tour_frequency_alternatives.csv</li>
+<li>non_mandatory_tour_frequency_annotate_persons_preprocessor.csv</li>
+<li>non_mandatory_tour_frequency_extension_probs.csv</li>
 <li>annotate_persons_nmtf.csv</li>
 </ul>
 </td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a></td>
 <td><ul class="first last simple">
-<li>non_mandatory_tour_destination_choice.yaml</li>
-<li>non_mandatory_tour_destination.csv (<strong>NOT YET IMPLEMENTED</strong>)</li>
+<li>non_mandatory_tour_destination.yaml</li>
+<li>non_mandatory_tour_destination.csv</li>
 <li>non_mandatory_tour_destination_sample.csv</li>
+<li>tour_mode_choice.yaml (and related files)</li>
 <li>destination_choice_size_terms.csv</li>
 </ul>
 </td>
@@ -781,6 +826,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <li>atwork_subtour_frequency.yaml</li>
 <li>atwork_subtour_frequency.csv</li>
 <li>atwork_subtour_frequency_alternatives.csv</li>
+<li>atwork_subtour_frequency_annotate_tours_preprocessor.csv</li>
 </ul>
 </td>
 </tr>
@@ -796,8 +842,9 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-scheduling"><span class="std std-ref">At-work Subtour Scheduling</span></a></td>
 <td><ul class="first last simple">
-<li>atwork_subtour_scheduling.yaml</li>
+<li>tour_scheduling_atwork.yaml</li>
 <li>tour_scheduling_atwork.csv</li>
+<li>tour_scheduling_atwork_preprocessor.csv</li>
 <li>tour_departure_and_duration_alternatives.csv</li>
 </ul>
 </td>
@@ -838,6 +885,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 <tr class="row-odd"><td><a class="reference internal" href="models.html#trip-destination-choice"><span class="std std-ref">Trip Destination Choice</span></a></td>
 <td><ul class="first last simple">
 <li>trip_destination.yaml (+ trip_purpose_and_destination.yaml)</li>
+<li>trip_destination.csv</li>
 <li>trip_destination_annotate_trips_preprocessor.csv</li>
 <li>trip_destination_sample.csv</li>
 <li>trip_mode_choice.yaml (and related files)</li>
@@ -883,53 +931,36 @@ it needs to be set via experimentation.</p>
 <p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
 library and defines two key log files:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">asim.log</span></code> - overall system log file</li>
+<li><code class="docutils literal notranslate"><span class="pre">activitysim.log</span></code> - overall system log file</li>
 <li><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing is on</li>
 </ul>
 <p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
 </div>
-</div>
-<div class="section" id="running-the-example">
-<h2>Running the Example<a class="headerlink" href="#running-the-example" title="Permalink to this headline">¶</a></h2>
-<p>To run the example, do the following:</p>
-<ul class="simple">
-<li>Open a command line window in the <code class="docutils literal notranslate"><span class="pre">example</span></code> folder</li>
-<li>Activate the correct conda environment if needed</li>
-<li>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code> to run the data pipeline (i.e. model steps)</li>
-<li>ActivitySim should log some information and write outputs to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> folder.</li>
-</ul>
-<p>The example should complete within a couple minutes since it is running a small sample of households.</p>
 <div class="section" id="pipeline">
 <span id="model-steps"></span><h3>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">models</span></code> setting contains the specification of the data pipeline model steps, as shown below:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
-   <span class="o">-</span> <span class="n">initialize</span>
+   <span class="o">-</span> <span class="n">initialize_landuse</span>
    <span class="o">-</span> <span class="n">compute_accessibility</span>
-   <span class="o">-</span> <span class="n">school_location_sample</span>
-   <span class="o">-</span> <span class="n">school_location_logsums</span>
-   <span class="o">-</span> <span class="n">school_location_simulate</span>
-   <span class="o">-</span> <span class="n">workplace_location_sample</span>
-   <span class="o">-</span> <span class="n">workplace_location_logsums</span>
-   <span class="o">-</span> <span class="n">workplace_location_simulate</span>
+   <span class="o">-</span> <span class="n">initialize_households</span>
+   <span class="o">-</span> <span class="n">school_location</span>
+   <span class="o">-</span> <span class="n">workplace_location</span>
    <span class="o">-</span> <span class="n">auto_ownership_simulate</span>
+   <span class="o">-</span> <span class="n">free_parking</span>
    <span class="o">-</span> <span class="n">cdap_simulate</span>
    <span class="o">-</span> <span class="n">mandatory_tour_frequency</span>
    <span class="o">-</span> <span class="n">mandatory_tour_scheduling</span>
    <span class="o">-</span> <span class="n">joint_tour_frequency</span>
    <span class="o">-</span> <span class="n">joint_tour_composition</span>
    <span class="o">-</span> <span class="n">joint_tour_participation</span>
-   <span class="o">-</span> <span class="n">joint_tour_destination_sample</span>
-   <span class="o">-</span> <span class="n">joint_tour_destination_logsums</span>
-   <span class="o">-</span> <span class="n">joint_tour_destination_simulate</span>
+   <span class="o">-</span> <span class="n">joint_tour_destination</span>
    <span class="o">-</span> <span class="n">joint_tour_scheduling</span>
    <span class="o">-</span> <span class="n">non_mandatory_tour_frequency</span>
    <span class="o">-</span> <span class="n">non_mandatory_tour_destination</span>
    <span class="o">-</span> <span class="n">non_mandatory_tour_scheduling</span>
    <span class="o">-</span> <span class="n">tour_mode_choice_simulate</span>
    <span class="o">-</span> <span class="n">atwork_subtour_frequency</span>
-   <span class="o">-</span> <span class="n">atwork_subtour_destination_sample</span>
-   <span class="o">-</span> <span class="n">atwork_subtour_destination_logsums</span>
-   <span class="o">-</span> <span class="n">atwork_subtour_destination_simulate</span>
+   <span class="o">-</span> <span class="n">atwork_subtour_destination</span>
    <span class="o">-</span> <span class="n">atwork_subtour_scheduling</span>
    <span class="o">-</span> <span class="n">atwork_subtour_mode_choice</span>
    <span class="o">-</span> <span class="n">stop_frequency</span>
@@ -939,6 +970,7 @@ library and defines two key log files:</p>
    <span class="o">-</span> <span class="n">trip_scheduling</span>
    <span class="o">-</span> <span class="n">trip_mode_choice</span>
    <span class="o">-</span> <span class="n">write_data_dictionary</span>
+   <span class="o">-</span> <span class="n">track_skim_usage</span>
    <span class="o">-</span> <span class="n">write_tables</span>
 </pre></div>
 </div>
@@ -946,13 +978,36 @@ library and defines two key log files:</p>
 argument to <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> the pipeliner will load checkpointed tables from the checkpoint store
 and resume pipeline processing on the next model step after the specified checkpoint.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resume_after</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="c1">#resume_after = &#39;school_location_logsums&#39;</span>
+<span class="c1">#resume_after = &#39;school_location&#39;</span>
 </pre></div>
 </div>
 <p>The model is run by calling the <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="n">resume_after</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+</div>
+<div class="section" id="running-the-example">
+<h2>Running the Example<a class="headerlink" href="#running-the-example" title="Permalink to this headline">¶</a></h2>
+<p>To run the example, do the following:</p>
+<ul class="simple">
+<li>Open a command line window in the <code class="docutils literal notranslate"><span class="pre">example</span></code> folder</li>
+<li>Activate the correct conda environment if needed</li>
+<li>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code> to run the data pipeline (i.e. model steps)</li>
+<li>ActivitySim should log some information and write outputs to the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder.</li>
+</ul>
+<p>The example should complete within a couple minutes since it is running a small sample of households.</p>
+<div class="section" id="multiprocessing">
+<h3>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this headline">¶</a></h3>
+<p>The model system is parallelized via <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a>.  To setup and run the <a class="reference internal" href="#example"><span class="std std-ref">Example</span></a> using
+multiprocessing, follow the same steps as above, but use the configuration in the <code class="docutils literal notranslate"><span class="pre">example_mp</span></code> folder:</p>
+<ul class="simple">
+<li>Open a command prompt in the <code class="docutils literal notranslate"><span class="pre">example_mp</span></code> folder.  The data does not need to be copied into the folder since the mp setup inherits from the example single-processed setup.</li>
+<li>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code>.</li>
+</ul>
+<p>The multiprocessing example also writes outputs to the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder.</p>
+<p>The default multiprocessed example is configured to run with two processors: <code class="docutils literal notranslate"><span class="pre">num_processes:</span> <span class="pre">2</span></code>.  Additional more performant configurations are
+included and commented out in the example settings file.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> for more information.</p>
 </div>
 </div>
 <div class="section" id="outputs">
@@ -981,167 +1036,167 @@ restarting the pipeline at any step.</p>
 <tbody valign="top">
 <tr class="row-even"><td>accessibility</td>
 <td>compute_accessibility</td>
+<td>1454</td>
 <td>10</td>
-<td>25</td>
-</tr>
-<tr class="row-odd"><td>atwork_subtour_destination_sample</td>
-<td>atwork_subtour_destination_sample</td>
-<td>4</td>
-<td>46</td>
-</tr>
-<tr class="row-even"><td>atwork_subtour_destination_sample</td>
-<td>atwork_subtour_destination_logsums</td>
-<td>5</td>
-<td>46</td>
 </tr>
 <tr class="row-odd"><td>households</td>
 <td>initialize</td>
-<td>64</td>
 <td>100</td>
+<td>65</td>
 </tr>
 <tr class="row-even"><td>households</td>
-<td>cdap_simulate</td>
-<td>68</td>
+<td>workplace_location</td>
 <td>100</td>
+<td>66</td>
 </tr>
 <tr class="row-odd"><td>households</td>
-<td>joint_tour_frequency</td>
-<td>70</td>
+<td>cdap_simulate</td>
 <td>100</td>
+<td>70</td>
 </tr>
-<tr class="row-even"><td>joint_tour_destination_sample</td>
-<td>joint_tour_destination_sample</td>
-<td>4</td>
-<td>30</td>
+<tr class="row-even"><td>households</td>
+<td>joint_tour_frequency</td>
+<td>100</td>
+<td>72</td>
 </tr>
-<tr class="row-odd"><td>joint_tour_destination_sample</td>
-<td>joint_tour_destination_logsums</td>
-<td>4</td>
-<td>30</td>
-</tr>
-<tr class="row-even"><td>joint_tour_participants</td>
+<tr class="row-odd"><td>joint_tour_participants</td>
 <td>joint_tour_participation</td>
-<td>4</td>
+<td>13</td>
 <td>4</td>
 </tr>
-<tr class="row-odd"><td>land_use</td>
-<td>initialize</td>
-<td>45</td>
-<td>25</td>
+<tr class="row-even"><td>land_use</td>
+<td>initialize_landuse</td>
+<td>1454</td>
+<td>44</td>
 </tr>
-<tr class="row-even"><td>person_windows</td>
-<td>initialize</td>
+<tr class="row-odd"><td>person_windows</td>
+<td>initialize_households</td>
+<td>271</td>
 <td>21</td>
-<td>157</td>
-</tr>
-<tr class="row-odd"><td>persons</td>
-<td>initialize</td>
-<td>40</td>
-<td>157</td>
 </tr>
 <tr class="row-even"><td>persons</td>
-<td>school_location_simulate</td>
-<td>43</td>
-<td>157</td>
+<td>initialize_households</td>
+<td>271</td>
+<td>42</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
-<td>workplace_location_simulate</td>
-<td>48</td>
-<td>157</td>
+<td>school_location</td>
+<td>271</td>
+<td>45</td>
+</tr>
+<tr class="row-even"><td>persons</td>
+<td>workplace_location</td>
+<td>271</td>
+<td>52</td>
+</tr>
+<tr class="row-odd"><td>persons</td>
+<td>free_parking</td>
+<td>271</td>
+<td>53</td>
 </tr>
 <tr class="row-even"><td>persons</td>
 <td>cdap_simulate</td>
-<td>54</td>
-<td>157</td>
+<td>271</td>
+<td>59</td>
 </tr>
 <tr class="row-odd"><td>persons</td>
 <td>mandatory_tour_frequency</td>
-<td>59</td>
-<td>157</td>
+<td>271</td>
+<td>64</td>
 </tr>
 <tr class="row-even"><td>persons</td>
+<td>joint_tour_participation</td>
+<td>271</td>
+<td>65</td>
+</tr>
+<tr class="row-odd"><td>persons</td>
 <td>non_mandatory_tour_frequency</td>
-<td>64</td>
-<td>157</td>
+<td>271</td>
+<td>73</td>
 </tr>
-<tr class="row-odd"><td>school_location_sample</td>
-<td>school_location_sample</td>
-<td>4</td>
-<td>157</td>
+<tr class="row-even"><td>school_destination_size</td>
+<td>initialize_households</td>
+<td>1454</td>
+<td>3</td>
 </tr>
-<tr class="row-even"><td>school_location_sample</td>
-<td>school_location_logsums</td>
-<td>5</td>
-<td>157</td>
-</tr>
-<tr class="row-odd"><td>tours</td>
-<td>mandatory_tour_frequency</td>
-<td>11</td>
-<td>71</td>
+<tr class="row-odd"><td>school_modeled_size</td>
+<td>school_location</td>
+<td>1454</td>
+<td>3</td>
 </tr>
 <tr class="row-even"><td>tours</td>
-<td>mandatory_tour_scheduling</td>
-<td>15</td>
-<td>71</td>
+<td>mandatory_tour_frequency</td>
+<td>153</td>
+<td>11</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
+<td>mandatory_tour_scheduling</td>
+<td>153</td>
+<td>15</td>
+</tr>
+<tr class="row-even"><td>tours</td>
 <td>joint_tour_composition</td>
+<td>159</td>
 <td>16</td>
-<td>73</td>
+</tr>
+<tr class="row-odd"><td>tours</td>
+<td>tour_mode_choice_simulate</td>
+<td>319</td>
+<td>17</td>
 </tr>
 <tr class="row-even"><td>tours</td>
 <td>atwork_subtour_frequency</td>
+<td>344</td>
 <td>19</td>
-<td>186</td>
 </tr>
 <tr class="row-odd"><td>tours</td>
 <td>stop_frequency</td>
+<td>344</td>
 <td>21</td>
-<td>186</td>
 </tr>
 <tr class="row-even"><td>trips</td>
 <td>stop_frequency</td>
+<td>859</td>
 <td>7</td>
-<td>428</td>
 </tr>
 <tr class="row-odd"><td>trips</td>
 <td>trip_purpose</td>
+<td>859</td>
 <td>8</td>
-<td>428</td>
 </tr>
 <tr class="row-even"><td>trips</td>
 <td>trip_destination</td>
+<td>859</td>
 <td>11</td>
-<td>428</td>
 </tr>
 <tr class="row-odd"><td>trips</td>
 <td>trip_scheduling</td>
-<td>12</td>
-<td>428</td>
+<td>859</td>
+<td>11</td>
 </tr>
 <tr class="row-even"><td>trips</td>
-<td>trip_mode_choic</td>
-<td>13</td>
-<td>428</td>
+<td>trip_mode_choice</td>
+<td>859</td>
+<td>12</td>
 </tr>
-<tr class="row-odd"><td>workplace_location_sample</td>
-<td>workplace_location_sample</td>
-<td>3</td>
-<td>916</td>
-</tr>
-<tr class="row-even"><td>workplace_location_sample</td>
-<td>workplace_location_logsums</td>
+<tr class="row-odd"><td>workplace_destination_size</td>
+<td>initialize_households</td>
+<td>1454</td>
 <td>4</td>
-<td>916</td>
+</tr>
+<tr class="row-even"><td>workplace_modeled_size</td>
+<td>workplace_location</td>
+<td>1454</td>
+<td>4</td>
 </tr>
 </tbody>
 </table>
 <p>The example <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code> run model script also writes the final tables to CSV files
-for illustrative purposes by using the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method.  This method
-returns a pandas DataFrame, which can then be written to a CSV with the <code class="docutils literal notranslate"><span class="pre">to_csv(file_path)</span></code> method.</p>
-<p>ActivitySim also writes log and trace files to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> folder.  The asim.log file, which
-is the overall log file is always produced.  If tracing is specified, then trace files are output
-as well.</p>
+for illustrative purposes by using the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method via the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.
+This method returns a pandas DataFrame, which can then be written to a CSV with the <code class="docutils literal notranslate"><span class="pre">to_csv(file_path)</span></code> method.</p>
+<p>ActivitySim also writes log and trace files to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> folder.  The activitysim.log file,
+which is the overall log file is always produced.  If tracing is specified, then trace files are
+output as well.</p>
 <div class="section" id="tracing">
 <span id="id3"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
 <p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
@@ -1156,7 +1211,7 @@ file:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</li>
 </ul>
-<p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
+<p>With the set of output CSV files, the user can trace ActivitySim calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
 </div>
 </div>
@@ -1173,7 +1228,7 @@ help debug data and/or logic errors.</p>
         <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gettingstarted.html" class="btn btn-neutral" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gettingstarted.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1182,7 +1237,7 @@ help debug data and/or logic errors.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright contributing authors.
+        &copy; Copyright contributing authors
 
     </p>
   </div>
@@ -1199,33 +1254,16 @@ help debug data and/or logic errors.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.7',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; ActivitySim 0.7
+  <title>Getting Started &mdash; ActivitySim 0.8
  documentation</title>
   
 
@@ -18,13 +18,20 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
@@ -32,21 +39,16 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Example" href="abmexample.html" />
     <link rel="prev" title="ActivitySim" href="index.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -60,7 +62,7 @@
             
             
               <div class="version">
-                0.7
+                0.8
 
               </div>
             
@@ -174,7 +176,7 @@
 <div class="section" id="installation">
 <span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li>Install <a class="reference external" href="https://www.continuum.io/downloads">Anaconda 64bit Python 2.7</a>.  It is best to use <a class="reference internal" href="#anaconda-notes"><span class="std std-ref">Anaconda</span></a> with ActivitySim.</li>
+<li>Install <a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda 64bit Python 3</a>.  It is best to use <a class="reference internal" href="#anaconda-notes"><span class="std std-ref">Anaconda</span></a> with ActivitySim.</li>
 <li>If you access the internet from behind a firewall, then you need to configure your proxy server. To do so, create a .condarc file in your Anaconda installation folder, such as:</li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
@@ -184,9 +186,9 @@
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
-<li>Create and activate an Anaconda environment (basically a Python install just for this project)</li>
+<li>Create and activate an Anaconda environment (basically a Python install just for this project) using Anaconda Prompt or the terminal.</li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">2.7</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.7</span>
 
 <span class="c1">#Windows</span>
 <span class="n">activate</span> <span class="n">asimtest</span>
@@ -199,17 +201,26 @@
 <li>Get and install other required libraries on the activated conda Python environment using <a class="reference external" href="https://pypi.org/project/pip">pip</a>:</li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#required packages for running ActivitySim</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">tables</span> <span class="n">pyyaml</span> <span class="n">psutil</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">orca</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span> <span class="n">future</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">anaconda</span> <span class="n">pytables</span> <span class="n">pyyaml</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
 
 <span class="c1">#optional required packages for testing and building documentation</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="5">
-<li>If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages. For example:</li>
+<li>If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.</li>
 </ol>
+<p>For <cite>conda</cite> for example, create a <cite>.condarc</cite> file in your Anaconda installation folder with the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
+  <span class="n">http</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
+  <span class="n">https</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
+<span class="n">ssl_verify</span><span class="p">:</span> <span class="n">false</span>
+</pre></div>
+</div>
+<p>For <cite>pip</cite> for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">trusted</span><span class="o">-</span><span class="n">host</span> <span class="n">pypi</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">org</span> <span class="o">--</span><span class="n">proxy</span><span class="o">=</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>  <span class="n">openmatrix</span>
 </pre></div>
 </div>
@@ -227,11 +238,12 @@
 <span id="anaconda-notes"></span><h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>ActivitySim is a 64bit Python 2.7 library that uses a number of packages from the
+<p>ActivitySim is a 64bit Python 2 or 3 library that uses a number of packages from the
 scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
-and <a class="reference external" href="http://numpy.org">numpy</a>. ActivitySim does not currently support Python 3.</p>
+and <a class="reference external" href="http://numpy.org">numpy</a>. ActivitySim currently supports Python 2, but Python 2
+will be <a class="reference external" href="https://pythonclock.org/">retired</a> at the end of 2019 so Python 3 is recommended.</p>
 <p>The recommended way to get your own scientific Python installation is to
-install Anaconda 2 64bit, which contains many of the libraries upon which
+install 64 bit Anaconda, which contains many of the libraries upon which
 ActivitySim depends + some handy Python installation management tools.</p>
 <p>Anaconda includes the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command line tool, which does a number of useful
 things, including creating <a class="reference external" href="http://conda.pydata.org/docs/using/envs.html">environments</a>
@@ -241,7 +253,8 @@ environments keeps multiple Python setups from conflicting with one another.</p>
 <p>You need to activate the activitysim environment each time you start a new command
 session.  You can remove an environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asimtest</span> <span class="pre">--all</span></code> and
 check the current active environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
-<p class="last">If numexpr (which numpy requires) fails to install, you may need
+<p>For more information on Anaconda, see Anaconda’s <a class="reference external" href="https://docs.anaconda.com/anaconda/user-guide/getting-started">getting started</a> guide.</p>
+<p class="last">If numexpr (which numpy requires) fails to install for Python 2.7, you may need
 the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visual C++ Compiler for Python</a>.</p>
 </div>
 </div>
@@ -261,12 +274,16 @@ the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visu
 <span class="n">source</span> <span class="n">activate</span> <span class="n">asimtest</span>
 
 <span class="c1">#run example</span>
-<span class="n">python</span> <span class="n">run_populationsim</span><span class="o">.</span><span class="n">py</span>
+<span class="n">python</span> <span class="n">simulation</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li>Review the outputs in the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder</li>
 </ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Common configuration settings can be overidden at runtime.  See <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span> <span class="pre">-h</span></code>.</p>
+</div>
 </div>
 <div class="section" id="hardware">
 <h2>Hardware<a class="headerlink" href="#hardware" title="Permalink to this headline">¶</a></h2>
@@ -277,12 +294,16 @@ the <a class="reference external" href="http://aka.ms/vcpython27">Microsoft Visu
 <li>the number and size of network skims by mode and time-of-day</li>
 <li>the desired runtimes</li>
 </ul>
-<p>ActivitySim framework models utilize a significant amount of RAM since they store data in-memory to reduce
-access time in order to minimize runtimes.  For example, the example MTC Travel Model One model has 2.7 million
-households, 1475 zones, 826 skims and runs for approximately 19 hours in a single process/thread.  The full
-scale (all households, zones, skims, and sub-models) Travel Model One example is run on a Windows
-server with 164GB of RAM and 40 CPUs.  Parallelization is <strong>NOT YET IMPLEMENTED</strong> but is planned for
-Fall 2018 and will make full use of the available CPUs.</p>
+<p>ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
+access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
+households, 1475 zones, 826 network skims and has been run between two hours and two days depending on the amount of
+RAM and number of processors allocated.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">ActivitySim has been run in the cloud, on both Windows and Linux OS using
+<a class="reference external" href="https://azure.microsoft.com/en-us/">Microsoft Azure</a>.  Example configurations,
+Azure scripts, runtimes, and costs are in the <code class="docutils literal notranslate"><span class="pre">example_azure</span></code> folder.</p>
+</div>
 </div>
 </div>
 
@@ -297,7 +318,7 @@ Fall 2018 and will make full use of the available CPUs.</p>
         <a href="abmexample.html" class="btn btn-neutral float-right" title="Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="ActivitySim" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="ActivitySim" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -306,7 +327,7 @@ Fall 2018 and will make full use of the available CPUs.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright contributing authors.
+        &copy; Copyright contributing authors
 
     </p>
   </div>
@@ -323,33 +344,16 @@ Fall 2018 and will make full use of the available CPUs.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.7',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

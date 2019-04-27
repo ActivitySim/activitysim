@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ActivitySim &mdash; ActivitySim 0.7
+  <title>ActivitySim &mdash; ActivitySim 0.8
  documentation</title>
   
 
@@ -18,34 +18,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Getting Started" href="gettingstarted.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +61,7 @@
             
             
               <div class="version">
-                0.7
+                0.8
 
               </div>
             
@@ -197,10 +199,11 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l3"><a class="reference internal" href="abmexample.html#sub-model-specification-files">Sub-Model Specification Files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abmexample.html#chunk-size">Chunk size</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abmexample.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abmexample.html#pipeline">Pipeline</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="abmexample.html#running-the-example">Running the Example</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="abmexample.html#pipeline">Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abmexample.html#multiprocessing">Multiprocessing</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="abmexample.html#outputs">Outputs</a><ul>
@@ -212,8 +215,9 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="models.html#initialize">Initialize</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#accessibility">Accessibility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#school-location">School Location</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#workplace-location">Workplace Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#work-location">School Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#id4">Work Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#shadow-pricing">Shadow Pricing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#auto-ownership">Auto Ownership</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#free-parking-eligibility">Free Parking Eligibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#coordinated-daily-activity-pattern">Coordinated Daily Activity Pattern</a></li>
@@ -240,7 +244,7 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l2"><a class="reference internal" href="models.html#trip-mode-choice">Trip Mode Choice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#trip-cbd-parking">Trip CBD Parking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#util">Util</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#id24">CDAP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#id25">CDAP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#expressions">Expressions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#module-activitysim.abm.models.util.logsums">Logsums</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#module-activitysim.abm.models.util.mode">Mode</a></li>
@@ -248,7 +252,7 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l3"><a class="reference internal" href="models.html#module-activitysim.abm.models.util.tour_destination">Tour Destination</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#module-activitysim.abm.models.util.tour_frequency">Tour Frequency</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#module-activitysim.abm.models.util.trip">Trip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#module-activitysim.abm.models.util.vectorize_tour_scheduling">Tour Scheduling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#module-activitysim.abm.models.util.vectorize_tour_scheduling">Vectorize Tour Scheduling</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#tests">Tests</a></li>
@@ -257,9 +261,8 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="howitworks.html#execution-flow">Execution Flow</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="howitworks.html#initialization">Initialization</a></li>
-<li class="toctree-l3"><a class="reference internal" href="howitworks.html#school-location-sample">School Location Sample</a></li>
-<li class="toctree-l3"><a class="reference internal" href="howitworks.html#school-location-logsums">School Location Logsums</a></li>
-<li class="toctree-l3"><a class="reference internal" href="howitworks.html#school-location-final-choice">School Location Final Choice</a></li>
+<li class="toctree-l3"><a class="reference internal" href="howitworks.html#initialize-households">Initialize Households</a></li>
+<li class="toctree-l3"><a class="reference internal" href="howitworks.html#school-location">School Location</a></li>
 <li class="toctree-l3"><a class="reference internal" href="howitworks.html#finishing-up">Finishing Up</a></li>
 </ul>
 </li>
@@ -269,15 +272,25 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l3"><a class="reference internal" href="howitworks.html#accessibilities-model">Accessibilities Model</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="howitworks.html#multiprocessing">Multiprocessing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="howitworks.html#mutliprocessing-configuration">Mutliprocessing Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="howitworks.html#shared-data">Shared Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="howitworks.html#outputs">Outputs</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="howitworks.html#data-schema">Data Schema</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="howitworks.html#data-tables">Data Tables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="howitworks.html#id2">Data Schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="howitworks.html#id3">Data Schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="howitworks.html#skims">Skims</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#multiprocessing">Multiprocessing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#module-activitysim.core.mp_tasks">API</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#data-management">Data Management</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="core.html#skim">Skim</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#pipeline">Pipeline</a></li>
@@ -300,7 +313,7 @@ the development and management of the ActivitySim is on the <a class="reference 
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#person-time-windows">Person Time Windows</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core.html#id12">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#id13">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#helpers">Helpers</a><ul>
@@ -308,7 +321,7 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l3"><a class="reference internal" href="core.html#utilities">Utilities</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#config">Config</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#inject">Inject</a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#inject-defaults">Inject_Defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#mem">Mem</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#output">Output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#tests">Tests</a></li>
 </ul>
@@ -370,7 +383,7 @@ the development and management of the ActivitySim is on the <a class="reference 
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright contributing authors.
+        &copy; Copyright contributing authors
 
     </p>
   </div>
@@ -387,33 +400,16 @@ the development and management of the ActivitySim is on the <a class="reference 
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.7',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

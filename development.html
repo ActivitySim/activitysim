@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Software Development &mdash; ActivitySim 0.7
+  <title>Software Development &mdash; ActivitySim 0.8
  documentation</title>
   
 
@@ -18,34 +18,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Core Components" href="core.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +61,7 @@
             
             
               <div class="version">
-                0.7
+                0.8
 
               </div>
             
@@ -201,13 +203,14 @@ A well defined data pipeline has the ability to resume jobs at a known point, wh
 debugging of problems with data and/or calculations.  It also allows for checkpointing model
 resources, such as the state of each person at a point in the model simulation.  Checkpointing also
 allows for regression testing of results at specified points in overall model run.</p>
-<p><a class="reference external" href="https://github.com/udst/orca">ORCA</a> is an orchestration/pipeline tool that defines model steps,
-dynamic data sources, and connects them to processing functions. ORCA defines dynamic data tables
+<p>Earlier versions of ActivitySim depended on <a class="reference external" href="https://github.com/udst/orca">ORCA</a>, an orchestration/pipeline tool
+that defines model steps, dynamic data sources, and connects them to processing functions. ORCA defined dynamic data tables
 based on pandas DataFrames, columns based on pandas Series, and injectables (functions).  Model steps
-are executed as steps registered with the ORCA engine.  ActivitySim extends ORCA’s functionality by
-adding a <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a>, that runs a series of ORCA model steps, manages the state of the data
+were executed as steps registered with the ORCA engine.  Over time ActivitySim has extended ORCA’s functionality by
+adding a <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a> that runs a series of model steps, manages the state of the data
 tables throughout the model run, allows for restarting at any model step, and integrates with the
-random number generation procedures (see <a class="reference internal" href="core.html#random-in-detail"><span class="std std-ref">Random</span></a>).</p>
+random number generation procedures (see <a class="reference internal" href="core.html#random-in-detail"><span class="std std-ref">Random</span></a>).  As a result, ORCA is no longer a dependency of
+the system.  See <a class="reference internal" href="core.html#module-activitysim.core.inject" title="activitysim.core.inject"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.inject</span></code></a> for more information.</p>
 </div>
 <div class="section" id="data-handling">
 <h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">¶</a></h3>
@@ -231,12 +234,12 @@ and network skim matrices.  With this design, the Python code, which can be thou
 engine, and the specific model calculations, such as the utilities, are separate.  This helps to avoid
 modifying the actual Python code when making changes to the models, such as during model calibration. An
 example of model expressions is found in the example auto ownership model specification file -
-<a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/auto_ownership.csv">auto_ownership.csv</a>.
+<a class="reference external" href="https://github.com/activitysim/activitysim/blob/master/example/configs/auto_ownership.csv">auto_ownership.csv</a>.
 Refer to the <a class="reference internal" href="core.html#expressions"><span class="std std-ref">Utility Expressions</span></a> section for more detail.</p>
 <p>Many of the models have pre- and post-processor table annotators, which read a CSV file of expression, calculate
 required additional table fields, and join the fields to the target tables.  An example table annotation expressions
 file is found in the example configuration files for households for the CDAP model -
-<a class="reference external" href="https://github.com/UDST/activitysim/blob/master/example/configs/annotate_households_cdap.csv">annotate_households_cdap.csv</a>.
+<a class="reference external" href="https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv">annotate_households_cdap.csv</a>.
 Refer to <a class="reference internal" href="models.html#table-annotation"><span class="std std-ref">Expressions</span></a> for more information and the <a class="reference internal" href="models.html#activitysim.abm.models.util.expressions.assign_columns" title="activitysim.abm.models.util.expressions.assign_columns"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.expressions.assign_columns()</span></code></a> function.</p>
 </div>
 <div class="section" id="choice-models">
@@ -259,13 +262,13 @@ columns for the tour, trip, etc. are updated as needed. Refer to <a class="refer
 typically does the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li>registers an orca step that is called by the model runner</li>
+<li>registers an ORCA step that is called by the model runner</li>
 <li>sets up logging and tracing</li>
-<li>gets the relevant input data tables from orca</li>
+<li>gets the relevant input data tables from ORCA</li>
 <li>gets all required settings, config files, etc.</li>
 <li>runs a data preprocessor on each input table that needs additional fields for the calculation</li>
-<li>solves the models in chunks</li>
-<li>runs a data postprocessor on the outputs table that needs additional fields for later models</li>
+<li>solves the model in chunks of data table rows</li>
+<li>runs a data postprocessor on the output table data that needs additional fields for later models</li>
 <li>writes the resulting table data to the pipeline</li>
 </ul>
 </div></blockquote>
@@ -276,7 +279,7 @@ typically does the following:</p>
 <h2>Development Install<a class="headerlink" href="#development-install" title="Permalink to this headline">¶</a></h2>
 <p>The development version of ActivitySim can be installed as follows:</p>
 <ul class="simple">
-<li>Clone or fork the source from the <a class="reference external" href="https://github.com/udst/activitysim">GitHub repository</a></li>
+<li>Clone or fork the source from the <a class="reference external" href="https://github.com/activitysim/activitysim">GitHub repository</a></li>
 <li>Activate the correct conda environment if needed</li>
 <li>Navigate to your local activitysim git directory</li>
 <li>Run the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></li>
@@ -418,7 +421,7 @@ The script does the following:</p>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="core.html" class="btn btn-neutral" title="Core Components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="core.html" class="btn btn-neutral float-left" title="Core Components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -427,7 +430,7 @@ The script does the following:</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright contributing authors.
+        &copy; Copyright contributing authors
 
     </p>
   </div>
@@ -444,33 +447,16 @@ The script does the following:</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.7',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

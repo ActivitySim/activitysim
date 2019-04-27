@@ -2,12 +2,26 @@
 Core Components
 ===============
 
-ActivitySim's core components include features for data management, 
+ActivitySim's core components include features for multiprocessing, data management, 
 utility expressions, choice models, person time window management, and helper 
-functions.  These core components include the skim matrix manager, the 
+functions.  These core components include the multiprocessor, skim matrix manager, the 
 data pipeline manager, the random number manager, the tracer, sampling 
 methods, simulation methods, model specification readers and expression 
 evaluators, choice models, timetable, and helper functions.
+
+.. _multiprocessing_in_detail:
+
+Multiprocessing
+---------------
+
+Parallelization using multiprocessing
+
+API
+~~~
+
+.. automodule:: activitysim.core.mp_tasks
+   :members:
+
 
 Data Management
 ---------------
@@ -173,7 +187,7 @@ coefficients) is specified in the YAML settings file.
 +========================================+==========================================================+=================+===============+ 
 |DA - Unavailable                        | sov_available == False                                   |            -999 |               | 
 +----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
-|DA - In-vehicle time                    | @c_ivt*(@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'])  |               1 |               | 
+|DA - In-vehicle time                    | @c_ivt*(odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'])   |               1 |               |
 +----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
 |DAP - Unavailable for age less than 16  | age < 16                                                 |                 |   -999        | 
 +----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
@@ -361,7 +375,7 @@ API
 Inject
 ~~~~~~
 
-Wrap orca class to make it easier to track and manage interaction with the data pipeline.
+Wrap ORCA class to make it easier to track and manage interaction with the data pipeline.
 
 API
 ^^^
@@ -369,21 +383,21 @@ API
 .. automodule:: activitysim.core.inject
    :members:
 
-Inject_Defaults
-~~~~~~~~~~~~~~~
+Mem
+~~~
 
-Default file and folder settings are injected into the orca model runner if needed.
+Helper functions for tracking memory usage
 
 API
 ^^^
 
-.. automodule:: activitysim.core.inject_defaults
+.. automodule:: activitysim.core.mem
    :members:
-   
+      
 Output
 ~~~~~~
 
-Write output files.
+Write output files and track skim usage.
 
 API
 ^^^

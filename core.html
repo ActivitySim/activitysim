@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core Components &mdash; ActivitySim 0.7
+  <title>Core Components &mdash; ActivitySim 0.8
  documentation</title>
   
 
@@ -18,13 +18,20 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
@@ -32,21 +39,16 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Software Development" href="development.html" />
     <link rel="prev" title="How the System Works" href="howitworks.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -60,7 +62,7 @@
             
             
               <div class="version">
-                0.7
+                0.8
 
               </div>
             
@@ -91,21 +93,25 @@
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Core Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#data-management">Data Management</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#skim">Skim</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#module-activitysim.core.skim">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#multiprocessing">Multiprocessing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.core.mp_tasks">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#data-management">Data Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#skim">Skim</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id1">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#random">Random</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id2">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#random">Random</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id3">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
 </ul>
 </li>
 </ul>
@@ -114,61 +120,61 @@
 <li class="toctree-l3"><a class="reference internal" href="#conventions">Conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-expressions-file">Example Expressions File</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sampling-with-interaction">Sampling with Interaction</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#simulate">Simulate</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id6">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id7">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#simulate-with-interaction">Simulate with Interaction</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id8">API</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#simulate-with-sampling-and-interaction">Simulate with Sampling and Interaction</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id9">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#assign">Assign</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#simulate-with-sampling-and-interaction">Simulate with Sampling and Interaction</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id10">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#assign">Assign</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id11">API</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#choice-models">Choice Models</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#logit">Logit</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id11">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">API</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#person-time-windows">Person Time Windows</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id12">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#helpers">Helpers</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#chunk">Chunk</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id13">API</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id14">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id15">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#inject">Inject</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id17">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id16">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#inject-defaults">Inject_Defaults</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#inject">Inject</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id18">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#output">Output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mem">Mem</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id19">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#output">Output</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id20">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
@@ -243,20 +249,850 @@
             
   <div class="section" id="core-components">
 <h1>Core Components<a class="headerlink" href="#core-components" title="Permalink to this headline">¶</a></h1>
-<p>ActivitySim’s core components include features for data management,
+<p>ActivitySim’s core components include features for multiprocessing, data management,
 utility expressions, choice models, person time window management, and helper
-functions.  These core components include the skim matrix manager, the
+functions.  These core components include the multiprocessor, skim matrix manager, the
 data pipeline manager, the random number manager, the tracer, sampling
 methods, simulation methods, model specification readers and expression
 evaluators, choice models, timetable, and helper functions.</p>
+<div class="section" id="multiprocessing">
+<span id="multiprocessing-in-detail"></span><h2>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this headline">¶</a></h2>
+<p>Parallelization using multiprocessing</p>
+<div class="section" id="module-activitysim.core.mp_tasks">
+<span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.core.mp_tasks" title="Permalink to this headline">¶</a></h3>
+<dl class="data">
+<dt id="activitysim.core.mp_tasks.LAST_CHECKPOINT">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">LAST_CHECKPOINT</code><em class="property"> = '_'</em><a class="headerlink" href="#activitysim.core.mp_tasks.LAST_CHECKPOINT" title="Permalink to this definition">¶</a></dt>
+<dd><p>mp_tasks - activitysim multiprocessing overview</p>
+<p>Activitysim runs a list of models sequentially, performing various computational operations
+on tables. Model steps can modify values in existing tables, add columns, or create additional
+tables. Activitysim provides the facility, via expression files, to specify vectorized operations
+on data tables. The ability to vectorize operations depends upon the independence of the
+computations performed on the vectorized elements.</p>
+<p>Python is agonizingly slow performing scalar operations sequentially on large datasets, so
+vectorization (using pandas and/or numpy) is essential for good performance.</p>
+<p>Fortunately most activity based model simulation steps are row independent at the household,
+person, tour, or trip level. The decisions for one household are independent of the choices
+made by other households. Thus it is (generally speaking) possible to run an entire simulation
+on a household sample with only one household, and get the same result for that household as
+you would running the simulation on a thousand households. (See the shared data section below
+for an exception to this highly convenient situation.)</p>
+<p>The random number generator supports this goal by providing streams of random numbers
+for each households and person that are mutually independent and repeatable across model runs
+and processes.</p>
+<p>To the extent that simulation model steps are row independent, we can implement most simulations
+as a series of vectorized operations on pandas DataFrames and numpy arrays. These vectorized
+operations are much faster than sequential python because they are implemented by native code
+(compiled C) and are to some extent multi-threaded. But the benefits of numpy multi-processing are
+limited because they only apply to atomic numpy or pandas calls, and as soon as control returns
+to python it is single-threaded and slow.</p>
+<p>Multi-threading is not an attractive strategy to get around the python performance problem because
+of the limitations imposed by python’s global interpreter lock (GIL). Rather than struggling with
+python multi-threading, this module uses the python multiprocessing to parallelize certain models.</p>
+<p>Because of activitysim’s modular and extensible architecture, we don’t hardwire the multiprocessing
+architecture. The specification of which models should be run in parallel, how many processers
+should be used, and the segmentation of the data between processes are all specified in the
+settings config file. For conceptual simplicity, the single processing model as treated as
+dominant (because even though in practice multiprocessing may be the norm for production runs,
+the single-processing model will be used in development and debugging and keeping it dominant
+will tend to concentrate the multiprocessing-specific code in one place and prevent multiprocessing
+considerations from permeating the code base obscuring the model-specific logic.</p>
+<p>The primary function of the multiprocessing settings are to identify distinct stages of
+computation, and to specify how many simultaneous processes should be used to perform them,
+and how the data to be treated should be apportioned between those processes. We assume that
+the data can be apportioned between subprocesses according to the index of a single primary table
+(e.g. households) or else are by derivative or dependent tables that reference that table’s index
+(primary key) with a ref_col (foreign key) sharing the name of the primary table’s key.</p>
+<p>Generally speaking, we assume that any new tables that are created are directly dependent on the
+previously existing tables, and all rows in new tables are either attributable to previously
+existing rows in the pipeline tables, or are global utility tables that are identical across
+sub-processes.</p>
+<p>Note: There are a few exceptions to ‘row independence’, such as school and location choice models,
+where the model behavior is externally constrained or adjusted. For instance, we want school
+location choice to match known aggregate school enrollments by zone. Similarly, a parking model
+(not yet implemented) might be constrained by availability. These situations require special
+handling.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
+  <span class="c1">### mp_initialize step</span>
+  <span class="o">-</span> <span class="n">initialize_landuse</span>
+  <span class="o">-</span> <span class="n">compute_accessibility</span>
+  <span class="o">-</span> <span class="n">initialize_households</span>
+  <span class="c1">### mp_households step</span>
+  <span class="o">-</span> <span class="n">school_location</span>
+  <span class="o">-</span> <span class="n">workplace_location</span>
+  <span class="o">-</span> <span class="n">auto_ownership_simulate</span>
+  <span class="o">-</span> <span class="n">free_parking</span>
+  <span class="c1">### mp_summarize step</span>
+  <span class="o">-</span> <span class="n">write_tables</span>
+
+<span class="n">multiprocess_steps</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">mp_initialize</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">initialize_landuse</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">mp_households</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">school_location</span>
+    <span class="n">num_processes</span><span class="p">:</span> <span class="mi">2</span>
+    <span class="nb">slice</span><span class="p">:</span>
+      <span class="n">tables</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">households</span>
+        <span class="o">-</span> <span class="n">persons</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">mp_summarize</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">write_tables</span>
+</pre></div>
+</div>
+<p>The multiprocess_steps setting above annotates the models list to indicate that the simulation
+should be broken into three steps.</p>
+<p>The first multiprocess_step (mp_initialize) begins with the initialize_landuse step and is
+implicity single-process because there is no ‘slice’ key indicating how to apportion the tables.
+This first step includes all models listed in the ‘models’ setting up until the first step
+in the next multiprocess_steps.</p>
+<p>The second multiprocess_step (mp_households) starts with the school location model and continues
+through auto_ownership_simulate. The ‘slice’ info indicates that the tables should be sliced by
+households, and that persons is a dependent table and so and persons with a ref_col (foreign key
+column with the same name as the Households table index) referencing a household record should be
+taken to ‘belong’ to that household. Similarly, any other table that either share an index
+(i.e. having the same name) with either the households or persons table, or have a ref_col to
+either of their indexes, should also be considered a dependent table.</p>
+<p>The num_processes setting of 2 indicates that the pipeline should be split in two, and half of the
+households should be apportioned into each subprocess pipeline, and all dependent tables should
+likewise be apportioned accordingly. All other tables (e.g. land_use) that do share an index (name)
+or have a ref_col should be considered mirrored and be included in their entirety.</p>
+<p>The primary table is sliced by num_processes-sized strides. (e.g. for num_processes == 2, the
+sub-processes get every second record starting at offsets 0 and 1 respectively. All other dependent
+tables slices are based (directly or indirectly) on this primary stride segmentation of the primary
+table index.</p>
+<p>Two separate sub-process are launched (num_processes == 2) and each passed the name of their
+apportioned pipeline file. They execute independently and if they terminate successfully, their
+contents are then coalesced into a single pipeline file whose tables should then be essentially
+the same as it had been generated by a single process.</p>
+<p>We assume that any new tables that are created by the sub-processes are directly dependent on the
+previously primary tables or are mirrored. Thus we can coalesce the sub-process pipelines by
+concatenating the primary and dependent tables and simply retaining any copy of the mirrored tables
+(since they should all be identical.)</p>
+<p>The third multiprocess_step (mp_summarize) then is handled in single-process mode and runs the
+write_tables model, writing the results, but also leaving the tables in the pipeline, with
+essentially the same tables and results as if the whole simulation had been run as a single process.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">allocate_shared_shadow_pricing_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is called by the main process and allocate memory buffer to share with subprocs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>multiprocessing.RawArray</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.allocate_shared_skim_buffers">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">allocate_shared_skim_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.allocate_shared_skim_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is called by the main process to allocate shared memory buffer to share with subprocs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>skim_buffers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict {&lt;block_name&gt;: &lt;multiprocessing.RawArray&gt;}</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.apportion_pipeline">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">apportion_pipeline</code><span class="sig-paren">(</span><em>sub_proc_names</em>, <em>slice_info</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.apportion_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>apportion pipeline for multiprocessing step</p>
+<p>create pipeline files for sub_procs, apportioning data based on slice_rules</p>
+<p>Called at the beginning of a multiprocess step prior to launching the sub-processes
+Pipeline files have well known names (pipeline file name prefixed by subjob name)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>sub_proc_names</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><p class="first last">names of the sub processes to apportion</p>
+</dd>
+<dt><strong>slice_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">slice_info from multiprocess_steps</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>creates apportioned pipeline files for each sub job</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.build_slice_rules">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">build_slice_rules</code><span class="sig-paren">(</span><em>slice_info</em>, <em>pipeline_tables</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.build_slice_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>based on slice_info for current step from run_list, generate a recipe for slicing
+the tables in the pipeline (passed in tables parameter)</p>
+<dl class="docutils">
+<dt>slice_info is a dict with two well-known keys:</dt>
+<dd>‘tables’: required list of table names (order matters!)
+‘except’: optional list of tables not to slice even if they have a sliceable index name</dd>
+</dl>
+<p>Note: tables listed in slice_info must appear in same order and before any others in tables dict</p>
+<p>The index of the first table in the ‘tables’ list is the primary_slicer. Subsequent tables
+are dependent (have a column with the sae</p>
+<p>Any other tables listed ar dependent tables with either ref_cols to the primary_slicer
+or with the same index (i.e. having an index with the same name). This cascades, so any
+tables dependent on the primary_table can in turn have dependent tables that will be sliced
+by index or ref_col.</p>
+<p>For instance, if the primary_slicer is households, then persons can be sliced because it
+has a ref_col to (column with the same same name as) the household table index. And the
+tours table can be sliced since it has a ref_col to persons. Tables can also be sliced
+by index. For instance the person_windows table can be sliced because it has an index with
+the same names as the persons table.</p>
+<p>slice_info from multiprocess_steps</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">slice</span><span class="p">:</span>
+  <span class="n">tables</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">households</span>
+    <span class="o">-</span> <span class="n">persons</span>
+</pre></div>
+</div>
+<p>tables from pipeline</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="37%" />
+<col width="30%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Table Name</th>
+<th class="head">Index</th>
+<th class="head">ref_col</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>households</td>
+<td>household_id</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>persons</td>
+<td>person_id</td>
+<td>household_id</td>
+</tr>
+<tr class="row-even"><td>person_windows</td>
+<td>person_id</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>accessibility</td>
+<td>zone_id</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+<p>generated slice_rules dict</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">households</span><span class="p">:</span>
+   <span class="n">slice_by</span><span class="p">:</span> <span class="n">primary</span>       <span class="o">&lt;-</span> <span class="n">primary</span> <span class="n">table</span> <span class="ow">is</span> <span class="n">sliced</span> <span class="ow">in</span> <span class="n">num_processors</span><span class="o">-</span><span class="n">sized</span> <span class="n">strides</span>
+<span class="n">persons</span><span class="p">:</span>
+   <span class="n">source</span><span class="p">:</span> <span class="n">households</span>
+   <span class="n">slice_by</span><span class="p">:</span> <span class="n">column</span>
+   <span class="n">column</span><span class="p">:</span>  <span class="n">household_id</span>   <span class="o">&lt;-</span> <span class="nb">slice</span> <span class="n">by</span> <span class="n">ref_col</span> <span class="p">(</span><span class="n">foreign</span> <span class="n">key</span><span class="p">)</span> <span class="n">to</span> <span class="n">households</span>
+<span class="n">person_windows</span><span class="p">:</span>
+   <span class="n">source</span><span class="p">:</span> <span class="n">persons</span>
+   <span class="n">slice_by</span><span class="p">:</span> <span class="n">index</span>         <span class="o">&lt;-</span> <span class="nb">slice</span> <span class="n">by</span> <span class="n">index</span> <span class="n">of</span> <span class="n">persons</span> <span class="n">table</span>
+<span class="n">accessibility</span><span class="p">:</span>
+   <span class="n">slice_by</span><span class="p">:</span>               <span class="o">&lt;-</span> <span class="n">mirrored</span> <span class="p">(</span><span class="n">non</span><span class="o">-</span><span class="n">dependent</span><span class="p">)</span> <span class="n">tables</span> <span class="n">don</span><span class="s1">&#39;t get sliced</span>
+<span class="n">land_use</span><span class="p">:</span>
+   <span class="n">slice_by</span><span class="p">:</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>slice_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">‘slice’ info from run_list for this step</p>
+</dd>
+<dt><strong>pipeline_tables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict {&lt;table_name&gt;, &lt;pandas.DataFrame&gt;}</span></dt>
+<dd><p class="first last">dict of all tables from the pipeline keyed by table name</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>slice_rules</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.coalesce_pipelines">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">coalesce_pipelines</code><span class="sig-paren">(</span><em>sub_proc_names</em>, <em>slice_info</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.coalesce_pipelines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coalesce the data in the sub_processes apportioned pipelines back into a single pipeline</p>
+<p>We use slice_rules to distinguish sliced (apportioned) tables from mirrored tables.</p>
+<p>Sliced tables are concatenated to create a single omnibus table with data from all sub_procs
+but mirrored tables are the same across all sub_procs, so we can grab a copy from any pipeline.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>sub_proc_names</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd></dd>
+<dt><strong>slice_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">slice_info from multiprocess_steps</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>creates an omnibus pipeline with coalesced data from individual sub_proc pipelines</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.drop_breadcrumb">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">drop_breadcrumb</code><span class="sig-paren">(</span><em>step_name</em>, <em>crumb</em>, <em>value=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.drop_breadcrumb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add (crumb: value) to specified step in breadcrumbs and flush breadcrumbs to file
+run can be resumed with resume_after</p>
+<p>Breadcrumbs provides a record of steps that have been run for use when resuming
+Basically, we want to know which steps have been run, which phases completed
+(i.e. apportion, simulate, coalesce). For multi-processed simulate steps, we also
+want to know which sub-processes completed successfully, because if resume_after
+is LAST_CHECKPOINT we don’t have to rerun the successful ones.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>step_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+<dt><strong>crumb</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+<dt><strong>value</strong> <span class="classifier-delimiter">:</span> <span class="classifier">yaml-writable value</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.get_breadcrumbs">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">get_breadcrumbs</code><span class="sig-paren">(</span><em>run_list</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.get_breadcrumbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read, validate, and annotate breadcrumb file from previous run</p>
+<p>if resume_after specifies a model name, we need to determine which step it falls within,
+drop any subsequent steps, and set the ‘simulate’ and ‘coalesce’ to None so</p>
+<p>Extract from breadcrumbs file showing completed mp_households step with 2 processes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">apportion</span><span class="p">:</span> <span class="n">true</span>
+  <span class="n">completed</span><span class="p">:</span> <span class="p">[</span><span class="n">mp_households_0</span><span class="p">,</span> <span class="n">mp_households_1</span><span class="p">]</span>
+  <span class="n">name</span><span class="p">:</span> <span class="n">mp_households</span>
+  <span class="n">simulate</span><span class="p">:</span> <span class="n">true</span>
+  <span class="n">coalesce</span><span class="p">:</span> <span class="n">true</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>run_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">validated and annotated run_list from settings</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>breadcrumbs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">validated and annotated breadcrumbs file from previous run</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.get_run_list">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">get_run_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.get_run_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>validate and annotate run_list from settings</p>
+<p>Assign defaults to missing settings (e.g. stagger, chunk_size)
+Build individual step model lists based on step starts
+If resuming, read breadcrumbs file for info on previous run execution status</p>
+<p># annotated run_list with two steps, the second with 2 processors</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resume_after</span><span class="p">:</span> <span class="kc">None</span>
+<span class="n">multiprocess</span><span class="p">:</span> <span class="kc">True</span>
+<span class="n">models</span><span class="p">:</span>
+  <span class="o">-</span>  <span class="n">initialize_landuse</span>
+  <span class="o">-</span>  <span class="n">compute_accessibility</span>
+  <span class="o">-</span>  <span class="n">initialize_households</span>
+  <span class="o">-</span>  <span class="n">school_location</span>
+  <span class="o">-</span>  <span class="n">workplace_location</span>
+
+<span class="n">multiprocess_steps</span><span class="p">:</span>
+  <span class="n">step</span><span class="p">:</span> <span class="n">mp_initialize</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">initialize_landuse</span>
+    <span class="n">name</span><span class="p">:</span> <span class="n">mp_initialize</span>
+    <span class="n">models</span><span class="p">:</span>
+       <span class="o">-</span> <span class="n">initialize_landuse</span>
+       <span class="o">-</span> <span class="n">compute_accessibility</span>
+       <span class="o">-</span> <span class="n">initialize_households</span>
+    <span class="n">num_processes</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="n">stagger</span><span class="p">:</span> <span class="mi">5</span>
+    <span class="n">chunk_size</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">step_num</span><span class="p">:</span> <span class="mi">0</span>
+  <span class="n">step</span><span class="p">:</span> <span class="n">mp_households</span>
+    <span class="n">begin</span><span class="p">:</span> <span class="n">school_location</span>
+    <span class="nb">slice</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;tables&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;households&#39;</span><span class="p">,</span> <span class="s1">&#39;persons&#39;</span><span class="p">]}</span>
+    <span class="n">name</span><span class="p">:</span> <span class="n">mp_households</span>
+    <span class="n">models</span><span class="p">:</span>
+       <span class="o">-</span> <span class="n">school_location</span>
+       <span class="o">-</span> <span class="n">workplace_location</span>
+    <span class="n">num_processes</span><span class="p">:</span> <span class="mi">2</span>
+    <span class="n">stagger</span><span class="p">:</span> <span class="mi">5</span>
+    <span class="n">chunk_size</span><span class="p">:</span> <span class="mi">10000</span>
+    <span class="n">step_num</span><span class="p">:</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>run_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">validated and annotated run_list</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.if_sub_task">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">if_sub_task</code><span class="sig-paren">(</span><em>if_is</em>, <em>if_isnt</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.if_sub_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>select one of two values depending whether current process is primary process or subtask</p>
+<p>This is primarily intended for use in yaml files to select between (e.g.) logging levels
+so main log file can display only warnings and errors from subtasks</p>
+<p>In yaml file, it can be used like this:</p>
+<p>level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [WARNING, NOTSET]</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>if_is</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(any type) value to return if process is a subtask</span></dt>
+<dd></dd>
+<dt><strong>if_isnt</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(any type) value to return if process is not a subtask</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>(any type) (one of parameters if_is or if_isnt)</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.mp_apportion_pipeline">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">mp_apportion_pipeline</code><span class="sig-paren">(</span><em>injectables</em>, <em>sub_proc_names</em>, <em>slice_info</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.mp_apportion_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>mp entry point for apportion_pipeline</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>injectables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">injectables from parent</p>
+</dd>
+<dt><strong>sub_proc_names</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><p class="first last">names of the sub processes to apportion</p>
+</dd>
+<dt><strong>slice_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">slice_info from multiprocess_steps</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.mp_coalesce_pipelines">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">mp_coalesce_pipelines</code><span class="sig-paren">(</span><em>injectables</em>, <em>sub_proc_names</em>, <em>slice_info</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.mp_coalesce_pipelines" title="Permalink to this definition">¶</a></dt>
+<dd><p>mp entry point for coalesce_pipeline</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>injectables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">injectables from parent</p>
+</dd>
+<dt><strong>sub_proc_names</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><p class="first last">names of the sub processes to apportion</p>
+</dd>
+<dt><strong>slice_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">slice_info from multiprocess_steps</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.mp_run_simulation">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">mp_run_simulation</code><span class="sig-paren">(</span><em>locutor</em>, <em>queue</em>, <em>injectables</em>, <em>step_info</em>, <em>resume_after</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.mp_run_simulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>mp entry point for run_simulation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>locutor</strong></dt>
+<dd></dd>
+<dt><strong>queue</strong></dt>
+<dd></dd>
+<dt><strong>injectables</strong></dt>
+<dd></dd>
+<dt><strong>step_info</strong></dt>
+<dd></dd>
+<dt><strong>resume_after</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd></dd>
+<dt><strong>kwargs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">shared_data_buffers passed as kwargs to avoid picking dict</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.mp_setup_skims">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">mp_setup_skims</code><span class="sig-paren">(</span><em>injectables</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.mp_setup_skims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub process to load skim data into shared_data</p>
+<p>There is no particular necessity to perform this in a sub process instead of the parent
+except to ensure that this heavyweight task has no side-effects (e.g. loading injectables)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>injectables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">injectables from parent</p>
+</dd>
+<dt><strong>kwargs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">shared_data_buffers passed as kwargs to avoid picking dict</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.pipeline_table_keys">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">pipeline_table_keys</code><span class="sig-paren">(</span><em>pipeline_store</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.pipeline_table_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>return dict of current (as of last checkpoint) pipeline tables
+and their checkpoint-specific hdf5_keys</p>
+<p>This facilitates reading pipeline tables directly from a ‘raw’ open pandas.HDFStore without
+opening it as a pipeline (e.g. when apportioning and coalescing pipelines)</p>
+<p>We currently only ever need to do this from the last checkpoint, so the ability to specify
+checkpoint_name is not required, and thus omitted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>pipeline_store</strong> <span class="classifier-delimiter">:</span> <span class="classifier">open hdf5 pipeline_store</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>checkpoint_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">name of the checkpoint</span></dt>
+<dd></dd>
+<dt><strong>checkpoint_tables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict {&lt;table_name&gt;: &lt;table_key&gt;}</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.print_run_list">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">print_run_list</code><span class="sig-paren">(</span><em>run_list</em>, <em>output_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.print_run_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print run_list to stdout or file (informational - not read back in)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>run_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd></dd>
+<dt><strong>output_file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">open file</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.read_breadcrumbs">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">read_breadcrumbs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.read_breadcrumbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read breadcrumbs file from previous run</p>
+<p>write_breadcrumbs wrote OrderedDict steps as list so ordered is preserved
+(step names are duplicated in steps)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>breadcrumbs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">OrderedDict</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.run_multiprocess">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">run_multiprocess</code><span class="sig-paren">(</span><em>run_list</em>, <em>injectables</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.run_multiprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>run the steps in run_list, possibly resuming after checkpoint specified by resume_after</p>
+<p>Steps may be either single or multi process.
+For multi-process steps, we need to apportion pipelines before running sub processes
+and coalesce them afterwards</p>
+<p>injectables arg allows propagation of setting values that were overridden on the command line
+(parent process command line arguments are not available to sub-processes in Windows)</p>
+<ul class="simple">
+<li>allocate shared data buffers for skims and shadow_pricing</li>
+<li>load shared skim data from OMX files</li>
+<li>run each (single or multiprocess) step in turn</li>
+</ul>
+<p>Drop breadcrumbs along the way to facilitate resuming in a later run</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>run_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">annotated run_list  (including prior run breadcrumbs if resuming)</p>
+</dd>
+<dt><strong>injectables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">dict of values to inject in sub-processes</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.run_simulation">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">run_simulation</code><span class="sig-paren">(</span><em>queue</em>, <em>step_info</em>, <em>resume_after</em>, <em>shared_data_buffer</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.run_simulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>run step models as subtask</p>
+<p>called once to run each individual sub process in multiprocess step</p>
+<p>Unless actually resuming resuming, resume_after will be None for first step,
+and then FINAL for subsequent steps so pipelines opened to resume where previous step left off</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>queue</strong> <span class="classifier-delimiter">:</span> <span class="classifier">multiprocessing.Queue</span></dt>
+<dd></dd>
+<dt><strong>step_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">step_info for current step from multiprocess_steps</p>
+</dd>
+<dt><strong>resume_after</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd></dd>
+<dt><strong>shared_data_buffer</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">dict of shared data (e.g. skims and shadow_pricing)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.run_sub_simulations">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">run_sub_simulations</code><span class="sig-paren">(</span><em>injectables</em>, <em>shared_data_buffers</em>, <em>step_info</em>, <em>process_names</em>, <em>resume_after</em>, <em>previously_completed</em>, <em>fail_fast</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.run_sub_simulations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launch sub processes to run models in step according to specification in step_info.</p>
+<p>If resume_after is LAST_CHECKPOINT, then pick up where previous run left off, using breadcrumbs
+from previous run. If some sub-processes completed in the prior run, then skip rerunning them.</p>
+<p>If resume_after specifies a checkpiont, skip checkpoints that precede the resume_after</p>
+<p>Drop ‘completed’ breadcrumbs for this run as sub-processes terminate</p>
+<p>Wait for all sub-processes to terminate and return list of those that completed successfully.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>injectables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">values to inject in subprocesses</p>
+</dd>
+<dt><strong>shared_data_buffers</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">dict of shared_data for sub-processes (e.g. skim and shadow pricing data)</p>
+</dd>
+<dt><strong>step_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">step_info from run_list</p>
+</dd>
+<dt><strong>process_names</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><p class="first last">list of sub process names to in parallel</p>
+</dd>
+<dt><strong>resume_after</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd><p class="first last">name of simulation to resume after, or LAST_CHECKPOINT to resume where previous run left off</p>
+</dd>
+<dt><strong>previously_completed</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><p class="first last">names of processes that successfully completed in previous run</p>
+</dd>
+<dt><strong>fail_fast</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">whether to raise error if a sub process terminates with nonzero exitcode</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>completed</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of str</span></dt>
+<dd><p class="first last">names of sub_processes that completed successfully</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.run_sub_task">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">run_sub_task</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.run_sub_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run process p synchroneously,</p>
+<p>Return when sub process terminates, or raise error if exitcode is nonzero</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>p</strong> <span class="classifier-delimiter">:</span> <span class="classifier">multiprocessing.Process</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.setup_injectables_and_logging">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">setup_injectables_and_logging</code><span class="sig-paren">(</span><em>injectables</em>, <em>locutor=True</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.setup_injectables_and_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup injectables (passed by parent process) within sub process</p>
+<p>we sometimes want only one of the sub-processes to perform an action (e.g. write shadow prices)
+the locutor flag indicates that this sub process is the designated singleton spokesperson</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>injectables</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict {&lt;injectable_name&gt;: &lt;value&gt;}</span></dt>
+<dd><p class="first last">dict of injectables passed by parent process</p>
+</dd>
+<dt><strong>locutor</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">is this sub process the designated spokesperson</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>injects injectables</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.mp_tasks.write_breadcrumbs">
+<code class="descclassname">activitysim.core.mp_tasks.</code><code class="descname">write_breadcrumbs</code><span class="sig-paren">(</span><em>breadcrumbs</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.write_breadcrumbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write breadcrumbs file with execution history of multiprocess run</p>
+<p>Write steps as array so order is preserved (step names are duplicated in steps)</p>
+<p>Extract from breadcrumbs file showing completed mp_households step with 2 processes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">apportion</span><span class="p">:</span> <span class="n">true</span>
+  <span class="n">coalesce</span><span class="p">:</span> <span class="n">true</span>
+  <span class="n">completed</span><span class="p">:</span> <span class="p">[</span><span class="n">mp_households_0</span><span class="p">,</span> <span class="n">mp_households_1</span><span class="p">]</span>
+  <span class="n">name</span><span class="p">:</span> <span class="n">mp_households</span>
+  <span class="n">simulate</span><span class="p">:</span> <span class="n">true</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>breadcrumbs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">OrderedDict</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="data-management">
 <h2>Data Management<a class="headerlink" href="#data-management" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="skim">
 <span id="skims-in-detail"></span><h3>Skim<a class="headerlink" href="#skim" title="Permalink to this headline">¶</a></h3>
 <p>Skim matrix data access</p>
-<div class="section" id="module-activitysim.core.skim">
-<span id="api"></span><h4>API<a class="headerlink" href="#module-activitysim.core.skim" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
+<div class="section" id="id1">
+<h4>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.skim"></span><dl class="class">
 <dt id="activitysim.core.skim.DataFrameMatrix">
 <em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">DataFrameMatrix</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.DataFrameMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Utility class to allow a pandas dataframe to be treated like a 2-D array,
@@ -274,7 +1110,7 @@ e.g. size_terms.get(df.dest_taz, df.purpose)</p>
 </div>
 <dl class="method">
 <dt id="activitysim.core.skim.DataFrameMatrix.get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>row_ids</em>, <em>col_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.DataFrameMatrix.get" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get</code><span class="sig-paren">(</span><em>self</em>, <em>row_ids</em>, <em>col_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.DataFrameMatrix.get" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -289,7 +1125,78 @@ e.g. size_terms.get(df.dest_taz, df.purpose)</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>series with one row per row_id, with the value from the column specified in col_ids</strong></dt>
+<dt>series with one row per row_id, with the value from the column specified in col_ids</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="activitysim.core.skim.OffsetMapper">
+<em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">OffsetMapper</code><span class="sig-paren">(</span><em>offset_int=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility to map skim zone ids to ordinal offsets (e.g. numpy array indices)</p>
+<p>Can map either by a fixed offset (e.g. -1 to map 1-based to 0-based)
+or by an explicit mapping of zone id to offset (slower but more flexible)</p>
+<dl class="method">
+<dt id="activitysim.core.skim.OffsetMapper.map">
+<code class="descname">map</code><span class="sig-paren">(</span><em>self</em>, <em>zone_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper.map" title="Permalink to this definition">¶</a></dt>
+<dd><p>map zone_ids to offsets</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>zone_ids</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>offsets</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy array of int</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.skim.OffsetMapper.set_offset_int">
+<code class="descname">set_offset_int</code><span class="sig-paren">(</span><em>self</em>, <em>offset_int</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper.set_offset_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>specify fixed offset (e.g. -1 to map 1-based to 0-based)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>offset_int</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.skim.OffsetMapper.set_offset_list">
+<code class="descname">set_offset_list</code><span class="sig-paren">(</span><em>self</em>, <em>offset_list</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper.set_offset_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the zone ids corresponding to the offsets (ordinal positions)</p>
+<p>set_offset_list([10, 20, 30, 40])
+map([30, 20, 40])
+returns offsets [2, 1, 3]</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>offset_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of int</span></dt>
 <dd></dd>
 </dl>
 </td>
@@ -302,15 +1209,15 @@ e.g. size_terms.get(df.dest_taz, df.purpose)</p>
 
 <dl class="class">
 <dt id="activitysim.core.skim.SkimDict">
-<em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">SkimDict</code><a class="headerlink" href="#activitysim.core.skim.SkimDict" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">SkimDict</code><span class="sig-paren">(</span><em>skim_data</em>, <em>skim_info</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SkimDict object is a wrapper around a dict of multiple skim objects,
 where each object is identified by a key.  It operates like a
 dictionary - i.e. use brackets to add and get skim objects.</p>
 <p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
 <dl class="method">
 <dt id="activitysim.core.skim.SkimDict.get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get an available skim object (not the lookup)</p>
+<code class="descname">get</code><span class="sig-paren">(</span><em>self</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an available wrapped skim object (not the lookup)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -323,37 +1230,9 @@ dictionary - i.e. use brackets to add and get skim objects.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>skim: Skim</strong></dt>
+<dt>skim: Skim</dt>
 <dd><p class="first last">The skim object</p>
 </dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="activitysim.core.skim.SkimDict.set">
-<code class="descname">set</code><span class="sig-paren">(</span><em>key</em>, <em>skim_data</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict.set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set skim data for key</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">hashable</span></dt>
-<dd><p class="first last">The key (identifier) for this skim object</p>
-</dd>
-<dt><strong>skim_data</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Skim</span></dt>
-<dd><p class="first last">The skim object</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
-<dd></dd>
 </dl>
 </td>
 </tr>
@@ -363,7 +1242,7 @@ dictionary - i.e. use brackets to add and get skim objects.</p>
 
 <dl class="method">
 <dt id="activitysim.core.skim.SkimDict.wrap">
-<code class="descname">wrap</code><span class="sig-paren">(</span><em>left_key</em>, <em>right_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict.wrap" title="Permalink to this definition">¶</a></dt>
+<code class="descname">wrap</code><span class="sig-paren">(</span><em>self</em>, <em>left_key</em>, <em>right_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict.wrap" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a SkimDictWrapper for self</p>
 </dd></dl>
 
@@ -391,7 +1270,7 @@ to use in the expressions.</p>
 <p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
 <dl class="method">
 <dt id="activitysim.core.skim.SkimDictWrapper.lookup">
-<code class="descname">lookup</code><span class="sig-paren">(</span><em>key</em>, <em>reverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.lookup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>self</em>, <em>key</em>, <em>reverse=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.lookup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generally not called by the user - use __getitem__ instead</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -409,7 +1288,7 @@ od=False means lookup destination-origin skim value</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>impedances: pd.Series</strong></dt>
+<dt>impedances: pd.Series</dt>
 <dd><p class="first last">A Series of impedances which are elements of the Skim object and
 with the same index as df</p>
 </dd>
@@ -422,19 +1301,19 @@ with the same index as df</p>
 
 <dl class="method">
 <dt id="activitysim.core.skim.SkimDictWrapper.max">
-<code class="descname">max</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.max" title="Permalink to this definition">¶</a></dt>
+<code class="descname">max</code><span class="sig-paren">(</span><em>self</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.max" title="Permalink to this definition">¶</a></dt>
 <dd><p>return max skim value in either o-d or d-o direction</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="activitysim.core.skim.SkimDictWrapper.reverse">
-<code class="descname">reverse</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.reverse" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reverse</code><span class="sig-paren">(</span><em>self</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.reverse" title="Permalink to this definition">¶</a></dt>
 <dd><p>return skim value in reverse (d-o) direction</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="activitysim.core.skim.SkimDictWrapper.set_df">
-<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.set_df" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.set_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the dataframe</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -448,7 +1327,7 @@ with the same index as df</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -460,9 +1339,20 @@ with the same index as df</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="activitysim.core.skim.SkimStack">
+<em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">SkimStack</code><span class="sig-paren">(</span><em>skim_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimStack" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="activitysim.core.skim.SkimStack.wrap">
+<code class="descname">wrap</code><span class="sig-paren">(</span><em>self</em>, <em>left_key</em>, <em>right_key</em>, <em>skim_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimStack.wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a SkimStackWrapper for self</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="activitysim.core.skim.SkimStackWrapper">
 <em class="property">class </em><code class="descclassname">activitysim.core.skim.</code><code class="descname">SkimStackWrapper</code><span class="sig-paren">(</span><em>stack</em>, <em>left_key</em>, <em>right_key</em>, <em>skim_key</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimStackWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>A SkimStackWrapper object wraps a skims object to add an additional wrinkle of
+<dd><p>A SkimStackWrapper object wraps a SkimStack object to add an additional wrinkle of
 lookup functionality.  Upon init the separate skims objects are
 processed into a 3D matrix so that lookup of the different skims can
 be performed quickly for each row in the dataframe.  In this very
@@ -509,7 +1399,7 @@ above for a more complete description)</p>
 </table>
 <dl class="method">
 <dt id="activitysim.core.skim.SkimStackWrapper.set_df">
-<code class="descname">set_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimStackWrapper.set_df" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimStackWrapper.set_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the dataframe</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -523,7 +1413,7 @@ above for a more complete description)</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -558,7 +1448,7 @@ would turn them into 0-based array indices.</p>
 </table>
 <dl class="method">
 <dt id="activitysim.core.skim.SkimWrapper.get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>orig</em>, <em>dest</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimWrapper.get" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get</code><span class="sig-paren">(</span><em>self</em>, <em>orig</em>, <em>dest</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimWrapper.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get impedence values for a set of origin, destination pairs.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -591,9 +1481,14 @@ would turn them into 0-based array indices.</p>
 <p>Data pipeline manager, which manages the list of model steps, runs them via orca, reads
 and writes data tables from/to the pipeline datastore, and supports restarting of the pipeline
 at any model step.</p>
-<div class="section" id="id1">
-<h4>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
-<span class="target" id="module-activitysim.core.pipeline"></span><dl class="function">
+<div class="section" id="id2">
+<h4>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.pipeline"></span><dl class="class">
+<dt id="activitysim.core.pipeline.Pipeline">
+<em class="property">class </em><code class="descclassname">activitysim.core.pipeline.</code><code class="descname">Pipeline</code><a class="headerlink" href="#activitysim.core.pipeline.Pipeline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.pipeline.add_checkpoint">
 <code class="descclassname">activitysim.core.pipeline.</code><code class="descname">add_checkpoint</code><span class="sig-paren">(</span><em>checkpoint_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.add_checkpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new checkpoint with specified name, write all data required to restore the simulation
@@ -628,7 +1523,7 @@ Write the current state of the random number generator.</p>
 
 <dl class="function">
 <dt id="activitysim.core.pipeline.extend_table">
-<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">extend_table</code><span class="sig-paren">(</span><em>table_name</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.extend_table" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">extend_table</code><span class="sig-paren">(</span><em>table_name</em>, <em>df</em>, <em>axis=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.extend_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>add new table or extend (add rows) to an existing table</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -651,6 +1546,7 @@ Write the current state of the random number generator.</p>
 <dt id="activitysim.core.pipeline.get_checkpoints">
 <code class="descclassname">activitysim.core.pipeline.</code><code class="descname">get_checkpoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.get_checkpoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get pandas dataframe of info about all checkpoints stored in pipeline</p>
+<p>pipeline doesn’t have to be open</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -680,7 +1576,7 @@ Write the current state of the random number generator.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>activitysim.random.Random</strong></dt>
+<dt>activitysim.random.Random</dt>
 <dd></dd>
 </dl>
 </td>
@@ -712,6 +1608,24 @@ The table can be a checkpointed table or any registered orca table (e.g. functio
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
 <dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.pipeline.last_checkpoint">
+<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">last_checkpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.last_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>last_checkpoint: str</dt>
+<dd><p class="first last">name of last checkpoint</p>
+</dd>
 </dl>
 </td>
 </tr>
@@ -867,7 +1781,7 @@ computed or added columns.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>the underlying df of the rewrapped table</strong></dt>
+<dt>the underlying df of the rewrapped table</dt>
 <dd></dd>
 </dl>
 </td>
@@ -916,31 +1830,6 @@ the same list of models, but specify a resume_after point if desired.</p>
 <dt><strong>model_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd><p class="first last">model_name is assumed to be the name of a registered orca step</p>
 </dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.pipeline.set_rn_generator_base_seed">
-<code class="descclassname">activitysim.core.pipeline.</code><code class="descname">set_rn_generator_base_seed</code><span class="sig-paren">(</span><em>seed</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.set_rn_generator_base_seed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like seed for numpy.random.RandomState, but generalized for use with all random streams.</p>
-<p>Provide a base seed that will be added to the seeds of all random streams.
-The default base seed value is 0, so set_base_seed(0) is a NOP</p>
-<p>set_rn_generator_base_seed(1) will (e.g.) provide a different set of random streams
-than the default, but will provide repeatable results re-running or resuming the simulation</p>
-<p>set_rn_generator_base_seed(None) will set the base seed to a random and unpredictable integer
-and so provides “fully pseudo random” non-repeatable streams with different results every time</p>
-<p>Must be called before open_pipeline() or pipeline.run()</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>seed</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or None</span></dt>
-<dd></dd>
 </dl>
 </td>
 </tr>
@@ -1015,11 +1904,302 @@ possible across alternative scenarios.  This is done for trips as well, by direc
 <p class="first admonition-title">Note</p>
 <p class="last">The Random module contains max model steps constants by chooser type - household, person, tour, trip - needs to be equal to the number of chooser sub-models.</p>
 </div>
-<div class="section" id="id2">
-<h4>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id3">
+<h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.random"></span><dl class="class">
+<dt id="activitysim.core.random.Random">
+<em class="property">class </em><code class="descclassname">activitysim.core.random.</code><code class="descname">Random</code><a class="headerlink" href="#activitysim.core.random.Random" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="activitysim.core.random.Random.add_channel">
+<code class="descname">add_channel</code><span class="sig-paren">(</span><em>self</em>, <em>channel_name</em>, <em>domain_df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.add_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create or extend a channel for generating random number streams for domain_df.</p>
+<p>We need to be prepared to extend an existing channel because mandatory and non-mandatory
+tours are generated separately by different sub-models, but end up members of a common
+tours channel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domain_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">domain dataframe with index values for which random streams are to be generated
+and well-known index name corresponding to the channel</p>
+</dd>
+<dt><strong>channel_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">expected channel name provided as a consistency check</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.begin_step">
+<code class="descname">begin_step</code><span class="sig-paren">(</span><em>self</em>, <em>step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.begin_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register that the pipeline has entered a new step and that global and channel streams
+should transition to the new stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>step_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">pipeline step name</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.choice_for_df">
+<code class="descname">choice_for_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em>, <em>a</em>, <em>size</em>, <em>replace</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.choice_for_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply numpy.random.choice once for each row in df
+using the appropriate random channel for each row.</p>
+<p>Concatenate the the choice arrays for every row into a single 1-D ndarray
+The resulting array will be of length: size * len(df.index)
+This method is designed to support creation of a interaction_dataset</p>
+<p>The columns in df are ignored; the index name and values are used to determine
+which random number sequence to to use.</p>
+<p>We assume that we can identify the channel to used based on the name of df.index
+This channel should have already been registered by a call to add_channel (q.v.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">df with index name and values corresponding to a registered channel</p>
+</dd>
+<dt><strong>The remaining parameters are passed through as arguments to numpy.random.choice</strong></dt>
+<dd></dd>
+<dt><strong>a</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D array-like or int</span></dt>
+<dd><p class="first last">If an ndarray, a random sample is generated from its elements.
+If an int, the random sample is generated as if a was np.arange(n)</p>
+</dd>
+<dt><strong>size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or tuple of ints</span></dt>
+<dd><p class="first last">Output shape</p>
+</dd>
+<dt><strong>replace</strong> <span class="classifier-delimiter">:</span> <span class="classifier">boolean</span></dt>
+<dd><p class="first last">Whether the sample is with or without replacement</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D ndarray of length: size * len(df.index)</span></dt>
+<dd><p class="first last">The generated random samples for each row concatenated into a single (flat) array</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.drop_channel">
+<code class="descname">drop_channel</code><span class="sig-paren">(</span><em>self</em>, <em>channel_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.drop_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop channel that won’t be used again (saves memory)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>channel_name</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.end_step">
+<code class="descname">end_step</code><span class="sig-paren">(</span><em>self</em>, <em>step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.end_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is mostly just for internal consistency checking -
+I’m not sure it serves any useful purpose except to catch “mis-steps” in the pipeline code</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>step_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">name of current step (just a consistency check)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.get_channel_for_df">
+<code class="descname">get_channel_for_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.get_channel_for_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the channel for this df. Channel should already have been loaded/added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.dataframe</span></dt>
+<dd><p class="first last">either a domain_df for a channel being added or extended
+or a df for which random values are to be generated</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.get_external_rng">
+<code class="descname">get_external_rng</code><span class="sig-paren">(</span><em>self</em>, <em>one_off_step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.get_external_rng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a numpy random number generator for step-independent one_off use</p>
+<p>exists to allow sampling of input tables consistent no matter what step they are called in</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.get_global_rng">
+<code class="descname">get_global_rng</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.get_global_rng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a numpy random number generator for use within current step.</p>
+<p>This method is designed to provide random numbers for uses that do not correspond to
+known channel domains. e.g. to select a subset of households to use for the simulation.</p>
+<p>global_rng is reseeded to a predictable value at the beginning of every step so that
+it behaves repeatably when simulation is resumed or re-run.</p>
+<p>If “true pseudo random” behavior is desired (i.e. NOT repeatable) the set_base_seed
+method (q.v.) may be used to globally reseed all random streams.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>global_rng</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy.random.RandomState()</span></dt>
+<dd><p class="first last">numpy random number generator for use within current step</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.lognormal_for_df">
+<code class="descname">lognormal_for_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em>, <em>mu</em>, <em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.lognormal_for_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a single floating point random number in range [0, 1) for each row in df
+using the appropriate random channel for each row.</p>
+<p>Subsequent calls (in the same step) will return the next rand for each df row</p>
+<p>The resulting array will be the same length (and order) as df
+This method is designed to support alternative selection from a probability array</p>
+<p>The columns in df are ignored; the index name and values are used to determine
+which random number sequence to to use.</p>
+<p>We assume that we can identify the channel to used based on the name of df.index
+This channel should have already been registered by a call to add_channel (q.v.)</p>
+<p>If “true pseudo random” behavior is desired (i.e. NOT repeatable) the set_base_seed
+method (q.v.) may be used to globally reseed all random streams.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">df with index name and values corresponding to a registered channel</p>
+</dd>
+<dt><strong>mu</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float or array of floats with one value per df row</span></dt>
+<dd></dd>
+<dt><strong>sigma</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float or array of floats with one value per df row</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>rands</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D ndarray the same length as df</span></dt>
+<dd><p class="first last">a single float in lognormal distribution for each row in df</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.random_for_df">
+<code class="descname">random_for_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.random_for_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a single floating point random number in range [0, 1) for each row in df
+using the appropriate random channel for each row.</p>
+<p>Subsequent calls (in the same step) will return the next rand for each df row</p>
+<p>The resulting array will be the same length (and order) as df
+This method is designed to support alternative selection from a probability array</p>
+<p>The columns in df are ignored; the index name and values are used to determine
+which random number sequence to to use.</p>
+<p>We assume that we can identify the channel to used based on the name of df.index
+This channel should have already been registered by a call to add_channel (q.v.)</p>
+<p>If “true pseudo random” behavior is desired (i.e. NOT repeatable) the set_base_seed
+method (q.v.) may be used to globally reseed all random streams.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
+<dd><p class="first last">df with index name and values corresponding to a registered channel</p>
+</dd>
+<dt><strong>n</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">number of rands desired (default 1)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>choices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D ndarray the same length as df</span></dt>
+<dd><p class="first last">a single float in range [0, 1) for each row in df</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.Random.set_base_seed">
+<code class="descname">set_base_seed</code><span class="sig-paren">(</span><em>self</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.Random.set_base_seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like seed for numpy.random.RandomState, but generalized for use with all random streams.</p>
+<p>Provide a base seed that will be added to the seeds of all random streams.
+The default base seed value is 0, so set_base_seed(0) is a NOP</p>
+<p>set_base_seed(1) will (e.g.) provide a different set of random streams than the default
+but will provide repeatable results re-running or resuming the simulation</p>
+<p>set_base_seed(None) will set the base seed to a random and unpredictable integer and so
+provides “fully pseudo random” non-repeatable streams with different results every time</p>
+<p>Must be called before first step (before any channels are added or rands are consumed)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>seed</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or None</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="activitysim.core.random.SimpleChannel">
-<em class="property">class </em><code class="descclassname">activitysim.core.random.</code><code class="descname">SimpleChannel</code><span class="sig-paren">(</span><em>channel_name</em>, <em>base_seed</em>, <em>domain_df</em>, <em>step_num</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">activitysim.core.random.</code><code class="descname">SimpleChannel</code><span class="sig-paren">(</span><em>channel_name</em>, <em>base_seed</em>, <em>domain_df</em>, <em>step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel" title="Permalink to this definition">¶</a></dt>
 <dd><p>We need to ensure that we generate the same random streams (when re-run or even across
 different simulations.) We do this by generating a random seed for each domain_df row
 that is based on the domain_df index (which implies that generated tables like tours
@@ -1032,20 +2212,17 @@ with a global seed, a channel seed, a row seed, and a step seed. Unfortunately, 
 numpy RandomState with arrays is a LOT slower than with a single integer seed, and
 speed matters because we reseed on-the-fly for every call because creating a different
 RandomState object for each row uses too much memory (5K per RandomState object)</p>
-<p>So instead, multiply the domain_df index by the number of steps required for the channel
-add the step_num to the row_seed to get a unique seed for each (domain_df index, step_num)
-tuple.</p>
-<p>Currently, it is possible that random streams for rows in different tables may coincide.
-This would be easy to avoid with either seed arrays or fast jump/offset.</p>
 <p>numpy random seeds are unsigned int32 so there are 4,294,967,295 available seeds.
 That is probably just about enough to distribute evenly, for most cities, depending on the
 number of households, persons, tours, trips, and steps.</p>
+<p>So we use (global_seed + channel_seed + step_seed + row_index) % (1 &lt;&lt; 32)
+to get an int32 seed rather than a tuple.</p>
 <p>We do read in the whole households and persons tables at start time, so we could note the
 max index values. But we might then want a way to ensure stability between the test, example,
 and full datasets. I am punting on this for now.</p>
 <dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.begin_step">
-<code class="descname">begin_step</code><span class="sig-paren">(</span><em>step_num</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.begin_step" title="Permalink to this definition">¶</a></dt>
+<code class="descname">begin_step</code><span class="sig-paren">(</span><em>self</em>, <em>step_name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.begin_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset channel state for a new state</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1064,7 +2241,7 @@ and full datasets. I am punting on this for now.</p>
 
 <dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.choice_for_df">
-<code class="descname">choice_for_df</code><span class="sig-paren">(</span><em>df</em>, <em>step_name</em>, <em>a</em>, <em>size</em>, <em>replace</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.choice_for_df" title="Permalink to this definition">¶</a></dt>
+<code class="descname">choice_for_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em>, <em>step_name</em>, <em>a</em>, <em>size</em>, <em>replace</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.choice_for_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply numpy.random.choice once for each row in df
 using the appropriate random channel for each row.</p>
 <p>Concatenate the the choice arrays for every row into a single 1-D ndarray
@@ -1110,38 +2287,11 @@ If an int, the random sample is generated as if a was np.arange(n)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="activitysim.core.random.SimpleChannel.create_row_states_for_domain">
-<code class="descname">create_row_states_for_domain</code><span class="sig-paren">(</span><em>domain_df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.create_row_states_for_domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a dataframe with same index as domain_df and a single column
-with stable, predictable, repeatable row_seeds for that domain_df index value</p>
-<p>See notes on the seed generation strategy in class comment above.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>domain_df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.dataframe</span></dt>
-<dd><p class="first last">domain dataframe with index values for which random streams are to be generated</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>row_states</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.extend_domain">
-<code class="descname">extend_domain</code><span class="sig-paren">(</span><em>domain_df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.extend_domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extend existing row_state df by adding seed info for each row in domain_df</p>
-<p>It is assumed that the index values of the component tables are disjoint and
-there will be no ambiguity/collisions between them</p>
+<code class="descname">extend_domain</code><span class="sig-paren">(</span><em>self</em>, <em>domain_df</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.extend_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend or create row_state df by adding seed info for each row in domain_df</p>
+<p>If extending, the index values of new tables must be disjoint so
+there will be no ambiguity/collisions between rows</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1151,10 +2301,25 @@ there will be no ambiguity/collisions between them</p>
 <dd><p class="first last">domain dataframe with index values for which random streams are to be generated
 and well-known index name corresponding to the channel</p>
 </dd>
-<dt><strong>step_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
-<dd><p class="first last">provided when reloading so we can restore step_name and step_num</p>
-</dd>
-<dt><strong>step_num</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or None</span></dt>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="activitysim.core.random.SimpleChannel.init_row_states_for_step">
+<code class="descname">init_row_states_for_step</code><span class="sig-paren">(</span><em>self</em>, <em>row_states</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.init_row_states_for_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>initialize row states (in place) for new step</p>
+<p>with stable, predictable, repeatable row_seeds for that domain_df index value</p>
+<p>See notes on the seed generation strategy in class comment above.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>row_states</strong></dt>
 <dd></dd>
 </dl>
 </td>
@@ -1164,8 +2329,46 @@ and well-known index name corresponding to the channel</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="activitysim.core.random.SimpleChannel.lognormal_for_df">
+<code class="descname">lognormal_for_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em>, <em>step_name</em>, <em>mu</em>, <em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.lognormal_for_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a floating point random number in lognormal distribution for each row in df
+using the appropriate random channel for each row.</p>
+<p>Subsequent calls (in the same step) will return the next rand for each df row</p>
+<p>The resulting array will be the same length (and order) as df
+This method is designed to support alternative selection from a probability array</p>
+<p>The columns in df are ignored; the index name and values are used to determine
+which random number sequence to to use.</p>
+<p>If “true pseudo random” behavior is desired (i.e. NOT repeatable) the set_base_seed
+method (q.v.) may be used to globally reseed all random streams.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame or Series</span></dt>
+<dd><p class="first last">df or series with index name and values corresponding to a registered channel</p>
+</dd>
+<dt><strong>mu</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float or pd.Series or array of floats with one value per df row</span></dt>
+<dd></dd>
+<dt><strong>sigma</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float or array of floats with one value per df row</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>rands</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-D ndarray</span></dt>
+<dd><p class="first last">array the same length as df, with n floats in range [0, 1) for each df row</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="activitysim.core.random.SimpleChannel.random_for_df">
-<code class="descname">random_for_df</code><span class="sig-paren">(</span><em>df</em>, <em>step_name</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.random_for_df" title="Permalink to this definition">¶</a></dt>
+<code class="descname">random_for_df</code><span class="sig-paren">(</span><em>self</em>, <em>df</em>, <em>step_name</em>, <em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.random_for_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return n floating point random numbers in range [0, 1) for each row in df
 using the appropriate random channel for each row.</p>
 <p>Subsequent calls (in the same step) will return the next rand for each df row</p>
@@ -1202,6 +2405,29 @@ method (q.v.) may be used to globally reseed all random streams.</p>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="activitysim.core.random.hash32">
+<code class="descclassname">activitysim.core.random.</code><code class="descname">hash32</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.hash32" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>s: str</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>32 bit unsigned hash</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="tracing">
@@ -1214,30 +2440,19 @@ comprehensive set of trace files for all calculations for all household members:
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
-<div class="section" id="id3">
-<h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id4">
+<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.tracing"></span><dl class="function">
 <dt id="activitysim.core.tracing.config_logger">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">config_logger</code><span class="sig-paren">(</span><em>custom_config_file=None</em>, <em>basic=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.config_logger" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.tracing.</code><code class="descname">config_logger</code><span class="sig-paren">(</span><em>basic=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.config_logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configure logger</p>
-<p>if log_config_file is not supplied then look for conf file in configs_dir</p>
-<p>if not found use basicConfig</p>
+<p>look for conf file in configs_dir, if not found use basicConfig</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>custom_config_file: str</strong></dt>
-<dd><p class="first last">custom config filename</p>
-</dd>
-<dt><strong>basic: boolean</strong></dt>
-<dd><p class="first last">basic setup</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1248,8 +2463,26 @@ help debug data and/or logic errors.</p>
 
 <dl class="function">
 <dt id="activitysim.core.tracing.delete_csv_files">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">delete_csv_files</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.delete_csv_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete CSV files</p>
+<code class="descclassname">activitysim.core.tracing.</code><code class="descname">delete_csv_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.delete_csv_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete CSV files in output_dir</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt>Nothing</dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.tracing.delete_output_files">
+<code class="descclassname">activitysim.core.tracing.</code><code class="descname">delete_output_files</code><span class="sig-paren">(</span><em>file_type</em>, <em>ignore=None</em>, <em>subdir=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.delete_output_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete files in output directory of specified type</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1262,7 +2495,7 @@ help debug data and/or logic errors.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1290,7 +2523,7 @@ help debug data and/or logic errors.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>(target, column) tuple</strong></dt>
+<dt>(target, column) tuple</dt>
 <dd></dd>
 <dt><strong>target</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or list of ints</span></dt>
 <dd><p class="first last">id or ids that identify tracer target rows</p>
@@ -1321,7 +2554,7 @@ help debug data and/or logic errors.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>scalar household_id or series of household_ids</strong></dt>
+<dt>scalar household_id or series of household_ids</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1369,33 +2602,6 @@ so it can create separate tables for each distinct target for readability</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.core.tracing.log_file_path">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">log_file_path</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.log_file_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>For use in logging.yaml tag to inject log file path</p>
-<p>filename: !!python/object/apply:activitysim.defaults.tracing.log_file_path [‘asim.log’]</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>name: str</strong></dt>
-<dd><p class="first last">output folder name</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>f: str</strong></dt>
-<dd><p class="first last">output folder name</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="activitysim.core.tracing.no_results">
 <code class="descclassname">activitysim.core.tracing.</code><code class="descname">no_results</code><span class="sig-paren">(</span><em>trace_label</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.no_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>standard no-op to write tracing when a model produces no results</p>
@@ -1426,124 +2632,7 @@ so it can create separate tables for each distinct target for readability</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.tracing.register_households">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_households</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_households" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register with orca households for tracing</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>df: pandas.DataFrame</strong></dt>
-<dd><p class="first last">traced dataframe</p>
-</dd>
-<dt><strong>trace_hh_id: int</strong></dt>
-<dd><p class="first last">household id we are tracing</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.tracing.register_participants">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_participants</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_participants" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register with inject for tracing</p>
-<p>create an injectable ‘trace_participant_ids’ with a list of participant_ids in
-household we are tracing.
-This allows us to slice by participant_ids without requiring presence of household_id column</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>df: pandas.DataFrame</strong></dt>
-<dd><p class="first last">traced dataframe</p>
-</dd>
-<dt><strong>trace_hh_id: int</strong></dt>
-<dd><p class="first last">household id we are tracing</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.tracing.register_persons">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_persons</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_persons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register with orca persons for tracing</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>df: pandas.DataFrame</strong></dt>
-<dd><p class="first last">traced dataframe</p>
-</dd>
-<dt><strong>trace_hh_id: int</strong></dt>
-<dd><p class="first last">household id we are tracing</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.tracing.register_tours">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_tours</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_tours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register with inject for tracing</p>
-<p>create an injectable ‘trace_tour_ids’ with a list of tour_ids in household we are tracing.
-This allows us to slice by tour_id without requiring presence of person_id column</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>df: pandas.DataFrame</strong></dt>
-<dd><p class="first last">traced dataframe</p>
-</dd>
-<dt><strong>trace_hh_id: int</strong></dt>
-<dd><p class="first last">household id we are tracing</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1568,68 +2657,7 @@ This allows us to slice by tour_id without requiring presence of person_id colum
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.tracing.register_trips">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">register_trips</code><span class="sig-paren">(</span><em>df</em>, <em>trace_hh_id</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.register_trips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register with inject for tracing</p>
-<p>create an injectable ‘trace_trip_ids’ with a list of tour_ids in household we are tracing.
-This allows us to slice by trip_id without requiring presence of person_id column</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>df: pandas.DataFrame</strong></dt>
-<dd><p class="first last">traced dataframe</p>
-</dd>
-<dt><strong>trace_hh_id: int</strong></dt>
-<dd><p class="first last">household id we are tracin</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="activitysim.core.tracing.slice_canonically">
-<code class="descclassname">activitysim.core.tracing.</code><code class="descname">slice_canonically</code><span class="sig-paren">(</span><em>df</em>, <em>slicer</em>, <em>label</em>, <em>warn_if_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.slice_canonically" title="Permalink to this definition">¶</a></dt>
-<dd><p>Slice dataframe by traced household or person id dataframe and write to CSV</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>df: pandas.DataFrame</strong></dt>
-<dd><p class="first last">dataframe to slice</p>
-</dd>
-<dt><strong>slicer: str</strong></dt>
-<dd><p class="first last">name of column or index to use for slicing</p>
-</dd>
-<dt><strong>label: str</strong></dt>
-<dd><p class="first last">tracer name - only used to report bad slicer</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>sliced subset of dataframe</strong></dt>
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1660,7 +2688,7 @@ This allows us to slice by trip_id without requiring presence of person_id colum
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>df: pandas.DataFrame</strong></dt>
+<dt>df: pandas.DataFrame</dt>
 <dd><p class="first last">sliced dataframe</p>
 </dd>
 </dl>
@@ -1707,7 +2735,7 @@ This allows us to slice by trip_id without requiring presence of person_id colum
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1739,7 +2767,7 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Nothing</strong></dt>
+<dt>Nothing</dt>
 <dd></dd>
 </dl>
 </td>
@@ -1895,7 +2923,7 @@ coefficients) is specified in the YAML settings file.</p>
 <td>&#160;</td>
 </tr>
 <tr class="row-odd"><td>DA - In-vehicle time</td>
-<td>&#64;c_ivt*(&#64;odt_skims[‘SOV_TIME’] + dot_skims[‘SOV_TIME’])</td>
+<td>&#64;c_ivt*(odt_skims[‘SOV_TIME’] + dot_skims[‘SOV_TIME’])</td>
 <td>1</td>
 <td>&#160;</td>
 </tr>
@@ -1932,11 +2960,11 @@ calculated as follows:</p>
 <p>As the alternative is oversampled, its utility goes up for final selection.  The unique set
 of alternatives is passed to the final choice model and the correction factor is
 included in the utility.</p>
-<div class="section" id="id4">
-<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id5">
+<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample"></span><dl class="function">
 <dt id="activitysim.core.interaction_sample.interaction_sample">
-<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">interaction_sample</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>sample_size</em>, <em>alt_col_name=None</em>, <em>allow_zero_probs=False</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.interaction_sample.</code><code class="descname">interaction_sample</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>sample_size</em>, <em>alt_col_name</em>, <em>allow_zero_probs=False</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation in the situation in which alternatives must
 be merged with choosers because there are interaction terms or
 because alternatives are being sampled.</p>
@@ -1962,7 +2990,7 @@ table should have only one column of coefficients.</p>
 <dd><p class="first last">Sample alternatives with sample of given size.  By default is None,
 which does not sample alternatives.</p>
 </dd>
-<dt><strong>alt_col_name: str or None</strong></dt>
+<dt><strong>alt_col_name: str</strong></dt>
 <dd><p class="first last">name to give the sampled_alternative column</p>
 </dd>
 <dt><strong>skims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Skims object</span></dt>
@@ -2047,11 +3075,11 @@ and columns alt_col_name, prob, rand, pick_count</p>
 </div>
 </div>
 <div class="section" id="simulate">
-<span id="id5"></span><h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
+<span id="id6"></span><h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, choosing (i.e. making choices) from a fixed set of choices
 defined in the specification file.</p>
-<div class="section" id="id6">
-<h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id7">
+<h4>API<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.simulate"></span><dl class="function">
 <dt id="activitysim.core.simulate.compute_base_probabilities">
 <code class="descclassname">activitysim.core.simulate.</code><code class="descname">compute_base_probabilities</code><span class="sig-paren">(</span><em>nested_probabilities</em>, <em>nests</em>, <em>spec</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
@@ -2067,7 +3095,7 @@ relative values (the leaf probabilities sum to 1 for each row.)</p>
 <dt><strong>nested_probabilities</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
 <dd><p class="first last">dataframe with the nested probabilities for nest leafs and nodes</p>
 </dd>
-<dt><strong>nest_spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dt><strong>nests</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd><p class="first last">Nest tree dict from the model spec yaml file</p>
 </dd>
 <dt><strong>spec</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.Dataframe</span></dt>
@@ -2297,7 +3325,7 @@ of <cite>spec</cite>.</p>
 
 <dl class="function">
 <dt id="activitysim.core.simulate.eval_variables">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_variables</code><span class="sig-paren">(</span><em>exprs</em>, <em>df</em>, <em>locals_d=None</em>, <em>target_type=&lt;type 'numpy.float64'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_variables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">eval_variables</code><span class="sig-paren">(</span><em>exprs</em>, <em>df</em>, <em>locals_d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate a set of variable expressions from a spec in the context
 of a given data table.</p>
 <p>There are two kinds of supported expressions: “simple” expressions are
@@ -2309,6 +3337,9 @@ expression supports more complex operations than a simple expression.
 Python expressions are denoted by beginning with the &#64; character.
 Users should take care that these expressions must result in
 a Pandas Series.</p>
+<p># FIXME - for performance, it is essential that spec and expression_values
+# FIXME - not contain booleans when dotted with spec values
+# FIXME - or the arrays will be converted to dtype=object within dot()</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2321,9 +3352,6 @@ a Pandas Series.</p>
 <dt><strong>locals_d</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Dict</span></dt>
 <dd><p class="first last">This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
-</dd>
-<dt><strong>target_type: dtype or None</strong></dt>
-<dd><p class="first last">type to coerce results or None if no coercion desired</p>
 </dd>
 </dl>
 </td>
@@ -2341,8 +3369,9 @@ for an evaluation of an expression that begins with &#64;</p>
 
 <dl class="function">
 <dt id="activitysim.core.simulate.read_model_spec">
-<code class="descclassname">activitysim.core.simulate.</code><code class="descname">read_model_spec</code><span class="sig-paren">(</span><em>fpath</em>, <em>fname</em>, <em>description_name='Description'</em>, <em>expression_name='Expression'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">activitysim.core.simulate.</code><code class="descname">read_model_spec</code><span class="sig-paren">(</span><em>model_settings=None</em>, <em>file_name=None</em>, <em>spec_dir=None</em>, <em>description_name='Description'</em>, <em>expression_name='Expression'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
+<p>file_path : str   absolute or relative path to file</p>
 <p>The CSV is expected to have columns for component descriptions
 and expressions, plus one or more alternatives.</p>
 <p>The CSV is required to have a header with column names. For example:</p>
@@ -2353,11 +3382,14 @@ and expressions, plus one or more alternatives.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>fpath</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">path to directory containing file.</p>
+<dt><strong>model_settings</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">name of spec_file is in model_settings[‘SPEC’] and file is relative to configs</p>
 </dd>
-<dt><strong>fname</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Name of a CSV spec file</p>
+<dt><strong>file_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">file_name id spec file in configs folder (or in spec_dir is specified)</p>
+</dd>
+<dt><strong>spec_dir</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">directory in which to fine spec file if not in configs</p>
 </dd>
 <dt><strong>description_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
 <dd><p class="first last">Name of the column in <cite>fname</cite> that contains the component description.</p>
@@ -2452,11 +3484,11 @@ properties and no need to sample from alternatives.</p>
 </div>
 </div>
 <div class="section" id="simulate-with-interaction">
-<span id="id7"></span><h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
+<span id="id8"></span><h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, choosing (i.e. making choices),
 with interaction with the chooser table.</p>
-<div class="section" id="id8">
-<h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id9">
+<h4>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_simulate"></span><dl class="function">
 <dt id="activitysim.core.interaction_simulate.eval_interaction_utilities">
 <code class="descclassname">activitysim.core.interaction_simulate.</code><code class="descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em>spec</em>, <em>df</em>, <em>locals_d</em>, <em>trace_label</em>, <em>trace_rows</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_simulate.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
@@ -2574,8 +3606,8 @@ choices are simulated in the standard Monte Carlo fashion</p>
 <h3>Simulate with Sampling and Interaction<a class="headerlink" href="#simulate-with-sampling-and-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, sampling (i.e. making multiple choices),
 and choosing (i.e. making choices), with interaction with the chooser table.</p>
-<div class="section" id="id9">
-<h4>API<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id10">
+<h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample_simulate"></span><dl class="function">
 <dt id="activitysim.core.interaction_sample_simulate.interaction_sample_simulate">
 <code class="descclassname">activitysim.core.interaction_sample_simulate.</code><code class="descname">interaction_sample_simulate</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>spec</em>, <em>choice_column</em>, <em>allow_zero_probs=False</em>, <em>zero_prob_choice_val=None</em>, <em>skims=None</em>, <em>locals_d=None</em>, <em>chunk_size=0</em>, <em>trace_label=None</em>, <em>trace_choice_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">¶</a></dt>
@@ -2647,9 +3679,14 @@ choices are simulated in the standard Monte Carlo fashion</p>
 <p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
 Temporary variables are identified in the expressions as starting with “_”, such as “_hh_density_bin”.  These
 fields are not saved to the data pipeline store.  This feature is used by the <a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a> model.</p>
-<div class="section" id="id10">
-<h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
-<span class="target" id="module-activitysim.core.assign"></span><dl class="function">
+<div class="section" id="id11">
+<h4>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.assign"></span><dl class="class">
+<dt id="activitysim.core.assign.NumpyLogger">
+<em class="property">class </em><code class="descclassname">activitysim.core.assign.</code><code class="descname">NumpyLogger</code><span class="sig-paren">(</span><em>logger</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.NumpyLogger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.assign.assign_variables">
 <code class="descclassname">activitysim.core.assign.</code><code class="descname">assign_variables</code><span class="sig-paren">(</span><em>assignment_expressions</em>, <em>df</em>, <em>locals_dict</em>, <em>df_alias=None</em>, <em>trace_rows=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.assign_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate a set of variable expressions from a spec in the context
@@ -2792,32 +3829,10 @@ targets, and expressions,</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="activitysim.core.assign.undupe_column_names">
-<code class="descclassname">activitysim.core.assign.</code><code class="descname">undupe_column_names</code><span class="sig-paren">(</span><em>df</em>, <em>template='{} ({})'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.undupe_column_names" title="Permalink to this definition">¶</a></dt>
-<dd><p>rename df column names so there are no duplicates (in place)</p>
-<p>e.g. if there are two columns named “dog”, the second column will be reformatted to “dog (2)”</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
-<dd><p class="first last">dataframe whose column names should be de-duplicated</p>
-</dd>
-<dt><strong>template</strong> <span class="classifier-delimiter">:</span> <span class="classifier">template taking two arguments (old_name, int) to use to rename columns</span></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>df</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pandas.DataFrame</span></dt>
-<dd><p class="first last">dataframe that was renamed in place, for convenience in chaining</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="activitysim.core.assign.uniquify_key">
+<code class="descclassname">activitysim.core.assign.</code><code class="descname">uniquify_key</code><span class="sig-paren">(</span><em>dict</em>, <em>key</em>, <em>template='{} ({})'</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.uniquify_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>rename key so there are no duplicates with keys in dict</p>
+<p>e.g. if there is already a key named “dog”, the second key will be reformatted to “dog (2)”</p>
 </dd></dl>
 
 </div>
@@ -2840,8 +3855,8 @@ as the expressions and data handling described in the <a class="reference intern
 <li>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal notranslate"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></li>
 <li>call <code class="docutils literal notranslate"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal notranslate"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</li>
 </ul>
-<div class="section" id="id11">
-<h4>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id12">
+<h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.logit"></span><dl class="class">
 <dt id="activitysim.core.logit.Nest">
 <em class="property">class </em><code class="descclassname">activitysim.core.logit.</code><code class="descname">Nest</code><span class="sig-paren">(</span><em>name=None</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">¶</a></dt>
@@ -2993,7 +4008,7 @@ values from alternatives df</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>raises RuntimeError</strong></dt>
+<dt>raises RuntimeError</dt>
 <dd></dd>
 </dl>
 </td>
@@ -3062,8 +4077,8 @@ Each column is coded as follows:</p>
 </ul>
 <p>A good example of a time window expression is <code class="docutils literal notranslate"><span class="pre">&#64;tt.previous_tour_ends(df.person_id,</span> <span class="pre">df.start)</span></code>.  This
 uses the person id and the tour start period to check if a previous tour ends in the same time period.</p>
-<div class="section" id="id12">
-<h3>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id13">
+<h3>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.core.timetable"></span><dl class="class">
 <dt id="activitysim.core.timetable.TimeTable">
 <em class="property">class </em><code class="descclassname">activitysim.core.timetable.</code><code class="descname">TimeTable</code><span class="sig-paren">(</span><em>windows_df</em>, <em>tdd_alts_df</em>, <em>table_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable" title="Permalink to this definition">¶</a></dt>
@@ -3076,7 +4091,7 @@ uses the person id and the tour start period to check if a previous tour ends in
 </div>
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.adjacent_window_after">
-<code class="descname">adjacent_window_after</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_after" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adjacent_window_after</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_after" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return number of adjacent periods after specified period that are available
 (not in the middle of another tour.)</p>
 <p>Implements MTC TM1 macro &#64;&#64;adjWindowAfterThisPeriodAlt
@@ -3096,7 +4111,7 @@ Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas Series int</strong></dt>
+<dt>pandas Series int</dt>
 <dd><p class="first last">Number of adjacent windows indexed by window_row_ids.index</p>
 </dd>
 </dl>
@@ -3108,7 +4123,7 @@ Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.adjacent_window_before">
-<code class="descname">adjacent_window_before</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_before" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adjacent_window_before</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_before" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return number of adjacent periods before specified period that are available
 (not in the middle of another tour.)</p>
 <p>Implements MTC TM1 macro &#64;&#64;getAdjWindowBeforeThisPeriodAlt
@@ -3128,7 +4143,7 @@ Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas Series int</strong></dt>
+<dt>pandas Series int</dt>
 <dd><p class="first last">Number of adjacent windows indexed by window_row_ids.index</p>
 </dd>
 </dl>
@@ -3140,7 +4155,7 @@ Function name is kind of a misnomer, but parallels that used in MTC TM1 UECs</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.adjacent_window_run_length">
-<code class="descname">adjacent_window_run_length</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em>, <em>before</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_run_length" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adjacent_window_run_length</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>periods</em>, <em>before</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.adjacent_window_run_length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the number of adjacent periods before or after specified period
 that are available (not in the middle of another tour.)</p>
 <p>Internal DRY method to implement adjacent_window_before and adjacent_window_after</p>
@@ -3167,7 +4182,7 @@ that are available (not in the middle of another tour.)</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.assign">
-<code class="descname">assign</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign" title="Permalink to this definition">¶</a></dt>
+<code class="descname">assign</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assign tours (represented by tdd alt ids) to persons</p>
 <p>Updates self.windows numpy array. Assignments will not ‘take’ outside this object
 until/unless replace_table called or updated timetable retrieved by get_windows_df</p>
@@ -3191,7 +4206,7 @@ until/unless replace_table called or updated timetable retrieved by get_windows_
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.assign_footprints">
-<code class="descname">assign_footprints</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>footprints</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign_footprints" title="Permalink to this definition">¶</a></dt>
+<code class="descname">assign_footprints</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>footprints</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign_footprints" title="Permalink to this definition">¶</a></dt>
 <dd><p>assign footprints for specified window_row_ids</p>
 <p>This method is used for initialization of joint_tour timetables based on the
 combined availability of the joint tour participants</p>
@@ -3215,7 +4230,7 @@ combined availability of the joint tour participants</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.assign_subtour_mask">
-<code class="descname">assign_subtour_mask</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign_subtour_mask" title="Permalink to this definition">¶</a></dt>
+<code class="descname">assign_subtour_mask</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.assign_subtour_mask" title="Permalink to this definition">¶</a></dt>
 <dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">index</span>     <span class="n">window_row_ids</span>   <span class="n">tdds</span>
 <span class="mi">20973389</span>  <span class="mi">20973389</span>           <span class="mi">26</span>
 <span class="mi">44612864</span>  <span class="mi">44612864</span>            <span class="mi">3</span>
@@ -3236,7 +4251,7 @@ combined availability of the joint tour participants</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.previous_tour_begins">
-<code class="descname">previous_tour_begins</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.previous_tour_begins" title="Permalink to this definition">¶</a></dt>
+<code class="descname">previous_tour_begins</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.previous_tour_begins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does a previously scheduled tour begin in the specified period?</p>
 <p>Implements MTC TM1 &#64;&#64;prevTourBeginsThisArrivalPeriodAlt</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3254,7 +4269,7 @@ combined availability of the joint tour participants</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas Series boolean</strong></dt>
+<dt>pandas Series boolean</dt>
 <dd><p class="first last">indexed by window_row_ids.index</p>
 </dd>
 </dl>
@@ -3266,7 +4281,7 @@ combined availability of the joint tour participants</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.previous_tour_ends">
-<code class="descname">previous_tour_ends</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.previous_tour_ends" title="Permalink to this definition">¶</a></dt>
+<code class="descname">previous_tour_ends</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>periods</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.previous_tour_ends" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does a previously scheduled tour end in the specified period?</p>
 <p>Implements MTC TM1 &#64;&#64;prevTourEndsThisDeparturePeriodAlt</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3284,7 +4299,7 @@ combined availability of the joint tour participants</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas Series boolean</strong></dt>
+<dt>pandas Series boolean</dt>
 <dd><p class="first last">indexed by window_row_ids.index</p>
 </dd>
 </dl>
@@ -3296,7 +4311,7 @@ combined availability of the joint tour participants</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.remaining_periods_available">
-<code class="descname">remaining_periods_available</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>starts</em>, <em>ends</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.remaining_periods_available" title="Permalink to this definition">¶</a></dt>
+<code class="descname">remaining_periods_available</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>starts</em>, <em>ends</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.remaining_periods_available" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine number of periods remaining available after the time window from starts to ends
 is hypothetically scheduled</p>
 <p>Implements MTC TM1 &#64;&#64;remainingPeriodsAvailableAlt</p>
@@ -3333,7 +4348,7 @@ unavailable after scheduling this window.</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.replace_table">
-<code class="descname">replace_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.replace_table" title="Permalink to this definition">¶</a></dt>
+<code class="descname">replace_table</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.replace_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save or replace windows_df  DataFrame to pipeline with saved table name
 (specified when object instantiated.)</p>
 <p>This is a convenience function in case caller instantiates object in one context
@@ -3343,14 +4358,14 @@ checkpoint the table in another context where it does not know that name.</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.slice_windows_by_row_id">
-<code class="descname">slice_windows_by_row_id</code><span class="sig-paren">(</span><em>window_row_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.slice_windows_by_row_id" title="Permalink to this definition">¶</a></dt>
+<code class="descname">slice_windows_by_row_id</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.slice_windows_by_row_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>return windows array slice containing rows for specified window_row_ids
 (in window_row_ids order)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.tour_available">
-<code class="descname">tour_available</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.tour_available" title="Permalink to this definition">¶</a></dt>
+<code class="descname">tour_available</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>tdds</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.tour_available" title="Permalink to this definition">¶</a></dt>
 <dd><p>test whether time window allows tour with specific tdd alt’s time window</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3379,7 +4394,7 @@ checkpoint the table in another context where it does not know that name.</p>
 
 <dl class="method">
 <dt id="activitysim.core.timetable.TimeTable.window_periods_in_states">
-<code class="descname">window_periods_in_states</code><span class="sig-paren">(</span><em>window_row_ids</em>, <em>periods</em>, <em>states</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.window_periods_in_states" title="Permalink to this definition">¶</a></dt>
+<code class="descname">window_periods_in_states</code><span class="sig-paren">(</span><em>self</em>, <em>window_row_ids</em>, <em>periods</em>, <em>states</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable.window_periods_in_states" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return boolean array indicating whether specified window periods are in list of states.</p>
 <p>Internal DRY method to implement previous_tour_ends and previous_tour_begins</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3400,7 +4415,7 @@ checkpoint the table in another context where it does not know that name.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas Series boolean</strong></dt>
+<dt>pandas Series boolean</dt>
 <dd><p class="first last">indexed by window_row_ids.index</p>
 </dd>
 </dl>
@@ -3431,7 +4446,7 @@ checkpoint the table in another context where it does not know that name.</p>
 <dt><strong>so if start is 5 and end is 23, we return something like this:</strong></dt>
 <dd><p class="first last">4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24</p>
 </dd>
-<dt><strong>PERID</strong></dt>
+<dt><strong>person_id</strong></dt>
 <dd></dd>
 <dt><strong>30       0  0  0  0  0  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0</strong></dt>
 <dd></dd>
@@ -3441,7 +4456,7 @@ checkpoint the table in another context where it does not know that name.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pd.DataFrame indexed by rows.index, and one column of int8 for each time window (plus padding)</strong></dt>
+<dt>pd.DataFrame indexed by rows.index, and one column of int8 for each time window (plus padding)</dt>
 <dd></dd>
 </dl>
 </td>
@@ -3457,8 +4472,8 @@ checkpoint the table in another context where it does not know that name.</p>
 <div class="section" id="chunk">
 <span id="chunk-in-detail"></span><h3>Chunk<a class="headerlink" href="#chunk" title="Permalink to this headline">¶</a></h3>
 <p>Chunking management</p>
-<div class="section" id="id13">
-<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id14">
+<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.chunk"></span><dl class="function">
 <dt id="activitysim.core.chunk.chunked_choosers_and_alts">
 <code class="descclassname">activitysim.core.chunk.</code><code class="descname">chunked_choosers_and_alts</code><span class="sig-paren">(</span><em>choosers</em>, <em>alternatives</em>, <em>rows_per_chunk</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.chunked_choosers_and_alts" title="Permalink to this definition">¶</a></dt>
@@ -3511,8 +4526,8 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 <div class="section" id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <p>Vectorized helper functions</p>
-<div class="section" id="id14">
-<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id15">
+<h4>API<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="function">
 <dt id="activitysim.core.util.assign_in_place">
 <code class="descclassname">activitysim.core.util.</code><code class="descname">assign_in_place</code><span class="sig-paren">(</span><em>df</em>, <em>df2</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.assign_in_place" title="Permalink to this definition">¶</a></dt>
@@ -3632,7 +4647,7 @@ a group with some property (as indicated by <cite>bools</cite>).</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas.DataFrame or, if attribbute specified, pandas.Series</strong></dt>
+<dt>pandas.DataFrame or, if attribbute specified, pandas.Series</dt>
 <dd></dd>
 </dl>
 </td>
@@ -3659,7 +4674,7 @@ a group with some property (as indicated by <cite>bools</cite>).</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>pandas.Series</strong></dt>
+<dt>pandas.Series</dt>
 <dd></dd>
 </dl>
 </td>
@@ -3715,9 +4730,15 @@ table and would require a second step to change the index.</p>
 <div class="section" id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for configuring a model run</p>
-<div class="section" id="id15">
-<h4>API<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id16">
+<h4>API<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.config"></span><dl class="function">
+<dt id="activitysim.core.config.filter_warnings">
+<code class="descclassname">activitysim.core.config.</code><code class="descname">filter_warnings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.filter_warnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>set warning filter to ‘strict’ if specified in settings</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.config.get_logit_model_settings">
 <code class="descclassname">activitysim.core.config.</code><code class="descname">get_logit_model_settings</code><span class="sig-paren">(</span><em>model_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.get_logit_model_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read nest spec (for nested logit) from model settings file</p>
@@ -3780,7 +4801,38 @@ and handle them based on returned args. This method will hand the args it adds</
 <dd></dd>
 <dt><strong>——-</strong></dt>
 <dd></dd>
-<dt><strong>args</strong> <span class="classifier-delimiter">:</span> <span class="classifier">parser.parse_args() result</span></dt>
+<dt><strong>injectables - array of injectables altered by args</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="activitysim.core.config.logger">
+<code class="descclassname">activitysim.core.config.</code><code class="descname">logger</code><em class="property"> = &lt;logging.Logger object&gt;</em><a class="headerlink" href="#activitysim.core.config.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>default injectables</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="activitysim.core.config.read_model_settings">
+<code class="descclassname">activitysim.core.config.</code><code class="descname">read_model_settings</code><span class="sig-paren">(</span><em>file_name</em>, <em>mandatory=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.read_model_settings" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>file_name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">yaml file name</p>
+</dd>
+<dt><strong>mandatory</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">throw error if file empty or not found</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
 <dd></dd>
 </dl>
 </td>
@@ -3792,10 +4844,10 @@ and handle them based on returned args. This method will hand the args it adds</
 </div>
 </div>
 <div class="section" id="inject">
-<span id="id16"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
-<p>Wrap orca class to make it easier to track and manage interaction with the data pipeline.</p>
-<div class="section" id="id17">
-<h4>API<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
+<span id="id17"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
+<p>Wrap ORCA class to make it easier to track and manage interaction with the data pipeline.</p>
+<div class="section" id="id18">
+<h4>API<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject"></span><dl class="function">
 <dt id="activitysim.core.inject.reinject_decorated_tables">
 <code class="descclassname">activitysim.core.inject.</code><code class="descname">reinject_decorated_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.reinject_decorated_tables" title="Permalink to this definition">¶</a></dt>
@@ -3804,25 +4856,38 @@ and handle them based on returned args. This method will hand the args it adds</
 
 </div>
 </div>
-<div class="section" id="inject-defaults">
-<h3>Inject_Defaults<a class="headerlink" href="#inject-defaults" title="Permalink to this headline">¶</a></h3>
-<p>Default file and folder settings are injected into the orca model runner if needed.</p>
-<div class="section" id="id18">
-<h4>API<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h4>
-<span class="target" id="module-activitysim.core.inject_defaults"></span><dl class="function">
-<dt id="activitysim.core.inject_defaults.pipeline_path">
-<code class="descclassname">activitysim.core.inject_defaults.</code><code class="descname">pipeline_path</code><span class="sig-paren">(</span><em>output_dir</em>, <em>settings</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject_defaults.pipeline_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Orca injectable to return the path to the pipeline hdf5 file based on output_dir and settings</p>
-</dd></dl>
-
-</div>
+<div class="section" id="mem">
+<h3>Mem<a class="headerlink" href="#mem" title="Permalink to this headline">¶</a></h3>
+<p>Helper functions for tracking memory usage</p>
+<div class="section" id="id19">
+<h4>API<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.mem"></span></div>
 </div>
 <div class="section" id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
-<p>Write output files.</p>
-<div class="section" id="id19">
-<h4>API<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
+<p>Write output files and track skim usage.</p>
+<div class="section" id="id20">
+<h4>API<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.steps.output"></span><dl class="function">
+<dt id="activitysim.core.steps.output.track_skim_usage">
+<code class="descclassname">activitysim.core.steps.output.</code><code class="descname">track_skim_usage</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.steps.output.track_skim_usage" title="Permalink to this definition">¶</a></dt>
+<dd><p>write statistics on skim usage (diagnostic to detect loading of un-needed skims)</p>
+<p>FIXME - have not yet implemented a facility to avoid loading of unused skims</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>output_dir: str</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.steps.output.write_data_dictionary">
 <code class="descclassname">activitysim.core.steps.output.</code><code class="descname">write_data_dictionary</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.steps.output.write_data_dictionary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write table_name, number of rows, columns, and bytes for each checkpointed table</p>
@@ -3896,7 +4961,7 @@ if no output_tables list is specified, then no checkpointed tables will be writt
         <a href="development.html" class="btn btn-neutral float-right" title="Software Development" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="howitworks.html" class="btn btn-neutral" title="How the System Works" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="howitworks.html" class="btn btn-neutral float-left" title="How the System Works" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -3905,7 +4970,7 @@ if no output_tables list is specified, then no checkpointed tables will be writt
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright contributing authors.
+        &copy; Copyright contributing authors
 
     </p>
   </div>
@@ -3922,33 +4987,16 @@ if no output_tables list is specified, then no checkpointed tables will be writt
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.7',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; ActivitySim 0.7
+  <title>Index &mdash; ActivitySim 0.8
  documentation</title>
   
 
@@ -19,33 +19,35 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +61,7 @@
             
             
               <div class="version">
-                0.7
+                0.8
 
               </div>
             
@@ -200,6 +202,8 @@
 </li>
       <li><a href="models.html#module-activitysim.abm.models.cdap">activitysim.abm.models.cdap (module)</a>
 </li>
+      <li><a href="models.html#module-activitysim.abm.models.free_parking">activitysim.abm.models.free_parking (module)</a>
+</li>
       <li><a href="models.html#module-activitysim.abm.models.initialize">activitysim.abm.models.initialize (module)</a>
 </li>
       <li><a href="models.html#module-activitysim.abm.models.joint_tour_composition">activitysim.abm.models.joint_tour_composition (module)</a>
@@ -212,6 +216,8 @@
 </li>
       <li><a href="models.html#module-activitysim.abm.models.joint_tour_scheduling">activitysim.abm.models.joint_tour_scheduling (module)</a>
 </li>
+      <li><a href="models.html#module-activitysim.abm.models.location_choice">activitysim.abm.models.location_choice (module)</a>
+</li>
       <li><a href="models.html#module-activitysim.abm.models.mandatory_scheduling">activitysim.abm.models.mandatory_scheduling (module)</a>
 </li>
       <li><a href="models.html#module-activitysim.abm.models.mandatory_tour_frequency">activitysim.abm.models.mandatory_tour_frequency (module)</a>
@@ -221,8 +227,6 @@
       <li><a href="models.html#module-activitysim.abm.models.non_mandatory_scheduling">activitysim.abm.models.non_mandatory_scheduling (module)</a>
 </li>
       <li><a href="models.html#module-activitysim.abm.models.non_mandatory_tour_frequency">activitysim.abm.models.non_mandatory_tour_frequency (module)</a>
-</li>
-      <li><a href="models.html#module-activitysim.abm.models.school_location">activitysim.abm.models.school_location (module)</a>
 </li>
       <li><a href="models.html#module-activitysim.abm.models.stop_frequency">activitysim.abm.models.stop_frequency (module)</a>
 </li>
@@ -256,19 +260,17 @@
 </li>
       <li><a href="models.html#module-activitysim.abm.models.util.vectorize_tour_scheduling">activitysim.abm.models.util.vectorize_tour_scheduling (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#module-activitysim.abm.models.workplace_location">activitysim.abm.models.workplace_location (module)</a>
+      <li><a href="models.html#module-activitysim.abm.tables.shadow_pricing">activitysim.abm.tables.shadow_pricing (module)</a>
 </li>
       <li><a href="core.html#module-activitysim.core.assign">activitysim.core.assign (module)</a>
 </li>
       <li><a href="core.html#module-activitysim.core.chunk">activitysim.core.chunk (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#module-activitysim.core.config">activitysim.core.config (module)</a>
 </li>
       <li><a href="core.html#module-activitysim.core.inject">activitysim.core.inject (module)</a>
-</li>
-      <li><a href="core.html#module-activitysim.core.inject_defaults">activitysim.core.inject_defaults (module)</a>
 </li>
       <li><a href="core.html#module-activitysim.core.interaction_sample">activitysim.core.interaction_sample (module)</a>
 </li>
@@ -277,6 +279,10 @@
       <li><a href="core.html#module-activitysim.core.interaction_simulate">activitysim.core.interaction_simulate (module)</a>
 </li>
       <li><a href="core.html#module-activitysim.core.logit">activitysim.core.logit (module)</a>
+</li>
+      <li><a href="core.html#module-activitysim.core.mem">activitysim.core.mem (module)</a>
+</li>
+      <li><a href="core.html#module-activitysim.core.mp_tasks">activitysim.core.mp_tasks (module)</a>
 </li>
       <li><a href="core.html#module-activitysim.core.pipeline">activitysim.core.pipeline (module)</a>
 </li>
@@ -294,17 +300,27 @@
 </li>
       <li><a href="core.html#module-activitysim.core.util">activitysim.core.util (module)</a>
 </li>
+      <li><a href="core.html#activitysim.core.random.Random.add_channel">add_channel() (activitysim.core.random.Random method)</a>
+</li>
       <li><a href="core.html#activitysim.core.pipeline.add_checkpoint">add_checkpoint() (in module activitysim.core.pipeline)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.add_interaction_column">add_interaction_column() (in module activitysim.abm.models.util.cdap)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.add_pn">add_pn() (in module activitysim.abm.models.util.cdap)</a>
 </li>
+      <li><a href="models.html#activitysim.abm.tables.shadow_pricing.add_size_tables">add_size_tables() (in module activitysim.abm.tables.shadow_pricing)</a>
+</li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.adjacent_window_after">adjacent_window_after() (activitysim.core.timetable.TimeTable method)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.adjacent_window_before">adjacent_window_before() (activitysim.core.timetable.TimeTable method)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.adjacent_window_run_length">adjacent_window_run_length() (activitysim.core.timetable.TimeTable method)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers">allocate_shared_shadow_pricing_buffers() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.allocate_shared_skim_buffers">allocate_shared_skim_buffers() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.apportion_pipeline">apportion_pipeline() (in module activitysim.core.mp_tasks)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.assign">assign() (activitysim.core.timetable.TimeTable method)</a>
 </li>
@@ -338,11 +354,21 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="core.html#activitysim.core.random.SimpleChannel.begin_step">begin_step() (activitysim.core.random.SimpleChannel method)</a>
+      <li><a href="core.html#activitysim.core.random.Random.begin_step">begin_step() (activitysim.core.random.Random method)</a>
+
+      <ul>
+        <li><a href="core.html#activitysim.core.random.SimpleChannel.begin_step">(activitysim.core.random.SimpleChannel method)</a>
+</li>
+      </ul></li>
+      <li><a href="models.html#activitysim.abm.tables.shadow_pricing.block_name">block_name() (in module activitysim.abm.tables.shadow_pricing)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing">buffers_for_shadow_pricing() (in module activitysim.abm.tables.shadow_pricing)</a>
+</li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.build_cdap_spec">build_cdap_spec() (in module activitysim.abm.models.util.cdap)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.build_slice_rules">build_slice_rules() (in module activitysim.core.mp_tasks)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -362,8 +388,12 @@
 </li>
       <li><a href="core.html#activitysim.core.pipeline.checkpointed_tables">checkpointed_tables() (in module activitysim.core.pipeline)</a>
 </li>
-      <li><a href="core.html#activitysim.core.random.SimpleChannel.choice_for_df">choice_for_df() (activitysim.core.random.SimpleChannel method)</a>
+      <li><a href="core.html#activitysim.core.random.Random.choice_for_df">choice_for_df() (activitysim.core.random.Random method)</a>
+
+      <ul>
+        <li><a href="core.html#activitysim.core.random.SimpleChannel.choice_for_df">(activitysim.core.random.SimpleChannel method)</a>
 </li>
+      </ul></li>
       <li><a href="models.html#activitysim.abm.models.trip_purpose.choose_intermediate_trip_purpose">choose_intermediate_trip_purpose() (in module activitysim.abm.models.trip_purpose)</a>
 </li>
       <li><a href="abmexample.html#index-2">chunk_size</a>
@@ -378,6 +408,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="core.html#activitysim.core.mp_tasks.coalesce_pipelines">coalesce_pipelines() (in module activitysim.core.mp_tasks)</a>
+</li>
       <li><a href="models.html#activitysim.abm.models.accessibility.compute_accessibility">compute_accessibility() (in module activitysim.abm.models.accessibility)</a>
 </li>
       <li><a href="core.html#activitysim.core.simulate.compute_base_probabilities">compute_base_probabilities() (in module activitysim.core.simulate)</a>
@@ -389,6 +421,8 @@
       <ul>
         <li><a href="models.html#activitysim.abm.models.util.logsums.compute_logsums">(in module activitysim.abm.models.util.logsums)</a>
 </li>
+        <li><a href="models.html#activitysim.abm.models.util.vectorize_tour_scheduling.compute_logsums">(in module activitysim.abm.models.util.vectorize_tour_scheduling)</a>
+</li>
       </ul></li>
       <li><a href="core.html#activitysim.core.simulate.compute_nested_exp_utilities">compute_nested_exp_utilities() (in module activitysim.core.simulate)</a>
 </li>
@@ -398,13 +432,13 @@
 </li>
       <li><a href="core.html#activitysim.core.tracing.config_logger">config_logger() (in module activitysim.core.tracing)</a>
 </li>
-      <li><a href="howitworks.html#index-3">constants</a>
+      <li><a href="howitworks.html#index-4">constants</a>
 </li>
       <li><a href="core.html#activitysim.core.logit.count_nests">count_nests() (in module activitysim.core.logit)</a>
 </li>
-      <li><a href="core.html#activitysim.core.random.SimpleChannel.create_row_states_for_domain">create_row_states_for_domain() (activitysim.core.random.SimpleChannel method)</a>
-</li>
       <li><a href="core.html#activitysim.core.timetable.create_timetable_windows">create_timetable_windows() (in module activitysim.core.timetable)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.util.tour_frequency.create_tours">create_tours() (in module activitysim.abm.models.util.tour_frequency)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -412,15 +446,21 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="howitworks.html#index-2">data schema</a>
+      <li><a href="howitworks.html#index-3">data schema</a>
 </li>
-      <li><a href="howitworks.html#index-0">data tables</a>
+      <li><a href="howitworks.html#index-1">data tables</a>
+</li>
+      <li><a href="core.html#activitysim.core.skim.DataFrameMatrix">DataFrameMatrix (class in activitysim.core.skim)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="core.html#activitysim.core.skim.DataFrameMatrix">DataFrameMatrix (class in activitysim.core.skim)</a>
-</li>
       <li><a href="core.html#activitysim.core.tracing.delete_csv_files">delete_csv_files() (in module activitysim.core.tracing)</a>
+</li>
+      <li><a href="core.html#activitysim.core.tracing.delete_output_files">delete_output_files() (in module activitysim.core.tracing)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.drop_breadcrumb">drop_breadcrumb() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.random.Random.drop_channel">drop_channel() (activitysim.core.random.Random method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -429,6 +469,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.logit.each_nest">each_nest() (in module activitysim.core.logit)</a>
+</li>
+      <li><a href="core.html#activitysim.core.random.Random.end_step">end_step() (activitysim.core.random.Random method)</a>
 </li>
       <li><a href="core.html#activitysim.core.interaction_simulate.eval_interaction_utilities">eval_interaction_utilities() (in module activitysim.core.interaction_simulate)</a>
 </li>
@@ -452,6 +494,8 @@
 </li>
       <li><a href="core.html#activitysim.core.pipeline.extend_table">extend_table() (in module activitysim.core.pipeline)</a>
 </li>
+      <li><a href="models.html#activitysim.abm.models.non_mandatory_tour_frequency.extend_tour_counts">extend_tour_counts() (in module activitysim.abm.models.non_mandatory_tour_frequency)</a>
+</li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.extra_hh_member_choices">extra_hh_member_choices() (in module activitysim.abm.models.util.cdap)</a>
 </li>
   </ul></td>
@@ -460,7 +504,13 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="core.html#activitysim.core.config.filter_warnings">filter_warnings() (in module activitysim.core.config)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#activitysim.abm.models.util.trip.flag_failed_trip_leg_mates">flag_failed_trip_leg_mates() (in module activitysim.abm.models.util.trip)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.free_parking.free_parking">free_parking() (in module activitysim.abm.models.free_parking)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -476,12 +526,20 @@
         <li><a href="core.html#activitysim.core.skim.SkimWrapper.get">(activitysim.core.skim.SkimWrapper method)</a>
 </li>
       </ul></li>
+      <li><a href="core.html#activitysim.core.mp_tasks.get_breadcrumbs">get_breadcrumbs() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.random.Random.get_channel_for_df">get_channel_for_df() (activitysim.core.random.Random method)</a>
+</li>
       <li><a href="core.html#activitysim.core.pipeline.get_checkpoints">get_checkpoints() (in module activitysim.core.pipeline)</a>
 </li>
-      <li><a href="core.html#activitysim.core.config.get_logit_model_settings">get_logit_model_settings() (in module activitysim.core.config)</a>
+      <li><a href="core.html#activitysim.core.random.Random.get_external_rng">get_external_rng() (activitysim.core.random.Random method)</a>
+</li>
+      <li><a href="core.html#activitysim.core.random.Random.get_global_rng">get_global_rng() (activitysim.core.random.Random method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="core.html#activitysim.core.config.get_logit_model_settings">get_logit_model_settings() (in module activitysim.core.config)</a>
+</li>
       <li><a href="core.html#activitysim.core.config.get_model_constants">get_model_constants() (in module activitysim.core.config)</a>
 </li>
       <li><a href="core.html#activitysim.core.pipeline.get_pipeline_store">get_pipeline_store() (in module activitysim.core.pipeline)</a>
@@ -489,6 +547,10 @@
       <li><a href="models.html#activitysim.abm.models.util.vectorize_tour_scheduling.get_previous_tour_by_tourid">get_previous_tour_by_tourid() (in module activitysim.abm.models.util.vectorize_tour_scheduling)</a>
 </li>
       <li><a href="core.html#activitysim.core.pipeline.get_rn_generator">get_rn_generator() (in module activitysim.core.pipeline)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.get_run_list">get_run_list() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info">get_shadow_pricing_info() (in module activitysim.abm.tables.shadow_pricing)</a>
 </li>
       <li><a href="core.html#activitysim.core.pipeline.get_table">get_table() (in module activitysim.core.pipeline)</a>
 </li>
@@ -502,6 +564,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.config.handle_standard_args">handle_standard_args() (in module activitysim.core.config)</a>
 </li>
+      <li><a href="core.html#activitysim.core.random.hash32">hash32() (in module activitysim.core.random)</a>
+</li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.hh_choosers">hh_choosers() (in module activitysim.abm.models.util.cdap)</a>
 </li>
   </ul></td>
@@ -510,7 +574,7 @@
 </li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.household_activity_choices">household_activity_choices() (in module activitysim.abm.models.util.cdap)</a>
 </li>
-      <li><a href="howitworks.html#index-4">households</a>
+      <li><a href="howitworks.html#index-5">households</a>
 </li>
   </ul></td>
 </tr></table>
@@ -518,16 +582,20 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="core.html#activitysim.core.mp_tasks.if_sub_task">if_sub_task() (in module activitysim.core.mp_tasks)</a>
+</li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.individual_utilities">individual_utilities() (in module activitysim.abm.models.util.cdap)</a>
 </li>
-      <li><a href="models.html#activitysim.abm.models.initialize.initialize">initialize() (in module activitysim.abm.models.initialize)</a>
+      <li><a href="core.html#activitysim.core.random.SimpleChannel.init_row_states_for_step">init_row_states_for_step() (activitysim.core.random.SimpleChannel method)</a>
+</li>
+      <li><a href="howitworks.html#index-6">input store</a>
 </li>
       <li><a href="gettingstarted.html#index-0">installation</a>
 </li>
-      <li><a href="core.html#activitysim.core.logit.interaction_dataset">interaction_dataset() (in module activitysim.core.logit)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="core.html#activitysim.core.logit.interaction_dataset">interaction_dataset() (in module activitysim.core.logit)</a>
+</li>
       <li><a href="core.html#activitysim.core.interaction_sample.interaction_sample">interaction_sample() (in module activitysim.core.interaction_sample)</a>
 </li>
       <li><a href="core.html#activitysim.core.interaction_sample_simulate.interaction_sample_simulate">interaction_sample_simulate() (in module activitysim.core.interaction_sample_simulate)</a>
@@ -536,6 +604,8 @@
 </li>
       <li><a href="core.html#activitysim.core.tracing.interaction_trace_rows">interaction_trace_rows() (in module activitysim.core.tracing)</a>
 </li>
+      <li><a href="models.html#activitysim.abm.models.location_choice.iterate_location_choice">iterate_location_choice() (in module activitysim.abm.models.location_choice)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -543,6 +613,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#activitysim.abm.models.joint_tour_composition.joint_tour_composition">joint_tour_composition() (in module activitysim.abm.models.joint_tour_composition)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.joint_tour_destination.joint_tour_destination">joint_tour_destination() (in module activitysim.abm.models.joint_tour_destination)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.joint_tour_destination.joint_tour_destination_logsums">joint_tour_destination_logsums() (in module activitysim.abm.models.joint_tour_destination)</a>
 </li>
@@ -564,11 +636,17 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="howitworks.html#index-5">land use</a>
+      <li><a href="howitworks.html#index-7">land use</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.LAST_CHECKPOINT">LAST_CHECKPOINT (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.pipeline.last_checkpoint">last_checkpoint() (in module activitysim.core.pipeline)</a>
 </li>
       <li><a href="core.html#activitysim.core.util.left_merge_on_index_and_col">left_merge_on_index_and_col() (in module activitysim.core.util)</a>
 </li>
       <li><a href="core.html#activitysim.core.pipeline.load_checkpoint">load_checkpoint() (in module activitysim.core.pipeline)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.tables.shadow_pricing.load_shadow_price_calculator">load_shadow_price_calculator() (in module activitysim.abm.tables.shadow_pricing)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.expressions.local_utilities">local_utilities() (in module activitysim.abm.models.util.expressions)</a>
 
@@ -578,12 +656,20 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="core.html#activitysim.core.tracing.log_file_path">log_file_path() (in module activitysim.core.tracing)</a>
-</li>
       <li><a href="models.html#activitysim.abm.models.tour_mode_choice.logger">logger (in module activitysim.abm.models.tour_mode_choice)</a>
 
       <ul>
         <li><a href="models.html#activitysim.abm.models.trip_scheduling.logger">(in module activitysim.abm.models.trip_scheduling)</a>
+</li>
+        <li><a href="models.html#activitysim.abm.tables.shadow_pricing.logger">(in module activitysim.abm.tables.shadow_pricing)</a>
+</li>
+        <li><a href="core.html#activitysim.core.config.logger">(in module activitysim.core.config)</a>
+</li>
+      </ul></li>
+      <li><a href="core.html#activitysim.core.random.Random.lognormal_for_df">lognormal_for_df() (activitysim.core.random.Random method)</a>
+
+      <ul>
+        <li><a href="core.html#activitysim.core.random.SimpleChannel.lognormal_for_df">(activitysim.core.random.SimpleChannel method)</a>
 </li>
       </ul></li>
       <li><a href="core.html#activitysim.core.skim.SkimDictWrapper.lookup">lookup() (activitysim.core.skim.SkimDictWrapper method)</a>
@@ -600,13 +686,25 @@
 </li>
       <li><a href="models.html#activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency">mandatory_tour_frequency() (in module activitysim.abm.models.mandatory_tour_frequency)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling">mandatory_tour_scheduling() (in module activitysim.abm.models.mandatory_scheduling)</a>
+</li>
+      <li><a href="core.html#activitysim.core.skim.OffsetMapper.map">map() (activitysim.core.skim.OffsetMapper method)</a>
 </li>
       <li><a href="core.html#activitysim.core.skim.SkimDictWrapper.max">max() (activitysim.core.skim.SkimDictWrapper method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#index-0">models</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.mp_apportion_pipeline">mp_apportion_pipeline() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.mp_coalesce_pipelines">mp_coalesce_pipelines() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.mp_run_simulation">mp_run_simulation() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.mp_setup_skims">mp_setup_skims() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="howitworks.html#index-0">multiprocessing</a>
 </li>
   </ul></td>
 </tr></table>
@@ -618,13 +716,15 @@
 </li>
       <li><a href="core.html#activitysim.core.tracing.no_results">no_results() (in module activitysim.core.tracing)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination">non_mandatory_tour_destination() (in module activitysim.abm.models.non_mandatory_destination)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency">non_mandatory_tour_frequency() (in module activitysim.abm.models.non_mandatory_tour_frequency)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling">non_mandatory_tour_scheduling() (in module activitysim.abm.models.non_mandatory_scheduling)</a>
+</li>
+      <li><a href="core.html#activitysim.core.assign.NumpyLogger">NumpyLogger (class in activitysim.core.assign)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -632,7 +732,9 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="howitworks.html#index-13">omx_file</a>
+      <li><a href="core.html#activitysim.core.skim.OffsetMapper">OffsetMapper (class in activitysim.core.skim)</a>
+</li>
+      <li><a href="howitworks.html#index-14">omx_file</a>
 </li>
       <li><a href="core.html#activitysim.core.pipeline.open_pipeline">open_pipeline() (in module activitysim.core.pipeline)</a>
 </li>
@@ -654,9 +756,11 @@
 </li>
       <li><a href="models.html#activitysim.abm.models.joint_tour_participation.participants_chooser">participants_chooser() (in module activitysim.abm.models.joint_tour_participation)</a>
 </li>
-      <li><a href="howitworks.html#index-6">persons</a>
+      <li><a href="howitworks.html#index-8">persons</a>
 </li>
-      <li><a href="core.html#activitysim.core.inject_defaults.pipeline_path">pipeline_path() (in module activitysim.core.inject_defaults)</a>
+      <li><a href="core.html#activitysim.core.pipeline.Pipeline">Pipeline (class in activitysim.core.pipeline)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.pipeline_table_keys">pipeline_table_keys() (in module activitysim.core.mp_tasks)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.initialize.preload_injectables">preload_injectables() (in module activitysim.abm.models.initialize)</a>
 </li>
@@ -667,6 +771,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.previous_tour_ends">previous_tour_ends() (activitysim.core.timetable.TimeTable method)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.print_run_list">print_run_list() (in module activitysim.core.mp_tasks)</a>
 </li>
       <li><a href="core.html#activitysim.core.tracing.print_summary">print_summary() (in module activitysim.core.tracing)</a>
 </li>
@@ -698,27 +804,25 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="howitworks.html#index-7">random channels</a>
+      <li><a href="core.html#activitysim.core.random.Random">Random (class in activitysim.core.random)</a>
 </li>
-      <li><a href="core.html#activitysim.core.random.SimpleChannel.random_for_df">random_for_df() (activitysim.core.random.SimpleChannel method)</a>
+      <li><a href="core.html#activitysim.core.random.Random.random_for_df">random_for_df() (activitysim.core.random.Random method)</a>
+
+      <ul>
+        <li><a href="core.html#activitysim.core.random.SimpleChannel.random_for_df">(activitysim.core.random.SimpleChannel method)</a>
 </li>
+      </ul></li>
       <li><a href="core.html#activitysim.core.assign.read_assignment_spec">read_assignment_spec() (in module activitysim.core.assign)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.read_breadcrumbs">read_breadcrumbs() (in module activitysim.core.mp_tasks)</a>
 </li>
       <li><a href="core.html#activitysim.core.pipeline.read_df">read_df() (in module activitysim.core.pipeline)</a>
 </li>
+      <li><a href="core.html#activitysim.core.config.read_model_settings">read_model_settings() (in module activitysim.core.config)</a>
+</li>
       <li><a href="core.html#activitysim.core.simulate.read_model_spec">read_model_spec() (in module activitysim.core.simulate)</a>
 </li>
-      <li><a href="core.html#activitysim.core.tracing.register_households">register_households() (in module activitysim.core.tracing)</a>
-</li>
-      <li><a href="core.html#activitysim.core.tracing.register_participants">register_participants() (in module activitysim.core.tracing)</a>
-</li>
-      <li><a href="core.html#activitysim.core.tracing.register_persons">register_persons() (in module activitysim.core.tracing)</a>
-</li>
-      <li><a href="core.html#activitysim.core.tracing.register_tours">register_tours() (in module activitysim.core.tracing)</a>
-</li>
       <li><a href="core.html#activitysim.core.tracing.register_traceable_table">register_traceable_table() (in module activitysim.core.tracing)</a>
-</li>
-      <li><a href="core.html#activitysim.core.tracing.register_trips">register_trips() (in module activitysim.core.tracing)</a>
 </li>
       <li><a href="core.html#activitysim.core.util.reindex">reindex() (in module activitysim.core.util)</a>
 </li>
@@ -726,8 +830,6 @@
 </li>
       <li><a href="core.html#activitysim.core.inject.reinject_decorated_tables">reinject_decorated_tables() (in module activitysim.core.inject)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.remaining_periods_available">remaining_periods_available() (activitysim.core.timetable.TimeTable method)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.replace_table">replace_table() (activitysim.core.timetable.TimeTable method)</a>
@@ -744,6 +846,8 @@
       </ul></li>
       <li><a href="core.html#activitysim.core.skim.SkimDictWrapper.reverse">reverse() (activitysim.core.skim.SkimDictWrapper method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.pipeline.rewrap">rewrap() (in module activitysim.core.pipeline)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.overlap.rle">rle() (in module activitysim.abm.models.util.overlap)</a>
@@ -752,7 +856,27 @@
 </li>
       <li><a href="models.html#activitysim.abm.models.util.cdap.run_cdap">run_cdap() (in module activitysim.abm.models.util.cdap)</a>
 </li>
+      <li><a href="models.html#activitysim.abm.models.util.tour_destination.run_destination_logsums">run_destination_logsums() (in module activitysim.abm.models.util.tour_destination)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.util.tour_destination.run_destination_simulate">run_destination_simulate() (in module activitysim.abm.models.util.tour_destination)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.location_choice.run_location_choice">run_location_choice() (in module activitysim.abm.models.location_choice)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.location_choice.run_location_logsums">run_location_logsums() (in module activitysim.abm.models.location_choice)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.location_choice.run_location_sample">run_location_sample() (in module activitysim.abm.models.location_choice)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.location_choice.run_location_simulate">run_location_simulate() (in module activitysim.abm.models.location_choice)</a>
+</li>
       <li><a href="core.html#activitysim.core.pipeline.run_model">run_model() (in module activitysim.core.pipeline)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.run_multiprocess">run_multiprocess() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.run_simulation">run_simulation() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.run_sub_simulations">run_sub_simulations() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.run_sub_task">run_sub_task() (in module activitysim.core.mp_tasks)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.mode.run_tour_mode_choice_simulate">run_tour_mode_choice_simulate() (in module activitysim.abm.models.util.mode)</a>
 </li>
@@ -772,13 +896,9 @@
 </li>
       <li><a href="models.html#activitysim.abm.models.trip_scheduling.schedule_trips_in_leg">schedule_trips_in_leg() (in module activitysim.abm.models.trip_scheduling)</a>
 </li>
-      <li><a href="models.html#activitysim.abm.models.school_location.school_location_logsums">school_location_logsums() (in module activitysim.abm.models.school_location)</a>
+      <li><a href="models.html#activitysim.abm.models.location_choice.school_location">school_location() (in module activitysim.abm.models.location_choice)</a>
 </li>
-      <li><a href="models.html#activitysim.abm.models.school_location.school_location_sample">school_location_sample() (in module activitysim.abm.models.school_location)</a>
-</li>
-      <li><a href="models.html#activitysim.abm.models.school_location.school_location_simulate">school_location_simulate() (in module activitysim.abm.models.school_location)</a>
-</li>
-      <li><a href="core.html#activitysim.core.skim.SkimDict.set">set() (activitysim.core.skim.SkimDict method)</a>
+      <li><a href="core.html#activitysim.core.random.Random.set_base_seed">set_base_seed() (activitysim.core.random.Random method)</a>
 </li>
       <li><a href="core.html#activitysim.core.skim.SkimDictWrapper.set_df">set_df() (activitysim.core.skim.SkimDictWrapper method)</a>
 
@@ -786,13 +906,21 @@
         <li><a href="core.html#activitysim.core.skim.SkimStackWrapper.set_df">(activitysim.core.skim.SkimStackWrapper method)</a>
 </li>
       </ul></li>
-      <li><a href="core.html#activitysim.core.pipeline.set_rn_generator_base_seed">set_rn_generator_base_seed() (in module activitysim.core.pipeline)</a>
+      <li><a href="core.html#activitysim.core.skim.OffsetMapper.set_offset_int">set_offset_int() (activitysim.core.skim.OffsetMapper method)</a>
+</li>
+      <li><a href="core.html#activitysim.core.skim.OffsetMapper.set_offset_list">set_offset_list() (activitysim.core.skim.OffsetMapper method)</a>
 </li>
       <li><a href="core.html#activitysim.core.simulate.set_skim_wrapper_targets">set_skim_wrapper_targets() (in module activitysim.core.simulate)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.trip_scheduling.set_tour_hour">set_tour_hour() (in module activitysim.abm.models.trip_scheduling)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.tour_frequency.set_tour_index">set_tour_index() (in module activitysim.abm.models.util.tour_frequency)</a>
+</li>
+      <li><a href="core.html#activitysim.core.mp_tasks.setup_injectables_and_logging">setup_injectables_and_logging() (in module activitysim.core.mp_tasks)</a>
+</li>
+      <li><a href="models.html#index-1">shadow pricing</a>
+</li>
+      <li><a href="models.html#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers">shadow_price_data_from_buffers() (in module activitysim.abm.tables.shadow_pricing)</a>
 </li>
       <li><a href="core.html#activitysim.core.simulate.simple_simulate">simple_simulate() (in module activitysim.core.simulate)</a>
 </li>
@@ -806,11 +934,13 @@
 </li>
       <li><a href="core.html#activitysim.core.random.SimpleChannel">SimpleChannel (class in activitysim.core.random)</a>
 </li>
-      <li><a href="howitworks.html#index-8">size terms</a>
+      <li><a href="howitworks.html#index-9">size terms</a>
 </li>
-      <li><a href="models.html#activitysim.abm.models.util.tour_destination.size_term">size_term() (in module activitysim.abm.models.util.tour_destination)</a>
+      <li><a href="models.html#activitysim.abm.tables.shadow_pricing.size_table_name">size_table_name() (in module activitysim.abm.tables.shadow_pricing)</a>
 </li>
-      <li><a href="howitworks.html#index-14">skim matrices</a>
+      <li><a href="models.html#activitysim.abm.models.util.tour_destination.SizeTermCalculator">SizeTermCalculator (class in activitysim.abm.models.util.tour_destination)</a>
+</li>
+      <li><a href="howitworks.html#index-15">skim matrices</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.expressions.skim_time_period_label">skim_time_period_label() (in module activitysim.abm.models.util.expressions)</a>
 </li>
@@ -818,17 +948,19 @@
 </li>
       <li><a href="core.html#activitysim.core.skim.SkimDictWrapper">SkimDictWrapper (class in activitysim.core.skim)</a>
 </li>
-      <li><a href="howitworks.html#index-12">skims</a>
+      <li><a href="howitworks.html#index-13">skims</a>
+</li>
+      <li><a href="core.html#activitysim.core.skim.SkimStack">SkimStack (class in activitysim.core.skim)</a>
 </li>
       <li><a href="core.html#activitysim.core.skim.SkimStackWrapper">SkimStackWrapper (class in activitysim.core.skim)</a>
 </li>
       <li><a href="core.html#activitysim.core.skim.SkimWrapper">SkimWrapper (class in activitysim.core.skim)</a>
 </li>
-      <li><a href="core.html#activitysim.core.tracing.slice_canonically">slice_canonically() (in module activitysim.core.tracing)</a>
-</li>
       <li><a href="core.html#activitysim.core.tracing.slice_ids">slice_ids() (in module activitysim.core.tracing)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.slice_windows_by_row_id">slice_windows_by_row_id() (activitysim.core.timetable.TimeTable method)</a>
+</li>
+      <li><a href="models.html#activitysim.abm.models.location_choice.spec_for_segment">spec_for_segment() (in module activitysim.abm.models.location_choice)</a>
 </li>
       <li><a href="core.html#activitysim.core.pipeline.split_arg">split_arg() (in module activitysim.core.pipeline)</a>
 </li>
@@ -840,29 +972,29 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#index-1">table annotation</a>
+      <li><a href="models.html#index-2">table annotation</a>
 </li>
-      <li><a href="howitworks.html#index-1">tables</a>
+      <li><a href="howitworks.html#index-2">tables</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.util.vectorize_tour_scheduling.tdd_interaction_dataset">tdd_interaction_dataset() (in module activitysim.abm.models.util.vectorize_tour_scheduling)</a>
 </li>
-      <li><a href="howitworks.html#index-9">time windows table</a>
+      <li><a href="howitworks.html#index-10">time windows table</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable">TimeTable (class in activitysim.core.timetable)</a>
 </li>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.tour_available">tour_available() (activitysim.core.timetable.TimeTable method)</a>
 </li>
-      <li><a href="models.html#activitysim.abm.models.util.tour_destination.tour_destination_size_terms">tour_destination_size_terms() (in module activitysim.abm.models.util.tour_destination)</a>
-</li>
       <li><a href="models.html#activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate">tour_mode_choice_simulate() (in module activitysim.abm.models.tour_mode_choice)</a>
 </li>
-      <li><a href="howitworks.html#index-10">tours</a>
+      <li><a href="howitworks.html#index-11">tours</a>
 </li>
       <li><a href="core.html#activitysim.core.tracing.trace_df">trace_df() (in module activitysim.core.tracing)</a>
 </li>
+      <li><a href="core.html#activitysim.core.tracing.trace_interaction_eval_results">trace_interaction_eval_results() (in module activitysim.core.tracing)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="core.html#activitysim.core.tracing.trace_interaction_eval_results">trace_interaction_eval_results() (in module activitysim.core.tracing)</a>
+      <li><a href="core.html#activitysim.core.steps.output.track_skim_usage">track_skim_usage() (in module activitysim.core.steps.output)</a>
 </li>
       <li><a href="models.html#activitysim.abm.models.trip_destination.trip_destination">trip_destination() (in module activitysim.abm.models.trip_destination)</a>
 </li>
@@ -878,7 +1010,7 @@
 </li>
       <li><a href="models.html#activitysim.abm.models.trip_scheduling.trip_scheduling">trip_scheduling() (in module activitysim.abm.models.trip_scheduling)</a>
 </li>
-      <li><a href="howitworks.html#index-11">trips</a>
+      <li><a href="howitworks.html#index-12">trips</a>
 </li>
       <li><a href="abmexample.html#index-0">tutorial</a>
 </li>
@@ -888,7 +1020,7 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="core.html#activitysim.core.assign.undupe_column_names">undupe_column_names() (in module activitysim.core.assign)</a>
+      <li><a href="core.html#activitysim.core.assign.uniquify_key">uniquify_key() (in module activitysim.core.assign)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -918,17 +1050,19 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="core.html#activitysim.core.timetable.TimeTable.window_periods_in_states">window_periods_in_states() (activitysim.core.timetable.TimeTable method)</a>
 </li>
-      <li><a href="models.html#activitysim.abm.models.workplace_location.workplace_location_logsums">workplace_location_logsums() (in module activitysim.abm.models.workplace_location)</a>
-</li>
-      <li><a href="models.html#activitysim.abm.models.workplace_location.workplace_location_sample">workplace_location_sample() (in module activitysim.abm.models.workplace_location)</a>
-</li>
-      <li><a href="models.html#activitysim.abm.models.workplace_location.workplace_location_simulate">workplace_location_simulate() (in module activitysim.abm.models.workplace_location)</a>
+      <li><a href="models.html#activitysim.abm.models.location_choice.workplace_location">workplace_location() (in module activitysim.abm.models.location_choice)</a>
 </li>
       <li><a href="core.html#activitysim.core.skim.SkimDict.wrap">wrap() (activitysim.core.skim.SkimDict method)</a>
+
+      <ul>
+        <li><a href="core.html#activitysim.core.skim.SkimStack.wrap">(activitysim.core.skim.SkimStack method)</a>
+</li>
+      </ul></li>
+      <li><a href="models.html#activitysim.abm.models.trip_destination.wrap_skims">wrap_skims() (in module activitysim.abm.models.trip_destination)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#activitysim.abm.models.trip_destination.wrap_skims">wrap_skims() (in module activitysim.abm.models.trip_destination)</a>
+      <li><a href="core.html#activitysim.core.mp_tasks.write_breadcrumbs">write_breadcrumbs() (in module activitysim.core.mp_tasks)</a>
 </li>
       <li><a href="core.html#activitysim.core.tracing.write_csv">write_csv() (in module activitysim.core.tracing)</a>
 </li>
@@ -953,7 +1087,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright contributing authors.
+        &copy; Copyright contributing authors
 
     </p>
   </div>
@@ -970,33 +1104,16 @@
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.7',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

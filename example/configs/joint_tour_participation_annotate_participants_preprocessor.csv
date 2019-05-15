@@ -1,5 +1,5 @@
 Description,Target,Expression
-,_P_OVERLAPS,"person_time_window_overlap(persons)"
+,_P_OVERLAPS,person_time_window_overlap(persons)
 ,time_window_overlap_adult,"reindex(_P_OVERLAPS.aa, participants.person_id)"
 ,time_window_overlap_child,"reindex(_P_OVERLAPS.cc, participants.person_id)"
 ,time_window_overlap_adult_child,"reindex(_P_OVERLAPS.ac, participants.person_id)"
@@ -21,6 +21,4 @@ logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time
 ,tour_composition_is_mixed,participants.composition=='mixed'
 ,home_is_suburban,~(participants.home_is_urban | participants.home_is_rural)
 ,high_income,participants.income_in_thousands > 60
-#,person_stays_home,participants.cdap_activity == constants.CDAP_ACTIVITY_HOME
-#,,
 ,more_cars_than_workers,participants.auto_ownership > participants.num_workers

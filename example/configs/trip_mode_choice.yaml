@@ -58,7 +58,7 @@ CONSTANTS:
   costShareSr2: 1.75
   costShareSr3: 2.50
   waitThresh: 10.00
-  walkThresh: 1.50
+  walkThresh: 1.00
   shortWalk: 0.333
   longWalk: 0.667
   walkSpeed: 3.00

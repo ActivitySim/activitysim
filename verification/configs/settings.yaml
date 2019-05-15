@@ -48,7 +48,7 @@ trace_hh_id: 324105
 #trace_od: [5, 11]
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: compute_accessibility
+#resume_after: mandatory_tour_scheduling
 
 models:
   ### mp_initialize step

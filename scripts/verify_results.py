@@ -218,7 +218,7 @@ asim_fp = asim_fp.reset_index()
 asim_fp = asim_fp.pivot(index="ptypename", columns="free_parking_at_work")
 asim_fp.to_csv("outputs/asim_fp.csv", na_rep=0)
 
-# value ojtourf time
+# value of time
 
 if process_tm1:
     tm1_per = pd.read_csv(tm1_per_filename)
@@ -453,7 +453,7 @@ if process_tm1:
     tm1_tours["distance"] = distmat[tm1_tours["orig_taz"]-1, tm1_tours["dest_taz"]-1]
     tm1_tours_atw = tm1_tours[tm1_tours["tour_category"] == "AT_WORK"]
     tm1_tours_atw["dist_bin"] = pd.cut(tm1_tours_atw["distance"], range(51))
-    tm1_tours_atw.groupby(["dist_bin"]).count()["hh_id"].to_csv("outputs/asim_atwork_dist.csv", na_rep=0)
+    tm1_tours_atw.groupby(["dist_bin"]).count()["hh_id"].to_csv("outputs/tm1_atwork_dist.csv", na_rep=0)
 
 asim_atw_tours = pd.read_csv(asim_tour_filename)
 asim_atw_tours = asim_atw_tours[asim_atw_tours["tour_category"] == "atwork"]

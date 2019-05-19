@@ -10,7 +10,7 @@ Description,Target,Expression
 #,,
 ,is_joint,df.tour_category=='joint'
 ,_HH_PERSON_COUNT,"lambda exp, persons: persons.query(exp).groupby('household_id').size()"
-,num_full,"reindex_i(_HH_PERSON_COUNT('ptype == %s' % constants.PTYPE_FULL, persons), df.household_id)"
+,num_full,"reindex_i(_HH_PERSON_COUNT('ptype == %s' % constants.PEMPLOY_FULL, persons), df.household_id)"
 ,num_part,"reindex_i(_HH_PERSON_COUNT('ptype == %s' % constants.PEMPLOY_PART, persons), df.household_id)"
 ,num_student,"reindex_i(_HH_PERSON_COUNT('pstudent != %s' % constants.PSTUDENT_NOT, persons), df.household_id)"
 Num Kids between 0 and 4 (including) years old,num_age_0_4,"reindex_i(_HH_PERSON_COUNT('age < 5', persons), df.household_id)"

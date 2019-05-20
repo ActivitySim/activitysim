@@ -12,42 +12,42 @@ Presence of kids between 5 and 15 (including) years old,(num_age_5_15 > 0),,,,,,
 Number of Adults (>= 16 years old),num_adult,,,,,,,,,,,,,,,,
 Dummy for single parent household,(num_adult == 1) & (num_age_0_4 + num_age_5_15 > 0),,,,,,,,,,,,,,,,
 Number of Cars > Number of Workers,more_cars_than_workers,,,,,,,,,,,,,,,,
-Number of Vehicles,auto_ownership,,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900,-0.1900
-Dummy for female,female,,,,,,,,,,,,,,,,
-Dummy for all stops made by transit,tour_mode_is_transit,,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700
-Dummy for walking to all stops,tour_mode_is_non_motorized,,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300,-1.7300
-Number of work tours undertaken by the person,num_work_tours,,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800,-0.2800
-Number of university tours tours undertaken by the person,num_univ_tours,,,,,,,,,,,,,,,,
-Number of shool tours tours undertaken by the person,num_school_tours,,,,,,,,,,,,,,,,
-Number of escort tours tours undertaken by the person,num_escort_tours,,,,,,,,,,,,,,,,
-Number of shop tours undertaken by the person,num_shop_tours,,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400,-0.2400
-Number of maintenace tours tours undertaken by the person,num_maint_tours,,,,,,,,,,,,,,,,
-Number of eating tours tours undertaken by the person,num_eatout_tours,,,,,,,,,,,,,,,,
-Number of visit tours tours undertaken by the person,num_social_tours,,,,,,,,,,,,,,,,
-Dummy for an outbound visiting tour,1,,,,,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900,-0.6900
-Dummy for a return visiting tour,1,,-0.6400,-0.6400,-0.6400,,-0.6400,-0.6400,-0.6400,,-0.6400,-0.6400,-0.6400,,-0.6400,-0.6400,-0.6400
-Dummy for a visiting tour with both outbound and return leg,1,,,,,,0.4400,0.4400,0.4400,,0.4400,0.4400,0.4400,,0.4400,0.4400,0.4400
+Number of Vehicles,auto_ownership,,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19
+Dummy for female,~is_joint & female,,,,,,,,,,,,,,,,
+Dummy for all stops made by transit,tour_mode_is_transit,,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7
+Dummy for walking to all stops,tour_mode_is_non_motorized,,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73,-1.73
+Number of work tours undertaken by the person,~is_joint * num_work_tours,,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28,-0.28
+Number of university tours tours undertaken by the person,~is_joint * num_univ_tours,,,,,,,,,,,,,,,,
+Number of shool tours tours undertaken by the person,~is_joint * num_school_tours,,,,,,,,,,,,,,,,
+Number of escort tours tours undertaken by the person,~is_joint * num_escort_tours,,,,,,,,,,,,,,,,
+Number of shop tours undertaken by the person,~is_joint * num_shop_tours,,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24,-0.24
+Number of maintenace tours tours undertaken by the person,~is_joint * num_maint_tours,,,,,,,,,,,,,,,,
+Number of eating tours tours undertaken by the person,~is_joint * num_eatout_tours,,,,,,,,,,,,,,,,
+Number of visit tours tours undertaken by the person,~is_joint * num_social_tours,,,,,,,,,,,,,,,,
 Number of shop tours undertaken by the houshold,num_hh_shop_tours,,,,,,,,,,,,,,,,
-Number of persons participating in the tour.Outgoing stops interaction,is_joint * number_of_participants,,,,,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600,-0.4600
+Number of persons participating in the tour.Outgoing stops interaction,is_joint * number_of_participants,,,,,-0.46,-0.46,-0.46,-0.46,-0.46,-0.46,-0.46,-0.46,-0.46,-0.46,-0.46,-0.46
 Number of persons participating in the tour.Return stops interaction,is_joint * number_of_participants,,,,,,,,,,,,,,,,
-At least one kid and one adult participate in the tour,composition=='mixed',,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700,0.3700
+At least one kid and one adult participate in the tour,composition=='mixed',,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37
 AM Peak departure between 6AM and 7 AM (including) Interacted with outbound tours,(start>5) & (start<8),,,,,,,,,,,,,,,,
-Arrival later than 17:00.,(end > 16),,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500,-0.4500
+Arrival later than 17:00.,(end > 16),,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45,-0.45
 Evening Arrival (>=19:00) Interacted with return tours,(end > 18),,,,,,,,,,,,,,,,
 Dummy for the duration of the tour being equal or greater than or equal to 11 hours,(duration > 10),,,,,,,,,,,,,,,,
 Dummy for the duration of the tour being equal or greater than or equal to 9 hours ,(duration > 8),,,,,,,,,,,,,,,,
-Dummy for the duration of the tour being equal or greater than or equal to 3 hours ,(duration > 2),,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100,1.3100
+Dummy for the duration of the tour being equal or greater than or equal to 3 hours ,(duration > 2),,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31,1.31
 HH accesibility for outbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 HH accesibility for inbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for outbound tours. Interaction,pracc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for return tours. Interaction,pracc,,,,,,,,,,,,,,,,
 dummy for distance less than 20 Miles ,(distance_in_miles < 20),,,,,,,,,,,,,,,,
-dummy for distance in miles,distance_in_miles,,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100,-0.0100
+dummy for distance in miles,distance_in_miles,,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01,-0.01
 #distance in miles * Number of stops,distance_in_miles * @@numStopsAlt,,,,,,,,,,,,,,,,
 No stops if tour mode is driveTransit,tour_mode_is_drive_transit,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 Alternative specific constant for outbound stops,~is_joint,,,,,-1.081,-1.081,-1.081,-1.081,-2.874,-2.874,-2.874,-2.874,-4.552,-4.552,-4.552,-4.552
-Alternative specific constant for return  stops,~is_joint,,-1.120,-2.764,-3.451,,-1.120,-2.764,-3.451,,-1.120,-2.764,-3.451,,-1.120,-2.764,-3.451
+Alternative specific constant for return  stops,~is_joint,,-1.12,-2.764,-3.451,,-1.12,-2.764,-3.451,,-1.12,-2.764,-3.451,,-1.12,-2.764,-3.451
 Alternative specific constant for the total number of stops,~is_joint,,,0,0,,0,0,0.496,0,0,0.496,0.882,0,0.496,0.882,0.882
 Alternative specific constant for outbound stops on joint tours,is_joint,,,,,-1.783,-1.783,-1.783,-1.783,-4.067,-4.067,-4.067,-4.067,-4.998,-4.998,-4.998,-4.998
 Alternative specific constant for return  stops on joint tours,is_joint,,-1.329,-2.796,-3.379,,-1.329,-2.796,-3.379,,-1.329,-2.796,-3.379,,-1.329,-2.796,-3.379
 Alternative specific constant for the total number of stops on joint tours,is_joint,,,0,0,,0,0,0.518,0,0,0.518,1.497,0,0.518,1.497,1.497
+Dummy for an outbound visiting tour,primary_purpose == 'social',,,,,-0.69,-0.69,-0.69,-0.69,-0.69,-0.69,-0.69,-0.69,-0.69,-0.69,-0.69,-0.69
+Dummy for a return visiting tour,primary_purpose == 'social',,-0.64,-0.64,-0.64,,-0.64,-0.64,-0.64,,-0.64,-0.64,-0.64,,-0.64,-0.64,-0.64
+Dummy for a visiting tour with both outbound and return leg,primary_purpose == 'social',,,,,,0.44,0.44,0.44,,0.44,0.44,0.44,,0.44,0.44,0.44

@@ -199,7 +199,7 @@ DRIVE_LRF outbound - number of transfers,@df.outbound * c_xfers_drv * (odt_skims
 DRIVE_LRF outbound - Drive time,@df.outbound * c_dtim * odt_skims['DRV_LRF_WLK_DTIM']/100,,,,,,,,,,,,,,,1,,,
 DRIVE_LRF outbound - Walk egress time,@df.outbound * c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,1,,,
 DRIVE_LRF outbound - Walk other time,@df.outbound * c_waux * odt_skims['DRV_LRF_WLK_WAUX']/100,,,,,,,,,,,,,,,1,,,
-DRIVE_LRF outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_LRF_WLK_FAR'] + costPerMile * odt_skims['DRV_LRF_WLK_FAR']/100),,,,,,,,,,,,,,,1,,,
+DRIVE_LRF outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_LRF_WLK_FAR'] + costPerMile * odt_skims['DRV_LRF_WLK_DDIST']/100),,,,,,,,,,,,,,,1,,,
 DRIVE_LRF outbound - Ratio of drive access distance to OD distance,@df.outbound * c_dacc_ratio * (odt_skims['DRV_LRF_WLK_DDIST']/100) / od_skims['DIST'],,,,,,,,,,,,,,,1,,,
 DRIVE_LRF inbound - Unavailable,inbound & ~drive_lrf_available_inbound,,,,,,,,,,,,,,,-999,,,
 DRIVE_LRF inbound - In-vehicle time,@df.inbound * c_ivt * odt_skims['WLK_LRF_DRV_TOTIVT']/100,,,,,,,,,,,,,,,1,,,
@@ -212,7 +212,7 @@ DRIVE_LRF inbound - number of transfers,@df.inbound * c_xfers_drv * (odt_skims['
 DRIVE_LRF inbound - Drive time,@df.inbound * c_dtim * odt_skims['WLK_LRF_DRV_DTIM']/100,,,,,,,,,,,,,,,1,,,
 DRIVE_LRF inbound - Walk access time,@df.inbound * c_wacc * df.origin_walk_time,,,,,,,,,,,,,,,1,,,
 DRIVE_LRF inbound - Walk other time,@df.inbound * c_waux * odt_skims['WLK_LRF_DRV_WAUX']/100,,,,,,,,,,,,,,,1,,,
-DRIVE_LRF inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_LRF_DRV_FAR'] + costPerMile * odt_skims['WLK_LRF_DRV_FAR']/100),,,,,,,,,,,,,,,1,,,
+DRIVE_LRF inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_LRF_DRV_FAR'] + costPerMile * odt_skims['WLK_LRF_DRV_DDIST']/100),,,,,,,,,,,,,,,1,,,
 DRIVE_LRF inbound - Ratio of drive access distance to OD distance,@df.inbound * c_dacc_ratio * (odt_skims['WLK_LRF_DRV_DDIST']/100)/ od_skims['DIST'],,,,,,,,,,,,,,,1,,,
 #Drive to Express bus,,,,,,,,,,,,,,,,,,,
 DRIVE_EXP - Unavailable for zero auto households,auto_ownership == 0,,,,,,,,,,,,,,,,-999,,
@@ -230,7 +230,7 @@ DRIVE_EXP outbound - number of transfers,@df.outbound * c_xfers_drv * (odt_skims
 DRIVE_EXP outbound - Drive time,@df.outbound * c_dtim * odt_skims['DRV_EXP_WLK_DTIM']/100,,,,,,,,,,,,,,,,1,,
 DRIVE_EXP outbound - Walk egress ime,@df.outbound * c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,,1,,
 DRIVE_EXP outbound - Walk other time,@df.outbound * c_waux * odt_skims['DRV_EXP_WLK_WAUX']/100,,,,,,,,,,,,,,,,1,,
-DRIVE_EXP outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_EXP_WLK_FAR'] + costPerMile * odt_skims['DRV_EXP_WLK_FAR']/100),,,,,,,,,,,,,,,,1,,
+DRIVE_EXP outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_EXP_WLK_FAR'] + costPerMile * odt_skims['DRV_EXP_WLK_DDIST']/100),,,,,,,,,,,,,,,,1,,
 DRIVE_EXP outbound - Ratio of drive access distance to OD distance,@df.outbound * c_dacc_ratio * (odt_skims['DRV_EXP_WLK_DDIST']/100) / od_skims['DIST'],,,,,,,,,,,,,,,,1,,
 DRIVE_EXP inbound - Unavailable,inbound & ~drive_express_available_inbound,,,,,,,,,,,,,,,,-999,,
 DRIVE_EXP inbound - In-vehicle time,@df.inbound * c_ivt * odt_skims['WLK_EXP_DRV_TOTIVT']/100,,,,,,,,,,,,,,,,1,,
@@ -242,7 +242,7 @@ DRIVE_EXP inbound - number of transfers,@df.inbound * c_xfers_drv * (odt_skims['
 DRIVE_EXP inbound - Drive time,@df.inbound * c_dtim * odt_skims['WLK_EXP_DRV_DTIM']/100,,,,,,,,,,,,,,,,1,,
 DRIVE_EXP inbound - Walk access time,@df.inbound * c_wacc * df.origin_walk_time,,,,,,,,,,,,,,,,1,,
 DRIVE_EXP inbound - Walk other time,@df.inbound * c_waux * odt_skims['WLK_EXP_DRV_WAUX']/100,,,,,,,,,,,,,,,,1,,
-DRIVE_EXP inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_EXP_DRV_FAR'] + costPerMile * odt_skims['WLK_EXP_DRV_FAR']/100),,,,,,,,,,,,,,,,1,,
+DRIVE_EXP inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_EXP_DRV_FAR'] + costPerMile * odt_skims['WLK_EXP_DRV_DDIST']/100),,,,,,,,,,,,,,,,1,,
 DRIVE_EXP inbound - Ratio of drive access distance to OD distance,@df.inbound * c_dacc_ratio * (odt_skims['WLK_EXP_DRV_DDIST']/100) / od_skims['DIST'],,,,,,,,,,,,,,,,1,,
 #Drive to Heavy Rail,,,,,,,,,,,,,,,,,,,
 DRIVE_HVY - Unavailable for zero auto households,auto_ownership == 0,,,,,,,,,,,,,,,,,-999,
@@ -260,7 +260,7 @@ DRIVE_HVY outbound - number of transfers,@df.outbound * c_xfers_drv * (odt_skims
 DRIVE_HVY outbound - Drive time,@df.outbound * c_dtim * odt_skims['DRV_HVY_WLK_DTIM']/100,,,,,,,,,,,,,,,,,1,
 DRIVE_HVY outbound - Walk egress time,@df.outbound * c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,,,1,
 DRIVE_HVY outbound - Walk other time,@df.outbound * c_waux * odt_skims['DRV_HVY_WLK_WAUX']/100,,,,,,,,,,,,,,,,,1,
-DRIVE_HVY outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_HVY_WLK_FAR'] + costPerMile * odt_skims['DRV_HVY_WLK_FAR']/100),,,,,,,,,,,,,,,,,1,
+DRIVE_HVY outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_HVY_WLK_FAR'] + costPerMile * odt_skims['DRV_HVY_WLK_DDIST']/100),,,,,,,,,,,,,,,,,1,
 DRIVE_HVY outbound - Ratio of drive access distance to OD distance,@df.outbound * c_dacc_ratio * (odt_skims['DRV_HVY_WLK_DDIST']/100) / od_skims['DIST'],,,,,,,,,,,,,,,,,1,
 DRIVE_HVY inbound - Unavailable,inbound & ~drive_heavyrail_available_inbound,,,,,,,,,,,,,,,,,-999,
 DRIVE_HVY inbound - In-vehicle time,@df.inbound * c_ivt * odt_skims['WLK_HVY_DRV_TOTIVT']/100,,,,,,,,,,,,,,,,,1,
@@ -272,7 +272,7 @@ DRIVE_HVY inbound - number of transfers,@df.inbound * c_xfers_drv * (odt_skims['
 DRIVE_HVY inbound - Drive time,@df.outbound * c_dtim * odt_skims['DRV_HVY_WLK_DTIM']/100,,,,,,,,,,,,,,,,,1,
 DRIVE_HVY inbound - Walk access time,@df.inbound * c_wacc * df.origin_walk_time,,,,,,,,,,,,,,,,,1,
 DRIVE_HVY inbound - Walk other time,@c_waux * odt_skims['WLK_HVY_DRV_WAUX']/100,,,,,,,,,,,,,,,,,1,
-DRIVE_HVY inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_HVY_DRV_FAR'] + costPerMile * odt_skims['WLK_HVY_DRV_FAR']/100),,,,,,,,,,,,,,,,,1,
+DRIVE_HVY inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_HVY_DRV_FAR'] + costPerMile * odt_skims['WLK_HVY_DRV_DDIST']/100),,,,,,,,,,,,,,,,,1,
 DRIVE_HVY inbound - Ratio of drive access distance to OD distance,@df.inbound * c_dacc_ratio * (odt_skims['WLK_HVY_DRV_DDIST']/100)/ od_skims['DIST'],,,,,,,,,,,,,,,,,1,
 #Drive to Commuter Rail,,,,,,,,,,,,,,,,,,,
 DRIVE_COM - Unavailable for zero auto households,auto_ownership == 0,,,,,,,,,,,,,,,,,,-999
@@ -290,7 +290,7 @@ DRIVE_COM outbound - number of transfers,@df.outbound * c_xfers_drv * (odt_skims
 DRIVE_COM outbound - Drive time,@df.outbound * c_dtim * odt_skims['DRV_COM_WLK_DTIM']/100,,,,,,,,,,,,,,,,,,1
 DRIVE_COM outbound - Walk egress time,@df.outbound * c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,,,,1
 DRIVE_COM outbound - Walk other time,@df.outbound * c_waux * odt_skims['DRV_COM_WLK_WAUX']/100,,,,,,,,,,,,,,,,,,1
-DRIVE_COM outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_COM_WLK_FAR'] + costPerMile * odt_skims['DRV_COM_WLK_FAR']/100),,,,,,,,,,,,,,,,,,1
+DRIVE_COM outbound - Fare and operating cost,@df.outbound * df.c_cost * (odt_skims['DRV_COM_WLK_FAR'] + costPerMile * odt_skims['DRV_COM_WLK_DDIST']/100),,,,,,,,,,,,,,,,,,1
 DRIVE_COM outbound - Ratio of drive access distance to OD distance,@df.outbound * c_dacc_ratio * (odt_skims['DRV_COM_WLK_DDIST']/100) / od_skims['DIST'],,,,,,,,,,,,,,,,,,1
 DRIVE_COM inbound - Unavailable,inbound & ~drive_commuter_available_inbound,,,,,,,,,,,,,,,,,,-999
 DRIVE_COM inbound - In-vehicle time,@df.inbound * c_ivt * odt_skims['WLK_COM_DRV_TOTIVT']/100,,,,,,,,,,,,,,,,,,1
@@ -302,7 +302,7 @@ DRIVE_COM inbound - number of transfers,@df.inbound * c_xfers_drv * (odt_skims['
 DRIVE_COM inbound - Drive time,@df.inbound * c_dtim * odt_skims['WLK_COM_DRV_DTIM']/100,,,,,,,,,,,,,,,,,,1
 DRIVE_COM inbound - Walk access time,@df.inbound * c_wacc * df.origin_walk_time,,,,,,,,,,,,,,,,,,1
 DRIVE_COM inbound - Walk other time,@df.inbound * c_waux * odt_skims['WLK_COM_DRV_WAUX']/100,,,,,,,,,,,,,,,,,,1
-DRIVE_COM inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_COM_DRV_FAR'] + costPerMile * odt_skims['WLK_COM_DRV_FAR']/100),,,,,,,,,,,,,,,,,,1
+DRIVE_COM inbound - Fare and operating cost,@df.inbound * df.c_cost * (odt_skims['WLK_COM_DRV_FAR'] + costPerMile * odt_skims['WLK_COM_DRV_DDIST']/100),,,,,,,,,,,,,,,,,,1
 DRIVE_COM inbound - Ratio of drive access distance to OD distance,@df.inbound * c_dacc_ratio * (odt_skims['WLK_COM_DRV_DDIST']/100) / od_skims['DIST'],,,,,,,,,,,,,,,,,,1
 #,,,,,,,,,,,,,,,,,,,
 Auto tour mode availability,tour_mode_is_auto,,,,,,,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

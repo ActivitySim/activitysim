@@ -42,5 +42,3 @@ No stops if tour mode is driveTransit,tour_mode_is_drive_transit,,-999,-999,-999
 Alternative specific constant for outbound stops,1,,,,,-2.123,-2.123,-2.123,-2.123,-3.798,-3.798,-3.798,-3.798,-5.85,-5.85,-5.85,-5.85
 Alternative specific constant for return  stops,1,,-1.206,-2.672,-3.364,,-1.206,-2.672,-3.364,,-1.206,-2.672,-3.364,,-1.206,-2.672,-3.364
 Alternative specific constant for the total number of stops,1,,,0,0,,0,0,0.701,0,0,0.701,1.135,0,0.701,1.135,1.135
-#work has one row not found in other tour types,,,,,,,,,,,,,,,,,
-#Number of subtours in the tour,num_atwork_subtours,,,,,,,,,,,,,,,,

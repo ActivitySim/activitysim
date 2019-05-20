@@ -169,7 +169,7 @@ DRIVE_LOC - Drive time,@c_dtim * (odt_skims['DRV_LOC_WLK_DTIM']/100 + dot_skims[
 DRIVE_LOC - Walk access time,@c_wacc * df.destination_walk_time,,,,,,,,,,,,,,1,,,,
 DRIVE_LOC - Walk egress time (at attraction end),@c_wegr * df.destination_walk_time,,,,,,,,,,,,,,1,,,,
 DRIVE_LOC - Walk other time,@c_waux * (odt_skims['DRV_LOC_WLK_WAUX']/100 + dot_skims['WLK_LOC_DRV_WAUX']/100),,,,,,,,,,,,,,1,,,,
-DRIVE_LOC - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_LOC_WLK_FAR'] + dot_skims['WLK_LOC_DRV_FAR']) + ((odt_skims['DRV_LOC_WLK_FAR']/100+dot_skims['WLK_LOC_DRV_FAR']/100) * costPerMile)),,,,,,,,,,,,,,1,,,,
+DRIVE_LOC - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_LOC_WLK_FAR'] + dot_skims['WLK_LOC_DRV_FAR']) + ((odt_skims['DRV_LOC_WLK_DDIST']/100+dot_skims['WLK_LOC_DRV_DDIST']/100) * costPerMile)),,,,,,,,,,,,,,1,,,,
 DRIVE_LOC - Ratio of drive access distance to OD distance,@c_dacc_ratio * ((odt_skims['DRV_LOC_WLK_DDIST']/100+ dot_skims['WLK_LOC_DRV_DDIST']/100)/ (od_skims['DIST']*2)),,,,,,,,,,,,,,1,,,,
 DRIVE_LOC - Destination zone densityIndex,@c_density_index * df.dest_density_index,,,,,,,,,,,,,,1,,,,
 DRIVE_LOC - Topology,@c_topology_trn * df.dest_topology,,,,,,,,,,,,,,1,,,,
@@ -189,7 +189,7 @@ DRIVE_LRF - Drive time,@c_dtim * (odt_skims['DRV_LRF_WLK_DTIM']/100 + dot_skims[
 DRIVE_LRF - Walk access time (at attraction end),@c_wacc * df.destination_walk_time,,,,,,,,,,,,,,,1,,,
 DRIVE_LRF - Walk egress time (at attraction end),@c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,1,,,
 DRIVE_LRF - Walk other time,@c_waux * (odt_skims['DRV_LRF_WLK_WAUX']/100 + dot_skims['WLK_LRF_DRV_WAUX']/100),,,,,,,,,,,,,,,1,,,
-DRIVE_LRF - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_LRF_WLK_FAR']+dot_skims['WLK_LRF_DRV_FAR']) + ((odt_skims['DRV_LRF_WLK_FAR']/100+dot_skims['WLK_LRF_DRV_FAR']/100) *costPerMile)),,,,,,,,,,,,,,,1,,,
+DRIVE_LRF - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_LRF_WLK_FAR']+dot_skims['WLK_LRF_DRV_FAR']) + ((odt_skims['DRV_LRF_WLK_DDIST']/100+dot_skims['WLK_LRF_DRV_DDIST']/100) *costPerMile)),,,,,,,,,,,,,,,1,,,
 DRIVE_LRF - Ratio of drive access distance to OD distance,@c_dacc_ratio * ((odt_skims['DRV_LRF_WLK_DDIST']/100+ dot_skims['WLK_LRF_DRV_DDIST']/100)/ (od_skims['DIST']*2)),,,,,,,,,,,,,,,1,,,
 DRIVE_LRF - Destination zone densityIndex,@c_density_index * df.dest_density_index,,,,,,,,,,,,,,,1,,,
 DRIVE_LRF - Topology,@c_topology_trn * df.dest_topology,,,,,,,,,,,,,,,1,,,
@@ -208,7 +208,7 @@ DRIVE_EXP - Drive time,@c_dtim * (odt_skims['DRV_EXP_WLK_DTIM']/100 + dot_skims[
 DRIVE_EXP - Walk access time (at attraction end),@c_wacc * df.destination_walk_time,,,,,,,,,,,,,,,,1,,
 DRIVE_EXP - Walk egress ime (at attraction end),@c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,,1,,
 DRIVE_EXP - Walk other time,@c_waux * (odt_skims['DRV_EXP_WLK_WAUX']/100 + dot_skims['WLK_EXP_DRV_WAUX']/100),,,,,,,,,,,,,,,,1,,
-DRIVE_EXP - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_EXP_WLK_FAR']+dot_skims['WLK_EXP_DRV_FAR']) + ((odt_skims['DRV_EXP_WLK_FAR']/100+dot_skims['WLK_EXP_DRV_FAR']/100) *costPerMile)),,,,,,,,,,,,,,,,1,,
+DRIVE_EXP - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_EXP_WLK_FAR']+dot_skims['WLK_EXP_DRV_FAR']) + ((odt_skims['DRV_EXP_WLK_DDIST']/100+dot_skims['WLK_EXP_DRV_DDIST']/100) *costPerMile)),,,,,,,,,,,,,,,,1,,
 DRIVE_EXP - Ratio of drive access distance to OD distance,@c_dacc_ratio * ((odt_skims['DRV_EXP_WLK_DDIST']/100+ dot_skims['WLK_EXP_DRV_DDIST']/100)/ (od_skims['DIST']*2)),,,,,,,,,,,,,,,,1,,
 DRIVE_EXP - Destination zone densityIndex,@c_density_index * df.dest_density_index,,,,,,,,,,,,,,,,1,,
 DRIVE_EXP - Topology,@c_topology_trn * df.dest_topology,,,,,,,,,,,,,,,,1,,
@@ -227,7 +227,7 @@ DRIVE_HVY - Drive time,@c_dtim * (odt_skims['DRV_HVY_WLK_DTIM']/100 + dot_skims[
 DRIVE_HVY - Walk access time (at attraction end),@c_wacc * df.destination_walk_time,,,,,,,,,,,,,,,,,1,
 DRIVE_HVY - Walk egress time (at attraction end),@c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,,,1,
 DRIVE_HVY - Walk other time,@c_waux * (odt_skims['DRV_HVY_WLK_WAUX']/100 + dot_skims['WLK_HVY_DRV_WAUX']/100),,,,,,,,,,,,,,,,,1,
-DRIVE_HVY - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_HVY_WLK_FAR']+dot_skims['WLK_HVY_DRV_FAR']) + ((odt_skims['DRV_HVY_WLK_FAR']/100+dot_skims['WLK_HVY_DRV_FAR']/100) *costPerMile)),,,,,,,,,,,,,,,,,1,
+DRIVE_HVY - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_HVY_WLK_FAR']+dot_skims['WLK_HVY_DRV_FAR']) + ((odt_skims['DRV_HVY_WLK_DDIST']/100+dot_skims['WLK_HVY_DRV_DDIST']/100) *costPerMile)),,,,,,,,,,,,,,,,,1,
 DRIVE_HVY - Ratio of drive access distance to OD distance,@c_dacc_ratio * (odt_skims['DRV_HVY_WLK_DDIST']/100) / od_skims['DIST'],,,,,,,,,,,,,,,,,1,
 DRIVE_HVY - Destination zone densityIndex,@c_density_index * df.dest_density_index,,,,,,,,,,,,,,,,,1,
 DRIVE_HVY - Topology,@c_topology_trn * df.dest_topology,,,,,,,,,,,,,,,,,1,
@@ -246,7 +246,7 @@ DRIVE_COM - Drive time,@c_dtim * (odt_skims['DRV_COM_WLK_DTIM']/100 + dot_skims[
 DRIVE_COM - Walk access time (at attraction end),@c_wacc * df.destination_walk_time,,,,,,,,,,,,,,,,,,1
 DRIVE_COM - Walk egress time (at attraction end),@c_wegr * df.destination_walk_time,,,,,,,,,,,,,,,,,,1
 DRIVE_COM - Walk other time,@c_waux * (odt_skims['DRV_COM_WLK_WAUX']/100 + dot_skims['WLK_COM_DRV_WAUX']/100),,,,,,,,,,,,,,,,,,1
-DRIVE_COM - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_COM_WLK_FAR']+dot_skims['WLK_COM_DRV_FAR']) + ((odt_skims['DRV_COM_WLK_FAR']/100+dot_skims['WLK_COM_DRV_FAR']/100) *costPerMile)),,,,,,,,,,,,,,,,,,1
+DRIVE_COM - Fare and operating cost,@df.c_cost * ((odt_skims['DRV_COM_WLK_FAR']+dot_skims['WLK_COM_DRV_FAR']) + ((odt_skims['DRV_COM_WLK_DDIST']/100+dot_skims['WLK_COM_DRV_DDIST']/100) *costPerMile)),,,,,,,,,,,,,,,,,,1
 DRIVE_COM - Ratio of drive access distance to OD distance,@c_dacc_ratio * ((odt_skims['DRV_COM_WLK_DDIST']/100 + dot_skims['WLK_COM_DRV_DDIST']/100)/ (od_skims['DIST']*2)),,,,,,,,,,,,,,,,,,1
 DRIVE_COM - Destination zone densityIndex,@c_density_index * df.dest_density_index,,,,,,,,,,,,,,,,,,1
 DRIVE_COM - Topology,@c_topology_trn * df.dest_topology,,,,,,,,,,,,,,,,,,1

@@ -252,11 +252,7 @@ def preprocess_interaction_coefficients(interaction_coefficients):
 
 
 def cached_spec_name(hhsize):
-    return 'cdap_spec_%s.csv' % hhsize
-
-
-def cached_spec_path(spec_name):
-    return config.output_file_path(spec_name)
+    return 'cdap_spec_%s' % hhsize
 
 
 def get_cached_spec(hhsize):
@@ -268,17 +264,15 @@ def get_cached_spec(hhsize):
         logger.info("build_cdap_spec returning cached injectable spec %s", spec_name)
         return spec
 
-    # # try configs dir
-    # spec_path = config.config_file_path(spec_name, mandatory=False)
-    # if spec_path:
+    # this is problematic for multiprocessing and since we delete csv files in output_dir
+    # at the start of every run, doesn't provide any benefit in single-processing as the
+    # cached spec will be available as an injectable to subsequent chunks
+
+    # # try data dir
+    # if os.path.exists(config.output_file_path(spec_name)):
+    #     spec_path = config.output_file_path(spec_name)
     #     logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
     #     return pd.read_csv(spec_path, index_col='Expression')
-
-    # try data dir
-    if os.path.exists(config.output_file_path(spec_name)):
-        spec_path = config.output_file_path(spec_name)
-        logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
-        return pd.read_csv(spec_path, index_col='Expression')
 
     return None
 
@@ -287,8 +281,6 @@ def cache_spec(hhsize, spec):
     spec_name = cached_spec_name(hhsize)
     # cache as injectable
     inject.add_injectable(spec_name, spec)
-    # cache as csv in output_dir
-    spec.to_csv(config.output_file_path(spec_name), index=True)
 
 
 def build_cdap_spec(interaction_coefficients, hhsize,
@@ -809,7 +801,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
 def _run_cdap(
         persons,
         cdap_indiv_spec,
-        cdap_interaction_coefficients,
+        interaction_coefficients,
         cdap_fixed_relative_proportions,
         locals_d,
         trace_hh_id, trace_label):
@@ -817,8 +809,6 @@ def _run_cdap(
     Implements core run_cdap functionality on persons df (or chunked subset thereof)
     Aside from chunking of persons df, params are passed through from run_cdap unchanged
     """
-
-    interaction_coefficients = preprocess_interaction_coefficients(cdap_interaction_coefficients)
 
     # assign integer cdap_rank to each household member
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model

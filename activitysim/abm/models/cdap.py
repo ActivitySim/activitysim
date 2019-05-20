@@ -76,8 +76,6 @@ def cdap_simulate(persons_merged, persons, households,
 
     constants = config.get_model_constants(model_settings)
 
-
-    #
     cdap_interaction_coefficients = \
         cdap.preprocess_interaction_coefficients(cdap_interaction_coefficients)
 
@@ -89,7 +87,6 @@ def cdap_simulate(persons_merged, persons, households,
         spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize, cache=True)
         if inject.get_injectable('locutor', False):
             spec.to_csv(config.output_file_path('cdap_spec_%s.csv' % hhsize), index=True)
-
 
     logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 

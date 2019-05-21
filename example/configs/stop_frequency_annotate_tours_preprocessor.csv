@@ -16,13 +16,13 @@ Description,Target,Expression
 Num Kids between 0 and 4 (including) years old,num_age_0_4,"reindex_i(_HH_PERSON_COUNT('age < 5', persons), df.household_id)"
 Num kids between 4 and 15 (including) years old,num_age_5_15,"reindex_i(_HH_PERSON_COUNT('(age >= 5) & (age <16)', persons), df.household_id)"
 Number of Adults (>= 16 years old),num_adult,"reindex_i(_HH_PERSON_COUNT('age >= 16', persons), df.household_id)"
-,more_cars_than_workers,df.auto_ownership > (num_full + num_part)
+,more_cars_than_workers,df.auto_ownership >= (num_full + num_part)
 ,tour_mode_is_transit,df.tour_mode.isin(TRANSIT_MODES)
 ,tour_mode_is_drive_transit,df.tour_mode.isin(DRIVE_TO_TRANSIT_MODES)
 ,tour_mode_is_non_motorized,df.tour_mode.isin(NONMOTORIZED_MODES)
 #,,
 #num_work_tours already defined,,
-,num_school_tours,"reindex_i(df[df.tour_type==SCHOOL_TOUR].groupby('person_id').size(), df.person_id)"
+school but not university,num_school_tours,"reindex_i(df[primary_purpose==SCHOOL_TOUR].groupby('person_id').size(), df.person_id)"
 ,num_univ_tours,(df.is_university) * num_school_tours
 #num_escort_tours already defined,,
 # indiv tour counts should not include joint tours by point_person,,

@@ -48,7 +48,7 @@ trace_hh_id: 324105
 #trace_od: [5, 11]
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: mandatory_tour_scheduling
+# resume_after: atwork_subtour_mode_choice
 
 models:
   ### mp_initialize step
@@ -106,18 +106,18 @@ output_tables:
   action: include
   prefix: final_
   tables:
-#    - checkpoints
-#    - accessibility
+    - checkpoints
+    - accessibility
     - land_use
-#    - households
+    - households
     - persons
-#    - trips
-#    - tours
-#   - school_shadow_prices
+    - tours
+    - trips
+    - school_shadow_prices
     - raw_school_destination_size
     - school_destination_size
     - school_modeled_size
-#   - workplace_shadow_prices
+    - workplace_shadow_prices
     - raw_workplace_destination_size
     - workplace_destination_size
     - workplace_modeled_size

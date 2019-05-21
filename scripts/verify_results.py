@@ -17,9 +17,9 @@ pipeline_filename = 'asim/pipeline.h5'
 distance_matrix_filename = "nonmotskm.omx"
 asim_nmtf_alts_filename = "non_mandatory_tour_frequency_alternatives.csv"
 
-asim_sp_work_filename = "asim/trace.shadow_price_workplace_modeled_size_10.csv"
-asim_sp_school_filename = "asim/trace.shadow_price_school_modeled_size_10.csv"
-asim_sp_school_no_sp_filename = "asim/trace.shadow_price_school_modeled_size_1.csv"
+asim_sp_work_filename = "asim/shadow_price_workplace_modeled_size_10.csv"
+asim_sp_school_filename = "asim/shadow_price_school_modeled_size_10.csv"
+asim_sp_school_no_sp_filename = "asim/shadow_price_school_modeled_size_1.csv"
 
 process_tm1 = True  # False only processes asim, True processes tm1 as well
 

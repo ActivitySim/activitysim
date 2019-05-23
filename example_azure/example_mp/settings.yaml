@@ -12,10 +12,10 @@ use_shadow_pricing: True
 
 
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
-#households_sample_size:  0
-#chunk_size:  80000000000
-#num_processes: 60
-#stagger: 0
+households_sample_size:  0
+chunk_size:  12000000000
+num_processes: 56
+stagger: 0
 
 # - full sample - 2875192 households on Standard_M128s
 #households_sample_size:  0
@@ -72,18 +72,14 @@ models:
   - joint_tour_frequency
   - joint_tour_composition
   - joint_tour_participation
-  - _joint_tour_destination_sample
-  - _joint_tour_destination_logsums
-  - joint_tour_destination_simulate
+  - joint_tour_destination
   - joint_tour_scheduling
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
-  - _atwork_subtour_destination_sample
-  - _atwork_subtour_destination_logsums
-  - atwork_subtour_destination_simulate
+  - atwork_subtour_destination
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
   - stop_frequency
@@ -116,13 +112,12 @@ output_tables:
   action: include
   prefix: final_
   tables:
-#    - checkpoints
-#    - accessibility
-#    - land_use
-#    - households
-#    - persons
-#    - trips
-#    - tours
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
     - school_shadow_prices
     - workplace_shadow_prices
-

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example &mdash; ActivitySim 0.8
+  <title>Example &mdash; ActivitySim 0.9
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8
+                0.9
 
               </div>
             
@@ -1007,7 +1007,14 @@ multiprocessing, follow the same steps as above, but use the configuration in th
 </ul>
 <p>The multiprocessing example also writes outputs to the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder.</p>
 <p>The default multiprocessed example is configured to run with two processors: <code class="docutils literal notranslate"><span class="pre">num_processes:</span> <span class="pre">2</span></code>.  Additional more performant configurations are
-included and commented out in the example settings file.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> for more information.</p>
+included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server
+machine with 28 cores &#64; 2.56GHz and 224GB RAM with the configuration below.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> for more information.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">households_sample_size</span><span class="p">:</span>  <span class="mi">0</span>
+<span class="n">chunk_size</span><span class="p">:</span>  <span class="mi">5000000000</span>
+<span class="n">num_processes</span><span class="p">:</span> <span class="mi">24</span>
+<span class="n">stagger</span><span class="p">:</span> <span class="mi">0</span>
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="outputs">
@@ -1052,12 +1059,12 @@ restarting the pipeline at any step.</p>
 <tr class="row-odd"><td>households</td>
 <td>cdap_simulate</td>
 <td>100</td>
-<td>70</td>
+<td>73</td>
 </tr>
 <tr class="row-even"><td>households</td>
 <td>joint_tour_frequency</td>
 <td>100</td>
-<td>72</td>
+<td>75</td>
 </tr>
 <tr class="row-odd"><td>joint_tour_participants</td>
 <td>joint_tour_participation</td>
@@ -1112,7 +1119,7 @@ restarting the pipeline at any step.</p>
 <tr class="row-odd"><td>persons</td>
 <td>non_mandatory_tour_frequency</td>
 <td>271</td>
-<td>73</td>
+<td>74</td>
 </tr>
 <tr class="row-even"><td>school_destination_size</td>
 <td>initialize_households</td>

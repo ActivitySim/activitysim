@@ -916,17 +916,23 @@ uses the information stored in the pipeline file to create the table below for a
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | households                 | hh_work_auto_savings_ratio    | float32 | workplace_location           | 66   | 100  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| households                 | num_under16_not_at_school     | int8    | cdap_simulate                | 70   | 100  |
+| households                 | num_under16_not_at_school     | int8    | cdap_simulate                | 73   | 100  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| households                 | num_travel_active             | int8    | cdap_simulate                | 70   | 100  |
+| households                 | num_travel_active             | int8    | cdap_simulate                | 73   | 100  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| households                 | num_travel_active_adults      | int8    | cdap_simulate                | 70   | 100  |
+| households                 | num_travel_active_adults      | int8    | cdap_simulate                | 73   | 100  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| households                 | num_travel_active_children    | int8    | cdap_simulate                | 70   | 100  |
+| households                 | num_travel_active_preschoolers| int8    | cdap_simulate                | 73   | 100  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| households                 | joint_tour_frequency          | object  | joint_tour_frequency         | 72   | 100  |
+| households                 | num_travel_active_children    | int8    | cdap_simulate                | 73   | 100  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| households                 | num_hh_joint_tours            | int8    | joint_tour_frequency         | 72   | 100  |
+| households                 |num_travel_active_non_presch   | int8    | cdap_simulate                | 73   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | participates_in_jtf_model     | int8    | cdap_simulate                | 73   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | joint_tour_frequency          | object  | joint_tour_frequency         | 75   | 100  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| households                 | num_hh_joint_tours            | int8    | joint_tour_frequency         | 75   | 100  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | joint_tour_participants    | tour_id                       | int64   | joint_tour_participation     | 4    | 13   |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
@@ -1196,21 +1202,23 @@ uses the information stored in the pipeline file to create the table below for a
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | persons                    | num_joint_tours               | int8    | joint_tour_participation     | 65   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | non_mandatory_tour_frequency  | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | non_mandatory_tour_frequency  | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | num_non_mand                  | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | num_non_mand                  | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | num_escort_tours              | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | num_escort_tours              | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | num_eatout_tours              | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | num_eatout_tours              | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | num_shop_tours                | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | num_shop_tours                | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | num_maint_tours               | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | num_maint_tours               | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | num_social_tours              | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | num_discr_tours               | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | num_non_escort_tours          | int8    | non_mandatory_tour_frequency | 73   | 271  |
+| persons                    | num_social_tours              | int8    | non_mandatory_tour_frequency | 74   | 271  |
++----------------------------+-------------------------------+---------+------------------------------+------+------+
+| persons                    | num_non_escort_tours          | int8    | non_mandatory_tour_frequency | 74   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | school_destination_size    | gradeschool                   | float64 | initialize_households        | 3    | 1454 |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+

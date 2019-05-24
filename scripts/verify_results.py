@@ -13,15 +13,15 @@ import openmatrix as omx
 #############################################################
 
 pipeline_filename = 'asim/pipeline.h5'
+distance_matrix_filename = "asim/skims.omx"
+asim_nmtf_alts_filename = "asim/non_mandatory_tour_frequency_alternatives.csv"
 
-distance_matrix_filename = "nonmotskm.omx"
-asim_nmtf_alts_filename = "non_mandatory_tour_frequency_alternatives.csv"
+process_sp = True   # False skip work/sch shadow pricing comparisons, True do them 
+process_tm1 = True  # False only processes asim, True processes tm1 as well
 
 asim_sp_work_filename = "asim/shadow_price_workplace_modeled_size_10.csv"
 asim_sp_school_filename = "asim/shadow_price_school_modeled_size_10.csv"
 asim_sp_school_no_sp_filename = "asim/shadow_price_school_modeled_size_1.csv"
-
-process_tm1 = True  # False only processes asim, True processes tm1 as well
 
 tm1_access_filename = "tm1/accessibility.csv"
 tm1_sp_filename = "tm1/ShadowPricing_9.csv"
@@ -112,58 +112,60 @@ asim_access.to_csv("outputs/asim_access.csv", na_rep=0)
 
 # work and school location
 
-if process_tm1:
-    tm1_markets = ["work_low", "work_med", "work_high", "work_high", "work_very high", "university",
-                   "school_high", "school_grade"]
-    tm1 = pd.read_csv(tm1_sp_filename)
-    tm1 = tm1.groupby(tm1["zone"]).sum()
-    tm1["zone"] = tm1.index
-    tm1 = tm1.loc[tm1["zone"] > 0]
-    ws_size = tm1[["zone"]]
-    for i in range(len(tm1_markets)):
-        ws_size[tm1_markets[i] + "_modeledDests"] = tm1[tm1_markets[i] + "_modeledDests"]
-    ws_size.to_csv("outputs/tm1_work_school_location.csv", na_rep=0)
+if process_sp:
 
-asim_markets = ["work_low", "work_med", "work_high", "work_high", "work_veryhigh", "university",
-                "highschool", "gradeschool"]
-asim = pd.read_csv(asim_sp_work_filename)
-asim_sch = pd.read_csv(asim_sp_school_filename)
-asim_sch_no_sp = pd.read_csv(asim_sp_school_no_sp_filename)
-asim_sch["gradeschool"] = asim_sch_no_sp["gradeschool"]  # grade school not shadow priced
-asim = asim.set_index("TAZ", drop=False)
-asim_sch = asim_sch.set_index("TAZ", drop=False)
+    if process_tm1:
+        tm1_markets = ["work_low", "work_med", "work_high", "work_high", "work_very high", "university",
+                       "school_high", "school_grade"]
+        tm1 = pd.read_csv(tm1_sp_filename)
+        tm1 = tm1.groupby(tm1["zone"]).sum()
+        tm1["zone"] = tm1.index
+        tm1 = tm1.loc[tm1["zone"] > 0]
+        ws_size = tm1[["zone"]]
+        for i in range(len(tm1_markets)):
+            ws_size[tm1_markets[i] + "_modeledDests"] = tm1[tm1_markets[i] + "_modeledDests"]
+        ws_size.to_csv("outputs/tm1_work_school_location.csv", na_rep=0)
 
-asim["gradeschool"] = asim_sch["gradeschool"].loc[asim["TAZ"]].tolist()
-asim["highschool"] = asim_sch["highschool"].loc[asim["TAZ"]].tolist()
-asim["university"] = asim_sch["university"].loc[asim["TAZ"]].tolist()
+    asim_markets = ["work_low", "work_med", "work_high", "work_high", "work_veryhigh", "university",
+                    "highschool", "gradeschool"]
+    asim = pd.read_csv(asim_sp_work_filename)
+    asim_sch = pd.read_csv(asim_sp_school_filename)
+    asim_sch_no_sp = pd.read_csv(asim_sp_school_no_sp_filename)
+    asim_sch["gradeschool"] = asim_sch_no_sp["gradeschool"]  # grade school not shadow priced
+    asim = asim.set_index("TAZ", drop=False)
+    asim_sch = asim_sch.set_index("TAZ", drop=False)
 
-ws_size = asim[["TAZ"]]
-for i in range(len(asim_markets)):
-    ws_size[asim_markets[i] + "_asim"] = asim[asim_markets[i]]
-ws_size.to_csv("outputs/asim_work_school_location.csv", na_rep=0)
+    asim["gradeschool"] = asim_sch["gradeschool"].loc[asim["TAZ"]].tolist()
+    asim["highschool"] = asim_sch["highschool"].loc[asim["TAZ"]].tolist()
+    asim["university"] = asim_sch["university"].loc[asim["TAZ"]].tolist()
 
-# work county to county flows
-tazs = pd.read_csv(asim_zones_filename)
-counties = ["", "SF", "SM", "SC", "ALA", "CC", "SOL", "NAP", "SON", "MAR"]
-tazs["COUNTYNAME"] = pd.Series(counties)[tazs["county_id"].tolist()].tolist()
-tazs = tazs.set_index("zone", drop=False)
+    ws_size = asim[["TAZ"]]
+    for i in range(len(asim_markets)):
+        ws_size[asim_markets[i] + "_asim"] = asim[asim_markets[i]]
+    ws_size.to_csv("outputs/asim_work_school_location.csv", na_rep=0)
 
-if process_tm1:
-    tm1_work = pd.read_csv(tm1_work_filename)
-    tm1_work["HomeCounty"] = tazs["COUNTYNAME"].loc[tm1_work["HomeTAZ"]].tolist()
-    tm1_work["WorkCounty"] = tazs["COUNTYNAME"].loc[tm1_work["WorkLocation"]].tolist()
-    tm1_work_counties = tm1_work.groupby(["HomeCounty", "WorkCounty"]).count()["HHID"]
-    tm1_work_counties = tm1_work_counties.reset_index()
-    tm1_work_counties = tm1_work_counties.pivot(index="HomeCounty", columns="WorkCounty")
-    tm1_work_counties.to_csv("outputs/tm1_work_counties.csv", na_rep=0)
+    # work county to county flows
+    tazs = pd.read_csv(asim_zones_filename)
+    counties = ["", "SF", "SM", "SC", "ALA", "CC", "SOL", "NAP", "SON", "MAR"]
+    tazs["COUNTYNAME"] = pd.Series(counties)[tazs["county_id"].tolist()].tolist()
+    tazs = tazs.set_index("zone", drop=False)
 
-asim_cdap = pd.read_csv(asim_per_filename)
-asim_cdap["HomeCounty"] = tazs["COUNTYNAME"].loc[asim_cdap["home_taz"]].tolist()
-asim_cdap["WorkCounty"] = tazs["COUNTYNAME"].loc[asim_cdap["workplace_taz"]].tolist()
-asim_work_counties = asim_cdap.groupby(["HomeCounty", "WorkCounty"]).count()["household_id"]
-asim_work_counties = asim_work_counties.reset_index()
-asim_work_counties = asim_work_counties.pivot(index="HomeCounty", columns="WorkCounty")
-asim_work_counties.to_csv("outputs/asim_work_counties.csv", na_rep=0)
+    if process_tm1:
+        tm1_work = pd.read_csv(tm1_work_filename)
+        tm1_work["HomeCounty"] = tazs["COUNTYNAME"].loc[tm1_work["HomeTAZ"]].tolist()
+        tm1_work["WorkCounty"] = tazs["COUNTYNAME"].loc[tm1_work["WorkLocation"]].tolist()
+        tm1_work_counties = tm1_work.groupby(["HomeCounty", "WorkCounty"]).count()["HHID"]
+        tm1_work_counties = tm1_work_counties.reset_index()
+        tm1_work_counties = tm1_work_counties.pivot(index="HomeCounty", columns="WorkCounty")
+        tm1_work_counties.to_csv("outputs/tm1_work_counties.csv", na_rep=0)
+
+    asim_cdap = pd.read_csv(asim_per_filename)
+    asim_cdap["HomeCounty"] = tazs["COUNTYNAME"].loc[asim_cdap["home_taz"]].tolist()
+    asim_cdap["WorkCounty"] = tazs["COUNTYNAME"].loc[asim_cdap["workplace_taz"]].tolist()
+    asim_work_counties = asim_cdap.groupby(["HomeCounty", "WorkCounty"]).count()["household_id"]
+    asim_work_counties = asim_work_counties.reset_index()
+    asim_work_counties = asim_work_counties.pivot(index="HomeCounty", columns="WorkCounty")
+    asim_work_counties.to_csv("outputs/asim_work_counties.csv", na_rep=0)
 
 # auto ownership - count of hhs by num autos by taz
 

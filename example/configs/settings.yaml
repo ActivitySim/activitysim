@@ -16,6 +16,7 @@ check_for_variability: False
 
 # turn shadow_pricing on and off for all models (e.g. school and work)
 # shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
 use_shadow_pricing: False
 
 

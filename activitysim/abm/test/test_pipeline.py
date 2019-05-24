@@ -319,7 +319,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 203
+EXPECT_TOUR_COUNT = 205
 
 
 def regress_tour_modes(tours_df):
@@ -364,7 +364,7 @@ def regress_tour_modes(tours_df):
     EXPECT_MODES = [
         'SHARED3FREE',
         'WALK',
-        'SHARED2FREE',
+        'DRIVEALONEFREE',
         'WALK',
         'WALK',
         'WALK',

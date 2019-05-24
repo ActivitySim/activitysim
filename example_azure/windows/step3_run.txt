@@ -27,7 +27,8 @@ AZ_VM_SIZE=Standard_M128s
 
 az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
 
-AZ_VM_SIZE=Standard_E64s_v3
+#AZ_VM_SIZE=Standard_E64s_v3
+AZ_VM_SIZE=Standard_M128s
 az vm resize --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME --size $AZ_VM_SIZE
 
 az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
@@ -45,9 +46,10 @@ cd activitysim/example_mp
 
 git status
 
-conda activate asim
-#conda activate asim3
+#conda activate asim
+conda activate asim3
 
+# this makes things worse on Standard_M128s
 set OPENBLAS_NUM_THREADS=1
 set MKL_NUM_THREADS=1
 set NUMEXPR_NUM_THREADS=1
@@ -58,5 +60,3 @@ python simulation.py -d  E:\data\full -m
 
 python simulation.py -d  E:\data\sf_county -m
 
-
-#

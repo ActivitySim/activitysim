@@ -15,7 +15,7 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 
-from .util.cdap import run_cdap
+from .util import cdap
 from .util import expressions
 
 logger = logging.getLogger(__name__)
@@ -76,16 +76,29 @@ def cdap_simulate(persons_merged, persons, households,
 
     constants = config.get_model_constants(model_settings)
 
+    cdap_interaction_coefficients = \
+        cdap.preprocess_interaction_coefficients(cdap_interaction_coefficients)
+
+    # specs are built just-in-time on demand and cached as injectables
+    # prebuilding here allows us to write them to the output directory
+    # (also when multiprocessing locutor might not see all household sizes)
+    logger.info("Pre-building cdap specs")
+    for hhsize in range(2, cdap.MAX_HHSIZE + 1):
+        spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize, cache=True)
+        if inject.get_injectable('locutor', False):
+            spec.to_csv(config.output_file_path('cdap_spec_%s.csv' % hhsize), index=True)
+
     logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 
-    choices = run_cdap(persons=persons_merged,
-                       cdap_indiv_spec=cdap_indiv_spec,
-                       cdap_interaction_coefficients=cdap_interaction_coefficients,
-                       cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
-                       locals_d=constants,
-                       chunk_size=chunk_size,
-                       trace_hh_id=trace_hh_id,
-                       trace_label=trace_label)
+    choices = cdap.run_cdap(
+        persons=persons_merged,
+        cdap_indiv_spec=cdap_indiv_spec,
+        cdap_interaction_coefficients=cdap_interaction_coefficients,
+        cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
+        locals_d=constants,
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
+        trace_label=trace_label)
 
     # - assign results to persons table and annotate
     persons = persons.to_frame()

@@ -13,17 +13,17 @@ Number of Adults (>= 16 years old),num_adult,,,,,,,,,,,,,,,,
 Dummy for single parent household,(num_adult == 1) & (num_age_0_4 + num_age_5_15 > 0),,,,,,,,,,,,,,,,
 Number of Cars > Number of Workers,more_cars_than_workers,,,,,,,,,,,,,,,,
 Number of Vehicles,auto_ownership,,,,,,,,,,,,,,,,
-Dummy for female,female,,,,,,,,,,,,,,,,
-Dummy for all stops made by transit,tour_mode_is_transit,,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700
+Dummy for female,~is_joint & female,,,,,,,,,,,,,,,,
+Dummy for all stops made by transit,tour_mode_is_transit,,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7
 Dummy for walking to all stops,tour_mode_is_non_motorized,,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578,-2.4578
-Number of work tours undertaken by the person,num_work_tours,,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153
-Number of university tours tours undertaken by the person,num_univ_tours,,,,,,,,,,,,,,,,
-Number of shool tours tours undertaken by the person,num_school_tours,,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176
-Number of escort tours tours undertaken by the person,num_escort_tours,,,,,,,,,,,,,,,,
-Number of shop tours undertaken by the person,num_shop_tours,,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290,-0.6290
-Number of maintenace tours tours undertaken by the person,num_maint_tours,,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715
-Number of eating tours tours undertaken by the person,num_eatout_tours,,,,,,,,,,,,,,,,
-Number of visit tours tours undertaken by the person,num_social_tours,,,,,,,,,,,,,,,,
+Number of work tours undertaken by the person,~is_joint * num_work_tours,,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153,-0.6153
+Number of university tours tours undertaken by the person,~is_joint * num_univ_tours,,,,,,,,,,,,,,,,
+Number of shool tours tours undertaken by the person,~is_joint * num_school_tours,,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176,-0.8176
+Number of escort tours tours undertaken by the person,~is_joint * num_escort_tours,,,,,,,,,,,,,,,,
+Number of shop tours undertaken by the person,~is_joint * num_shop_tours,,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629,-0.629
+Number of maintenace tours tours undertaken by the person,~is_joint * num_maint_tours,,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715,-0.3715
+Number of eating tours tours undertaken by the person,~is_joint * num_eatout_tours,,,,,,,,,,,,,,,,
+Number of visit tours tours undertaken by the person,~is_joint * num_social_tours,,,,,,,,,,,,,,,,
 Number of shop tours undertaken by the houshold,num_hh_shop_tours,,,,,,,,,,,,,,,,
 Number of persons participating in the tour.Outgoing stops interaction,is_joint * number_of_participants,,,,,,,,,,,,,,,,
 Number of persons participating in the tour.Return stops interaction,is_joint * number_of_participants,,,,,,,,,,,,,,,,
@@ -37,7 +37,7 @@ HH accesibility for outbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 HH accesibility for inbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for outbound tours. Interaction,pracc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for return tours. Interaction,pracc,,,,,,,,,,,,,,,,
-dummy for distance less than 20 Miles ,(distance_in_miles < 20),,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756
+dummy for distance less than 10 Miles ,(distance_in_miles < 10),,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756,0.3756
 dummy for distance in miles,distance_in_miles,,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225,-0.0225
 #distance in miles * Number of stops,distance_in_miles * @@numStopsAlt,,,,,,,,,,,,,,,,
 No stops if tour mode is driveTransit,tour_mode_is_drive_transit,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

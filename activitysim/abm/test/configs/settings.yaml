@@ -1,3 +1,5 @@
+inherit_settings: True
+
 #input data store and skims
 input_store: mtc_asim.h5
 skims_file: skims.omx

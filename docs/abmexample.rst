@@ -589,7 +589,16 @@ multiprocessing, follow the same steps as above, but use the configuration in th
 The multiprocessing example also writes outputs to the ``output`` folder. 
 
 The default multiprocessed example is configured to run with two processors: ``num_processes: 2``.  Additional more performant configurations are
-included and commented out in the example settings file.  See :ref:`multiprocessing` for more information.   
+included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server 
+machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See :ref:`multiprocessing` for more information.  
+
+::
+
+  households_sample_size:  0
+  chunk_size:  5000000000
+  num_processes: 24
+  stagger: 0
+
 
 Outputs
 -------
@@ -611,9 +620,9 @@ restarting the pipeline at any step.
 +-----------------------------------+------------------------------------+------+------+
 | households                        | workplace_location                 | 100  | 66   |
 +-----------------------------------+------------------------------------+------+------+
-| households                        | cdap_simulate                      | 100  | 70   |
+| households                        | cdap_simulate                      | 100  | 73   |
 +-----------------------------------+------------------------------------+------+------+
-| households                        | joint_tour_frequency               | 100  | 72   |
+| households                        | joint_tour_frequency               | 100  | 75   |
 +-----------------------------------+------------------------------------+------+------+
 | joint_tour_participants           | joint_tour_participation           | 13   | 4    |
 +-----------------------------------+------------------------------------+------+------+
@@ -635,7 +644,7 @@ restarting the pipeline at any step.
 +-----------------------------------+------------------------------------+------+------+
 | persons                           | joint_tour_participation           | 271  | 65   |
 +-----------------------------------+------------------------------------+------+------+
-| persons                           | non_mandatory_tour_frequency       | 271  | 73   |
+| persons                           | non_mandatory_tour_frequency       | 271  | 74   |
 +-----------------------------------+------------------------------------+------+------+
 | school_destination_size           | initialize_households              | 1454 | 3    |
 +-----------------------------------+------------------------------------+------+------+

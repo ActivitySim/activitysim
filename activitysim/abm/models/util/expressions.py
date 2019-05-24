@@ -219,7 +219,7 @@ def filter_chooser_columns(choosers, chooser_columns):
 
     missing_columns = [c for c in chooser_columns if c not in choosers]
     if missing_columns:
-        logger.warning("filter_chooser_columns missing_columns %s" % missing_columns)
+        logger.debug("filter_chooser_columns missing_columns %s" % missing_columns)
 
     # ignore any columns not appearing in choosers df
     chooser_columns = [c for c in chooser_columns if c in choosers]

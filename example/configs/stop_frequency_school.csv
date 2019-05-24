@@ -2,7 +2,7 @@ Description,Expression,0out_0in,0out_1in,0out_2in,0out_3in,1out_0in,1out_1in,1ou
 Middle to Low Income HH,(income_in_thousands>19999) & (income_in_thousands<50000),,,,,,,,,,,,,,,,
 Mid to High Income HH,(income_in_thousands>=50000) & (income_in_thousands<100000),,,,,,,,,,,,,,,,
 High Income HH,(income_in_thousands>=100000),,,,,,,,,,,,,,,,
-Number of HH Persons,hhsize,,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060,-0.5060
+Number of HH Persons,hhsize,,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506,-0.506
 Number of full time workers in HH,num_full,,,,,,,,,,,,,,,,
 Number of Students in HH,num_student,,,,,,,,,,,,,,,,
 Num Kids between 0 and 4 (including) years old,num_age_0_4,,,,,,,,,,,,,,,,
@@ -14,7 +14,7 @@ Dummy for single parent household,(num_adult == 1) & (num_age_0_4 + num_age_5_15
 Number of Cars > Number of Workers,more_cars_than_workers,,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331,0.5331
 Number of Vehicles,auto_ownership,,,,,,,,,,,,,,,,
 Dummy for female,female,,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099,0.4099
-Dummy for all stops made by transit,tour_mode_is_transit,,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700
+Dummy for all stops made by transit,tour_mode_is_transit,,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7
 Dummy for walking to all stops,tour_mode_is_non_motorized,,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163,-1.8163
 Number of work tours undertaken by the person,num_work_tours,,,,,,,,,,,,,,,,
 Number of university tours tours undertaken by the person,num_univ_tours,,,,,,,,,,,,,,,,
@@ -35,12 +35,10 @@ HH accesibility for outbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 HH accesibility for inbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for outbound tours. Interaction,pracc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for return tours. Interaction,pracc,,,,,,,,,,,,,,,,
-dummy for distance less than 20 Miles,(distance_in_miles < 20),,,,,,,,,,,,,,,,
+dummy for distance less than 15 Miles,(distance_in_miles < 15),,,,,,,,,,,,,,,,
 dummy for distance in miles,distance_in_miles,,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438,0.0438
 #distance in miles * Number of stops,distance_in_miles * @@numStopsAlt,,,,,,,,,,,,,,,,
 No stops if tour mode is driveTransit,tour_mode_is_drive_transit,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Alternative specific constant for outbound stops,1,,,,,-2.123,-2.123,-2.123,-2.123,-3.798,-3.798,-3.798,-3.798,-5.850,-5.850,-5.850,-5.850
+Alternative specific constant for outbound stops,1,,,,,-2.123,-2.123,-2.123,-2.123,-3.798,-3.798,-3.798,-3.798,-5.85,-5.85,-5.85,-5.85
 Alternative specific constant for return  stops,1,,-1.206,-2.672,-3.364,,-1.206,-2.672,-3.364,,-1.206,-2.672,-3.364,,-1.206,-2.672,-3.364
 Alternative specific constant for the total number of stops,1,,,0,0,,0,0,0.701,0,0,0.701,1.135,0,0.701,1.135,1.135
-#work has one row not found in other tour types,,,,,,,,,,,,,,,,,
-#Number of subtours in the tour,num_atwork_subtours,,,,,,,,,,,,,,,,

@@ -166,9 +166,6 @@ def person_pairs(persons):
 
 def hh_time_window_overlap(households, persons):
 
-    # FIXME only want travel-active persons?
-    persons = persons[persons.travel_active]
-
     p2p = person_pairs(persons)
 
     p2p['max_overlap'] = p2p_time_window_overlap(p2p.person1, p2p.person2)
@@ -189,8 +186,7 @@ def hh_time_window_overlap(households, persons):
 
 def person_time_window_overlap(persons):
 
-    # FIXME only want travel-active persons? (but need to reindex later for nonactives)
-    p2p = person_pairs(persons[persons.travel_active])
+    p2p = person_pairs(persons)
 
     p2p['max_overlap'] = p2p_time_window_overlap(p2p.person1, p2p.person2)
 

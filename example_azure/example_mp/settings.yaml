@@ -10,7 +10,6 @@ strict: False
 mem_tick: 0
 use_shadow_pricing: True
 
-
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
 #chunk_size:  80000000000
@@ -23,29 +22,34 @@ use_shadow_pricing: True
 #num_processes: 124
 #stagger: 0
 
-# - 20% sample - 2875192 households on 64 processor 432 GiB RAM
-#households_sample_size:  546544
-#chunk_size:  10000000000
-#num_processes: 15
-#stagger: 0
+# - full sample - 2875192 households on Standard_M128s
+households_sample_size:  0
+chunk_size:  0
+num_processes: 120
+stagger: 0
 
 
-## - ------------------------- dev config
+
+# - ------------------------- dev config
 #multiprocess: True
 #strict: False
 #mem_tick: 30
-#use_shadow_pricing: True
-#
+#use_shadow_pricing: False
+
+
 ## - small sample
 #households_sample_size:  5000
 #chunk_size: 500000000
 #num_processes: 2
 #stagger: 5
-#
-# - stride sample
-#households_sample_size:  0
-#chunk_size: 1000000000
-#num_processes: 1
+
+
+## - example sample
+#households_sample_size:  100
+#chunk_size: 0
+#num_processes: 2
+#stagger: 0
+
 
 # - tracing
 trace_hh_id:
@@ -72,18 +76,14 @@ models:
   - joint_tour_frequency
   - joint_tour_composition
   - joint_tour_participation
-  - _joint_tour_destination_sample
-  - _joint_tour_destination_logsums
-  - joint_tour_destination_simulate
+  - joint_tour_destination
   - joint_tour_scheduling
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
-  - _atwork_subtour_destination_sample
-  - _atwork_subtour_destination_logsums
-  - atwork_subtour_destination_simulate
+  - atwork_subtour_destination
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
   - stop_frequency
@@ -121,8 +121,7 @@ output_tables:
 #    - land_use
 #    - households
 #    - persons
-#    - trips
 #    - tours
+#    - trips
     - school_shadow_prices
     - workplace_shadow_prices
-

@@ -39,9 +39,10 @@ def joint_tour_frequency(
     alternatives = simulate.read_model_alts(
         config.config_file_path('joint_tour_frequency_alternatives.csv'), set_index='alt')
 
-    # - only interested in households with more than one cdap travel_active person
+    # - only interested in households with more than one cdap travel_active person and
+    # - at least one non-preschooler
     households = households.to_frame()
-    multi_person_households = households[households.num_travel_active > 1].copy()
+    multi_person_households = households[households.participates_in_jtf_model].copy()
 
     # - only interested in persons in multi_person_households
     # FIXME - gratuitous pathological efficiency move, just let yaml specify persons?

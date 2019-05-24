@@ -340,14 +340,14 @@ def read_settings_file(file_name, mandatory=True):
         file_path = os.path.join(dir, file_name)
         if os.path.exists(file_path):
             if settings:
-                logger.warn("read settings for %s from %s" % (file_name, file_path))
+                logger.debug("read settings for %s from %s" % (file_name, file_path))
 
             with open(file_path) as f:
                 s = yaml.load(f, Loader=yaml.SafeLoader)
             settings = backfill_settings(settings, s)
 
             if s.get('inherit_settings', False):
-                logger.warn("inherit_settings flag set for %s in %s" % (file_name, file_path))
+                logger.debug("inherit_settings flag set for %s in %s" % (file_name, file_path))
                 continue
             else:
                 break

@@ -14,9 +14,9 @@ Dummy for single parent household,(num_adult == 1) & (num_age_0_4 + num_age_5_15
 Number of Cars > Number of Workers,more_cars_than_workers,,,,,,,,,,,,,,,,
 Number of Vehicles,auto_ownership,,,,,,,,,,,,,,,,
 Dummy for female,~is_joint & female,,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721,0.1721
-Dummy for all stops made by transit,tour_mode_is_transit,,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700,-0.700
+Dummy for all stops made by transit,tour_mode_is_transit,,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7
 Dummy for walking to all stops,tour_mode_is_non_motorized,,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908,-1.4908
-Number of work tours undertaken by the person,~is_joint * num_work_tours,,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480,-0.5480
+Number of work tours undertaken by the person,~is_joint * num_work_tours,,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548,-0.548
 Number of university tours tours undertaken by the person,~is_joint * num_univ_tours,,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709,-0.6709
 Number of school tours tours undertaken by the person,~is_joint * num_school_tours,,,,,,,,,,,,,,,,
 Number of escort tours tours undertaken by the person,~is_joint * num_escort_tours,,,,,,,,,,,,,,,,
@@ -38,11 +38,11 @@ HH accesibility for outbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 HH accesibility for inbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for outbound tours. Interaction,pracc,,,,,,,,,,,,,,,,
 Primary Destination Accessibility for return tours. Interaction,pracc,,,,,,,,,,,,,,,,
-dummy for distance less than 20 Miles,(distance_in_miles < 20),,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768
+dummy for distance less than 5 Miles,(distance_in_miles < 5),,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768,0.3768
 dummy for distance in miles,distance_in_miles,,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289,0.0289
 #distance in miles * Number of stops,distance_in_miles * @@numStopsAlt,,,,,,,,,,,,,,,,
 No stops if tour mode is driveTransit,tour_mode_is_drive_transit,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Alternative specific constant for outbound stops,~is_joint,,,,,-1.339,-1.339,-1.339,-1.339,-3.110,-3.110,-3.110,-3.110,-4.487,-4.487,-4.487,-4.487
+Alternative specific constant for outbound stops,~is_joint,,,,,-1.339,-1.339,-1.339,-1.339,-3.11,-3.11,-3.11,-3.11,-4.487,-4.487,-4.487,-4.487
 Alternative specific constant for return  stops,~is_joint,,-1.179,-2.305,-3.024,,-1.179,-2.305,-3.024,,-1.179,-2.305,-3.024,,-1.179,-2.305,-3.024
 Alternative specific constant for the total number of stops,~is_joint,,,0,0,,0,0,0.252,0,0,0.252,0.514,0,0.252,0.514,0.514
 Alternative specific constant for outbound stops on joint tours,is_joint,,,,,-1.783,-1.783,-1.783,-1.783,-4.067,-4.067,-4.067,-4.067,-4.998,-4.998,-4.998,-4.998

@@ -29,7 +29,8 @@ Installation
 ::
     
   conda create -n asimtest python=3.7
-    
+  #conda create -n asimtest python=2.7
+
   #Windows
   activate asimtest
     
@@ -106,9 +107,6 @@ Anaconda
   For more information on Anaconda, see Anaconda's `getting started 
   <https://docs.anaconda.com/anaconda/user-guide/getting-started>`__ guide.
 
-  If numexpr (which numpy requires) fails to install for Python 2.7, you may need 
-  the `Microsoft Visual C++ Compiler for Python <http://aka.ms/vcpython27>`__. 
-
 Run the Example
 ---------------
 
@@ -146,8 +144,8 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce 
 access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million 
-households, 1475 zones, 826 network skims and has been run between two hours and two days depending on the amount of 
-RAM and number of processors allocated.
+households, 7.5 people, 1475 zones, 826 network skims and has been run between one hour and one day depending 
+on the amount of RAM and number of processors allocated.
 
 .. note::
    ActivitySim has been run in the cloud, on both Windows and Linux OS using 

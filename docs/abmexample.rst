@@ -599,6 +599,16 @@ machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See
   num_processes: 24
   stagger: 0
 
+.. note::
+   Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for 
+   many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
+   in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in 
+   parallel since they are largely independent of one another, it can be advantageous to override threading within 
+   processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
+   override the MKL number of threads setting via a system environment variable that is set before running the model.  
+   In practice, this means before running the model, first set the MKL number of threads variable via the command
+   line as follows: SET MKL_NUM_THREADS=1
+
 
 Outputs
 -------

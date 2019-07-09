@@ -149,7 +149,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
 def buffers_for_skims(skim_info, shared=False):
 
     skim_dtype = skim_info['dtype']
-    omx_shape = skim_info['omx_shape']
+    omx_shape = [np.float64(x) for x in skim_info['omx_shape']]
     blocks = skim_info['blocks']
 
     skim_buffers = {}

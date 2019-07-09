@@ -84,9 +84,12 @@ def add_step(name, func):
     return orca.add_step(name, func)
 
 
-def add_table(table_name, table):
-
-    if orca.is_table(table_name) and orca.table_type(table_name) == 'dataframe':
+def add_table(table_name, table, replace=False):
+    """
+    Add new table and raise assertion error if the table already exists.
+    Silently replace if replace=True.
+    """
+    if not replace and orca.is_table(table_name) and orca.table_type(table_name) == 'dataframe':
         logger.warning("inject add_table replacing existing table %s" % table_name)
         assert False
 

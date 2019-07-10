@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core Components &mdash; ActivitySim 0.9
+  <title>Core Components &mdash; ActivitySim 0.9.1
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.9
+                0.9.1
 
               </div>
             
@@ -4849,6 +4849,13 @@ and handle them based on returned args. This method will hand the args it adds</
 <div class="section" id="id18">
 <h4>API<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject"></span><dl class="function">
+<dt id="activitysim.core.inject.add_table">
+<code class="descclassname">activitysim.core.inject.</code><code class="descname">add_table</code><span class="sig-paren">(</span><em>table_name</em>, <em>table</em>, <em>replace=False</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.add_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new table and raise assertion error if the table already exists.
+Silently replace if replace=True.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="activitysim.core.inject.reinject_decorated_tables">
 <code class="descclassname">activitysim.core.inject.</code><code class="descname">reinject_decorated_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.reinject_decorated_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>reinject the decorated tables (and columns)</p>

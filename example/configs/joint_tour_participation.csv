@@ -48,10 +48,10 @@ Description,Expression,participate,not_participate
 "Adult, number of joint tours, mixed",(adult & tour_composition_is_mixed) * num_hh_joint_tours,-0.3584,
 "Child, number of joint tours, child only",(~adult & tour_composition_is_children) * num_hh_joint_tours,0.1047,
 "Child, number of joint tours, mixed",(~adult & tour_composition_is_mixed) * num_hh_joint_tours,-0.5089,
-"Adult, number of other adults in the household, adults-only party",(adult & tour_composition_is_adults) * (num_adults - 1)
-"Adult, number of other adults in the household, mixed party",(adult & tour_composition_is_mixed) * (num_adults - 1)
-"Child, number of other children in the household, child-only party",(~adult & tour_composition_is_children) * (num_children - 1)
-"Child, number of other children in the household, mixed",(~adult & tour_composition_is_mixed) * (num_children - 1)
+"Adult, number of other adults in the household, adults-only party",(adult & tour_composition_is_adults) * (num_adults - 1),,
+"Adult, number of other adults in the household, mixed party",(adult & tour_composition_is_mixed) * (num_adults - 1),,
+"Child, number of other children in the household, child-only party",(~adult & tour_composition_is_children) * (num_children - 1),,
+"Child, number of other children in the household, mixed",(~adult & tour_composition_is_mixed) * (num_children - 1),,
 #,,,
 "Adult, log of max window overlap with an adult, adult-only party",(adult & tour_composition_is_adults) * log_time_window_overlap_adult,0.8436,
 "Adult, log of max window overlap with a child, mixed",(adult & tour_composition_is_mixed) * log_time_window_overlap_adult,2.189,

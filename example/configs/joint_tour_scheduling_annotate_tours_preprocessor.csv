@@ -5,5 +5,5 @@ local scalar distance skim,_SOVMD_SKIM,"skim_dict.get(('SOV_TIME', 'MD'))"
 temp auto_time_to_destination,_auto_time_to_destination,"_SOVMD_SKIM.get(joint_tours.origin, joint_tours.destination)"
 temp auto_time_return,_auto_time_return,"_SOVMD_SKIM.get(joint_tours.destination, joint_tours.origin)"
 free flow roundtrip_auto_time,roundtrip_auto_time,"_auto_time_to_destination + _auto_time_return"
-#"number of joint tours that this joint tour's point_person participates in",,
+#"number of joint tours that this joint tours point_person participates in",,
 ,num_person_joint_tours,"reindex_i(joint_tour_participants.groupby('person_id').size(), joint_tours.person_id)"

@@ -2,7 +2,7 @@ Description,Target,Expression
 #,,
 #,, auto peak
 #,,
-# assume peak occurs in AM for outbound and PM for inbound
+#,, assume peak occurs in AM for outbound and PM for inbound
 peak round trip distance,_auPkTime,"skim_od[('SOVTOLL_TIME', 'AM')] + skim_do[('SOVTOLL_TIME', 'PM')]"
 decay function,_decay, exp(_auPkTime * dispersion_parameter_automobile)
 auto peak retail,auPkRetail,df.RETEMPN * _decay

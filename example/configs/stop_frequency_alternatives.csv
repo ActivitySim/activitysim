@@ -1,4 +1,4 @@
-# alt file for building tours even though simulation is simple_simulate not interaction_simulate
+#,,alt file for building tours even though simulation is simple_simulate not interaction_simulate
 alt,out,in
 0out_0in,0,0
 0out_1in,0,1

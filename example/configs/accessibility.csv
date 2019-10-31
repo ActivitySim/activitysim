@@ -2,7 +2,7 @@ Description,Target,Expression
 #,,
 #,, auto peak
 #,,
-# assume peak occurs in AM for outbound and PM for inbound
+#,, assume peak occurs in AM for outbound and PM for inbound
 peak round trip distance,_auPkTime,"skim_od[('SOVTOLL_TIME', 'AM')] + skim_do[('SOVTOLL_TIME', 'PM')]"
 decay function,_decay, exp(_auPkTime * dispersion_parameter_automobile)
 auto peak retail,auPkRetail,df.RETEMPN * _decay
@@ -43,7 +43,7 @@ d-o off-peak transit ivt,_inVehicleTime,"skim_do[('WLK_TRN_WLK_IVT', 'MD')]"
 d-o off-peak transit ovt,_outOfVehicleTime,"skim_do[('WLK_TRN_WLK_IWAIT', 'MD')] + skim_do[('WLK_TRN_WLK_XWAIT', 'MD')] + skim_do[('WLK_TRN_WLK_WACC', 'MD')] + skim_do[('WLK_TRN_WLK_WAUX', 'MD')] + skim_do[('WLK_TRN_WLK_WEGR', 'MD')]"
 d-o off-peak transit time,_trOpTime_do,(_inVehicleTime + out_of_vehicle_time_weight * _outOfVehicleTime) / 100.0
 peak transit time,_trOpTime,_trOpTime_od + _trOpTime_do
-# FIXME - _rt_available calculation appears to be wrong in mtctm1 accessibility.job
+#,,FIXME - _rt_available calculation appears to be wrong in mtctm1 accessibility.job
 #round trip path is available,_rt_available,(_trOpTime > 0)
 round trip path is available,_rt_available,(_trOpTime_od > 0) & (_trOpTime_do > 0)
 decay function,_decay,_rt_available * exp(_trOpTime * dispersion_parameter_transit)

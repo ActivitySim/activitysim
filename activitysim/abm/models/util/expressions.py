@@ -181,7 +181,8 @@ def skim_time_period_label(time_period):
     skim_time_periods = config.setting('skim_time_periods')
     period_minutes = skim_time_periods['period_minutes']
 
-    model_time_window_min = 1440 #Default to a day
+    #Default to a day
+    model_time_window_min = 1440  
     if ('time_window') in skim_time_periods:
         model_time_window_min = skim_time_periods['time_window']
 
@@ -194,7 +195,8 @@ def skim_time_period_label(time_period):
         bin = np.digitize([time_period % total_periods], skim_time_periods['periods'])[0] - 1
         return skim_time_periods['labels'][bin]
 
-    return pd.cut(time_period, skim_time_periods['periods'], labels=skim_time_periods['labels'], right=True).astype(str)
+    return pd.cut(time_period, skim_time_periods['periods'], 
+                  labels=skim_time_periods['labels'], right=True).astype(str)
 
 
 def annotate_preprocessors(

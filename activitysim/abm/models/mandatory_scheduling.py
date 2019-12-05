@@ -74,13 +74,8 @@ def mandatory_tour_scheduling(tours,
             mandatory_tours.tour_type.where(~is_university_tour, 'univ')
 
     # - spec dict segmented by primary_purpose
-    work_spec = simulate.read_model_spec(file_name='tour_scheduling_work.csv')
-    school_spec = simulate.read_model_spec(file_name='tour_scheduling_school.csv')
-    segment_specs = {
-        'work': work_spec,
-        'school': school_spec,
-        'univ': school_spec
-    }
+    specs = model_settings.get('SPEC', [])
+    segment_specs = {segment: simulate.read_model_spec(file_name=spec) for segment, spec in specs.items()}
 
     logger.info("Running mandatory_tour_scheduling with %d tours", len(tours))
     tdd_choices, timetable = vts.vectorize_tour_scheduling(

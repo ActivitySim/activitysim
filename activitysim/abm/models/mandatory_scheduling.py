@@ -75,7 +75,7 @@ def mandatory_tour_scheduling(tours,
 
     # - spec dict segmented by primary_purpose
     specs = model_settings.get('SPEC', [])
-    segment_specs = {segment: simulate.read_model_spec(file_name=spec) 
+    segment_specs = {segment: simulate.read_model_spec(file_name=spec)
                      for segment, spec in specs.items()}
 
     logger.info("Running mandatory_tour_scheduling with %d tours", len(tours))

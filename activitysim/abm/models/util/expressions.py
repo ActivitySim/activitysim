@@ -164,13 +164,13 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
 # helpers
 # ##################################################################################################
 
-def skim_time_period_label(time):
+def skim_time_period_label(time_period):
     """
     convert time period times to skim time period labels (e.g. 9 -> 'AM')
 
     Parameters
     ----------
-    time : pandas Series
+    time_period : pandas Series
 
     Returns
     -------
@@ -179,13 +179,22 @@ def skim_time_period_label(time):
     """
 
     skim_time_periods = config.setting('skim_time_periods')
+    period_minutes = skim_time_periods['period_minutes']
+
+    model_time_window_min = 1440 #Default to a day
+    if ('time_window') in skim_time_periods:
+        model_time_window_min = skim_time_periods['time_window']
+
+    # Check to make sure the intervals result in no remainder time throught 24 hour day
+    assert 0 == model_time_window_min % period_minutes
+    total_periods = model_time_window_min / period_minutes
 
     # FIXME - eventually test and use np version always?
-    if np.isscalar(time):
-        bin = np.digitize([time % 24], skim_time_periods['hours'])[0] - 1
+    if np.isscalar(time_period):
+        bin = np.digitize([time_period % total_periods], skim_time_periods['periods'])[0] - 1
         return skim_time_periods['labels'][bin]
 
-    return pd.cut(time, skim_time_periods['hours'], labels=skim_time_periods['labels']).astype(str)
+    return pd.cut(time_period, skim_time_periods['periods'], labels=skim_time_periods['labels'], right=True).astype(str)
 
 
 def annotate_preprocessors(

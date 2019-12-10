@@ -6,6 +6,7 @@ install_aliases()  # noqa: E402
 
 import os
 import logging
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -191,6 +192,13 @@ def skim_time_period_label(time_period):
     total_periods = model_time_window_min / period_minutes
 
     # FIXME - eventually test and use np version always?
+    period_label = 'periods'
+    if 'hours' in skim_time_periods.keys():
+        period_label = 'hours'
+        warnings.warn('`skim_time_periods` key `hours` in settings.yml will be removed in future verions. '
+                      'Use `periods` instead',
+                      FutureWarning)
+    
     if np.isscalar(time_period):
         bin = np.digitize([time_period % total_periods],
                           skim_time_periods['periods'], right=True)[0] - 1

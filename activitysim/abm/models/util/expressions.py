@@ -180,11 +180,15 @@ def skim_time_period_label(time_period):
     """
 
     skim_time_periods = config.setting('skim_time_periods')
-    period_minutes = skim_time_periods['period_minutes']
+
+    # Default to 60 minute time periods
+    period_minutes = 60
+    if 'period_minutes' in skim_time_periods.keys():
+        period_minutes = skim_time_periods['period_minutes']
 
     # Default to a day
     model_time_window_min = 1440
-    if ('time_window') in skim_time_periods:
+    if ('time_window') in skim_time_periods.keys():
         model_time_window_min = skim_time_periods['time_window']
 
     # Check to make sure the intervals result in no remainder time throught 24 hour day
@@ -195,10 +199,10 @@ def skim_time_period_label(time_period):
     period_label = 'periods'
     if 'hours' in skim_time_periods.keys():
         period_label = 'hours'
-        warnings.warn('`skim_time_periods` key `hours` in settings.yml will be removed in future verions. '
-                      'Use `periods` instead',
+        warnings.warn('`skim_time_periods` key `hours` in settings.yml will be removed in '
+                      'future verions. Use `periods` instead',
                       FutureWarning)
-    
+
     if np.isscalar(time_period):
         bin = np.digitize([time_period % total_periods],
                           skim_time_periods['periods'], right=True)[0] - 1

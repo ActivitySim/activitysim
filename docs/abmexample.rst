@@ -311,6 +311,12 @@ is the main settings file for the model run.  This file includes:
     * ``urban_threshold`` - urban threshold area type max value
     * ``county_map`` - mapping of county codes to county names
     * ``skim_time_periods`` - time period upper bound values and labels
+        * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
+        * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole 
+        factor of ``time_window``. (Default: 60 minutes)
+        * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
+        * ``labels`` - Labels to define names for aggregate periods for skims and assignment
+
     * ``household_median_value_of_time`` - various household and person value-of-time model settings
 
 .. _sub-model-spec-files:

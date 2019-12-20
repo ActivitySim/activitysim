@@ -205,10 +205,10 @@ def skim_time_period_label(time_period):
 
     if np.isscalar(time_period):
         bin = np.digitize([time_period % total_periods],
-                          skim_time_periods['periods'], right=True)[0] - 1
+                          skim_time_periods[period_label], right=True)[0] - 1
         return skim_time_periods['labels'][bin]
 
-    return pd.cut(time_period, skim_time_periods['periods'],
+    return pd.cut(time_period, skim_time_periods[period_label],
                   labels=skim_time_periods['labels'], right=True).astype(str)
 
 

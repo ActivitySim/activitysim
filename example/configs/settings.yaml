@@ -70,6 +70,7 @@ models:
 #resume_after: trip_mode_choice
 
 output_tables:
+  h5_store: True
   action: include
   prefix: final_
   tables:

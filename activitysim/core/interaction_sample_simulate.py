@@ -29,6 +29,7 @@ def _interaction_sample_simulate(
         choosers, alternatives, spec,
         choice_column,
         allow_zero_probs, zero_prob_choice_val,
+        want_logsums,
         skims, locals_d,
         trace_label=None, trace_choice_name=None):
     """
@@ -73,10 +74,18 @@ def _interaction_sample_simulate(
 
     Returns
     -------
-    ret : pandas.Series
-        A series where index should match the index of the choosers DataFrame
-        and values will match the index of the alternatives DataFrame -
-        choices are simulated in the standard Monte Carlo fashion
+    if want_logsums is False:
+
+        choices : pandas.Series
+            A series where index should match the index of the choosers DataFrame
+            and values will match the index of the alternatives DataFrame -
+            choices are simulated in the standard Monte Carlo fashion
+
+    if want_logsums is True:
+
+        choices : pandas.DataFrame
+            choices['choice'] : same as choices series when logsums is False
+            choices['logsum'] : float logsum of choice utilities across alternatives
     """
 
     # merge of alternatives, choosers on index requires increasing index
@@ -202,6 +211,10 @@ def _interaction_sample_simulate(
                                  trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'probs', probs)
 
+    if want_logsums:
+        logsums = logit.utils_to_logsums(utilities_df)
+        chunk.log_df(trace_label, 'logsums', logsums)
+
     del utilities_df
     chunk.log_df(trace_label, 'utilities_df', None)
 
@@ -251,6 +264,13 @@ def _interaction_sample_simulate(
                          columns=[None, trace_choice_name])
         tracing.trace_df(rands, tracing.extend_trace_label(trace_label, 'rands'),
                          columns=[None, 'rand'])
+        if want_logsums:
+            tracing.trace_df(logsums, tracing.extend_trace_label(trace_label, 'logsum'),
+                             columns=[None, 'logsum'])
+
+    if want_logsums:
+        choices = choices.to_frame('choice')
+        choices['logsum'] = logsums
 
     return choices
 
@@ -287,6 +307,7 @@ def calc_rows_per_chunk(chunk_size, choosers, alt_sample, spec, trace_label=None
 def interaction_sample_simulate(
         choosers, alternatives, spec, choice_column,
         allow_zero_probs=False, zero_prob_choice_val=None,
+        want_logsums=False,
         skims=None, locals_d=None, chunk_size=0,
         trace_label=None, trace_choice_name=None):
 
@@ -330,10 +351,19 @@ def interaction_sample_simulate(
 
     Returns
     -------
-    choices : pandas.Series
-        A series where index should match the index of the choosers DataFrame
-        and values will match the index of the alternatives DataFrame -
-        choices are simulated in the standard Monte Carlo fashion
+    if want_logsums is False:
+
+        choices : pandas.Series
+            A series where index should match the index of the choosers DataFrame
+            and values will match the index of the alternatives DataFrame -
+            choices are simulated in the standard Monte Carlo fashion
+
+    if want_logsums is True:
+
+        choices : pandas.DataFrame
+            choices['choice'] : same as choices series when logsums is False
+            choices['logsum'] : float logsum of choice utilities across alternatives
+
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
@@ -354,7 +384,7 @@ def interaction_sample_simulate(
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
-            allow_zero_probs, zero_prob_choice_val,
+            allow_zero_probs, zero_prob_choice_val, want_logsums,
             skims, locals_d,
             chunk_trace_label, trace_choice_name)
 

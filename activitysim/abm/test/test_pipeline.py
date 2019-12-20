@@ -153,6 +153,18 @@ def regress_mini_mtf():
     pdt.assert_series_equal(mtf_choice.reindex(per_ids), expected_choice)
 
 
+def regress_mini_location_choice_logsums():
+
+    persons = pipeline.get_table("persons")
+
+    # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
+    assert 'school_taz_logsum' in persons
+    assert not persons.school_taz_logsum.isnull().all()
+
+    # DEST_CHOICE_LOGSUM_COLUMN_NAME is NOT specified in workplace_location.yaml
+    assert 'workplace_taz_logsum' not in persons
+
+
 def test_mini_pipeline_run():
 
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
@@ -181,6 +193,7 @@ def test_mini_pipeline_run():
     pipeline.run_model('mandatory_tour_frequency')
 
     regress_mini_mtf()
+    regress_mini_location_choice_logsums()
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
@@ -396,6 +409,10 @@ def regress():
 
     assert tours_df.shape[0] > 0
     assert not tours_df.tour_mode.isnull().any()
+
+    # optional logsum column was added to all tours except manadatory
+    assert 'destination_logsum' in tours_df
+    assert (tours_df.destination_logsum.isnull() == (tours_df.tour_category == 'mandatory')).all()
 
     trips_df = pipeline.get_table('trips')
     assert trips_df.shape[0] > 0

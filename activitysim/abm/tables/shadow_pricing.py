@@ -280,28 +280,30 @@ class ShadowPriceCalculator(object):
 
         return global_modeled_size_df
 
-    def set_choices(self, choices_df):
+    def set_choices(self, choices, segment_ids):
         """
         aggregate individual location choices to modeled_size by zone and segment
 
         Parameters
         ----------
-        choices_df : pandas.DataFrame
-            dataframe with disaggregate location choices and at least two columns:
-                segment_id : segment id tag for this individual
-                dest_choice : zone id of location choice
+        choices : pandas.Series
+            zone id of location choice indexed by person_id
+        segment_ids : pandas.Series
+            segment id tag for this individual indexed by person_id
+
         Returns
         -------
         updates self.modeled_size
         """
 
-        assert 'dest_choice' in choices_df
-
         modeled_size = pd.DataFrame(index=self.desired_size.index)
-        for c in self.desired_size:
+        for seg_name in self.desired_size:
+
             segment_choices = \
-                choices_df[choices_df['segment_id'] == self.segment_ids[c]]
-            modeled_size[c] = segment_choices.groupby('dest_choice').size()
+                choices[(segment_ids == self.segment_ids[seg_name])]
+
+            modeled_size[seg_name] = segment_choices.value_counts()
+
         modeled_size = modeled_size.fillna(0).astype(int)
 
         if self.num_processes == 1:

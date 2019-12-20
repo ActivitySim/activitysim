@@ -42,6 +42,10 @@ def non_mandatory_tour_destination(
     trace_label = 'non_mandatory_tour_destination'
     model_settings = config.read_model_settings('non_mandatory_tour_destination.yaml')
 
+    destination_column_name = 'destination'
+    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    want_logsums = logsum_column_name is not None
+
     tours = tours.to_frame()
 
     persons_merged = persons_merged.to_frame()
@@ -57,14 +61,18 @@ def non_mandatory_tour_destination(
     choices = tour_destination.run_tour_destination(
         tours,
         persons_merged,
+        want_logsums,
         model_settings,
         skim_dict,
         skim_stack,
         chunk_size, trace_hh_id, trace_label)
 
-    non_mandatory_tours['destination'] = choices
-
+    non_mandatory_tours['destination'] = choices['choice']
     assign_in_place(tours, non_mandatory_tours[['destination']])
+
+    if want_logsums:
+        non_mandatory_tours[logsum_column_name] = choices['logsum']
+        assign_in_place(tours, non_mandatory_tours[[logsum_column_name]])
 
     pipeline.replace_table("tours", tours)
 

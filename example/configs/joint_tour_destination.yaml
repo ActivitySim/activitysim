@@ -14,3 +14,6 @@ IN_PERIOD: 14
 OUT_PERIOD: 14
 
 SIZE_TERM_SELECTOR: non_mandatory
+
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum

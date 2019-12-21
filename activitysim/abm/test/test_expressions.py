@@ -25,8 +25,9 @@ def test_30_minute_windows(config_path):
     assert expressions.skim_time_period_label(36) == 'PM'
     assert expressions.skim_time_period_label(46) == 'EV'
 
-    pd.testing.assert_series_equal(expressions.skim_time_period_label(pd.Series([1,16,24,36,46])),
-           pd.Series(['EA', 'AM', 'MD', 'PM', 'EV']))
+    pd.testing.assert_series_equal(
+        expressions.skim_time_period_label(pd.Series([1, 16, 24, 36, 46])),
+        pd.Series(['EA', 'AM', 'MD', 'PM', 'EV']))
 
 
 def test_60_minute_windows(config_path):
@@ -41,27 +42,28 @@ def test_60_minute_windows(config_path):
     assert expressions.skim_time_period_label(18) == 'PM'
     assert expressions.skim_time_period_label(23) == 'EV'
 
-    pd.testing.assert_series_equal(expressions.skim_time_period_label(pd.Series([1,8,12,18,23])),
-                                   pd.Series(['EA', 'AM', 'MD', 'PM', 'EV']))
+    pd.testing.assert_series_equal(
+        expressions.skim_time_period_label(pd.Series([1, 8, 12, 18, 23])),
+        pd.Series(['EA', 'AM', 'MD', 'PM', 'EV']))
 
 
 def test_1_week_time_window():
     settings = {
         'skim_time_periods': {
-        'time_window': 10080, # One Week
-        'period_minutes': 1440, # One Day
-        'periods': [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7
-        ],
-        'labels': ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                   'Thursday', 'Friday', 'Saturday']
+            'time_window': 10080,  # One Week
+            'period_minutes': 1440,  # One Day
+            'periods': [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            'labels': ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+                       'Thursday', 'Friday', 'Saturday']
         }
     }
 

@@ -61,7 +61,7 @@ Decision-making units
 
 Decision-makers in the model system are households and persons. These decision-makers are
 created for each simulation year based on a population synthesis process such as
-`PopulationSim <https://github.com/RSGInc/PopulationSim>`__. The decision-makers are used in the
+`PopulationSim <https://github.com/ActivitySim/PopulationSim>`__. The decision-makers are used in the
 subsequent discrete-choice models to select a single alternative from a list of available
 alternatives according to a probability distribution. The probability distribution is generated
 from various logit-form models which take into account the attributes of the decision-maker and

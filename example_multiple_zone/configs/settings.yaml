@@ -12,7 +12,8 @@ households_sample_size: 1000
 
 
 skim_time_periods:
-    hours:
+    period_minutes: 60
+    periods:
         - 0
         - 11
         - 16

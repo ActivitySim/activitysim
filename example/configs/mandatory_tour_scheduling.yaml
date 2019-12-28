@@ -19,6 +19,10 @@ SIMULATE_CHOOSER_COLUMNS:
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
+SPEC:
+  work: tour_scheduling_work.csv
+  school: tour_scheduling_school.csv
+  univ: tour_scheduling_school.csv
 
 #CHOOSER_ORIG_COL_NAME: TAZ
 

@@ -282,11 +282,14 @@ of MTC TM1 OMX skims are also on the box account.
 
   The ``scripts\mtc_inputs.py`` was used to create the mtc_asim.h5 file from the raw CSV files.
   This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 file.
-
+  ActivitySim will also read a list of CSV files and optionally build an HDF5 file to use for subsequent runs.
+  HDF5 is the preferred input format due to faster read times. see :ref:`configuration`
   The ``scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
   Cube to OMX using the ``scripts\mtc_tm1_omx_export.s`` script.
 
   The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.
+
+.. _configuration:
 
 Configuration
 ~~~~~~~~~~~~~
@@ -298,6 +301,15 @@ is the main settings file for the model run.  This file includes:
 * ``models`` - list of model steps to run - auto ownership, tour frequency, etc. - see :ref:`model_steps`
 * ``resume_after`` - to resume running the data pipeline after the last successful checkpoint
 * ``input_store`` - HDF5 inputs file
+* ``input_table_list`` - list of table names, indices, and column re-maps for each table in `input_store`
+
+    * ``tablename`` - name of the injected table
+    * ``filename`` - name of the CSV or HDF5 file to read (optional, defaults to `input_store`)
+    * ``index_col`` - table column to use for the index
+    * ``column_map`` - dictionary of column name mappings
+    * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
+
+* ``create_input_store`` - write new 'input_data.h5' file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
 * ``skims_file`` - skim matrices in one OMX file
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
@@ -312,7 +324,7 @@ is the main settings file for the model run.  This file includes:
     * ``county_map`` - mapping of county codes to county names
     * ``skim_time_periods`` - time period upper bound values and labels
         * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
-        * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole 
+        * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole
         factor of ``time_window``. (Default: 60 minutes)
         * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
         * ``labels`` - Labels to define names for aggregate periods for skims and assignment

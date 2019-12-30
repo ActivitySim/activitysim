@@ -65,3 +65,5 @@ docs/_build/
 *.cprof
 *.lprof
 
+# macOS
+*.DS_Store

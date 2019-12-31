@@ -262,31 +262,33 @@ The example has the following root folder/file setup:
 Inputs
 ~~~~~~
 
-In order to run the example, you first need two input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file:
+In order to run the example, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file:
 
-* input_store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
+* input_table_list: the input CSV tables from MTC travel model one:
 
-    * land_use_taz - Zone-based land use data (population and employment for example)
-    * persons - Synthetic population person records
-    * households - Synthetic population household records
+    * households - Synthetic population household records for a subset of zones.
+    * persons - Synthetic population person records for a subset of zones.
+    * land_use - Zone-based land use data (population and employment for example) for a subset of zones.
 
 * skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.
 
-Both files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  Alternatively,
-these files can be downloaded from the MTC `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  The full set
-of MTC TM1 OMX skims are also on the box account.
+These files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  The full set
+of MTC TM1 households, persons, and OMX skims are on the MTC `box account <https://mtcdrive.app.box.com/v/activitysim>`__.
 
 .. note::
+  
+  ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
+  HDF5 is binary and therefore results in faster read times. see :ref:`configuration`
 
-  Input files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.
-
-  The ``scripts\mtc_inputs.py`` was used to create the mtc_asim.h5 file from the raw CSV files.
-  This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 file.
-
+  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.
+  
   The ``scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
   Cube to OMX using the ``scripts\mtc_tm1_omx_export.s`` script.
 
-  The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.
+  The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
+  skim inputs for a subset of user-defined zones.
+
+.. _configuration:
 
 Configuration
 ~~~~~~~~~~~~~
@@ -298,6 +300,15 @@ is the main settings file for the model run.  This file includes:
 * ``models`` - list of model steps to run - auto ownership, tour frequency, etc. - see :ref:`model_steps`
 * ``resume_after`` - to resume running the data pipeline after the last successful checkpoint
 * ``input_store`` - HDF5 inputs file
+* ``input_table_list`` - list of table names, indices, and column re-maps for each table in `input_store`
+
+    * ``tablename`` - name of the injected table
+    * ``filename`` - name of the CSV or HDF5 file to read (optional, defaults to `input_store`)
+    * ``index_col`` - table column to use for the index
+    * ``column_map`` - dictionary of column name mappings
+    * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
+
+* ``create_input_store`` - write new 'input_data.h5' file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
 * ``skims_file`` - skim matrices in one OMX file
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
@@ -312,8 +323,7 @@ is the main settings file for the model run.  This file includes:
     * ``county_map`` - mapping of county codes to county names
     * ``skim_time_periods`` - time period upper bound values and labels
         * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
-        * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole 
-        factor of ``time_window``. (Default: 60 minutes)
+        * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
         * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
         * ``labels`` - Labels to define names for aggregate periods for skims and assignment
 
@@ -693,9 +703,9 @@ restarting the pipeline at any step.
 | workplace_modeled_size            | workplace_location                 | 1454 | 4    |
 +-----------------------------------+------------------------------------+------+------+
 
-The example ``simulation.py`` run model script also writes the final tables to CSV files
-for illustrative purposes by using the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.
-This method returns a pandas DataFrame, which can then be written to a CSV with the ``to_csv(file_path)`` method.
+The example ``simulation.py`` run model script also writes the final tables to CSV files by using 
+the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.
+This method returns a pandas DataFrame, which is then written to a CSV file by the ``write_tables`` step.
 
 ActivitySim also writes log and trace files to the ``outputs`` folder.  The activitysim.log file,
 which is the overall log file is always produced.  If tracing is specified, then trace files are

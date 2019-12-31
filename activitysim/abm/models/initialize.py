@@ -23,6 +23,22 @@ from .util import expressions
 from activitysim.abm.tables import shadow_pricing
 
 
+# We are using the naming conventions in the mtc_asim.h5 example
+# file for our default list. This provides backwards compatibility
+# with previous versions of ActivitySim in which only 'input_store'
+# is given in the settings file.
+DEFAULT_TABLE_LIST = [
+    {'tablename': 'households',
+     'h5_tablename': 'households',
+     'index_col': 'household_id'},
+    {'tablename': 'persons',
+     'h5_tablename': 'persons',
+     'index_col': 'person_id'},
+    {'tablename': 'land_use',
+     'h5_tablename': 'land_use_taz',
+     'index_col': 'TAZ'}
+]
+
 logger = logging.getLogger(__name__)
 
 
@@ -108,6 +124,18 @@ def preload_injectables():
     inject.add_step('track_skim_usage', track_skim_usage)
     inject.add_step('write_data_dictionary', write_data_dictionary)
     inject.add_step('write_tables', write_tables)
+
+    table_list = config.setting('input_table_list')
+
+    # default ActivitySim table names and indices
+    if table_list is None:
+        logger.warn(
+            "No 'input_table_list' found in settings. This will be a "
+            "required setting in upcoming versions of ActivitySim.")
+
+        new_settings = inject.get_injectable('settings')
+        new_settings['input_table_list'] = DEFAULT_TABLE_LIST
+        inject.add_injectable('settings', new_settings)
 
     t0 = tracing.print_elapsed_time()
 

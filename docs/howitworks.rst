@@ -497,7 +497,7 @@ The last models to be run by the data pipeline are:
 
 * ``write_data_dictionary``, which writes the table_name, number of rows, number of columns, and number of bytes for each checkpointed table
 * ``track_skim_usage``, which tracks skim data memory usage
-* ``write_tables``, which writes pipeline tables as csv files as specified by the output_tables setting
+* ``write_tables``, which writes pipeline tables as CSV files as specified by the output_tables setting
 
 Back in the main ``simulation.py`` script, the final steps are to:
 

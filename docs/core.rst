@@ -26,6 +26,17 @@ API
 Data Management
 ---------------
 
+Input
+~~~~~
+
+Input data table functions
+
+API
+^^^
+
+.. automodule:: activitysim.core.input
+   :members:
+
 .. _skims_in_detail:
 
 Skim

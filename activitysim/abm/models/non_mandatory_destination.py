@@ -42,7 +42,6 @@ def non_mandatory_tour_destination(
     trace_label = 'non_mandatory_tour_destination'
     model_settings = config.read_model_settings('non_mandatory_tour_destination.yaml')
 
-    destination_column_name = 'destination'
     logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
     want_logsums = logsum_column_name is not None
 

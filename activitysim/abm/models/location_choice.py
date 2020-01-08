@@ -522,7 +522,7 @@ def iterate_location_choice(
     if want_logsums:
         dest_choice_logsum_column_name = model_settings['DEST_CHOICE_LOGSUM_COLUMN_NAME']
         persons_df[dest_choice_logsum_column_name] = \
-            choices['choice'].reindex(persons_df.index)
+            choices['choice'].reindex(persons_df.index).astype('float')
 
     # - annotate persons table
     if 'annotate_persons' in model_settings:

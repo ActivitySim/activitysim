@@ -21,8 +21,11 @@ from activitysim.core.mem import force_garbage_collect
 from .util.expressions import annotate_preprocessors
 
 from activitysim.core import assign
+from activitysim.core.util import assign_in_place
 
 from .util.expressions import skim_time_period_label
+
+from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,9 @@ def trip_mode_choice(
     """
     trace_label = 'trip_mode_choice'
     model_settings = config.read_model_settings('trip_mode_choice.yaml')
+
+    logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
+    mode_column_name = 'trip_mode'
 
     model_spec = \
         simulate.read_model_spec(file_name=model_settings['SPEC'])
@@ -111,21 +117,18 @@ def trip_mode_choice(
             model_settings, segment_trace_label)
 
         locals_dict.update(skims)
-        choices = simulate.simple_simulate(
+
+        choices = mode_choice_simulate(
             choosers=trips_segment,
             spec=model_spec,
             nest_spec=nest_spec,
             skims=skims,
             locals_d=locals_dict,
             chunk_size=chunk_size,
-            trace_label=segment_trace_label,
+            mode_column_name=mode_column_name,
+            logsum_column_name=logsum_column_name,
+            trace_label=trace_label,
             trace_choice_name='trip_mode_choice')
-
-        alts = model_spec.columns
-        choices = choices.map(dict(list(zip(list(range(len(alts))), alts))))
-
-        # tracing.print_summary('trip_mode_choice %s choices' % primary_purpose,
-        #                       choices, value_counts=True)
 
         if trace_hh_id:
             # trace the coefficients
@@ -135,7 +138,8 @@ def trip_mode_choice(
                              slicer='NONE')
 
             # so we can trace with annotations
-            trips_segment['trip_mode'] = choices
+            assign_in_place(trips_segment, choices)
+
             tracing.trace_df(trips_segment,
                              label=tracing.extend_trace_label(segment_trace_label, 'trip_mode'),
                              slicer='tour_id',
@@ -149,16 +153,17 @@ def trip_mode_choice(
 
     choices = pd.concat(choices_list)
 
+    # keep mode_choice and (optionally) logsum columns
     trips_df = trips.to_frame()
-    trips_df['trip_mode'] = choices
+    assign_in_place(trips_df, choices)
 
     tracing.print_summary('tour_modes',
                           trips_merged.tour_mode, value_counts=True)
 
     tracing.print_summary('trip_mode_choice choices',
-                          choices, value_counts=True)
+                          trips_df[mode_column_name], value_counts=True)
 
-    assert not trips_df.trip_mode.isnull().any()
+    assert not trips_df[mode_column_name].isnull().any()
 
     pipeline.replace_table("trips", trips_df)
 

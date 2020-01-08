@@ -38,6 +38,9 @@ def tour_mode_choice_simulate(tours, persons_merged,
     trace_label = 'tour_mode_choice'
     model_settings = config.read_model_settings('tour_mode_choice.yaml')
 
+    logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
+    mode_column_name = 'tour_mode'  # FIXME - should be passed in?
+
     spec = tour_mode_choice_spec(model_settings)
 
     primary_tours = tours.to_frame()
@@ -90,6 +93,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
         choices = run_tour_mode_choice_simulate(
             segment,
             spec, tour_type, model_settings,
+            mode_column_name=mode_column_name,
+            logsum_column_name=logsum_column_name,
             skims=skims,
             constants=constants,
             nest_spec=nest_spec,
@@ -98,7 +103,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
             trace_choice_name='tour_mode_choice')
 
         tracing.print_summary('tour_mode_choice_simulate %s choices' % tour_type,
-                              choices, value_counts=True)
+                              choices[mode_column_name], value_counts=True)
 
         choices_list.append(choices)
 
@@ -108,22 +113,20 @@ def tour_mode_choice_simulate(tours, persons_merged,
     choices = pd.concat(choices_list)
 
     tracing.print_summary('tour_mode_choice_simulate all tour type choices',
-                          choices, value_counts=True)
+                          choices[mode_column_name], value_counts=True)
 
     # so we can trace with annotations
-    primary_tours['tour_mode'] = choices
+    assign_in_place(primary_tours, choices)
 
-    # but only keep mode choice col
+    # but only keep choices columns
     all_tours = tours.to_frame()
-    # uncomment to save annotations to table
-    # assign_in_place(all_tours, annotations)
-    assign_in_place(all_tours, choices.to_frame('tour_mode'))
+    assign_in_place(all_tours, choices)
 
     pipeline.replace_table("tours", all_tours)
 
     if trace_hh_id:
         tracing.trace_df(primary_tours,
-                         label=tracing.extend_trace_label(trace_label, 'tour_mode'),
+                         label=tracing.extend_trace_label(trace_label, mode_column_name),
                          slicer='tour_id',
                          index_label='tour_id',
                          warn_if_empty=True)

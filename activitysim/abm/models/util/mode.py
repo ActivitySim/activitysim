@@ -36,9 +36,47 @@ def tour_mode_choice_coeffecients_spec(model_settings):
     return pd.read_csv(file_path, comment='#', index_col='Expression')
 
 
+def mode_choice_simulate(
+        choosers, spec, nest_spec, skims, locals_d,
+        chunk_size,
+        mode_column_name,
+        logsum_column_name,
+        trace_label,
+        trace_choice_name):
+
+    want_logsums = logsum_column_name is not None
+
+    choices = simulate.simple_simulate(
+        choosers=choosers,
+        spec=spec,
+        nest_spec=nest_spec,
+        skims=skims,
+        locals_d=locals_d,
+        chunk_size=chunk_size,
+        want_logsums=want_logsums,
+        trace_label=trace_label,
+        trace_choice_name=trace_choice_name)
+
+    # for consistency, always return dataframe, whether or not logsums were requested
+    if isinstance(choices, pd.Series):
+        choices = choices.to_frame('choice')
+
+    choices.rename(columns={'logsum': logsum_column_name,
+                            'choice': mode_column_name},
+                   inplace=True)
+
+    alts = spec.columns
+    choices[mode_column_name] = \
+        choices[mode_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
+
+    return choices
+
+
 def run_tour_mode_choice_simulate(
         choosers,
         spec, tour_purpose, model_settings,
+        mode_column_name,
+        logsum_column_name,
         skims,
         constants,
         nest_spec,
@@ -66,17 +104,16 @@ def run_tour_mode_choice_simulate(
         choosers, locals_dict, skims,
         model_settings, trace_label)
 
-    choices = simulate.simple_simulate(
+    choices = mode_choice_simulate(
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
+        mode_column_name=mode_column_name,
+        logsum_column_name=logsum_column_name,
         trace_label=trace_label,
         trace_choice_name=trace_choice_name)
-
-    alts = spec.columns
-    choices = choices.map(dict(list(zip(list(range(len(alts))), alts))))
 
     return choices

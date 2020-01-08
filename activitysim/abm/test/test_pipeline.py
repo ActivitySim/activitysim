@@ -410,15 +410,22 @@ def regress():
     assert tours_df.shape[0] > 0
     assert not tours_df.tour_mode.isnull().any()
 
-    # optional logsum column was added to all tours except manadatory
+    # optional logsum column was added to all tours except mandatory
     assert 'destination_logsum' in tours_df
     assert (tours_df.destination_logsum.isnull() == (tours_df.tour_category == 'mandatory')).all()
+
+    # mode choice logsum calculated for all tours
+    assert 'mode_choice_logsum' in tours_df
+    assert not tours_df.mode_choice_logsum.isnull().any()
 
     trips_df = pipeline.get_table('trips')
     assert trips_df.shape[0] > 0
     assert not trips_df.purpose.isnull().any()
     assert not trips_df.depart.isnull().any()
     assert not trips_df.trip_mode.isnull().any()
+
+    # mode_choice_logsum calculated for all trips
+    assert not trips_df.mode_choice_logsum.isnull().any()
 
     # should be at least two tours per trip
     assert trips_df.shape[0] >= 2*tours_df.shape[0]

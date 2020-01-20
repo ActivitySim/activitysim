@@ -5,11 +5,16 @@ DESTINATION_SPEC: trip_destination.csv
 
 LOGSUM_SETTINGS: trip_mode_choice.yaml
 
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: trip_destination_sample
 
 # model-specific logsum-related settings
 #CHOOSER_ORIG_COL_NAME: origin
 TRIP_ORIGIN: origin
-ALT_DEST: dest_taz
+ALT_DEST_COL_NAME: dest_taz
 PRIMARY_DEST: destination
 
 

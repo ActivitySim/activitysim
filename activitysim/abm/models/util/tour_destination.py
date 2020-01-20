@@ -80,8 +80,8 @@ def run_destination_sample(
 
     constants = config.get_model_constants(model_settings)
 
-    sample_size = model_settings["SAMPLE_SIZE"]
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    sample_size = model_settings['SAMPLE_SIZE']
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
@@ -189,7 +189,7 @@ def run_destination_simulate(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
     origin_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
@@ -240,6 +240,7 @@ def run_tour_destination(
         tours,
         persons_merged,
         want_logsums,
+        want_sample_table,
         model_settings,
         skim_dict,
         skim_stack,
@@ -256,6 +257,7 @@ def run_tour_destination(
     tours = tours.sort_index()
 
     choices_list = []
+    sample_list = []
     for segment_name in segments:
 
         choosers = tours[tours[chooser_segment_column] == segment_name]
@@ -309,6 +311,12 @@ def run_tour_destination(
 
         choices_list.append(choices)
 
+        if want_sample_table:
+            # FIXME - sample_table
+            location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
+                                         append=True, inplace=True)
+            sample_list.append(location_sample_df)
+
         # FIXME - want to do this here?
         del location_sample_df
         force_garbage_collect()
@@ -320,4 +328,10 @@ def run_tour_destination(
         logger.warning("%s no choices", trace_label)
         choices_df = pd.DataFrame(columns=['choice', 'logsum'])
 
-    return choices_df
+    if len(sample_list) > 0:
+        save_sample_df = pd.concat(sample_list)
+    else:
+        # this could happen either with small samples as above, or if no saved sample desired
+        save_sample_df = None
+
+    return choices_df, save_sample_df

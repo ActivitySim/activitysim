@@ -149,8 +149,8 @@ def run_location_sample(
 
     alternatives = dest_size_terms
 
-    sample_size = model_settings["SAMPLE_SIZE"]
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    sample_size = model_settings['SAMPLE_SIZE']
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running %s with %d persons" % (trace_label, len(choosers.index)))
 
@@ -272,7 +272,7 @@ def run_location_simulate(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = persons_merged[chooser_columns]
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge additional alt columns into alt sample list
@@ -320,8 +320,9 @@ def run_location_simulate(
 def run_location_choice(
         persons_merged_df,
         skim_dict, skim_stack,
-        spc,
+        shadow_price_calculator,
         want_logsums,
+        want_sample_table,
         model_settings,
         chunk_size, trace_hh_id, trace_label
         ):
@@ -336,8 +337,10 @@ def run_location_choice(
         persons table merged with households and land_use
     skim_dict : skim.SkimDict
     skim_stack : skim.SkimStack
-    spc : ShadowPriceCalculator
+    shadow_price_calculator : ShadowPriceCalculator
         to get size terms
+    want_logsums : boolean
+    want_sample_table : boolean
     model_settings : dict
     chunk_size : int
     trace_hh_id : int
@@ -358,6 +361,7 @@ def run_location_choice(
     segment_ids = model_settings['SEGMENT_IDS']
 
     choices_list = []
+    sample_list = []
     for segment_name, segment_id in iteritems(segment_ids):
 
         choosers = persons_merged_df[persons_merged_df[chooser_segment_column] == segment_id]
@@ -367,7 +371,7 @@ def run_location_choice(
             continue
 
         # size_term and shadow price adjustment - one row per zone
-        dest_size_terms = spc.dest_size_terms(segment_name)
+        dest_size_terms = shadow_price_calculator.dest_size_terms(segment_name)
 
         # - location_sample
         location_sample_df = \
@@ -407,6 +411,12 @@ def run_location_choice(
 
         choices_list.append(choices)
 
+        if want_sample_table:
+            # FIXME - sample_table
+            location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
+                                         append=True, inplace=True)
+            sample_list.append(location_sample_df)
+
         # FIXME - want to do this here?
         del location_sample_df
         force_garbage_collect()
@@ -418,7 +428,13 @@ def run_location_choice(
         logger.warning("%s no choices", trace_label)
         choices_df = pd.DataFrame(columns=['choice', 'logsum'])
 
-    return choices_df
+    if len(sample_list) > 0:
+        save_sample_df = pd.concat(sample_list)
+    else:
+        # this could happen either with small samples as above, or if no saved sample desired
+        save_sample_df = None
+
+    return choices_df, save_sample_df
 
 
 def iterate_location_choice(
@@ -459,7 +475,9 @@ def iterate_location_choice(
     # boolean to filter out persons not needing location modeling (e.g. is_worker, is_student)
     chooser_filter_column = model_settings['CHOOSER_FILTER_COLUMN_NAME']
 
-    want_logsums = 'DEST_CHOICE_LOGSUM_COLUMN_NAME' in model_settings
+    dest_choice_column_name = model_settings['DEST_CHOICE_COLUMN_NAME']
+    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
 
     persons_merged_df = persons_merged.to_frame()
 
@@ -470,28 +488,29 @@ def iterate_location_choice(
 
     logging.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
-    choices = None
     for iteration in range(1, max_iterations + 1):
 
         if spc.use_shadow_pricing and iteration > 1:
             spc.update_shadow_prices()
 
-        choices = run_location_choice(
+        choices_df, save_sample_df = run_location_choice(
             persons_merged_df,
             skim_dict, skim_stack,
-            spc,
-            want_logsums,
-            model_settings,
-            chunk_size, trace_hh_id,
+            shadow_price_calculator=spc,
+            want_logsums=logsum_column_name is not None,
+            want_sample_table=sample_table_name is not None,
+            model_settings=model_settings,
+            chunk_size=chunk_size,
+            trace_hh_id=trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
 
-        # choices is a pandas DataFrame with columns 'choice' and (optionally) 'logsum'
-        if choices is None:
+        # choices_df is a pandas DataFrame with columns 'choice' and (optionally) 'logsum'
+        if choices_df is None:
             break
 
         spc.set_choices(
-            choices=choices['choice'],
-            segment_ids=persons_merged_df[chooser_segment_column].reindex(choices.index))
+            choices=choices_df['choice'],
+            segment_ids=persons_merged_df[chooser_segment_column].reindex(choices_df.index))
 
         if locutor:
             spc.write_trace_files(iteration)
@@ -513,16 +532,22 @@ def iterate_location_choice(
     # We only chose school locations for the subset of persons who go to school
     # so we backfill the empty choices with -1 to code as no school location
     # names for location choice and (optional) logsums columns
-    dest_choice_column_name = model_settings['DEST_CHOICE_COLUMN_NAME']
     NO_DEST_TAZ = -1
     persons_df[dest_choice_column_name] = \
-        choices['choice'].reindex(persons_df.index).fillna(NO_DEST_TAZ).astype(int)
+        choices_df['choice'].reindex(persons_df.index).fillna(NO_DEST_TAZ).astype(int)
 
     # add the dest_choice_logsum column to persons dataframe
-    if want_logsums:
-        dest_choice_logsum_column_name = model_settings['DEST_CHOICE_LOGSUM_COLUMN_NAME']
-        persons_df[dest_choice_logsum_column_name] = \
-            choices['choice'].reindex(persons_df.index).astype('float')
+    if logsum_column_name:
+        persons_df[logsum_column_name] = \
+            choices_df['logsum'].reindex(persons_df.index).astype('float')
+
+    if save_sample_df is not None:
+        # might be None for tiny samples even if sample_table_name was specified
+        assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
+        # lest they try to put school and workplace samples into the same table
+        if pipeline.is_table(sample_table_name):
+            raise RuntimeError("dest choice sample table %s already exists" % sample_table_name)
+        pipeline.extend_table(sample_table_name, save_sample_df)
 
     # - annotate persons table
     if 'annotate_persons' in model_settings:
@@ -553,9 +578,9 @@ def iterate_location_choice(
                              label=trace_label,
                              warn_if_empty=True)
 
-    tracing.print_summary(dest_choice_column_name, choices['choice'], value_counts=True)
-    if want_logsums:
-        tracing.print_summary(dest_choice_logsum_column_name, choices['logsum'], value_counts=True)
+    tracing.print_summary(dest_choice_column_name, choices_df['choice'], value_counts=True)
+    if logsum_column_name:
+        tracing.print_summary(logsum_column_name, choices_df['logsum'], value_counts=True)
 
     return persons_df
 

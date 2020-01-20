@@ -205,6 +205,10 @@ def test_mini_pipeline_run():
         pipeline.get_table("households", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
+    # should create optional workplace_location_sample table
+    workplace_location_sample_df = pipeline.get_table("workplace_location_sample")
+    assert 'mode_choice_logsum' in workplace_location_sample_df
+
     pipeline.close_pipeline()
     inject.clear_cache()
     close_handlers()
@@ -298,6 +302,7 @@ def full_run(resume_after=None, chunk_size=0,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_od=trace_od,
+        testing_fail_trip_destination=False,
         check_for_variability=check_for_variability,
         use_shadow_pricing=False)  # shadow pricing breaks replicability when sample_size varies
 

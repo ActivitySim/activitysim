@@ -44,8 +44,8 @@ def atwork_subtour_destination_sample(
 
     constants = config.get_model_constants(model_settings)
 
-    sample_size = model_settings["SAMPLE_SIZE"]
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    sample_size = model_settings['SAMPLE_SIZE']
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running atwork_subtour_location_sample with %d tours", len(choosers))
 
@@ -163,7 +163,7 @@ def atwork_subtour_destination_simulate(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
     chooser_col_name = 'workplace_taz'
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
@@ -227,6 +227,9 @@ def atwork_subtour_destination(
     logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
     want_logsums = logsum_column_name is not None
 
+    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = sample_table_name is not None
+
     persons_merged = persons_merged.to_frame()
 
     tours = tours.to_frame()
@@ -242,7 +245,7 @@ def atwork_subtour_destination(
 
     destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'atwork')
 
-    destination_sample = atwork_subtour_destination_sample(
+    destination_sample_df = atwork_subtour_destination_sample(
         subtours,
         persons_merged,
         model_settings,
@@ -251,18 +254,18 @@ def atwork_subtour_destination(
         chunk_size,
         tracing.extend_trace_label(trace_label, 'sample'))
 
-    destination_sample = atwork_subtour_destination_logsums(
+    destination_sample_df = atwork_subtour_destination_logsums(
         persons_merged,
-        destination_sample,
+        destination_sample_df,
         model_settings,
         skim_dict, skim_stack,
         chunk_size, trace_hh_id,
         tracing.extend_trace_label(trace_label, 'logsums'))
 
-    choices = atwork_subtour_destination_simulate(
+    choices_df = atwork_subtour_destination_simulate(
         subtours,
         persons_merged,
-        destination_sample,
+        destination_sample_df,
         want_logsums,
         model_settings,
         skim_dict,
@@ -270,14 +273,23 @@ def atwork_subtour_destination(
         chunk_size,
         tracing.extend_trace_label(trace_label, 'simulate'))
 
-    subtours[destination_column_name] = choices['choice']
+    subtours[destination_column_name] = choices_df['choice']
     assign_in_place(tours, subtours[[destination_column_name]])
 
     if want_logsums:
-        subtours[logsum_column_name] = choices['logsum']
+        subtours[logsum_column_name] = choices_df['logsum']
         assign_in_place(tours, subtours[[logsum_column_name]])
 
     pipeline.replace_table("tours", tours)
+
+    if want_sample_table:
+        # FIXME - sample_table
+        assert len(destination_sample_df.index.unique()) == len(choices_df)
+        destination_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
+                                        append=True, inplace=True)
+
+        print(destination_sample_df)
+        pipeline.extend_table(sample_table_name, destination_sample_df)
 
     tracing.print_summary(destination_column_name,
                           subtours[destination_column_name],

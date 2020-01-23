@@ -46,7 +46,7 @@ def flag_failed_trip_leg_mates(trips_df, col_name):
     #     trips_df.loc[failed_trip_leg_mates, col_name] = True
 
 
-def cleanup_failed_trips(trips, save_sample_table=None):
+def cleanup_failed_trips(trips):
     """
     drop failed trips and cleanup fields in leg_mates:
 
@@ -61,13 +61,6 @@ def cleanup_failed_trips(trips, save_sample_table=None):
 
         trips['patch'] = False
         flag_failed_trip_leg_mates(trips, 'patch')
-
-        if save_sample_table is not None:
-            n = len(save_sample_table)
-            save_sample_table.drop(trips.index[trips.failed], level='trip_id', inplace=True)
-            print("dropped", n - len(save_sample_table))
-            bug
-        bug2
 
         # drop the original failures
         trips = trips[~trips.failed]
@@ -86,4 +79,4 @@ def cleanup_failed_trips(trips, save_sample_table=None):
 
     del trips['failed']
 
-    return trips, save_sample_table
+    return trips

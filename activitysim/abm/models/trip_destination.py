@@ -607,7 +607,11 @@ def trip_destination(
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 
     if CLEANUP:
-        trips_df, save_sample_df = cleanup_failed_trips(trips_df, save_sample_df)
+
+        flag_failed_trip_leg_mates(trips_df, 'failed')
+        save_sample_df.drop(trips_df.index, level='trip_id', inplace=True)
+
+        trips_df = cleanup_failed_trips(trips_df)
     elif trips_df.failed.any():
         logger.warning("%s keeping %s sidelined failed trips" %
                        (trace_label, trips_df.failed.sum()))
@@ -621,7 +625,6 @@ def trip_destination(
                          index_label='trip_id',
                          warn_if_empty=True)
 
-    # FIXME - need both dest choice logsum and alt sample mode choice logsums
     if save_sample_df is not None:
         # might be none if want_sample_table but there are no intermediate trips
         # expect samples only for intermediate trip destinatinos

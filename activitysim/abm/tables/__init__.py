@@ -3,8 +3,6 @@
 
 from __future__ import absolute_import
 
-from . import input_store
-
 from . import households
 from . import persons
 from . import landuse

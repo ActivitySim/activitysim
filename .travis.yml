@@ -2,11 +2,9 @@ language: python
 sudo: false
 python:
   - '2.7'
-  - '3.6'
+  - '3.7'
 install:
-- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]];
-  then wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
-  else wget http://repo.continuum.io/miniconda/Miniconda3-3.7.0-Linux-x86_64.sh -O miniconda.sh; fi
+- wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
 - hash -r
@@ -14,11 +12,9 @@ install:
 - conda update -q conda
 - conda info -a
 - |
-  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cytoolz numpy pandas pip pytables pyyaml toolz psutil future
+  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION future
 - source activate test-environment
-- pip install openmatrix zbox
 - conda install pytest pytest-cov coveralls pycodestyle
-- conda install sphinx numpydoc sphinx_rtd_theme
 - pip install .
 - pip freeze
 script:
@@ -26,7 +22,22 @@ script:
 - py.test --cov activitysim --cov-report term-missing
 after_success:
 - coveralls
-- bin/build_docs.sh
+# Build docs
+- pip install sphinx numpydoc sphinx_rtd_theme
+- cd docs
+- make clean
+- make html
+- touch _build/html/.nojekyll
+
+deploy:
+  provider: pages
+  local_dir: docs/_build/html
+  skip_cleanup: true
+  github_token: $GH_TOKEN
+  keep_history: true
+  on:
+    branch: master
+
 notifications:
   slack:
     secure: Dpp+zBrnPGBHXrYWjwHy/bnHvhINfepSIiViwKfBZizBvTDvzSJfu6gCH+/lQ3squF3D4qTWwxB+LQ9V6KTYhuma8vQVisyneI6ARjUI/qgX6aJjuvmDDGPk6DVeDow7+aCLZ8VEHRhSjwy+dv0Ij0rxI6I94xPVwXUkk7ZjcK0=

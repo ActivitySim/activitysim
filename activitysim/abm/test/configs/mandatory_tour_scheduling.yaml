@@ -21,6 +21,10 @@ LOGSUM_SETTINGS: tour_mode_choice.yaml
 
 SEGMENT_COL: primary_purpose
 
+SPEC:
+  work: tour_scheduling_work.csv
+  school: tour_scheduling_school.csv
+  univ: tour_scheduling_school.csv
 
 #CHOOSER_ORIG_COL_NAME: TAZ
 

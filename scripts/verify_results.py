@@ -16,7 +16,7 @@ pipeline_filename = 'asim/pipeline.h5'
 distance_matrix_filename = "asim/skims.omx"
 asim_nmtf_alts_filename = "asim/non_mandatory_tour_frequency_alternatives.csv"
 
-process_sp = True   # False skip work/sch shadow pricing comparisons, True do them 
+process_sp = True   # False skip work/sch shadow pricing comparisons, True do them
 process_tm1 = True  # False only processes asim, True processes tm1 as well
 
 asim_sp_work_filename = "asim/shadow_price_workplace_modeled_size_10.csv"

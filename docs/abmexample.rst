@@ -4,9 +4,9 @@
 Example
 =======
 
-This page describes the example model design and how to setup and run the example. The default 
-configuration of the example is limited to a small sample of households and zones so that it can 
-be run quickly and require less than 1 GB of RAM.  The full scale example can be configurd and run 
+This page describes the example model design and how to setup and run the example. The default
+configuration of the example is limited to a small sample of households and zones so that it can
+be run quickly and require less than 1 GB of RAM.  The full scale example can be configurd and run
 as well.
 
 
@@ -16,8 +16,8 @@ as well.
 Example Model Design
 --------------------
 
-The example AB model implemented with the activitysim framework is 
-`Bay Area Metro Travel Model One <https://github.com/BayAreaMetro/travel-model-one>`__ (TM1).  
+The example AB model implemented with the activitysim framework is
+`Bay Area Metro Travel Model One <https://github.com/BayAreaMetro/travel-model-one>`__ (TM1).
 TM1 has its roots in a wide array of analytical approaches, including discrete
 choice forms (multinomial and nested logit models), activity duration models, time-use models,
 models of individual micro-simulation with constraints, entropy-maximization models, etc.
@@ -25,25 +25,25 @@ These tools are combined in the model design to realistically represent travel b
 adequately replicate observed activity-travel patterns, and ensure model sensitivity to
 infrastructure and policies. The model is implemented in a micro-simulation framework. Microsimulation
 methods capture aggregate outcomes through the representation of the behavior of
-individual decision-makers.  
+individual decision-makers.
 
 Space
 ~~~~~
 
-TM1 uses the 1454-zone system developed for the previous MTC trip-based model.  The zones are fairly large for the region, 
-which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the 
-original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not 
+TM1 uses the 1454-zone system developed for the previous MTC trip-based model.  The zones are fairly large for the region,
+which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the
+original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
-of activity-based models typically use an improved approach to spatial representation called multiple zone systems.  
+of activity-based models typically use an improved approach to spatial representation called multiple zone systems.
 
-In brief, under a multiple zone system approach, all households are assigned to microzones (which are smaller than traditional 
-TAZs) and trips are assigned to origin and destination microzones.  When considering network level-of-service (LOS) indicators, 
+In brief, under a multiple zone system approach, all households are assigned to microzones (which are smaller than traditional
+TAZs) and trips are assigned to origin and destination microzones.  When considering network level-of-service (LOS) indicators,
 the model uses different spatial resolutions for different travel modes.  For example:
 
   * TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model
   * Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims and a set of nearby maz-to-maz skims is input to the demand model
   * Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims and a set of tap-to-tap skims is input to the demand model
-  * Microzone to transit access point for transit access/egress LOS is input to the demand model 
+  * Microzone to transit access point for transit access/egress LOS is input to the demand model
 
 Since trips are modeled in the demand model from microzone to microzone, but transit network LOS is split across
 two input data sets, transit virtual path building (TVPB) is done to generate LOS measures from:
@@ -53,19 +53,19 @@ two input data sets, transit virtual path building (TVPB) is done to generate LO
   * alighting TAP to destination microzone using microzone to TAP LOS measures
 
 The resulting complete transit path LOS for the best, or a bundle of, paths is then used in the demand model
-for representing transit LOS at the microzone level.  Support for multiple zone systems is **NOT YET IMPLEMENTED**, but 
-planned for a future release.  For the time being, all travel is modeled at the TAZ level.  
+for representing transit LOS at the microzone level.  Support for multiple zone systems is **NOT YET IMPLEMENTED**, but
+planned for a future release.  For the time being, all travel is modeled at the TAZ level.
 
 Decision-making units
 ~~~~~~~~~~~~~~~~~~~~~
 
 Decision-makers in the model system are households and persons. These decision-makers are
-created for each simulation year based on a population synthesis process such as 
-`PopulationSim <https://github.com/RSGInc/PopulationSim>`__. The decision-makers are used in the 
-subsequent discrete-choice models to select a single alternative from a list of available 
-alternatives according to a probability distribution. The probability distribution is generated 
-from various logit-form models which take into account the attributes of the decision-maker and 
-the attributes of the various alternatives. The decision-making unit is an important element of 
+created for each simulation year based on a population synthesis process such as
+`PopulationSim <https://github.com/ActivitySim/PopulationSim>`__. The decision-makers are used in the
+subsequent discrete-choice models to select a single alternative from a list of available
+alternatives according to a probability distribution. The probability distribution is generated
+from various logit-form models which take into account the attributes of the decision-maker and
+the attributes of the various alternatives. The decision-making unit is an important element of
 model estimation and implementation, and is explicitly identified for each model.
 
 Person type segmentation
@@ -78,7 +78,7 @@ with this flexibility, the model system includes some segmentation of decision-m
 Segmentation is a useful tool both to structure models and also as a way to characterize person
 roles within a household.
 
-The person types shown below are used for the example model. The person types are mutually exclusive 
+The person types shown below are used for the example model. The person types are mutually exclusive
 with respect to age, work status, and school status.
 
 +-----------------------------------------------------------+---------+------------------+---------------+
@@ -103,26 +103,26 @@ with respect to age, work status, and school status.
 
 Household type segments are useful for pre-defining certain data items (such as destination
 choice size terms) so that these data items can be pre-calculated for each segment. Precalculation
-of these data items reduces model complexity and runtime. The segmentation is based on household income, 
+of these data items reduces model complexity and runtime. The segmentation is based on household income,
 and includes four segments - low, medium, high, very high.
 
 In the model, the persons in each household are assigned a simulated but fixed value of time
 that modulates the relative weight the decision-maker places on time and cost. The probability
 distribution from which the value of time is sampled was derived from a toll choice model
-estimated using data from a stated preference survey performed for the SFCTA Mobility, Access, and 
-Pricing Study, and is a lognormal distribution with a mean that varies by income segment.  
+estimated using data from a stated preference survey performed for the SFCTA Mobility, Access, and
+Pricing Study, and is a lognormal distribution with a mean that varies by income segment.
 
 Activity type segmentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The activity types are used in most model system components, from developing daily activity patterns 
-and to predicting tour and trip destinations and modes by purpose.  The set of activity types is shown below. 
-The activity types are also grouped according to whether the activity is mandatory or non-mandatory and 
-eligibility requirements are assigned determining which person-types can be used for generating each 
-activity type. The classification scheme of each activity type reflects the relative importance or 
-natural hierarchy of the activity, where work and school activities are typically the most inflexible 
-in terms of generation, scheduling and location, and discretionary activities are typically the most 
-flexible on each of these dimensions. Each out-of-home location that a person travels to in the 
+The activity types are used in most model system components, from developing daily activity patterns
+and to predicting tour and trip destinations and modes by purpose.  The set of activity types is shown below.
+The activity types are also grouped according to whether the activity is mandatory or non-mandatory and
+eligibility requirements are assigned determining which person-types can be used for generating each
+activity type. The classification scheme of each activity type reflects the relative importance or
+natural hierarchy of the activity, where work and school activities are typically the most inflexible
+in terms of generation, scheduling and location, and discretionary activities are typically the most
+flexible on each of these dimensions. Each out-of-home location that a person travels to in the
 simulation is assigned one of these activity types.
 
 +---------------------+--------------------------------------------------------------------------+---------------+---------------------------------------+
@@ -204,12 +204,12 @@ transit line-haul modes.
   15. Drive to Light-Rail Transit
   16. Drive to Express Bus
   17. Drive to Bus Rapid Transit
-  18. Drive to Heavy Rail 
+  18. Drive to Heavy Rail
 
 Sub-models
 ~~~~~~~~~~
 
-The general design of the example model is presented below.  Long-term choices that relate to 
+The general design of the example model is presented below.  Long-term choices that relate to
 the usual workplace/university/school for each worker and student, household car ownership, and the
 availability of free parking at workplaces are first.
 
@@ -235,7 +235,7 @@ The next stage relates to maintenance and discretionary tours that are modeled a
 person level. The models include tour frequency, choice of destination and time
 of day. Next, a set of sub-models relate tour-level details on mode, exact number of
 intermediate stops on each half-tour and stop location. It is followed by the last set of
-sub-models that add details for each trip including trip departure time, trip mode details and parking 
+sub-models that add details for each trip including trip departure time, trip mode details and parking
 location for auto trips.
 
 .. image:: images/abmexample.jpg
@@ -258,46 +258,57 @@ The example has the following root folder/file setup:
   * data - input data such as land use, synthetic population files, and skims
   * output - outputs folder
   * simulation.py - main script to run the model
-    
+
 Inputs
 ~~~~~~
 
-In order to run the example, you first need two input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file:
+In order to run the example, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file:
 
-* input_store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:
+* input_table_list: the input CSV tables from MTC travel model one:
 
-    * land_use_taz - Zone-based land use data (population and employment for example)
-    * persons - Synthetic population person records
-    * households - Synthetic population household records
-    
+    * households - Synthetic population household records for a subset of zones.
+    * persons - Synthetic population person records for a subset of zones.
+    * land_use - Zone-based land use data (population and employment for example) for a subset of zones.
+
 * skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.
 
-Both files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  Alternatively, 
-these files can be downloaded from the MTC `box account <https://mtcdrive.app.box.com/v/activitysim>`__.  The full set 
-of MTC TM1 OMX skims are also on the box account. 
+These files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  The full set
+of MTC TM1 households, persons, and OMX skims are on the MTC `box account <https://mtcdrive.app.box.com/v/activitysim>`__.
 
 .. note::
+  
+  ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
+  HDF5 is binary and therefore results in faster read times. see :ref:`configuration`
 
-  Input files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.  
-
-  The ``scripts\mtc_inputs.py`` was used to create the mtc_asim.h5 file from the raw CSV files.  
-  This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 file.
-
-  The ``scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from 
+  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.
+  
+  The ``scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
   Cube to OMX using the ``scripts\mtc_tm1_omx_export.s`` script.
 
-  The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.
+  The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
+  skim inputs for a subset of user-defined zones.
+
+.. _configuration:
 
 Configuration
 ~~~~~~~~~~~~~
 
-The ``configs`` folder contains settings, expressions files, and other files required for specifying 
-model utilities and form.  The first place to start in the ``configs`` folder is ``settings.yaml``, which 
+The ``configs`` folder contains settings, expressions files, and other files required for specifying
+model utilities and form.  The first place to start in the ``configs`` folder is ``settings.yaml``, which
 is the main settings file for the model run.  This file includes:
 
 * ``models`` - list of model steps to run - auto ownership, tour frequency, etc. - see :ref:`model_steps`
 * ``resume_after`` - to resume running the data pipeline after the last successful checkpoint
 * ``input_store`` - HDF5 inputs file
+* ``input_table_list`` - list of table names, indices, and column re-maps for each table in `input_store`
+
+    * ``tablename`` - name of the injected table
+    * ``filename`` - name of the CSV or HDF5 file to read (optional, defaults to `input_store`)
+    * ``index_col`` - table column to use for the index
+    * ``column_map`` - dictionary of column name mappings
+    * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
+
+* ``create_input_store`` - write new 'input_data.h5' file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
 * ``skims_file`` - skim matrices in one OMX file
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
@@ -305,12 +316,17 @@ is the main settings file for the model run.  This file includes:
 * ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
-* ``output_tables`` - list of output tables to write to CSV
+* ``output_tables`` - list of output tables to write to CSV or HDF5
 * global variables that can be used in expressions tables and Python code such as:
 
     * ``urban_threshold`` - urban threshold area type max value
     * ``county_map`` - mapping of county codes to county names
     * ``skim_time_periods`` - time period upper bound values and labels
+        * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
+        * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
+        * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
+        * ``labels`` - Labels to define names for aggregate periods for skims and assignment
+
     * ``household_median_value_of_time`` - various household and person value-of-time model settings
 
 .. _sub-model-spec-files:
@@ -318,10 +334,10 @@ is the main settings file for the model run.  This file includes:
 Sub-Model Specification Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Included in the ``configs`` folder are the model specification files that store the 
-Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an 
+Included in the ``configs`` folder are the model specification files that store the
+Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
-of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each 
+of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The current set of files are below.
 
 +------------------------------------------------+--------------------------------------------------------------------+
@@ -487,20 +503,20 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 Chunk size
 ~~~~~~~~~~
 
-The ``chunk_size`` is the number of doubles in a chunk of the choosers table.  It is approximately the number 
-of rows times the number of columns and it needs to be set to a value that efficiently processes the table with 
-the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 household records with 10 columns of attributes.  
-Setting the chunk size too high will run into memory errors such as ``OverflowError: Python int 
+The ``chunk_size`` is the number of doubles in a chunk of the choosers table.  It is approximately the number
+of rows times the number of columns and it needs to be set to a value that efficiently processes the table with
+the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 household records with 10 columns of attributes.
+Setting the chunk size too high will run into memory errors such as ``OverflowError: Python int
 too large to convert to C long.`` Setting the chunk size too low may result in smaller than optimal vector
-lengths, which may waste runtime.  The chunk size is dependent on the size of the population, the complexity 
-of the utility expressions, the amount of RAM on the machine, and other problem specific dimensions.  Thus, 
+lengths, which may waste runtime.  The chunk size is dependent on the size of the population, the complexity
+of the utility expressions, the amount of RAM on the machine, and other problem specific dimensions.  Thus,
 it needs to be set via experimentation.
 
 Logging
 ~~~~~~~
 
-Included in the ``configs`` folder is the ``logging.yaml``, which configures Python logging 
-library and defines two key log files: 
+Included in the ``configs`` folder is the ``logging.yaml``, which configures Python logging
+library and defines two key log files:
 
 * ``activitysim.log`` - overall system log file
 * ``hhtrace.log`` - household trace log file if tracing is on
@@ -550,8 +566,8 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - track_skim_usage
     - write_tables
 
-These model steps must be registered orca steps, as noted below.  If you provide a ``resume_after`` 
-argument to :func:`activitysim.core.pipeline.run` the pipeliner will load checkpointed tables from the checkpoint store 
+These model steps must be registered orca steps, as noted below.  If you provide a ``resume_after``
+argument to :func:`activitysim.core.pipeline.run` the pipeliner will load checkpointed tables from the checkpoint store
 and resume pipeline processing on the next model step after the specified checkpoint.
 
 ::
@@ -573,7 +589,7 @@ To run the example, do the following:
 * Open a command line window in the ``example`` folder
 * Activate the correct conda environment if needed
 * Run ``python simulation.py`` to run the data pipeline (i.e. model steps)
-* ActivitySim should log some information and write outputs to the ``output`` folder.  
+* ActivitySim should log some information and write outputs to the ``output`` folder.
 
 The example should complete within a couple minutes since it is running a small sample of households.
 
@@ -586,11 +602,11 @@ multiprocessing, follow the same steps as above, but use the configuration in th
 * Open a command prompt in the ``example_mp`` folder.  The data does not need to be copied into the folder since the mp setup inherits from the example single-processed setup.
 * Run ``python simulation.py``.
 
-The multiprocessing example also writes outputs to the ``output`` folder. 
+The multiprocessing example also writes outputs to the ``output`` folder.
 
 The default multiprocessed example is configured to run with two processors: ``num_processes: 2``.  Additional more performant configurations are
-included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server 
-machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See :ref:`multiprocessing` for more information.  
+included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server
+machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See :ref:`multiprocessing` for more information.
 
 ::
 
@@ -600,12 +616,12 @@ machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See
   stagger: 0
 
 .. note::
-   Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for 
+   Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for
    many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
-   in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in 
-   parallel since they are largely independent of one another, it can be advantageous to override threading within 
+   in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
+   parallel since they are largely independent of one another, it can be advantageous to override threading within
    processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
-   override the MKL number of threads setting via a system environment variable that is set before running the model.  
+   override the MKL number of threads setting via a system environment variable that is set before running the model.
    In practice, this means before running the model, first set the MKL number of threads variable via the command
    line as follows: SET MKL_NUM_THREADS=1
 
@@ -613,17 +629,17 @@ machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See
 Outputs
 -------
 
-The key output of ActivitySim is the HDF5 data pipeline file ``outputs\pipeline.h5``.  This file contains a copy 
-of each key data table after each model step in which the table was modified.  The 
-``scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create the table 
-below for a small sample of households.  The table shows that for each table in the pipeline, the number of rows 
-and/or columns changes as a result of the relevant model step.  A ``checkpoints`` table is also stored in the 
-pipeline, which contains the crosswalk between model steps and table states in order to reload tables for 
+The key output of ActivitySim is the HDF5 data pipeline file ``outputs\pipeline.h5``.  This file contains a copy
+of each key data table after each model step in which the table was modified.  The
+``scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create the table
+below for a small sample of households.  The table shows that for each table in the pipeline, the number of rows
+and/or columns changes as a result of the relevant model step.  A ``checkpoints`` table is also stored in the
+pipeline, which contains the crosswalk between model steps and table states in order to reload tables for
 restarting the pipeline at any step.
 
 +-----------------------------------+------------------------------------+------+------+
 | Table                             | Creator                            | NRow | NCol |
-+===================================+====================================+======+======+ 
++===================================+====================================+======+======+
 | accessibility                     | compute_accessibility              | 1454 | 10   |
 +-----------------------------------+------------------------------------+------+------+
 | households                        | initialize                         | 100  | 65   |
@@ -687,9 +703,9 @@ restarting the pipeline at any step.
 | workplace_modeled_size            | workplace_location                 | 1454 | 4    |
 +-----------------------------------+------------------------------------+------+------+
 
-The example ``simulation.py`` run model script also writes the final tables to CSV files
-for illustrative purposes by using the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.  
-This method returns a pandas DataFrame, which can then be written to a CSV with the ``to_csv(file_path)`` method.
+The example ``simulation.py`` run model script also writes the final tables to CSV files by using 
+the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.
+This method returns a pandas DataFrame, which is then written to a CSV file by the ``write_tables`` step.
 
 ActivitySim also writes log and trace files to the ``outputs`` folder.  The activitysim.log file,
 which is the overall log file is always produced.  If tracing is specified, then trace files are
@@ -700,14 +716,14 @@ output as well.
 Tracing
 ~~~~~~~
 
-There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID 
-is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all 
+There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
+is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all
 calculations for all household members:
 
 * ``hhtrace.log`` - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.
 * ``various CSV files`` - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model
 
-If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace 
+If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace
 file:
 
 * ``accessibility.result.csv`` - accessibility expression results for the OD pair

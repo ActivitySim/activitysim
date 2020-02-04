@@ -207,6 +207,16 @@ def write_tables(output_dir):
         tables:
            - households
 
+    To write tables into a single HDF5 store instead of individual CSVs, use the h5_store flag:
+
+    ::
+
+      output_tables:
+        h5_store: True
+        action: include
+        tables:
+           - households
+
     Parameters
     ----------
     output_dir: str
@@ -224,6 +234,7 @@ def write_tables(output_dir):
     action = output_tables_settings.get('action')
     tables = output_tables_settings.get('tables')
     prefix = output_tables_settings.get('prefix', 'final_')
+    h5_store = output_tables_settings.get('h5_store', False)
 
     if action not in ['include', 'skip']:
         raise "expected %s action '%s' to be either 'include' or 'skip'" % \
@@ -245,10 +256,14 @@ def write_tables(output_dir):
                 continue
             df = pipeline.get_table(table_name)
 
-        file_name = "%s%s.csv" % (prefix, table_name)
-        file_path = config.output_file_path(file_name)
+        if h5_store:
+            file_path = config.output_file_path('%soutput_tables.h5' % prefix)
+            df.to_hdf(file_path, key=table_name, mode='a', format='fixed')
+        else:
+            file_name = "%s%s.csv" % (prefix, table_name)
+            file_path = config.output_file_path(file_name)
 
-        # include the index if it has a name or is a MultiIndex
-        write_index = df.index.name is not None or isinstance(df.index, pd.core.index.MultiIndex)
+            # include the index if it has a name or is a MultiIndex
+            write_index = df.index.name is not None or isinstance(df.index, pd.MultiIndex)
 
-        df.to_csv(file_path, index=write_index)
+            df.to_csv(file_path, index=write_index)

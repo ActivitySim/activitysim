@@ -15,6 +15,8 @@ import logging
 import multiprocessing
 
 from collections import OrderedDict
+from functools import reduce
+from operator import mul
 
 import numpy as np
 import openmatrix as omx
@@ -90,7 +92,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
 
     if MAX_BLOCK_BYTES:
         max_block_items = MAX_BLOCK_BYTES // np.dtype(skim_dtype).itemsize
-        max_skims_per_block = max_block_items // np.prod(omx_shape)
+        max_skims_per_block = max_block_items // multiply_large_numbers(omx_shape)
     else:
         max_skims_per_block = num_skims
 
@@ -149,14 +151,14 @@ def get_skim_info(omx_file_path, tags_to_load=None):
 def buffers_for_skims(skim_info, shared=False):
 
     skim_dtype = skim_info['dtype']
-    omx_shape = [np.float64(x) for x in skim_info['omx_shape']]
+    omx_shape = skim_info['omx_shape']
     blocks = skim_info['blocks']
 
     skim_buffers = {}
     for block_name, block_size in iteritems(blocks):
 
         # buffer_size must be int (or p2.7 long), not np.int64
-        buffer_size = int(np.prod(omx_shape) * block_size)
+        buffer_size = int(multiply_large_numbers(omx_shape) * block_size)
 
         csz = buffer_size * np.dtype(skim_dtype).itemsize
         logger.info("allocating shared buffer %s for %s (%s) matrices (%s)" %
@@ -191,7 +193,7 @@ def skim_data_from_buffers(skim_buffers, skim_info):
     for block_name, block_size in iteritems(blocks):
         skims_shape = omx_shape + (block_size,)
         block_buffer = skim_buffers[block_name]
-        assert len(block_buffer) == int(np.prod(skims_shape))
+        assert len(block_buffer) == int(multiply_large_numbers(skims_shape))
         block_data = np.frombuffer(block_buffer, dtype=skim_dtype).reshape(skims_shape)
         skim_data.append(block_data)
 
@@ -259,6 +261,10 @@ def skim_dict(data_dir, settings):
     skim_dict.offset_mapper.set_offset_int(-1)
 
     return skim_dict
+
+
+def multiply_large_numbers(list_of_numbers):
+    return reduce(mul, list_of_numbers)
 
 
 @inject.injectable(cache=True)

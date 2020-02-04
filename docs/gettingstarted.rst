@@ -112,7 +112,7 @@ Run the Example
 
 To setup and run the :ref:`example`, do the following:
 
-* Copy ``mtc_asim.h5`` and ``skims.omx`` from ``activitysim\abm\test\data`` to ``example\data``.
+* Copy ``households.csv``, ``persons.csv``, ``land_use.csv``, and ``skims.omx`` from ``activitysim\abm\test\data`` to ``example\data``.
 * Open a command prompt in the ``example`` folder
 * Run the following commands:
   

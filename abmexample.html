@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Example &mdash; ActivitySim 0.9.1
+  <title>Example &mdash; ActivitySim 0.9.2
  documentation</title>
   
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.9.1
+                0.9.2
 
               </div>
             
@@ -218,19 +218,19 @@ TAZs) and trips are assigned to origin and destination microzones.  When conside
 the model uses different spatial resolutions for different travel modes.  For example:</p>
 <blockquote>
 <div><ul class="simple">
-<li>TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model</li>
-<li>Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims and a set of nearby maz-to-maz skims is input to the demand model</li>
-<li>Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims and a set of tap-to-tap skims is input to the demand model</li>
-<li>Microzone to transit access point for transit access/egress LOS is input to the demand model</li>
+<li><p>TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model</p></li>
+<li><p>Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims and a set of nearby maz-to-maz skims is input to the demand model</p></li>
+<li><p>Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims and a set of tap-to-tap skims is input to the demand model</p></li>
+<li><p>Microzone to transit access point for transit access/egress LOS is input to the demand model</p></li>
 </ul>
 </div></blockquote>
 <p>Since trips are modeled in the demand model from microzone to microzone, but transit network LOS is split across
 two input data sets, transit virtual path building (TVPB) is done to generate LOS measures from:</p>
 <blockquote>
 <div><ul class="simple">
-<li>the trip origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures</li>
-<li>boarding TAP to alighting TAP LOS measures (TAP to TAP skims)</li>
-<li>alighting TAP to destination microzone using microzone to TAP LOS measures</li>
+<li><p>the trip origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures</p></li>
+<li><p>boarding TAP to alighting TAP LOS measures (TAP to TAP skims)</p></li>
+<li><p>alighting TAP to destination microzone using microzone to TAP LOS measures</p></li>
 </ul>
 </div></blockquote>
 <p>The resulting complete transit path LOS for the best, or a bundle of, paths is then used in the demand model
@@ -241,7 +241,7 @@ planned for a future release.  For the time being, all travel is modeled at the 
 <h3>Decision-making units<a class="headerlink" href="#decision-making-units" title="Permalink to this headline">¶</a></h3>
 <p>Decision-makers in the model system are households and persons. These decision-makers are
 created for each simulation year based on a population synthesis process such as
-<a class="reference external" href="https://github.com/RSGInc/PopulationSim">PopulationSim</a>. The decision-makers are used in the
+<a class="reference external" href="https://github.com/ActivitySim/PopulationSim">PopulationSim</a>. The decision-makers are used in the
 subsequent discrete-choice models to select a single alternative from a list of available
 alternatives according to a probability distribution. The probability distribution is generated
 from various logit-form models which take into account the attributes of the decision-maker and
@@ -258,60 +258,60 @@ Segmentation is a useful tool both to structure models and also as a way to char
 roles within a household.</p>
 <p>The person types shown below are used for the example model. The person types are mutually exclusive
 with respect to age, work status, and school status.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="58%" />
-<col width="9%" />
-<col width="18%" />
-<col width="15%" />
+<col style="width: 58%" />
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 15%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Person Type</th>
-<th class="head">Age</th>
-<th class="head">Work Status</th>
-<th class="head">School Status</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Person Type</p></th>
+<th class="head"><p>Age</p></th>
+<th class="head"><p>Work Status</p></th>
+<th class="head"><p>School Status</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>Full-time worker (30+ hours a week)</td>
-<td>18+</td>
-<td>Full-time</td>
-<td>None</td>
+<tbody>
+<tr class="row-even"><td><p>Full-time worker (30+ hours a week)</p></td>
+<td><p>18+</p></td>
+<td><p>Full-time</p></td>
+<td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td>Part-time worker (&lt;30 hours but works on a regular basis)</td>
-<td>18+</td>
-<td>Part-time</td>
-<td>None</td>
+<tr class="row-odd"><td><p>Part-time worker (&lt;30 hours but works on a regular basis)</p></td>
+<td><p>18+</p></td>
+<td><p>Part-time</p></td>
+<td><p>None</p></td>
 </tr>
-<tr class="row-even"><td>Non-working adult</td>
-<td>18 - 64</td>
-<td>Unemployed</td>
-<td>None</td>
+<tr class="row-even"><td><p>Non-working adult</p></td>
+<td><p>18 - 64</p></td>
+<td><p>Unemployed</p></td>
+<td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td>Retired person</td>
-<td>65+</td>
-<td>Unemployed</td>
-<td>None</td>
+<tr class="row-odd"><td><p>Retired person</p></td>
+<td><p>65+</p></td>
+<td><p>Unemployed</p></td>
+<td><p>None</p></td>
 </tr>
-<tr class="row-even"><td>College student</td>
-<td>18+</td>
-<td>Any</td>
-<td>College</td>
+<tr class="row-even"><td><p>College student</p></td>
+<td><p>18+</p></td>
+<td><p>Any</p></td>
+<td><p>College</p></td>
 </tr>
-<tr class="row-odd"><td>Driving age student</td>
-<td>16 - 17</td>
-<td>Any</td>
-<td>Pre-college</td>
+<tr class="row-odd"><td><p>Driving age student</p></td>
+<td><p>16 - 17</p></td>
+<td><p>Any</p></td>
+<td><p>Pre-college</p></td>
 </tr>
-<tr class="row-even"><td>Non-driving student</td>
-<td>6 - 16</td>
-<td>None</td>
-<td>Pre-college</td>
+<tr class="row-even"><td><p>Non-driving student</p></td>
+<td><p>6 - 16</p></td>
+<td><p>None</p></td>
+<td><p>Pre-college</p></td>
 </tr>
-<tr class="row-odd"><td>Pre-school child</td>
-<td>0 - 5</td>
-<td>None</td>
-<td>Preschool</td>
+<tr class="row-odd"><td><p>Pre-school child</p></td>
+<td><p>0 - 5</p></td>
+<td><p>None</p></td>
+<td><p>Preschool</p></td>
 </tr>
 </tbody>
 </table>
@@ -336,70 +336,70 @@ natural hierarchy of the activity, where work and school activities are typicall
 in terms of generation, scheduling and location, and discretionary activities are typically the most
 flexible on each of these dimensions. Each out-of-home location that a person travels to in the
 simulation is assigned one of these activity types.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="14%" />
-<col width="50%" />
-<col width="10%" />
-<col width="26%" />
+<col style="width: 14%" />
+<col style="width: 50%" />
+<col style="width: 10%" />
+<col style="width: 26%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Purpose</th>
-<th class="head">Description</th>
-<th class="head">Classification</th>
-<th class="head">Eligibility</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Purpose</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Classification</p></th>
+<th class="head"><p>Eligibility</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>Work</td>
-<td>Working at regular workplace or work-related activities outside the home</td>
-<td>Mandatory</td>
-<td>Workers and students</td>
+<tbody>
+<tr class="row-even"><td><p>Work</p></td>
+<td><p>Working at regular workplace or work-related activities outside the home</p></td>
+<td><p>Mandatory</p></td>
+<td><p>Workers and students</p></td>
 </tr>
-<tr class="row-odd"><td>University</td>
-<td>College or university</td>
-<td>Mandatory</td>
-<td>Age 18+</td>
+<tr class="row-odd"><td><p>University</p></td>
+<td><p>College or university</p></td>
+<td><p>Mandatory</p></td>
+<td><p>Age 18+</p></td>
 </tr>
-<tr class="row-even"><td>High School</td>
-<td>Grades 9-12</td>
-<td>Mandatory</td>
-<td>Age 14-17</td>
+<tr class="row-even"><td><p>High School</p></td>
+<td><p>Grades 9-12</p></td>
+<td><p>Mandatory</p></td>
+<td><p>Age 14-17</p></td>
 </tr>
-<tr class="row-odd"><td>Grade School</td>
-<td>Grades preschool, K-8</td>
-<td>Mandatory</td>
-<td>Age 0-13</td>
+<tr class="row-odd"><td><p>Grade School</p></td>
+<td><p>Grades preschool, K-8</p></td>
+<td><p>Mandatory</p></td>
+<td><p>Age 0-13</p></td>
 </tr>
-<tr class="row-even"><td>Escorting</td>
-<td>Pick-up/drop-off passengers (auto trips only)</td>
-<td>NonMandatory</td>
-<td>Age 16+</td>
+<tr class="row-even"><td><p>Escorting</p></td>
+<td><p>Pick-up/drop-off passengers (auto trips only)</p></td>
+<td><p>NonMandatory</p></td>
+<td><p>Age 16+</p></td>
 </tr>
-<tr class="row-odd"><td>Shopping</td>
-<td>Shopping away from home</td>
-<td>NonMandatory</td>
-<td>Age 5+ (if joint travel, all persons)</td>
+<tr class="row-odd"><td><p>Shopping</p></td>
+<td><p>Shopping away from home</p></td>
+<td><p>NonMandatory</p></td>
+<td><p>Age 5+ (if joint travel, all persons)</p></td>
 </tr>
-<tr class="row-even"><td>Other Maintenance</td>
-<td>Personal business/services and medical appointments</td>
-<td>NonMandatory</td>
-<td>Age 5+ (if joint travel, all persons)</td>
+<tr class="row-even"><td><p>Other Maintenance</p></td>
+<td><p>Personal business/services and medical appointments</p></td>
+<td><p>NonMandatory</p></td>
+<td><p>Age 5+ (if joint travel, all persons)</p></td>
 </tr>
-<tr class="row-odd"><td>Social/Recreational</td>
-<td>Recreation, visiting friends/family</td>
-<td>NonMandatory</td>
-<td>Age 5+ (if joint travel, all persons)</td>
+<tr class="row-odd"><td><p>Social/Recreational</p></td>
+<td><p>Recreation, visiting friends/family</p></td>
+<td><p>NonMandatory</p></td>
+<td><p>Age 5+ (if joint travel, all persons)</p></td>
 </tr>
-<tr class="row-even"><td>Eat Out</td>
-<td>Eating outside of home</td>
-<td>NonMandatory</td>
-<td>Age 5+ (if joint travel, all persons)</td>
+<tr class="row-even"><td><p>Eat Out</p></td>
+<td><p>Eating outside of home</p></td>
+<td><p>NonMandatory</p></td>
+<td><p>Age 5+ (if joint travel, all persons)</p></td>
 </tr>
-<tr class="row-odd"><td>Other Discretionary</td>
-<td>Volunteer work, religious activities</td>
-<td>NonMandatory</td>
-<td>Age 5+ (if joint travel, all persons)</td>
+<tr class="row-odd"><td><p>Other Discretionary</p></td>
+<td><p>Volunteer work, religious activities</p></td>
+<td><p>NonMandatory</p></td>
+<td><p>Age 5+ (if joint travel, all persons)</p></td>
 </tr>
 </tbody>
 </table>
@@ -418,38 +418,38 @@ each activity generated by the model system is identified with a start time and 
 increments, LOS matrices are only created for five aggregate time periods. The trips occurring in each time period
 reference the appropriate transport network depending on their trip mode and the mid-point trip
 time. The definition of time periods for LOS matrices is given below.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="41%" />
-<col width="32%" />
-<col width="27%" />
+<col style="width: 41%" />
+<col style="width: 32%" />
+<col style="width: 27%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Time Period</th>
-<th class="head">Start Hour</th>
-<th class="head">End Hour</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Time Period</p></th>
+<th class="head"><p>Start Hour</p></th>
+<th class="head"><p>End Hour</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>EA</td>
-<td>3</td>
-<td>6</td>
+<tbody>
+<tr class="row-even"><td><p>EA</p></td>
+<td><p>3</p></td>
+<td><p>6</p></td>
 </tr>
-<tr class="row-odd"><td>AM</td>
-<td>6</td>
-<td>11</td>
+<tr class="row-odd"><td><p>AM</p></td>
+<td><p>6</p></td>
+<td><p>11</p></td>
 </tr>
-<tr class="row-even"><td>MD</td>
-<td>11</td>
-<td>15</td>
+<tr class="row-even"><td><p>MD</p></td>
+<td><p>11</p></td>
+<td><p>15</p></td>
 </tr>
-<tr class="row-odd"><td>PM</td>
-<td>15</td>
-<td>20</td>
+<tr class="row-odd"><td><p>PM</p></td>
+<td><p>15</p></td>
+<td><p>20</p></td>
 </tr>
-<tr class="row-even"><td>EV</td>
-<td>20</td>
-<td>3</td>
+<tr class="row-even"><td><p>EV</p></td>
+<td><p>20</p></td>
+<td><p>3</p></td>
 </tr>
 </tbody>
 </table>
@@ -461,24 +461,24 @@ occupancy and toll/non-toll choice, walk and bike, and walk and drive access to 
 transit line-haul modes.</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li>Auto - SOV (Free)</li>
-<li>Auto - SOV (Pay)</li>
-<li>Auto - 2 Person (Free)</li>
-<li>Auto - 2 Person (Pay)</li>
-<li>Auto - 3+ Person (Free)</li>
-<li>Auto - 3+ Person (Pay)</li>
-<li>Walk</li>
-<li>Bike</li>
-<li>Walk to Local Bus</li>
-<li>Walk to Light-Rail Transit</li>
-<li>Walk to Express Bus</li>
-<li>Walk to Bus Rapid Transit</li>
-<li>Walk to Heavy Rail</li>
-<li>Drive to Local Bus</li>
-<li>Drive to Light-Rail Transit</li>
-<li>Drive to Express Bus</li>
-<li>Drive to Bus Rapid Transit</li>
-<li>Drive to Heavy Rail</li>
+<li><p>Auto - SOV (Free)</p></li>
+<li><p>Auto - SOV (Pay)</p></li>
+<li><p>Auto - 2 Person (Free)</p></li>
+<li><p>Auto - 2 Person (Pay)</p></li>
+<li><p>Auto - 3+ Person (Free)</p></li>
+<li><p>Auto - 3+ Person (Pay)</p></li>
+<li><p>Walk</p></li>
+<li><p>Bike</p></li>
+<li><p>Walk to Local Bus</p></li>
+<li><p>Walk to Light-Rail Transit</p></li>
+<li><p>Walk to Express Bus</p></li>
+<li><p>Walk to Bus Rapid Transit</p></li>
+<li><p>Walk to Heavy Rail</p></li>
+<li><p>Drive to Local Bus</p></li>
+<li><p>Drive to Light-Rail Transit</p></li>
+<li><p>Drive to Express Bus</p></li>
+<li><p>Drive to Bus Rapid Transit</p></li>
+<li><p>Drive to Heavy Rail</p></li>
 </ol>
 </div></blockquote>
 </div>
@@ -491,9 +491,9 @@ availability of free parking at workplaces are first.</p>
 sub-model in the hierarchy. This model classifies daily patterns by three types:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Mandatory, which includes at least one out-of-home mandatory activity (work or school)</li>
-<li>Non-mandatory, which includes at least one out-of-home non-mandatory activity, but does not include out-of-home mandatory activities</li>
-<li>Home, which does not include any out-of-home activity or travel</li>
+<li><p>Mandatory, which includes at least one out-of-home mandatory activity (work or school)</p></li>
+<li><p>Non-mandatory, which includes at least one out-of-home non-mandatory activity, but does not include out-of-home mandatory activities</p></li>
+<li><p>Home, which does not include any out-of-home activity or travel</p></li>
 </ul>
 </div></blockquote>
 <p>The pattern type sub-model leaves open the frequency of tours for mandatory and nonmandatory
@@ -552,77 +552,86 @@ can be aggregated into travel demand matrices for network loading.</p>
 <p>The example has the following root folder/file setup:</p>
 <blockquote>
 <div><ul class="simple">
-<li>configs - settings, expressions files, etc.</li>
-<li>data - input data such as land use, synthetic population files, and skims</li>
-<li>output - outputs folder</li>
-<li>simulation.py - main script to run the model</li>
+<li><p>configs - settings, expressions files, etc.</p></li>
+<li><p>data - input data such as land use, synthetic population files, and skims</p></li>
+<li><p>output - outputs folder</p></li>
+<li><p>simulation.py - main script to run the model</p></li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="inputs">
 <h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
-<p>In order to run the example, you first need two input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code> file:</p>
+<p>In order to run the example, you first need the input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code> file:</p>
 <ul>
-<li><p class="first">input_store: mtc_asim.h5 - an HDF5 file containing the following MTC TM1 tables as pandas DataFrames for a subset of zones:</p>
+<li><p>input_table_list: the input CSV tables from MTC travel model one:</p>
 <blockquote>
 <div><ul class="simple">
-<li>land_use_taz - Zone-based land use data (population and employment for example)</li>
-<li>persons - Synthetic population person records</li>
-<li>households - Synthetic population household records</li>
+<li><p>households - Synthetic population household records for a subset of zones.</p></li>
+<li><p>persons - Synthetic population person records for a subset of zones.</p></li>
+<li><p>land_use - Zone-based land use data (population and employment for example) for a subset of zones.</p></li>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.</p>
-</li>
+<li><p>skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.</p></li>
 </ul>
-<p>Both files are used in the tests as well and are in the <code class="docutils literal notranslate"><span class="pre">activitysim\abm\test\data</span></code> folder.  Alternatively,
-these files can be downloaded from the MTC <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.  The full set
-of MTC TM1 OMX skims are also on the box account.</p>
+<p>These files are used in the tests as well and are in the <code class="docutils literal notranslate"><span class="pre">activitysim\abm\test\data</span></code> folder.  The full set
+of MTC TM1 households, persons, and OMX skims are on the MTC <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>Input files can be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">scripts\mtc_inputs.py</span></code> was used to create the mtc_asim.h5 file from the raw CSV files.
-This script reads the CSV files, creates DataFrame indexes, and writes the pandas objects to the HDF5 file.</p>
+<p class="admonition-title">Note</p>
+<p>ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
+HDF5 is binary and therefore results in faster read times. see <a class="reference internal" href="#configuration"><span class="std std-ref">Configuration</span></a></p>
+<p>OMX and HDF5 files can be viewed with the <a class="reference external" href="https://github.com/osPlanning/omx/wiki/OMX-Viewer">OMX Viewer</a>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">scripts\build_omx.py</span></code> script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
 Cube to OMX using the <code class="docutils literal notranslate"><span class="pre">scripts\mtc_tm1_omx_export.s</span></code> script.</p>
-<p class="last">The example inputs were created by the <code class="docutils literal notranslate"><span class="pre">scripts\create_sf_example.py</span></code> script, which creates the land use, synthetic population, and skim inputs for a subset of user-defined zones.</p>
+<p>The example inputs were created by the <code class="docutils literal notranslate"><span class="pre">scripts\create_sf_example.py</span></code> script, which creates the land use, synthetic population, and
+skim inputs for a subset of user-defined zones.</p>
 </div>
 </div>
 <div class="section" id="configuration">
-<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder contains settings, expressions files, and other files required for specifying
 model utilities and form.  The first place to start in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>, which
 is the main settings file for the model run.  This file includes:</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">models</span></code> - list of model steps to run - auto ownership, tour frequency, etc. - see <a class="reference internal" href="#model-steps"><span class="std std-ref">Pipeline</span></a></p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">resume_after</span></code> - to resume running the data pipeline after the last successful checkpoint</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">input_store</span></code> - HDF5 inputs file</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a></p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> - turn shadow_pricing on and off for work and school location</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">output_tables</span></code> - list of output tables to write to CSV</p>
-</li>
-<li><p class="first">global variables that can be used in expressions tables and Python code such as:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> - list of model steps to run - auto ownership, tour frequency, etc. - see <a class="reference internal" href="#model-steps"><span class="std std-ref">Pipeline</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resume_after</span></code> - to resume running the data pipeline after the last successful checkpoint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_store</span></code> - HDF5 inputs file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_table_list</span></code> - list of table names, indices, and column re-maps for each table in <cite>input_store</cite></p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</li>
-<li><code class="docutils literal notranslate"><span class="pre">county_map</span></code> - mapping of county codes to county names</li>
-<li><code class="docutils literal notranslate"><span class="pre">skim_time_periods</span></code> - time period upper bound values and labels</li>
-<li><code class="docutils literal notranslate"><span class="pre">household_median_value_of_time</span></code> - various household and person value-of-time model settings</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tablename</span></code> - name of the injected table</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filename</span></code> - name of the CSV or HDF5 file to read (optional, defaults to <cite>input_store</cite>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">index_col</span></code> - table column to use for the index</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">column_map</span></code> - dictionary of column name mappings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">h5_tablename</span></code> - table name if reading from HDF5 and different from <cite>tablename</cite></p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_input_store</span></code> - write new ‘input_data.h5’ file to outputs folder using CSVs from <cite>input_table_list</cite> to use for subsequent model runs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> - turn shadow_pricing on and off for work and school location</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_tables</span></code> - list of output tables to write to CSV or HDF5</p></li>
+<li><p>global variables that can be used in expressions tables and Python code such as:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">county_map</span></code> - mapping of county codes to county names</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">skim_time_periods</span></code> - time period upper bound values and labels</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_window</span></code> - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">period_minutes</span></code> - length of time (in minutes) each model time period represents. Must be whole factor of <code class="docutils literal notranslate"><span class="pre">time_window</span></code>. (Default: 60 minutes)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">periods</span></code> - Breakpoints that define the aggregate periods for skims and assignment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code> - Labels to define names for aggregate periods for skims and assignment</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">household_median_value_of_time</span></code> - various household and person value-of-time model settings</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -635,288 +644,288 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The current set of files are below.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="41%" />
-<col width="59%" />
+<col style="width: 41%" />
+<col style="width: 59%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Model</th>
-<th class="head">Specification Files</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>Specification Files</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><a class="reference internal" href="models.html#initialize-landuse"><span class="std std-ref">Initialize</span></a></td>
-<td><ul class="first last simple">
-<li>initialize_landuse.yaml</li>
-<li>annotate_landuse.csv</li>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#initialize-landuse"><span class="std std-ref">Initialize</span></a></p></td>
+<td><ul class="simple">
+<li><p>initialize_landuse.yaml</p></li>
+<li><p>annotate_landuse.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a></td>
-<td><ul class="first last simple">
-<li>accessibility.yaml</li>
-<li>accessibility.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a></p></td>
+<td><ul class="simple">
+<li><p>accessibility.yaml</p></li>
+<li><p>accessibility.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#initialize-households"><span class="std std-ref">Initialize</span></a></td>
-<td><ul class="first last simple">
-<li>initialize_households.yaml</li>
-<li>annotate_persons.csv</li>
-<li>annotate_households.csv</li>
-<li>annotate_persons_after_hh.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#initialize-households"><span class="std std-ref">Initialize</span></a></p></td>
+<td><ul class="simple">
+<li><p>initialize_households.yaml</p></li>
+<li><p>annotate_persons.csv</p></li>
+<li><p>annotate_households.csv</p></li>
+<li><p>annotate_persons_after_hh.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#school-location"><span class="std std-ref">School Location</span></a></td>
-<td><ul class="first last simple">
-<li>school_location.yaml</li>
-<li>annotate_persons_school.csv</li>
-<li>school_location_sample.csv</li>
-<li>tour_mode_choice.yaml (and related files)</li>
-<li>school_location.csv</li>
-<li>destination_choice_size_terms.csv</li>
-<li>shadow_pricing.yaml</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#school-location"><span class="std std-ref">School Location</span></a></p></td>
+<td><ul class="simple">
+<li><p>school_location.yaml</p></li>
+<li><p>annotate_persons_school.csv</p></li>
+<li><p>school_location_sample.csv</p></li>
+<li><p>tour_mode_choice.yaml (and related files)</p></li>
+<li><p>school_location.csv</p></li>
+<li><p>destination_choice_size_terms.csv</p></li>
+<li><p>shadow_pricing.yaml</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#work-location"><span class="std std-ref">School Location</span></a></td>
-<td><ul class="first last simple">
-<li>workplace_location.yaml</li>
-<li>annotate_persons_workplace.csv</li>
-<li>annotate_households_workplace.csv</li>
-<li>workplace_location_sample.csv</li>
-<li>tour_mode_choice.yaml (and related files)</li>
-<li>workplace_location.csv</li>
-<li>destination_choice_size_terms.csv</li>
-<li>shadow_pricing.yaml</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#work-location"><span class="std std-ref">School Location</span></a></p></td>
+<td><ul class="simple">
+<li><p>workplace_location.yaml</p></li>
+<li><p>annotate_persons_workplace.csv</p></li>
+<li><p>annotate_households_workplace.csv</p></li>
+<li><p>workplace_location_sample.csv</p></li>
+<li><p>tour_mode_choice.yaml (and related files)</p></li>
+<li><p>workplace_location.csv</p></li>
+<li><p>destination_choice_size_terms.csv</p></li>
+<li><p>shadow_pricing.yaml</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#auto-ownership"><span class="std std-ref">Auto Ownership</span></a></td>
-<td><ul class="first last simple">
-<li>auto_ownership.yaml</li>
-<li>auto_ownership.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#auto-ownership"><span class="std std-ref">Auto Ownership</span></a></p></td>
+<td><ul class="simple">
+<li><p>auto_ownership.yaml</p></li>
+<li><p>auto_ownership.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#freeparking"><span class="std std-ref">Free Parking Eligibility</span></a></td>
-<td><ul class="first last simple">
-<li>free_parking.yaml</li>
-<li>free_parking.csv</li>
-<li>free_parking_annotate_persons_preprocessor.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#freeparking"><span class="std std-ref">Free Parking Eligibility</span></a></p></td>
+<td><ul class="simple">
+<li><p>free_parking.yaml</p></li>
+<li><p>free_parking.csv</p></li>
+<li><p>free_parking_annotate_persons_preprocessor.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a></td>
-<td><ul class="first last simple">
-<li>cdap.yaml</li>
-<li>annotate_persons_cdap.csv</li>
-<li>annotate_households_cdap.csv</li>
-<li>cdap_indiv_and_hhsize1.csv</li>
-<li>cdap_interaction_coefficients.csv</li>
-<li>cdap_fixed_relative_proportions.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a></p></td>
+<td><ul class="simple">
+<li><p>cdap.yaml</p></li>
+<li><p>annotate_persons_cdap.csv</p></li>
+<li><p>annotate_households_cdap.csv</p></li>
+<li><p>cdap_indiv_and_hhsize1.csv</p></li>
+<li><p>cdap_interaction_coefficients.csv</p></li>
+<li><p>cdap_fixed_relative_proportions.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#mandatory-tour-frequency"><span class="std std-ref">Mandatory Tour Frequency</span></a></td>
-<td><ul class="first last simple">
-<li>mandatory_tour_frequency.yaml</li>
-<li>mandatory_tour_frequency.csv</li>
-<li>mandatory_tour_frequency_alternatives.csv</li>
-<li>annotate_persons_mtf.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#mandatory-tour-frequency"><span class="std std-ref">Mandatory Tour Frequency</span></a></p></td>
+<td><ul class="simple">
+<li><p>mandatory_tour_frequency.yaml</p></li>
+<li><p>mandatory_tour_frequency.csv</p></li>
+<li><p>mandatory_tour_frequency_alternatives.csv</p></li>
+<li><p>annotate_persons_mtf.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#mandatory-tour-scheduling"><span class="std std-ref">Mandatory Tour Scheduling</span></a></td>
-<td><ul class="first last simple">
-<li>mandatory_tour_scheduling.yaml</li>
-<li>tour_scheduling_work.csv</li>
-<li>tour_scheduling_school.csv</li>
-<li>tour_departure_and_duration_alternatives.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#mandatory-tour-scheduling"><span class="std std-ref">Mandatory Tour Scheduling</span></a></p></td>
+<td><ul class="simple">
+<li><p>mandatory_tour_scheduling.yaml</p></li>
+<li><p>tour_scheduling_work.csv</p></li>
+<li><p>tour_scheduling_school.csv</p></li>
+<li><p>tour_departure_and_duration_alternatives.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#joint-tour-frequency"><span class="std std-ref">Joint Tour Frequency</span></a></td>
-<td><ul class="first last simple">
-<li>joint_tour_frequency.yaml</li>
-<li>annotate_persons_jtf.csv</li>
-<li>joint_tour_frequency_annotate_households_preprocessor.csv</li>
-<li>joint_tour_frequency_alternatives.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#joint-tour-frequency"><span class="std std-ref">Joint Tour Frequency</span></a></p></td>
+<td><ul class="simple">
+<li><p>joint_tour_frequency.yaml</p></li>
+<li><p>annotate_persons_jtf.csv</p></li>
+<li><p>joint_tour_frequency_annotate_households_preprocessor.csv</p></li>
+<li><p>joint_tour_frequency_alternatives.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#joint-tour-composition"><span class="std std-ref">Joint Tour Composition</span></a></td>
-<td><ul class="first last simple">
-<li>joint_tour_composition.yaml</li>
-<li>joint_tour_composition_annotate_households_preprocessor.csv</li>
-<li>joint_tour_composition.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#joint-tour-composition"><span class="std std-ref">Joint Tour Composition</span></a></p></td>
+<td><ul class="simple">
+<li><p>joint_tour_composition.yaml</p></li>
+<li><p>joint_tour_composition_annotate_households_preprocessor.csv</p></li>
+<li><p>joint_tour_composition.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#joint-tour-participation"><span class="std std-ref">Joint Tour Participation</span></a></td>
-<td><ul class="first last simple">
-<li>joint_tour_participation.yaml</li>
-<li>joint_tour_participation_annotate_participants_preprocessor.csv</li>
-<li>joint_tour_participation.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#joint-tour-participation"><span class="std std-ref">Joint Tour Participation</span></a></p></td>
+<td><ul class="simple">
+<li><p>joint_tour_participation.yaml</p></li>
+<li><p>joint_tour_participation_annotate_participants_preprocessor.csv</p></li>
+<li><p>joint_tour_participation.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#joint-tour-destination-choice"><span class="std std-ref">Joint Tour Destination Choice</span></a></td>
-<td><ul class="first last simple">
-<li>joint_tour_destination.yaml</li>
-<li>non_mandatory_tour_destination_sample.csv</li>
-<li>non_mandatory_tour_destination.csv</li>
-<li>tour_mode_choice.yaml (and related files)</li>
-<li>destination_choice_size_terms.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#joint-tour-destination-choice"><span class="std std-ref">Joint Tour Destination Choice</span></a></p></td>
+<td><ul class="simple">
+<li><p>joint_tour_destination.yaml</p></li>
+<li><p>non_mandatory_tour_destination_sample.csv</p></li>
+<li><p>non_mandatory_tour_destination.csv</p></li>
+<li><p>tour_mode_choice.yaml (and related files)</p></li>
+<li><p>destination_choice_size_terms.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#joint-tour-scheduling"><span class="std std-ref">Joint Tour Scheduling</span></a></td>
-<td><ul class="first last simple">
-<li>joint_tour_scheduling.yaml</li>
-<li>joint_tour_scheduling_annotate_tours_preprocessor.csv</li>
-<li>tour_scheduling_joint.csv</li>
-<li>tour_departure_and_duration_alternatives.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#joint-tour-scheduling"><span class="std std-ref">Joint Tour Scheduling</span></a></p></td>
+<td><ul class="simple">
+<li><p>joint_tour_scheduling.yaml</p></li>
+<li><p>joint_tour_scheduling_annotate_tours_preprocessor.csv</p></li>
+<li><p>tour_scheduling_joint.csv</p></li>
+<li><p>tour_departure_and_duration_alternatives.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></td>
-<td><ul class="first last simple">
-<li>non_mandatory_tour_frequency.yaml</li>
-<li>non_mandatory_tour_frequency.csv</li>
-<li>non_mandatory_tour_frequency_alternatives.csv</li>
-<li>non_mandatory_tour_frequency_annotate_persons_preprocessor.csv</li>
-<li>non_mandatory_tour_frequency_extension_probs.csv</li>
-<li>annotate_persons_nmtf.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#non-mandatory-tour-frequency"><span class="std std-ref">Non-Mandatory Tour Frequency</span></a></p></td>
+<td><ul class="simple">
+<li><p>non_mandatory_tour_frequency.yaml</p></li>
+<li><p>non_mandatory_tour_frequency.csv</p></li>
+<li><p>non_mandatory_tour_frequency_alternatives.csv</p></li>
+<li><p>non_mandatory_tour_frequency_annotate_persons_preprocessor.csv</p></li>
+<li><p>non_mandatory_tour_frequency_extension_probs.csv</p></li>
+<li><p>annotate_persons_nmtf.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a></td>
-<td><ul class="first last simple">
-<li>non_mandatory_tour_destination.yaml</li>
-<li>non_mandatory_tour_destination.csv</li>
-<li>non_mandatory_tour_destination_sample.csv</li>
-<li>tour_mode_choice.yaml (and related files)</li>
-<li>destination_choice_size_terms.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a></p></td>
+<td><ul class="simple">
+<li><p>non_mandatory_tour_destination.yaml</p></li>
+<li><p>non_mandatory_tour_destination.csv</p></li>
+<li><p>non_mandatory_tour_destination_sample.csv</p></li>
+<li><p>tour_mode_choice.yaml (and related files)</p></li>
+<li><p>destination_choice_size_terms.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></td>
-<td><ul class="first last simple">
-<li>non_mandatory_tour_scheduling.yaml</li>
-<li>non_mandatory_tour_scheduling_annotate_tours_preprocessor</li>
-<li>tour_scheduling_nonmandatory.csv</li>
-<li>tour_departure_and_duration_alternatives.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#non-mandatory-tour-scheduling"><span class="std std-ref">Non-Mandatory Tour Scheduling</span></a></p></td>
+<td><ul class="simple">
+<li><p>non_mandatory_tour_scheduling.yaml</p></li>
+<li><p>non_mandatory_tour_scheduling_annotate_tours_preprocessor</p></li>
+<li><p>tour_scheduling_nonmandatory.csv</p></li>
+<li><p>tour_departure_and_duration_alternatives.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode Choice</span></a></td>
-<td><ul class="first last simple">
-<li>tour_mode_choice.yaml</li>
-<li>tour_mode_choice_annotate_choosers_preprocessor.csv</li>
-<li>tour_mode_choice.csv</li>
-<li>tour_mode_choice_coeffs.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#tour-mode-choice"><span class="std std-ref">Tour Mode Choice</span></a></p></td>
+<td><ul class="simple">
+<li><p>tour_mode_choice.yaml</p></li>
+<li><p>tour_mode_choice_annotate_choosers_preprocessor.csv</p></li>
+<li><p>tour_mode_choice.csv</p></li>
+<li><p>tour_mode_choice_coeffs.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-frequency"><span class="std std-ref">At-work Subtours Frequency</span></a></td>
-<td><ul class="first last simple">
-<li>atwork_subtour_frequency.yaml</li>
-<li>atwork_subtour_frequency.csv</li>
-<li>atwork_subtour_frequency_alternatives.csv</li>
-<li>atwork_subtour_frequency_annotate_tours_preprocessor.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#atwork-subtour-frequency"><span class="std std-ref">At-work Subtours Frequency</span></a></p></td>
+<td><ul class="simple">
+<li><p>atwork_subtour_frequency.yaml</p></li>
+<li><p>atwork_subtour_frequency.csv</p></li>
+<li><p>atwork_subtour_frequency_alternatives.csv</p></li>
+<li><p>atwork_subtour_frequency_annotate_tours_preprocessor.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-destination"><span class="std std-ref">At-work Subtours Destination Choice</span></a></td>
-<td><ul class="first last simple">
-<li>atwork_subtour_destination.yaml</li>
-<li>atwork_subtour_destination_sample.csv</li>
-<li>atwork_subtour_destination.csv</li>
-<li>tour_mode_choice.yaml (and related files)</li>
-<li>destination_choice_size_terms.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#atwork-subtour-destination"><span class="std std-ref">At-work Subtours Destination Choice</span></a></p></td>
+<td><ul class="simple">
+<li><p>atwork_subtour_destination.yaml</p></li>
+<li><p>atwork_subtour_destination_sample.csv</p></li>
+<li><p>atwork_subtour_destination.csv</p></li>
+<li><p>tour_mode_choice.yaml (and related files)</p></li>
+<li><p>destination_choice_size_terms.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#atwork-subtour-scheduling"><span class="std std-ref">At-work Subtour Scheduling</span></a></td>
-<td><ul class="first last simple">
-<li>tour_scheduling_atwork.yaml</li>
-<li>tour_scheduling_atwork.csv</li>
-<li>tour_scheduling_atwork_preprocessor.csv</li>
-<li>tour_departure_and_duration_alternatives.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#atwork-subtour-scheduling"><span class="std std-ref">At-work Subtour Scheduling</span></a></p></td>
+<td><ul class="simple">
+<li><p>tour_scheduling_atwork.yaml</p></li>
+<li><p>tour_scheduling_atwork.csv</p></li>
+<li><p>tour_scheduling_atwork_preprocessor.csv</p></li>
+<li><p>tour_departure_and_duration_alternatives.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#atwork-subtour-mode-choice"><span class="std std-ref">At-work Subtour Mode</span></a></td>
-<td><ul class="first last simple">
-<li>tour_mode_choice.yaml (and related files)</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#atwork-subtour-mode-choice"><span class="std std-ref">At-work Subtour Mode</span></a></p></td>
+<td><ul class="simple">
+<li><p>tour_mode_choice.yaml (and related files)</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#intermediate-stop-frequency"><span class="std std-ref">Intermediate Stop Frequency</span></a></td>
-<td><ul class="first last simple">
-<li>stop_frequency.yaml</li>
-<li>stop_frequency_annotate_tours_preprocessor.csv</li>
-<li>stop_frequency_alternatives.csv</li>
-<li>stop_frequency_atwork.csv</li>
-<li>stop_frequency_eatout.csv</li>
-<li>stop_frequency_escort.csv</li>
-<li>stop_frequency_othdiscr.csv</li>
-<li>stop_frequency_othmaint.csv</li>
-<li>stop_frequency_school.csv</li>
-<li>stop_frequency_shopping.csv</li>
-<li>stop_frequency_social.csv</li>
-<li>stop_frequency_subtour.csv</li>
-<li>stop_frequency_univ.csv</li>
-<li>stop_frequency_work.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#intermediate-stop-frequency"><span class="std std-ref">Intermediate Stop Frequency</span></a></p></td>
+<td><ul class="simple">
+<li><p>stop_frequency.yaml</p></li>
+<li><p>stop_frequency_annotate_tours_preprocessor.csv</p></li>
+<li><p>stop_frequency_alternatives.csv</p></li>
+<li><p>stop_frequency_atwork.csv</p></li>
+<li><p>stop_frequency_eatout.csv</p></li>
+<li><p>stop_frequency_escort.csv</p></li>
+<li><p>stop_frequency_othdiscr.csv</p></li>
+<li><p>stop_frequency_othmaint.csv</p></li>
+<li><p>stop_frequency_school.csv</p></li>
+<li><p>stop_frequency_shopping.csv</p></li>
+<li><p>stop_frequency_social.csv</p></li>
+<li><p>stop_frequency_subtour.csv</p></li>
+<li><p>stop_frequency_univ.csv</p></li>
+<li><p>stop_frequency_work.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#trip-purpose"><span class="std std-ref">Trip Purpose</span></a></td>
-<td><ul class="first last simple">
-<li>trip_purpose.yaml (+ trip_purpose_and_destination.yaml)</li>
-<li>trip_purpose_annotate_trips_preprocessor.csv</li>
-<li>trip_purpose_probs.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-purpose"><span class="std std-ref">Trip Purpose</span></a></p></td>
+<td><ul class="simple">
+<li><p>trip_purpose.yaml (+ trip_purpose_and_destination.yaml)</p></li>
+<li><p>trip_purpose_annotate_trips_preprocessor.csv</p></li>
+<li><p>trip_purpose_probs.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#trip-destination-choice"><span class="std std-ref">Trip Destination Choice</span></a></td>
-<td><ul class="first last simple">
-<li>trip_destination.yaml (+ trip_purpose_and_destination.yaml)</li>
-<li>trip_destination.csv</li>
-<li>trip_destination_annotate_trips_preprocessor.csv</li>
-<li>trip_destination_sample.csv</li>
-<li>trip_mode_choice.yaml (and related files)</li>
-<li>destination_choice_size_terms.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#trip-destination-choice"><span class="std std-ref">Trip Destination Choice</span></a></p></td>
+<td><ul class="simple">
+<li><p>trip_destination.yaml (+ trip_purpose_and_destination.yaml)</p></li>
+<li><p>trip_destination.csv</p></li>
+<li><p>trip_destination_annotate_trips_preprocessor.csv</p></li>
+<li><p>trip_destination_sample.csv</p></li>
+<li><p>trip_mode_choice.yaml (and related files)</p></li>
+<li><p>destination_choice_size_terms.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#trip-scheduling"><span class="std std-ref">Trip Scheduling</span></a></td>
-<td><ul class="first last simple">
-<li>trip_scheduling.yaml</li>
-<li>trip_scheduling_probs.csv</li>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-scheduling"><span class="std std-ref">Trip Scheduling</span></a></p></td>
+<td><ul class="simple">
+<li><p>trip_scheduling.yaml</p></li>
+<li><p>trip_scheduling_probs.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Mode Choice</span></a></td>
-<td><ul class="first last simple">
-<li>trip_mode_choice.yaml</li>
-<li>trip_mode_choice_annotate_trips_preprocessor.csv</li>
-<li>trip_mode_choice_coeffs.csv</li>
-<li>trip_mode_choice.csv</li>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Mode Choice</span></a></p></td>
+<td><ul class="simple">
+<li><p>trip_mode_choice.yaml</p></li>
+<li><p>trip_mode_choice_annotate_trips_preprocessor.csv</p></li>
+<li><p>trip_mode_choice_coeffs.csv</p></li>
+<li><p>trip_mode_choice.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="models.html#trip-cbd-parking"><span class="std std-ref">Trip CBD Parking</span></a></td>
-<td><strong>NOT YET IMPLEMENTED</strong></td>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-cbd-parking"><span class="std std-ref">Trip CBD Parking</span></a></p></td>
+<td><p><strong>NOT YET IMPLEMENTED</strong></p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="chunk-size">
-<span id="index-2"></span><span id="id2"></span><h3>Chunk size<a class="headerlink" href="#chunk-size" title="Permalink to this headline">¶</a></h3>
+<span id="index-2"></span><span id="id3"></span><h3>Chunk size<a class="headerlink" href="#chunk-size" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> is the number of doubles in a chunk of the choosers table.  It is approximately the number
 of rows times the number of columns and it needs to be set to a value that efficiently processes the table with
 the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 household records with 10 columns of attributes.
@@ -931,8 +940,8 @@ it needs to be set via experimentation.</p>
 <p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
 library and defines two key log files:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">activitysim.log</span></code> - overall system log file</li>
-<li><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing is on</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.log</span></code> - overall system log file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing is on</p></li>
 </ul>
 <p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
 </div>
@@ -991,10 +1000,10 @@ and resume pipeline processing on the next model step after the specified checkp
 <h2>Running the Example<a class="headerlink" href="#running-the-example" title="Permalink to this headline">¶</a></h2>
 <p>To run the example, do the following:</p>
 <ul class="simple">
-<li>Open a command line window in the <code class="docutils literal notranslate"><span class="pre">example</span></code> folder</li>
-<li>Activate the correct conda environment if needed</li>
-<li>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code> to run the data pipeline (i.e. model steps)</li>
-<li>ActivitySim should log some information and write outputs to the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder.</li>
+<li><p>Open a command line window in the <code class="docutils literal notranslate"><span class="pre">example</span></code> folder</p></li>
+<li><p>Activate the correct conda environment if needed</p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code> to run the data pipeline (i.e. model steps)</p></li>
+<li><p>ActivitySim should log some information and write outputs to the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder.</p></li>
 </ul>
 <p>The example should complete within a couple minutes since it is running a small sample of households.</p>
 <div class="section" id="multiprocessing">
@@ -1002,8 +1011,8 @@ and resume pipeline processing on the next model step after the specified checkp
 <p>The model system is parallelized via <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a>.  To setup and run the <a class="reference internal" href="#example"><span class="std std-ref">Example</span></a> using
 multiprocessing, follow the same steps as above, but use the configuration in the <code class="docutils literal notranslate"><span class="pre">example_mp</span></code> folder:</p>
 <ul class="simple">
-<li>Open a command prompt in the <code class="docutils literal notranslate"><span class="pre">example_mp</span></code> folder.  The data does not need to be copied into the folder since the mp setup inherits from the example single-processed setup.</li>
-<li>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code>.</li>
+<li><p>Open a command prompt in the <code class="docutils literal notranslate"><span class="pre">example_mp</span></code> folder.  The data does not need to be copied into the folder since the mp setup inherits from the example single-processed setup.</p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span></code>.</p></li>
 </ul>
 <p>The multiprocessing example also writes outputs to the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder.</p>
 <p>The default multiprocessed example is configured to run with two processors: <code class="docutils literal notranslate"><span class="pre">num_processes:</span> <span class="pre">2</span></code>.  Additional more performant configurations are
@@ -1016,8 +1025,8 @@ machine with 28 cores &#64; 2.56GHz and 224GB RAM with the configuration below. 
 </pre></div>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Anaconda Python on Windows uses the <a class="reference external" href="https://software.intel.com/en-us/mkl">Intel Math Kernel Library</a> for
+<p class="admonition-title">Note</p>
+<p>Anaconda Python on Windows uses the <a class="reference external" href="https://software.intel.com/en-us/mkl">Intel Math Kernel Library</a> for
 many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
 in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
 parallel since they are largely independent of one another, it can be advantageous to override threading within
@@ -1037,197 +1046,197 @@ below for a small sample of households.  The table shows that for each table in 
 and/or columns changes as a result of the relevant model step.  A <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> table is also stored in the
 pipeline, which contains the crosswalk between model steps and table states in order to reload tables for
 restarting the pipeline at any step.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="42%" />
-<col width="43%" />
-<col width="7%" />
-<col width="7%" />
+<col style="width: 42%" />
+<col style="width: 43%" />
+<col style="width: 7%" />
+<col style="width: 7%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Table</th>
-<th class="head">Creator</th>
-<th class="head">NRow</th>
-<th class="head">NCol</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Table</p></th>
+<th class="head"><p>Creator</p></th>
+<th class="head"><p>NRow</p></th>
+<th class="head"><p>NCol</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>accessibility</td>
-<td>compute_accessibility</td>
-<td>1454</td>
-<td>10</td>
+<tbody>
+<tr class="row-even"><td><p>accessibility</p></td>
+<td><p>compute_accessibility</p></td>
+<td><p>1454</p></td>
+<td><p>10</p></td>
 </tr>
-<tr class="row-odd"><td>households</td>
-<td>initialize</td>
-<td>100</td>
-<td>65</td>
+<tr class="row-odd"><td><p>households</p></td>
+<td><p>initialize</p></td>
+<td><p>100</p></td>
+<td><p>65</p></td>
 </tr>
-<tr class="row-even"><td>households</td>
-<td>workplace_location</td>
-<td>100</td>
-<td>66</td>
+<tr class="row-even"><td><p>households</p></td>
+<td><p>workplace_location</p></td>
+<td><p>100</p></td>
+<td><p>66</p></td>
 </tr>
-<tr class="row-odd"><td>households</td>
-<td>cdap_simulate</td>
-<td>100</td>
-<td>73</td>
+<tr class="row-odd"><td><p>households</p></td>
+<td><p>cdap_simulate</p></td>
+<td><p>100</p></td>
+<td><p>73</p></td>
 </tr>
-<tr class="row-even"><td>households</td>
-<td>joint_tour_frequency</td>
-<td>100</td>
-<td>75</td>
+<tr class="row-even"><td><p>households</p></td>
+<td><p>joint_tour_frequency</p></td>
+<td><p>100</p></td>
+<td><p>75</p></td>
 </tr>
-<tr class="row-odd"><td>joint_tour_participants</td>
-<td>joint_tour_participation</td>
-<td>13</td>
-<td>4</td>
+<tr class="row-odd"><td><p>joint_tour_participants</p></td>
+<td><p>joint_tour_participation</p></td>
+<td><p>13</p></td>
+<td><p>4</p></td>
 </tr>
-<tr class="row-even"><td>land_use</td>
-<td>initialize_landuse</td>
-<td>1454</td>
-<td>44</td>
+<tr class="row-even"><td><p>land_use</p></td>
+<td><p>initialize_landuse</p></td>
+<td><p>1454</p></td>
+<td><p>44</p></td>
 </tr>
-<tr class="row-odd"><td>person_windows</td>
-<td>initialize_households</td>
-<td>271</td>
-<td>21</td>
+<tr class="row-odd"><td><p>person_windows</p></td>
+<td><p>initialize_households</p></td>
+<td><p>271</p></td>
+<td><p>21</p></td>
 </tr>
-<tr class="row-even"><td>persons</td>
-<td>initialize_households</td>
-<td>271</td>
-<td>42</td>
+<tr class="row-even"><td><p>persons</p></td>
+<td><p>initialize_households</p></td>
+<td><p>271</p></td>
+<td><p>42</p></td>
 </tr>
-<tr class="row-odd"><td>persons</td>
-<td>school_location</td>
-<td>271</td>
-<td>45</td>
+<tr class="row-odd"><td><p>persons</p></td>
+<td><p>school_location</p></td>
+<td><p>271</p></td>
+<td><p>45</p></td>
 </tr>
-<tr class="row-even"><td>persons</td>
-<td>workplace_location</td>
-<td>271</td>
-<td>52</td>
+<tr class="row-even"><td><p>persons</p></td>
+<td><p>workplace_location</p></td>
+<td><p>271</p></td>
+<td><p>52</p></td>
 </tr>
-<tr class="row-odd"><td>persons</td>
-<td>free_parking</td>
-<td>271</td>
-<td>53</td>
+<tr class="row-odd"><td><p>persons</p></td>
+<td><p>free_parking</p></td>
+<td><p>271</p></td>
+<td><p>53</p></td>
 </tr>
-<tr class="row-even"><td>persons</td>
-<td>cdap_simulate</td>
-<td>271</td>
-<td>59</td>
+<tr class="row-even"><td><p>persons</p></td>
+<td><p>cdap_simulate</p></td>
+<td><p>271</p></td>
+<td><p>59</p></td>
 </tr>
-<tr class="row-odd"><td>persons</td>
-<td>mandatory_tour_frequency</td>
-<td>271</td>
-<td>64</td>
+<tr class="row-odd"><td><p>persons</p></td>
+<td><p>mandatory_tour_frequency</p></td>
+<td><p>271</p></td>
+<td><p>64</p></td>
 </tr>
-<tr class="row-even"><td>persons</td>
-<td>joint_tour_participation</td>
-<td>271</td>
-<td>65</td>
+<tr class="row-even"><td><p>persons</p></td>
+<td><p>joint_tour_participation</p></td>
+<td><p>271</p></td>
+<td><p>65</p></td>
 </tr>
-<tr class="row-odd"><td>persons</td>
-<td>non_mandatory_tour_frequency</td>
-<td>271</td>
-<td>74</td>
+<tr class="row-odd"><td><p>persons</p></td>
+<td><p>non_mandatory_tour_frequency</p></td>
+<td><p>271</p></td>
+<td><p>74</p></td>
 </tr>
-<tr class="row-even"><td>school_destination_size</td>
-<td>initialize_households</td>
-<td>1454</td>
-<td>3</td>
+<tr class="row-even"><td><p>school_destination_size</p></td>
+<td><p>initialize_households</p></td>
+<td><p>1454</p></td>
+<td><p>3</p></td>
 </tr>
-<tr class="row-odd"><td>school_modeled_size</td>
-<td>school_location</td>
-<td>1454</td>
-<td>3</td>
+<tr class="row-odd"><td><p>school_modeled_size</p></td>
+<td><p>school_location</p></td>
+<td><p>1454</p></td>
+<td><p>3</p></td>
 </tr>
-<tr class="row-even"><td>tours</td>
-<td>mandatory_tour_frequency</td>
-<td>153</td>
-<td>11</td>
+<tr class="row-even"><td><p>tours</p></td>
+<td><p>mandatory_tour_frequency</p></td>
+<td><p>153</p></td>
+<td><p>11</p></td>
 </tr>
-<tr class="row-odd"><td>tours</td>
-<td>mandatory_tour_scheduling</td>
-<td>153</td>
-<td>15</td>
+<tr class="row-odd"><td><p>tours</p></td>
+<td><p>mandatory_tour_scheduling</p></td>
+<td><p>153</p></td>
+<td><p>15</p></td>
 </tr>
-<tr class="row-even"><td>tours</td>
-<td>joint_tour_composition</td>
-<td>159</td>
-<td>16</td>
+<tr class="row-even"><td><p>tours</p></td>
+<td><p>joint_tour_composition</p></td>
+<td><p>159</p></td>
+<td><p>16</p></td>
 </tr>
-<tr class="row-odd"><td>tours</td>
-<td>tour_mode_choice_simulate</td>
-<td>319</td>
-<td>17</td>
+<tr class="row-odd"><td><p>tours</p></td>
+<td><p>tour_mode_choice_simulate</p></td>
+<td><p>319</p></td>
+<td><p>17</p></td>
 </tr>
-<tr class="row-even"><td>tours</td>
-<td>atwork_subtour_frequency</td>
-<td>344</td>
-<td>19</td>
+<tr class="row-even"><td><p>tours</p></td>
+<td><p>atwork_subtour_frequency</p></td>
+<td><p>344</p></td>
+<td><p>19</p></td>
 </tr>
-<tr class="row-odd"><td>tours</td>
-<td>stop_frequency</td>
-<td>344</td>
-<td>21</td>
+<tr class="row-odd"><td><p>tours</p></td>
+<td><p>stop_frequency</p></td>
+<td><p>344</p></td>
+<td><p>21</p></td>
 </tr>
-<tr class="row-even"><td>trips</td>
-<td>stop_frequency</td>
-<td>859</td>
-<td>7</td>
+<tr class="row-even"><td><p>trips</p></td>
+<td><p>stop_frequency</p></td>
+<td><p>859</p></td>
+<td><p>7</p></td>
 </tr>
-<tr class="row-odd"><td>trips</td>
-<td>trip_purpose</td>
-<td>859</td>
-<td>8</td>
+<tr class="row-odd"><td><p>trips</p></td>
+<td><p>trip_purpose</p></td>
+<td><p>859</p></td>
+<td><p>8</p></td>
 </tr>
-<tr class="row-even"><td>trips</td>
-<td>trip_destination</td>
-<td>859</td>
-<td>11</td>
+<tr class="row-even"><td><p>trips</p></td>
+<td><p>trip_destination</p></td>
+<td><p>859</p></td>
+<td><p>11</p></td>
 </tr>
-<tr class="row-odd"><td>trips</td>
-<td>trip_scheduling</td>
-<td>859</td>
-<td>11</td>
+<tr class="row-odd"><td><p>trips</p></td>
+<td><p>trip_scheduling</p></td>
+<td><p>859</p></td>
+<td><p>11</p></td>
 </tr>
-<tr class="row-even"><td>trips</td>
-<td>trip_mode_choice</td>
-<td>859</td>
-<td>12</td>
+<tr class="row-even"><td><p>trips</p></td>
+<td><p>trip_mode_choice</p></td>
+<td><p>859</p></td>
+<td><p>12</p></td>
 </tr>
-<tr class="row-odd"><td>workplace_destination_size</td>
-<td>initialize_households</td>
-<td>1454</td>
-<td>4</td>
+<tr class="row-odd"><td><p>workplace_destination_size</p></td>
+<td><p>initialize_households</p></td>
+<td><p>1454</p></td>
+<td><p>4</p></td>
 </tr>
-<tr class="row-even"><td>workplace_modeled_size</td>
-<td>workplace_location</td>
-<td>1454</td>
-<td>4</td>
+<tr class="row-even"><td><p>workplace_modeled_size</p></td>
+<td><p>workplace_location</p></td>
+<td><p>1454</p></td>
+<td><p>4</p></td>
 </tr>
 </tbody>
 </table>
-<p>The example <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code> run model script also writes the final tables to CSV files
-for illustrative purposes by using the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method via the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.
-This method returns a pandas DataFrame, which can then be written to a CSV with the <code class="docutils literal notranslate"><span class="pre">to_csv(file_path)</span></code> method.</p>
+<p>The example <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code> run model script also writes the final tables to CSV files by using
+the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method via the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.
+This method returns a pandas DataFrame, which is then written to a CSV file by the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.</p>
 <p>ActivitySim also writes log and trace files to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> folder.  The activitysim.log file,
 which is the overall log file is always produced.  If tracing is specified, then trace files are
 output as well.</p>
 <div class="section" id="tracing">
-<span id="id3"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
+<span id="id4"></span><h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
 <p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
 is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all
 calculations for all household members:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</li>
-<li><code class="docutils literal notranslate"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</p></li>
 </ul>
 <p>If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace
 file:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">accessibility.result.csv</span></code> - accessibility expression results for the OD pair</p></li>
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>

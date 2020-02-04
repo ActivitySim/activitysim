@@ -221,9 +221,9 @@ OMX, which is based on HDF5, is used for input and output matrices (skims and de
 are used for various inputs and outputs as well.</p>
 <p>Three key data structures in ActivitySim are:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html">pandas.DataFrame</a> - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table</p></li>
-<li><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html">pandas.Series</a> - a vector of data, a column in a DataFrame table or a 1D array</p></li>
-<li><p><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.html">numpy.array</a> - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example</p></li>
+<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html">pandas.DataFrame</a> - A data table with rows and columns, similar to an R data frame, Excel worksheet, or database table</li>
+<li><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html">pandas.Series</a> - a vector of data, a column in a DataFrame table or a 1D array</li>
+<li><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.html">numpy.array</a> - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example</li>
 </ul>
 </div>
 <div class="section" id="expressions">
@@ -262,14 +262,14 @@ columns for the tour, trip, etc. are updated as needed. Refer to <a class="refer
 typically does the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>registers an ORCA step that is called by the model runner</p></li>
-<li><p>sets up logging and tracing</p></li>
-<li><p>gets the relevant input data tables from ORCA</p></li>
-<li><p>gets all required settings, config files, etc.</p></li>
-<li><p>runs a data preprocessor on each input table that needs additional fields for the calculation</p></li>
-<li><p>solves the model in chunks of data table rows</p></li>
-<li><p>runs a data postprocessor on the output table data that needs additional fields for later models</p></li>
-<li><p>writes the resulting table data to the pipeline</p></li>
+<li>registers an ORCA step that is called by the model runner</li>
+<li>sets up logging and tracing</li>
+<li>gets the relevant input data tables from ORCA</li>
+<li>gets all required settings, config files, etc.</li>
+<li>runs a data preprocessor on each input table that needs additional fields for the calculation</li>
+<li>solves the model in chunks of data table rows</li>
+<li>runs a data postprocessor on the output table data that needs additional fields for later models</li>
+<li>writes the resulting table data to the pipeline</li>
 </ul>
 </div></blockquote>
 <p>See <a class="reference internal" href="models.html#models"><span class="std std-ref">Models</span></a> for more information.</p>
@@ -279,10 +279,10 @@ typically does the following:</p>
 <h2>Development Install<a class="headerlink" href="#development-install" title="Permalink to this headline">¶</a></h2>
 <p>The development version of ActivitySim can be installed as follows:</p>
 <ul class="simple">
-<li><p>Clone or fork the source from the <a class="reference external" href="https://github.com/activitysim/activitysim">GitHub repository</a></p></li>
-<li><p>Activate the correct conda environment if needed</p></li>
-<li><p>Navigate to your local activitysim git directory</p></li>
-<li><p>Run the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></p></li>
+<li>Clone or fork the source from the <a class="reference external" href="https://github.com/activitysim/activitysim">GitHub repository</a></li>
+<li>Activate the correct conda environment if needed</li>
+<li>Navigate to your local activitysim git directory</li>
+<li>Run the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></li>
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">develop</span></code> command is required in order to make changes to the
 source and see the results without reinstalling.  You may need to first uninstall the
@@ -295,18 +295,18 @@ done with <code class="docutils literal notranslate"><span class="pre">pip</span
 <div class="section" id="style">
 <h3>Style<a class="headerlink" href="#style" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Python code should follow the <a class="reference external" href="https://pypi.python.org/pypi/pycodestyle">pycodestyle style guide</a></p></li>
-<li><p>Python docstrings should follow the <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc documentation format</a></p></li>
+<li>Python code should follow the <a class="reference external" href="https://pypi.python.org/pypi/pycodestyle">pycodestyle style guide</a></li>
+<li>Python docstrings should follow the <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc documentation format</a></li>
 </ul>
 </div>
 <div class="section" id="imports">
 <h3>Imports<a class="headerlink" href="#imports" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Imports should be one per line.</p></li>
-<li><p>Imports should be grouped into standard library, third-party, and intra-library imports.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">from</span></code> import should follow regular <code class="docutils literal notranslate"><span class="pre">imports</span></code>.</p></li>
-<li><p>Within each group the imports should be alphabetized.</p></li>
-<li><p>Imports of scientific Python libraries should follow these conventions:</p></li>
+<li>Imports should be one per line.</li>
+<li>Imports should be grouped into standard library, third-party, and intra-library imports.</li>
+<li><code class="docutils literal notranslate"><span class="pre">from</span></code> import should follow regular <code class="docutils literal notranslate"><span class="pre">imports</span></code>.</li>
+<li>Within each group the imports should be alphabetized.</li>
+<li>Imports of scientific Python libraries should follow these conventions:</li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -318,13 +318,13 @@ done with <code class="docutils literal notranslate"><span class="pre">pip</span
 <p>We use <a class="reference external" href="https://guides.github.com/introduction/flow">GitHub Flow</a>.  The key points to
 our GitHub workflow are:</p>
 <ul class="simple">
-<li><p>The master branch contains the latest working/release version of the ActivitySim resources</p></li>
-<li><p>The master branch is protected and therefore can only be written to by the <a class="reference external" href="https://travis-ci.org/">Travis</a> CI system</p></li>
-<li><p>Work is done in an issue/feature branch (or a fork) and then pushed to a new brach</p></li>
-<li><p>The test system automatically runs the tests for a subset of the model (a subset of zones, households, and models) on the new branch</p></li>
-<li><p>If the tests pass, then a manual pull request can be approved to merge into master</p></li>
-<li><p>The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository manager also runs the full scale model (all zones, households, and models) to ensure the example model runs successfully.</p></li>
-<li><p>Every time a merge is made to master, the version is incremented and a new package posted to <a class="reference external" href="https://pypi.org/">Python Package Index</a></p></li>
+<li>The master branch contains the latest working/release version of the ActivitySim resources</li>
+<li>The master branch is protected and therefore can only be written to by the <a class="reference external" href="https://travis-ci.org/">Travis</a> CI system</li>
+<li>Work is done in an issue/feature branch (or a fork) and then pushed to a new brach</li>
+<li>The test system automatically runs the tests for a subset of the model (a subset of zones, households, and models) on the new branch</li>
+<li>If the tests pass, then a manual pull request can be approved to merge into master</li>
+<li>The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository manager also runs the full scale model (all zones, households, and models) to ensure the example model runs successfully.</li>
+<li>Every time a merge is made to master, the version is incremented and a new package posted to <a class="reference external" href="https://pypi.org/">Python Package Index</a></li>
 </ul>
 </div>
 <div class="section" id="versioning">
@@ -334,18 +334,18 @@ our GitHub workflow are:</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs or ABIs.</p></li>
-<li><p>MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.</p></li>
-<li><p>Some softwares use a third level: MICRO. This level is used when the release cycle of minor release is quite long. In that case, micro releases are dedicated to bug fixes.</p></li>
+<li>where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs or ABIs.</li>
+<li>MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.</li>
+<li>Some softwares use a third level: MICRO. This level is used when the release cycle of minor release is quite long. In that case, micro releases are dedicated to bug fixes.</li>
 </ul>
 </div>
 <div class="section" id="testing">
 <h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim testing is done with three tools:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://pypi.python.org/pypi/pycodestyle">pycodestyle</a>, a tool to check Python code against the pycodestyle style conventions</p></li>
-<li><p><a class="reference external" href="http://pytest.org/latest/">pytest</a>, a Python testing tool</p></li>
-<li><p><a class="reference external" href="https://github.com/coagulant/coveralls-python">coveralls</a>, a tool for measuring code coverage and publishing code coverage stats online</p></li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/pycodestyle">pycodestyle</a>, a tool to check Python code against the pycodestyle style conventions</li>
+<li><a class="reference external" href="http://pytest.org/latest/">pytest</a>, a Python testing tool</li>
+<li><a class="reference external" href="https://github.com/coagulant/coveralls-python">coveralls</a>, a tool for measuring code coverage and publishing code coverage stats online</li>
 </ul>
 <p>To run the tests locally, first make sure the required packages are installed:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
@@ -399,9 +399,9 @@ bulding the documentation if needed.</p>
 successfully passing the tests.  The documents are built with the <code class="docutils literal notranslate"><span class="pre">bin/build_docs.sh</span></code> script.
 The script does the following:</p>
 <ul class="simple">
-<li><p>installs the required python packages</p></li>
-<li><p>runs <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code></p></li>
-<li><p>copies the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch <code class="docutils literal notranslate"><span class="pre">../activitysim/docs/_build/html/*</span></code> pages to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch</p></li>
+<li>installs the required python packages</li>
+<li>runs <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code></li>
+<li>copies the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch <code class="docutils literal notranslate"><span class="pre">../activitysim/docs/_build/html/*</span></code> pages to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch</li>
 </ul>
 <p>GitHub automagically publishes the gh-pages branch at <a class="reference external" href="https://activitysim.github.io/activitysim">https://activitysim.github.io/activitysim</a>.</p>
 </div>

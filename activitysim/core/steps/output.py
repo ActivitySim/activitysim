@@ -264,7 +264,6 @@ def write_tables(output_dir):
             file_path = config.output_file_path(file_name)
 
             # include the index if it has a name or is a MultiIndex
-            write_index = df.index.name is not None or isinstance(df.index,
-                                                                  pd.core.index.MultiIndex)
+            write_index = df.index.name is not None or isinstance(df.index, pd.MultiIndex)
 
             df.to_csv(file_path, index=write_index)

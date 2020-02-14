@@ -98,7 +98,7 @@ The school location model is made up of four steps:
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`. 
 
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.school_location` function.  
-This function is registered as an orca step in the example Pipeline.
+This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
 
 Core Table: ``persons`` | Result Field: ``school_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, MD time period``
 
@@ -122,7 +122,7 @@ The work location model is made up of four steps:
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`.
 
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.workplace_location` function.  
-This function is registered as an orca step in the example Pipeline.
+This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
 
 Core Table: ``persons`` | Result Field: ``workplace_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, PM time period``
 
@@ -355,7 +355,8 @@ The joint tour destination choice model is made up of three model steps:
   * simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
 
 The main interface to the model is the :py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination`
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how 
+to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Fields: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period``
 
@@ -419,7 +420,8 @@ mandatory tour destination choice is used for non-mandatory tour destination cho
 
 The main interface to the non-mandatory tour destination choice model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` 
+for how to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Field: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period, MD time period``
 
@@ -482,6 +484,7 @@ ownership.
 The main interface to the mandatory, non-mandatory, and joint tour tour mode model is the 
 :py:func:`~activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate` function.  This function is 
 called in the orca step ``tour_mode_choice_simulate`` and is registered as an orca step in the example Pipeline.
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Field: ``mode`` | Skims Keys: ``TAZ, destination, start, end``
 
@@ -532,6 +535,7 @@ Core Table: ``tours`` | Result Table: ``destination`` | Skims Keys: ``workplace_
 The main interface to the at-work subtour destination model is the 
 :py:func:`~activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination` 
 function.  This function is registered as an orca step in the example Pipeline.
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 .. automodule:: activitysim.abm.models.atwork_subtour_destination
    :members:
@@ -575,6 +579,7 @@ The main interface to the at-work subtour mode choice model is the
 :py:func:`~activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice`
 function.  This function is called in the orca step ``atwork_subtour_mode_choice`` and
 is registered as an orca step in the example Pipeline.  
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``tour`` | Result Field: ``tour_mode`` | Skims Keys: ``workplace_taz, destination, start, end``
 
@@ -671,6 +676,7 @@ impedance between the first stop on the return leg and the tour origin, and so o
 The main interface to the trip destination choice model is the 
 :py:func:`~activitysim.abm.models.trip_destination.trip_destination` function.  
 This function is registered as an orca step in the example Pipeline.
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``trips`` | Result Field: ``(trip) destination`` | Skims Keys: ``origin, (tour primary) destination, dest_taz, trip_period``
 
@@ -751,7 +757,8 @@ between the trip origin and destination according to the time period for the tou
 variables, and alternative-specific constants segmented by tour mode.
 
 The main interface to the trip mode choice model is the 
-:py:func:`~activitysim.abm.models.trip_mode_choice.trip_mode_choice` function.  This function is registered as an orca step in the example Pipeline.
+:py:func:`~activitysim.abm.models.trip_mode_choice.trip_mode_choice` function.  This function 
+is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims Keys: ``origin, destination, trip_period``
 

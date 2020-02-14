@@ -260,4 +260,12 @@ GitHub automagically publishes the gh-pages branch at https://activitysim.github
 Releases
 ~~~~~~~~
 
-ActivitySim releases are manually uploaded to the `Python Package Index <https://pypi.python.org/pypi/activitysim>`__  (pypi). 
+ActivitySim releases are manually uploaded to the `Python Package Index <https://pypi.python.org/pypi/activitysim>`__  
+(pypi) and also tagged as GitHub `releases <https://github.com/ActivitySim/activitysim/releases>`__.
+
+Issues
+~~~~~~
+
+Issue tracking is done through GitHub `issues <https://github.com/ActivitySim/activitysim/issues>`__.  
+ActivitySim is provided "as is."  See the 
+`License <https://github.com/ActivitySim/activitysim/blob/master/LICENSE.txt>`__ for more information.

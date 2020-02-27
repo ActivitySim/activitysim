@@ -193,7 +193,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_t
 
         # get int offsets of the trace_targets (offsets of bool=True values)
         trace_targets = tracing.trace_targets(choosers)
-        offsets = np.nonzero(trace_targets)[0]
+        offsets = np.nonzero(list(trace_targets))[0]
 
         # get array of expression_values
         # expression_values.shape = (len(spec), len(choosers))

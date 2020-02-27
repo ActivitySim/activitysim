@@ -15,7 +15,7 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
 
-from .input_store import read_input_table
+from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +85,6 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
     inject.add_injectable('households_sliced', households_sliced)
 
     logger.info("loaded households %s" % (df.shape,))
-
-    df.index.name = 'household_id'
 
     # FIXME - pathological knowledge of name of chunk_id column used by chunked_choosers_by_chunk_id
     assert 'chunk_id' not in df.columns

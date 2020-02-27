@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='activitysim',
-    version='0.9.1',
+    version='0.9.2',
     description='Activity-Based Travel Modeling',
     author='contributing authors',
     author_email='ben.stabler@rsginc.com',
@@ -14,7 +14,7 @@ setup(
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.7',
         'License :: OSI Approved :: BSD License'
     ],
     packages=find_packages(exclude=['*.tests']),

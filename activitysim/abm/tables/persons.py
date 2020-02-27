@@ -11,7 +11,7 @@ from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import tracing
 
-from .input_store import read_input_table
+from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,6 @@ def persons(households, trace_hh_id):
     df = read_raw_persons(households)
 
     logger.info("loaded persons %s" % (df.shape,))
-
-    df.index.name = 'person_id'
 
     # replace table function with dataframe
     inject.add_table('persons', df)

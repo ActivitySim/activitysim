@@ -1,8 +1,25 @@
 inherit_settings: True
 
-#input data store and skims
-input_store: mtc_asim.h5
+# input skims
 skims_file: skims.omx
+
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    column_map:
+      HHID: household_id
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    column_map:
+      PERID: person_id
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: TAZ
+    column_map:
+      ZONE: TAZ
 
 #number of households to simulate
 households_sample_size:  100
@@ -93,7 +110,8 @@ rural_threshold: 6
 #upperPM	Upper limit on time of day for the PM time peak period		19
 
 skim_time_periods:
-    hours:
+    period_minutes: 60
+    periods:
         - 0
         - 6
         - 11

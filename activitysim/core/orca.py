@@ -12,7 +12,10 @@ except ImportError:
 import logging
 import warnings
 from collections import namedtuple
-from collections.abc import Callable
+try:
+    from collections.abc import Callable
+except ImportError:
+    from collections import Callable
 from contextlib import contextmanager
 from functools import wraps
 import inspect

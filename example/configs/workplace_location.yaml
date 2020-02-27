@@ -18,6 +18,12 @@ IN_PERIOD: 17
 OUT_PERIOD: 8
 
 DEST_CHOICE_COLUMN_NAME: workplace_taz
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if not desired in persons table
+DEST_CHOICE_LOGSUM_COLUMN_NAME: workplace_location_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: workplace_location_sample
+
 
 annotate_persons:
   SPEC: annotate_persons_workplace

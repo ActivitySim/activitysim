@@ -730,3 +730,42 @@ file:
 
 With the set of output CSV files, the user can trace ActivitySim calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.
+
+.. _writing_logsums :
+
+Writing Logsums
+~~~~~~~~~~~~~~~
+
+The tour and trip destination and mode choice models calculate logsums but do not persist them by default.  
+Mode and destination choice logsums are essential for re-estimating these models and can therefore be 
+saved to the pipeline if desired.  To save the tour and trip destination and mode choice models, include 
+the following optional settings in the model settings file.  The data is saved to the pipeline for later use.
+
+::
+
+  # in workplace_location.yaml for example
+  DEST_CHOICE_LOGSUM_COLUMN_NAME: workplace_location_logsum
+  DEST_CHOICE_SAMPLE_TABLE_NAME: workplace_location_sample
+  
+  # in tour_mode_choice.yaml for example
+  MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum
+
+The `DEST_CHOICE_SAMPLE_TABLE_NAME` contains the fields in the table below.  Writing out the 
+destination choice sample table, which includes the mode choice logsum for each sampled 
+alternative destination, adds significant size to the pipeline.  Therefore, this feature should
+only be activated when writing logsums for a small set of households for model estimation.
+
++-----------------------------------+---------------------------------------+
+| Field                             | Description                           |
++===================================+=======================================+ 
+| chooser_id                        | chooser id such as person or tour id  |
++-----------------------------------+---------------------------------------+
+| alt_dest                          | destination alternative id            |
++-----------------------------------+---------------------------------------+
+| prob                              | alternative probability               |
++-----------------------------------+---------------------------------------+
+| pick_count                        | sampling with replacement pick count  |
++-----------------------------------+---------------------------------------+
+| mode_choice_logsum                | mode choice logsum                    |
++-----------------------------------+---------------------------------------+
+

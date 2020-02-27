@@ -42,6 +42,12 @@ def non_mandatory_tour_destination(
     trace_label = 'non_mandatory_tour_destination'
     model_settings = config.read_model_settings('non_mandatory_tour_destination.yaml')
 
+    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    want_logsums = logsum_column_name is not None
+
+    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = sample_table_name is not None
+
     tours = tours.to_frame()
 
     persons_merged = persons_merged.to_frame()
@@ -54,19 +60,29 @@ def non_mandatory_tour_destination(
         tracing.no_results(trace_label)
         return
 
-    choices = tour_destination.run_tour_destination(
-        tours,
+    choices_df, save_sample_df = tour_destination.run_tour_destination(
+        non_mandatory_tours,
         persons_merged,
+        want_logsums,
+        want_sample_table,
         model_settings,
         skim_dict,
         skim_stack,
         chunk_size, trace_hh_id, trace_label)
 
-    non_mandatory_tours['destination'] = choices
-
+    non_mandatory_tours['destination'] = choices_df['choice']
     assign_in_place(tours, non_mandatory_tours[['destination']])
 
+    if want_logsums:
+        non_mandatory_tours[logsum_column_name] = choices_df['logsum']
+        assign_in_place(tours, non_mandatory_tours[[logsum_column_name]])
+
     pipeline.replace_table("tours", tours)
+
+    if want_sample_table:
+        assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
+        print(save_sample_df)
+        pipeline.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
         tracing.trace_df(tours[tours.tour_category == 'non_mandatory'],

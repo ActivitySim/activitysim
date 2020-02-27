@@ -38,6 +38,9 @@ def atwork_subtour_mode_choice(
 
     model_settings = config.read_model_settings('tour_mode_choice.yaml')
 
+    logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
+    mode_column_name = 'tour_mode'  # FIXME - should be passed in?
+
     spec = tour_mode_choice_spec(model_settings)
 
     tours = tours.to_frame()
@@ -84,6 +87,8 @@ def atwork_subtour_mode_choice(
     choices = run_tour_mode_choice_simulate(
         subtours_merged,
         spec, tour_purpose='atwork', model_settings=model_settings,
+        mode_column_name=mode_column_name,
+        logsum_column_name=logsum_column_name,
         skims=skims,
         constants=constants,
         nest_spec=nest_spec,
@@ -91,14 +96,14 @@ def atwork_subtour_mode_choice(
         trace_label=trace_label,
         trace_choice_name='tour_mode_choice')
 
-    tracing.print_summary('%s choices' % trace_label, choices, value_counts=True)
+    tracing.print_summary('%s choices' % trace_label, choices[mode_column_name], value_counts=True)
 
-    assign_in_place(tours, choices.to_frame('tour_mode'))
+    assign_in_place(tours, choices)
     pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
         tracing.trace_df(tours[tours.tour_category == 'atwork'],
-                         label=tracing.extend_trace_label(trace_label, 'tour_mode'),
+                         label=tracing.extend_trace_label(trace_label, mode_column_name),
                          slicer='tour_id',
                          index_label='tour_id')
 

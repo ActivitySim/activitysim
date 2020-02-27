@@ -6,6 +6,11 @@ SIZE_TERM_SELECTOR: non_mandatory
 # we can't use use household income_segment as this will also be set for non-workers
 CHOOSER_SEGMENT_COLUMN_NAME: tour_type
 
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: tour_destination_sample
 
 
 SEGMENTS:

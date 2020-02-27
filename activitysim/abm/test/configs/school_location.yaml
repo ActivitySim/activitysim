@@ -12,6 +12,7 @@ IN_PERIOD: 14
 OUT_PERIOD: 8
 
 DEST_CHOICE_COLUMN_NAME: school_taz
+DEST_CHOICE_LOGSUM_COLUMN_NAME: school_taz_logsum
 
 SAMPLE_SPEC: school_location_sample.csv
 SPEC: school_location.csv

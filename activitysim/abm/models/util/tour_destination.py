@@ -80,8 +80,8 @@ def run_destination_sample(
 
     constants = config.get_model_constants(model_settings)
 
-    sample_size = model_settings["SAMPLE_SIZE"]
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    sample_size = model_settings['SAMPLE_SIZE']
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
@@ -167,6 +167,7 @@ def run_destination_simulate(
         tours,
         persons_merged,
         destination_sample,
+        want_logsums,
         model_settings,
         skim_dict,
         destination_size_terms,
@@ -188,7 +189,7 @@ def run_destination_simulate(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
     origin_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
@@ -220,11 +221,17 @@ def run_destination_simulate(
         destination_sample,
         spec=model_spec,
         choice_column=alt_dest_col_name,
+        want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='destination')
+
+    if not want_logsums:
+        # for consistency, always return a dataframe with canonical column name
+        assert isinstance(choices, pd.Series)
+        choices = choices.to_frame('choice')
 
     return choices
 
@@ -232,6 +239,8 @@ def run_destination_simulate(
 def run_tour_destination(
         tours,
         persons_merged,
+        want_logsums,
+        want_sample_table,
         model_settings,
         skim_dict,
         skim_stack,
@@ -248,6 +257,7 @@ def run_tour_destination(
     tours = tours.sort_index()
 
     choices_list = []
+    sample_list = []
     for segment_name in segments:
 
         choosers = tours[tours[chooser_segment_column] == segment_name]
@@ -292,6 +302,7 @@ def run_tour_destination(
                 choosers,
                 persons_merged,
                 location_sample_df,
+                want_logsums,
                 model_settings,
                 skim_dict,
                 segment_destination_size_terms,
@@ -300,8 +311,27 @@ def run_tour_destination(
 
         choices_list.append(choices)
 
+        if want_sample_table:
+            # FIXME - sample_table
+            location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
+                                         append=True, inplace=True)
+            sample_list.append(location_sample_df)
+
         # FIXME - want to do this here?
         del location_sample_df
         force_garbage_collect()
 
-    return pd.concat(choices_list) if len(choices_list) > 0 else pd.Series()
+    if len(choices_list) > 0:
+        choices_df = pd.concat(choices_list)
+    else:
+        # this will only happen with small samples (e.g. singleton) with no (e.g.) school segs
+        logger.warning("%s no choices", trace_label)
+        choices_df = pd.DataFrame(columns=['choice', 'logsum'])
+
+    if len(sample_list) > 0:
+        save_sample_df = pd.concat(sample_list)
+    else:
+        # this could happen either with small samples as above, or if no saved sample desired
+        save_sample_df = None
+
+    return choices_df, save_sample_df

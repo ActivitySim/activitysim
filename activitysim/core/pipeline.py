@@ -734,6 +734,10 @@ def extend_table(table_name, df, axis=0):
         table_df = orca.get_table(table_name).to_frame()
 
         if axis == 0:
+
+            # if len(table_df.index.intersection(df.index)) > 0:
+            #     print(table_df.index.intersection(df.index))
+
             # don't expect indexes to overlap
             assert len(table_df.index.intersection(df.index)) == 0
             missing_df_str_columns = [c for c in table_df.columns
@@ -786,3 +790,7 @@ def drop_table(table_name):
         logger.debug("drop_table removing table %s from last_checkpoint" % table_name)
 
         _PIPELINE.last_checkpoint[table_name] = ''
+
+
+def is_table(table_name):
+    return orca.is_table(table_name)

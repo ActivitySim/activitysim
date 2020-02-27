@@ -16,6 +16,12 @@ from . import pipeline
 
 logger = logging.getLogger(__name__)
 
+EXP_UTIL_MIN = 1e-300
+EXP_UTIL_MAX = np.inf
+
+PROB_MIN = 0.0
+PROB_MAX = 1.0
+
 
 def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, raise_error=True):
     """
@@ -67,6 +73,41 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
         raise RuntimeError(msg_with_count)
 
 
+def utils_to_logsums(utils, exponentiated=False):
+    """
+    Convert a table of utilities to logsum series.
+
+    Parameters
+    ----------
+    utils : pandas.DataFrame
+        Rows should be choosers and columns should be alternatives.
+
+    exponentiated : bool
+        True if utilities have already been exponentiated
+
+    Returns
+    -------
+    logsums : pandas.Series
+        Will have the same index as `utils`.
+
+    """
+
+    # fixme - conversion to float not needed in either case?
+    # utils_arr = utils.values.astype('float')
+    utils_arr = utils.values
+    if not exponentiated:
+        utils_arr = np.exp(utils_arr)
+
+    np.clip(utils_arr, EXP_UTIL_MIN, EXP_UTIL_MAX, out=utils_arr)
+
+    utils_arr = np.where(utils_arr == EXP_UTIL_MIN, 0.0, utils_arr)
+
+    logsums = np.log(utils_arr.sum(axis=1))
+    logsums = pd.Series(logsums, index=utils.index)
+
+    return logsums
+
+
 def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_probs=False,
                    trace_choosers=None):
     """
@@ -107,8 +148,6 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     if not exponentiated:
         utils_arr = np.exp(utils_arr)
 
-    EXP_UTIL_MIN = 1e-300
-    EXP_UTIL_MAX = np.inf
     np.clip(utils_arr, EXP_UTIL_MIN, EXP_UTIL_MAX, out=utils_arr)
 
     # FIXME
@@ -135,9 +174,6 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     with np.errstate(invalid='ignore' if allow_zero_probs else 'warn',
                      divide='ignore' if allow_zero_probs else 'warn'):
         np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
-
-    PROB_MIN = 0.0
-    PROB_MAX = 1.0
 
     # if allow_zero_probs, this will cause EXP_UTIL_MIN util rows to have all zero probabilities
     utils_arr[np.isnan(utils_arr)] = PROB_MIN

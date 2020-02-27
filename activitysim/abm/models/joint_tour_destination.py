@@ -50,9 +50,10 @@ TOUR_TYPE_ID = OrderedDict([
 def joint_tour_destination_sample(
         joint_tours,
         households_merged,
+        model_settings,
         skim_dict,
         size_term_calculator,
-        chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id, trace_label):
     """
     Chooses a sample of destinations from all possible tour destinations by choosing
     <sample_size> times from among destination alternatives.
@@ -96,8 +97,6 @@ def joint_tour_destination_sample(
 
     """
 
-    trace_label = 'joint_tour_destination_sample'
-    model_settings = config.read_model_settings('joint_tour_destination.yaml')
     model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_destination_sample.csv')
 
     # choosers are tours - in a sense tours are choosing their destination
@@ -107,7 +106,7 @@ def joint_tour_destination_sample(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    sample_size = model_settings["SAMPLE_SIZE"]
+    sample_size = model_settings['SAMPLE_SIZE']
 
     # specify name interaction_sample should give the alternative column (logsums needs to know it)
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
@@ -183,8 +182,9 @@ def joint_tour_destination_logsums(
         joint_tours,
         persons_merged,
         destination_sample,
+        model_settings,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id, trace_label):
 
     """
     add logsum column to existing joint_tour_destination_sample table
@@ -194,9 +194,6 @@ def joint_tour_destination_logsums(
     and computing the logsum of all the utilities for each destination.
     """
 
-    trace_label = 'joint_tour_destination_logsums'
-
-    model_settings = config.read_model_settings('joint_tour_destination.yaml')
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     joint_tours_merged = pd.merge(joint_tours, persons_merged,
@@ -253,17 +250,15 @@ def joint_tour_destination_simulate(
         joint_tours,
         households_merged,
         destination_sample,
+        want_logsums,
+        model_settings,
         skim_dict,
         size_term_calculator,
-        chunk_size, trace_hh_id):
+        chunk_size, trace_hh_id, trace_label):
     """
     choose a joint tour destination from amont the destination sample alternatives
     (annotated with logsums) and add destination TAZ column to joint_tours table
     """
-
-    trace_label = 'joint_tour_destination_simulate'
-
-    model_settings = config.read_model_settings('joint_tour_destination.yaml')
 
     # - tour types are subset of non_mandatory tour types and use same expressions
     model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_destination.csv')
@@ -271,7 +266,7 @@ def joint_tour_destination_simulate(
     # interaction_sample_simulate insists choosers appear in same order as alts
     joint_tours = joint_tours.sort_index()
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running joint_tour_destination_simulate with %d joint_tours" %
                 joint_tours.shape[0])
@@ -330,6 +325,7 @@ def joint_tour_destination_simulate(
             alts_segment,
             spec=model_spec[[tour_type]],
             choice_column=alt_dest_col_name,
+            want_logsums=want_logsums,
             skims=skims,
             locals_d=locals_d,
             chunk_size=chunk_size,
@@ -339,6 +335,11 @@ def joint_tour_destination_simulate(
         choices_list.append(choices)
 
     choices = pd.concat(choices_list)
+
+    if not want_logsums:
+        # for consistency, always return a dataframe with canonical column name
+        assert isinstance(choices, pd.Series)
+        choices = choices.to_frame('choice')
 
     return choices
 
@@ -370,6 +371,16 @@ def joint_tour_destination(
     adds/assigns choice column 'destination' for joint tours in tours table
     """
 
+    trace_label = 'joint_tour_destination'
+    model_settings = config.read_model_settings('joint_tour_destination.yaml')
+
+    destination_column_name = 'destination'
+    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    want_logsums = logsum_column_name is not None
+
+    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = sample_table_name is not None
+
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
 
@@ -384,38 +395,59 @@ def joint_tour_destination(
     # interaction_sample_simulate insists choosers appear in same order as alts
     joint_tours = joint_tours.sort_index()
 
-    model_settings = config.read_model_settings('joint_tour_destination.yaml')
     size_term_calculator = tour_destination.SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
 
-    destination_sample = joint_tour_destination_sample(
+    destination_sample_df = joint_tour_destination_sample(
         joint_tours,
         households_merged,
+        model_settings,
         skim_dict,
         size_term_calculator,
-        chunk_size, trace_hh_id)
+        chunk_size, trace_hh_id,
+        tracing.extend_trace_label(trace_label, 'sample'))
 
-    destination_sample = joint_tour_destination_logsums(
+    destination_sample_df = joint_tour_destination_logsums(
         joint_tours,
         persons_merged,
-        destination_sample,
+        destination_sample_df,
+        model_settings,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id)
+        chunk_size, trace_hh_id,
+        tracing.extend_trace_label(trace_label, 'logsums'))
 
-    choices = joint_tour_destination_simulate(
+    choices_df = joint_tour_destination_simulate(
         joint_tours,
         households_merged,
-        destination_sample,
+        destination_sample_df,
+        want_logsums,
+        model_settings,
         skim_dict,
         size_term_calculator,
-        chunk_size, trace_hh_id)
+        chunk_size, trace_hh_id,
+        tracing.extend_trace_label(trace_label, 'simulate'))
 
     # add column as we want joint_tours table for tracing.
-    joint_tours['destination'] = choices
+    joint_tours[destination_column_name] = choices_df['choice']
+    assign_in_place(tours, joint_tours[[destination_column_name]])
 
-    assign_in_place(tours, joint_tours[['destination']])
+    if want_logsums:
+        joint_tours[logsum_column_name] = choices_df['logsum']
+        assign_in_place(tours, joint_tours[[logsum_column_name]])
+
+    if want_sample_table:
+        # FIXME - sample_table
+        assert len(destination_sample_df.index.unique()) == len(choices_df)
+        destination_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
+                                        append=True, inplace=True)
+
+        print(destination_sample_df)
+        pipeline.extend_table(sample_table_name, destination_sample_df)
+
     pipeline.replace_table("tours", tours)
 
-    tracing.print_summary('destination', joint_tours.destination, describe=True)
+    tracing.print_summary(destination_column_name,
+                          joint_tours[destination_column_name],
+                          describe=True)
 
     if trace_hh_id:
         tracing.trace_df(joint_tours,

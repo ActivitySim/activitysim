@@ -11,7 +11,11 @@ except ImportError:
     from inspect import getargspec
 import logging
 import warnings
-from collections import Callable, namedtuple
+from collections import namedtuple
+try:
+    from collections.abc import Callable
+except ImportError:
+    from collections import Callable
 from contextlib import contextmanager
 from functools import wraps
 import inspect

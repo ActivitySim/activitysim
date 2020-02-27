@@ -12,3 +12,9 @@ CHOOSER_ORIG_COL_NAME: workplace_taz
 ALT_DEST_COL_NAME: alt_dest
 IN_PERIOD: 14
 OUT_PERIOD: 14
+
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: tour_destination_sample

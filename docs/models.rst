@@ -789,6 +789,22 @@ XXXXX function.  This function is registered as an orca step in the example Pipe
 
 Core Table: ``trips`` | Result Field: ``XXXXX`` | Skims Keys: ``XXXXX``
 
+.. _write_trip_matrices:
+
+Write Trip Matrices
+-------------------
+
+Write open matrix (OMX) trip matrices for assignment.  Reads the trips table post preprocessor and run expressions 
+to code additional data fields, with one data fields for each matrix specified.  The matrices are scaled by a 
+household level expansion factor, which is the household sample rate by default, which is calculated when
+households are read in at the beginning of a model run.  The main interface to write trip
+matrices is the :py:func:`~activitysim.abm.models.trip_matrices.write_trip_matrices` function.  This function 
+is registered as an orca step in the example Pipeline.
+
+Core Table: ``trips`` | Result: ``omx trip matrices`` | Skims Keys: ``origin, destination``
+
+.. automodule:: activitysim.abm.models.trip_matrices
+   :members:
 
 .. _utility_steps:
 

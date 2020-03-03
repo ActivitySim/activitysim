@@ -499,6 +499,9 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`trip_cbd_parking`                       |  **NOT YET IMPLEMENTED**                                           |
 +------------------------------------------------+--------------------------------------------------------------------+
+|  :ref:`write_trip_matrices`                    |  - write_trip_matrices.yaml                                        |
+|                                                |  - write_trip_matrices_annotate_trips_preprocessor.csv             |
++------------------------------------------------+--------------------------------------------------------------------+
 
 .. index:: chunk_size
 .. _chunk_size:
@@ -567,6 +570,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - trip_mode_choice
     - write_data_dictionary
     - track_skim_usage
+    - write_trip_matrices
     - write_tables
 
 These model steps must be registered orca steps, as noted below.  If you provide a ``resume_after``
@@ -746,6 +750,10 @@ restarting the pipeline at any step.
 The example ``simulation.py`` run model script also writes the final tables to CSV files by using 
 the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.
 This method returns a pandas DataFrame, which is then written to a CSV file by the ``write_tables`` step.
+
+The ``write_trip_matrices`` step processes the trips table to create open matrix (OMX) trip matrices for
+assignment.  The matrices are configured and coded according to the expressions in the model step
+trip annotation file.  See :ref:`write_trip_matrices` for more information.
 
 ActivitySim also writes log and trace files to the ``outputs`` folder.  The activitysim.log file,
 which is the overall log file is always produced.  If tracing is specified, then trace files are

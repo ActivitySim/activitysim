@@ -29,6 +29,7 @@ def cleanup_output_files():
     tracing.delete_output_files('txt')
     tracing.delete_output_files('yaml')
     tracing.delete_output_files('prof')
+    tracing.delete_output_files('omx')
 
 
 def run(run_list, injectables=None):

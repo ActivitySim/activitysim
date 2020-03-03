@@ -86,6 +86,7 @@ models:
   - trip_mode_choice
   - write_data_dictionary
   - track_skim_usage
+  - write_trip_matrices
   - write_tables
 
 # to resume after last successful checkpoint, specify resume_after: _

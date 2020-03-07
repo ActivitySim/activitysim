@@ -1,1 +1,0 @@
-Copy mtc_asim.h5 and skims.omx from activitysim\abm\test\data

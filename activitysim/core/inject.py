@@ -1,12 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import logging
 
 from . import orca
@@ -145,16 +138,16 @@ def reinject_decorated_tables():
     orca._TABLE_CACHE.clear()
     orca._COLUMN_CACHE.clear()
 
-    for name, func in iteritems(_DECORATED_TABLES):
+    for name, func in _DECORATED_TABLES.items():
         logger.debug("reinject decorated table %s" % name)
         orca.add_table(name, func)
 
-    for column_key, args in iteritems(_DECORATED_COLUMNS):
+    for column_key, args in _DECORATED_COLUMNS.items():
         table_name, column_name = column_key
         logger.debug("reinject decorated column %s.%s" % (table_name, column_name))
         orca.add_column(table_name, column_name, args['func'], cache=args['cache'])
 
-    for name, args in iteritems(_DECORATED_INJECTABLES):
+    for name, args in _DECORATED_INJECTABLES.items():
         logger.debug("reinject decorated injectable %s" % name)
         orca.add_injectable(name, args['func'], cache=args['cache'])
 

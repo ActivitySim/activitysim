@@ -1,12 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import logging
 import time
 import multiprocessing
@@ -638,7 +631,7 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     block_shapes = shadow_pricing_info['block_shapes']
 
     data_buffers = {}
-    for block_key, block_shape in iteritems(block_shapes):
+    for block_key, block_shape in block_shapes.items():
 
         # buffer_size must be int (or p2.7 long), not np.int64
         buffer_size = int(np.prod(block_shape))
@@ -787,7 +780,7 @@ def add_size_tables():
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process
 
-    for model_selector, model_name in iteritems(shadow_pricing_models):
+    for model_selector, model_name in shadow_pricing_models.items():
 
         model_settings = config.read_model_settings(model_name)
 

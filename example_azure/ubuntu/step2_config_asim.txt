@@ -35,7 +35,7 @@ conda remove --name asim --all
 
 conda create -n asim python=2.7 cytoolz numpy pandas pip pytables pyyaml toolz psutil
 source activate asim
-pip install openmatrix zbox future
+pip install openmatrix zbox
 
 cd $ASIM_HOME/activitysim
 pip install -e .
@@ -44,6 +44,3 @@ pip freeze
 
 ########################## deallocate vm
 az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
-
-
-

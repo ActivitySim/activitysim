@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import argparse
 import os
 import yaml
@@ -30,21 +25,21 @@ def locutor():
 @inject.injectable(cache=True)
 def configs_dir():
     if not os.path.exists('configs'):
-        raise RuntimeError("configs_dir: directory does not exist")
+        raise RuntimeError("'configs' directory does not exist")
     return 'configs'
 
 
 @inject.injectable(cache=True)
 def data_dir():
     if not os.path.exists('data'):
-        raise RuntimeError("data_dir: directory does not exist")
+        raise RuntimeError("'data' directory does not exist")
     return 'data'
 
 
 @inject.injectable(cache=True)
 def output_dir():
     if not os.path.exists('output'):
-        raise RuntimeError("output_dir: directory does not exist")
+        raise RuntimeError("'output' directory does not exist")
     return 'output'
 
 
@@ -66,15 +61,6 @@ def rng_base_seed():
     return 0
 
 
-def str2bool(v):
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
 @inject.injectable(cache=True)
 def settings():
     settings_dict = read_settings_file('settings.yaml', mandatory=True)
@@ -82,84 +68,15 @@ def settings():
     return settings_dict
 
 
-def handle_standard_args(parser=None):
-    """
-    Adds 'standard' activitysim arguments:
-        --config : specify path to config_dir
-        --output : specify path to output_dir
-        --data   : specify path to data_dir
-
-    Parameters
-    ----------
-    parser : argparse.ArgumentParser or None
-        to  custom argument handling, pass in a parser with arguments added
-        and handle them based on returned args. This method will hand the args it adds
-    Returns
-    -------
-
-    injectables - array of injectables altered by args
-    """
-
-    if parser is None:
-        parser = argparse.ArgumentParser()
-
-    parser.add_argument("-c", "--config", help="path to config dir", action='append')
-    parser.add_argument("-o", "--output", help="path to output dir")
-    parser.add_argument("-d", "--data", help="path to data dir", action='append')
-    parser.add_argument("-r", "--resume", nargs='?', const='_', type=str, help="resume after")
-    parser.add_argument("-m", "--multiprocess", type=str2bool, nargs='?', const=True,
-                        help="run multiprocess (boolean flag, no arg defaults to true)")
-
-    parser.add_argument("-p", "--pipeline", help="pipeline file name")
-
-    args = parser.parse_args()
-
-    injectables = []
-
-    def override_injectable(name, value):
-        inject.add_injectable(name, value)
-        injectables.append(name)
-
-    def override_setting(key, value):
-        new_settings = inject.get_injectable('settings')
-        new_settings[key] = value
-        inject.add_injectable('settings', new_settings)
-
-    if args.config:
-        for dir in args.config:
-            if not os.path.exists(dir):
-                raise IOError("Could not find configs dir '%s'" % dir)
-        override_injectable("configs_dir", args.config)
-
-    if args.data:
-        for dir in args.data:
-            if not os.path.exists(dir):
-                raise IOError("Could not find data dir '%s'" % dir)
-        override_injectable("data_dir", args.data)
-
-    if args.output:
-        if not os.path.exists(args.output):
-            raise IOError("Could not find output dir '%s'." % args.output)
-        override_injectable("output_dir", args.output)
-
-    if args.pipeline:
-        override_injectable("pipeline_file_name", args.pipeline)
-
-    # - do these after potentially overriding configs_dir
-    # FIXME we don't currently pass settings as an injectable to mp_tasks.run_multiprocess
-    # these two make it through as they are incorporated into the run_list by parent
-    # but if a more extensible capability is desired, settings could be passed in injectables
-    if args.resume is not None:
-        override_setting('resume_after', args.resume)
-    if args.multiprocess is not None:
-        override_setting('multiprocess', args.multiprocess)
-
-    return injectables
-
-
 def setting(key, default=None):
 
     return inject.get_injectable('settings').get(key, default)
+
+
+def override_setting(key, value):
+    new_settings = inject.get_injectable('settings')
+    new_settings[key] = value
+    inject.add_injectable('settings', new_settings)
 
 
 def read_model_settings(file_name, mandatory=False):
@@ -257,7 +174,7 @@ def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=Tru
 
     if mandatory and not file_path:
         raise RuntimeError("file_path %s: file '%s' not in %s" %
-                           (dir_list_injectable_name, file_path, dir_list))
+                           (dir_list_injectable_name, file_name, dir_list))
 
     return file_path
 
@@ -370,3 +287,20 @@ def filter_warnings():
         warnings.filterwarnings('default', category=PendingDeprecationWarning, module='future')
         warnings.filterwarnings('default', category=FutureWarning, module='pandas')
         warnings.filterwarnings('default', category=RuntimeWarning, module='numpy')
+
+
+def handle_standard_args(parser=None):
+
+    from activitysim.cli import run
+    import warnings
+
+    warnings.warn('config.handle_standard_args() has been moved to the command line '
+                  'module and will be removed in future versions.',
+                  FutureWarning)
+
+    if parser is None:
+        parser = argparse.ArgumentParser()
+
+    run.add_run_args(parser)
+    args = parser.parse_args()
+    run.handle_standard_args(args)

@@ -1,12 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import logging
 
 import pandas as pd
@@ -362,7 +355,7 @@ def run_location_choice(
 
     choices_list = []
     sample_list = []
-    for segment_name, segment_id in iteritems(segment_ids):
+    for segment_name, segment_id in segment_ids.items():
 
         choosers = persons_merged_df[persons_merged_df[chooser_segment_column] == segment_id]
 

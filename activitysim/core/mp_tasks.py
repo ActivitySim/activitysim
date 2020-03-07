@@ -1,12 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import sys
 import os
 import time
@@ -263,7 +256,7 @@ def pipeline_table_keys(pipeline_store):
 
     # hdf5 key is <table_name>/<checkpoint_name>
     checkpoint_tables = {table_name: pipeline.pipeline_table_key(table_name, checkpoint_name)
-                         for table_name, checkpoint_name in iteritems(checkpoint_tables)}
+                         for table_name, checkpoint_name in checkpoint_tables.items()}
 
     # checkpoint name and series mapping table name to hdf5 key for tables in that checkpoint
     return checkpoint_name, checkpoint_tables
@@ -373,7 +366,7 @@ def build_slice_rules(slice_info, pipeline_tables):
 
     # build slice rules for loaded tables
     slice_rules = OrderedDict()
-    for table_name, df in iteritems(tables):
+    for table_name, df in tables.items():
 
         rule = {}
         if table_name == primary_slicer:
@@ -390,7 +383,7 @@ def build_slice_rules(slice_info, pipeline_tables):
                     # if df has a column with same name as the ref_col (index) of a slicer?
                     try:
                         source, ref_col = next((t, c)
-                                               for t, c in iteritems(slicer_ref_cols)
+                                               for t, c in slicer_ref_cols.items()
                                                if c in df.columns)
                         # then we can use that table to slice this df
                         rule = {'slice_by': 'column',
@@ -454,7 +447,7 @@ def apportion_pipeline(sub_proc_names, slice_info):
                 raise RuntimeError("slicer table %s not found in pipeline" % table_name)
 
         # load all tables from pipeline
-        for table_name, hdf5_key in iteritems(hdf5_keys):
+        for table_name, hdf5_key in hdf5_keys.items():
             # new checkpoint for all tables the same
             checkpoints_df[table_name] = checkpoint_name
             # load the dataframe
@@ -489,7 +482,7 @@ def apportion_pipeline(sub_proc_names, slice_info):
             sliced_tables = {}
 
             # - for each table in pipeline
-            for table_name, rule in iteritems(slice_rules):
+            for table_name, rule in slice_rules.items():
 
                 df = tables[table_name]
 
@@ -556,16 +549,16 @@ def coalesce_pipelines(sub_proc_names, slice_info):
         # hdf5_keys is a dict mapping table_name to pipeline hdf5_key
         checkpoint_name, hdf5_keys = pipeline_table_keys(pipeline_store)
 
-        for table_name, hdf5_key in iteritems(hdf5_keys):
+        for table_name, hdf5_key in hdf5_keys.items():
             logger.debug("loading table %s %s", table_name, hdf5_key)
             tables[table_name] = pipeline_store[hdf5_key]
 
     # - use slice rules followed by apportion_pipeline to identify mirrored tables
     # (tables that are identical in every pipeline and so don't need to be concatenated)
     slice_rules = build_slice_rules(slice_info, tables)
-    mirrored_table_names = [t for t, rule in iteritems(slice_rules) if rule['slice_by'] is None]
+    mirrored_table_names = [t for t, rule in slice_rules.items() if rule['slice_by'] is None]
     mirrored_tables = {t: tables[t] for t in mirrored_table_names}
-    omnibus_keys = {t: k for t, k in iteritems(hdf5_keys) if t not in mirrored_table_names}
+    omnibus_keys = {t: k for t, k in hdf5_keys.items() if t not in mirrored_table_names}
 
     logger.debug("coalesce_pipelines to: %s", pipeline_file_name)
     logger.debug("mirrored_table_names: %s", mirrored_table_names)
@@ -578,7 +571,7 @@ def coalesce_pipelines(sub_proc_names, slice_info):
         logger.info("coalesce pipeline %s", pipeline_path)
 
         with pd.HDFStore(pipeline_path, mode='r') as pipeline_store:
-            for table_name, hdf5_key in iteritems(omnibus_keys):
+            for table_name, hdf5_key in omnibus_keys.items():
                 omnibus_tables[table_name].append(pipeline_store[hdf5_key])
 
     pipeline.open_pipeline()
@@ -619,7 +612,7 @@ def setup_injectables_and_logging(injectables, locutor=True):
     injects injectables
     """
 
-    for k, v in iteritems(injectables):
+    for k, v in injectables.items():
         inject.add_injectable(k, v)
 
     inject.add_injectable("is_sub_task", True)

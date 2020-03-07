@@ -255,9 +255,9 @@ Folder and File Setup
 The example has the following root folder/file setup:
 
   * configs - settings, expressions files, etc.
+  * configs_mp - override settings for the multiprocess configuration
   * data - input data such as land use, synthetic population files, and skims
   * output - outputs folder
-  * simulation.py - main script to run the model
 
 Inputs
 ~~~~~~
@@ -581,26 +581,63 @@ The model is run by calling the :func:`activitysim.core.pipeline.run` method.
 
   pipeline.run(models=_MODELS, resume_after=resume_after)
 
-Running the Example
+.. _example_run :
+
+Running the MTC Example
 -------------------
 
 To run the example, do the following:
 
-* Open a command line window in the ``example`` folder
 * Activate the correct conda environment if needed
-* Run ``python simulation.py`` to run the data pipeline (i.e. model steps)
+* View the list of available examples
+
+::
+
+  activitysim create --list
+
+* Create a local copy of an example folder
+
+::
+
+  activitysim create --example example_mtc --destination my_test_example
+
+* Run the example
+
+::
+
+  activitysim run --working_dir my_test_example
+
+or
+
+::
+
+  activitysim run -c my_test_example/configs -d my_test_example/data -o my_test_example/output
+
 * ActivitySim should log some information and write outputs to the ``output`` folder.
 
 The example should complete within a couple minutes since it is running a small sample of households.
+
+.. note::
+
+  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/master/scripts>`__.
+  This script takes many of the same arguments as the ``activitysim run`` command, including paths to
+  ``--config``, ``--data``, and ``--output`` directories. It looks for these folders in the current
+  working directory by default.
+
+  ::
+
+    python simulation.py
 
 Multiprocessing
 ~~~~~~~~~~~~~~~
 
 The model system is parallelized via :ref:`multiprocessing`.  To setup and run the :ref:`example` using
-multiprocessing, follow the same steps as above, but use the configuration in the ``example_mp`` folder:
+multiprocessing, follow the same steps as the above :ref:`example_run`, but use the ``-m`` flag to
+toggle multiprocessing:
 
-* Open a command prompt in the ``example_mp`` folder.  The data does not need to be copied into the folder since the mp setup inherits from the example single-processed setup.
-* Run ``python simulation.py``.
+::
+
+  activitysim run --working_dir my_test_example -m
 
 The multiprocessing example also writes outputs to the ``output`` folder.
 

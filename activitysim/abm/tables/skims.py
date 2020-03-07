@@ -1,13 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import range
 from builtins import int
-
-from future.utils import iteritems
 
 import sys
 import os
@@ -75,7 +69,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
     # DIST: {'DIST': 0}
     # DRV_COM_WLK_BOARDS: {'MD': 1, 'AM': 0, 'PM': 2}, ...
     key1_subkeys = OrderedDict()
-    for skim_key, omx_key in iteritems(omx_keys):
+    for skim_key, omx_key in omx_keys.items():
         if isinstance(skim_key, tuple):
             key1, key2 = skim_key
         else:
@@ -102,7 +96,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
     key1_block_offsets = OrderedDict()
     blocks = OrderedDict()
     block = offset = 0
-    for key1, v in iteritems(key1_subkeys):
+    for key1, v in key1_subkeys.items():
         num_subkeys = len(v)
         if offset + num_subkeys > max_skims_per_block:  # next block
             blocks[block_name(block)] = offset
@@ -155,7 +149,7 @@ def buffers_for_skims(skim_info, shared=False):
     blocks = skim_info['blocks']
 
     skim_buffers = {}
-    for block_name, block_size in iteritems(blocks):
+    for block_name, block_size in blocks.items():
 
         # buffer_size must be int (or p2.7 long), not np.int64
         buffer_size = int(multiply_large_numbers(omx_shape) * block_size)
@@ -190,7 +184,7 @@ def skim_data_from_buffers(skim_buffers, skim_info):
     blocks = skim_info['blocks']
 
     skim_data = []
-    for block_name, block_size in iteritems(blocks):
+    for block_name, block_size in blocks.items():
         skims_shape = omx_shape + (block_size,)
         block_buffer = skim_buffers[block_name]
         assert len(block_buffer) == int(multiply_large_numbers(skims_shape))
@@ -209,7 +203,7 @@ def load_skims(omx_file_path, skim_info, skim_buffers):
 
     # read skims into skim_data
     with omx.open_file(omx_file_path) as omx_file:
-        for skim_key, omx_key in iteritems(omx_keys):
+        for skim_key, omx_key in omx_keys.items():
 
             omx_data = omx_file[omx_key]
             assert np.issubdtype(omx_data.dtype, np.floating)

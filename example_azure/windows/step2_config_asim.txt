@@ -57,7 +57,7 @@ activate.bat E:\miniconda2
 
 conda create -n asim python=2.7 cytoolz numpy pandas pip pytables pyyaml toolz psutil
 activate.bat asim
-pip install openmatrix zbox future
+pip install openmatrix zbox
 
 git status
 pip install -e .

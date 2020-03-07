@@ -1,12 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import logging
 
 import numpy as np
@@ -22,7 +15,7 @@ def enumerate_tour_types(tour_flavors):
     # tour_flavors: {'eat': 1, 'business': 2, 'maint': 1}
     # channels:      ['eat1', 'business1', 'business2', 'maint1']
     channels = [tour_type + str(tour_num)
-                for tour_type, max_count in iteritems(tour_flavors)
+                for tour_type, max_count in tour_flavors.items()
                 for tour_num in range(1, max_count + 1)]
     return channels
 

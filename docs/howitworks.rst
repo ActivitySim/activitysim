@@ -9,12 +9,13 @@ This page describes how the software works, how multiprocessing works, and the e
 Execution Flow
 --------------
 
-The example model run starts by running ``simulation.py``.
+The example model run starts by running ``activitysim run --working_dir my_test_example``
+after following the steps in :ref:`example_run`.
 
 Initialization
 ~~~~~~~~~~~~~~
 
-The first significant step of ``simulation.py`` is:
+The first significant step of the ``run`` command is:
 
 ::
 
@@ -76,14 +77,13 @@ the ``@inject.step()`` decorator.  These steps will eventually be run by the dat
   @inject.step()
   def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
 
-Back in the main ``simulation.py`` script, the next steps are to load the tracing, configuration, setting, and pipeline classe
+Back in the main ``run`` command, the next steps are to load the tracing, configuration, setting, and pipeline classes
 to get the system management components up and running.
 
 ::
 
   from activitysim.core import tracing
   from activitysim.core import config
-  from activitysim.core.config import setting
   from activitysim.core import pipeline
 
 
@@ -100,7 +100,7 @@ arguments passed in via the command line.
 
 
 .. note::
-   For more information on run options, type ``python simulation.py -h`` on the command line
+   For more information on run options, type ``activitysim run -h`` on the command line
 
 
 The first key thing that happens in the ``run`` function is ``resume_after = setting('resume_after', None)``, which causes the system
@@ -186,7 +186,7 @@ inject goes looking for it as explained below.
         pipeline.replace_table(tablename, df)
 
 
-Remember that the ``persons`` table was previously registred as an injectable table when the persons table class was
+Remember that the ``persons`` table was previously registered as an injectable table when the persons table class was
 imported.  Now that the ``persons`` table is needed, inject calls this function, which requires the ``households`` and
 ``trace_hh_id`` objects as well.  Since ``households`` has yet to be loaded, the system run the households inject table operation
 as well.  The various calls also setup logging, tracing, stable random number management, etc.
@@ -499,7 +499,7 @@ The last models to be run by the data pipeline are:
 * ``track_skim_usage``, which tracks skim data memory usage
 * ``write_tables``, which writes pipeline tables as CSV files as specified by the output_tables setting
 
-Back in the main ``simulation.py`` script, the final steps are to:
+Back in the main ``run`` command, the final steps are to:
 
 * close the data pipeline (and attached HDF5 file)
 

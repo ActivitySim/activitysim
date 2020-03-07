@@ -6,3 +6,5 @@ include activitysim\abm\test\data\households.csv
 include activitysim\abm\test\data\persons.csv
 include activitysim\abm\test\data\land_use.csv
 include activitysim\abm\test\data\override_hh_ids.csv
+
+graft activitysim/examples

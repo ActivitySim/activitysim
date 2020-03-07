@@ -1,12 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import os
 import logging
+import pkg_resources
 
 import pandas as pd
 import pandas.util.testing as pdt
@@ -32,15 +28,22 @@ HH_ID = 257341
 SKIP_FULL_RUN = False
 
 
-def setup_dirs(configs_dir):
+def example_path(dirname):
+    resource = os.path.join('examples', 'example_mtc', dirname)
+    return pkg_resources.resource_filename('activitysim', resource)
 
-    inject.add_injectable("configs_dir", configs_dir)
+
+def setup_dirs(configs_dir, data_dir=None):
+
+    inject.add_injectable('configs_dir', configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable("output_dir", output_dir)
+    inject.add_injectable('output_dir', output_dir)
 
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    inject.add_injectable("data_dir", data_dir)
+    if not data_dir:
+        data_dir = example_path('data')
+
+    inject.add_injectable('data_dir', data_dir)
 
     inject.clear_cache()
 
@@ -81,8 +84,7 @@ def inject_settings(configs_dir, **kwargs):
 
 def test_rng_access():
 
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-
+    configs_dir = example_path('configs')
     setup_dirs(configs_dir)
 
     inject.add_injectable('rng_base_seed', 0)
@@ -167,8 +169,7 @@ def regress_mini_location_choice_logsums():
 
 def test_mini_pipeline_run():
 
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-
+    configs_dir = example_path('configs')
     setup_dirs(configs_dir)
 
     inject_settings(configs_dir,
@@ -220,8 +221,7 @@ def test_mini_pipeline_run2():
     # exactly the same results as for test_mini_pipeline_run
     # when we restart pipeline
 
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-
+    configs_dir = example_path('configs')
     setup_dirs(configs_dir)
 
     inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
@@ -257,8 +257,8 @@ def test_mini_pipeline_run2():
     hh_ids = pipeline.get_table("households").head(num_hh_ids).index.values
     hh_ids = pd.DataFrame({'household_id': hh_ids})
 
-    data_dir = inject.get_injectable('data_dir')
-    hh_ids.to_csv(os.path.join(data_dir, 'override_hh_ids.csv'), index=False, header=True)
+    hh_ids_path = config.data_file_path('override_hh_ids.csv')
+    hh_ids.to_csv(hh_ids_path, index=False, header=True)
 
     pipeline.close_pipeline()
     inject.clear_cache()
@@ -269,7 +269,7 @@ def test_mini_pipeline_run3():
 
     # test that hh_ids setting overrides household sampling
 
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    configs_dir = example_path('configs')
     setup_dirs(configs_dir)
     inject_settings(configs_dir, hh_ids='override_hh_ids.csv')
 
@@ -292,8 +292,7 @@ def full_run(resume_after=None, chunk_size=0,
              households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
              trace_hh_id=None, trace_od=None, check_for_variability=None):
 
-    configs_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'example', 'configs')
-
+    configs_dir = example_path('configs')
     setup_dirs(configs_dir)
 
     settings = inject_settings(
@@ -318,9 +317,8 @@ def full_run(resume_after=None, chunk_size=0,
 
 def get_trace_csv(file_name):
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-
-    df = pd.read_csv(os.path.join(output_dir, file_name))
+    file_name = config.output_file_path(file_name)
+    df = pd.read_csv(file_name)
 
     #        label    value_1    value_2    value_3    value_4
     # 0    tour_id        38         201         39         40

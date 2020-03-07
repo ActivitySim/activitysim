@@ -1,13 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import range
-
-from future.utils import listvalues
-
 
 import sys
 import os
@@ -348,7 +342,7 @@ def set_skim_wrapper_targets(df, skims):
     elif isinstance(skims, dict):
         # it it is a dict, then check for known types, ignore anything we don't recognize as a skim
         # (this allows putting skim column names in same dict as skims for use in locals_dicts)
-        for skim in listvalues(skims):
+        for skim in list(skims.values()):
             if isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper):
                 skim.set_df(df)
     else:

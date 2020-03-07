@@ -147,7 +147,7 @@ if __name__ == "__main__":
         'impdan_AM.omx': {'*SCST_AM': 'SOV_COST__AM', '*STM_AM (Skim)': 'SOV_TIME__AM'},
         'impdan_PM.omx': {'*SCST_PM': 'SOV_COST__PM', '*STM_PM (Skim)': 'SOV_TIME__PM'},
     }
-    for f, key_map in taz_skim_manifest.iteritems():
+    for f, key_map in taz_skim_manifest.items():
         with openmatrix.open_file(folder + f) as input_skims:
             print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
             # for skimName in input_skims.listMatrices():
             #     print skimName
 
-            for in_key, out_key in key_map.iteritems():
+            for in_key, out_key in key_map.items():
                 print "copying %s %s to %s" % (f, in_key, out_key)
                 output_taz_skims[out_key] = input_skims[in_key]
 
@@ -261,7 +261,7 @@ if __name__ == "__main__":
                 }
             }
 
-        for f, key_map in tap_skim_manifest.iteritems():
+        for f, key_map in tap_skim_manifest.items():
             with openmatrix.open_file(folder + f) as input_skims:
                 print "%s shape %s mappings" % (f, input_skims.shape()), input_skims.listMappings()
 
@@ -271,7 +271,7 @@ if __name__ == "__main__":
                 # for skimName in input_skims.listMatrices():
                 #     print skimName
 
-                for in_key, out_key in key_map.iteritems():
+                for in_key, out_key in key_map.items():
                     print "copying %s %s to %s" % (f, in_key, out_key)
                     output_tap_skims[out_key] = input_skims[in_key]
 

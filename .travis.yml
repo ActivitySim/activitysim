@@ -1,8 +1,9 @@
 language: python
 sudo: false
 python:
-  - '2.7'
+  - '3.6'
   - '3.7'
+  - '3.8'
 install:
 - wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh
 - bash miniconda.sh -b -p $HOME/miniconda
@@ -12,7 +13,7 @@ install:
 - conda update -q conda
 - conda info -a
 - |
-  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION future
+  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 - source activate test-environment
 - conda install pytest pytest-cov coveralls pycodestyle
 - pip install .

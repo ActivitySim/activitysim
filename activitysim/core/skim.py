@@ -1,14 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import range
 from builtins import object
-
-from future.utils import iteritems
-from future.utils import listvalues
 
 import logging
 
@@ -351,7 +345,7 @@ class SkimStack(object):
         # DISTWALK: 0,
         # DRV_COM_WLK_BOARDS: 0, ...
         key1_block_offsets = skim_dict.skim_info['key1_block_offsets']
-        self.key1_blocks = {k: v[0] for k, v in iteritems(key1_block_offsets)}
+        self.key1_blocks = {k: v[0] for k, v in key1_block_offsets.items()}
 
         # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
         # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
@@ -373,7 +367,7 @@ class SkimStack(object):
 
         logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
                     % (len(self.skim_dim3),
-                       sum([len(d) for d in listvalues(self.skim_dim3)])))
+                       sum([len(d) for d in list(self.skim_dim3.values())])))
 
         self.usage = set()
 

@@ -390,7 +390,7 @@ logsums settings and expression files.  The resulting logsums are added to the c
        tour_purpose,
        logsum_settings, model_settings,
        skim_dict, skim_stack,
-       chunk_size, trace_hh_id,
+       chunk_size,
        trace_label)
 
     location_sample_df['mode_choice_logsum'] = logsums

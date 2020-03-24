@@ -44,7 +44,6 @@ def uniquify_spec_index(spec):
     for expr in spec.index:
         dict[assign.uniquify_key(dict, expr, template="{} # ({})")] = expr
 
-    # bug
     prev_index_name = spec.index.name
     spec.index = list(dict.keys())
     spec.index.name = prev_index_name

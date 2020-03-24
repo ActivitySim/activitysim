@@ -224,7 +224,7 @@ def run_location_logsums(
         tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id,
+        chunk_size,
         trace_label)
 
     # "add_column series should have an index matching the table to which it is being added"

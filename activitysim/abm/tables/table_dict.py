@@ -20,7 +20,6 @@ TRACEABLE_TABLES = ['households', 'persons', 'tours', 'joint_tour_participants',
 @inject.injectable()
 def rng_channels():
 
-    # bug
     return RANDOM_CHANNELS
 
 

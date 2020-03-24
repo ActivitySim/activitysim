@@ -335,7 +335,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 205
+EXPECT_TOUR_COUNT = 201
 
 
 def regress_tour_modes(tours_df):
@@ -372,19 +372,19 @@ def regress_tour_modes(tours_df):
         'othdiscr',
         'work',
         'work',
-        'maint',
+        'business',
         'work',
-        'eatout',
-        ]
+        'othmaint'
+    ]
 
     EXPECT_MODES = [
         'SHARED3FREE',
         'WALK',
-        'DRIVEALONEFREE',
+        'SHARED3FREE',
         'WALK',
-        'WALK',
-        'WALK',
-        ]
+        'WALK_LOC',
+        'WALK'
+    ]
 
     assert len(tours_df) == len(EXPECT_PERSON_IDS)
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()

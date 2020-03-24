@@ -47,6 +47,12 @@ NESTS:
               - DRIVE_EXP
               - DRIVE_HVY
               - DRIVE_COM
+      - name: RIDEHAIL
+        coefficient: 0.36
+        alternatives:
+          - TAXI
+          - TNC_SINGLE
+          - TNC_SHARED
 
 SPEC: tour_mode_choice.csv
 COEFFS: tour_mode_choice_coeffs.csv
@@ -69,7 +75,57 @@ CONSTANTS:
     upperAM: 10
     upperMD: 15
     upperPM: 19
-
+    # RIDEHAIL Settings
+    Taxi_baseFare: 2.20
+    Taxi_costPerMile: 2.30
+    Taxi_costPerMinute: 0.10
+    Taxi_waitTime_mean:
+      1: 5.5
+      2: 9.5
+      3: 13.3
+      4: 17.3
+      5: 26.5
+    Taxi_waitTime_sd: 
+      1: 0
+      2: 0
+      3: 0
+      4: 0
+      5: 0
+    TNC_single_baseFare: 2.20
+    TNC_single_costPerMile: 1.33
+    TNC_single_costPerMinute: 0.24
+    TNC_single_costMinimum: 7.20
+    TNC_single_waitTime_mean: 
+      1: 4.7
+      2: 6.3
+      3: 8.4
+      4: 8.5
+      5: 10.3
+    TNC_single_waitTime_sd: 
+      1: 0
+      2: 0
+      3: 0
+      4: 0
+      5: 0
+    TNC_shared_baseFare: 2.20
+    TNC_shared_costPerMile: 0.64
+    TNC_shared_costPerMinute: 0.10
+    TNC_shared_costMinimum: 3.00
+    TNC_shared_IVTFactor: 1.5
+    TNC_shared_waitTime_mean: 
+      1: 7.0
+      2: 8.0
+      3: 11.0
+      4: 15.0
+      5: 15.0
+    TNC_shared_waitTime_sd: 
+      1: 0
+      2: 0
+      3: 0
+      4: 0
+      5: 0
+    min_waitTime: 0
+    max_waitTime: 50
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor:
@@ -85,6 +141,7 @@ nontour_preprocessor:
   TABLES:
     - land_use
 
+# to reduce memory needs filter chooser table to these fields
 LOGSUM_CHOOSER_COLUMNS:
   - tour_type
   - hhsize

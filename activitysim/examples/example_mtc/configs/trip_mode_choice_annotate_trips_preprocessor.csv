@@ -17,6 +17,7 @@ Description,Target,Expression
 ,tour_mode_is_bike,i_tour_mode == I_BIKE_MODE
 ,tour_mode_is_walk_transit,i_tour_mode.isin(I_WALK_TRANSIT_MODES)
 ,tour_mode_is_drive_transit,i_tour_mode.isin(I_DRIVE_TRANSIT_MODES)
+,tour_mode_is_ride_hail,i_tour_mode.isin(I_RIDE_HAIL_MODES)
 #,,
 ,inbound,~df.outbound
 ,first_trip,df.trip_num == 1
@@ -43,6 +44,19 @@ dest terminal time not counted at home,_dest_terminal_time,"np.where(inbound & l
 ,drive_transit_available,"np.where(df.outbound, _walk_transit_destination, _walk_transit_origin) & (df.auto_ownership > 0)"
 ,origin_walk_time,shortWalk*60/walkSpeed
 ,destination_walk_time,shortWalk*60/walkSpeed
+# RIDEHAIL,,
+,origin_density_measure,"(reindex(land_use.TOTPOP, df[orig_col_name]) + reindex(land_use.TOTEMP, df[orig_col_name])) / (reindex(land_use.TOTACRE, df[orig_col_name]) / 640)"
+,origin_density,"pd.cut(origin_density_measure, bins=[-np.inf, 500, 2000, 5000, 15000, np.inf], labels=[5, 4, 3, 2, 1]).astype(int)"
+,origin_zone_taxi_wait_time_mean,"origin_density.map({k: v for k, v in Taxi_waitTime_mean.items()})"
+,origin_zone_taxi_wait_time_sd,"origin_density.map({k: v for k, v in Taxi_waitTime_sd.items()})"
+# ,, Note that the mean and standard deviation are not the values for the distribution itself, but of the underlying normal distribution it is derived from
+,origTaxiWaitTime,"rng.lognormal_for_df(df, mu=origin_zone_taxi_wait_time_mean, sigma=origin_zone_taxi_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,origin_zone_singleTNC_wait_time_mean,"origin_density.map({k: v for k, v in TNC_single_waitTime_mean.items()})"
+,origin_zone_singleTNC_wait_time_sd,"origin_density.map({k: v for k, v in TNC_single_waitTime_sd.items()})"
+,origSingleTNCWaitTime,"rng.lognormal_for_df(df, mu=origin_zone_singleTNC_wait_time_mean, sigma=origin_zone_singleTNC_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,origin_zone_sharedTNC_wait_time_mean,"origin_density.map({k: v for k, v in TNC_shared_waitTime_mean.items()})"
+,origin_zone_sharedTNC_wait_time_sd,"origin_density.map({k: v for k, v in TNC_shared_waitTime_sd.items()})"
+,origSharedTNCWaitTime,"rng.lognormal_for_df(df, mu=origin_zone_sharedTNC_wait_time_mean, sigma=origin_zone_sharedTNC_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
 #,,
 ,sov_available,odt_skims['SOV_TIME']>0
 ,hov2_available,odt_skims['HOV2_TIME']>0

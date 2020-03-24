@@ -224,7 +224,7 @@ def joint_tour_destination_logsums(
             tour_purpose,
             logsum_settings, model_settings,
             skim_dict, skim_stack,
-            chunk_size, trace_hh_id,
+            chunk_size,
             trace_label=tracing.extend_trace_label(trace_label, tour_type))
 
         logsums_list.append(logsums)

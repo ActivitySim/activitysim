@@ -151,7 +151,7 @@ def compute_logsums(
         tours_merged,
         model_settings,
         skims,
-        chunk_size, trace_hh_id,
+        chunk_size,
         trace_label):
     """
     Calculate mode choice logsums using the same recipe as for trip_mode_choice, but do it twice
@@ -332,7 +332,7 @@ def choose_trip_destination(
         tours_merged=tours_merged,
         model_settings=model_settings,
         skims=skims,
-        chunk_size=chunk_size, trace_hh_id=trace_hh_id,
+        chunk_size=chunk_size,
         trace_label=trace_label)
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)

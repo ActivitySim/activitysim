@@ -123,7 +123,7 @@ def atwork_subtour_destination_logsums(
         tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id,
+        chunk_size,
         trace_label)
 
     destination_sample['mode_choice_logsum'] = logsums

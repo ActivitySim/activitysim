@@ -4,8 +4,12 @@ import os
 import logging
 import pkg_resources
 
+import openmatrix as omx
+import numpy as np
+import numpy.testing as npt
+
 import pandas as pd
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 import pytest
 import yaml
 
@@ -17,6 +21,7 @@ from activitysim.core import config
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
+HOUSEHOLDS_SAMPLE_RATE = 0.02  # HOUSEHOLDS_SAMPLE_RATE / 5000 households
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
 HH_ID = 257341
@@ -52,6 +57,7 @@ def setup_dirs(configs_dir, data_dir=None):
     tracing.delete_output_files('csv')
     tracing.delete_output_files('txt')
     tracing.delete_output_files('yaml')
+    tracing.delete_output_files('omx')
 
 
 def teardown_function(func):
@@ -433,6 +439,18 @@ def regress():
     # should be at least two tours per trip
     assert trips_df.shape[0] >= 2*tours_df.shape[0]
 
+    # write_trip_matrices
+    trip_matrices_file = config.output_file_path('trips_md.omx')
+    assert os.path.exists(trip_matrices_file)
+    trip_matrices = omx.open_file(trip_matrices_file)
+    assert trip_matrices.shape() == (25, 25)
+
+    assert 'WALK_MD' in trip_matrices.list_matrices()
+    walk_trips = np.array(trip_matrices['WALK_MD'])
+    assert walk_trips.dtype == np.dtype('float64')
+
+    trip_matrices.close()
+
 
 def test_full_run1():
 
@@ -517,6 +535,7 @@ def test_full_run5_singleton():
 
 if __name__ == "__main__":
 
+    from activitysim import abm  # register injectables
     print("running test_full_run1")
     test_full_run1()
     # teardown_function(None)

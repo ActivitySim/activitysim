@@ -87,6 +87,7 @@ models:
   - trip_mode_choice
   ### mp_summarize step
   - write_data_dictionary
+  - write_trip_matrices
   - write_tables
 
 multiprocess_steps:

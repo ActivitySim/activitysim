@@ -638,7 +638,7 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
         utils = simulate.eval_utilities(spec, choosers, trace_label=trace_label)
 
     if len(utils.index) == 0:
-        return pd.Series()
+        return pd.Series(dtype='float64')
 
     probs = logit.utils_to_probs(utils, trace_label=trace_label)
 
@@ -752,7 +752,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     choosers = persons[persons['cdap_rank'] > MAX_HHSIZE]
 
     if len(choosers.index) == 0:
-        return pd.Series()
+        return pd.Series(dtype='float64')
 
     # eval the expression file
     values = simulate.eval_variables(cdap_fixed_relative_proportions.index, choosers, locals_d)

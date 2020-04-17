@@ -369,12 +369,12 @@ def test_update_col(df):
     pdt.assert_series_equal(wrapped['a'], df['a'])
 
     # test 2 - let the update method do the cast
-    wrapped.update_col_from_series('a', pd.Series(), True)
+    wrapped.update_col_from_series('a', pd.Series(dtype='float64'), True)
     pdt.assert_series_equal(wrapped['a'], df['a'])
 
     # test 3 - don't cast, should raise an error
     with pytest.raises(ValueError):
-        wrapped.update_col_from_series('a', pd.Series())
+        wrapped.update_col_from_series('a', pd.Series(dtype='float64'))
 
     wrapped.update_col_from_series('a', pd.Series([99], index=['y']))
     pdt.assert_series_equal(

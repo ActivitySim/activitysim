@@ -4,7 +4,7 @@
 import os.path
 
 import pandas as pd
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 import pytest
 
 from .. import cdap

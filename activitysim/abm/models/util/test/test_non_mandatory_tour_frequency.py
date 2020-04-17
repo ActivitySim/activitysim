@@ -5,7 +5,7 @@
 import pytest
 import os
 import pandas as pd
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 from ..tour_frequency import process_non_mandatory_tours
 
 

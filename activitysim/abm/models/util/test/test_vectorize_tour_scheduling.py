@@ -6,7 +6,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 
 from activitysim.core import inject
 

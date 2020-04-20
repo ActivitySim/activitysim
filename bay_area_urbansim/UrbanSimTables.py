@@ -11,7 +11,7 @@ warnings.filterwarnings('ignore')
 
 
 # Importing data  
-zones = gpd.read_file('data/usim/Transportation_Analysis_Zones.shp')
+zones = pd.read_csv('data/usim/zones_shp.csv', index_col='TAZ')
 
 
 parcels = pd.read_csv('data/usim/parcels.csv', 
@@ -25,9 +25,9 @@ households = pd.read_csv('data/usim/households.csv',index_col = 'household_id')
 persons = pd.read_csv('data/usim/persons.csv',index_col = 'person_id')
 lu_mtc = pd.read_csv('data/usim/land_use_mtc.csv', index_col = 'TAZ')
 
-zones = zones[['taz1454','district', 'county', 'gacres']]
-zones.columns = ['TAZ','district', 'county', 'TOTACRE']
-zones.set_index('TAZ', inplace = True)
+# zones = zones[['taz1454','district', 'county', 'gacres']]
+# zones.columns = ['TAZ','district', 'county', 'TOTACRE']
+# zones.set_index('TAZ', inplace = True)
 parcels.index.rename('parcel_id', inplace = True)
 
 # In[4]:
@@ -351,6 +351,12 @@ orca.run(['persons_table'])
 
 #Exporting tables
 zones = orca.get_table('zones').to_frame()
+
+#Check the buildings table for this discrepanties
+# Zones with 0 CI >> This is just an easy fix for now
+missing_TAZ_CIACRE = zones[zones.CIACRE == 0]['CIACRE'].index
+zones.loc[missing_TAZ_CIACRE,'CIACRE'] = lu_mtc.loc[missing_TAZ_CIACRE,'CIACRE']
+
 zones.to_csv(os.getcwd() + '/data/land_use.csv')
 
 households = orca.get_table('households').to_frame()

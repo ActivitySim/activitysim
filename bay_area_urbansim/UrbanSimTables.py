@@ -11,19 +11,19 @@ warnings.filterwarnings('ignore')
 
 
 # Importing data  
-zones = pd.read_csv('data/usim/zones_shp.csv', index_col='TAZ')
+zones = pd.read_csv('s3://baus-data/spring_2019/zones_shp.csv', index_col='TAZ')
 
 
-parcels = pd.read_csv('data/usim/parcels.csv', 
+parcels = pd.read_csv('s3://baus-data/spring_2019/parcels.csv', 
                       index_col='primary_id', dtype={
                     'primary_id': int, 'block_id': str, 'apn': str})
 
-jobs = pd.read_csv('data/usim/jobs.csv',index_col = 'job_id')
-buildings = pd.read_csv('data/usim/buildings.csv',index_col = 'building_id')
-units = pd.read_csv('data/usim/units.csv',index_col = 'unit_id')
-households = pd.read_csv('data/usim/households.csv',index_col = 'household_id')
-persons = pd.read_csv('data/usim/persons.csv',index_col = 'person_id')
-lu_mtc = pd.read_csv('data/usim/land_use_mtc.csv', index_col = 'TAZ')
+jobs = pd.read_csv('s3://baus-data/spring_2019/jobs.csv',index_col = 'job_id')
+buildings = pd.read_csv('s3://baus-data/spring_2019/buildings.csv',index_col = 'building_id')
+units = pd.read_csv('s3://baus-data/spring_2019/units.csv',index_col = 'unit_id')
+households = pd.read_csv('s3://baus-data/spring_2019/households.csv',index_col = 'household_id')
+persons = pd.read_csv('s3://baus-data/spring_2019/persons.csv',index_col = 'person_id')
+lu_mtc = pd.read_csv('s3://baus-data/spring_2019/land_use_mtc.csv', index_col = 'TAZ')
 
 # zones = zones[['taz1454','district', 'county', 'gacres']]
 # zones.columns = ['TAZ','district', 'county', 'TOTACRE']

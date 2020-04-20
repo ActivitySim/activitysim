@@ -322,7 +322,7 @@ def choose_trip_destination(
     t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0)
 
     if trips.empty:
-        return pd.Series(index=trips.index), None
+        return pd.Series(index=trips.index).to_frame('choice'), None
 
     # - compute logsums
     destination_sample = compute_logsums(

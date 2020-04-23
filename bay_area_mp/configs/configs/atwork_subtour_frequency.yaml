@@ -1,0 +1,8 @@
+
+preprocessor:
+  SPEC: atwork_subtour_frequency_annotate_tours_preprocessor
+  DF: df
+  TABLES:
+    - land_use
+    - tours
+    - joint_tour_participants

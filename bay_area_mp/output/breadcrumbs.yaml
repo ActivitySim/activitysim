@@ -1,0 +1,19 @@
+- apportion: true
+  coalesce: true
+  completed:
+  - mp_initialize
+  name: mp_initialize
+  simulate: true
+- apportion: true
+  coalesce: true
+  completed:
+  - mp_households_1
+  - mp_households_0
+  name: mp_households
+  simulate: true
+- apportion: true
+  coalesce: true
+  completed:
+  - mp_summarize
+  name: mp_summarize
+  simulate: true

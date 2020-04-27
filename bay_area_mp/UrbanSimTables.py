@@ -30,9 +30,6 @@ lu_mtc = pd.read_csv('s3://baus-data/spring_2019/land_use_mtc.csv', index_col = 
 # zones.set_index('TAZ', inplace = True)
 parcels.index.rename('parcel_id', inplace = True)
 
-# In[4]:
-
-
 # #Sampling to make it faster 
 # buildings = buildings.sample(1000)
 # parcels = parcels[parcels.index.isin(buildings.parcel_id)]
@@ -42,7 +39,6 @@ parcels.index.rename('parcel_id', inplace = True)
 # jobs = jobs[jobs.building_id.isin(buildings.index)]
 
 
-# In[5]:
 orca.add_table('zones', zones)
 orca.add_table('parcels', parcels)
 orca.add_table('buildings', buildings)
@@ -69,6 +65,40 @@ def TAZ(units, households):
 @orca.column('persons')
 def TAZ(households, persons):
     return misc.reindex(households.TAZ, persons.household_id)
+
+# Adding home coordinates to persons
+@orca.column('buildings')
+def x(parcels, buildings):
+    return misc.reindex(parcels.x, buildings.parcel_id)
+
+@orca.column('buildings')
+def y(parcels, buildings):
+    return misc.reindex(parcels.y, buildings.parcel_id)
+
+@orca.column('units')
+def x(buildings, units):
+    return misc.reindex(buildings.x, units.building_id)
+
+@orca.column('units')
+def y(buildings, units):
+    return misc.reindex(buildings.y, units.building_id)
+
+@orca.column('households')
+def home_x(units, households):
+    return misc.reindex(units.x, households.unit_id)
+
+@orca.column('households')
+def home_y(units, households):
+    return misc.reindex(units.y, households.unit_id)
+
+
+@orca.column('persons')
+def home_x(households, persons):
+    return misc.reindex(households.home_x, persons.household_id)
+
+@orca.column('persons')
+def home_y(households, persons):
+    return misc.reindex(households.home_y, persons.household_id)
 
 #Adding columsn to the zones table
 @orca.column('zones')

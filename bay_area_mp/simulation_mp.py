@@ -102,9 +102,13 @@ if __name__ == '__main__':
         injectables = None
 
     run(run_list, injectables)
+    
+    # Generate beam activity plans
+    import activity_plans
 
     # pipeline will be close if multiprocessing
     # if you want access to tables, BE SURE TO OPEN WITH '_' or all tables will be reinitialized
     # pipeline.open_pipeline('_')
+    
 
     t0 = tracing.print_elapsed_time("everything", t0)

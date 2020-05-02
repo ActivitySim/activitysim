@@ -23,6 +23,7 @@ from shapely.geometry import Polygon
 from h3 import h3
 from urbansim.utils import misc
 import requests
+import openmatrix as omx
 
 from platform import python_version
 print('python version: ',python_version())
@@ -34,7 +35,7 @@ print('python version: ',python_version())
 
 
 #UrbanSim Results
-hdf = pd.HDFStore(path = os.getcwd() + '/ActivitySim_results/austin.H5')
+hdf = pd.HDFStore(path = 'https://storage.googleapis.com/urbansim_models/modeldata/mpo48197301/model_data.h5')
 households = hdf['/households']
 persons = hdf['/persons']
 blocks = hdf['/blocks']
@@ -45,13 +46,13 @@ skims = pd.read_csv('ActivitySim_results/skims.csv.gz')
 # In[4]:
 
 
-# Random sample of 500 blocks 
-blocks = blocks.sample(100)
-sample_blocks = blocks.index
-households = households[households.block_id.isin(sample_blocks)]
-sample_h = households.index
-persons = persons[persons.household_id.isin(sample_h)]
-jobs = jobs[jobs.block_id.isin(sample_blocks)]
+# Random sample of 1000 blocks 
+# blocks = blocks.sample(1000)
+# sample_blocks = blocks.index
+# households = households[households.block_id.isin(sample_blocks)]
+# sample_h = households.index
+# persons = persons[persons.household_id.isin(sample_h)]
+# jobs = jobs[jobs.block_id.isin(sample_blocks)]
 
 
 # # Tables
@@ -111,14 +112,40 @@ def schools():
         school_tables.append(enroll)
         
     enrollment = pd.concat(school_tables, axis = 0)
-    return enrollment[['ncessch','county_code','latitude','longitude', 'enrollment']].set_index('ncessch')
+    enrollment = enrollment[['ncessch','county_code','latitude','longitude', 'enrollment']].set_index('ncessch')
+    return enrollment.dropna()
+
+
+# In[8]:
+
+
+@orca.table(cache= True)
+def colleges():
+
+    base_url = 'https://educationdata.urban.org/api/v1/{topic}/{source}/{endpoint}/{year}/?{filters}'
+    county_codes = blocks.index.str.slice(0,5).unique()
+
+    colleges_list = []
+    for county in county_codes:
+        college_filters = 'county_fips={0}'.format(county)
+        college_url = base_url.format(topic='college-university', source='ipeds', endpoint='directory', 
+                                             year='2015', filters=college_filters)
+
+        college_result = requests.get(college_url)
+        college = pd.DataFrame(college_result.json()['results'])
+        colleges_list.append(college)
+
+    colleges = pd.concat(colleges_list)
+    colleges = colleges[['unitid', 'inst_name','longitude','latitude']].set_index('unitid')
+    colleges.rename(columns = {'longitude':'x', 'latitude':'y'}, inplace = True)
+    return colleges
 
 
 # # Variables
 
 # ### In Blocks table
 
-# In[8]:
+# In[9]:
 
 
 @orca.column('blocks', cache = True)
@@ -138,6 +165,7 @@ def TAZ(blocks, zones):
     
     #Buffer unassigned blocks until they reach a hexbin. 
     null_blocks = blocks_df[blocks_df.index_right.isnull()].drop(columns = ['index_right','area'])
+    print('Null values:', null_blocks.shape[0])
 
     result_list = []
     for index, block in null_blocks.iterrows():
@@ -160,7 +188,7 @@ def TAZ(blocks, zones):
     return blocks_df.index_right
 
 
-# In[9]:
+# In[10]:
 
 
 # %AREAS OF BLOCK BASED ON RESIDENTS AND EMPLOYEES PER BLOCK 
@@ -178,19 +206,19 @@ def CIACRE(blocks):
     total_pop = blocks.residential_unit_capacity + blocks.employment_capacity
     ci_pct = blocks.CI_employment/total_pop
     ci_acres = (ci_pct * blocks.square_meters_land)/4046.86 #1m2 = 4046.86acres
-    return ci_acres
+    return ci_acres.fillna(0.01)
 
 @orca.column('blocks')
 def RESACRE(blocks):
     total_pop = blocks.residential_unit_capacity + blocks.employment_capacity
     res_pct = blocks.residential_unit_capacity/total_pop
     res_acres = (res_pct * blocks.square_meters_land)/4046.86 #1m2 = 4046.86acres
-    return res_acres
+    return res_acres.fillna(0.01)
 
 
 # ### In Schools table
 
-# In[10]:
+# In[11]:
 
 
 @orca.column('schools', cache = True)
@@ -234,7 +262,76 @@ def TAZ(schools, zones):
     return school_all.index_right
 
 
-# In[11]:
+# ### In colleges table
+
+# In[12]:
+
+
+@orca.column('colleges')
+def full_time_enrollment():
+    base_url = 'https://educationdata.urban.org/api/v1/{t}/{so}/{e}/{y}/{l}/?{f}&{s}&{r}&{cl}&{ds}&{fips}'
+    levels = ['undergraduate','graduate']
+
+    enroll_list = []
+    for level in levels: 
+        base_url = base_url.format(t='college-university', so='ipeds', e='fall-enrollment', 
+                                   y='2015', l = level,f='ftpt=1', s = 'sex=99', 
+                                   r = 'race=99' , cl = 'class_level=99',ds = 'degree_seeking=99',
+                                   fips = 'fips=48')
+
+        enroll_result = requests.get(base_url)
+        enroll = pd.DataFrame(enroll_result.json()['results'])
+        enroll = enroll[['unitid', 'enrollment_fall']].rename(columns = {'enrollment_fall':level})
+        enroll.set_index('unitid', inplace = True)
+        enroll_list.append(enroll)
+
+    full_time = pd.concat(enroll_list, axis = 1)
+    full_time['full_time'] = full_time['undergraduate'] + full_time['graduate']
+    s = full_time.full_time
+    return s
+
+@orca.column('colleges')
+def part_time_enrollment():
+    base_url = 'https://educationdata.urban.org/api/v1/{t}/{so}/{e}/{y}/{l}/?{f}&{s}&{r}&{cl}&{ds}&{fips}'
+    levels = ['undergraduate','graduate']
+
+    enroll_list = []
+    for level in levels: 
+        base_url = base_url.format(t='college-university', so='ipeds', e='fall-enrollment', 
+                                   y='2015', l = level,f='ftpt=2', s = 'sex=99', 
+                                   r = 'race=99' , cl = 'class_level=99',ds = 'degree_seeking=99',
+                                   fips = 'fips=48')
+
+        enroll_result = requests.get(base_url)
+        enroll = pd.DataFrame(enroll_result.json()['results'])
+        enroll = enroll[['unitid', 'enrollment_fall']].rename(columns = {'enrollment_fall':level})
+        enroll.set_index('unitid', inplace = True)
+        enroll_list.append(enroll)
+
+    part_time = pd.concat(enroll_list, axis = 1)
+    part_time['part_time'] = part_time['undergraduate'] + part_time['graduate']
+    s = part_time.part_time
+    return s
+
+@orca.column('colleges', cache = True)
+def TAZ(colleges, zones):
+    #Tranform blocks to a Geopandas dataframe
+    colleges_df = colleges.to_frame(columns = ['x', 'y'])
+    h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
+    
+    colleges_df = gpd.GeoDataFrame(colleges_df, geometry=gpd.points_from_xy(colleges_df.x, colleges_df.y))
+
+    # Spatial join 
+    colleges_df = gpd.sjoin(colleges_df, h3_gpd, how = 'left', op = 'intersects')
+
+    #Drop duplicates and keep the one with the smallest H3 area
+    colleges_df = colleges_df.sort_values('area')
+    colleges_df.drop_duplicates(subset = ['x', 'y'], keep = 'first', inplace = True) 
+    
+    return colleges_df.index_right
+
+
+# In[13]:
 
 
 # # Plot of H3 bins with no block within it. 
@@ -250,7 +347,7 @@ def TAZ(schools, zones):
 
 # ### In household table
 
-# In[24]:
+# In[14]:
 
 
 # Adding H3 bin to all tables
@@ -265,7 +362,7 @@ def TAZ(blocks, households):
 
 # ### In Persons table
 
-# In[13]:
+# In[15]:
 
 
 @orca.column('persons')
@@ -327,7 +424,7 @@ def pstudent(persons):
 
 # ### In Jobs table
 
-# In[14]:
+# In[16]:
 
 
 @orca.column('jobs')
@@ -337,7 +434,7 @@ def TAZ(blocks, jobs):
 
 # ### In Zones table
 
-# In[15]:
+# In[17]:
 
 
 @orca.column('zones', cache=True)
@@ -507,46 +604,119 @@ def TOPOLOGY():
 
 # missing columns
 
-# In[16]:
+# In[18]:
 
 
-# # TO Columns
-# @orca.column('zones')
-# def COUNTY():
-# #     County id. Probably not important for modelling
-#     return 0
+#Parking variables
+@orca.column('zones')
+def employment_density(zones):
+    return zones.TOTEMP/zones.TOTACRE
+
+@orca.column('zones')
+def pop_density(zones):
+    return zones.HHPOP/zones.TOTACRE
+
+@orca.column('zones')
+def hh_density(zones):
+    return zones.TOTHH/zones.TOTACRE
+
+@orca.column('zones')
+def hq1_density(zones):
+    return zones.HHINCQ1/zones.TOTACRE
+
+@orca.column('zones')
+def PRKCST(zones):
+    params = pd.Series([-1.92168743,  4.89511403,  4.2772001 ,  0.65784643], 
+                       index = ['pop_density', 'hh_density', 'hq1_density', 'employment_density'])
+    
+    cols = zones.to_frame(columns = ['employment_density', 'pop_density', 'hh_density', 'hq1_density'])
+    
+    s = cols @ params
+    return s.where(s>0, 0)
+
+@orca.column('zones')
+def OPRKCST(zones):
+    params = pd.Series([-6.17833544, 17.55155703,  2.0786466 ], 
+                       index = ['pop_density', 'hh_density', 'employment_density'])
+    
+    cols = zones.to_frame(columns = ['employment_density', 'pop_density', 'hh_density'])
+    
+    s = cols @ params
+    return s.where(s>0, 0)
 
 
-# @orca.column('zones')
-# def PRKCST():
-# #     Hourly parking rate paid by long-term (8-hours) parkers (year 2000 cents)
-#     return 0
-
-# @orca.column('zones')
-# def OPRKCST(Ff):
-# #     Hourly parking rate paid by short-term parkers (year 2000 cents)
-#     return 0
-
-# @orca.column('zones')
-# def area_type():
-# #     Integer, 0=regional core, 1=central business district, 2=urban business, 3=urban, 4=suburban, 5=rural
-#     return 0
+# In[19]:
 
 
-# @orca.column('zones') # College enrollment 
-# def COLLFTE():
-# #     College students enrolled full-time at colleges in this TAZ
-#     return 0
+@orca.column('zones') # College enrollment 
+def COLLFTE(colleges, zones):
+    s = colleges.to_frame().groupby('TAZ')['full_time_enrollment'].sum()
+    return s.reindex(zones.index).fillna(0)
 
-# @orca.column('zones')
-# def COLLPTE():
-# #     College students enrolled part-time at colleges in this TAZ
-#     return 0
+@orca.column('zones') # College enrollment 
+def COLLPTE(colleges, zones):
+    s = colleges.to_frame().groupby('TAZ')['part_time_enrollment'].sum()
+    return s.reindex(zones.index).fillna(0)
 
-# @orca.column('zones')
-# def TERMINAL():
-# #     Average time to travel from automobile storage location to origin/destination
-#     return 0
+
+# In[20]:
+
+
+@orca.column('zones')
+def area_type():
+#     Integer, 0=regional core, 1=central business district, 2=urban business, 3=urban, 4=suburban, 5=rural
+    return 0 #Assuming all regional core
+
+
+# ## Skims info
+
+# In[21]:
+
+
+num_hours = len(skims['hour'].unique())
+num_modes = len(skims['mode'].unique())
+num_od_pairs = len(skims) / num_hours / num_modes
+num_taz = np.sqrt(num_od_pairs)
+assert num_taz.is_integer()
+num_taz = int(num_taz)
+
+hwy_paths = ['SOV', 'HOV2', 'HOV3', 'SOVTOLL', 'HOV2TOLL', 'HOV3TOLL']
+transit_modes = ['COM', 'EXP', 'HVY', 'LOC', 'LRF', 'TRN']
+access_modes = ['WLK', 'DRV']
+egress_modes = ['WLK']
+active_modes = ['WALK', 'BIKE']
+periods = ['EA', 'AM', 'MD', 'PM', 'EV']
+
+# TO DO: fix bridge toll vs vehicle toll
+beam_asim_hwy_measure_map = {
+    'TIME': 'generalizedTimeInS',
+    'DIST': 'distanceInM',
+    'BTOLL': 'generalizedCost',
+    'VTOLL': 'generalizedCost'}
+
+# TO DO: get actual values here
+beam_asim_transit_measure_map = {
+    'WAIT': None,  # other wait time?
+    'TOTIVT': 'generalizedTimeInS',  # total in-vehicle time
+    'KEYIVT': None,  # light rail IVT
+    'FERRYIVT': None,  # ferry IVT
+    'FAR': 'generalizedCost',  # fare
+    'DTIM': None,  # drive time
+    'DDIST': None,  # drive dist
+    'WAUX': None,  # walk other time
+    'WEGR': None,  # walk egress time
+    'WACC': None,  # walk access time
+    'IWAIT': None,  # iwait?
+    'XWAIT': None,  # transfer wait time
+    'BOARDS': None  # transfers
+    }
+
+
+
+
+# ## Steps
+
+# In[28]:
 
 
 @orca.step()
@@ -560,6 +730,10 @@ def households_table(households):
     df = df[~df.TAZ.isnull()]
     df.to_csv('households.csv')
 
+
+# In[29]:
+
+
 @orca.step()
 def persons_table(persons):
     names_dict = {'member_id': 'PNUM'}
@@ -567,9 +741,68 @@ def persons_table(persons):
     df = df[~df.TAZ.isnull()]
     df.to_csv('persons.csv')
 
+
+# In[30]:
+
+
 @orca.step()
 def land_use_table(zones):
     df = orca.get_table('zones').to_frame()
     df.to_csv('land_use.csv')
+
+
+# In[31]:
+
+
+@orca.step()
+def skims_omx(skims):
     
-orca.run(['households_table','persons_table','land_use_table'])
+    skims_df = skims.to_frame()
+    
+
+    skims = omx.open_file('skims.omx', 'w')
+    # TO DO: get separate walk skims from beam so we don't just have to use
+    # bike distances for walk distances
+
+    for mode in active_modes:
+        name = 'DIST{0}__'.format(mode)
+        tmp_df = skims_df[(skims_df['mode'] == 'BIKE')]
+        vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
+        mx = vals.reshape((num_taz, num_taz))
+        skims[name] = mx
+    
+    for period in periods:
+        df = skims_df
+
+        # highway skims
+        for path in hwy_paths:
+            tmp_df = df[(df['mode'] == 'CAR')]
+            for measure in beam_asim_hwy_measure_map.keys():
+                name = '{0}_{1}__{2}'.format(path, measure, period)
+                vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
+                mx = vals.reshape((num_taz, num_taz))
+                skims[name] = mx
+
+        # transit skims
+        for transit_mode in transit_modes:
+            for access_mode in access_modes:
+                for egress_mode in egress_modes:
+                    path = '{0}_{1}_{2}'.format(
+                        access_mode, transit_mode, egress_mode)
+                    for measure in beam_asim_transit_measure_map.keys():
+                        name = '{0}_{1}__{2}'.format(path, measure, period)
+
+                        # TO DO: something better than setting zero-ing out
+                        # all skim values we don't have
+                        if beam_asim_transit_measure_map[measure]:
+                            vals = tmp_df[beam_asim_transit_measure_map[measure]].values
+                            mx = vals.reshape((num_taz, num_taz))
+                        else:
+                            mx = np.zeros((num_taz, num_taz))
+                            skims[name] = mx
+
+
+# In[32]:
+
+
+orca.run(['households_table','persons_table','land_use_table','skims_omx'])

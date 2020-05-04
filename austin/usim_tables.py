@@ -27,7 +27,6 @@ import openmatrix as omx
 from platform import python_version
 print('python version: ',python_version())
 
-
 # austin data
 hdf = pd.HDFStore('data/model_data.h5')
 households = hdf['/households']
@@ -65,8 +64,9 @@ def zones(skims):
 
     #Organize information in a GeoPandas dataframe to merge with blocks
     h3_zones = gpd.GeoDataFrame(zone_ids, geometry = polygon_shapes, crs = "EPSG:4326")
-    h3_zones.columns = ['TAZ', 'geometry']
+    h3_zones.columns = ['h3_id', 'geometry']
     h3_zones['area'] = h3_zones.geometry.area
+    h3_zones['TAZ'] = list(range(1, len(zone_ids)+1))
     return h3_zones.set_index('TAZ')
 
 
@@ -144,7 +144,6 @@ def TAZ(blocks, zones):
     
     #Buffer unassigned blocks until they reach a hexbin. 
     null_blocks = blocks_df[blocks_df.index_right.isnull()].drop(columns = ['index_right','area'])
-    print('Null values:', null_blocks.shape[0])
 
     result_list = []
     for index, block in null_blocks.iterrows():
@@ -334,9 +333,10 @@ def TAZ(colleges, zones):
 def TAZ(blocks, households):
     return misc.reindex(blocks.TAZ, households.block_id)
 
-# @orca.column('households')
-# def HHT(households):
-#     return households.single_family.replace({True: 4, False: 1})
+@orca.column('households')
+def HHT(households):
+    s = households.persons
+    return s.where(s==1, 4)
 
 
 # ### In Persons table
@@ -662,7 +662,7 @@ num_taz = int(num_taz)
 hwy_paths = ['SOV', 'HOV2', 'HOV3', 'SOVTOLL', 'HOV2TOLL', 'HOV3TOLL']
 transit_modes = ['COM', 'EXP', 'HVY', 'LOC', 'LRF', 'TRN']
 access_modes = ['WLK', 'DRV']
-egress_modes = ['WLK']
+egress_modes = ['WLK', 'DRV']
 active_modes = ['WALK', 'BIKE']
 periods = ['EA', 'AM', 'MD', 'PM', 'EV']
 
@@ -687,7 +687,8 @@ beam_asim_transit_measure_map = {
     'WACC': None,  # walk access time
     'IWAIT': None,  # iwait?
     'XWAIT': None,  # transfer wait time
-    'BOARDS': None  # transfers
+    'BOARDS': None,  # transfers
+    'IVT':'generalizedTimeInS' #In vehicle travel time
     }
 
 
@@ -742,9 +743,15 @@ def skims_omx(skims):
     skims = omx.open_file('data/skims.omx', 'w')
     # TO DO: get separate walk skims from beam so we don't just have to use
     # bike distances for walk distances
+    
+    #Adding distance
+    tmp_df = skims_df[(skims_df['mode'] == 'CAR')]
+    vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
+    mx = vals.reshape((num_taz, num_taz))
+    skims['DIST'] = mx
 
     for mode in active_modes:
-        name = 'DIST{0}__'.format(mode)
+        name = 'DIST{0}'.format(mode)
         tmp_df = skims_df[(skims_df['mode'] == 'BIKE')]
         vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
         mx = vals.reshape((num_taz, num_taz))
@@ -778,7 +785,7 @@ def skims_omx(skims):
                             mx = vals.reshape((num_taz, num_taz))
                         else:
                             mx = np.zeros((num_taz, num_taz))
-                            skims[name] = mx
+                        skims[name] = mx
 
 
 # In[32]:

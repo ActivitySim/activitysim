@@ -35,14 +35,15 @@ print('python version: ',python_version())
 
 
 #UrbanSim Results
-hdf = pd.HDFStore(path = 'https://storage.googleapis.com/urbansim_models/modeldata/mpo48197301/model_data.h5')
+path_to_file = '/Users/juandavidcaicedocastro/Documents/BERKELEY/08_GSR/ActivitySim_results/austin.h5'
+path_to_skims = '/Users/juandavidcaicedocastro/Documents/BERKELEY/08_GSR/ActivitySim_results/skims.csv.gz'
+
+hdf = pd.HDFStore(path = path_to_file)
 households = hdf['/households']
 persons = hdf['/persons']
 blocks = hdf['/blocks']
 jobs = hdf['/jobs']
-skims = pd.read_csv('ActivitySim_results/skims.csv.gz')
-
-
+skims = pd.read_csv(path_to_skims)
 # In[4]:
 
 
@@ -86,8 +87,9 @@ def zones(skims):
 
     #Organize information in a GeoPandas dataframe to merge with blocks
     h3_zones = gpd.GeoDataFrame(zone_ids, geometry = polygon_shapes, crs = "EPSG:4326")
-    h3_zones.columns = ['TAZ', 'geometry']
+    h3_zones.columns = ['h3_id', 'geometry']
     h3_zones['area'] = h3_zones.geometry.area
+    h3_zones['TAZ'] = list(range(1, len(zone_ids)+1))
     return h3_zones.set_index('TAZ')
 
 
@@ -165,7 +167,6 @@ def TAZ(blocks, zones):
     
     #Buffer unassigned blocks until they reach a hexbin. 
     null_blocks = blocks_df[blocks_df.index_right.isnull()].drop(columns = ['index_right','area'])
-    print('Null values:', null_blocks.shape[0])
 
     result_list = []
     for index, block in null_blocks.iterrows():
@@ -355,9 +356,10 @@ def TAZ(colleges, zones):
 def TAZ(blocks, households):
     return misc.reindex(blocks.TAZ, households.block_id)
 
-# @orca.column('households')
-# def HHT(households):
-#     return households.single_family.replace({True: 4, False: 1})
+@orca.column('households')
+def HHT(households):
+    s = households.persons
+    return s.where(s==1, 4)
 
 
 # ### In Persons table
@@ -683,7 +685,7 @@ num_taz = int(num_taz)
 hwy_paths = ['SOV', 'HOV2', 'HOV3', 'SOVTOLL', 'HOV2TOLL', 'HOV3TOLL']
 transit_modes = ['COM', 'EXP', 'HVY', 'LOC', 'LRF', 'TRN']
 access_modes = ['WLK', 'DRV']
-egress_modes = ['WLK']
+egress_modes = ['WLK', 'DRV']
 active_modes = ['WALK', 'BIKE']
 periods = ['EA', 'AM', 'MD', 'PM', 'EV']
 
@@ -708,7 +710,8 @@ beam_asim_transit_measure_map = {
     'WACC': None,  # walk access time
     'IWAIT': None,  # iwait?
     'XWAIT': None,  # transfer wait time
-    'BOARDS': None  # transfers
+    'BOARDS': None,  # transfers
+    'IVT':'generalizedTimeInS' #In vehicle travel time
     }
 
 
@@ -728,7 +731,7 @@ def households_table(households):
     
     df = households.to_frame().rename(columns = names_dict)
     df = df[~df.TAZ.isnull()]
-    df.to_csv('households.csv')
+    df.to_csv('data/households.csv')
 
 
 # In[29]:
@@ -739,7 +742,7 @@ def persons_table(persons):
     names_dict = {'member_id': 'PNUM'}
     df = persons.to_frame().rename(columns = names_dict)
     df = df[~df.TAZ.isnull()]
-    df.to_csv('persons.csv')
+    df.to_csv('data/persons.csv')
 
 
 # In[30]:
@@ -748,7 +751,7 @@ def persons_table(persons):
 @orca.step()
 def land_use_table(zones):
     df = orca.get_table('zones').to_frame()
-    df.to_csv('land_use.csv')
+    df.to_csv('data/land_use.csv')
 
 
 # In[31]:
@@ -760,12 +763,18 @@ def skims_omx(skims):
     skims_df = skims.to_frame()
     
 
-    skims = omx.open_file('skims.omx', 'w')
+    skims = omx.open_file('data/skims.omx', 'w')
     # TO DO: get separate walk skims from beam so we don't just have to use
     # bike distances for walk distances
+    
+    #Adding distance
+    tmp_df = skims_df[(skims_df['mode'] == 'CAR')]
+    vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
+    mx = vals.reshape((num_taz, num_taz))
+    skims['DIST'] = mx
 
     for mode in active_modes:
-        name = 'DIST{0}__'.format(mode)
+        name = 'DIST{0}'.format(mode)
         tmp_df = skims_df[(skims_df['mode'] == 'BIKE')]
         vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
         mx = vals.reshape((num_taz, num_taz))
@@ -799,7 +808,7 @@ def skims_omx(skims):
                             mx = vals.reshape((num_taz, num_taz))
                         else:
                             mx = np.zeros((num_taz, num_taz))
-                            skims[name] = mx
+                        skims[name] = mx
 
 
 # In[32]:

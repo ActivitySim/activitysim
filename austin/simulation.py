@@ -29,7 +29,7 @@ persons_table = path.exists("data/persons.csv")
 households_table = path.exists("data/households.csv")
 land_use_table = path.exists("data/land_use.csv")
 if not persons_table & households_table & land_use_table:
-    import usim_tables
+    from data import usim_tables
 
 logger = logging.getLogger('activitysim')
 

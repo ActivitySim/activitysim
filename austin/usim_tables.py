@@ -15,7 +15,6 @@ warnings.filterwarnings("ignore")
 import numpy as np 
 import pandas as pd
 import os
-import seaborn as sns
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import orca
@@ -29,42 +28,22 @@ from platform import python_version
 print('python version: ',python_version())
 
 
-# # Loading data
-
-# In[3]:
-
-
-#UrbanSim Results
-hdf = pd.HDFStore(path = 'https://storage.googleapis.com/urbansim_models/modeldata/mpo48197301/model_data.h5')
+# austin data
+hdf = pd.HDFStore('data/model_data.h5')
 households = hdf['/households']
 persons = hdf['/persons']
 blocks = hdf['/blocks']
 jobs = hdf['/jobs']
-skims = pd.read_csv('ActivitySim_results/skims.csv.gz')
-
-
-# In[4]:
-
-
-# Random sample of 1000 blocks 
-# blocks = blocks.sample(1000)
-# sample_blocks = blocks.index
-# households = households[households.block_id.isin(sample_blocks)]
-# sample_h = households.index
-# persons = persons[persons.household_id.isin(sample_h)]
-# jobs = jobs[jobs.block_id.isin(sample_blocks)]
-
-
-# # Tables
-
-# In[5]:
-
+skims = pd.read_csv(
+    'https://beam-outputs.s3.amazonaws.com/output/austin/'
+    'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
+    'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
 
 orca.add_table('households', households)
 orca.add_table('persons', persons)
 orca.add_table('blocks', blocks)
 orca.add_table('jobs', jobs)
-orca.add_table('skims', skims);
+orca.add_table('skims', skims)
 
 
 # In[6]:
@@ -728,7 +707,7 @@ def households_table(households):
     
     df = households.to_frame().rename(columns = names_dict)
     df = df[~df.TAZ.isnull()]
-    df.to_csv('households.csv')
+    df.to_csv('data/households.csv')
 
 
 # In[29]:
@@ -739,7 +718,7 @@ def persons_table(persons):
     names_dict = {'member_id': 'PNUM'}
     df = persons.to_frame().rename(columns = names_dict)
     df = df[~df.TAZ.isnull()]
-    df.to_csv('persons.csv')
+    df.to_csv('data/persons.csv')
 
 
 # In[30]:
@@ -748,7 +727,7 @@ def persons_table(persons):
 @orca.step()
 def land_use_table(zones):
     df = orca.get_table('zones').to_frame()
-    df.to_csv('land_use.csv')
+    df.to_csv('data/land_use.csv')
 
 
 # In[31]:
@@ -760,7 +739,7 @@ def skims_omx(skims):
     skims_df = skims.to_frame()
     
 
-    skims = omx.open_file('skims.omx', 'w')
+    skims = omx.open_file('data/skims.omx', 'w')
     # TO DO: get separate walk skims from beam so we don't just have to use
     # bike distances for walk distances
 

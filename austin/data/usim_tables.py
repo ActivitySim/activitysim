@@ -669,6 +669,19 @@ def area_type():
 #     Integer, 0=regional core, 1=central business district, 2=urban business, 3=urban, 4=suburban, 5=rural
     return 0 #Assuming all regional core
 
+@orca.column('zones')
+def TERMINAL():
+    #TO DO: 
+    #Improve the imputation of this variable
+    # Average time to travel from automobile storage location to origin/destination
+    # We assume zero for now
+    return 0 #Assuming O
+
+@orca.column('zones')
+def COUNTY():
+    #TO DO: 
+    #County variable (approximate to Bay area characteristics )
+    return 1 #Assuming 1 all San Francisco County
 
 # ## Skims info
 
@@ -691,9 +704,9 @@ periods = ['EA', 'AM', 'MD', 'PM', 'EV']
 
 # TO DO: fix bridge toll vs vehicle toll
 beam_asim_hwy_measure_map = {
-    'TIME': 'generalizedTimeInS',
-    'DIST': 'distanceInM',
-    'BTOLL': 'generalizedCost',
+    'TIME': 'gen_cost_min',
+    'DIST': 'dist_miles',
+    'BTOLL': None,
     'VTOLL': 'generalizedCost'}
 
 # TO DO: get actual values here
@@ -761,7 +774,8 @@ def land_use_table(zones):
 def skims_omx(skims):
     
     skims_df = skims.to_frame()
-    
+    skims_df['dist_miles'] = skims_df['distanceInM']*(0.621371/1000)
+    skims_df['gen_cost_min'] = skims_df['generalizedTimeInS']/(60)
 
     skims = omx.open_file('data/skims.omx', 'w')
     # TO DO: get separate walk skims from beam so we don't just have to use
@@ -788,9 +802,14 @@ def skims_omx(skims):
             tmp_df = df[(df['mode'] == 'CAR')]
             for measure in beam_asim_hwy_measure_map.keys():
                 name = '{0}_{1}__{2}'.format(path, measure, period)
-                vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
-                mx = vals.reshape((num_taz, num_taz))
+                if beam_asim_hwy_measure_map[measure]:
+                    vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
+                    mx = vals.reshape((num_taz, num_taz))
+                else:
+                    mx = np.zeros((num_taz, num_taz))
                 skims[name] = mx
+#                 vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
+#                 mx = vals.reshape((num_taz, num_taz))
 
         # transit skims
         for transit_mode in transit_modes:

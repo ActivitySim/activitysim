@@ -26,7 +26,34 @@ hdf = pd.HDFStore(path = 'output/pipeline.h5', mode = 'a')
 # Loading trips and persons
 trips = hdf['/trips/trip_mode_choice'].sort_values(['person_id','depart'])
 persons = hdf['/persons/trip_mode_choice']
-zones_shp = gpd.read_file("data/zone_files/Transportation_Analysis_Zones.shp")
+skims = pd.read_csv(
+    'https://beam-outputs.s3.amazonaws.com/output/austin/'
+    'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
+    'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
+#This should be the H3 geopandas file
+# zones_shp = gpd.read_file("data/zone_files/Transportation_Analysis_Zones.shp")
+
+def zones(skims):
+    """
+    Returns a GeoPandasDataframe with the H3 hexbins information 
+    """
+    zone_ids = skims.origTaz.unique()
+    
+    #Get boundaries of the H3 hexbins
+    polygon_shapes = []
+    for zone in zone_ids:
+        boundary_points = h3.h3_to_geo_boundary(h3_address=zone, geo_json=True)
+        shape = Polygon(boundary_points)
+        polygon_shapes.append(shape)
+
+    #Organize information in a GeoPandas dataframe to merge with blocks
+    h3_zones = gpd.GeoDataFrame(zone_ids, geometry = polygon_shapes, crs = "EPSG:4326")
+    h3_zones.columns = ['h3_id', 'geometry']
+    h3_zones['area'] = h3_zones.geometry.area
+    h3_zones['TAZ'] = list(range(1, len(zone_ids)+1))
+    return h3_zones.set_index('TAZ')
+
+zones_shp = zones(skims)
 
 #Closes boundary loops
 zones_shp.geometry = zones_shp.geometry.buffer(0)

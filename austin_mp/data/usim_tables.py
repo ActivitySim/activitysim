@@ -15,7 +15,6 @@ warnings.filterwarnings("ignore")
 import numpy as np 
 import pandas as pd
 import os
-import seaborn as sns
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import orca
@@ -35,15 +34,16 @@ print('python version: ',python_version())
 
 
 #UrbanSim Results
-path_to_file = '/Users/juandavidcaicedocastro/Documents/BERKELEY/08_GSR/ActivitySim_results/austin.h5'
-path_to_skims = '/Users/juandavidcaicedocastro/Documents/BERKELEY/08_GSR/ActivitySim_results/skims.csv.gz'
 
-hdf = pd.HDFStore(path = path_to_file)
+hdf = pd.HDFStore('data/model_data.h5')
 households = hdf['/households']
 persons = hdf['/persons']
 blocks = hdf['/blocks']
 jobs = hdf['/jobs']
-skims = pd.read_csv(path_to_skims)
+skims = pd.read_csv(
+    'https://beam-outputs.s3.amazonaws.com/output/austin/'
+    'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
+    'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
 # In[4]:
 
 

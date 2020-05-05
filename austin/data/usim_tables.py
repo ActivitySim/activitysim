@@ -37,6 +37,8 @@ skims = pd.read_csv(
     'https://beam-outputs.s3.amazonaws.com/output/austin/'
     'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
     'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
+skims['distanceInMi'] = skims['distanceInM'] / 1609.34
+skims['generalizedTimeInM'] = skims['generalizedTimeInS'] / 60
 
 orca.add_table('households', households)
 orca.add_table('persons', persons)
@@ -401,19 +403,16 @@ def pstudent(persons):
     return pstudent_1
 
 
-# ### In Jobs table
-
-# In[16]:
-
 
 @orca.column('jobs')
 def TAZ(blocks, jobs):
     return misc.reindex(blocks.TAZ, jobs.block_id)
 
 
-# ### In Zones table
-
-# In[17]:
+# TO DO: get counties for each h3
+@orca.column('zones')
+def COUNTY(zones):
+    return 1
 
 
 @orca.column('zones', cache=True)
@@ -624,9 +623,6 @@ def OPRKCST(zones):
     return s.where(s>0, 0)
 
 
-# In[19]:
-
-
 @orca.column('zones') # College enrollment 
 def COLLFTE(colleges, zones):
     s = colleges.to_frame().groupby('TAZ')['full_time_enrollment'].sum()
@@ -638,7 +634,11 @@ def COLLPTE(colleges, zones):
     return s.reindex(zones.index).fillna(0)
 
 
-# In[20]:
+@orca.column('zones')
+def TERMINAL(zones):
+
+    # assuming zero terminal time for each zone
+    return 0
 
 
 @orca.column('zones')
@@ -646,10 +646,6 @@ def area_type():
 #     Integer, 0=regional core, 1=central business district, 2=urban business, 3=urban, 4=suburban, 5=rural
     return 0 #Assuming all regional core
 
-
-# ## Skims info
-
-# In[21]:
 
 
 num_hours = len(skims['hour'].unique())
@@ -668,15 +664,15 @@ periods = ['EA', 'AM', 'MD', 'PM', 'EV']
 
 # TO DO: fix bridge toll vs vehicle toll
 beam_asim_hwy_measure_map = {
-    'TIME': 'generalizedTimeInS',
-    'DIST': 'distanceInM',
-    'BTOLL': 'generalizedCost',
+    'TIME': 'generalizedTimeInM',
+    'DIST': 'distanceInMi',
+    'BTOLL': None,
     'VTOLL': 'generalizedCost'}
 
 # TO DO: get actual values here
 beam_asim_transit_measure_map = {
     'WAIT': None,  # other wait time?
-    'TOTIVT': 'generalizedTimeInS',  # total in-vehicle time
+    'TOTIVT': 'generalizedTimeInM',  # total in-vehicle time
     'KEYIVT': None,  # light rail IVT
     'FERRYIVT': None,  # ferry IVT
     'FAR': 'generalizedCost',  # fare
@@ -688,8 +684,8 @@ beam_asim_transit_measure_map = {
     'IWAIT': None,  # iwait?
     'XWAIT': None,  # transfer wait time
     'BOARDS': None,  # transfers
-    'IVT':'generalizedTimeInS' #In vehicle travel time
-    }
+    'IVT': 'generalizedTimeInM'  # In vehicle travel time
+}
 
 
 
@@ -765,8 +761,11 @@ def skims_omx(skims):
             tmp_df = df[(df['mode'] == 'CAR')]
             for measure in beam_asim_hwy_measure_map.keys():
                 name = '{0}_{1}__{2}'.format(path, measure, period)
-                vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
-                mx = vals.reshape((num_taz, num_taz))
+                if beam_asim_hwy_measure_map[measure]:
+                    vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
+                    mx = vals.reshape((num_taz, num_taz))
+                else:
+                    mx = np.zeros((num_taz, num_taz))
                 skims[name] = mx
 
         # transit skims

@@ -98,7 +98,7 @@ models:
   - write_tables
 
 # to resume after last successful checkpoint, specify resume_after: _
-# resume_after: workplace_location
+resume_after: auto_ownership_simulate
 
 output_tables:
   h5_store: False

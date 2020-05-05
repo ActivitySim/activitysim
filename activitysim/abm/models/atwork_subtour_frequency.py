@@ -93,8 +93,6 @@ def atwork_subtour_frequency(tours,
         trace_choice_name='atwork_subtour_frequency',
         estimator=estimator)
 
-    print("choices\n%s" % choices)
-
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
 

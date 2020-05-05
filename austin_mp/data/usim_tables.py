@@ -27,7 +27,14 @@ import openmatrix as omx
 from platform import python_version
 print('python version: ',python_version())
 
-# austin data
+
+# # Loading data
+
+# In[3]:
+
+
+#UrbanSim Results
+
 hdf = pd.HDFStore('data/model_data.h5')
 households = hdf['/households']
 persons = hdf['/persons']
@@ -37,12 +44,28 @@ skims = pd.read_csv(
     'https://beam-outputs.s3.amazonaws.com/output/austin/'
     'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
     'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
+# In[4]:
+
+
+# Random sample of 1000 blocks 
+# blocks = blocks.sample(1000)
+# sample_blocks = blocks.index
+# households = households[households.block_id.isin(sample_blocks)]
+# sample_h = households.index
+# persons = persons[persons.household_id.isin(sample_h)]
+# jobs = jobs[jobs.block_id.isin(sample_blocks)]
+
+
+# # Tables
+
+# In[5]:
+
 
 orca.add_table('households', households)
 orca.add_table('persons', persons)
 orca.add_table('blocks', blocks)
 orca.add_table('jobs', jobs)
-orca.add_table('skims', skims)
+orca.add_table('skims', skims);
 
 
 # In[6]:

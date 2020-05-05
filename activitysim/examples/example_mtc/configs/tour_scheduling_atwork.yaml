@@ -1,3 +1,7 @@
+
+SPEC: tour_scheduling_atwork.csv
+COEFFICIENTS: tour_scheduling_atwork_coeffs.csv
+
 preprocessor:
   SPEC: tour_scheduling_atwork_preprocessor
   DF: df

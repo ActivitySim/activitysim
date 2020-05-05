@@ -63,15 +63,15 @@ def log_settings(injectables):
 
 if __name__ == '__main__':
 
-    inject.add_injectable('data_dir', '../example/data')
-    inject.add_injectable('configs_dir', ['configs', '../example/configs'])
+    inject.add_injectable('data_dir', 'data')
+    inject.add_injectable('configs_dir', 'configs')
 
-    injectables = config.handle_standard_args()
+    config.handle_standard_args()
 
     config.filter_warnings()
     tracing.config_logger()
 
-    log_settings(injectables)
+    #log_settings(injectables)
 
     t0 = tracing.print_elapsed_time()
 

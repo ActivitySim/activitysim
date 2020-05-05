@@ -187,7 +187,7 @@ def compute_logsums(
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     omnibus_coefficient_spec = \
-        assign.read_constant_spec(config.config_file_path(logsum_settings['COEFFS']))
+        assign.read_constant_spec(config.config_file_path(logsum_settings['COEFFICIENTS']))
 
     coefficient_spec = omnibus_coefficient_spec[primary_purpose]
 
@@ -452,8 +452,8 @@ def run_trip_destination(
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
-    tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(int)
-    tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(int)
+    tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(np.int64)
+    tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(np.int64)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
     trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
     trips['failed'] = False

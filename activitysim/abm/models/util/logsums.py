@@ -8,23 +8,11 @@ from activitysim.core import config
 
 from activitysim.core.assign import evaluate_constants
 
-from .mode import tour_mode_choice_spec
-from .mode import tour_mode_choice_coeffecients_spec
-
 
 from . import expressions
 
 
 logger = logging.getLogger(__name__)
-
-
-def get_logsum_spec(model_settings):
-
-    return tour_mode_choice_spec(model_settings)
-
-
-def get_coeffecients_spec(model_settings):
-    return tour_mode_choice_coeffecients_spec(model_settings)
 
 
 def filter_chooser_columns(choosers, logsum_settings, model_settings):
@@ -72,11 +60,6 @@ def compute_logsums(choosers,
 
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
 
-    logsum_spec = get_logsum_spec(logsum_settings)
-
-    omnibus_coefficient_spec = get_coeffecients_spec(logsum_settings)
-    coefficient_spec = omnibus_coefficient_spec[tour_purpose]
-
     # compute_logsums needs to know name of dest column in interaction_sample
     orig_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
     dest_col_name = model_settings['ALT_DEST_COL_NAME']
@@ -89,7 +72,13 @@ def compute_logsums(choosers,
     assert ('duration' not in choosers)
     choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
 
+    logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
+    coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)
+    logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients)
+
     nest_spec = config.get_logit_model_settings(logsum_settings)
+    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
+
     constants = config.get_model_constants(logsum_settings)
 
     logger.debug("Running compute_logsums with %d choosers" % choosers.shape[0])
@@ -109,9 +98,12 @@ def compute_logsums(choosers,
         'dest_col_name': dest_col_name
     }
 
-    locals_dict = evaluate_constants(coefficient_spec, constants=constants)
+    locals_dict = {}
     locals_dict.update(constants)
     locals_dict.update(skims)
+
+    # constrained coefficients can appear in expressions
+    locals_dict.update(coefficients)
 
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers

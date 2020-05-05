@@ -26,7 +26,9 @@ def _interaction_sample_simulate(
         allow_zero_probs, zero_prob_choice_val,
         want_logsums,
         skims, locals_d,
-        trace_label=None, trace_choice_name=None):
+        trace_label, trace_choice_name,
+        estimator):
+
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -138,7 +140,7 @@ def _interaction_sample_simulate(
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in alternative
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
+        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
     del interaction_df
@@ -304,7 +306,8 @@ def interaction_sample_simulate(
         allow_zero_probs=False, zero_prob_choice_val=None,
         want_logsums=False,
         skims=None, locals_d=None, chunk_size=0,
-        trace_label=None, trace_choice_name=None):
+        trace_label=None, trace_choice_name=None,
+        estimator=None):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -381,7 +384,8 @@ def interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
             allow_zero_probs, zero_prob_choice_val, want_logsums,
             skims, locals_d,
-            chunk_trace_label, trace_choice_name)
+            chunk_trace_label, trace_choice_name,
+            estimator)
 
         chunk.log_close(chunk_trace_label)
 

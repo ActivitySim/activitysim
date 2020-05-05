@@ -703,6 +703,13 @@ def replace_table(table_name, df):
 
     be_open()
 
+    if df.columns.duplicated().any():
+        logger.error("replace_table: dataframe '%s' has duplicate columns: %s" %
+                     (table_name, df.columns[df.columns.duplicated()]))
+
+        raise RuntimeError("replace_table: dataframe '%s' has duplicate columns: %s" %
+                           (table_name, df.columns[df.columns.duplicated()]))
+
     rewrap(table_name, df)
 
     _PIPELINE.replaced_tables[table_name] = True
@@ -728,10 +735,6 @@ def extend_table(table_name, df, axis=0):
         table_df = orca.get_table(table_name).to_frame()
 
         if axis == 0:
-
-            # if len(table_df.index.intersection(df.index)) > 0:
-            #     print(table_df.index.intersection(df.index))
-
             # don't expect indexes to overlap
             assert len(table_df.index.intersection(df.index)) == 0
             missing_df_str_columns = [c for c in table_df.columns

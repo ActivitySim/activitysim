@@ -1,3 +1,7 @@
+
+SPEC: tour_scheduling_joint.csv
+COEFFICIENTS: tour_scheduling_joint_coeffs.csv
+
 LOGIT_TYPE: MNL
 
 preprocessor:

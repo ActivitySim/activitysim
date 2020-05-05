@@ -106,7 +106,7 @@ def trip_purpose_and_destination(
 
         i += 1
 
-        for c in TRIP_RESULT_COLUMNS:
+        for c in RESULT_COLUMNS:
             if c in trips_df:
                 del trips_df[c]
 

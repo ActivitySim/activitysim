@@ -3,36 +3,36 @@ LOGIT_TYPE: NL
 
 NESTS:
   name: root
-  coefficient: 1.00
+  coefficient: coef_nest_root
   alternatives:
       - name: AUTO
-        coefficient: 0.72
+        coefficient: coef_nest_AUTO
         alternatives:
             - name: DRIVEALONE
-              coefficient: 0.35
+              coefficient: coef_nest_AUTO_DRIVEALONE
               alternatives:
                 - DRIVEALONEFREE
                 - DRIVEALONEPAY
             - name: SHAREDRIDE2
-              coefficient: 0.35
+              coefficient: coef_nest_AUTO_SHAREDRIDE2
               alternatives:
                 - SHARED2FREE
                 - SHARED2PAY
             - name: SHAREDRIDE3
-              coefficient: 0.35
+              coefficient: coef_nest_AUTO_SHAREDRIDE3
               alternatives:
                 - SHARED3FREE
                 - SHARED3PAY
       - name: NONMOTORIZED
-        coefficient: 0.72
+        coefficient: coef_nest_NONMOTORIZED
         alternatives:
           - WALK
           - BIKE
       - name: TRANSIT
-        coefficient:  0.72
+        coefficient:  coef_nest_TRANSIT
         alternatives:
             - name: WALKACCESS
-              coefficient: 0.5
+              coefficient: coef_nest_TRANSIT_WALKACCESS
               alternatives:
               - WALK_LOC
               - WALK_LRF
@@ -40,7 +40,7 @@ NESTS:
               - WALK_HVY
               - WALK_COM
             - name: DRIVEACCESS
-              coefficient: 0.5
+              coefficient: coef_nest_TRANSIT_DRIVEACCESS
               alternatives:
               - DRIVE_LOC
               - DRIVE_LRF
@@ -48,14 +48,15 @@ NESTS:
               - DRIVE_HVY
               - DRIVE_COM
       - name: RIDEHAIL
-        coefficient: 0.36
+        coefficient: coef_nest_RIDEHAIL
         alternatives:
           - TAXI
           - TNC_SINGLE
           - TNC_SHARED
 
 SPEC: tour_mode_choice.csv
-COEFFS: tour_mode_choice_coeffs.csv
+COEFFICIENTS: tour_mode_choice_coeffs.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
 
 CONSTANTS:
     #valueOfTime: 8.00
@@ -108,7 +109,7 @@ CONSTANTS:
       4: 0
       5: 0
     TNC_shared_baseFare: 2.20
-    TNC_shared_costPerMile: 0.64
+    TNC_shared_costPerMile: 0.53
     TNC_shared_costPerMinute: 0.10
     TNC_shared_costMinimum: 3.00
     TNC_shared_IVTFactor: 1.5
@@ -126,6 +127,34 @@ CONSTANTS:
       5: 0
     min_waitTime: 0
     max_waitTime: 50
+
+    ivt_cost_multiplier: 0.6
+    ivt_lrt_multiplier: 0.9
+    ivt_ferry_multiplier: 0.8
+    ivt_exp_multiplier: 1
+    ivt_hvy_multiplier: 0.8
+    ivt_com_multiplier: 0.7
+    walktimeshort_multiplier: 2
+    walktimelong_multiplier: 10
+    biketimeshort_multiplier: 4
+    biketimelong_multiplier: 20
+    short_i_wait_multiplier: 2
+    long_i_wait_multiplier: 1
+    wacc_multiplier: 2
+    wegr_multiplier: 2
+    waux_multiplier: 2
+    dtim_multiplier: 2
+    xwait_multiplier: 2
+    dacc_ratio: 0
+    xfers_wlk_multiplier: 10
+    xfers_drv_multiplier: 20
+    drvtrn_distpen_0_multiplier: 270
+    drvtrn_distpen_max: 15
+    density_index_multiplier: -0.2
+#    joint_sr2_ASC_no_auto: 0
+#    joint_sr2_ASC_auto_deficient: 0
+#    joint_sr2_ASC_auto_sufficient: 0
+#    joint_drive_transit_ASC_no_auto: 0
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor:

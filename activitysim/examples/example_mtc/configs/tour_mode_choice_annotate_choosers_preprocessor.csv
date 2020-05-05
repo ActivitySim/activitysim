@@ -15,8 +15,10 @@ local,_DF_IS_TOUR,'tour_type' in df.columns
 ,is_indiv,~is_joint
 ,is_atwork_subtour,(df.tour_category=='atwork') if 'tour_category' in df.columns else False
 ,is_escort,(df.tour_type == 'escort') if _DF_IS_TOUR else False
-#,,
-,c_cost,(0.60 * c_ivt) / df.value_of_time
+# FIXME why inverse of value of time? need better name?,,
+#,c_cost,(0.60 * c_ivt) / df.value_of_time
+# ivot * (c_ivt_cost_multiplier * c_ivt)
+,ivot,1.0 / df.value_of_time
 #,,
 ,dest_topology,"reindex(land_use.TOPOLOGY, df[dest_col_name])"
 ,terminal_time,"reindex(land_use.TERMINAL, df[dest_col_name])"

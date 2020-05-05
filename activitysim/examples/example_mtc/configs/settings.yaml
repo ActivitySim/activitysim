@@ -53,6 +53,8 @@ trace_hh_id: 2223759
 # trace_od: [5, 11]
 trace_od:
 
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_scheduling
 
 models:
   - initialize_landuse
@@ -89,8 +91,6 @@ models:
   - write_trip_matrices
   - write_tables
 
-# to resume after last successful checkpoint, specify resume_after: _
-# resume_after: compute_accessibility
 
 output_tables:
   h5_store: False

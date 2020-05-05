@@ -1,5 +1,5 @@
 SPEC: trip_mode_choice.csv
-COEFFS: trip_mode_choice_coeffs.csv
+COEFFICIENTS: trip_mode_choice_coeffs.csv
 
 LOGIT_TYPE: NL
 
@@ -50,7 +50,7 @@ NESTS:
               - DRIVE_HVY
               - DRIVE_COM
       - name: RIDEHAIL
-        coefficient: 0.36
+        coefficient: 0.72
         alternatives:
           - TAXI
           - TNC_SINGLE
@@ -139,7 +139,7 @@ CONSTANTS:
     4: 0
     5: 0
   TNC_shared_baseFare: 2.20
-  TNC_shared_costPerMile: 0.64
+  TNC_shared_costPerMile: 0.53
   TNC_shared_costPerMinute: 0.10
   TNC_shared_costMinimum: 3.00
   TNC_shared_IVTFactor: 1.5

@@ -59,7 +59,7 @@ def test_tables(df):
     table = orca._TABLES['test_func']
     assert table.index is None
     assert table.columns == []
-    assert len(table) is 0
+    assert len(table) == 0
     pdt.assert_frame_equal(table.to_frame(), df / 2)
     pdt.assert_frame_equal(table.to_frame([]), df[[]])
     pdt.assert_frame_equal(table.to_frame(columns=['a']), df[['a']] / 2)
@@ -369,12 +369,12 @@ def test_update_col(df):
     pdt.assert_series_equal(wrapped['a'], df['a'])
 
     # test 2 - let the update method do the cast
-    wrapped.update_col_from_series('a', pd.Series(), True)
+    wrapped.update_col_from_series('a', pd.Series(dtype='float64'), True)
     pdt.assert_series_equal(wrapped['a'], df['a'])
 
     # test 3 - don't cast, should raise an error
     with pytest.raises(ValueError):
-        wrapped.update_col_from_series('a', pd.Series())
+        wrapped.update_col_from_series('a', pd.Series(dtype='float64'))
 
     wrapped.update_col_from_series('a', pd.Series([99], index=['y']))
     pdt.assert_series_equal(

@@ -1,4 +1,7 @@
 
+SPEC: atwork_subtour_frequency.csv
+COEFFICIENTS: atwork_subtour_frequency_coeffs.csv
+
 preprocessor:
   SPEC: atwork_subtour_frequency_annotate_tours_preprocessor
   DF: df

@@ -3,7 +3,6 @@
 
 from builtins import range
 
-import sys
 import os
 import logging
 from collections import OrderedDict
@@ -19,9 +18,12 @@ from . import config
 from . import util
 from . import assign
 from . import chunk
-from . import mem
 
 logger = logging.getLogger(__name__)
+
+SPEC_DESCRIPTION_NAME = 'Description'
+SPEC_EXPRESSION_NAME = 'Expression'
+SPEC_LABEL_NAME = 'Label'
 
 
 def random_rows(df, n):
@@ -51,16 +53,15 @@ def uniquify_spec_index(spec):
     assert spec.index.is_unique
 
 
-def read_model_alts(file_path, set_index=None):
+def read_model_alts(file_name, set_index=None):
+    file_path = config.config_file_path(file_name)
     df = pd.read_csv(file_path, comment='#')
     if set_index:
         df.set_index(set_index, inplace=True)
     return df
 
 
-def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
-                    description_name="Description",
-                    expression_name="Expression"):
+def read_model_spec(file_name, spec_dir=None):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -94,46 +95,225 @@ def read_model_spec(model_settings=None, file_name=None, spec_dir=None,
         expression values are set as the table index.
     """
 
-    assert (model_settings or file_name) and not (model_settings and file_name), \
-        "expect either model_spec or file_name argument"
-
-    if model_settings is not None:
-        assert isinstance(model_settings, dict)
-        file_name = model_settings['SPEC']
-    else:
-        assert isinstance(file_name, str)
-        if not file_name.lower().endswith('.csv'):
-            file_name = '%s.csv' % (file_name,)
+    assert isinstance(file_name, str)
+    if not file_name.lower().endswith('.csv'):
+        file_name = '%s.csv' % (file_name,)
 
     if spec_dir is not None:
+        # FIXME sadly, this is only used in test_cdap to read cdap_indiv_and_hhsize1
         file_path = os.path.join(spec_dir, file_name)
     else:
         file_path = config.config_file_path(file_name)
 
     spec = pd.read_csv(file_path, comment='#')
 
-    spec = spec.dropna(subset=[expression_name])
+    spec = spec.dropna(subset=[SPEC_EXPRESSION_NAME])
 
     # don't need description and set the expression to the index
-    if description_name in spec.columns:
-        spec = spec.drop(description_name, axis=1)
+    if SPEC_DESCRIPTION_NAME in spec.columns:
+        spec = spec.drop(SPEC_DESCRIPTION_NAME, axis=1)
 
-    spec = spec.set_index(expression_name).fillna(0)
+    spec = spec.set_index(SPEC_EXPRESSION_NAME).fillna(0)
 
     # ensure uniqueness of spec index by appending comment with dupe count
     # this allows us to use pandas dot to compute_utilities
     uniquify_spec_index(spec)
 
+    if SPEC_LABEL_NAME in spec:
+        spec = spec.set_index(SPEC_LABEL_NAME, append=True)
+        assert isinstance(spec.index, pd.MultiIndex)
+
+    return spec
+
+
+def read_model_coefficients(model_settings=None, file_name=None):
+    """
+    Read the coefficient file specified by COEFFICIENTS model setting
+    """
+
+    if model_settings is None:
+        assert file_name is not None
+    else:
+        assert file_name is None
+        assert 'COEFFICIENTS' in model_settings, \
+            "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get('source_file_paths')
+        file_name = model_settings['COEFFICIENTS']
+
+    file_path = config.config_file_path(file_name)
+    coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+
+    return coefficients
+
+
+def spec_for_segment(model_settings, spec_id, segment_name):
+    """
+    Select spec for specified segment from omnibus spec containing columns for each segment
+
+    Parameters
+    ----------
+    model_spec : pandas.DataFrame
+        omnibus spec file with expressions in index and one column per segment
+    segment_name : str
+        segment_name that is also column name in model_spec
+
+    Returns
+    -------
+    pandas.dataframe
+        canonical spec file with expressions in index and single column with utility coefficients
+    """
+
+    spec = read_model_spec(file_name=model_settings[spec_id])
+    coefficients = read_model_coefficients(model_settings)
+
+    if len(spec.columns) > 1:
+        # if spec is segmented
+        spec = spec[[segment_name]]
+    else:
+        # otherwise we expect a single coefficient column
+        assert spec.columns[0] == 'coefficient'
+
+    spec = eval_coefficients(spec, coefficients)
+
+    # #estimation_write_spec
+    # print("spec_for_segment spec_id: %s segment_name: %s\n%s" % (spec_id, segment_name, spec))
+
+    return spec
+
+
+def read_model_coefficient_template(model_settings):
+    """
+    Read the coefficient template specified by COEFFICIENT_TEMPLATE model setting
+    """
+
+    assert 'COEFFICIENT_TEMPLATE' in model_settings, \
+        "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get('source_file_paths')
+
+    coeffs_file_name = model_settings['COEFFICIENT_TEMPLATE']
+
+    file_path = config.config_file_path(coeffs_file_name)
+    template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+
+    # by convention, an empty cell in the template indicates that
+    # the coefficient name should be propogated to across all segments
+    # this makes for a more legible template than repeating the identical coefficient name in each column
+
+    # replace missing cell values with coefficient_name from index
+    template = template.where(~template.isnull(), template.index)
+
+    return template
+
+
+def get_segment_coefficients(model_settings, segment_name):
+    """
+    Return a dict mapping generic coefficient names to segment-specific coefficient values
+
+    some specs mode_choice logsums have the same espression values with different coefficients for various segments
+    (e.g. eatout, .. ,atwork) and a template file that maps a flat list of coefficients into segment columns.
+
+    This allows us to provide a coefficient fiel with just the coefficients for a specific segment,
+    that works with generic coefficient names in the spec. For instance coef_ivt can take on the values
+    of segment-specific coefficients coef_ivt_school_univ, coef_ivt_work, coef_ivt_atwork,...
+
+    coefficients_df
+    ---------------
+                                  value constrain
+    coefficient_name
+    coef_ivt_eatout_escort_...  -0.0175         F
+    coef_ivt_school_univ        -0.0224         F
+    coef_ivt_work               -0.0134         F
+    coef_ivt_atwork             -0.0188         F
+
+    template_df
+    -----------
+    coefficient_name     eatout                       school                 school                 work
+    coef_ivt             coef_ivt_eatout_escort_...   coef_ivt_school_univ   coef_ivt_school_univ   coef_ivt_work
+
+    For school segment this will return the generic coefficient name withe h segment-specific coefficient value
+    e.g. {'coef_ivt': -0.0224, ...}
+    ...
+
+    """
+
+    coefficients_df = read_model_coefficients(model_settings)
+    template_df = read_model_coefficient_template(model_settings)
+    coefficients_col = template_df[segment_name].map(coefficients_df.value)
+
+    return coefficients_col.to_dict()
+
+
+def eval_nest_coefficients(nest_spec, coefficients):
+
+    def replace_coefficients(nest):
+        if isinstance(nest, dict):
+
+            assert 'coefficient' in nest
+            coefficient_name = nest['coefficient']
+            if isinstance(coefficient_name, str):
+                assert coefficient_name in coefficients, "%s not in nest coefficients" % (coefficient_name, )
+                nest['coefficient'] = coefficients[coefficient_name]
+
+            assert 'alternatives' in nest
+            for alternative in nest['alternatives']:
+                if isinstance(alternative, dict):
+                    replace_coefficients(alternative)
+
+    if isinstance(coefficients, pd.DataFrame):
+        assert ('value' in coefficients.columns)
+        coefficients = coefficients['value'].to_dict()
+
+    replace_coefficients(nest_spec)
+
+    return nest_spec
+
+
+def eval_coefficients(spec, coefficients):
+
+    spec = spec.copy()  # don't clobber input spec
+
+    if isinstance(coefficients, pd.DataFrame):
+        assert ('value' in coefficients.columns)
+        coefficients = coefficients['value'].to_dict()
+
+    assert isinstance(coefficients, dict), \
+        "eval_coefficients doesn't grok type of coefficients: %s" % (type(coefficients))
+
+    for c in spec.columns:
+        if c == SPEC_LABEL_NAME:
+            continue
+        spec[c] = spec[c].apply(lambda x: eval(str(x), {}, coefficients)).astype(np.float32)
+
+    # #estimation_write_spec
     # drop any rows with all zeros since they won't have any effect (0 marginal utility)
     zero_rows = (spec == 0).all(axis=1)
     if zero_rows.any():
-        logger.debug("dropping %s all-zero rows from %s" % (zero_rows.sum(), file_path))
+        logger.debug("dropping %s all-zero rows from SPEC" % (zero_rows.sum(), ))
         spec = spec.loc[~zero_rows]
 
     return spec
 
 
-def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_targets=False):
+def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_targets=False, estimator=None):
+    """
+
+    Parameters
+    ----------
+    spec : pandas.DataFrame
+        A table of variable specifications and coefficient values.
+        Variable expressions should be in the table index and the table
+        should have a column for each alternative.
+    choosers : pandas.DataFrame
+    locals_d : Dict or None
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
+    trace_label
+    have_trace_targets
+    estimator :
+        called to report intermediate table results (used for estimation)
+
+    Returns
+    -------
+
+    """
 
     # fixme - restore tracing and _check_for_variability
 
@@ -164,7 +344,12 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_t
 
     locals_dict['df'] = choosers
 
-    exprs = spec.index
+    if isinstance(spec.index, pd.MultiIndex):
+        # spec MultiIndex with expression and label
+        exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
+    else:
+        exprs = spec.index
+
     expression_values = np.empty((spec.shape[0], choosers.shape[0]))
     for i, expr in enumerate(exprs):
         try:
@@ -175,6 +360,14 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_t
         except Exception as err:
             logger.exception("Variable evaluation failed for: %s" % str(expr))
             raise err
+
+    if estimator:
+        df = pd.DataFrame(
+            data=expression_values.transpose(),
+            index=choosers.index,
+            columns=spec.index.get_level_values(SPEC_LABEL_NAME))
+        df.index.name = choosers.index.name
+        estimator.write_expression_values(df)
 
     # - compute_utilities
     utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
@@ -204,6 +397,20 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_t
                          slicer=None, transpose=False,
                          column_labels=column_labels,
                          index_label='expression')
+
+        # excruciating level of detail for debugging problems with coefficients
+        # for id in trace_df.columns:
+        #     df = spec.copy()
+        #     for c in df.columns:
+        #         df[c] = df[c] * trace_df[id]
+        #
+        #     row_sums = df.sum(axis=1)
+        #     tracing.trace_df(row_sums, '%s.%s.utility_row_sums' % (trace_label, id),
+        #                      slicer=None, transpose=False)
+        #
+        #     df.insert(0, id, trace_df[id])
+        #     tracing.trace_df(df, '%s.%s.expression_values' % (trace_label, id),
+        #                      slicer=None, transpose=False)
 
     return utilities
 
@@ -341,7 +548,7 @@ def set_skim_wrapper_targets(df, skims):
     elif isinstance(skims, dict):
         # it it is a dict, then check for known types, ignore anything we don't recognize as a skim
         # (this allows putting skim column names in same dict as skims for use in locals_dicts)
-        for skim in list(skims.values()):
+        for skim in skims.values():
             if isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper):
                 skim.set_df(df)
     else:
@@ -506,7 +713,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
     return base_probabilities
 
 
-def eval_mnl(choosers, spec, locals_d, custom_chooser,
+def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
              want_logsums=False, trace_label=None, trace_choice_name=None):
     """
     Run a simulation for when the model spec does not involve alternative
@@ -533,6 +740,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
         for an evaluation of an expression that begins with @
     custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
         custom alternative to logit.make_choices
+    estimator : Estimator object
+        called to report intermediate table results (used for estimation)
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
@@ -555,7 +764,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
+    utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets, estimator)
     chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
@@ -591,7 +800,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser,
     return choices
 
 
-def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
+def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
             want_logsums=False, trace_label=None, trace_choice_name=None):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
@@ -613,6 +822,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
         for an evaluation of an expression that begins with @
     custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
         custom alternative to logit.make_choices
+    estimator : Estimator object
+        called to report intermediate table results (used for estimation)
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
         when household tracing enabled. No tracing occurs if label is empty or None.
@@ -630,10 +841,12 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     assert trace_label
     have_trace_targets = tracing.has_trace_targets(choosers)
 
+    logit.validate_nest_spec(nest_spec, trace_label)
+
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
+    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets, estimator)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
@@ -682,9 +895,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
     # note base_probabilities could all be zero since we allowed all probs for nests to be zero
     # check here to print a clear message but make_choices will raise error if probs don't sum to 1
     BAD_PROB_THRESHOLD = 0.001
-    no_choices = \
-        base_probabilities.sum(axis=1).sub(np.ones(len(base_probabilities.index))).abs() \
-        > BAD_PROB_THRESHOLD * np.ones(len(base_probabilities.index))
+    no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
 
     if no_choices.any():
 
@@ -692,7 +903,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
             no_choices, base_probabilities,
             trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
             trace_choosers=choosers,
-            msg="base_probabilities all zero")
+            msg="base_probabilities do not sum to one")
 
     if custom_chooser:
         choices, rands = custom_chooser(probs=base_probabilities, choosers=choosers, spec=spec,
@@ -722,6 +933,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser,
 def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                      custom_chooser=None,
                      want_logsums=False,
+                     estimator=None,
                      trace_label=None, trace_choice_name=None,
                      ):
     """
@@ -750,7 +962,9 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+    custom_chooser : Estimator object
+    estimator : function(df, label, table_name)
+        called to report intermediate table results (used for estimation)
 
     trace_label: str
         This is the label to be used  for trace log file entries and dump file names
@@ -771,10 +985,12 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     if nest_spec is None:
         choices = eval_mnl(choosers, spec, locals_d, custom_chooser,
                            want_logsums=want_logsums,
+                           estimator=estimator,
                            trace_label=trace_label, trace_choice_name=trace_choice_name)
     else:
         choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
                           want_logsums=want_logsums,
+                          estimator=estimator,
                           trace_label=trace_label, trace_choice_name=trace_choice_name)
 
     return choices
@@ -819,6 +1035,7 @@ def simple_simulate_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     chunk_size=0, custom_chooser=None,
                     want_logsums=False,
+                    estimator=None,
                     trace_label=None, trace_choice_name=None):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -850,6 +1067,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
             locals_d=locals_d,
             custom_chooser=custom_chooser,
             want_logsums=want_logsums,
+            estimator=estimator,
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name)
 
@@ -919,6 +1137,8 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
     trace_label = tracing.extend_trace_label(trace_label, 'eval_nl_logsums')
     have_trace_targets = tracing.has_trace_targets(choosers)
+
+    logit.validate_nest_spec(nest_spec, trace_label)
 
     # trace choosers
     if have_trace_targets:

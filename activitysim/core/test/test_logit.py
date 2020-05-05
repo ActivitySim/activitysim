@@ -6,7 +6,7 @@ import os.path
 import numpy as np
 import pandas as pd
 
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 import pytest
 
 from ..simulate import eval_variables

@@ -97,7 +97,7 @@ def log_df(trace_label, table_name, df):
     else:
 
         shape = df.shape
-        elements = np.prod(shape)
+        elements = np.prod(shape, dtype=np.int64)
         op = 'add'
 
         if isinstance(df, pd.Series):

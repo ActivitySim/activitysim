@@ -70,7 +70,10 @@ def set_tour_hour(trips, tours):
     # subtours indexed by parent_tour_id
     subtours = tours.loc[tours.primary_purpose == 'atwork',
                          ['tour_num', 'tour_count', 'parent_tour_id', 'start', 'end']]
-    subtours = subtours.astype(int).set_index('parent_tour_id')
+
+    subtours.parent_tour_id = subtours.parent_tour_id.astype(np.int64)
+    subtours = subtours.set_index('parent_tour_id')
+    subtours = subtours.astype(np.int16)  # remaining columns are all small ints
 
     # bool series
     trip_has_subtours = trips.tour_id.isin(subtours.index)

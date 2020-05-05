@@ -49,7 +49,7 @@ def trip_mode_choice(
     model_spec = \
         simulate.read_model_spec(file_name=model_settings['SPEC'])
     omnibus_coefficients = \
-        assign.read_constant_spec(config.config_file_path(model_settings['COEFFS']))
+        assign.read_constant_spec(config.config_file_path(model_settings['COEFFICIENTS']))
 
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])

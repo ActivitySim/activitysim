@@ -19,10 +19,20 @@ SIMULATE_CHOOSER_COLUMNS:
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
-SPEC:
-  work: tour_scheduling_work.csv
-  school: tour_scheduling_school.csv
-  univ: tour_scheduling_school.csv
+# school and univ have the same spec file and coefficients but are handled seperately
+# because mode_choice_logsums has distinct specs and ceofficients for univ and school
+TOUR_SPEC_SEGMENTS:
+  work: work
+  school: school
+  univ: school
+
+SPEC_SEGMENTS:
+  work:
+    'SPEC': tour_scheduling_work.csv
+    'COEFFICIENTS': tour_scheduling_work_coeffs.csv
+  school:
+    'SPEC': tour_scheduling_school.csv
+    'COEFFICIENTS': tour_scheduling_school_coeffs.csv
 
 #CHOOSER_ORIG_COL_NAME: TAZ
 

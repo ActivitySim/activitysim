@@ -1,3 +1,7 @@
+
+SPEC: tour_scheduling_nonmandatory.csv
+COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
+
 LOGIT_TYPE: MNL
 
 preprocessor:

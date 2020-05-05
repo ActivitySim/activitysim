@@ -1,5 +1,8 @@
-SAMPLE_SIZE: 30
+SAMPLE_SPEC: non_mandatory_tour_destination_sample.csv
+SPEC: non_mandatory_tour_destination.csv
+COEFFICIENTS: non_mandatory_tour_destination_coeffs.csv
 
+SAMPLE_SIZE: 30
 
 SIZE_TERM_SELECTOR: non_mandatory
 
@@ -20,9 +23,6 @@ SEGMENTS:
   - eatout
   - social
   - escort
-
-SAMPLE_SPEC: non_mandatory_tour_destination_sample.csv
-SPEC: non_mandatory_tour_destination.csv
 
 SIMULATE_CHOOSER_COLUMNS:
   - tour_type

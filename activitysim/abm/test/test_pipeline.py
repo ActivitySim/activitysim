@@ -117,7 +117,7 @@ def regress_mini_auto():
     auto_choice = pipeline.get_table("households").sort_index().auto_ownership
 
     offset = HOUSEHOLDS_SAMPLE_SIZE // 2  # choose something midway as hh_id ordered by hh size
-    print("auto_choice\n", auto_choice.head(offset).tail(4))
+    print("auto_choice\n%s" % auto_choice.head(offset).tail(4))
 
     auto_choice = auto_choice.reindex(hh_ids)
 
@@ -146,7 +146,7 @@ def regress_mini_mtf():
     mtf_choice = mtf_choice[mtf_choice != '']  # drop null (empty string) choices
 
     offset = len(mtf_choice) // 2  # choose something midway as hh_id ordered by hh size
-    print("mtf_choice\n", mtf_choice.head(offset).tail(5))
+    print("mtf_choice\n%s" % mtf_choice.head(offset).tail(5))
 
     """
     mtf_choice
@@ -236,7 +236,7 @@ def test_mini_pipeline_run2():
     checkpoints_df = pipeline.get_checkpoints()
     prev_checkpoint_count = len(checkpoints_df.index)
 
-    # print "checkpoints_df\n", checkpoints_df[['checkpoint_name']]
+    # print "checkpoints_df\n%s" % checkpoints_df[['checkpoint_name']]
     assert prev_checkpoint_count == 8
 
     pipeline.open_pipeline('auto_ownership_simulate')
@@ -283,9 +283,9 @@ def test_mini_pipeline_run3():
 
     override_hh_ids = pd.read_csv(config.data_file_path('override_hh_ids.csv'))
 
-    print("\noverride_hh_ids\n", override_hh_ids)
+    print("\noverride_hh_ids\n%s" % override_hh_ids)
 
-    print("\nhouseholds\n", households.index)
+    print("\nhouseholds\n%s" % households.index)
 
     assert households.shape[0] == override_hh_ids.shape[0]
     assert households.index.isin(override_hh_ids.household_id).all()
@@ -352,17 +352,17 @@ def regress_tour_modes(tours_df):
     tours_df = tours_df[tours_df.household_id == HH_ID]
     tours_df = tours_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
 
-    print("mode_df\n", tours_df[mode_cols])
+    print("mode_df\n%s" % tours_df[mode_cols])
 
     """
                  tour_mode  person_id tour_type  tour_num  tour_category
     tour_id
-    13327106  SHARED3FREE     325051  othdiscr         1          joint
+    13327106         WALK     325051  othdiscr         1          joint
     13327130         WALK     325051      work         1      mandatory
-    13327131  SHARED2FREE     325051      work         2      mandatory
-    13327155         WALK     325052     maint         1         atwork
-    13327171         WALK     325052      work         1      mandatory
-    13327138         WALK     325052    eatout         1  non_mandatory
+    13327131         WALK     325051      work         2      mandatory
+    13327132         WALK     325052  business         1         atwork
+    13327171     WALK_LOC     325052      work         1      mandatory
+    13327160         WALK     325052  othmaint         1  non_mandatory
     """
 
     EXPECT_PERSON_IDS = [
@@ -384,13 +384,13 @@ def regress_tour_modes(tours_df):
     ]
 
     EXPECT_MODES = [
-        'SHARED3FREE',
         'WALK',
-        'SHARED3FREE',
+        'WALK',
+        'WALK',
         'WALK',
         'WALK_LOC',
-        'WALK'
-    ]
+        'WALK',
+        ]
 
     assert len(tours_df) == len(EXPECT_PERSON_IDS)
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()
@@ -402,7 +402,7 @@ def regress():
 
     persons_df = pipeline.get_table('persons')
     persons_df = persons_df[persons_df.household_id == HH_ID]
-    print("persons_df\n", persons_df[['value_of_time', 'distance_to_work']])
+    print("persons_df\n%s" % persons_df[['value_of_time', 'distance_to_work']])
 
     """
     persons_df
@@ -421,6 +421,8 @@ def regress():
 
     # optional logsum column was added to all tours except mandatory
     assert 'destination_logsum' in tours_df
+    if (tours_df.destination_logsum.isnull() != (tours_df.tour_category == 'mandatory')).any():
+        print(tours_df[(tours_df.destination_logsum.isnull() != (tours_df.tour_category == 'mandatory'))])
     assert (tours_df.destination_logsum.isnull() == (tours_df.tour_category == 'mandatory')).all()
 
     # mode choice logsum calculated for all tours

@@ -12,15 +12,12 @@ DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
 DEST_CHOICE_SAMPLE_TABLE_NAME: trip_destination_sample
 
 # model-specific logsum-related settings
-#CHOOSER_ORIG_COL_NAME: origin
 TRIP_ORIGIN: origin
 ALT_DEST_COL_NAME: dest_taz
 PRIMARY_DEST: destination
 
-
 REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
   - tour_mode
-
 
 CONSTANTS:
     max_walk_distance: 3

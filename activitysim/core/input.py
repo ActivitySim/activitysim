@@ -84,18 +84,21 @@ def read_from_table_info(table_info):
 
     df = _read_input_file(data_file_path, h5_tablename=h5_tablename)
 
-    logger.info('%s table columns: %s' % (tablename, df.columns.values))
-    logger.info('%s table size: %s' % (tablename, util.df_size(df)))
+    logger.debug('%s table columns: %s' % (tablename, df.columns.values))
+    logger.debug('%s table size: %s' % (tablename, util.df_size(df)))
 
     if create_input_store:
         h5_filepath = config.output_file_path('input_data.h5')
         logger.info('writing %s to %s' % (h5_tablename, h5_filepath))
         df.to_hdf(h5_filepath, key=h5_tablename, mode='a')
 
+        csv_dir = config.output_file_path('input_data')
+        if not os.path.exists(csv_dir):
+            os.makedirs(csv_dir)  # make directory if needed
+        df.to_csv(os.path.join(csv_dir, '%s.csv' % tablename), index=False)
+
     if drop_columns:
-        for c in drop_columns:
-            logger.info("dropping column '%s'" % c)
-            del df[c]
+        df.drop(columns=drop_columns, inplace=True, errors='ignore')
 
     if column_map:
         df.rename(columns=column_map, inplace=True)

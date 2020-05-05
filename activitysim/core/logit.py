@@ -41,15 +41,15 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
     MAX_DUMP = 1000
     MAX_PRINT = 10
 
-    msg_with_count = "%s %s for %s rows" % (trace_label, msg, bad_row_map.sum())
+    msg_with_count = "%s %s for %s of %s rows" % (trace_label, msg, bad_row_map.sum(), len(df))
     logger.warning(msg_with_count)
 
     df = df[bad_row_map]
     if trace_choosers is None:
-        hh_ids = tracing.hh_id_for_chooser(df.index, df)
+        hh_ids, trace_col = tracing.trace_id_for_chooser(df.index, df)
     else:
-        hh_ids = tracing.hh_id_for_chooser(df.index, trace_choosers)
-    df['household_id'] = hh_ids
+        hh_ids, trace_col = tracing.trace_id_for_chooser(df.index, trace_choosers)
+    df[trace_col] = hh_ids
 
     if trace_label:
         logger.info("dumping %s" % trace_label)
@@ -61,7 +61,7 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
     for idx in df.index[:MAX_PRINT].values:
 
         row_msg = "%s : %s in: %s = %s (hh_id = %s)" % \
-                  (trace_label, msg, df.index.name, idx, df.household_id.loc[idx])
+                  (trace_label, msg, df.index.name, idx, df[trace_col].loc[idx])
 
         logger.warning(row_msg)
 
@@ -238,7 +238,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
     return choices, rands
 
 
-def interaction_dataset(choosers, alternatives, sample_size=None):
+def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=None):
     """
     Combine choosers and alternatives into one table for the purposes
     of creating interaction variables and/or sampling alternatives.
@@ -285,6 +285,11 @@ def interaction_dataset(choosers, alternatives, sample_size=None):
 
     alts_sample = alternatives.take(sample).copy()
 
+    if alt_index_id:
+        # if alt_index_id column name specified, add alt index as a column to interaction dataset
+        # permits identification of alternative row in the joined dataset
+        alts_sample[alt_index_id] = alts_sample.index
+
     logger.debug("interaction_dataset pre-merge choosers %s alternatives %s alts_sample %s" %
                  (choosers.shape, alternatives.shape, alts_sample.shape))
 
@@ -319,6 +324,10 @@ class Nest(object):
         self.alternatives = None
         self.coefficient = 0
 
+    def print(self):
+        print("Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s" %
+              (self.name, self.level, self.coefficient, self.product_of_coefficients, self.ancestors))
+
     @property
     def is_leaf(self):
         return (self.alternatives is None)
@@ -330,6 +339,22 @@ class Nest(object):
     @classmethod
     def nest_types(cls):
         return ['leaf', 'node']
+
+
+def validate_nest_spec(nest_spec, trace_label):
+
+    keys = []
+    duplicates = []
+    for nest in each_nest(nest_spec):
+        if nest.name in keys:
+            logger.error("validate_nest_spec:duplicate nest key '%s' in nest spec - %s" % (nest.name, trace_label))
+            duplicates.append(nest.name)
+
+        keys.append(nest.name)
+        # nest.print()
+
+    if duplicates:
+        raise RuntimeError("validate_nest_spec:duplicate nest key/s '%s' in nest spec - %s" % (duplicates, trace_label))
 
 
 def _each_nest(spec, parent_nest, post_order):
@@ -362,6 +387,8 @@ def _each_nest(spec, parent_nest, post_order):
     if isinstance(spec, dict):
         name = spec['name']
         coefficient = spec['coefficient']
+        assert isinstance(coefficient, (int, float)), \
+            "Coefficient '%s' (%s) not a number" % (name, coefficient)  # forgot to eval coefficient?
         alternatives = [a['name'] if isinstance(a, dict) else a for a in spec['alternatives']]
 
         nest = Nest(name=name)

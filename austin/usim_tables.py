@@ -15,7 +15,6 @@ warnings.filterwarnings("ignore")
 import numpy as np 
 import pandas as pd
 import os
-import seaborn as sns
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import orca
@@ -28,44 +27,22 @@ import openmatrix as omx
 from platform import python_version
 print('python version: ',python_version())
 
-
-# # Loading data
-
-# In[3]:
-
-
-#UrbanSim Results
-path_to_file = '/Users/juandavidcaicedocastro/Documents/BERKELEY/08_GSR/ActivitySim_results/austin.h5'
-path_to_skims = '/Users/juandavidcaicedocastro/Documents/BERKELEY/08_GSR/ActivitySim_results/skims.csv.gz'
-
-hdf = pd.HDFStore(path = path_to_file)
+# austin data
+hdf = pd.HDFStore('data/model_data.h5')
 households = hdf['/households']
 persons = hdf['/persons']
 blocks = hdf['/blocks']
 jobs = hdf['/jobs']
-skims = pd.read_csv(path_to_skims)
-# In[4]:
-
-
-# Random sample of 1000 blocks 
-# blocks = blocks.sample(1000)
-# sample_blocks = blocks.index
-# households = households[households.block_id.isin(sample_blocks)]
-# sample_h = households.index
-# persons = persons[persons.household_id.isin(sample_h)]
-# jobs = jobs[jobs.block_id.isin(sample_blocks)]
-
-
-# # Tables
-
-# In[5]:
-
+skims = pd.read_csv(
+    'https://beam-outputs.s3.amazonaws.com/output/austin/'
+    'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
+    'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
 
 orca.add_table('households', households)
 orca.add_table('persons', persons)
 orca.add_table('blocks', blocks)
 orca.add_table('jobs', jobs)
-orca.add_table('skims', skims);
+orca.add_table('skims', skims)
 
 
 # In[6]:

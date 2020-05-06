@@ -11,13 +11,22 @@ import time
 import geopandas as gpd
 import random
 import shapely
-
-from shapely.geometry import Point
+from h3 import h3
+from shapely.geometry import Point, Polygon
 from urbansim.utils import misc
 from platform import python_version
 
+
+output_bucket = 'austin-activitysim/base/'
+output_table_map = {
+    'beam_activity_plans': 'plans',
+    'trips/trip_mode_choice': 'trips',
+    'tours/trip_mode_choice': 'tours'}
+
 print('Creating Activity Plans')
 start = time.time()
+
+
 
 # ## Loading data
 #Importing ActivitySim results
@@ -57,6 +66,7 @@ zones_shp = zones(skims)
 
 #Closes boundary loops
 zones_shp.geometry = zones_shp.geometry.buffer(0)
+zones_shp.reset_index(inplace=True)
 
 #Adding tables to orca
 orca.add_table('trips', trips)
@@ -110,9 +120,9 @@ def sample_geoseries(geoseries, size, overestimate=2):
 
 #Generates random points in all zones
 rand_point_zones = {}
-for zone in zones_shp.taz1454:
+for zone in zones_shp.TAZ:
     size = 500
-    polygon = zones_shp[zones_shp.taz1454 == zone].geometry
+    polygon = zones_shp[zones_shp.TAZ == zone].geometry
     points = sample_geoseries(polygon, size, overestimate=2)
     rand_point_zones[zone]=points
 
@@ -133,32 +143,44 @@ origs = orca.get_injectable('ods')
 # Columns to trips table
 
 @orca.column('trips')
-def orig_x():
+def x():
     return pd.Series(origs[:,0], index= trips.index)
 
 @orca.column('trips')
-def orig_y():
+def y():
     return pd.Series(origs[:,1], index= trips.index)
 
-@orca.column('trips')
-def home_x(persons, trips):
-    return misc.reindex(persons.home_x, trips.person_id)
 
-@orca.column('trips')
-def home_y(persons, trips):
-    return misc.reindex(persons.home_y, trips.person_id)
+# USE THIS CHUNK IF HOME COORDS ARE HIGHER RESOLUTION
+# THAN THE ZONES (i.e. from a parcel model)
 
-@orca.column('trips')
-def origin_purpose(trips):
-    return trips.purpose.shift(periods = 1).fillna('Home')
+# @orca.column('trips')
+# def orig_x():
+#     return pd.Series(origs[:,0], index= trips.index)
 
-@orca.column('trips')
-def x(trips):
-    return trips.orig_x.where(trips.origin_purpose != 'Home', trips.home_x)
+# @orca.column('trips')
+# def orig_y():
+#     return pd.Series(origs[:,1], index= trips.index)
 
-@orca.column('trips')
-def y(trips):
-    return trips.orig_y.where(trips.origin_purpose != 'Home', trips.home_y)
+# @orca.column('trips')
+# def home_x(persons, trips):
+#     return misc.reindex(persons.home_x, trips.person_id)
+
+# @orca.column('trips')
+# def home_y(persons, trips):
+#     return misc.reindex(persons.home_y, trips.person_id)
+
+# @orca.column('trips')
+# def origin_purpose(trips):
+#     return trips.purpose.shift(periods = 1).fillna('Home')
+
+# @orca.column('trips')
+# def x(trips):
+#     return trips.orig_x.where(trips.origin_purpose != 'Home', trips.home_x)
+
+# @orca.column('trips')
+# def y(trips):
+#     return trips.orig_y.where(trips.origin_purpose != 'Home', trips.home_y)
 
 @orca.column('trips')
 def departure_time(trips):
@@ -236,6 +258,15 @@ def generate_activity_plans():
 
 orca.run(['generate_activity_plans'])
 
+input_store = pd.HDFStore('../data/model_data.h5')
+for tablename in output_table_map.keys():
+    output_tablename = output_table_map[tablename]
+    input_store[output_tablename] = hdf[tablename]
+
+for tablename in input_store.keys(): 
+    tablename = tablename.replace('/', '')
+    table = input_store[tablename]
+    table.to_csv(os.path.join('s3://', output_bucket, tablename + '.csv')
+
 end = time.time()
 print("Run time for Activity Plans = {} seconds.".format(end - start))
-

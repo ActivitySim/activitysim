@@ -16,3 +16,10 @@ and benefit from contributions of other agency partners.
 ## Documentation
 
 https://activitysim.github.io/activitysim  
+
+
+## TO DO:
+[ ] Clean up usim_tables.py
+   - probably belongs in `models/` rather than `data/`
+   - split out skim conversion to its own .py (also belongs in `models/`)
+[ ] Move activity plan generation to `models/` dir

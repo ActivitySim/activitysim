@@ -1,16 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import os
 import warnings
 warnings.filterwarnings("ignore")
-
-
-# In[2]:
-
 
 import numpy as np 
 import pandas as pd
@@ -24,17 +14,40 @@ from urbansim.utils import misc
 import requests
 import openmatrix as omx
 
-from platform import python_version
-print('python version: ',python_version())
 
+# ActivitySim Skims Variables
+hwy_paths = ['SOV', 'HOV2', 'HOV3', 'SOVTOLL', 'HOV2TOLL', 'HOV3TOLL']
+transit_modes = ['COM', 'EXP', 'HVY', 'LOC', 'LRF', 'TRN']
+access_modes = ['WLK', 'DRV']
+egress_modes = ['WLK', 'DRV']
+active_modes = ['WALK', 'BIKE']
+periods = ['EA', 'AM', 'MD', 'PM', 'EV']
 
-# # Loading data
+# Map ActivitySim skim measures to input skims
+beam_asim_hwy_measure_map = {
+    'TIME': 'gen_cost_min',  # must be minutes
+    'DIST': 'dist_miles',  # must be miles
+    'BTOLL': None,
+    'VTOLL': 'generalizedCost'}
 
-# In[3]:
+beam_asim_transit_measure_map = {
+    'WAIT': None,  # other wait time?
+    'TOTIVT': 'gen_cost_min',  # total in-vehicle time (minutes)
+    'KEYIVT': None,  # light rail IVT
+    'FERRYIVT': None,  # ferry IVT
+    'FAR': 'generalizedCost',  # fare
+    'DTIM': None,  # drive time
+    'DDIST': None,  # drive dist
+    'WAUX': None,  # walk other time
+    'WEGR': None,  # walk egress time
+    'WACC': None,  # walk access time
+    'IWAIT': None,  # iwait?
+    'XWAIT': None,  # transfer wait time
+    'BOARDS': None,  # transfers
+    'IVT': 'gen_cost_min'  # In vehicle travel time (minutes)
+}
 
-
-#UrbanSim Results
-
+# UrbanSim Results
 hdf = pd.HDFStore('data/model_data.h5')
 households = hdf['/households']
 persons = hdf['/persons']
@@ -44,40 +57,23 @@ skims = pd.read_csv(
     'https://beam-outputs.s3.amazonaws.com/output/austin/'
     'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
     'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
-# In[4]:
-
-
-# Random sample of 1000 blocks 
-# blocks = blocks.sample(1000)
-# sample_blocks = blocks.index
-# households = households[households.block_id.isin(sample_blocks)]
-# sample_h = households.index
-# persons = persons[persons.household_id.isin(sample_h)]
-# jobs = jobs[jobs.block_id.isin(sample_blocks)]
-
-
-# # Tables
-
-# In[5]:
-
 
 orca.add_table('households', households)
 orca.add_table('persons', persons)
 orca.add_table('blocks', blocks)
 orca.add_table('jobs', jobs)
-orca.add_table('skims', skims);
+orca.add_table('skims', skims)
 
+# ** 1. CREATE NEW TABLES **
 
-# In[6]:
-
-
+# Zones
 @orca.table('zones', cache = True)
 def zones(skims):
     """
     Returns a GeoPandasDataframe with the H3 hexbins information 
     """
     zone_ids = skims.origTaz.unique()
-    
+
     #Get boundaries of the H3 hexbins
     polygon_shapes = []
     for zone in zone_ids:
@@ -92,15 +88,12 @@ def zones(skims):
     h3_zones['TAZ'] = list(range(1, len(zone_ids)+1))
     return h3_zones.set_index('TAZ')
 
-
-# In[7]:
-
-
+# Schools
 @orca.table(cache= True)
 def schools():
+
     base_url = 'https://educationdata.urban.org/api/v1/{topic}/{source}/{endpoint}/{year}/?{filters}'
 
-#     county_codes = ids.block_id.str.slice(0,5).unique()
     county_codes = blocks.index.str.slice(0,5).unique()
 
     school_tables = []
@@ -118,9 +111,7 @@ def schools():
     return enrollment.dropna()
 
 
-# In[8]:
-
-
+# Colleges
 @orca.table(cache= True)
 def colleges():
 
@@ -143,15 +134,16 @@ def colleges():
     return colleges
 
 
-# # Variables
+# ** 2. CREATE NEW VARIABLES/COLUMNS **
 
-# ### In Blocks table
+# Block Variables
 
-# In[9]:
-
+# NOTE: AREAS OF BLOCKS BASED ON RESIDENTS AND EMPLOYEES PER BLOCK.
+# PROPER LAND USE DATA SHOULD BE PROCURED FROM THE MPO
 
 @orca.column('blocks', cache = True)
 def TAZ(blocks, zones):
+
     #Tranform blocks to a Geopandas dataframe
     blocks_df = blocks.to_frame(columns = ['x', 'y'])
     h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
@@ -182,25 +174,23 @@ def TAZ(blocks, zones):
 
     null_blocks = pd.concat(result_list)
     
-    #Concatenate newly assigned blocks to the main blocks table 
+    # Concatenate newly assigned blocks to the main blocks table 
     blocks_df = blocks_df.dropna()
     blocks_df = pd.concat([blocks_df, null_blocks], axis = 0)
     
     return blocks_df.index_right
 
 
-# In[10]:
-
-
-# %AREAS OF BLOCK BASED ON RESIDENTS AND EMPLOYEES PER BLOCK 
 @orca.column('blocks')
 def CI_employment(jobs):
     job = jobs.to_frame()
     job = job[job.sector_id.isin([11, 3133, 42, 4445, 4849, 52, 54, 7172])]
     s = job.groupby('block_id')['sector_id'].count()
-    
-    return s.reindex(blocks.index).fillna(0.01) #to avoid division by zero 
-#best to have a relative greater number, so that dividing by this number results in a small value
+
+    # to avoid division by zero best to have a relative greater number,
+    # so that dividing by this number results in a small value
+    return s.reindex(blocks.index).fillna(0.01) 
+
 
 @orca.column('blocks')
 def CIACRE(blocks):
@@ -208,6 +198,7 @@ def CIACRE(blocks):
     ci_pct = blocks.CI_employment/total_pop
     ci_acres = (ci_pct * blocks.square_meters_land)/4046.86 #1m2 = 4046.86acres
     return ci_acres.fillna(0.01)
+
 
 @orca.column('blocks')
 def RESACRE(blocks):
@@ -217,13 +208,11 @@ def RESACRE(blocks):
     return res_acres.fillna(0.01)
 
 
-# ### In Schools table
-
-# In[11]:
-
+# School Variables
 
 @orca.column('schools', cache = True)
 def TAZ(schools, zones):
+
     #Tranform blocks to a Geopandas dataframe
     h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
 
@@ -255,18 +244,15 @@ def TAZ(schools, zones):
         result_list.append(result.iloc[0:1])
 
     null_school = pd.concat(result_list)
-    
-    #Concatenate newly assigned blocks to the main blocks table 
+
+    # Concatenate newly assigned blocks to the main blocks table 
     school_gdf = school_gdf.dropna()
     school_all = pd.concat([school_gdf, null_school], axis = 0)
     school_all.set_index('ncessch', inplace = True)
     return school_all.index_right
 
 
-# ### In colleges table
-
-# In[12]:
-
+# Colleges Variables
 
 @orca.column('colleges')
 def full_time_enrollment():
@@ -291,6 +277,7 @@ def full_time_enrollment():
     s = full_time.full_time
     return s
 
+
 @orca.column('colleges')
 def part_time_enrollment():
     base_url = 'https://educationdata.urban.org/api/v1/{t}/{so}/{e}/{y}/{l}/?{f}&{s}&{r}&{cl}&{ds}&{fips}'
@@ -314,6 +301,7 @@ def part_time_enrollment():
     s = part_time.part_time
     return s
 
+
 @orca.column('colleges', cache = True)
 def TAZ(colleges, zones):
     #Tranform blocks to a Geopandas dataframe
@@ -332,48 +320,30 @@ def TAZ(colleges, zones):
     return colleges_df.index_right
 
 
-# In[13]:
+# Households Variables
 
-
-# # Plot of H3 bins with no block within it. 
-# blocks = orca.get_table('blocks').to_frame()
-# h3s = orca.get_table('h3_bins').to_frame()
-
-# ids = blocks.h3_id.unique()
-# h3_with_blocks = h3s[~h3s.h3_id.isin(ids)]
-
-# ax  = h3s.plot(figsize = (10,10), alpha = 0.8, color = 'orange')
-# h3_with_blocks.plot(figsize = (10,10), ax= ax, alpha = 0.5);
-
-
-# ### In household table
-
-# In[14]:
-
-
-# Adding H3 bin to all tables
 @orca.column('households')
 def TAZ(blocks, households):
     return misc.reindex(blocks.TAZ, households.block_id)
 
+
 @orca.column('households')
 def HHT(households):
     s = households.persons
-    return s.where(s==1, 4)
+    return s.where(s == 1, 4)
 
 
-# ### In Persons table
-
-# In[15]:
-
+# Persons Variables
 
 @orca.column('persons')
 def TAZ(households, persons):
     return misc.reindex(households.TAZ, persons.household_id)
 
+
 @orca.column('persons')
 def ptype(persons):
-    #Filters for person type segmentation 
+
+    # Filters for person type segmentation 
     # https://activitysim.github.io/activitysim/abmexample.html#setup
     age_mask_1 = persons.age >= 18 
     age_mask_2 = persons.age.between(18, 64, inclusive = True)
@@ -397,18 +367,20 @@ def ptype(persons):
 
     return type_1
 
+
 @orca.column('persons')
 def pemploy(persons):
     pemploy_1 = ((persons.worker == 1) & (persons.age >= 16)) * 1
     pemploy_3 = ((persons.worker == 0) & (persons.age >= 16)) * 3
     pemploy_4 = (persons.age < 16) * 4
 
-    #Colapsing all series into one series
+    # Colapsing all series into one series
     type_list = [pemploy_1, pemploy_3, pemploy_4]
     for x in type_list:
         pemploy_1.where(pemploy_1 != 0, x, inplace = True)
 
     return pemploy_1
+
 
 @orca.column('persons')
 def pstudent(persons):
@@ -416,7 +388,7 @@ def pstudent(persons):
     pstudent_2 = ((persons.student == 1) & (persons.age > 18)) * 2
     pstudent_3 = (persons.student == 0) * 3
 
-    #Colapsing all series into one series
+    # Colapsing all series into one series
     type_list = [pstudent_1, pstudent_2, pstudent_3]
     for x in type_list:
         pstudent_1.where(pstudent_1 != 0, x, inplace = True)
@@ -424,19 +396,11 @@ def pstudent(persons):
     return pstudent_1
 
 
-# ### In Jobs table
-
-# In[16]:
-
+# Jobs Variables
 
 @orca.column('jobs')
 def TAZ(blocks, jobs):
     return misc.reindex(blocks.TAZ, jobs.block_id)
-
-
-# ### In Zones table
-
-# In[17]:
 
 
 @orca.column('zones', cache=True)
@@ -444,15 +408,18 @@ def TOTHH(households, zones):
     s = households.TAZ.groupby(households.TAZ).count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def HHPOP(persons, zones):
     s = persons.TAZ.groupby(persons.TAZ).count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def EMPRES(households, zones):
     s = households.to_frame().groupby('TAZ')['workers'].sum()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def HHINCQ1(households, zones):
@@ -461,12 +428,14 @@ def HHINCQ1(households, zones):
     s = df.groupby('TAZ')['income'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def HHINCQ2(households, zones):
     df = households.to_frame()
     df = df[df.income.between(30000, 59999)]
     s = df.groupby('TAZ')['income'].count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def HHINCQ3(households, zones):
@@ -475,12 +444,14 @@ def HHINCQ3(households, zones):
     s = df.groupby('TAZ')['income'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def HHINCQ4(households, zones):
     df = households.to_frame()
     df = df[df.income >= 100000]
     s = df.groupby('TAZ')['income'].count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def AGE0004(persons, zones):
@@ -489,26 +460,30 @@ def AGE0004(persons, zones):
     s = df.groupby('TAZ')['age'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def AGE0519(persons, zones):
     df = persons.to_frame()
-    df = df[df.age.between(5,19)]
+    df = df[df.age.between(5, 19)]
     s = df.groupby('TAZ')['age'].count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def AGE2044(persons, zones):
     df = persons.to_frame()
-    df = df[df.age.between(20,44)]
+    df = df[df.age.between(20, 44)]
     s = df.groupby('TAZ')['age'].count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def AGE4564(persons, zones):
     df = persons.to_frame()
-    df = df[df.age.between(45,64)]
+    df = df[df.age.between(45, 64)]
     s = df.groupby('TAZ')['age'].count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def AGE65P(persons, zones):
@@ -517,6 +492,7 @@ def AGE65P(persons, zones):
     s = df.groupby('TAZ')['age'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def AGE62P(persons, zones):
     df = persons.to_frame()
@@ -524,14 +500,17 @@ def AGE62P(persons, zones):
     s = df.groupby('TAZ')['age'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def SHPOP62P(zones):
-    return (zones.AGE62P/zones.HHPOP).reindex(zones.index).fillna(0)
+    return (zones.AGE62P / zones.HHPOP).reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def TOTEMP(jobs, zones):
     s = jobs.TAZ.groupby(jobs.TAZ).count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def RETEMPN(jobs, zones):
@@ -540,12 +519,14 @@ def RETEMPN(jobs, zones):
     s = df.groupby('TAZ')['sector_id'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def FPSEMPN(jobs, zones):
     df = jobs.to_frame()
     df = df[df.sector_id.isin([52,54])]
     s = df.groupby('TAZ')['sector_id'].count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def HEREMPN(jobs, zones):
@@ -554,6 +535,7 @@ def HEREMPN(jobs, zones):
     s = df.groupby('TAZ')['sector_id'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def AGREMPN(jobs, zones):
     df = jobs.to_frame()
@@ -561,12 +543,14 @@ def AGREMPN(jobs, zones):
     s = df.groupby('TAZ')['sector_id'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def MWTEMPN(jobs, zones):
     df = jobs.to_frame()
     df = df[df.sector_id.isin([42, 3133, 32, 4849])]## sector ids don't match
     s = df.groupby('TAZ')['sector_id'].count()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones', cache=True)
 def OTHEMPN(jobs, zones):
@@ -576,11 +560,13 @@ def OTHEMPN(jobs, zones):
     s = df.groupby('TAZ')['sector_id'].count()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def TOTACRE(zones):
     g = zones.geometry.to_crs({'init': 'epsg:3857'}) #area in square meters
     area_polygons = g.area/4046.86
     return area_polygons
+
 
 @orca.column('zones', cache=True)
 def RESACRE(blocks, zones):
@@ -588,43 +574,46 @@ def RESACRE(blocks, zones):
     s = df.groupby('TAZ')['RESACRE'].sum()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def CIACRE(blocks, zones):
     df = blocks.to_frame()
     s = df.groupby('TAZ')['CIACRE'].sum()
     return s.reindex(zones.index).fillna(0)
 
+
 @orca.column('zones', cache=True)
 def HSENROLL(schools, zones):
     s = schools.to_frame().groupby('TAZ')['enrollment'].sum()
     return s.reindex(zones.index).fillna(0)
+
 
 @orca.column('zones')
 def TOPOLOGY():
     return 1 #assumes everything is flat
 
 
-# missing columns
+## Zones variables
 
-# In[18]:
-
-
-#Parking variables
 @orca.column('zones')
 def employment_density(zones):
     return zones.TOTEMP/zones.TOTACRE
+
 
 @orca.column('zones')
 def pop_density(zones):
     return zones.HHPOP/zones.TOTACRE
 
+
 @orca.column('zones')
 def hh_density(zones):
     return zones.TOTHH/zones.TOTACRE
 
+
 @orca.column('zones')
 def hq1_density(zones):
     return zones.HHINCQ1/zones.TOTACRE
+
 
 @orca.column('zones')
 def PRKCST(zones):
@@ -636,6 +625,7 @@ def PRKCST(zones):
     s = cols @ params
     return s.where(s>0, 0)
 
+
 @orca.column('zones')
 def OPRKCST(zones):
     params = pd.Series([-6.17833544, 17.55155703,  2.0786466 ], 
@@ -645,9 +635,6 @@ def OPRKCST(zones):
     
     s = cols @ params
     return s.where(s>0, 0)
-
-
-# In[19]:
 
 
 @orca.column('zones') # College enrollment 
@@ -661,13 +648,11 @@ def COLLPTE(colleges, zones):
     return s.reindex(zones.index).fillna(0)
 
 
-# In[20]:
-
-
 @orca.column('zones')
 def area_type():
 #     Integer, 0=regional core, 1=central business district, 2=urban business, 3=urban, 4=suburban, 5=rural
     return 0 #Assuming all regional core
+
 
 @orca.column('zones')
 def TERMINAL():
@@ -677,110 +662,64 @@ def TERMINAL():
     # We assume zero for now
     return 0 #Assuming O
 
+
 @orca.column('zones')
 def COUNTY():
     #TO DO: 
     #County variable (approximate to Bay area characteristics )
     return 1 #Assuming 1 all San Francisco County
 
-# ## Skims info
 
-# In[21]:
+# ** 3. Define Orca Steps **
 
-
-num_hours = len(skims['hour'].unique())
-num_modes = len(skims['mode'].unique())
-num_od_pairs = len(skims) / num_hours / num_modes
-num_taz = np.sqrt(num_od_pairs)
-assert num_taz.is_integer()
-num_taz = int(num_taz)
-
-hwy_paths = ['SOV', 'HOV2', 'HOV3', 'SOVTOLL', 'HOV2TOLL', 'HOV3TOLL']
-transit_modes = ['COM', 'EXP', 'HVY', 'LOC', 'LRF', 'TRN']
-access_modes = ['WLK', 'DRV']
-egress_modes = ['WLK', 'DRV']
-active_modes = ['WALK', 'BIKE']
-periods = ['EA', 'AM', 'MD', 'PM', 'EV']
-
-# TO DO: fix bridge toll vs vehicle toll
-beam_asim_hwy_measure_map = {
-    'TIME': 'gen_cost_min',
-    'DIST': 'dist_miles',
-    'BTOLL': None,
-    'VTOLL': 'generalizedCost'}
-
-# TO DO: get actual values here
-beam_asim_transit_measure_map = {
-    'WAIT': None,  # other wait time?
-    'TOTIVT': 'generalizedTimeInS',  # total in-vehicle time
-    'KEYIVT': None,  # light rail IVT
-    'FERRYIVT': None,  # ferry IVT
-    'FAR': 'generalizedCost',  # fare
-    'DTIM': None,  # drive time
-    'DDIST': None,  # drive dist
-    'WAUX': None,  # walk other time
-    'WEGR': None,  # walk egress time
-    'WACC': None,  # walk access time
-    'IWAIT': None,  # iwait?
-    'XWAIT': None,  # transfer wait time
-    'BOARDS': None,  # transfers
-    'IVT':'generalizedTimeInS' #In vehicle travel time
-    }
-
-
-
-
-# ## Steps
-
-# In[28]:
-
-
+# Export households tables
 @orca.step()
 def households_table(households):
     names_dict = {'household_id': 'HHID',
                   'persons': 'PERSONS', 
                   'cars': 'VEHICL', 
                   'member_id': 'PNUM'}
-    
+
     df = households.to_frame().rename(columns = names_dict)
     df = df[~df.TAZ.isnull()]
     df.to_csv('data/households.csv')
 
-
-# In[29]:
-
-
+# Export persons table
 @orca.step()
 def persons_table(persons):
     names_dict = {'member_id': 'PNUM'}
     df = persons.to_frame().rename(columns = names_dict)
     df = df[~df.TAZ.isnull()]
+    df.sort_values('household_id', inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    df.index.name = 'person_id'
     df.to_csv('data/persons.csv')
 
-
-# In[30]:
-
-
+# Export land use table
 @orca.step()
 def land_use_table(zones):
     df = orca.get_table('zones').to_frame()
     df.to_csv('data/land_use.csv')
 
-
-# In[31]:
-
-
+# Convert beam skims
 @orca.step()
 def skims_omx(skims):
-    
+
     skims_df = skims.to_frame()
+    num_hours = len(skims_df['hour'].unique())
+    num_modes = len(skims_df['mode'].unique())
+    num_od_pairs = len(skims_df) / num_hours / num_modes
+    num_taz = np.sqrt(num_od_pairs)
+    assert num_taz.is_integer()
+    num_taz = int(num_taz)
+
     skims_df['dist_miles'] = skims_df['distanceInM']*(0.621371/1000)
     skims_df['gen_cost_min'] = skims_df['generalizedTimeInS']/(60)
 
     skims = omx.open_file('data/skims.omx', 'w')
     # TO DO: get separate walk skims from beam so we don't just have to use
     # bike distances for walk distances
-    
+
     #Adding distance
     tmp_df = skims_df[(skims_df['mode'] == 'CAR')]
     vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
@@ -793,7 +732,7 @@ def skims_omx(skims):
         vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
         mx = vals.reshape((num_taz, num_taz))
         skims[name] = mx
-    
+
     for period in periods:
         df = skims_df
 
@@ -808,8 +747,6 @@ def skims_omx(skims):
                 else:
                     mx = np.zeros((num_taz, num_taz))
                 skims[name] = mx
-#                 vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
-#                 mx = vals.reshape((num_taz, num_taz))
 
         # transit skims
         for transit_mode in transit_modes:
@@ -828,9 +765,9 @@ def skims_omx(skims):
                         else:
                             mx = np.zeros((num_taz, num_taz))
                         skims[name] = mx
+    skims.close()
 
 
-# In[32]:
+orca.run(['households_table', 'persons_table', 'land_use_table', 'skims_omx'])
 
-
-orca.run(['households_table','persons_table','land_use_table','skims_omx'])
+hdf.close()

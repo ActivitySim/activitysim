@@ -15,18 +15,16 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import mp_tasks
 from activitysim.core import chunk
-import os 
 from os import path
 
 
-#Create tables if they do not exist already
+# Create tables if they do not exist already
 persons_table = path.exists("data/persons.csv")
 households_table = path.exists("data/households.csv")
 land_use_table = path.exists("data/land_use.csv")
+
 if not persons_table & households_table & land_use_table:
     from data import usim_tables
-
-# from activitysim import abm
 
 
 logger = logging.getLogger('activitysim')
@@ -35,7 +33,8 @@ logger = logging.getLogger('activitysim')
 def cleanup_output_files():
 
     active_log_files = \
-        [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
+        [h.baseFilename for h in logger.root.handlers if isinstance(
+            h, logging.FileHandler)]
     tracing.delete_output_files('log', ignore=active_log_files)
 
     tracing.delete_output_files('h5')
@@ -52,7 +51,8 @@ def run(run_list, injectables=None):
         mp_tasks.run_multiprocess(run_list, injectables)
     else:
         logger.info("run single process simulation")
-        pipeline.run(models=run_list['models'], resume_after=run_list['resume_after'])
+        pipeline.run(
+            models=run_list['models'], resume_after=run_list['resume_after'])
         pipeline.close_pipeline()
         chunk.log_write_hwm()
 
@@ -96,20 +96,18 @@ if __name__ == '__main__':
     run_list = mp_tasks.get_run_list()
 
     if run_list['multiprocess']:
-        # do this after config.handle_standard_args, as command line args may override injectables
+
+        # do this after config.handle_standard_args,
+        # as command line args may override injectables
         injectables = list(set(injectables) | set(['data_dir', 'configs_dir', 'output_dir']))
         injectables = {k: inject.get_injectable(k) for k in injectables}
     else:
         injectables = None
 
     run(run_list, injectables)
-    
-    # Generate beam activity plans
-#     import activity_plans
 
-    # pipeline will be close if multiprocessing
+    # pipeline will be closed if multiprocessing
     # if you want access to tables, BE SURE TO OPEN WITH '_' or all tables will be reinitialized
     # pipeline.open_pipeline('_')
-    
 
     t0 = tracing.print_elapsed_time("everything", t0)

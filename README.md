@@ -19,10 +19,11 @@ https://activitysim.github.io/activitysim
 
 
 ## TO DO:
-[ ] Clean up usim_tables.py
-   [ ] move to `abm/models/`
-   [ ] split out skim conversion to its own .py (also belongs in `models/`)
-   [ ] improve block to hex mapping
-[ ] Improve activity_plans.py
-   [ ] move to `models/` dir
-   [ ] preserve home coords from higher res urbansim data
+
+- [ ] Clean up usim_tables.py
+   - [ ] move to `abm/models/`
+   - [ ] split out skim conversion to its own .py (also belongs in `models/`)
+   - [ ] improve block to hex mapping
+- [ ] Improve activity_plans.py
+   - [ ] move to `models/` dir
+   - [ ] preserve home coords from higher res urbansim data

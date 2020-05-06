@@ -46,7 +46,6 @@ def atwork_subtour_scheduling(
         tracing.no_results(trace_label)
         return
 
-
     model_settings = config.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation('atwork_subtour_scheduling')
 

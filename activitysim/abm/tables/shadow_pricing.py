@@ -634,7 +634,7 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     for block_key, block_shape in block_shapes.items():
 
         # buffer_size must be int (or p2.7 long), not np.int64
-        buffer_size = int(np.prod(block_shape))
+        buffer_size = int(np.prod(block_shape, dtype=np.int64))
 
         csz = buffer_size * np.dtype(dtype).itemsize
         logger.info("allocating shared buffer %s %s buffer_size %s bytes %s (%s)" %

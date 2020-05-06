@@ -213,6 +213,9 @@ def create_tours(tour_counts, tour_category, parent_col='person_id'):
     # for joint tours, the correct number will be filled in after participation step
     tours['number_of_participants'] = 1
 
+    # index is arbitrary but don't want any duplicates
+    tours.reset_index(drop=True, inplace=True)
+
     return tours
 
 
@@ -524,6 +527,9 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
                           joint_tour_frequency_alts,
                           tour_category='joint',
                           parent_col='household_id')
+
+    assert not tours.index.duplicated().any()
+    assert point_persons.index.name == 'household_id'
 
     # - assign a temp point person to tour so we can create stable index
     tours['person_id'] = reindex(point_persons.person_id, tours.household_id)

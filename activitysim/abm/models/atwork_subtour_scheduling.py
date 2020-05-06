@@ -3,6 +3,7 @@
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -61,7 +62,7 @@ def atwork_subtour_scheduling(
         model_settings, trace_label)
 
     # parent_tours table with columns ['tour_id', 'tdd'] index = tour_id
-    parent_tour_ids = subtours.parent_tour_id.astype(int).unique()
+    parent_tour_ids = subtours.parent_tour_id.astype(np.int64).unique()
     parent_tours = pd.DataFrame({'tour_id': parent_tour_ids}, index=parent_tour_ids)
     parent_tours = parent_tours.merge(tours[['tdd']], left_index=True, right_index=True)
 

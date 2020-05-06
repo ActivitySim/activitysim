@@ -246,9 +246,9 @@ def activity_plan(trips, persons):
     trips = trips.append(legs).sort_values(['person_id', 'PlanElementIndex'])
     trips.ActivityElement.fillna('leg', inplace = True)
 
-    
     return trips[['person_id','PlanElementIndex', 'ActivityElement',
                  'ActivityType', 'x', 'y', 'departure_time']]
+
 
 @orca.step()
 def generate_activity_plans():
@@ -263,10 +263,10 @@ for tablename in output_table_map.keys():
     output_tablename = output_table_map[tablename]
     input_store[output_tablename] = hdf[tablename]
 
-for tablename in input_store.keys(): 
+for tablename in input_store.keys():
     tablename = tablename.replace('/', '')
     table = input_store[tablename]
-    table.to_csv(os.path.join('s3://', output_bucket, tablename + '.csv')
+    table.to_csv(os.path.join('s3://', output_bucket, tablename + '.csv'))
 
 end = time.time()
 print("Run time for Activity Plans = {} seconds.".format(end - start))

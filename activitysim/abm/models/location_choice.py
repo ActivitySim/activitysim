@@ -147,7 +147,8 @@ def run_location_sample(
     constants = config.get_model_constants(model_settings)
     locals_d.update(constants)
 
-    spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC', segment_name=segment_name)
+    spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
+                                     segment_name=segment_name, estimator=estimator)
 
     choices = interaction_sample(
         choosers,
@@ -282,7 +283,7 @@ def run_location_simulate(
         estimator.set_alt_id(alt_dest_col_name)
         estimator.write_interaction_sample_alternatives(alternatives)
 
-    spec = simulate.spec_for_segment(model_settings, spec_id='SPEC', segment_name=segment_name)
+    spec = simulate.spec_for_segment(model_settings, spec_id='SPEC', segment_name=segment_name, estimator=estimator)
 
     choices = interaction_sample_simulate(
         choosers,

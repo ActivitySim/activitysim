@@ -186,9 +186,6 @@ def non_mandatory_tour_frequency(persons, persons_merged,
         # pick the spec column for the segment
         segment_spec = model_spec[[segment_name]]
 
-        coefficients_df = simulate.read_model_coefficients(file_name=segment_settings['COEFFICIENTS'])
-        segment_spec = simulate.eval_coefficients(segment_spec, coefficients_df)
-
         chooser_segment = choosers[choosers.ptype == ptype]
 
         logger.info("Running segment '%s' of size %d", segment_name, len(chooser_segment))
@@ -200,9 +197,12 @@ def non_mandatory_tour_frequency(persons, persons_merged,
         estimator = \
             estimation.manager.begin_estimation(model_name='non_mandatory_tour_frequency_%s' % segment_name,
                                                 bundle_name='non_mandatory_tour_frequency')
+
+        coefficients_df = simulate.read_model_coefficients(file_name=segment_settings['COEFFICIENTS'])
+        segment_spec = simulate.eval_coefficients(segment_spec, coefficients_df, estimator)
+
         if estimator:
             estimator.write_spec(model_settings)
-            estimator.write_evaled_spec(model_spec)
             estimator.write_model_settings(model_settings, model_settings_file_name)
             estimator.write_coefficients(coefficients_df)
             estimator.write_choosers(chooser_segment)

@@ -73,7 +73,7 @@ def run_tour_mode_choice_simulate(
 
     spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients = simulate.get_segment_coefficients(model_settings, tour_purpose)
-    spec = simulate.eval_coefficients(spec, coefficients)
+    spec = simulate.eval_coefficients(spec, coefficients, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)

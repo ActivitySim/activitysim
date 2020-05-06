@@ -26,12 +26,12 @@ def free_parking(
     trace_label = 'free_parking'
     model_settings_file_name = 'free_parking.yaml'
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-
     choosers = persons_merged.to_frame()
     choosers = choosers[choosers.workplace_taz > -1]
-
     logger.info("Running %s with %d persons", trace_label, len(choosers))
+
+    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation('free_parking')
 
     constants = config.get_model_constants(model_settings)
 
@@ -51,11 +51,10 @@ def free_parking(
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
-    estimator = estimation.manager.begin_estimation('free_parking')
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)

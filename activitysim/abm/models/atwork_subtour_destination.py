@@ -34,7 +34,7 @@ def atwork_subtour_destination_sample(
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SAMPLE_SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     # merge persons into tours
     choosers = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
@@ -158,7 +158,7 @@ def atwork_subtour_destination_simulate(
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     # interaction_sample_simulate insists choosers appear in same order as alts
     subtours = subtours.sort_index()

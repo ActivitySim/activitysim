@@ -12,7 +12,7 @@ households_sample_size:  0
 # to resume after last successful checkpoint, specify resume_after: _
 #resume_after: initialize_households
 
-trace_hh_id: 2367040
+trace_hh_id:
 
 # input tables
 input_table_list:

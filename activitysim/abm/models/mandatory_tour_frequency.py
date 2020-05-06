@@ -73,17 +73,17 @@ def mandatory_tour_frequency(persons_merged,
             locals_dict=locals_dict,
             trace_label=trace_label)
 
+    estimator = estimation.manager.begin_estimation('mandatory_tour_frequency')
+
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
 
-    estimator = estimation.manager.begin_estimation('mandatory_tour_frequency')
     if estimator:
         estimator.write_spec(model_settings)
-        estimator.write_evaled_spec(model_spec)
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_coefficients(coefficients_df)
         estimator.write_choosers(choosers)

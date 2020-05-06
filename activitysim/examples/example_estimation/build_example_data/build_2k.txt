@@ -18,18 +18,23 @@ TAG=_2K
 HH=2000
 DATASET=mtc_tm1_sf
 
-ACTIVITYSIM_HOME=/Users/jeff.doyle/work/activitysim
 INPUT_DATA=/Users/jeff.doyle/work/activitysim-data/$DATASET/data
-ESTIMATION_DIR=$ACTIVITYSIM_HOME/sandbox/example_estimation
 
-EXAMPLE_CONFIGS=$ACTIVITYSIM_HOME/activitysim/examples/example_mtc/configs
-SCRIPTS=$ESTIMATION_DIR/scripts
-LOCAL_CONFIGS=$ESTIMATION_DIR/build_example_data/configs_build
-OUTPUT=$ESTIMATION_DIR/build_example_data/output_build$TAG
-DATA=$ESTIMATION_DIR/data$TAG
+ACTIVITYSIM_HOME=/Users/jeff.doyle/work/activitysim
+
+ESTIMATION_HOME=$ACTIVITYSIM_HOME/activitysim/examples/example_estimation
+ESTIMATION_CONFIGS=$ESTIMATION_HOME/build_example_data/configs_build
+
+MTC_HOME=$ACTIVITYSIM_HOME/activitysim/examples/example_mtc
+MTC_CONFIGS=$MTC_HOME/configs
+
+OUTPUT=$ESTIMATION_HOME/build_example_data/output_build$TAG
+DATA=$ESTIMATION_HOME/data$TAG
+
+SCRIPTS=$ESTIMATION_HOME/scripts
 
 # run this to create fake sample data (random seed 1)
-python $SCRIPTS/simulation.py -hh $HH -d $INPUT_DATA -c $LOCAL_CONFIGS -c $EXAMPLE_CONFIGS -o $OUTPUT
+python $SCRIPTS/simulation.py -hh $HH -d $INPUT_DATA -c $ESTIMATION_CONFIGS -c $MTC_CONFIGS -o $OUTPUT
 
 # copy raw tables to data directory data$TAG/*.csv
 cp $OUTPUT/raw_tables/*.csv $DATA/

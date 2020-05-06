@@ -74,7 +74,7 @@ def compute_logsums(choosers,
 
     logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
     coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)
-    logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients)
+    logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients, estimator=None)
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)

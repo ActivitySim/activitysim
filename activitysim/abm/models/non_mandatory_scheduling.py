@@ -66,11 +66,12 @@ def non_mandatory_tour_scheduling(tours,
 
     timetable = inject.get_injectable("timetable")
 
+    estimator = estimation.manager.begin_estimation('non_mandatory_tour_scheduling')
+
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
-    estimator = estimation.manager.begin_estimation('non_mandatory_tour_scheduling')
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)

@@ -55,7 +55,6 @@ class Estimator(object):
         self.omnibus_tables_append_columns = self.estimation_table_recipes['omnibus_tables_append_columns']
         self.tables = {}
         self.tables_to_cache = [table_name for tables in self.omnibus_tables.values() for table_name in tables]
-        self.specs = {}
         self.alt_id_column_name = None
         self.chooser_id_column_name = None
 
@@ -92,10 +91,6 @@ class Estimator(object):
     def end_estimation(self):
 
         self.write_omnibus_table()
-
-        assert not self.specs, \
-            "cached specs not written: %s. Did you forget to call write_evaled_spec?" % \
-            (list(self.specs.keys()),)
 
         self.estimating = False
         self.tables = None
@@ -150,7 +145,7 @@ class Estimator(object):
 
         cache = table_name in self.tables_to_cache
         write = not cache
-        write = True
+        # write = True
 
         if cache:
             cache_table(df, table_name, append)
@@ -330,33 +325,6 @@ class Estimator(object):
         output_path = self.file_path(table_name=tag, file_type='csv')
         shutil.copy(input_path, output_path)
         self.debug("estimate.write_spec: %s" % output_path)
-
-        return
-
-        # #estimation_write_spec
-
-        spec = simulate.read_model_spec(file_name)
-        assert 'spec' not in self.specs
-        self.specs[tag] = spec.copy()
-        self.warning("write_spec")
-
-    def write_evaled_spec(self, espec, tag='SPEC'):
-
-        self.write_table(espec, 'evaled_%s' % tag, append=False, index=True)
-        return
-
-        # #estimation_write_spec
-
-        spec = self.specs[tag]
-
-        self.info("write_evaled_spec dropping %s rows" % (len(spec) - len(espec)))
-        assert (espec.columns == spec.columns).all()
-
-        spec = spec[spec.index.isin(espec.index)]
-
-        self.write_table(spec, tag, append=False, index=True)
-
-        del self.specs[tag]
 
 
 class EstimationManager(object):

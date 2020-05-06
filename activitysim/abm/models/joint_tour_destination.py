@@ -36,7 +36,8 @@ def run_destination_sample(
         estimator,
         chunk_size, trace_label):
 
-    spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC', segment_name=spec_segment_name)
+    spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
+                                     segment_name=spec_segment_name, estimator=estimator)
 
     # choosers are tours - in a sense tours are choosing their destination
     choosers = pd.merge(tours, households_merged,
@@ -147,7 +148,8 @@ def run_destination_simulate(
     annotated with mode_choice logsum to select a destination from sample alternatives
     """
 
-    spec = simulate.spec_for_segment(model_settings, spec_id='SPEC', segment_name=spec_segment_name)
+    spec = simulate.spec_for_segment(model_settings, spec_id='SPEC',
+                                     segment_name=spec_segment_name, estimator=estimator)
 
     # merge persons into tours
     choosers = pd.merge(tours,

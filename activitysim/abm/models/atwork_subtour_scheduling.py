@@ -38,16 +38,6 @@ def atwork_subtour_scheduling(
     trace_label = 'atwork_subtour_scheduling'
     model_settings_file_name = 'tour_scheduling_atwork.yaml'
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-
-    model_spec = simulate.read_model_spec(file_name='tour_scheduling_atwork.csv')
-
-    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
-
-    persons_merged = persons_merged.to_frame()
-
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']
 
@@ -55,6 +45,16 @@ def atwork_subtour_scheduling(
     if subtours.shape[0] == 0:
         tracing.no_results(trace_label)
         return
+
+
+    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation('atwork_subtour_scheduling')
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+
+    persons_merged = persons_merged.to_frame()
 
     logger.info("Running %s with %d tours", trace_label, len(subtours))
 
@@ -75,7 +75,6 @@ def atwork_subtour_scheduling(
     parent_tours = pd.DataFrame({'tour_id': parent_tour_ids}, index=parent_tour_ids)
     parent_tours = parent_tours.merge(tours[['tdd']], left_index=True, right_index=True)
 
-    estimator = estimation.manager.begin_estimation('atwork_subtour_scheduling')
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)

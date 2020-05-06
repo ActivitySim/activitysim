@@ -39,18 +39,7 @@ def atwork_subtour_frequency(tours,
     trace_label = 'atwork_subtour_frequency'
     model_settings_file_name = 'atwork_subtour_frequency.yaml'
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-
-    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
-
-    alternatives = simulate.read_model_alts('atwork_subtour_frequency_alternatives.csv', set_index='alt')
-
     tours = tours.to_frame()
-
-    persons_merged = persons_merged.to_frame()
-
     work_tours = tours[tours.tour_type == 'work']
 
     # - if no work_tours
@@ -58,7 +47,17 @@ def atwork_subtour_frequency(tours,
         add_null_results(trace_label, tours)
         return
 
+    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation('atwork_subtour_frequency')
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+
+    alternatives = simulate.read_model_alts('atwork_subtour_frequency_alternatives.csv', set_index='alt')
+
     # merge persons into work_tours
+    persons_merged = persons_merged.to_frame()
     work_tours = pd.merge(work_tours, persons_merged, left_on='person_id', right_index=True)
 
     logger.info("Running atwork_subtour_frequency with %d work tours", len(work_tours))
@@ -75,10 +74,8 @@ def atwork_subtour_frequency(tours,
             model_settings=preprocessor_settings,
             trace_label=trace_label)
 
-    estimator = estimation.manager.begin_estimation('atwork_subtour_frequency')
     if estimator:
         estimator.write_spec(model_settings)
-        estimator.write_evaled_spec(model_spec)
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_coefficients(coefficients_df)
         estimator.write_choosers(work_tours)

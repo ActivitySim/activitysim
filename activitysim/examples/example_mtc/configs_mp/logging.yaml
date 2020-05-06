@@ -10,7 +10,7 @@ logging:
   # Configuring the default (root) logger is highly recommended
   root:
     level: DEBUG
-    handlers: [console, logfile]
+    handlers: [console]
 
   loggers:
 

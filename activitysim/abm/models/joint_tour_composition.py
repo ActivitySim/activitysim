@@ -36,8 +36,6 @@ def joint_tour_composition(
     trace_label = 'joint_tour_composition'
     model_settings_file_name = 'joint_tour_composition.yaml'
 
-    model_settings = config.read_model_settings(model_settings_file_name)
-
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
 
@@ -45,6 +43,9 @@ def joint_tour_composition(
     if joint_tours.shape[0] == 0:
         add_null_results(trace_label, tours)
         return
+
+    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation('joint_tour_composition')
 
     # - only interested in households with joint_tours
     households = households.to_frame()
@@ -76,15 +77,13 @@ def joint_tour_composition(
     # - simple_simulate
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
 
-    estimator = estimation.manager.begin_estimation('joint_tour_composition')
     if estimator:
         estimator.write_spec(model_settings)
-        estimator.write_evaled_spec(model_spec)
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_coefficients(coefficients_df)
         estimator.write_choosers(joint_tours_merged)

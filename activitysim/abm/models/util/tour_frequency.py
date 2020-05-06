@@ -218,7 +218,7 @@ def create_tours(tour_counts, tour_category, parent_col='person_id'):
     # for joint tours, the correct number will be filled in after participation step
     tours['number_of_participants'] = 1
 
-    # don't want any dupe indices
+    # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
 
     return tours

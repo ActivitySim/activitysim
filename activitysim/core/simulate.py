@@ -145,7 +145,7 @@ def read_model_coefficients(model_settings=None, file_name=None):
     return coefficients
 
 
-def spec_for_segment(model_settings, spec_id, segment_name):
+def spec_for_segment(model_settings, spec_id, segment_name, estimator):
     """
     Select spec for specified segment from omnibus spec containing columns for each segment
 
@@ -172,10 +172,7 @@ def spec_for_segment(model_settings, spec_id, segment_name):
         # otherwise we expect a single coefficient column
         assert spec.columns[0] == 'coefficient'
 
-    spec = eval_coefficients(spec, coefficients)
-
-    # #estimation_write_spec
-    # print("spec_for_segment spec_id: %s segment_name: %s\n%s" % (spec_id, segment_name, spec))
+    spec = eval_coefficients(spec, coefficients, estimator)
 
     return spec
 
@@ -266,7 +263,7 @@ def eval_nest_coefficients(nest_spec, coefficients):
     return nest_spec
 
 
-def eval_coefficients(spec, coefficients):
+def eval_coefficients(spec, coefficients, estimator):
 
     spec = spec.copy()  # don't clobber input spec
 
@@ -282,12 +279,15 @@ def eval_coefficients(spec, coefficients):
             continue
         spec[c] = spec[c].apply(lambda x: eval(str(x), {}, coefficients)).astype(np.float32)
 
-    # #estimation_write_spec
     # drop any rows with all zeros since they won't have any effect (0 marginal utility)
+    # (do not drop rows in estimation mode as it may confuse the estimation package (e.g. larch)
     zero_rows = (spec == 0).all(axis=1)
     if zero_rows.any():
-        logger.debug("dropping %s all-zero rows from SPEC" % (zero_rows.sum(), ))
-        spec = spec.loc[~zero_rows]
+        if estimator:
+            logger.debug("keeping %s all-zero rows in SPEC" % (zero_rows.sum(),))
+        else:
+            logger.debug("dropping %s all-zero rows from SPEC" % (zero_rows.sum(), ))
+            spec = spec.loc[~zero_rows]
 
     return spec
 

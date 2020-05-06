@@ -27,18 +27,19 @@ def auto_ownership_simulate(households,
     model_settings_file_name = 'auto_ownership.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    logger.info("Running %s with %d households", trace_label, len(households_merged))
+    estimator = estimation.manager.begin_estimation('auto_ownership')
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
 
     choosers = households_merged.to_frame()
 
-    estimator = estimation.manager.begin_estimation('auto_ownership')
+    logger.info("Running %s with %d households", trace_label, len(choosers))
+
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)

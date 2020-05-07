@@ -80,8 +80,9 @@ def get_trip_coords(trips, zones, persons, size=500):
 
     # retain home coords from urbansim data bc they will typically be
     # higher resolution than zone, so we don't need the semi-random coords
-    trips['home_x'] = persons['home_x'].reindex(trips['person_id'])
-    trips['home_y'] = persons['home_y'].reindex(trips['person_id'])
+    trips = pd.merge(
+        trips, persons[['home_x', 'home_y']],
+        left_on='person_id', right_index=True)
     trips['origin_purpose'] = trips.purpose.shift(periods=1).fillna('Home')
     trips['x'] = trips.origin_x.where(
         trips.origin_purpose != 'Home', trips.home_x)

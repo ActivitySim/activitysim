@@ -11,6 +11,7 @@ from . import atwork_subtour_scheduling
 from . import auto_ownership
 from . import cdap
 from . import free_parking
+from . import generate_beam_plans
 from . import initialize
 from . import joint_tour_composition
 from . import joint_tour_destination

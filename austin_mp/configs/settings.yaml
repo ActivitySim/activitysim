@@ -38,7 +38,7 @@ use_shadow_pricing: False
 
 
 ## - example sample
-households_sample_size: 2000
+households_sample_size: 1000
 chunk_size: 400000000
 num_processes: 24
 stagger: 2
@@ -51,7 +51,7 @@ trace_od:
 #trace_od: [5, 11]
 
 # to resume after last successful checkpoint, specify resume_after: _
-# resume_after: _
+resume_after: trip_mode_choice
 
 models:
   ### mp_initialize step
@@ -86,6 +86,7 @@ models:
   - trip_scheduling
   - trip_mode_choice
   ### mp_summarize step
+  - generate_beam_plans
   - write_data_dictionary
   - write_tables
 
@@ -102,21 +103,18 @@ multiprocess_steps:
         - households
         - persons
   - name: mp_summarize
-    begin: write_data_dictionary
+    begin: generate_beam_plans
 
 
 output_tables:
   action: include
   prefix: final_
   tables:
-    - checkpoints
-    - accessibility
     - land_use
     - households
     - persons
     - tours
     - trips
-    - school_shadow_prices
-    - workplace_shadow_prices
+    - beam_plans
 
 

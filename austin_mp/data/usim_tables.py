@@ -47,7 +47,7 @@ beam_asim_transit_measure_map = {
     'IVT': 'gen_cost_min'  # In vehicle travel time (minutes)
 }
 
-# UrbanSim Results
+# UrbanSim Output Data
 hdf = pd.HDFStore('data/model_data.h5')
 households = hdf['/households']
 persons = hdf['/persons']
@@ -57,6 +57,18 @@ skims = pd.read_csv(
     'https://beam-outputs.s3.amazonaws.com/output/austin/'
     'austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/'
     'ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz')
+
+# update tables
+persons_w_res_blk = pd.merge(
+    persons, households[['block_id']], left_on='household_id',
+    right_index=True)
+persons_w_xy = pd.merge(
+    persons_w_res_blk, blocks[['x', 'y']], left_on='block_id',
+    right_index=True)
+persons['home_x'] = persons_w_xy['x']
+persons['home_y'] = persons_w_xy['y']
+del persons_w_res_blk
+del persons_w_xy
 
 orca.add_table('households', households)
 orca.add_table('persons', persons)
@@ -82,10 +94,10 @@ def zones(skims):
         polygon_shapes.append(shape)
 
     #Organize information in a GeoPandas dataframe to merge with blocks
-    h3_zones = gpd.GeoDataFrame(zone_ids, geometry = polygon_shapes, crs = "EPSG:4326")
+    h3_zones = gpd.GeoDataFrame(zone_ids, geometry=polygon_shapes, crs="EPSG:4326")
     h3_zones.columns = ['h3_id', 'geometry']
     h3_zones['area'] = h3_zones.geometry.area
-    h3_zones['TAZ'] = list(range(1, len(zone_ids)+1))
+    h3_zones['TAZ'] = list(range(1, len(zone_ids) + 1))
     return h3_zones.set_index('TAZ')
 
 # Schools

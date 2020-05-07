@@ -195,7 +195,7 @@ def departure_time(trips):
     - trips table with randomized departure time witin an hour. 
       Table is sorted by person_id and departure time
     '''
-    df = trips.to_frame(columns=['person_id','depart']).reset_index()
+    df = trips.to_frame(columns=['person_id', 'depart']).reset_index()
     
     #Generate randon decimal part to be added to the hour
     df['frac'] = np.random.rand(len(df),)
@@ -246,9 +246,9 @@ def activity_plan(trips, persons):
     trips = trips.append(legs).sort_values(['person_id', 'PlanElementIndex'])
     trips.ActivityElement.fillna('leg', inplace = True)
 
-    
     return trips[['person_id','PlanElementIndex', 'ActivityElement',
                  'ActivityType', 'x', 'y', 'departure_time']]
+
 
 @orca.step()
 def generate_activity_plans():
@@ -256,17 +256,8 @@ def generate_activity_plans():
     activity_plan.to_hdf('output/pipeline.h5', key='beam_activity_plans')
     hdf.close()
 
+
 orca.run(['generate_activity_plans'])
-
-input_store = pd.HDFStore('../data/model_data.h5')
-for tablename in output_table_map.keys():
-    output_tablename = output_table_map[tablename]
-    input_store[output_tablename] = hdf[tablename]
-
-for tablename in input_store.keys(): 
-    tablename = tablename.replace('/', '')
-    table = input_store[tablename]
-    table.to_csv(os.path.join('s3://', output_bucket, tablename + '.csv')
 
 end = time.time()
 print("Run time for Activity Plans = {} seconds.".format(end - start))

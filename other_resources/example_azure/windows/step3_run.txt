@@ -1,0 +1,62 @@
+
+
+
+az vm list-sizes -l $AZ_LOCATION --output table
+
+# prices are pay as you go, list (US West 2)
+
+# 4 processor, 32 GiB RAM, 64 GiB SSD Temp, $0.436/hour
+#AZ_VM_SIZE=Standard_E4s_v3
+
+# 8 processor, 64 GiB RAM, 128 GiB SSD Temp, $0.872/hour
+#AZ_VM_SIZE=Standard_E8s_v3
+
+# 16 processor, 128 GiB RAM, 256 GiB SSD Temp, $1.744/hour
+#AZ_VM_SIZE=Standard_E16s_v3
+
+# 32 processor, 256 GiB RAM, 512 GiB SSD Temp, $3.488/hour
+#AZ_VM_SIZE=Standard_E32s_v3
+
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $6.573/hour
+#AZ_VM_SIZE=Standard_E64s_v3
+
+# 128 processor, 2TB GiB RAM, $19.226/hour
+AZ_VM_SIZE=Standard_M128s
+
+############### resize
+
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+#AZ_VM_SIZE=Standard_E64s_v3
+AZ_VM_SIZE=Standard_M128s
+az vm resize --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME --size $AZ_VM_SIZE
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+az vm stop --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+################################################ anaconda prompt
+
+# show public IP address
+az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv
+
+
+E:
+cd activitysim/example_mp
+
+git status
+
+#conda activate asim
+conda activate asim3
+
+# this makes things worse on Standard_M128s
+set OPENBLAS_NUM_THREADS=1
+set MKL_NUM_THREADS=1
+set NUMEXPR_NUM_THREADS=1
+set OMP_NUM_THREADS=1
+
+
+python simulation.py -d  E:\data\full -m
+
+python simulation.py -d  E:\data\sf_county -m
+

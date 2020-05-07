@@ -341,7 +341,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 201
+EXPECT_TOUR_COUNT = 205
 
 
 def regress_tour_modes(tours_df):
@@ -464,7 +464,8 @@ def test_full_run1():
 
     print("tour_count", tour_count)
 
-    assert(tour_count == EXPECT_TOUR_COUNT)
+    assert(tour_count == EXPECT_TOUR_COUNT), \
+        "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
     regress()
 
@@ -480,7 +481,8 @@ def test_full_run2():
 
     tour_count = full_run(resume_after='non_mandatory_tour_scheduling', trace_hh_id=HH_ID)
 
-    assert(tour_count == EXPECT_TOUR_COUNT)
+    assert(tour_count == EXPECT_TOUR_COUNT), \
+        "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
     regress()
 
@@ -498,7 +500,8 @@ def test_full_run3_with_chunks():
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
                           chunk_size=500000)
 
-    assert(tour_count == EXPECT_TOUR_COUNT)
+    assert(tour_count == EXPECT_TOUR_COUNT), \
+        "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
     regress()
 

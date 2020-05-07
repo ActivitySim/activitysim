@@ -22,7 +22,7 @@ trip,eatout,0,0.742,0,0.258,0,0,0,0,0,0,0
 trip,othmaint,0.001,0.481,0,0.518,0,0,0,0,0,0,0
 trip,social,0.001,0.521,0,0.478,0,0,0,0,0,0,0
 trip,othdiscr,0.252,0.212,0,0.272,0.165,0,0,0,0.098,0,0
-trip,univ,0,0,0,0,0,0,0,0,0,0.592,0.408
+trip,univ,0.001,0,0,0,0,0,0,0,0,0.592,0.408
 # not needed as school is not chosen as an intermediate trip destination,,,,,,,,,,,,
 #trip,gradeschool,0,0,0,0,0,0,0,1,0,0,0
 #trip,highschool,0,0,0,0,0,0,0,0,1,0,0

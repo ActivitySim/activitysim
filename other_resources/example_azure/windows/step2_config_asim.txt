@@ -1,0 +1,66 @@
+
+###################### install chocolatey and git from powershell administrater
+
+# install chocolatey
+Get-ExecutionPolicy
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+# install git and unix tools using chocolatey
+choco install git -params '"/GitAndUnixToolsOnPath"'
+
+# install 7zip
+choco install 7zip.install
+
+refreshenv
+
+exit
+
+
+###################### install miniconda locally in E:\miniconda2
+
+E:\
+
+wget https://repo.continuum.io/miniconda/Miniconda2-latest-Windows-x86_64.exe -OutFile install_miniconda.exe
+.\install_miniconda.exe /InstallationType=JustMe /RegisterPython=0 /S /D=E:\miniconda2
+
+# activate conda base
+E:\miniconda2\Scripts\activate.bat E:\miniconda2
+
+
+################################################ switch to anaconda prompt
+
+
+########################## init work dir
+
+
+# copy from smb fileshare to datadrive
+xcopy /E Z:\work\data E:\data\
+
+
+###################### clone activitysim repo
+
+git clone https://github.com/ActivitySim/activitysim.git activitysim
+
+cd activitysim
+
+git checkout dev
+
+###################### create asim conda env
+
+$env:Path += ";E:\miniconda2\Scripts"
+
+
+# activate conda base
+activate.bat E:\miniconda2
+
+#conda remove --name asim --all
+
+conda create -n asim python=2.7 cytoolz numpy pandas pip pytables pyyaml toolz psutil
+activate.bat asim
+pip install openmatrix zbox
+
+git status
+pip install -e .
+
+cd example_mp
+python simulation.py -d  C:\Users\azureuser\work\sf_county_data

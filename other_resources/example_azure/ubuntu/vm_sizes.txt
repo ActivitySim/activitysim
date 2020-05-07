@@ -1,0 +1,24 @@
+# # 2 processor, 8 GiB RAM, 16 GiB SSD Temp, $0.096/hour
+# Standard_D2s_v3
+# 
+# # 4 processor, 16 GiB RAM, 32 GiB SSD Temp, $0.192/hour
+# Standard_D4s_v3
+
+# 16 processor, 64 GiB RAM, 128 GiB SSD Temp, $0.768/hour
+Standard_D16s_v3
+
+# 32 processor, 128 GiB RAM, 256 GiB SSD Temp, $1.536/hour
+Standard_D32s_v3
+
+# 64 processor, 256 GiB RAM, 512 GiB SSD Temp, $3.072/hour
+Standard_D64s_v3
+
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
+Standard_E64s_v3
+
+# 128 cpu 2TB ram $13.34/hour
+Standard_M128s
+
+
+
+az vm list-sizes --location eastus --output table

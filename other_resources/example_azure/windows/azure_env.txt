@@ -1,0 +1,9 @@
+AZ_VM_NUMBER=1
+
+AZ_VM_NAME=windows$AZ_VM_NUMBER
+AZ_RESOURCE_GROUP=jeffdoyle
+AZ_USERNAME=azureuser
+AZ_LOCATION=eastus
+AZ_VM_IMAGE=Win2016Datacenter
+
+SHARE_NAME=myshare

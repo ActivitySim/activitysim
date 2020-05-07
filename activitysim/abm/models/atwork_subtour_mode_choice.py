@@ -68,11 +68,17 @@ def atwork_subtour_mode_choice(
                                              skim_key='out_period')
     dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
                                              skim_key='in_period')
+    odr_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,
+                                             skim_key='in_period')
+    dor_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
+                                             skim_key='out_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
         "dot_skims": dot_skim_stack_wrapper,
+        "odr_skims": odr_skim_stack_wrapper,
+        "dor_skims": dor_skim_stack_wrapper,
         "od_skims": od_skim_stack_wrapper,
         'orig_col_name': orig_col_name,
         'dest_col_name': dest_col_name,

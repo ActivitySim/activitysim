@@ -6,7 +6,7 @@ Example
 
 This page describes the example model design and how to setup and run the example. The default
 configuration of the example is limited to a small sample of households and zones so that it can
-be run quickly and require less than 1 GB of RAM.  The full scale example can be configurd and run
+be run quickly and require less than 1 GB of RAM.  The full scale example can be configured and run
 as well.
 
 
@@ -591,7 +591,7 @@ The model is run by calling the :func:`activitysim.core.pipeline.run` method.
 .. _example_run :
 
 Running the MTC Example
--------------------
+-----------------------
 
 To run the example, do the following:
 

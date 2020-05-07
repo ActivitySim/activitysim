@@ -200,6 +200,7 @@ def compute_logsums(
         'ORIGIN': model_settings['TRIP_ORIGIN'],
         'DESTINATION': model_settings['ALT_DEST_COL_NAME'],
         "odt_skims": skims['odt_skims'],
+        "dot_skims": skims['dot_skims'],
         "od_skims": skims['od_skims'],
     }
     destination_sample['od_logsum'] = compute_ood_logsums(
@@ -215,6 +216,7 @@ def compute_logsums(
         'ORIGIN': model_settings['ALT_DEST_COL_NAME'],
         'DESTINATION': model_settings['PRIMARY_DEST'],
         "odt_skims": skims['dpt_skims'],
+        "dot_skims": skims['pdt_skims'],
         "od_skims": skims['dp_skims'],
     }
     destination_sample['dp_logsum'] = compute_ood_logsums(

@@ -1,0 +1,145 @@
+
+
+# 128 GiB SSD Temp - want enough temp to create 64GB swap
+AZ_VM_SIZE=Standard_D16s_v3
+
+
+########################## create vm
+
+az vm create \
+    --resource-group $AZ_RESOURCE_GROUP \
+    --name $AZ_VM_NAME \
+    --image $AZ_VM_IMAGE \
+	--admin-username $AZ_USERNAME \
+    --size $AZ_VM_SIZE
+
+########################## add a standard sdd managed disk
+
+#https://docs.microsoft.com/en-us/azure/virtual-machines/linux/add-disk
+
+MANAGED_DISK_NAME=datadisk$AZ_VM_NUMBER
+DISK_SIZE_GB=200
+DISK_SKU=StandardSSD_LRS
+# Premium_LRS, StandardSSD_LRS, Standard_LRS, UltraSSD_LRS
+
+az vm disk attach \
+   -g $AZ_RESOURCE_GROUP \
+   --vm-name $AZ_VM_NAME \
+   --disk $MANAGED_DISK_NAME \
+   --new \
+   --size-gb $DISK_SIZE_GB \
+   --sku $DISK_SKU
+
+	
+########################## start vm
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv)
+
+ssh $AZ_USERNAME@$VM_IP
+
+
+########################## prepare managed disk
+
+#dmesg | grep SCSI
+	
+(echo n; echo p; echo 1; echo ; echo ; echo w) | sudo fdisk /dev/sdc
+
+	# sudo fdisk /dev/sdc
+	# Welcome to fdisk (util-linux 2.27.1).
+	# Changes will remain in memory only, until you decide to write them.
+	# Be careful before using the write command.
+	# 
+	# Device does not contain a recognized partition table.
+	# Created a new DOS disklabel with disk identifier 0x06c86a75.
+	# 
+	# Command (m for help): n
+	# Partition type
+	#    p   primary (0 primary, 0 extended, 4 free)
+	#    e   extended (container for logical partitions)
+	# Select (default p): p
+	# Partition number (1-4, default 1): 1
+	# First sector (2048-209715199, default 2048): 
+	# Last sector, +sectors or +size{K,M,G,T,P} (2048-209715199, default 209715199): 
+	# 
+	# Created a new partition 1 of type 'Linux' and of size 100 GiB.
+	# 
+	# Command (m for help): p
+	# Disk /dev/sdc: 100 GiB, 107374182400 bytes, 209715200 sectors
+	# Units: sectors of 1 * 512 = 512 bytes
+	# Sector size (logical/physical): 512 bytes / 4096 bytes
+	# I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+	# Disklabel type: dos
+	# Disk identifier: 0x06c86a75
+	# 
+	# Device     Boot Start       End   Sectors  Size Id Type
+	# /dev/sdc1        2048 209715199 209713152  100G 83 Linux
+	# 
+	# Command (m for help): w
+	# The partition table has been altered.
+	# Calling ioctl() to re-read partition table.
+	# Syncing disks.
+
+
+sudo mkfs -t ext4 /dev/sdc1
+sudo mkdir /datadrive
+sudo mount /dev/sdc1 /datadrive
+
+sudo chmod g+w /datadrive 
+sudo chmod a+wt /datadrive
+
+# To ensure that the drive is remounted after a reboot, it must be added to the /etc/fstab file.
+# The following assumes there are no other added drives that might be assigned to /dev/sdc1
+echo "/dev/sdc1   /datadrive   ext4   defaults,nofail   1   2" | sudo tee -a /etc/fstab >/dev/null
+	
+# make sure it worked
+df -h
+
+########################## add swap file (optional)
+
+# https://support.microsoft.com/en-us/help/4010058/how-to-add-a-swap-file-in-linux-azure-virtual-machines
+
+#SWAP_SIZE_MB=64000
+
+sudo sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
+sudo sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
+sudo sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=64000/g' /etc/waagent.conf
+
+
+# sudo nano /etc/waagent.conf 
+# 
+# 	# ResourceDisk.Format=y
+# 	# ResourceDisk.EnableSwap=y
+# 	# ResourceDisk.SwapSizeMB=64000
+
+sudo service walinuxagent restart
+
+# make sure it worked
+free
+
+########################## mount smb shared drive (one time)
+
+sudo mkdir /mnt/fileshare
+sudo mount -t cifs //$STORAGEACCT.file.core.windows.net/$SHARE_NAME /mnt/fileshare -o vers=3.0,username=$STORAGEACCT,password=$STORAGEKEY,dir_mode=0777,file_mode=0777,serverino
+
+
+########################## init work dir
+
+mkdir /datadrive/work
+
+# copy from smb fileshare to datadrive
+cp -r /mnt/fileshare/work/data /datadrive/work/data/
+
+# show size
+du -h --max-depth=1 /datadrive/work/data/
+
+
+########################## exit
+
+exit
+
+
+########################## deallocate vm
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+
+

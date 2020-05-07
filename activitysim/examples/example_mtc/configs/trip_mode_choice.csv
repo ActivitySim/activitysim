@@ -314,13 +314,13 @@ Taxi - Fare,@df.c_cost * (Taxi_baseFare + odt_skims['HOV2TOLL_DIST'] * Taxi_cost
 TNC Single - In-vehicle time,@c_ivt * odt_skims['HOV2TOLL_TIME'] ,,,,,,,,,,,,,,,,,,,,1,
 TNC Single - Wait time,@c_ivt * 1.5 * df.origSingleTNCWaitTime,,,,,,,,,,,,,,,,,,,,1,
 TNC Single - Tolls,@df.c_cost * odt_skims['HOV2TOLL_VTOLL'],,,,,,,,,,,,,,,,,,,,1,
-TNC Single - Bridge toll,@df.c_cost * odt_skims['HOV2TOLL_BTOLL'],,,,,,,,,,,,,,,,,,,,1,
+TNC Single - Bridge toll,@df.c_cost * (odt_skims['HOV2TOLL_BTOLL'] + dot_skims['HOV2TOLL_BTOLL']),,,,,,,,,,,,,,,,,,,,1,
 TNC Single - Cost,"@df.c_cost * np.maximum(TNC_single_baseFare + odt_skims['HOV2TOLL_DIST'] * TNC_single_costPerMile + odt_skims['HOV2TOLL_TIME'] * TNC_single_costPerMinute, TNC_single_costMinimum) * 100",,,,,,,,,,,,,,,,,,,,1,
 #TNC Shared,,,,,,,,,,,,,,,,,,,,,,
 TNC Shared - In-vehicle time,@c_ivt * odt_skims['HOV2TOLL_TIME'] * TNC_shared_IVTFactor,,,,,,,,,,,,,,,,,,,,,1
 TNC Shared - Wait time,@c_ivt  * 1.5 * df.origSharedTNCWaitTime,,,,,,,,,,,,,,,,,,,,,1
 TNC Shared - Tolls,@df.c_cost * odt_skims['HOV2TOLL_VTOLL'],,,,,,,,,,,,,,,,,,,,,1
-TNC Shared - Bridge toll,@df.c_cost * odt_skims['HOV2TOLL_BTOLL'] ,,,,,,,,,,,,,,,,,,,,,1
+TNC Shared - Bridge toll,@df.c_cost * (odt_skims['HOV2TOLL_BTOLL'] + dot_skims['HOV2TOLL_BTOLL']),,,,,,,,,,,,,,,,,,,,,1
 TNC Shared - Cost,"@df.c_cost * np.maximum(TNC_shared_baseFare + odt_skims['HOV2TOLL_DIST'] * TNC_shared_costPerMile + odt_skims['HOV2TOLL_TIME']* TNC_shared_costPerMinute, TNC_shared_costMinimum) * 100",,,,,,,,,,,,,,,,,,,,,1
 #,,,,,,,,,,,,,,,,,,,,,,
 Auto tour mode availability,tour_mode_is_auto,,,,,,,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,,,
@@ -364,6 +364,9 @@ Ride Hail tour mode ASC -- shared ride 2,@ride_hail_ASC_sr2 * (df.is_indiv & df.
 Ride Hail tour mode ASC -- shared ride 3+,@ride_hail_ASC_sr3p * (df.is_indiv & df.tour_mode_is_ride_hail),,,,,1,1,,,,,,,,,,,,,,,
 Ride Hail tour mode ASC -- walk,@ride_hail_ASC_walk * (df.is_indiv & df.tour_mode_is_ride_hail),,,,,,,1,,,,,,,,,,,,,,
 Ride Hail tour mode ASC -- walk to transit,@ride_hail_ASC_walk_transit * (df.is_indiv & df.tour_mode_is_ride_hail),,,,,,,,,1,1,1,1,1,,,,,,,,
+Ride Hail tour mode ASC -- ride hail,@ride_hail_ASC_taxi * (df.is_indiv & df.i_tour_mode.isin(I_RIDE_HAIL_MODES)),,,,,,,,,,,,,,,,,,,1,,
+Ride Hail tour mode ASC -- ride hail,@ride_hail_ASC_tnc_single * (df.is_indiv & df.i_tour_mode.isin(I_RIDE_HAIL_MODES)),,,,,,,,,,,,,,,,,,,,1,
+Ride Hail tour mode ASC -- ride hail,@ride_hail_ASC_tnc_shared * (df.is_indiv & df.i_tour_mode.isin(I_RIDE_HAIL_MODES)),,,,,,,,,,,,,,,,,,,,,1
 #joint tour ASCs,,,,,,,,,,,,,,,,,,,,,,
 joint - auto tour mode ASC -- shared ride 2,@joint_auto_ASC_sr2 * (df.is_joint & df.i_tour_mode.isin(I_AUTO_MODES)),,,1,1,,,,,,,,,,,,,,,,,
 joint - auto tour mode ASC -- shared ride 3+,@joint_auto_ASC_sr3p * (df.is_joint & df.i_tour_mode.isin(I_AUTO_MODES)),,,,,1,1,,,,,,,,,,,,,,,
@@ -391,8 +394,12 @@ joint - Ride Hail tour mode ASC -- shared ride 2,@joint_ride_hail_ASC_sr2 * (df.
 joint - Ride Hail tour mode ASC -- shared ride 3+,@joint_ride_hail_ASC_sr3p * (df.is_joint & df.tour_mode_is_ride_hail),,,,,1,1,,,,,,,,,,,,,,,
 joint - Ride Hail tour mode ASC -- walk,@joint_ride_hail_ASC_walk * (df.is_joint & df.tour_mode_is_ride_hail),,,,,,,1,,,,,,,,,,,,,,
 joint - Ride Hail tour mode ASC -- walk to transit,@joint_ride_hail_ASC_walk_transit * (df.is_joint & df.tour_mode_is_ride_hail),,,,,,,,,1,1,1,1,1,,,,,,,,
+joint - Ride Hail tour mode ASC -- ride hail,@joint_ride_hail_ASC_taxi * (df.is_joint & df.i_tour_mode.isin(I_RIDE_HAIL_MODES)),,,,,,,,,,,,,,,,,,,1,,
+joint - Ride Hail tour mode ASC -- ride hail,@joint_ride_hail_ASC_tnc_single * (df.is_joint & df.i_tour_mode.isin(I_RIDE_HAIL_MODES)),,,,,,,,,,,,,,,,,,,,1,
+joint - Ride Hail tour mode ASC -- ride hail,@joint_ride_hail_ASC_tnc_shared * (df.is_joint & df.i_tour_mode.isin(I_RIDE_HAIL_MODES)),,,,,,,,,,,,,,,,,,,,,1
 #,,,,,,,,,,,,,,,,,,,,,,
 Walk not available for long distances,@df.tour_mode_is_walk & (od_skims['DISTWALK'] > 3),,,,,,,-999,,,,,,,,,,,,,,
 Bike not available for long distances,@df.tour_mode_is_walk & (od_skims['DISTBIKE'] > 8),,,,,,,,-999,,,,,,,,,,,,,
-Origin density index,@(c_origin_density_index*df.origin_density_index).clip(c_origin_density_index_max) if origin_density_applied else 0,,,,,,,1,1,1,1,1,1,1,,,,,,,,
+Origin density index,@(c_origin_density_index*df.origin_density_index).clip(c_origin_density_index_max) if origin_density_applied else 0,,,,,,,1,1,1,1,1,1,1,,,,,,,1,1
 Walk-express penalty for intermediate stops,@c_walk_express_penalty * ~(df.first_trip | df.first_trip),,,,,,,,,,,1,,,,,,,,,,
+TNC shared adjustment,@adjust_tnc_shared,,,,,,,,,,,,,,,,,,,,,1

@@ -1,0 +1,46 @@
+
+az vm start --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME
+VM_IP=$(az vm list-ip-addresses -n $AZ_VM_NAME --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv)
+
+ssh $AZ_USERNAME@$VM_IP
+
+############### install conda
+
+CONDA_HOME=/datadrive/work
+
+cd $CONDA_HOME
+
+wget http://repo.anaconda.com/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
+bash miniconda.sh -b -p $CONDA_HOME/miniconda
+export PATH="/datadrive/work/miniconda/bin:$PATH"
+hash -r
+
+conda config --set always_yes yes --set changeps1 yes
+conda update conda
+conda info -a
+
+
+############### clone asim
+
+ASIM_HOME=/datadrive/work
+
+cd $ASIM_HOME
+git clone https://github.com/ActivitySim/activitysim.git activitysim
+cd activitysim
+git checkout dev
+
+# create asim virtualenv
+
+conda remove --name asim --all
+
+conda create -n asim python=2.7 cytoolz numpy pandas pip pytables pyyaml toolz psutil
+source activate asim
+pip install openmatrix zbox
+
+cd $ASIM_HOME/activitysim
+pip install -e .
+pip freeze
+
+
+########################## deallocate vm
+az vm deallocate --resource-group $AZ_RESOURCE_GROUP --name $AZ_VM_NAME

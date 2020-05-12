@@ -20,10 +20,17 @@ https://activitysim.github.io/activitysim
 
 ## TO DO:
 
-- [ ] Clean up usim_tables.py
-   - [ ] move to `abm/models/`
-   - [ ] split out skim conversion to its own .py (also belongs in `models/`)
+- [ ] create inputs from urbansim data
+   - [x] move to `abm/models/` (now **initialize_from_usim.py**)
+   - [x] split out skim conversion to its own .py (now **initialize_skims_from_beam.py**) 
+   - [ ] replace orca calls with activitysim.core.inject methods
+   - [ ] recycle zone assignment code for blocks, schools, colleges, etc.
    - [ ] improve block to hex mapping
-- [ ] Improve activity_plans.py
+   - land use data
+      - [ ] improve `area_type` imputation (cbd vs. urban core vs. rural, etc.)
+      - [ ] improve `terminal` time imputation
+      - [ ] replace county ID dummies
+         - should only effect free_parking and auto_ownership models
+- [ ] Improve activity_plans.py 
    - [ ] move to `models/` dir
    - [ ] preserve home coords from higher res urbansim data

@@ -7,10 +7,6 @@ annotate_tables:
       TABLES:
         - households
   - tablename: households
-    column_map:
-      PERSONS: hhsize
-      workers: num_workers
-      VEHICL: auto_ownership
     annotate:
       SPEC: annotate_households
       DF: households

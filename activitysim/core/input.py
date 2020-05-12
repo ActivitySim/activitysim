@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 
 import logging
+import warnings
 import os
 
 import pandas as pd
@@ -75,6 +76,8 @@ def read_from_table_info(table_info):
     h5_tablename = table_info.get('h5_tablename') or tablename
     drop_columns = table_info.get('drop_columns', None)
     column_map = table_info.get('column_map', None)
+    keep_columns = table_info.get('keep_columns', None)
+    rename_columns = table_info.get('rename_columns', None)
     index_col = table_info.get('index_col', None)
 
     assert tablename is not None, 'no tablename provided'
@@ -98,10 +101,24 @@ def read_from_table_info(table_info):
         df.to_csv(os.path.join(csv_dir, '%s.csv' % tablename), index=False)
 
     if drop_columns:
+        logger.debug("dropping columns: %s" % drop_columns)
         df.drop(columns=drop_columns, inplace=True, errors='ignore')
 
     if column_map:
+        warnings.warn("table_inf option 'column_map' renamed 'rename_columns'"
+                      "Support for 'column_map' will be removed in future versions.",
+                      FutureWarning)
+        logger.debug("renaming columns: %s" % column_map)
         df.rename(columns=column_map, inplace=True)
+
+    # rename columns first, so keep_columns can be a stable list of expected/required columns
+    if rename_columns:
+        logger.info("renaming columns: %s" % rename_columns)
+        df.rename(columns=rename_columns, inplace=True)
+    logger.info("keeping columns: %s" % keep_columns)
+    if keep_columns:
+        logger.info("keeping columns: %s" % keep_columns)
+        df = df[keep_columns]
 
     # set index
     if index_col is not None:

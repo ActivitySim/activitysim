@@ -237,7 +237,7 @@ def test_mini_pipeline_run2():
     prev_checkpoint_count = len(checkpoints_df.index)
 
     # print "checkpoints_df\n%s" % checkpoints_df[['checkpoint_name']]
-    assert prev_checkpoint_count == 8
+    assert prev_checkpoint_count == 9
 
     pipeline.open_pipeline('auto_ownership_simulate')
 

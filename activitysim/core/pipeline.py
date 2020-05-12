@@ -510,7 +510,8 @@ def open_pipeline(resume_after=None):
         # - not sure why I thought we needed this?
         # could have exogenous tables or prng instantiation under some circumstance??
         _PIPELINE.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
-        # add_checkpoint(INITIAL_CHECKPOINT_NAME)
+        # empty table, in case they have turned off all checkpointing
+        add_checkpoint(INITIAL_CHECKPOINT_NAME)
 
     logger.debug("open_pipeline complete")
 
@@ -667,7 +668,7 @@ def get_checkpoints():
 
     store = get_pipeline_store()
 
-    if store:
+    if store is not None:
         df = store[CHECKPOINT_TABLE_NAME]
     else:
         pipeline_file_path = config.pipeline_file_path(orca.get_injectable('pipeline_file_name'))

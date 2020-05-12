@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import warnings
 import os
 import pandas as pd
 
@@ -54,6 +55,12 @@ def annotate_tables(model_settings, trace_label):
         # - rename columns
         column_map = table_info.get('column_map', None)
         if column_map:
+
+            warnings.warn("annotate_tables option 'column_map' renamed 'rename_columns' and moved"
+                          "to settings.yaml. Support for 'column_map' in annotate_tables will be "
+                          "removed in future versions.",
+                          FutureWarning)
+
             logger.info("renaming %s columns %s" % (tablename, column_map,))
             df.rename(columns=column_map, inplace=True)
 

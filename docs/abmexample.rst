@@ -497,8 +497,6 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - trip_mode_choice_coeffs.csv                                     |
 |                                                |  - trip_mode_choice.csv                                            |
 +------------------------------------------------+--------------------------------------------------------------------+
-|  :ref:`trip_cbd_parking`                       |  **NOT YET IMPLEMENTED**                                           |
-+------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`write_trip_matrices`                    |  - write_trip_matrices.yaml                                        |
 |                                                |  - write_trip_matrices_annotate_trips_preprocessor.csv             |
 +------------------------------------------------+--------------------------------------------------------------------+

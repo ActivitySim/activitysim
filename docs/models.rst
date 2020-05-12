@@ -764,30 +764,6 @@ Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims Keys: ``origin, dest
 
 .. automodule:: activitysim.abm.models.trip_mode_choice
    :members:
-   
-.. _trip_cbd_parking:
-
-Trip CBD Parking
-----------------
-
-**NOT YET IMPLEMENTED**
-
-The parking location choice model is applied to tours with a destination in the urban area/city center
-with parking charges. The model incorporates three of the following interrelated sub-models to
-capture the current parking conditions in CBD, and allows for testing various policies:
-
-  * Parking cost model: determines the average cost of parking in each CBD zone.
-  * Person-free parking eligibility model: determines if each worker pays for parking in the CBD.
-  * Parking location choice model: determines for each tour the primary destination parking location zone. 
-  
-The nested logit structure consists of an upper level binary choice between parking inside versus outside 
-the modeled destination zone. At the lower level, the choice of parking zone is modeled for those who did 
-not park in the destination zone.   
-
-The main interface to the CBD parking model is the 
-XXXXX function.  This function is registered as an orca step in the example Pipeline.
-
-Core Table: ``trips`` | Result Field: ``XXXXX`` | Skims Keys: ``XXXXX``
 
 .. _write_trip_matrices:
 

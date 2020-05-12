@@ -16,15 +16,6 @@ from activitysim.core import mp_tasks
 from activitysim.core import chunk
 
 
-# Create tables if they do not exist already
-# persons_table = path.exists("data/persons.csv")
-# households_table = path.exists("data/households.csv")
-# land_use_table = path.exists("data/land_use.csv")
-
-# if not persons_table & households_table & land_use_table:
-#     from data import usim_tables
-
-
 logger = logging.getLogger('activitysim')
 
 
@@ -109,7 +100,8 @@ if __name__ == '__main__':
 
         # do this after config.handle_standard_args,
         # as command line args may override injectables
-        injectables = list(set(injectables) | set(['data_dir', 'configs_dir', 'output_dir']))
+        injectables = list(
+            set(injectables) | set(['data_dir', 'configs_dir', 'output_dir']))
         injectables = {k: inject.get_injectable(k) for k in injectables}
     else:
         injectables = None
@@ -117,7 +109,8 @@ if __name__ == '__main__':
     run(run_list, injectables)
 
     # pipeline will be closed if multiprocessing
-    # if you want access to tables, BE SURE TO OPEN WITH '_' or all tables will be reinitialized
+    # if you want access to tables, BE SURE TO OPEN
+    # WITH '_' or all tables will be reinitialized
     # pipeline.open_pipeline('_')
 
     t0 = tracing.print_elapsed_time("everything", t0)

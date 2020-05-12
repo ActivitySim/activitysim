@@ -11,7 +11,6 @@ create_inputs_from_usim_data: True
 usim_data_store: model_data.h5
 
 
-
 # raise error if any sub-process fails without waiting for others to complete
 fail_fast: True
 
@@ -49,7 +48,7 @@ use_shadow_pricing: False
 
 
 ## - example sample
-households_sample_size: 1000
+households_sample_size: 0
 chunk_size: 400000000
 num_processes: 24
 stagger: 2

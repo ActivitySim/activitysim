@@ -292,7 +292,8 @@ def eval_coefficients(spec, coefficients, estimator):
     return spec
 
 
-def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_targets=False, estimator=None):
+def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
+                   have_trace_targets=False, estimator=None, alt_col_name=None):
     """
 
     Parameters
@@ -386,17 +387,16 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None, have_trace_t
         # data.shape = (len(spec), len(offsets))
         data = expression_values[:, offsets]
 
-        # columns is chooser index as str
-        column_labels = choosers.index[trace_targets].astype(str)
         # index is utility expressions
         index = spec.index
 
-        trace_df = pd.DataFrame(data=data, columns=column_labels, index=index)
+        trace_df = pd.DataFrame(data=data, index=index)
+
+        if alt_col_name is not None:
+            trace_df.columns = choosers[alt_col_name][trace_targets].values
 
         tracing.trace_df(trace_df, '%s.expression_values' % trace_label,
-                         slicer=None, transpose=False,
-                         column_labels=column_labels,
-                         index_label='expression')
+                         slicer=None, transpose=False)
 
         # excruciating level of detail for debugging problems with coefficients
         # for id in trace_df.columns:
@@ -764,7 +764,9 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets, estimator)
+    utilities = eval_utilities(spec, choosers, locals_d,
+                               trace_label=trace_label, have_trace_targets=have_trace_targets,
+                               estimator=estimator)
     chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
@@ -846,7 +848,9 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets, estimator)
+    raw_utilities = eval_utilities(spec, choosers, locals_d,
+                                   trace_label=trace_label, have_trace_targets=have_trace_targets,
+                                   estimator=estimator)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
@@ -1125,7 +1129,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     return logsums
 
 
-def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
+def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None, alt_col_name=None):
     """
     like eval_nl except return logsums instead of making choices
 
@@ -1144,7 +1148,9 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
-    raw_utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
+    raw_utilities = eval_utilities(spec, choosers, locals_d,
+                                   trace_label=trace_label, have_trace_targets=have_trace_targets,
+                                   alt_col_name=alt_col_name)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
@@ -1178,7 +1184,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
 
 def _simple_simulate_logsums(choosers, spec, nest_spec,
-                             skims=None, locals_d=None, trace_label=None):
+                             skims=None, locals_d=None, trace_label=None, alt_col_name=None):
     """
     like simple_simulate except return logsums instead of making choices
 
@@ -1192,9 +1198,11 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
         set_skim_wrapper_targets(choosers, skims)
 
     if nest_spec is None:
-        logsums = eval_mnl_logsums(choosers, spec, locals_d, trace_label=trace_label)
+        logsums = eval_mnl_logsums(choosers, spec, locals_d,
+                                   trace_label=trace_label, alt_col_name=alt_col_name)
     else:
-        logsums = eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=trace_label)
+        logsums = eval_nl_logsums(choosers, spec, nest_spec, locals_d,
+                                  trace_label=trace_label, alt_col_name=alt_col_name)
 
     return logsums
 
@@ -1234,7 +1242,7 @@ def simple_simulate_logsums_rpc(chunk_size, choosers, spec, nest_spec, trace_lab
 
 def simple_simulate_logsums(choosers, spec, nest_spec,
                             skims=None, locals_d=None, chunk_size=0,
-                            trace_label=None):
+                            trace_label=None, alt_col_name=None):
     """
     like simple_simulate except return logsums instead of making choices
 
@@ -1265,7 +1273,7 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,
             skims, locals_d,
-            chunk_trace_label)
+            chunk_trace_label, alt_col_name)
 
         chunk.log_close(chunk_trace_label)
 

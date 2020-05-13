@@ -270,7 +270,8 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
         df = df[columns]
 
     if not transpose:
-        df.to_csv(file_path, mode='a', index=df.index.name is not None, header=need_header)
+        want_index = isinstance(df.index, pd.MultiIndex) or df.index.name is not None
+        df.to_csv(file_path, mode='a', index=want_index, header=need_header)
         return
 
     df_t = df.transpose() if df.index.name in df else df.reset_index().transpose()

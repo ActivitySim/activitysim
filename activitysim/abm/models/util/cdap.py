@@ -189,7 +189,7 @@ def individual_utilities(
     """
 
     # calculate single person utilities
-    indiv_utils = simulate.eval_utilities(cdap_indiv_spec, persons, locals_d, trace_label)
+    indiv_utils = simulate.eval_utilities(cdap_indiv_spec, persons, locals_d, trace_label=trace_label)
 
     # add columns from persons to facilitate building household interactions
     useful_columns = [_hh_id_, _ptype_, 'cdap_rank', _hh_size_]

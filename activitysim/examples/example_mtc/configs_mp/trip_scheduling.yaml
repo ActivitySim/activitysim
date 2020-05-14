@@ -1,8 +1,0 @@
-
-inherit_settings: True
-
-MAX_ITERATIONS: 100
-
-#FAILFIX: drop_and_cleanup
-FAILFIX: choose_most_initial
-

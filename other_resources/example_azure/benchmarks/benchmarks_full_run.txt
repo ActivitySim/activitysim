@@ -6,7 +6,6 @@ strict: False
 households_sample_size:  0
 chunk_size: 20000000000
 num_processes: 40
-stagger: 15
 
 INFO - activitysim.core.mem - high water mark used: 188.825035095 timestamp: 08/11/2018 18:10:42 label:
 INFO - activitysim.core.mem - high water mark rss: 314.619289398 timestamp: 08/11/2018 18:10:42 label:
@@ -18,7 +17,6 @@ strict: False
 households_sample_size:  0
 chunk_size: 0
 num_processes: 30
-stagger: 15
 
 INFO - activitysim.core.mem - high water mark used: 312.758975983 timestamp: 08/11/2018 20:17:16 label:
 INFO - activitysim.core.mem - high water mark rss: 404.58372879 timestamp: 08/11/2018 20:17:16 label:
@@ -32,7 +30,6 @@ strict: False
 households_sample_size:  0
 chunk_size:  90000000000
 num_processes: 60
-stagger: 5
 
 INFO - activitysim.core.mem - high water mark used: 319.38 timestamp: 11/12/2018 18:52:26 label:
 INFO - activitysim.core.mem - high water mark rss: 506.01 timestamp: 11/12/2018 18:52:26 label:
@@ -48,9 +45,6 @@ AZ_VM_SIZE=Standard_M128s
 households_sample_size:  0
 chunk_size:  0
 num_processes: 120
-stagger: 0
-
-
 
 ------------ azure linux 432GB 64 processors
 
@@ -66,7 +60,6 @@ strict: False
 households_sample_size:  0
 chunk_size:  60000000000
 num_processes: 60
-stagger: 10
 
 
 INFO - activitysim.core.mem - high water mark used: 240.55 timestamp: 20/11/2018 15:21:53 label: mp_households_59.trip_purpose.completed
@@ -81,7 +74,6 @@ mem_tick: 0
 households_sample_size:  0
 chunk_size:  64000000000
 num_processes: 64
-stagger: 5
 
 export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
@@ -97,7 +89,6 @@ mem_tick: 0
 households_sample_size:  0
 chunk_size:  90000000000
 num_processes: 60
-stagger: 5
 
 ####
 
@@ -105,7 +96,6 @@ mem_tick: 0
 households_sample_size:  0
 chunk_size:  90000000000
 num_processes: 60
-stagger: 5
 
 INFO - activitysim.core.mem - high water mark used: 233.90 timestamp: 20/11/2018 17:43:50 label: mp_households_2.non_mandatory_tour_scheduling.completed
 INFO - activitysim.core.mem - high water mark rss: 473.74 timestamp: 20/11/2018 17:43:50 label: mp_households_2.non_mandatory_tour_scheduling.completed
@@ -126,7 +116,6 @@ Max RAM 233.90GB
 households_sample_size:  0
 chunk_size:  80000000000
 num_processes: 60
-stagger: 0
 
 INFO - activitysim.core.mem - high water mark used: 342.87 timestamp: 18/12/2018 00:56:39 label: mp_households_50.non_mandatory_tour_scheduling.completed
 INFO - activitysim.core.mem - high water mark rss: 574.65 timestamp: 18/12/2018 00:56:39 label: mp_households_50.non_mandatory_tour_scheduling.completed

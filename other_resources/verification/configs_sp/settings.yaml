@@ -15,14 +15,11 @@ fail_fast: True
 #households_sample_size:  0
 #chunk_size:  80000000000
 #num_processes: 60
-#stagger: 0
 
 # - full sample - 2732722 households on Standard_M128s
 #households_sample_size:  0
 #chunk_size:  0
 #num_processes: 124
-#stagger: 0
-
 
 # - ------------------------- dev config
 multiprocess: False
@@ -32,7 +29,6 @@ use_shadow_pricing: True
 
 # - 10% sample
 households_sample_size:  287519
-stagger: 5
 chunk_size: 1500000000
 num_processes: 3
 
@@ -89,7 +85,6 @@ multiprocess_steps:
   - name: mp_households
     begin: school_location
     #num_processes: 9
-    #stagger: 30
     #chunk_size: 1000000000
     slice:
       tables:

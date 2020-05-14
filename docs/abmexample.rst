@@ -655,7 +655,6 @@ machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See
   households_sample_size:  0
   chunk_size:  5000000000
   num_processes: 24
-  stagger: 0
 
 .. note::
    Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for

@@ -946,7 +946,6 @@ def run_sub_simulations(
     num_simulations = len(process_names)
     procs = []
     queues = []
-    stagger_starts = step_info['stagger']
 
     completed = set(previously_completed)
     failed = set([])  # so we can log process failure first time it happens
@@ -963,9 +962,6 @@ def run_sub_simulations(
 
     # - start processes
     for i, p in zip(list(range(num_simulations)), procs):
-        if stagger_starts > 0 and i > 0:
-            logger.info("stagger process %s by %s seconds", p.name, stagger_starts)
-            idle(seconds=stagger_starts)
         logger.info("start process %s", p.name)
         p.start()
         mem.trace_memory_info("%s.start" % p.name)
@@ -1251,7 +1247,7 @@ def get_run_list():
     """
     validate and annotate run_list from settings
 
-    Assign defaults to missing settings (e.g. stagger, chunk_size)
+    Assign defaults to missing settings (e.g. chunk_size)
     Build individual step model lists based on step starts
     If resuming, read breadcrumbs file for info on previous run execution status
 
@@ -1277,7 +1273,6 @@ def get_run_list():
                - compute_accessibility
                - initialize_households
             num_processes: 1
-            stagger: 5
             chunk_size: 0
             step_num: 0
           step: mp_households
@@ -1288,7 +1283,6 @@ def get_run_list():
                - school_location
                - workplace_location
             num_processes: 2
-            stagger: 5
             chunk_size: 10000
             step_num: 1
 
@@ -1307,7 +1301,6 @@ def get_run_list():
     # default settings that can be overridden by settings in individual steps
     global_chunk_size = setting('chunk_size', 0)
     default_mp_processes = setting('num_processes', 0) or int(1 + multiprocessing.cpu_count() / 2.0)
-    default_stagger = setting('stagger', 0)
 
     if multiprocess and multiprocessing.cpu_count() == 1:
         logger.warning("Can't multiprocess because there is only 1 cpu")
@@ -1381,9 +1374,6 @@ def get_run_list():
                     chunk_size = global_chunk_size
 
             multiprocess_steps[istep]['chunk_size'] = chunk_size
-
-            # - validate stagger and assign default
-            multiprocess_steps[istep]['stagger'] = max(int(step.get('stagger', default_stagger)), 0)
 
         # - determine index in models list of step starts
         start_tag = 'begin'

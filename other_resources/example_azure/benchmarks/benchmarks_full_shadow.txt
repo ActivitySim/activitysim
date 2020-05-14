@@ -3,8 +3,6 @@
 households_sample_size:  0
 chunk_size:  80000000000
 num_processes: 60
-stagger: 0
-
 
 # 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
 Standard_E64_v3

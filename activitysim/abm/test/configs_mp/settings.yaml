@@ -32,7 +32,6 @@ multiprocess_steps:
   - name: mp_households
     begin: school_location
     num_processes: 2
-    stagger: 4
     #chunk_size: 1000000000
     slice:
       tables:

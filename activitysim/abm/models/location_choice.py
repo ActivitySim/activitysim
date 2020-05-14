@@ -479,7 +479,9 @@ def iterate_location_choice(
 
     dest_choice_column_name = model_settings['DEST_CHOICE_COLUMN_NAME']
     logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+
     sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     persons_merged_df = persons_merged.to_frame()
 
@@ -503,7 +505,7 @@ def iterate_location_choice(
             skim_dict, skim_stack,
             shadow_price_calculator=spc,
             want_logsums=logsum_column_name is not None,
-            want_sample_table=sample_table_name is not None,
+            want_sample_table=want_sample_table,
             estimator=estimator,
             model_settings=model_settings,
             chunk_size=chunk_size,

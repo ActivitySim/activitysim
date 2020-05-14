@@ -30,6 +30,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.abm.models.util.trip import cleanup_failed_trips
+from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
 
 
 logger = logging.getLogger(__name__)
@@ -415,7 +416,8 @@ def run_trip_destination(
         trips,
         tours_merged,
         chunk_size, trace_hh_id,
-        trace_label):
+        trace_label,
+        fail_some_trips_for_testing=False):
     """
     trip destination - main functionality separated from model step so it can be called iteratively
 
@@ -447,7 +449,7 @@ def run_trip_destination(
     want_logsums = logsum_column_name is not None
 
     sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
-    want_sample_table = sample_table_name is not None
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     land_use = inject.get_table('land_use')
     size_terms = inject.get_injectable('size_terms')
@@ -534,6 +536,10 @@ def run_trip_destination(
 
             destinations_df = pd.concat(choices_list)
 
+            if fail_some_trips_for_testing:
+                if len(destinations_df) > 0:
+                    destinations_df = destinations_df.drop(destinations_df.index[0])
+
             failed_trip_ids = nth_trips.index.difference(destinations_df.index)
             if failed_trip_ids.any():
                 logger.warning("%s sidelining %s trips without viable destination alternatives" %
@@ -579,6 +585,7 @@ def trip_destination(
     trace_label = 'trip_destination'
     model_settings = config.read_model_settings('trip_destination.yaml')
     CLEANUP = model_settings.get('CLEANUP', True)
+    fail_some_trips_for_testing = model_settings.get('fail_some_trips_for_testing', False)
 
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
@@ -590,9 +597,10 @@ def trip_destination(
         tours_merged_df,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        fail_some_trips_for_testing=fail_some_trips_for_testing)
 
-    # if testing, make sure at least one trip fails so trip_purpose_and_destination model is run
+    # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
     if config.setting('testing_fail_trip_destination', False) and not trips_df.failed.any():
         fail_o = trips_df[trips_df.trip_num < trips_df.trip_count].origin.max()
         trips_df.failed = (trips_df.origin == fail_o) & \
@@ -606,13 +614,15 @@ def trip_destination(
 
     if CLEANUP:
 
-        flag_failed_trip_leg_mates(trips_df, 'failed')
-        save_sample_df.drop(trips_df.index, level='trip_id', inplace=True)
+        if trips_df.failed.any():
+            flag_failed_trip_leg_mates(trips_df, 'failed')
 
-        trips_df = cleanup_failed_trips(trips_df)
-    elif trips_df.failed.any():
-        logger.warning("%s keeping %s sidelined failed trips" %
-                       (trace_label, trips_df.failed.sum()))
+            if save_sample_df is not None:
+                save_sample_df.drop(trips_df.index[trips_df.failed], level='trip_id', inplace=True)
+
+            trips_df = cleanup_failed_trips(trips_df)
+
+        trips_df.drop(columns='failed', inplace=True, errors='ignore')
 
     pipeline.replace_table("trips", trips_df)
 
@@ -625,11 +635,13 @@ def trip_destination(
 
     if save_sample_df is not None:
         # might be none if want_sample_table but there are no intermediate trips
-        # expect samples only for intermediate trip destinatinos
+        # expect samples only for intermediate trip destinations
+
         assert len(save_sample_df.index.get_level_values(0).unique()) == \
                len(trips_df[trips_df.trip_num < trips_df.trip_count])
 
         sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+        assert sample_table_name is not None
 
         logger.info("adding %s samples to %s" % (len(save_sample_df), sample_table_name))
 

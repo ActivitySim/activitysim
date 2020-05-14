@@ -88,6 +88,8 @@ check_for_variability: False
 # see shadow_pricing.yaml for additional settings
 use_shadow_pricing: False
 
+# turn writing of sample_tables on and off for all models
+# want_dest_choice_sample_tables: False
 
 # - tracing
 

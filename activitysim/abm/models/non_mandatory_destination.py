@@ -41,7 +41,7 @@ def non_mandatory_tour_destination(
     want_logsums = logsum_column_name is not None
 
     sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
-    want_sample_table = sample_table_name is not None
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     tours = tours.to_frame()
 

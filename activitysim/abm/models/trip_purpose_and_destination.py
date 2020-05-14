@@ -61,6 +61,7 @@ def trip_purpose_and_destination(
     # for consistency, read sample_table_name setting from trip_destination settings file
     trip_destination_model_settings = config.read_model_settings('trip_destination.yaml')
     sample_table_name = trip_destination_model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     MAX_ITERATIONS = model_settings.get('MAX_ITERATIONS', 5)
 
@@ -77,7 +78,20 @@ def trip_purpose_and_destination(
 
     # if trip_destination has been run before, keep only failed trips (and leg_mates) to retry
     if 'destination' in trips_df:
-        if trips_df.failed.any():
+
+        if 'failed' not in trips_df.columns:
+            # trip_destination model cleaned up any failed trips
+            logger.info("%s - no failed column from prior model run." % trace_label)
+            return
+
+        elif not trips_df.failed.any():
+            # 'failed' column but no failed trips from prior run of trip_destination
+            logger.info("%s - no failed trips from prior model run." % trace_label)
+            trips_df.drop(columns='failed', inplace=True)
+            pipeline.replace_table("trips", trips_df)
+            return
+
+        else:
             logger.info("trip_destination has already been run. Rerunning failed trips")
             flag_failed_trip_leg_mates(trips_df, 'failed')
             trips_df = trips_df[trips_df.failed]
@@ -85,18 +99,12 @@ def trip_purpose_and_destination(
             logger.info("Rerunning %s failed trips and leg-mates" % trips_df.shape[0])
 
             # drop any previously saved samples of failed trips
-            if sample_table_name is not None and pipeline.is_table(sample_table_name):
+            if want_sample_table and pipeline.is_table(sample_table_name):
                 logger.info("Dropping any previously saved samples of failed trips")
                 save_sample_df = pipeline.get_table(sample_table_name)
                 save_sample_df.drop(trips_df.index, level='trip_id', inplace=True)
                 pipeline.replace_table(sample_table_name, save_sample_df)
                 del save_sample_df
-        else:
-            # no failed trips from prior run of trip_destination
-            logger.info("%s - no failed trips from prior model run." % trace_label)
-            del trips_df['failed']
-            pipeline.replace_table("trips", trips_df)
-            return
 
     processed_trips = []
     save_samples = []
@@ -106,7 +114,7 @@ def trip_purpose_and_destination(
 
         i += 1
 
-        for c in RESULT_COLUMNS:
+        for c in TRIP_RESULT_COLUMNS:
             if c in trips_df:
                 del trips_df[c]
 
@@ -183,7 +191,7 @@ def trip_purpose_and_destination(
     pipeline.replace_table("trips", trips_df)
 
     # check to make sure we wrote sample file if requestsd
-    if sample_table_name and len(trips_df) > 0:
+    if want_sample_table and len(trips_df) > 0:
         assert pipeline.is_table(sample_table_name)
         # since we have saved samples for all successful trips
         # once we discard failed trips, we should samples for all trips

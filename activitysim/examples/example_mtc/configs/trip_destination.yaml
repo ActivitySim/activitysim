@@ -33,3 +33,6 @@ preprocessor:
 # drop failed trips and cleanup failed trip leg_mates for consistency
 # (i.e. adjust trip_count, trip_num, first for missing failed trips)
 CLEANUP: False
+
+# this setting is used by testing code to force failed trip_destination
+# fail_some_trips_for_testing: False

@@ -65,9 +65,8 @@ def regress_mini_auto():
 def test_mp_run():
 
     mp_configs_dir = os.path.join(os.path.dirname(__file__), 'configs_mp')
-    configs_dir = [mp_configs_dir, example_path('configs')]
 
-    setup_dirs(configs_dir)
+    setup_dirs(ancillary_configs_dir=mp_configs_dir)
 
     run_list = mp_tasks.get_run_list()
     mp_tasks.print_run_list(run_list)

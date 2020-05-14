@@ -38,7 +38,14 @@ def example_path(dirname):
     return pkg_resources.resource_filename('activitysim', resource)
 
 
-def setup_dirs(configs_dir, data_dir=None):
+def setup_dirs(ancillary_configs_dir=None, data_dir=None):
+
+    test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), 'configs_test_pipeline')
+    example_configs_dir = example_path('configs')
+    configs_dir = [test_pipeline_configs_dir, example_configs_dir]
+
+    if ancillary_configs_dir is not None:
+        configs_dir = [ancillary_configs_dir] + configs_dir
 
     inject.add_injectable('configs_dir', configs_dir)
 
@@ -75,23 +82,21 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def inject_settings(configs_dir, **kwargs):
+def inject_settings(**kwargs):
 
-    with open(os.path.join(configs_dir, 'settings.yaml')) as f:
-        settings = yaml.load(f, Loader=yaml.SafeLoader)
+    settings = config.read_settings_file('settings.yaml', mandatory=True)
 
-        for k in kwargs:
-            settings[k] = kwargs[k]
+    for k in kwargs:
+        settings[k] = kwargs[k]
 
-        inject.add_injectable("settings", settings)
+    inject.add_injectable("settings", settings)
 
     return settings
 
 
 def test_rng_access():
 
-    configs_dir = example_path('configs')
-    setup_dirs(configs_dir)
+    setup_dirs()
 
     inject.add_injectable('rng_base_seed', 0)
 
@@ -175,11 +180,9 @@ def regress_mini_location_choice_logsums():
 
 def test_mini_pipeline_run():
 
-    configs_dir = example_path('configs')
-    setup_dirs(configs_dir)
+    setup_dirs()
 
-    inject_settings(configs_dir,
-                    households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
                     # use_shadow_pricing=True
                     )
 
@@ -227,10 +230,9 @@ def test_mini_pipeline_run2():
     # exactly the same results as for test_mini_pipeline_run
     # when we restart pipeline
 
-    configs_dir = example_path('configs')
-    setup_dirs(configs_dir)
+    setup_dirs()
 
-    inject_settings(configs_dir, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
 
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
@@ -275,9 +277,8 @@ def test_mini_pipeline_run3():
 
     # test that hh_ids setting overrides household sampling
 
-    configs_dir = example_path('configs')
-    setup_dirs(configs_dir)
-    inject_settings(configs_dir, hh_ids='override_hh_ids.csv')
+    setup_dirs()
+    inject_settings(hh_ids='override_hh_ids.csv')
 
     households = inject.get_table('households').to_frame()
 
@@ -298,11 +299,9 @@ def full_run(resume_after=None, chunk_size=0,
              households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
              trace_hh_id=None, trace_od=None, check_for_variability=None):
 
-    configs_dir = example_path('configs')
-    setup_dirs(configs_dir)
+    setup_dirs()
 
     settings = inject_settings(
-        configs_dir,
         households_sample_size=households_sample_size,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,

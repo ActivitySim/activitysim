@@ -126,7 +126,7 @@ def write_matrices(aggregate_trips, zone_index, orig_index, dest_index, model_se
             col = table.get('data_field')
 
             if col not in aggregate_trips:
-                logger.error('missing %s column in %s DataFrame' % (col, aggregate_trips.name))
+                logger.error(f'missing {col} column in aggregate_trips DataFrame')
                 return
 
             hh_weight_col = model_settings.get('HH_EXPANSION_WEIGHT_COL')

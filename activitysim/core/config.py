@@ -39,6 +39,7 @@ def data_dir():
 @inject.injectable(cache=True)
 def output_dir():
     if not os.path.exists('output'):
+        print(f"'output' directory does not exist - current working directory: {os.getcwd()}")
         raise RuntimeError("'output' directory does not exist")
     return 'output'
 
@@ -228,8 +229,15 @@ def log_file_path(file_name):
 
 
 def open_log_file(file_name, mode):
+
+    output_dir = inject.get_injectable('output_dir')
+    # - check for optional log subfolder
+    if os.path.exists(os.path.join(output_dir, 'log')):
+        output_dir = os.path.join(output_dir, 'log')
+    file_path = os.path.join(output_dir, file_name)
+
     mode = mode + 'b' if sys.version_info < (3,) else mode
-    return open(log_file_path(file_name), mode)
+    return open(file_path, mode)
 
 
 def pipeline_file_path(file_name):

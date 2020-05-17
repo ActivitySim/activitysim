@@ -2,7 +2,8 @@
 # See full license in LICENSE.txt.
 import logging
 
-import numpy as np
+# import multiprocessing
+
 import pandas as pd
 
 from activitysim.core import tracing
@@ -609,6 +610,11 @@ def workplace_location(
     estimator = estimation.manager.begin_estimation('workplace_location')
     if estimator:
         write_estimation_specs(estimator, model_settings, 'workplace_location.yaml')
+
+    # FIXME - debugging code to test multiprocessing failure handling
+    # process_name = multiprocessing.current_process().name
+    # if multiprocessing.current_process().name =='mp_households_0':
+    #     raise RuntimeError(f"fake fail {process_name}")
 
     iterate_location_choice(
         model_settings,

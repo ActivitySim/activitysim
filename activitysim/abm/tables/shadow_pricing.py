@@ -106,6 +106,11 @@ class ShadowPriceCalculator(object):
         if self.use_shadow_pricing and not full_model_run:
             logger.warning("deprecated combination of use_shadow_pricing and not full_model_run")
 
+        if (self.num_processes > 1) and not config.setting('fail_fast'):
+            # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
+            logger.warning("deprecated combination of multiprocessing and not fail_fast")
+            raise RuntimeError("Shadow pricing requires fail_fast setting in multiprocessing mode")
+
         self.segment_ids = model_settings['SEGMENT_IDS']
 
         # - modeled_size (set by call to set_choices/synchronize_choices)

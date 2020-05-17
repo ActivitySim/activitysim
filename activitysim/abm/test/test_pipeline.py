@@ -310,6 +310,8 @@ def full_run(resume_after=None, chunk_size=0,
         check_for_variability=check_for_variability,
         use_shadow_pricing=False)  # shadow pricing breaks replicability when sample_size varies
 
+    # FIXME should enable testing_fail_trip_destination?
+
     MODELS = settings['models']
 
     pipeline.run(models=MODELS, resume_after=resume_after)

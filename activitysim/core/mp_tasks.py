@@ -212,10 +212,8 @@ def log(msg, level, write_to_log_file=True):
 
     process_name = multiprocessing.current_process().name
 
-    print(f"############ mp_tasks - {process_name} - {msg} write_to_log_file: {write_to_log_file}")
-
     if not write_to_log_file:
-        print(f"mp_tasks - {process_name} - {msg}")
+        print(f"############ mp_tasks - {process_name} - {msg}")
 
     if write_to_log_file:
         with config.open_log_file('mp_tasks_log.txt', 'a') as log_file:
@@ -817,6 +815,7 @@ def mp_apportion_pipeline(injectables, sub_proc_names, slice_info):
         exception(f"{type(e).__name__} exception caught in mp_apportion_pipeline: {str(e)}")
         raise e
 
+
 def mp_setup_skims(injectables, **kwargs):
     """
     Sub process to load skim data into shared_data
@@ -908,9 +907,42 @@ def allocate_shared_shadow_pricing_buffers():
     info("allocate_shared_shadow_pricing_buffers")
 
     shadow_pricing_info = shadow_pricing.get_shadow_pricing_info()
+
     shadow_pricing_buffers = shadow_pricing.buffers_for_shadow_pricing(shadow_pricing_info)
 
     return shadow_pricing_buffers
+
+
+def create_sub_process(target, name, args, kwargs):
+    """
+    facade for multiprocessing.Process to permit logging/debugging of args and kwargs types, sizes
+
+    Parameters
+    ----------
+    target: function
+    name: string
+    args: OrderedDict
+    kwargs
+
+    Returns
+    -------
+
+    """
+
+    debug(f"create_process {name} target={target}")
+
+    for k in args:
+        debug(f"create_process {name} arg {k}={args[k]}")
+
+    for k in kwargs:
+        debug(f"create_process {name} kwargs {k}={kwargs[k]}")
+
+    p = multiprocessing.Process(target=target,
+                                name=name,
+                                args=list(args.values()),
+                                kwargs=kwargs)
+
+    return p
 
 
 def run_sub_simulations(
@@ -976,10 +1008,18 @@ def run_sub_simulations(
             else:
                 # process failed
                 if p.name not in failed:
-                    info(f"process {p.name} failed with exitcode {p.exitcode}")
+                    warning(f"process {p.name} failed with exitcode {p.exitcode}")
                     failed.add(p.name)
                     mem.trace_memory_info("%s.failed" % p.name)
                     if fail_fast:
+                        warning(f"fail_fast terminating remaining running processes")
+                        for op in procs:
+                            if op.exitcode is None:
+                                try:
+                                    info(f"terminating process {op.name}")
+                                    op.terminate()
+                                except Exception as e:
+                                    info(f"error terminating process {op.name}: {e}")
                         raise RuntimeError("Process %s failed" % (p.name,))
 
     def idle(seconds):
@@ -1030,9 +1070,21 @@ def run_sub_simulations(
     for i, process_name in enumerate(process_names):
         q = multiprocessing.Queue()
         spokesman = (i == 0)
-        p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
-                                    args=(spokesman, q, injectables, step_info, resume_after,),
-                                    kwargs=shared_data_buffers)
+
+        p = create_sub_process(
+            target=mp_run_simulation,
+            name=process_name,
+            args=OrderedDict(spokesman=spokesman,
+                             queue=q,
+                             injectables=injectables,
+                             step_info=step_info,
+                             resume_after=resume_after),
+            kwargs=shared_data_buffers)
+
+        # p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
+        #                             args=(spokesman, q, injectables, step_info, resume_after,),
+        #                             kwargs=shared_data_buffers)
+
         procs.append(p)
         queues.append(q)
 
@@ -1149,7 +1201,7 @@ def run_multiprocess(run_list, injectables):
         dict of values to inject in sub-processes
     """
 
-    mem.init_trace(setting('mem_tick'))
+    mem.init_trace(setting('mem_tick'), write_header=True)
     mem.trace_memory_info("run_multiprocess.start")
 
     if not run_list['multiprocess']:

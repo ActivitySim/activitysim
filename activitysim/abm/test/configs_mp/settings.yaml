@@ -3,6 +3,7 @@ inherit_settings: True
 
 multiprocess: True
 
+fail_fast: True
 
 models:
   - initialize_landuse

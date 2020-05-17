@@ -34,6 +34,10 @@ logger = logging.getLogger(__name__)
 
 LAST_CHECKPOINT = '_'
 
+# TEST_SPAWN = 'mp_households'
+TEST_SPAWN = False
+
+
 """
 mp_tasks - activitysim multiprocessing overview
 
@@ -774,6 +778,11 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
 
     setup_injectables_and_logging(injectables, locutor=locutor)
 
+    if TEST_SPAWN and step_info['name'] == TEST_SPAWN:
+        time.sleep(30)
+        info(f"work up after TEST_SPAWN sleep")
+        raise RuntimeError("TEST_SPAWN")
+
     try:
         mem.init_trace(setting('mem_tick'))
 
@@ -839,7 +848,11 @@ def mp_setup_skims(injectables, **kwargs):
         tags_to_load = setting('skim_time_periods')['labels']
 
         skim_info = skims.get_skim_info(omx_file_path, tags_to_load)
-        skims.load_skims(omx_file_path, skim_info, shared_data_buffer)
+        if TEST_SPAWN:
+            warning("mp_setup_skims TEST_SPAWN {TEST_SPAWN} skipping skims.load_skims")
+        else:
+            skims.load_skims(omx_file_path, skim_info, shared_data_buffer)
+
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_setup_skims: {str(e)}")
         raise e

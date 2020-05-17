@@ -223,7 +223,7 @@ def load_skims(omx_file_path, skim_info, skim_buffers):
 
 
 @inject.injectable(cache=True)
-def skim_dict(data_dir, settings):
+def skim_dict(settings):
 
     omx_file_path = config.data_file_path(settings["skims_file"])
     tags_to_load = settings['skim_time_periods']['labels']

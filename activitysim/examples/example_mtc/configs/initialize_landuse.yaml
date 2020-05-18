@@ -2,8 +2,6 @@
 
 annotate_tables:
   - tablename: land_use
-    column_map:
-      COUNTY: county_id
     annotate:
       SPEC: annotate_landuse
       DF: land_use

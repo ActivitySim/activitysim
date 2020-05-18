@@ -258,6 +258,7 @@ def exception(msg, write_to_log_file=True):
 
     if write_to_log_file:
         logger.log(logging.ERROR, f"mp_tasks - {process_name} - {msg}")
+        logger.log(logging.ERROR, f"\n---\n{traceback.format_exc()}---\n")
 
 
 """
@@ -780,8 +781,8 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
 
     if TEST_SPAWN and step_info['name'] == TEST_SPAWN:
         time.sleep(30)
-        info(f"work up after TEST_SPAWN sleep")
-        raise RuntimeError("TEST_SPAWN")
+        info(f"work up after TEST_SPAWN sleep - returning without doing anything")
+        return
 
     try:
         mem.init_trace(setting('mem_tick'))
@@ -926,38 +927,6 @@ def allocate_shared_shadow_pricing_buffers():
     return shadow_pricing_buffers
 
 
-def create_sub_process(target, name, args, kwargs):
-    """
-    facade for multiprocessing.Process to permit logging/debugging of args and kwargs types, sizes
-
-    Parameters
-    ----------
-    target: function
-    name: string
-    args: OrderedDict
-    kwargs
-
-    Returns
-    -------
-
-    """
-
-    debug(f"create_process {name} target={target}")
-
-    for k in args:
-        debug(f"create_process {name} arg {k}={args[k]}")
-
-    for k in kwargs:
-        debug(f"create_process {name} kwargs {k}={kwargs[k]}")
-
-    p = multiprocessing.Process(target=target,
-                                name=name,
-                                args=list(args.values()),
-                                kwargs=kwargs)
-
-    return p
-
-
 def run_sub_simulations(
         injectables,
         shared_data_buffers,
@@ -1084,19 +1053,21 @@ def run_sub_simulations(
         q = multiprocessing.Queue()
         spokesman = (i == 0)
 
-        p = create_sub_process(
-            target=mp_run_simulation,
-            name=process_name,
-            args=OrderedDict(spokesman=spokesman,
-                             queue=q,
-                             injectables=injectables,
-                             step_info=step_info,
-                             resume_after=resume_after),
-            kwargs=shared_data_buffers)
+        args = OrderedDict(spokesman=spokesman,
+                           queue=q,
+                           injectables=injectables,
+                           step_info=step_info,
+                           resume_after=resume_after)
 
-        # p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
-        #                             args=(spokesman, q, injectables, step_info, resume_after,),
-        #                             kwargs=shared_data_buffers)
+        debug(f"create_process {process_name} target={mp_run_simulation}")
+        for k in args:
+            debug(f"create_process {process_name} arg {k}={args[k]}")
+        for k in shared_data_buffers:
+            debug(f"create_process {process_name} shared_data_buffers {k}={shared_data_buffers[k]}")
+
+        p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
+                                    args=(spokesman, q, injectables, step_info, resume_after,),
+                                    kwargs=shared_data_buffers)
 
         procs.append(p)
         queues.append(q)
@@ -1105,6 +1076,25 @@ def run_sub_simulations(
     for i, p in zip(list(range(num_simulations)), procs):
         info(f"start process {p.name}")
         p.start()
+
+        """
+        windows mmap does not handle multiple simultaneous calls from different processes for the same tagname.
+        Process start causes a call to mmap to initialize the wrapper for the anonymous shared memory arrays
+        in the shared_data_buffers kwargs. some of the processses fail with WinError 1450 (or similar error)
+        OSError: [WinError 1450] Insufficient system resources exist to complete the requested service.
+        Judging by the commented-out assert, this (or a related) issue may have been around in some form for a while.
+
+        def __setstate__(self, state):
+            self.size, self.name = self._state = state
+            # Reopen existing mmap
+            self.buffer = mmap.mmap(-1, self.size, tagname=self.name)
+            # XXX Temporarily preventing buildbot failures while determining
+            # XXX the correct long-term fix. See issue 23060
+            #assert _winapi.GetLastError() == _winapi.ERROR_ALREADY_EXISTS
+        """
+        if sys.platform == 'win32':
+            time.sleep(1)
+
         mem.trace_memory_info("%s.start" % p.name)
 
     # - idle logging queued messages and proc completion
@@ -1230,7 +1220,7 @@ def run_multiprocess(run_list, injectables):
     def skip_phase(phase):
         skip = old_breadcrumbs and old_breadcrumbs.get(step_name, {}).get(phase, False)
         if skip:
-            info(f"Skipping{step_name} {phase}")
+            info(f"Skipping {step_name} {phase}")
         return skip
 
     def find_breadcrumb(crumb, default=None):

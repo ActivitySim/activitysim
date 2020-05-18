@@ -549,14 +549,20 @@ def run_trip_destination(
                 trips.loc[failed_trip_ids, 'destination'] = -1
                 trips.loc[next_trip_ids, 'origin'] = trips.loc[failed_trip_ids].origin.values
 
-            # - assign choices to this trip's destinations
-            assign_in_place(trips, destinations_df.choice.to_frame('destination'))
-            if want_logsums:
-                assign_in_place(trips, destinations_df.logsum.to_frame(logsum_column_name))
+            if len(destinations_df) == 0:
+                assert failed_trip_ids.all()
+                logger.warning(f"all {len(nth_trips)} {primary_purpose} trip_num {trip_num} trips failed")
 
-            # - assign choice to next trip's origin
-            destinations_df.index = nth_trips.next_trip_id.reindex(destinations_df.index)
-            assign_in_place(trips, destinations_df.choice.to_frame('origin'))
+            if len(destinations_df) > 0:
+                # - assign choices to this trip's destinations
+                assign_in_place(trips, destinations_df.choice.to_frame('destination'))
+                if want_logsums:
+                    assert 'logsum' in destinations_df.columns
+                    assign_in_place(trips, destinations_df.logsum.to_frame(logsum_column_name))
+
+                # - assign choice to next trip's origin
+                destinations_df.index = nth_trips.next_trip_id.reindex(destinations_df.index)
+                assign_in_place(trips, destinations_df.choice.to_frame('origin'))
 
     del trips['next_trip_id']
 

@@ -19,7 +19,7 @@ input_table_list:
   - tablename: households
     filename: households.csv
     index_col: household_id
-    column_map:
+    rename_columns:
       HHID: household_id
     drop_columns:
       - SERIALNO
@@ -67,7 +67,7 @@ input_table_list:
   - tablename: persons
     filename: persons.csv
     index_col: person_id
-    column_map:
+    rename_columns:
       PERID: person_id
     drop_columns:
       - RELATE
@@ -85,7 +85,7 @@ input_table_list:
   - tablename: land_use
     filename: land_use.csv
     index_col: TAZ
-    column_map:
+    rename_columns:
       ZONE: TAZ
     drop_columns:
       - HHPOP

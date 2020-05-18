@@ -35,11 +35,12 @@ input_table_list:
     index_col: TAZ
     rename_columns:
       ZONE: TAZ
+      COUNTY: county_id
     keep_columns:
       - TAZ
       - DISTRICT
       - SD
-      - COUNTY
+      - county_id
       - TOTHH
       - TOTPOP
       - TOTACRE

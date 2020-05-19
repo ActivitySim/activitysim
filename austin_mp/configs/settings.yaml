@@ -3,11 +3,11 @@ inherit_settings: True
 
 beam_skims_url: https://beam-outputs.s3.amazonaws.com/output/austin/austin-prod-200k-skims-with-h3-index-final__2020-04-18_09-44-24_wga/ITERS/it.0/0.skimsOD.UrbanSim.Full.csv.gz
 
-create_skims_from_beam: True
+create_skims_from_beam: False
 usim_zone_geoms: h3
 # usim_zone_shapefile:
 
-create_inputs_from_usim_data: True
+create_inputs_from_usim_data: False
 usim_data_store: model_data.h5
 
 
@@ -49,7 +49,7 @@ use_shadow_pricing: False
 
 ## - example sample
 households_sample_size: 0
-chunk_size: 400000000
+chunk_size: 5000000000
 num_processes: 24
 stagger: 2
 
@@ -61,7 +61,7 @@ trace_od:
 #trace_od: [5, 11]
 
 # to resume after last successful checkpoint, specify resume_after: _
-# resume_after: trip_mode_choice
+resume_after: _
 
 models:
   ### mp_initialize step

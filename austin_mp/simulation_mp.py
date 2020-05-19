@@ -14,7 +14,8 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import mp_tasks
 from activitysim.core import chunk
-
+from activitysim.abm.models import initialize_from_usim
+from activitysim.abm.models import initialize_skims_from_beam
 
 logger = logging.getLogger('activitysim')
 
@@ -35,17 +36,17 @@ def cleanup_output_files():
 
 def run(run_list, injectables=None):
 
-    # Create a new skims.omx file from BEAM (http://beam.lbl.gov/) skims
-    # if skims do not already exist in the input data directory
-    if config.setting('create_skims_from_beam'):
-        pipeline.run(models=['create_skims_from_beam'])
-        pipeline.close_pipeline()
-
     # Create persons, households, and land use .csv files from UrbanSim
     # data if these files do not already exist in the input data directory
     if config.setting('create_inputs_from_usim_data'):
         pipeline.run(models=['load_usim_data', 'create_inputs_from_usim_data'])
         pipeline.close_pipeline()
+        
+    # Create a new skims.omx file from BEAM (http://beam.lbl.gov/) skims
+    # if skims do not already exist in the input data directory
+    if config.setting('create_skims_from_beam'):
+        pipeline.run(models=['create_skims_from_beam'])
+        pipeline.close_pipeline()    
 
     if run_list['multiprocess']:
         logger.info("run multiprocess simulation")

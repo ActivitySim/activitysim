@@ -115,10 +115,6 @@ def read_from_table_info(table_info):
     if rename_columns:
         logger.info("renaming columns: %s" % rename_columns)
         df.rename(columns=rename_columns, inplace=True)
-    logger.info("keeping columns: %s" % keep_columns)
-    if keep_columns:
-        logger.info("keeping columns: %s" % keep_columns)
-        df = df[keep_columns]
 
     # set index
     if index_col is not None:
@@ -127,6 +123,11 @@ def read_from_table_info(table_info):
             df.set_index(index_col, inplace=True)
         else:
             df.index.names = [index_col]
+
+    logger.info("keeping columns: %s" % keep_columns)
+    if keep_columns:
+        logger.info("keeping columns: %s" % keep_columns)
+        df = df[keep_columns]
 
     logger.info('%s index name: %s' % (tablename, df.index.name))
 

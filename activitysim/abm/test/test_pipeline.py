@@ -183,7 +183,7 @@ def test_mini_pipeline_run():
     setup_dirs()
 
     inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                    # use_shadow_pricing=True
+                    write_skim_cache=True
                     )
 
     _MODELS = [
@@ -232,7 +232,8 @@ def test_mini_pipeline_run2():
 
     setup_dirs()
 
-    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+                    read_skim_cache=True)
 
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()

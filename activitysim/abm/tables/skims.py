@@ -19,6 +19,7 @@ from activitysim.core import skim
 from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
+from activitysim.core import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -195,9 +196,66 @@ def skim_data_from_buffers(skim_buffers, skim_info):
     return skim_data
 
 
-def load_skims(omx_file_path, skim_info, skim_buffers):
+def read_skim_cache(skim_info, skim_data):
+    """
+        read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
+    """
+    logger.info(f"load_skims reading skims data from cache")
 
-    skim_data = skim_data_from_buffers(skim_buffers, skim_info)
+    omx_name = skim_info['omx_name']
+    dtype = np.dtype(skim_info['dtype'])
+
+    blocks = skim_info['blocks']
+    block = 0
+    for block_name, block_size in blocks.items():
+        skim_cache_file_name = f"cached_{omx_name}_{block}.mmap"
+        skim_cache_path = config.output_file_path(skim_cache_file_name)
+
+        assert os.path.isfile(skim_cache_path), \
+            "read_skim_cache could not find skim_cache_path: %s" % (skim_cache_path, )
+
+        block_data = skim_data[block]
+
+        logger.info(f"load_skims reading block_name {block_name} {block_data.shape} from {skim_cache_file_name}")
+
+        data = np.memmap(skim_cache_path, shape=block_data.shape, dtype=dtype, mode='r')
+        assert data.shape == block_data.shape
+
+        block_data[::] = data[::]
+
+        block += 1
+
+
+def write_skim_cache(skim_info, skim_data):
+    """
+        write skim data from skim_data to canonically named cache file(s) in output directory
+    """
+
+    logger.info(f"load_skims writing skims data to cache")
+
+    omx_name = skim_info['omx_name']
+    dtype = np.dtype(skim_info['dtype'])
+
+    blocks = skim_info['blocks']
+    block = 0
+    for block_name, block_size in blocks.items():
+        skim_cache_file_name = f"cached_{omx_name}_{block}.mmap"
+        skim_cache_path = config.output_file_path(skim_cache_file_name)
+
+        block_data = skim_data[block]
+
+        logger.info(f"load_skims writing block_name {block_name} {block_data.shape} to {skim_cache_file_name}")
+
+        data = np.memmap(skim_cache_path, shape=block_data.shape, dtype=dtype, mode='w+')
+        data[::] = block_data
+
+        block += 1
+
+
+def read_skims_from_omx(skim_info, skim_data, omx_file_path):
+    """
+    read skims from omx file into skim_data
+    """
 
     block_offsets = skim_info['block_offsets']
     omx_keys = skim_info['omx_keys']
@@ -220,6 +278,29 @@ def load_skims(omx_file_path, skim_info, skim_buffers):
             a[:] = omx_data[:]
 
     logger.info("load_skims loaded skims from %s" % (omx_file_path, ))
+
+
+def load_skims(omx_file_path, skim_info, skim_buffers):
+
+    read_cache = config.setting('read_skim_cache')
+    write_cache = config.setting('write_skim_cache')
+    assert not (read_cache and write_cache), \
+        "read_skim_cache and write_skim_cache are both True in settings file. I am assuming this is a mistake"
+
+    skim_data = skim_data_from_buffers(skim_buffers, skim_info)
+
+    t0 = tracing.print_elapsed_time()
+
+    if read_cache:
+        read_skim_cache(skim_info, skim_data)
+        t0 = tracing.print_elapsed_time("read_skim_cache", t0)
+    else:
+        read_skims_from_omx(skim_info, skim_data, omx_file_path)
+        t0 = tracing.print_elapsed_time("read_skims_from_omx", t0)
+
+    if write_cache:
+        write_skim_cache(skim_info, skim_data)
+        t0 = tracing.print_elapsed_time("write_skim_cache", t0)
 
 
 @inject.injectable(cache=True)

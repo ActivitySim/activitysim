@@ -23,13 +23,16 @@ strict: False
 mem_tick: 30
 use_shadow_pricing: False
 
-households_sample_size:  100
+households_sample_size:  2000
 chunk_size: 0
 num_processes: 2
 
 # - -------------------------
 
 want_dest_choice_sample_tables: False
+
+#read_skim_cache: True
+#write_skim_cache: True
 
 # - tracing
 trace_hh_id:

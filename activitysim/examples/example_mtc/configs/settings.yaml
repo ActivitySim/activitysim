@@ -9,7 +9,6 @@ input_table_list:
       workers: num_workers
       VEHICL: auto_ownership
     keep_columns:
-      - household_id
       - TAZ
       - income
       - hhsize
@@ -22,7 +21,6 @@ input_table_list:
     rename_columns:
       PERID: person_id
     keep_columns:
-      - person_id
       - household_id
       - age
       - PNUM
@@ -37,7 +35,6 @@ input_table_list:
       ZONE: TAZ
       COUNTY: county_id
     keep_columns:
-      - TAZ
       - DISTRICT
       - SD
       - county_id
@@ -91,6 +88,12 @@ use_shadow_pricing: False
 
 # turn writing of sample_tables on and off for all models
 # want_dest_choice_sample_tables: False
+
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+#read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+#write_skim_cache: True
 
 # - tracing
 

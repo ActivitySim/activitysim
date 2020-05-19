@@ -3,3 +3,4 @@
 *.h5
 *.yaml
 *.omx
+*.mmap

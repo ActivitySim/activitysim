@@ -182,52 +182,9 @@ def colleges(blocks):
 
 @orca.column('blocks', cache = True)
 def TAZ(blocks, zones):
-<<<<<<< HEAD
     blocks_df = blocks.to_frame(columns = ['x', 'y'])
     h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
     return assign_taz(blocks_df, h3_gpd)
-=======
-
-    # Tranform blocks to a Geopandas dataframe
-    blocks_df = blocks.to_frame(columns=['x', 'y'])
-    zones_df =  zones.to_frame(columns=['geometry', 'area'])
-    h3_gpd = gpd.GeoDataFrame(zones_df, crs='EPSG:4326')
-
-    blocks_df = gpd.GeoDataFrame(
-        blocks_df, geometry=gpd.points_from_xy(blocks_df.x, blocks_df.y),
-        crs="EPSG:4326")
-
-    # Spatial join 
-    blocks_df = gpd.sjoin(blocks_df, h3_gpd, how='left', op = 'intersects')
-
-    # Drop duplicates and keep the one with the smallest H3 area
-    blocks_df = blocks_df.sort_values('area')
-    blocks_df.drop_duplicates(subset = ['x', 'y'], keep = 'first', inplace = True) 
-    
-    # Buffer unassigned blocks until they reach a hexbin. 
-    null_blocks = blocks_df[blocks_df.index_right.isnull()].drop(columns = ['index_right','area'])
-
-    result_list = []
-    for index, block in null_blocks.iterrows():
-        buff_size = 0.0001
-        matched = False
-        geo_block = gpd.GeoDataFrame(block, crs='EPSG:4326').T
-        while matched == False:
-            geo_block.geometry = geo_block.geometry.buffer(buff_size)
-            result = gpd.sjoin(geo_block, h3_gpd, how = 'left', op = 'intersects')
-            matched = ~result.index_right.isnull()[0]
-            buff_size = buff_size + 0.0001
-        result_list.append(result.iloc[0:1])
-
-    null_blocks = pd.concat(result_list)
-    
-    # Concatenate newly assigned blocks to the main blocks table 
-    blocks_df = blocks_df.dropna()
-    blocks_df = pd.concat([blocks_df, null_blocks], axis = 0)
-    
-    return blocks_df.index_right
->>>>>>> master
-
 
 @orca.column('blocks')
 def CI_employment(jobs, blocks):
@@ -260,53 +217,9 @@ def RESACRE(blocks):
 
 @orca.column('schools', cache = True)
 def TAZ(schools, zones):
-<<<<<<< HEAD
     h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
     school_gpd = orca.get_table('schools').to_frame(columns = ['x', 'y'])
     return assign_taz(school_gpd, h3_gpd)
-=======
-
-    #Tranform blocks to a Geopandas dataframe
-    zones_df =  zones.to_frame(columns=['geometry', 'area'])
-    h3_gpd = gpd.GeoDataFrame(zones_df, crs='EPSG:4326')
-
-    school_gpd = schools.to_frame(columns = ['ncessch','longitude', 'latitude'])
-    school_gpd = gpd.GeoDataFrame(
-        school_gpd,
-        geometry=gpd.points_from_xy(school_gpd.longitude, school_gpd.latitude),
-        crs="EPSG:4326")
-    # Spatial join 
-    school_gdf = gpd.sjoin(school_gpd, h3_gpd, how = 'left', op = 'intersects')
-
-    #Drop duplicates and keep the one with the smallest H3 area
-    school_gdf = school_gdf.sort_values('area')
-    school_gdf.reset_index(inplace = True)
-    school_gdf.drop_duplicates(subset = ['ncessch'], keep = 'first', inplace = True) 
-    
-    #Buffer unassigned blocks until they reach a hexbin. 
-    null_schools = school_gdf[school_gdf.index_right.isnull()].drop(columns = ['index_right','area'])
-
-    result_list = []
-    for index, school in null_schools.iterrows():
-        buff_size = 0.0001
-        matched = False
-        geo_school = gpd.GeoDataFrame(school, crs='EPSG:4326').T
-        while matched == False:
-            geo_school.geometry = geo_school.geometry.buffer(buff_size)
-            result = gpd.sjoin(geo_school, h3_gpd, how = 'left', op = 'intersects')
-            matched = ~result.index_right.isnull().iloc[0]
-            buff_size = buff_size + 0.0001
-        result_list.append(result.iloc[0:1])
-
-    null_school = pd.concat(result_list)
-
-    # Concatenate newly assigned blocks to the main blocks table 
-    school_gdf = school_gdf.dropna()
-    school_all = pd.concat([school_gdf, null_school], axis = 0)
-    school_all.set_index('ncessch', inplace = True)
-    return school_all.index_right
->>>>>>> master
-
 
 # Colleges Variables
 
@@ -361,27 +274,8 @@ def part_time_enrollment():
 @orca.column('colleges', cache = True)
 def TAZ(colleges, zones):
     colleges_df = colleges.to_frame(columns = ['x', 'y'])
-<<<<<<< HEAD
     h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
     return assign_taz(colleges_df, h3_gpd)
-=======
-    zones_df =  zones.to_frame(columns = ['geometry', 'area'])
-    h3_gpd = gpd.GeoDataFrame(zones_df, crs="EPSG:4326")
-    
-    colleges_df = gpd.GeoDataFrame(
-        colleges_df, geometry=gpd.points_from_xy(colleges_df.x, colleges_df.y),
-        crs="EPSG:4326")
-
-    # Spatial join 
-    colleges_df = gpd.sjoin(colleges_df, h3_gpd, how = 'left', op = 'intersects')
-
-    #Drop duplicates and keep the one with the smallest H3 area
-    colleges_df = colleges_df.sort_values('area')
-    colleges_df.drop_duplicates(subset = ['x', 'y'], keep = 'first', inplace = True) 
-    
-    return colleges_df.index_right
->>>>>>> master
-
 
 # Households Variables
 

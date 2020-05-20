@@ -102,44 +102,7 @@ def create_skims_from_beam(raw_beam_skims, data_dir):
         # Adding car distance skims
         vals = auto_df[beam_asim_hwy_measure_map['DIST']].values
         mx = vals.reshape((num_taz, num_taz))
-<<<<<<< HEAD
-        skims[name] = mx
 
-    for period in periods:
-        df = skims_df
-
-        # highway skims
-        for path in hwy_paths:
-            tmp_df = df[(df['mode'] == 'CAR')]
-            for measure in beam_asim_hwy_measure_map.keys():
-                name = '{0}_{1}__{2}'.format(path, measure, period)
-                if beam_asim_hwy_measure_map[measure]:
-                    vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
-                    mx = vals.reshape((num_taz, num_taz))
-                else:
-                    mx = np.zeros((num_taz, num_taz))
-                skims[name] = mx
-
-        # transit skims
-        for transit_mode in transit_modes:
-            for access_mode in access_modes:
-                for egress_mode in egress_modes:
-                    path = '{0}_{1}_{2}'.format(
-                        access_mode, transit_mode, egress_mode)
-                    for measure in beam_asim_transit_measure_map.keys():
-                        name = '{0}_{1}__{2}'.format(path, measure, period)
-
-                        # TO DO: something better than zero-ing out
-                        # all skim values we don't have
-                        if beam_asim_transit_measure_map[measure]:
-                            vals = tmp_df[
-                                beam_asim_transit_measure_map[measure]].values*100
-                            mx = vals.reshape((num_taz, num_taz))
-                        else:
-                            mx = np.zeros((num_taz, num_taz))
-                        skims[name] = mx
-    skims.close()
-=======
         skims['DIST'] = mx
 
         # active skims
@@ -187,4 +150,3 @@ def create_skims_from_beam(raw_beam_skims, data_dir):
                                 mx = np.zeros((num_taz, num_taz))
                             skims[name] = mx
         skims.close()
->>>>>>> master

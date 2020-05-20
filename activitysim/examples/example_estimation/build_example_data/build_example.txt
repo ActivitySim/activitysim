@@ -1,7 +1,6 @@
 
 TAG=_example
-HH=2000
-DATASET=mtc_tm1_test
+DATASET=mtc_tm1_sf
 
 ACTIVITYSIM_HOME=/Users/jeff.doyle/work/activitysim
 INPUT_DATA=/Users/jeff.doyle/work/activitysim-data/$DATASET/data
@@ -14,7 +13,7 @@ OUTPUT=$ESTIMATION_DIR/build_example_data/output_build$TAG
 DATA=$ESTIMATION_DIR/data
 
 # run this to create fake sample data (random seed 1)
-python $SCRIPTS/simulation.py -hh $HH -d $INPUT_DATA -c $LOCAL_CONFIGS -c $EXAMPLE_CONFIGS -o $OUTPUT
+python $SCRIPTS/simulation.py -d $INPUT_DATA -c $LOCAL_CONFIGS -c $EXAMPLE_CONFIGS -o $OUTPUT
 
 # copy raw tables to data directory DATA/*.csv
 cp $OUTPUT/raw_tables/*.csv $DATA/

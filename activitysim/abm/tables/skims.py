@@ -196,11 +196,21 @@ def skim_data_from_buffers(skim_buffers, skim_info):
     return skim_data
 
 
+def default_skim_cache_dir():
+    return inject.get_injectable('output_dir')
+
+
+def build_skim_cache_file_name(omx_name, block):
+    return f"cached_{omx_name}_{block}.mmap"
+
+
 def read_skim_cache(skim_info, skim_data):
     """
         read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
     """
-    logger.info(f"load_skims reading skims data from cache")
+
+    skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
+    logger.info(f"load_skims reading skims data from cache directory {skim_cache_dir}")
 
     omx_name = skim_info['omx_name']
     dtype = np.dtype(skim_info['dtype'])
@@ -208,8 +218,8 @@ def read_skim_cache(skim_info, skim_data):
     blocks = skim_info['blocks']
     block = 0
     for block_name, block_size in blocks.items():
-        skim_cache_file_name = f"cached_{omx_name}_{block}.mmap"
-        skim_cache_path = config.output_file_path(skim_cache_file_name)
+        skim_cache_file_name = build_skim_cache_file_name(omx_name, block)
+        skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
 
         assert os.path.isfile(skim_cache_path), \
             "read_skim_cache could not find skim_cache_path: %s" % (skim_cache_path, )
@@ -231,7 +241,8 @@ def write_skim_cache(skim_info, skim_data):
         write skim data from skim_data to canonically named cache file(s) in output directory
     """
 
-    logger.info(f"load_skims writing skims data to cache")
+    skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
+    logger.info(f"load_skims writing skims data to cache directory {skim_cache_dir}")
 
     omx_name = skim_info['omx_name']
     dtype = np.dtype(skim_info['dtype'])
@@ -239,8 +250,8 @@ def write_skim_cache(skim_info, skim_data):
     blocks = skim_info['blocks']
     block = 0
     for block_name, block_size in blocks.items():
-        skim_cache_file_name = f"cached_{omx_name}_{block}.mmap"
-        skim_cache_path = config.output_file_path(skim_cache_file_name)
+        skim_cache_file_name = build_skim_cache_file_name(omx_name, block)
+        skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
 
         block_data = skim_data[block]
 

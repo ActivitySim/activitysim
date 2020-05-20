@@ -6,6 +6,9 @@ rng_base_seed: 0
 
 use_shadow_pricing: False
 
+# turn writing of sample_tables on and off for all models
+want_dest_choice_sample_tables: False
+
 # number of households to simulate
 households_sample_size:  0
 
@@ -13,98 +16,6 @@ households_sample_size:  0
 #resume_after: initialize_households
 
 trace_hh_id:
-
-# input tables
-input_table_list:
-  - tablename: households
-    filename: households.csv
-    index_col: household_id
-    rename_columns:
-      HHID: household_id
-    drop_columns:
-      - SERIALNO
-      - PUMA5
-      - UNITTYPE
-      - NOC
-      - BLDGSZ
-      - TENURE
-      - hinccat1
-      - hinccat2
-      - hhagecat
-      - hsizecat
-      - hfamily
-      - hunittype
-      - hNOCcat
-      - hwrkrcat
-      - h0004
-      - h0511
-      - h1215
-      - h1617
-      - h1824
-      - h2534
-      - h3549
-      - h5064
-      - h6579
-      - h80up
-      - hwork_f
-      - hwork_p
-      - huniv
-      - hnwork
-      - hretire
-      - hpresch
-      - hschpred
-      - hschdriv
-      - htypdwel
-      - hownrent
-      - hadnwst
-      - hadwpst
-      - hadkids
-      - bucketBin
-      - originalPUMA
-      - hmultiunit
-      # artifact column in sample data write_raw_tables
-      #- chunk_id
-  - tablename: persons
-    filename: persons.csv
-    index_col: person_id
-    rename_columns:
-      PERID: person_id
-    drop_columns:
-      - RELATE
-      - ESR
-      - GRADE
-      - PAUG
-      - DDP
-      - WEEKS
-      - HOURS
-      - MSP
-      - POVERTY
-      - EARNS
-      - pagecat
-      - padkid
-  - tablename: land_use
-    filename: land_use.csv
-    index_col: TAZ
-    rename_columns:
-      ZONE: TAZ
-    drop_columns:
-      - HHPOP
-      - EMPRES
-      - SFDU
-      - MFDU
-      - HHINCQ1
-      - HHINCQ2
-      - HHINCQ3
-      - HHINCQ4
-      - SHPOP62P
-      - AGE0004
-      - AGE2044
-      - AGE4564
-      - AGE65P
-      - ZERO
-      - hhlds
-      - sftaz
-      - gqpop
 
 
 output_tables:
@@ -151,7 +62,8 @@ models:
 #  - trip_purpose_and_destination
 #  - trip_scheduling
 #  - trip_mode_choice
-  - write_data_dictionary
-  - track_skim_usage
+#  - write_data_dictionary
+#  - track_skim_usage
+#  - write_trip_matrices
   - write_tables
 

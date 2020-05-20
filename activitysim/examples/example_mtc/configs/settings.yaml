@@ -1,4 +1,4 @@
-# input tables 
+# input tables
 input_table_list:
   - tablename: households
     filename: households.csv
@@ -94,6 +94,8 @@ use_shadow_pricing: False
 #read_skim_cache: True
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
 #write_skim_cache: True
+#alternate dir to read/write skim cache (defaults to output_dir)
+#skim_cache_dir: data/cache
 
 # - tracing
 

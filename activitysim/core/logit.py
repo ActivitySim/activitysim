@@ -450,14 +450,15 @@ def each_nest(nest_spec, type=None, post_order=False):
             yield nest
 
 
-def count_nests(nest_spec, type=None):
+def count_nests(nest_spec):
     """
-    count the nests of the specified type (or all nests if type is None)
-    return 0 if nest_spec is none
+    count the nests in nest_spec, return 0 if nest_spec is none
     """
-    count = 0
-    if nest_spec is not None:
-        for node, nest in _each_nest(nest_spec, parent_nest=Nest(), post_order=False):
-            if type is None or nest.type == type:
-                count += 1
-    return count
+
+    def count_each_nest(spec, count):
+        if isinstance(spec, dict):
+            return count + sum([count_each_nest(alt, count) for alt in spec['alternatives']])
+        else:
+            return 1
+
+    return count_each_nest(nest_spec, 0) if nest_spec is not None else 0

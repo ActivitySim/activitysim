@@ -381,7 +381,7 @@ def _schedule_tours(
     return choices
 
 
-def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_label=None):
+def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives, model_settings, trace_label=None):
 
     num_choosers = len(tours.index)
 
@@ -398,12 +398,31 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives,  trace_
     # one column per alternative plus skim and join columns
     alt_row_size = alternatives.shape[1] + 2
 
-    row_size = (chooser_row_size + extra_chooser_columns + alt_row_size) * sample_size
+    logsum_columns = 0
+    if 'LOGSUM_SETTINGS' in model_settings:
+        logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
+        logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
+        logsum_nest_spec = config.get_logit_model_settings(logsum_settings)
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
-    # logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
-    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+        if logsum_nest_spec is None:
+            # expression_values for each spec row
+            # utilities and probs for each alt
+            logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1])
+        else:
+            # expression_values for each spec row
+            # raw_utilities and base_probabilities) for each alt
+            # nested_exp_utilities, nested_probabilities for each nest
+            # less 1 as nested_probabilities lacks root
+            nest_count = logit.count_nests(logsum_nest_spec)
+            logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1]) + (2 * nest_count) - 1
+
+    row_size = (chooser_row_size + extra_chooser_columns + alt_row_size + logsum_columns) * sample_size
+
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
+    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
+    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    logger.debug("%s #chunk_calc logsum_columns %s" % (trace_label, logsum_columns))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -439,7 +458,8 @@ def schedule_tours(
         assert not tours[timetable_window_id_col].duplicated().any()
 
     rows_per_chunk, effective_chunk_size = \
-        calc_rows_per_chunk(chunk_size, tours, persons_merged, alts, trace_label=tour_trace_label)
+        calc_rows_per_chunk(chunk_size, tours, persons_merged, alts,
+                            model_settings=model_settings, trace_label=tour_trace_label)
 
     result_list = []
     for i, num_chunks, chooser_chunk \

@@ -122,7 +122,7 @@ def create_skims_from_beam(raw_beam_skims, data_dir):
                         # all skim values we don't have
                         if beam_asim_transit_measure_map[measure]:
                             vals = tmp_df[
-                                beam_asim_transit_measure_map[measure]].values
+                                beam_asim_transit_measure_map[measure]].values*100
                             mx = vals.reshape((num_taz, num_taz))
                         else:
                             mx = np.zeros((num_taz, num_taz))

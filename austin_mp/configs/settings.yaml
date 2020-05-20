@@ -105,9 +105,6 @@ multiprocess_steps:
     begin: initialize_landuse
   - name: mp_households
     begin: school_location
-    #num_processes: 9
-    #stagger: 30
-    #chunk_size: 1000000000
     slice:
       tables:
         - households

@@ -18,7 +18,7 @@ persons_u_cols = store['persons'].reset_index().columns
 p_names_dict = {'PNUM': 'member_id'}
 asim_p_cols_to_include = ['workplace_taz', 'school_taz']
 persons_a.rename(columns=p_names_dict, inplace=True)
-persons_final = persons_a[list(persons_u_cols) + asim_cols_to_include]
+persons_final = persons_a[list(persons_u_cols) + asim_p_cols_to_include]
 
 # HOUSEHOLDS
 # new columns to persist: auto_ownership/cars
@@ -35,7 +35,7 @@ households_final = households_a[households_u_cols]
 with zipfile.ZipFile('output/asim_outputs.zip', 'w') as csv_zip:
 	for table_name in store.keys():
 		if table_name not in ['/persons', '/households']:
-			df = store[table_name]
+			df = store[table_name].reset_index()
 			csv_zip.writestr("{0}.csv".format(table_name), pd.DataFrame(df).to_csv())
 	csv_zip.writestr("households.csv", pd.DataFrame(households_final).to_csv())
 	csv_zip.writestr("persons.csv", pd.DataFrame(persons_final).to_csv())

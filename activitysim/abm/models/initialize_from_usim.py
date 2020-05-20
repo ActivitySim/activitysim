@@ -10,9 +10,13 @@ from h3 import h3
 from urbansim.utils import misc
 import requests
 import openmatrix as omx
+import logging
 
 from activitysim.core import config
 from activitysim.core import inject
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_zone_geoms_from_h3(h3_ids):
@@ -139,18 +143,18 @@ def TAZ(blocks, zones):
     # Spatial join 
     blocks_df = gpd.sjoin(blocks_df, h3_gpd, how='left', op = 'intersects')
 
-    #Drop duplicates and keep the one with the smallest H3 area
+    # Drop duplicates and keep the one with the smallest H3 area
     blocks_df = blocks_df.sort_values('area')
     blocks_df.drop_duplicates(subset = ['x', 'y'], keep = 'first', inplace = True) 
     
-    #Buffer unassigned blocks until they reach a hexbin. 
+    # Buffer unassigned blocks until they reach a hexbin. 
     null_blocks = blocks_df[blocks_df.index_right.isnull()].drop(columns = ['index_right','area'])
 
     result_list = []
     for index, block in null_blocks.iterrows():
         buff_size = 0.0001
         matched = False
-        geo_block = gpd.GeoDataFrame(block).T
+        geo_block = gpd.GeoDataFrame(block, crs='EPSG:4326').T
         while matched == False:
             geo_block.geometry = geo_block.geometry.buffer(buff_size)
             result = gpd.sjoin(geo_block, h3_gpd, how = 'left', op = 'intersects')
@@ -200,7 +204,8 @@ def RESACRE(blocks):
 def TAZ(schools, zones):
 
     #Tranform blocks to a Geopandas dataframe
-    h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
+    zones_df =  zones.to_frame(columns=['geometry', 'area'])
+    h3_gpd = gpd.GeoDataFrame(zones_df, crs='EPSG:4326')
 
     school_gpd = schools.to_frame(columns = ['ncessch','longitude', 'latitude'])
     school_gpd = gpd.GeoDataFrame(
@@ -222,7 +227,7 @@ def TAZ(schools, zones):
     for index, school in null_schools.iterrows():
         buff_size = 0.0001
         matched = False
-        geo_school = gpd.GeoDataFrame(school).T
+        geo_school = gpd.GeoDataFrame(school, crs='EPSG:4326').T
         while matched == False:
             geo_school.geometry = geo_school.geometry.buffer(buff_size)
             result = gpd.sjoin(geo_school, h3_gpd, how = 'left', op = 'intersects')
@@ -293,7 +298,8 @@ def part_time_enrollment():
 def TAZ(colleges, zones):
     #Tranform blocks to a Geopandas dataframe
     colleges_df = colleges.to_frame(columns = ['x', 'y'])
-    h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
+    zones_df =  zones.to_frame(columns = ['geometry', 'area'])
+    h3_gpd = gpd.GeoDataFrame(zones_df, crs="EPSG:4326")
     
     colleges_df = gpd.GeoDataFrame(
         colleges_df, geometry=gpd.points_from_xy(colleges_df.x, colleges_df.y),
@@ -719,6 +725,7 @@ def create_inputs_from_usim_data(data_dir):
 
     # if the input tables don't exist yet, create them from urbansim data
     if not persons_table & households_table & land_use_table:
+        logger.info("Creating inputs from UrbanSim data")
 
         # create households input table
         hh_names_dict = {
@@ -749,3 +756,6 @@ def create_inputs_from_usim_data(data_dir):
         lu_df = zones.to_frame()
         lu_df.to_csv(os.path.join(data_dir, 'land_use.csv'))
         del lu_df
+
+    else:
+        logger.info("Found existing input tables, no need to re-create.")

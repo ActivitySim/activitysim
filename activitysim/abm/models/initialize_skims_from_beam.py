@@ -2,10 +2,13 @@ import os
 import openmatrix as omx
 import pandas as pd
 import numpy as np
+import logging
 
 from activitysim.core import config
 from activitysim.core import inject
 
+
+logger = logging.getLogger(__name__)
 
 # ActivitySim Skims Variables
 hwy_paths = ['SOV', 'HOV2', 'HOV3', 'SOVTOLL', 'HOV2TOLL', 'HOV3TOLL']
@@ -58,73 +61,91 @@ def h3_zone_ids(raw_beam_skims):
 
 @inject.step()
 def create_skims_from_beam(raw_beam_skims, data_dir):
+    skims_path = os.path.join(data_dir, 'skims.omx')
+    skims_exist = os.path.exists(skims_path)
 
-    skims_df = raw_beam_skims.to_frame()
+    if skims_exist:
+        logger.info("Found existing skims, no need to re-create.")
 
-    # figure out the size of the skim matrices
-    num_hours = len(skims_df['hour'].unique())
-    num_modes = len(skims_df['mode'].unique())
-    num_od_pairs = len(skims_df) / num_hours / num_modes
+    else:
+        logger.info("Creating skims.omx from BEAM skims")
+        skims_df = raw_beam_skims.to_frame()
 
-    # make sure the matrix is square
-    num_taz = np.sqrt(num_od_pairs)
-    assert num_taz.is_integer()
+        # figure out the size of the skim matrices
+        num_hours = len(skims_df['hour'].unique())
+        num_modes = len(skims_df['mode'].unique())
+        num_od_pairs = len(skims_df) / num_hours / num_modes
 
-    num_taz = int(num_taz)
+        # make sure the matrix is square
+        num_taz = np.sqrt(num_od_pairs)
+        assert num_taz.is_integer()
 
-    # convert beam skims to activitysim units (miles and minutes)
-    skims_df['distanceInMi'] = skims_df['distanceInM'] * (0.621371 / 1000)
-    skims_df['generalizedTimeInM'] = skims_df['generalizedTimeInS'] / (60)
+        num_taz = int(num_taz)
 
-    skims = omx.open_file(os.path.join(data_dir, 'skims.omx'), 'w')
+        # convert beam skims to activitysim units (miles and minutes)
+        skims_df['distanceInMi'] = skims_df['distanceInM'] * (0.621371 / 1000)
+        skims_df['generalizedTimeInM'] = skims_df['generalizedTimeInS'] / (60)
 
-    # TO DO: get separate walk skims from beam so we don't just have to use
-    # bike distances for walk distances
+        skims = omx.open_file(skims_path, 'w')
 
-    # Adding distance
-    tmp_df = skims_df[(skims_df['mode'] == 'CAR')]
-    vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
-    mx = vals.reshape((num_taz, num_taz))
-    skims['DIST'] = mx
+        
+        # break out skims by mode
+        auto_df = skims_df[(skims_df['mode'] == 'CAR')]
+        active_df = skims_df[(skims_df['mode'] == 'BIKE')]
+        transit_df = skims_df[(skims_df['mode'] == 'WALK_TRANSIT')]
+        # activitysim estimated its models using transit skims from Cube
+        # which store time values as scaled integers (e.g. x100), so their
+        # models also divide transit skim values by 100. Since our skims
+        # aren't coming out of Cube, we multiply by 100 to negate the division. 
+        transit_df['generalizedTimeInM'] = transit_df['generalizedTimeInM'] * 100
 
-    for mode in active_modes:
-        name = 'DIST{0}'.format(mode)
-        tmp_df = skims_df[(skims_df['mode'] == 'BIKE')]
-        vals = tmp_df[beam_asim_hwy_measure_map['DIST']].values
+        # Adding car distance skims
+        vals = auto_df[beam_asim_hwy_measure_map['DIST']].values
         mx = vals.reshape((num_taz, num_taz))
-        skims[name] = mx
+        skims['DIST'] = mx
 
-    for period in periods:
-        df = skims_df
+        # active skims
+        for mode in active_modes:
 
-        # highway skims
-        for path in hwy_paths:
-            tmp_df = df[(df['mode'] == 'CAR')]
-            for measure in beam_asim_hwy_measure_map.keys():
-                name = '{0}_{1}__{2}'.format(path, measure, period)
-                if beam_asim_hwy_measure_map[measure]:
-                    vals = tmp_df[beam_asim_hwy_measure_map[measure]].values
-                    mx = vals.reshape((num_taz, num_taz))
-                else:
-                    mx = np.zeros((num_taz, num_taz))
-                skims[name] = mx
+            # TO DO: get separate walk skims from beam so we don't
+            # just have to use bike distances for walk distances
+            name = 'DIST{0}'.format(mode)
+            
+            vals = active_df[beam_asim_hwy_measure_map['DIST']].values
+            mx = vals.reshape((num_taz, num_taz))
+            skims[name] = mx
 
-        # transit skims
-        for transit_mode in transit_modes:
-            for access_mode in access_modes:
-                for egress_mode in egress_modes:
-                    path = '{0}_{1}_{2}'.format(
-                        access_mode, transit_mode, egress_mode)
-                    for measure in beam_asim_transit_measure_map.keys():
-                        name = '{0}_{1}__{2}'.format(path, measure, period)
+        for period in periods:
 
-                        # TO DO: something better than zero-ing out
-                        # all skim values we don't have
-                        if beam_asim_transit_measure_map[measure]:
-                            vals = tmp_df[
-                                beam_asim_transit_measure_map[measure]].values
-                            mx = vals.reshape((num_taz, num_taz))
-                        else:
-                            mx = np.zeros((num_taz, num_taz))
-                        skims[name] = mx
-    skims.close()
+            # highway skims
+            for path in hwy_paths:
+                for measure in beam_asim_hwy_measure_map.keys():
+                    name = '{0}_{1}__{2}'.format(path, measure, period)
+                    if beam_asim_hwy_measure_map[measure]:
+                        vals = auto_df[beam_asim_hwy_measure_map[measure]].values
+                        mx = vals.reshape((num_taz, num_taz))
+                    else:
+                        mx = np.zeros((num_taz, num_taz))
+                    skims[name] = mx
+
+            # transit skims
+            for transit_mode in transit_modes:
+                for access_mode in access_modes:
+                    for egress_mode in egress_modes:
+                        path = '{0}_{1}_{2}'.format(
+                            access_mode, transit_mode, egress_mode)
+                        for measure in beam_asim_transit_measure_map.keys():
+                            name = '{0}_{1}__{2}'.format(path, measure, period)
+
+                            # TO DO: something better than zero-ing out
+                            # all skim values we don't have
+                            if beam_asim_transit_measure_map[measure]:
+
+                                vals = transit_df[
+                                    beam_asim_transit_measure_map[measure]].values
+
+                                mx = vals.reshape((num_taz, num_taz))
+                            else:
+                                mx = np.zeros((num_taz, num_taz))
+                            skims[name] = mx
+        skims.close()

@@ -87,8 +87,8 @@ def read_from_table_info(table_info):
 
     df = _read_input_file(data_file_path, h5_tablename=h5_tablename)
 
-    logger.debug('%s table columns: %s' % (tablename, df.columns.values))
-    logger.debug('%s table size: %s' % (tablename, util.df_size(df)))
+    logger.debug('raw %s table columns: %s' % (tablename, df.columns.values))
+    logger.debug('raw %s table size: %s' % (tablename, util.df_size(df)))
 
     if create_input_store:
         h5_filepath = config.output_file_path('input_data.h5')
@@ -129,6 +129,8 @@ def read_from_table_info(table_info):
         logger.info("keeping columns: %s" % keep_columns)
         df = df[keep_columns]
 
+    logger.debug('%s table columns: %s' % (tablename, df.columns.values))
+    logger.debug('%s table size: %s' % (tablename, util.df_size(df)))
     logger.info('%s index name: %s' % (tablename, df.index.name))
 
     return df

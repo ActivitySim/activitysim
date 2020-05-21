@@ -185,7 +185,7 @@ util_DRIVE_LRF_In_vehicle_time_on_Ferry,DRIVE_LRF - In-vehicle time on Ferry (in
 util_DRIVE_LRF_Short_iwait_time,DRIVE_LRF - Short iwait time,@short_i_wait_multiplier * ((odt_skims['DRV_LRF_WLK_IWAIT']/100).clip(upper=waitThresh) + (dot_skims['WLK_LRF_DRV_IWAIT']/100).clip(upper=waitThresh)),,,,,,,,,,,,,,,coef_ivt,,,,,,
 util_DRIVE_LRF_Long_iwait_time,DRIVE_LRF - Long iwait time,@long_i_wait_multiplier * ((odt_skims['DRV_LRF_WLK_IWAIT']/100-waitThresh).clip(0) + (dot_skims['WLK_LRF_DRV_IWAIT']/100-waitThresh).clip(0)),,,,,,,,,,,,,,,coef_ivt,,,,,,
 util_DRIVE_LRF_transfer_wait_time,DRIVE_LRF - transfer wait time,@xwait_multiplier * (odt_skims['DRV_LRF_WLK_XWAIT']/100 + dot_skims['WLK_LRF_DRV_XWAIT']/100),,,,,,,,,,,,,,,coef_ivt,,,,,,
-util_DRIVE_LRF_number_of_transfers,DRIVE_LRF - number of transfers,@xfers_drv_multiplier * (odt_skims['DRV_LRF_WLK_BOARDS']-1).clip(0),,,,,,,,,,,,,,,coef_ivt,,,,,,
+util_DRIVE_LRF_number_of_transfers,DRIVE_LRF - number of transfers,@xfers_drv_multiplier * ((odt_skims['DRV_LRF_WLK_BOARDS']-1).clip(0) + (dot_skims['WLK_LRF_DRV_BOARDS']-1).clip(0)),,,,,,,,,,,,,,,coef_ivt,,,,,,
 util_DRIVE_LRF_Drive_time,DRIVE_LRF - Drive time,@dtim_multiplier * (odt_skims['DRV_LRF_WLK_DTIM']/100 + dot_skims['WLK_LRF_DRV_DTIM']/100),,,,,,,,,,,,,,,coef_ivt,,,,,,
 util_DRIVE_LRF_Walk_access_time,DRIVE_LRF - Walk access time (at attraction end),@wacc_multiplier * df.destination_walk_time,,,,,,,,,,,,,,,coef_ivt,,,,,,
 util_DRIVE_LRF_Walk_egress_time,DRIVE_LRF - Walk egress time (at attraction end),@wegr_multiplier * df.destination_walk_time,,,,,,,,,,,,,,,coef_ivt,,,,,,

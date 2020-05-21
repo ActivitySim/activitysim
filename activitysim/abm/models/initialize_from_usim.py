@@ -9,6 +9,7 @@ from h3 import h3
 from urbansim.utils import misc
 import requests
 import openmatrix as omx
+from shapely import wkt
 import logging
 
 from activitysim.core import config
@@ -622,10 +623,17 @@ def COLLPTE(colleges, zones):
 
 
 @orca.column('zones')
-def area_type():
-    # Integer, 0=regional core, 1=central business district, 2=urban business,
-    # 3=urban, 4=suburban, 5=rural
-    return 0  # Assuming all regional core
+def area_type(mpo_taz, zones):
+    
+    mpo = mpo_taz.to_frame(columns = ['geometry','area_type','ACRES'])
+    h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
+    
+    join = gpd.sjoin(h3_gpd, mpo, how = 'left',op='intersects')
+    join.area_type.fillna(5, inplace = True) #Fill non-matched areas with 5 (Rural areas)
+    join = join.groupby(['TAZ', 'area_type'])['ACRES'].sum().reset_index()
+    join = join.sort_values(['TAZ', 'ACRES'], ascending = True)
+    s = join.groupby('TAZ')['area_type'].last()
+    return s 
 
 
 @orca.column('zones')
@@ -656,6 +664,8 @@ def load_usim_data(data_dir, settings):
     persons = hdf['/persons']
     blocks = hdf['/blocks']
     jobs = hdf['/jobs']
+    mpo_taz = hdf['/mpo_taz']
+    
     hdf.close()
 
     # add home x,y coords to persons table
@@ -667,6 +677,10 @@ def load_usim_data(data_dir, settings):
         left_on='block_id', right_index=True)
     persons['home_x'] = persons_w_xy['x']
     persons['home_y'] = persons_w_xy['y']
+    
+    #Tranform mpo_taz to a geoDataFrame
+    mpo_taz['geometry'] = mpo_taz['geometry'].apply(wkt.loads)
+    mpo_taz = gpd.GeoDataFrame(mpo_taz, geometry='geometry', crs ='EPSG:4326')
 
     del persons_w_res_blk
     del persons_w_xy
@@ -675,8 +689,8 @@ def load_usim_data(data_dir, settings):
     orca.add_table('usim_persons', persons)
     orca.add_table('blocks', blocks)
     orca.add_table('jobs', jobs)
-
-
+    orca.add_table('mpo_taz', mpo_taz)
+    
 # Export households tables
 @inject.step()
 def create_inputs_from_usim_data(data_dir):

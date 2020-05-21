@@ -1,41 +1,61 @@
 
+ACTIVITYSIM_BASE_DIR=/Users/jeff.doyle/work/activitysim
+MTC_SF_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1_sf/data
+MTC_FULL_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1_/data
 
+EXAMPLES_DIR=$ACTIVITYSIM_BASE_DIR/activitysim/examples
+MTC_EXAMPLE_DIR=$EXAMPLES_DIR/example_mtc
+ESTIMATION_DIR=$EXAMPLES_DIR/example_estimation
+BUILD_DIR=$ESTIMATION_DIR/build_example_data
 
-ESTIMATION_DIR=..
-MTC_EXAMPLE_DIR=$ESTIMATION_DIR/../example_mtc
+# build example using example_mtc test data set (25 zones)
+#    TAG=test
+#    BUILD_DATA=$MTC_EXAMPLE_DIR/data
 
+# build example using example_mtc sf data set (190 zones)
+# data not in activitysim repo/distro
+#   TAG=sf
+#   BUILD_DATA=$MTC_SF_DATA_DIR
 
-TAG=test
-INPUT_DATA=$MTC_EXAMPLE_DIR/data
+# build example using example_mtc sf data set (190 zones)
+# data not in activitysim repo/distro
+  TAG=full
+  BUILD_DATA=$MTC_FULL_DATA_DIR
 
-EXAMPLE_CONFIGS=$MTC_EXAMPLE_DIR/configs
-BUILD_CONFIGS=configs_build_$TAG
+# output dirs for run to create fake survey data
+BUILD_OUTPUT=$BUILD_DIR/output_build_$TAG
+
+# create and populate data and ouput dirs for estimation mode run
+EXAMPLE_DATA=$ESTIMATION_DIR/data_$TAG
+EXAMPLE_OUTPUT=$ESTIMATION_DIR/output_$TAG
 
 # run this to create fake sample data (random seed 1)
-python $ESTIMATION_DIR/simulation.py -d $INPUT_DATA -c $BUILD_CONFIGS -c $EXAMPLE_CONFIGS -o output_build_$TAG
+python $ESTIMATION_DIR/simulation.py -d $BUILD_DATA -c $BUILD_DIR/configs_build_example -c $MTC_EXAMPLE_DIR/configs -o $BUILD_OUTPUT
 
+# create $EXAMPLE_DATA
+cp -R $BUILD_DIR/data_template $EXAMPLE_DATA
 
-
-# run this to create fake sample data (random seed 1)
-python $SCRIPTS/simulation.py -hh $HH -d $INPUT_DATA -c $LOCAL_CONFIGS -c $EXAMPLE_CONFIGS -o $OUTPUT
+# create EXAMPLE_OUTPUT
+cp -R $BUILD_DIR/output_template $EXAMPLE_OUTPUT
 
 # copy raw tables to data directory DATA/*.csv
-cp $OUTPUT/raw_tables/*.csv $DATA/
+cp $BUILD_OUTPUT/raw_tables/*.csv $EXAMPLE_DATA/
 
 # copy final_tables to DATA/survey_data/*.csv
-cp $OUTPUT/final_*.csv $DATA/survey_data/
+cp $BUILD_OUTPUT/final_*.csv $EXAMPLE_DATA/survey_data/
 
 # copy omx to DATA/survey_data/*.csv
-cp $INPUT_DATA/skims.omx $DATA/
+cp $BUILD_DATA/skims.omx $EXAMPLE_DATA/
 
 # create survey_xxx.csv files households, persons, tours, joint_tour_participants
-# DATA/final_xxx.csv -> DATA/survey_xxx.csv
-python $SCRIPTS/extract_survey_data.py $DATA
+# $EXAMPLE_DATA/final_xxx.csv -> $EXAMPLE_DATA/survey_xxx.csv
+python $ESTIMATION_DIR/scripts/extract_survey_data.py $EXAMPLE_DATA
 
 # create override_xxx.csv files
-python $SCRIPTS/infer.py $DATA $EXAMPLE_CONFIGS
+python $ESTIMATION_DIR/scripts/infer.py $EXAMPLE_DATA $MTC_EXAMPLE_DIR/configs
 
-wc -l $DATA/households.csv
-wc -l $DATA/survey_data/override_households.csv
+wc -l $EXAMPLE_DATA/households.csv
+wc -l $EXAMPLE_DATA/survey_data/override_households.csv
 
-python $SCRIPTS/simulation.py -c ./configs -c $EXAMPLE_CONFIGS -d $DATA -o output_$TAG
+# verify that it all works by running in estimation mode
+python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT

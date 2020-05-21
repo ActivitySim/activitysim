@@ -361,7 +361,7 @@ def regress_tour_modes(tours_df):
     tour_id
     13327106         WALK     325051  othdiscr         1          joint
     13327130         WALK     325051      work         1      mandatory
-    13327131         WALK     325051      work         2      mandatory
+    13327131  SHARED3FREE     325051      work         2      mandatory
     13327132         WALK     325052  business         1         atwork
     13327171     WALK_LOC     325052      work         1      mandatory
     13327160         WALK     325052  othmaint         1  non_mandatory
@@ -388,7 +388,7 @@ def regress_tour_modes(tours_df):
     EXPECT_MODES = [
         'WALK',
         'WALK',
-        'WALK',
+        'SHARED3FREE',
         'WALK',
         'WALK_LOC',
         'WALK',

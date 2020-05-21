@@ -368,9 +368,12 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
     # utilities and probs have one row per chooser and one column per alternative row
     row_size += 2 * alternatives.shape[0]
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+
+    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    logger.debug("%s #chunk_calc row_size %s" % (trace_label, row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 

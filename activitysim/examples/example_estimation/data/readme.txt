@@ -1,1 +1,0 @@
-2000 household data file generated from test dataset with random seed 1

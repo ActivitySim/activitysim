@@ -102,6 +102,7 @@ def create_skims_from_beam(raw_beam_skims, data_dir):
         # Adding car distance skims
         vals = auto_df[beam_asim_hwy_measure_map['DIST']].values
         mx = vals.reshape((num_taz, num_taz))
+
         skims['DIST'] = mx
 
         # active skims

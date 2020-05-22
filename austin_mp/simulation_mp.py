@@ -15,7 +15,6 @@ from activitysim.core import pipeline
 from activitysim.core import mp_tasks
 from activitysim.core import chunk
 
-
 logger = logging.getLogger('activitysim')
 
 
@@ -34,12 +33,12 @@ def cleanup_output_files():
 
 
 def run(run_list, injectables=None):
-
+    
     # Create a new skims.omx file from BEAM (http://beam.lbl.gov/) skims
     # if skims do not already exist in the input data directory
     if config.setting('create_skims_from_beam'):
         pipeline.run(models=['create_skims_from_beam'])
-        pipeline.close_pipeline()
+        pipeline.close_pipeline()   
 
     # Create persons, households, and land use .csv files from UrbanSim
     # data if these files do not already exist in the input data directory

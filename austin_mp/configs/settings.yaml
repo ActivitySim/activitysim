@@ -71,7 +71,7 @@ models:
   ### mp_households step
   - school_location
   - workplace_location
-  - auto_ownership_simulate
+#   - auto_ownership_simulate
   - free_parking
   - cdap_simulate
   - mandatory_tour_frequency

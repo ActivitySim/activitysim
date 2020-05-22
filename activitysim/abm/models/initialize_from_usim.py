@@ -38,7 +38,11 @@ def assign_taz(df, gdf):
     Output:
     A series with df index and corresponding gdf id
     '''
+
     df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y), crs = "EPSG:4326")
+    gdf.geometry.crs = "EPSG:4326"
+    
+    assert df.geometry.crs == gdf.geometry.crs
 
     # Spatial join 
     df = gpd.sjoin(df, gdf, how = 'left', op = 'intersects')

@@ -201,21 +201,25 @@ def CI_employment(jobs, blocks):
     # so that dividing by this number results in a small value
     return s.reindex(blocks.index).fillna(0.01) 
 
+# @orca.column('blocks')
+# def res_population(households, blocks):
+#     persons_per_block = households.groupby('block_id')['persons'].sum()
+#     return persons_per_block.reindex(blocks.index).fillna(0)
 
-@orca.column('blocks')
-def CIACRE(blocks):
-    total_pop = blocks.residential_unit_capacity + blocks.employment_capacity
-    ci_pct = blocks.CI_employment/total_pop
-    ci_acres = (ci_pct * blocks.square_meters_land)/4046.86 #1m2 = 4046.86acres
-    return ci_acres.fillna(0.01)
+# @orca.column('blocks')
+# def CIACRE(blocks):
+#     total_pop = blocks.res_population + blocks.employment_capacity
+#     ci_pct = blocks.employment_capacity / total_pop
+#     ci_acres = (ci_pct * blocks.square_meters_land) / 4046.86
+#     return ci_acres.fillna(0.01)
 
 
-@orca.column('blocks')
-def RESACRE(blocks):
-    total_pop = blocks.residential_unit_capacity + blocks.employment_capacity
-    res_pct = blocks.residential_unit_capacity/total_pop
-    res_acres = (res_pct * blocks.square_meters_land)/4046.86 #1m2 = 4046.86acres
-    return res_acres.fillna(0.01)
+# @orca.column('blocks')
+# def RESACRE(blocks):
+#     total_pop = blocks.res_population + blocks.employment_capacity
+#     res_pct = blocks.res_population / total_pop
+#     res_acres = (res_pct * blocks.square_meters_land) / 4046.86
+#     return res_acres.fillna(0.01)
 
 
 # School Variables
@@ -533,25 +537,27 @@ def OTHEMPN(jobs, zones):
 
 @orca.column('zones', cache=True)
 def TOTACRE(zones):
-    g = zones.geometry.to_crs({'init': 'epsg:3857'})
 
-    # area in square meters
+    # project to meter-based crs
+    g = zones.geometry.to_crs({'init': 'epsg:2768'})
+    
+    # square meters to acres
     area_polygons = g.area / 4046.86
     return area_polygons
 
 
-@orca.column('zones', cache=True)
-def RESACRE(blocks, zones):
-    df = blocks.to_frame()
-    s = df.groupby('TAZ')['RESACRE'].sum()
-    return s.reindex(zones.index).fillna(0)
+# @orca.column('zones', cache=True)
+# def RESACRE(blocks, zones):
+#     df = blocks.to_frame()
+#     s = df.groupby('TAZ')['RESACRE'].sum()
+#     return s.reindex(zones.index).fillna(0)
 
 
-@orca.column('zones', cache=True)
-def CIACRE(blocks, zones):
-    df = blocks.to_frame()
-    s = df.groupby('TAZ')['CIACRE'].sum()
-    return s.reindex(zones.index).fillna(0)
+# @orca.column('zones', cache=True)
+# def CIACRE(blocks, zones):
+#     df = blocks.to_frame()
+#     s = df.groupby('TAZ')['CIACRE'].sum()
+#     return s.reindex(zones.index).fillna(0)
 
 
 @orca.column('zones', cache=True)
@@ -627,17 +633,19 @@ def COLLPTE(colleges, zones):
 
 
 @orca.column('zones')
-def area_type(mpo_taz, zones):
-    
-    mpo = mpo_taz.to_frame(columns = ['geometry','area_type','ACRES'])
-    h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
-    
-    join = gpd.sjoin(h3_gpd, mpo, how = 'left',op='intersects')
-    join.area_type.fillna(5, inplace = True) #Fill non-matched areas with 5 (Rural areas)
-    join = join.groupby(['TAZ', 'area_type'])['ACRES'].sum().reset_index()
-    join = join.sort_values(['TAZ', 'ACRES'], ascending = True)
-    s = join.groupby('TAZ')['area_type'].last()
-    return s 
+def area_type_metric(zones):
+    return ((1 * zones['HHPOP']) + (2.5 * zones['TOTEMP'])) / zones['TOTACRE']
+
+
+@orca.column('zones')
+def area_type(zones):
+    area_types = pd.cut(
+        zones['area_type_metric'],
+        [0, 6, 30, 55, 100, 300, float("inf")],
+        labels=['rural', 'suburban', 'urban', 'urban_business', 'cbd', 'regional_core'],
+        include_lowest=True
+    ).astype(str) 
+    return area_types
 
 
 @orca.column('zones')
@@ -668,7 +676,7 @@ def load_usim_data(data_dir, settings):
     persons = hdf['/persons']
     blocks = hdf['/blocks']
     jobs = hdf['/jobs']
-    mpo_taz = hdf['/mpo_taz']
+    # mpo_taz = hdf['/mpo_taz']
     
     hdf.close()
 
@@ -683,8 +691,8 @@ def load_usim_data(data_dir, settings):
     persons['home_y'] = persons_w_xy['y']
     
     #Tranform mpo_taz to a geoDataFrame
-    mpo_taz['geometry'] = mpo_taz['geometry'].apply(wkt.loads)
-    mpo_taz = gpd.GeoDataFrame(mpo_taz, geometry='geometry', crs ='EPSG:4326')
+    # mpo_taz['geometry'] = mpo_taz['geometry'].apply(wkt.loads)
+    # mpo_taz = gpd.GeoDataFrame(mpo_taz, geometry='geometry', crs ='EPSG:4326')
 
     del persons_w_res_blk
     del persons_w_xy
@@ -693,7 +701,7 @@ def load_usim_data(data_dir, settings):
     orca.add_table('usim_persons', persons)
     orca.add_table('blocks', blocks)
     orca.add_table('jobs', jobs)
-    orca.add_table('mpo_taz', mpo_taz)
+    # orca.add_table('mpo_taz', mpo_taz)
     
 # Export households tables
 @inject.step()

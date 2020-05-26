@@ -185,11 +185,38 @@ def colleges(blocks):
 # NOTE: AREAS OF BLOCKS BASED ON RESIDENTS AND EMPLOYEES PER BLOCK.
 # PROPER LAND USE DATA SHOULD BE PROCURED FROM THE MPO
 
-@orca.column('blocks', cache = True)
+@orca.column('blocks', cache=True)
 def TAZ(blocks, zones):
     blocks_df = blocks.to_frame(columns = ['x', 'y'])
     h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
     return assign_taz(blocks_df, h3_gpd)
+
+
+@orca.column('blocks')
+def TOTEMP(blocks, jobs):
+
+    return jobs.to_frame().groupby('block_id')['TAZ'].count().reindex(blocks.index).fillna(0)
+
+
+@orca.column('blocks')
+def TOTPOP(blocks, usim_households):
+    hh = usim_households.to_frame()
+    return hh.groupby('block_id')['persons'].sum().reindex(blocks.index).fillna(0)
+
+
+@orca.column('blocks')
+def TOTACRE(blocks):
+    return blocks['square_meters_land'] / 4046.86
+
+
+@orca.column('blocks')
+def area_type_metric(blocks):
+
+    # we calculate the metric at the block level because h3 zones are so variable
+    # in size, so this size-dependent metric is very susceptible to the
+    # modifiable areal unit problem. Since blocks are 
+    return ((1 * blocks['TOTPOP']) + (2.5 * blocks['TOTEMP'])) / blocks['TOTACRE']
+
 
 @orca.column('blocks')
 def CI_employment(jobs, blocks):
@@ -200,26 +227,6 @@ def CI_employment(jobs, blocks):
     # to avoid division by zero best to have a relative greater number,
     # so that dividing by this number results in a small value
     return s.reindex(blocks.index).fillna(0.01) 
-
-# @orca.column('blocks')
-# def res_population(households, blocks):
-#     persons_per_block = households.groupby('block_id')['persons'].sum()
-#     return persons_per_block.reindex(blocks.index).fillna(0)
-
-# @orca.column('blocks')
-# def CIACRE(blocks):
-#     total_pop = blocks.res_population + blocks.employment_capacity
-#     ci_pct = blocks.employment_capacity / total_pop
-#     ci_acres = (ci_pct * blocks.square_meters_land) / 4046.86
-#     return ci_acres.fillna(0.01)
-
-
-# @orca.column('blocks')
-# def RESACRE(blocks):
-#     total_pop = blocks.res_population + blocks.employment_capacity
-#     res_pct = blocks.res_population / total_pop
-#     res_acres = (res_pct * blocks.square_meters_land) / 4046.86
-#     return res_acres.fillna(0.01)
 
 
 # School Variables
@@ -285,6 +292,7 @@ def TAZ(colleges, zones):
     colleges_df = colleges.to_frame(columns = ['x', 'y'])
     h3_gpd =  zones.to_frame(columns = ['geometry', 'area'])
     return assign_taz(colleges_df, h3_gpd)
+
 
 # Households Variables
 
@@ -633,8 +641,24 @@ def COLLPTE(colleges, zones):
 
 
 @orca.column('zones')
-def area_type_metric(zones):
-    return ((1 * zones['HHPOP']) + (2.5 * zones['TOTEMP'])) / zones['TOTACRE']
+def area_type_metric(blocks, zones):
+
+    # because of the MAUP, we have to aggregate the area_type_metric values
+    # up from the block level to the h3 zone. instead of a simple average,
+    # we us a weighted average of the blocks based on the square root of the
+    # sum of the number of jobs and residents of each block. this method
+    # was found to produce the best results in the Austin metro region compared
+    # to the simple average (underclassified urban areas) and the fully
+    # weighted average (overclassified too many CBDs).
+
+    # it is probably a good idea to visually assess the accuracy of the
+    # metric when implementing in a new region.
+    
+    blocks_df = blocks.to_frame(columns=['TAZ', 'TOTPOP', 'TOTEMP', 'area_type_metric'])
+    blocks_df['weight'] = np.round(np.sqrt(blocks_df['TOTPOP'] + blocks_df['TOTEMP']))
+    blocks_weighted = blocks_df.loc[blocks_df.index.repeat(blocks_df['weight'])]
+    area_type_avg = blocks_weighted.groupby('TAZ')['area_type_metric'].mean()
+    return area_type_avg.reindex(zones.index).fillna(0)
 
 
 @orca.column('zones')
@@ -689,10 +713,6 @@ def load_usim_data(data_dir, settings):
         left_on='block_id', right_index=True)
     persons['home_x'] = persons_w_xy['x']
     persons['home_y'] = persons_w_xy['y']
-    
-    #Tranform mpo_taz to a geoDataFrame
-    # mpo_taz['geometry'] = mpo_taz['geometry'].apply(wkt.loads)
-    # mpo_taz = gpd.GeoDataFrame(mpo_taz, geometry='geometry', crs ='EPSG:4326')
 
     del persons_w_res_blk
     del persons_w_xy
@@ -701,7 +721,6 @@ def load_usim_data(data_dir, settings):
     orca.add_table('usim_persons', persons)
     orca.add_table('blocks', blocks)
     orca.add_table('jobs', jobs)
-    # orca.add_table('mpo_taz', mpo_taz)
     
 # Export households tables
 @inject.step()

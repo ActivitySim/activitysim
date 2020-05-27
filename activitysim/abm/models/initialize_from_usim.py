@@ -653,7 +653,7 @@ def area_type_metric(blocks, zones):
 
     # it is probably a good idea to visually assess the accuracy of the
     # metric when implementing in a new region.
-    
+
     blocks_df = blocks.to_frame(columns=['TAZ', 'TOTPOP', 'TOTEMP', 'area_type_metric'])
     blocks_df['weight'] = np.round(np.sqrt(blocks_df['TOTPOP'] + blocks_df['TOTEMP']))
     blocks_weighted = blocks_df.loc[blocks_df.index.repeat(blocks_df['weight'])]
@@ -663,10 +663,12 @@ def area_type_metric(blocks, zones):
 
 @orca.column('zones')
 def area_type(zones):
+    # Integer, 0=regional core, 1=central business district,
+    # 2=urban business, 3=urban, 4=suburban, 5=rural
     area_types = pd.cut(
         zones['area_type_metric'],
         [0, 6, 30, 55, 100, 300, float("inf")],
-        labels=['rural', 'suburban', 'urban', 'urban_business', 'cbd', 'regional_core'],
+        labels=['5', '4', '3', '2', '1', '0'],
         include_lowest=True
     ).astype(str) 
     return area_types

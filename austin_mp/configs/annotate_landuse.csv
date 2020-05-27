@@ -1,3 +1,3 @@
 Description,Target,Expression
 #,, annotate landuse table after import
-density_index,density_index,(household_density *employment_density) / (household_density + employment_density).clip(lower=1)
+density_index,density_index,(land_use.hh_density * land_use.employment_density) / (land_use.hh_density + land_use.employment_density).clip(lower=1)

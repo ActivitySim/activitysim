@@ -46,15 +46,15 @@ def run(run_list, injectables=None):
         pipeline.run(models=['load_usim_data', 'create_inputs_from_usim_data'])
         pipeline.close_pipeline()
 
-    # if run_list['multiprocess']:
-    #     logger.info("run multiprocess simulation")
-    #     mp_tasks.run_multiprocess(run_list, injectables)
-    # else:
-    #     logger.info("run single process simulation")
-    #     pipeline.run(
-    #         models=run_list['models'], resume_after=run_list['resume_after'])
-    #     pipeline.close_pipeline()
-    #     chunk.log_write_hwm()
+    if run_list['multiprocess']:
+        logger.info("run multiprocess simulation")
+        mp_tasks.run_multiprocess(run_list, injectables)
+    else:
+        logger.info("run single process simulation")
+        pipeline.run(
+            models=run_list['models'], resume_after=run_list['resume_after'])
+        pipeline.close_pipeline()
+        chunk.log_write_hwm()
 
 
 def log_settings(injectables):

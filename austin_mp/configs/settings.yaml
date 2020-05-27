@@ -48,9 +48,9 @@ use_shadow_pricing: False
 
 
 ## - example sample
-households_sample_size: 10000
+households_sample_size: 0
 chunk_size: 5000000000
-num_processes: 20
+num_processes: 24
 stagger: 0
 
 
@@ -71,7 +71,7 @@ models:
   ### mp_households step
   - school_location
   - workplace_location
-#   - auto_ownership_simulate
+  # - auto_ownership_simulate
   - free_parking
   - cdap_simulate
   - mandatory_tour_frequency

@@ -32,7 +32,7 @@ households_a.rename(columns=hh_names_dict, inplace=True)
 households_final = households_a[households_u_cols]
 
 # WRITE OUT
-with zipfile.ZipFile('output/asim_outputs.zip', 'w') as csv_zip:
+with zipfile.ZipFile('output/asim_outputs_auto_own_off.zip', 'w') as csv_zip:
 	for table_name in store.keys():
 		if table_name not in ['/persons', '/households']:
 			df = store[table_name].reset_index()

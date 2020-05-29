@@ -1,7 +1,7 @@
 
 ACTIVITYSIM_BASE_DIR=/Users/jeff.doyle/work/activitysim
 MTC_SF_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1_sf/data
-MTC_FULL_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1_/data
+MTC_FULL_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data
 
 EXAMPLES_DIR=$ACTIVITYSIM_BASE_DIR/activitysim/examples
 MTC_EXAMPLE_DIR=$EXAMPLES_DIR/example_mtc

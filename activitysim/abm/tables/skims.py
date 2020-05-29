@@ -49,6 +49,19 @@ def get_skim_info(omx_file_path, tags_to_load=None):
 
         omx_skim_names = omx_file.listMatrices()
 
+        offset_map = None
+        offset_map_name = None
+        for m in omx_file.listMappings():
+            if offset_map is None:
+                offset_map_name = m
+                offset_map = omx_file.mapentries(offset_map_name)
+                assert len(offset_map) == omx_shape[0]
+
+                logger.debug(f"get_skim_info omx_name {omx_name} using offset_map {m}")
+            else:
+                # don't really expect more than one, but ok if they are all the same
+                assert((offset_map == omx_file.mapentries(m).all())), "Multiple different mappings in omx file"
+
     # - omx_keys dict maps skim key to omx_key
     # DISTWALK: DISTWALK
     # ('DRV_COM_WLK_BOARDS', 'AM'): DRV_COM_WLK_BOARDS__AM, ...
@@ -64,7 +77,6 @@ def get_skim_info(omx_file_path, tags_to_load=None):
         omx_keys[skim_key] = skim_name
 
     num_skims = len(omx_keys)
-    skim_data_shape = omx_shape + (num_skims, )
 
     # - key1_subkeys dict maps key1 to dict of subkeys with that key1
     # DIST: {'DIST': 0}
@@ -134,6 +146,8 @@ def get_skim_info(omx_file_path, tags_to_load=None):
         'omx_shape': omx_shape,
         'num_skims': num_skims,
         'dtype': skim_dtype,
+        'offset_map_name': offset_map_name,
+        'offset_map': offset_map,
         'omx_keys': omx_keys,
         'key1_block_offsets': key1_block_offsets,
         'block_offsets': block_offsets,
@@ -345,7 +359,14 @@ def skim_dict(settings):
 
     # create skim dict
     skim_dict = skim.SkimDict(skim_data, skim_info)
-    skim_dict.offset_mapper.set_offset_int(-1)
+
+    offset_map = skim_info['offset_map']
+    if offset_map is not None:
+        skim_dict.offset_mapper.set_offset_list(offset_map)
+        logger.debug(f"using offset map {skim_info['offset_map_name']}from omx file: {offset_map}")
+    else:
+        # assume this is a one-based skim map
+        skim_dict.offset_mapper.set_offset_int(-1)
 
     return skim_dict
 

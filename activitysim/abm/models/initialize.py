@@ -88,12 +88,9 @@ def initialize_landuse():
 
     annotate_tables(model_settings, trace_label)
 
-    # create accessibility
+    # create accessibility (only required if multiprocessing wants to slice accessibility)
     land_use = pipeline.get_table('land_use')
-
     accessibility_df = pd.DataFrame(index=land_use.index)
-
-    # - write table to pipeline
     pipeline.replace_table("accessibility", accessibility_df)
 
 

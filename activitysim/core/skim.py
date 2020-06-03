@@ -197,12 +197,11 @@ class SkimDict(object):
              The skim object
         """
 
-        block, offset = self.skim_info['block_offsets'].get(key)
-        block_data = self.skim_data[block]
+        offset = self.skim_info['block_offsets'].get(key)
 
         self.touch(key)
 
-        data = block_data[:, :, offset]
+        data = self.skim_data[:, :, offset]
 
         return SkimWrapper(data, self.offset_mapper)
 
@@ -344,12 +343,6 @@ class SkimStack(object):
         self.offset_mapper = skim_dict.offset_mapper
         self.skim_dict = skim_dict
 
-        # - key1_blocks dict maps key1 to block number
-        # DISTWALK: 0,
-        # DRV_COM_WLK_BOARDS: 0, ...
-        key1_block_offsets = skim_dict.skim_info['key1_block_offsets']
-        self.key1_blocks = {k: v[0] for k, v in key1_block_offsets.items()}
-
         # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
         # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
         block_offsets = skim_dict.skim_info['block_offsets']
@@ -360,9 +353,7 @@ class SkimStack(object):
                 continue
 
             key1, key2 = skim_key
-            block, offset = block_offsets[skim_key]
-
-            assert block == self.key1_blocks[key1]
+            offset = block_offsets[skim_key]
 
             skim_dim3.setdefault(key1, OrderedDict())[key2] = offset
 
@@ -382,11 +373,9 @@ class SkimStack(object):
         orig = self.offset_mapper.map(orig)
         dest = self.offset_mapper.map(dest)
 
-        assert key in self.key1_blocks, "SkimStack key %s missing" % key
         assert key in self.skim_dim3, "SkimStack key %s missing" % key
 
-        block = self.key1_blocks[key]
-        stacked_skim_data = self.skim_dict.skim_data[block]
+        stacked_skim_data = self.skim_dict.skim_data
         skim_keys_to_indexes = self.skim_dim3[key]
 
         self.touch(key)

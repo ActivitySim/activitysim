@@ -79,10 +79,10 @@ def test_skims(data):
     skim_data[:, :, 1] = data*10
 
     skim_info = {
-        'block_offsets': {'AM': (0, 0), 'PM': (0, 1)}
+        'block_offsets': {'AM': 0, 'PM': 1}
     }
 
-    skim_dict = skim.SkimDict([skim_data], skim_info)
+    skim_dict = skim.SkimDict(skim_data, skim_info)
 
     skims = skim_dict.wrap("taz_l", "taz_r")
 
@@ -119,10 +119,10 @@ def test_3dskims(data):
     skim_data[:, :, 1] = data*10
 
     skim_info = {
-        'block_offsets': {('SOV', 'AM'): (0, 0), ('SOV', 'PM'): (0, 1)},
-        'key1_block_offsets': {'SOV': (0, 0)}
+        'block_offsets': {('SOV', 'AM'): 0, ('SOV', 'PM'): 1},
+        'key1_block_offsets': {'SOV': 0}
     }
-    skim_dict = skim.SkimDict([skim_data], skim_info)
+    skim_dict = skim.SkimDict(skim_data, skim_info)
 
     stack = skim.SkimStack(skim_dict)
 

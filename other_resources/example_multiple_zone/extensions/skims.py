@@ -7,7 +7,8 @@ import logging
 import numpy as np
 import openmatrix as omx
 
-from activitysim.core import skim as askim
+from activitysim.core import skim
+from activitysim.core import skim_loader
 from activitysim.core import config
 from activitysim.core import inject
 
@@ -55,32 +56,17 @@ def add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values, offset_int=None
 
 
 @inject.injectable(cache=True)
-def taz_skim_dict(data_dir, settings):
+def taz_skim_dict():
 
     logger.info("loading taz_skim_dict")
 
-    skims_file = config.data_file_path(settings["taz_skims_file"])
-    cache_skim_key_values = settings['skim_time_periods']['labels']
-
-    skim_dict = askim.SkimDict()
-
-    with omx.open_file(skims_file) as omx_file:
-        add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values)
-
-    return skim_dict
+    return skim_loader.create_skim_dict('taz_skims_file')
 
 
 @inject.injectable(cache=True)
-def tap_skim_dict(data_dir, settings):
+def tap_skim_dict():
 
     logger.info("loading tap_skim_dict")
 
-    cache_skim_key_values = settings['skim_time_periods']['labels']
-    skim_dict = askim.SkimDict()
+    return skim_loader.create_skim_dict('tap_skims_files')
 
-    for skims_file in settings["tap_skims_files"]:
-        skims_file_path = config.data_file_path(skims_file)
-        with omx.open_file(skims_file_path) as omx_file:
-            add_to_skim_dict(skim_dict, omx_file, cache_skim_key_values)
-
-    return skim_dict

@@ -1,5 +1,13 @@
 #input data store and skims
-store: NetworkData.h5
+input_store: NetworkData.h5
+
+input_table_list:
+  - tablename: TAZ
+  - tablename: MAZ
+  - tablename: TAP
+  - tablename: MAZtoMAZ
+  - tablename: MAZtoTAP
+
 taz_skims_file: taz_skims.omx
 
 tap_skims_files:
@@ -8,8 +16,6 @@ tap_skims_files:
 
 #number of households to simulate
 households_sample_size: 1000
-
-
 
 skim_time_periods:
     period_minutes: 60

@@ -10,7 +10,7 @@ from activitysim.core import inject
 from activitysim.core import skim as askim
 from activitysim.core.util import quick_loc_df
 
-from activitysim.core.tracing import print_elapsed_time
+from activitysim.core.input import read_input_table
 
 logger = logging.getLogger('activitysim')
 
@@ -24,7 +24,7 @@ class NetworkLOS(object):
         self.maz_df = maz
         self.tap_df = tap
 
-        # print "maz_df unique maz", len(self.maz_df.index)
+        # print("maz_df unique maz", len(self.maz_df.index))
 
         # maz2maz_df
         self.maz2maz_df = maz2maz
@@ -73,7 +73,7 @@ class NetworkLOS(object):
         n = (skim.data < 0).sum()
         p = (skim.data >= 0).sum()
         nan = np.isnan(skim.data).sum()
-        print "get_tappairs %s %s neg %s po %s nan" % (key, n, p, nan)
+        print("get_tappairs %s %s neg %s po %s nan" % (key, n, p, nan))
 
         return s
 
@@ -169,24 +169,23 @@ class NetworkLOS(object):
 
 
 @inject.injectable(cache=True)
-def network_los(store, taz_skim_dict, tap_skim_dict):
+def network_los(taz_skim_dict, tap_skim_dict):
 
-    taz = store["TAZ"]
-    maz = store["MAZ"]
-    tap = store["TAP"]
-    maz2maz = store["MAZtoMAZ"]
-    maz2tap = store["MAZtoTAP"]
+    taz = read_input_table("TAZ")
+    maz = read_input_table("MAZ")
+    tap = read_input_table("TAP")
+    maz2maz = read_input_table("MAZtoMAZ")
+    maz2tap = read_input_table("MAZtoTAP")
 
-    print "taz index %s columns %s" % (taz.index.name, taz.columns.values)
-    print "tap index %s columns %s" % (tap.index.name, tap.columns.values)
-    print "maz index %s columns %s" % (maz.index.name, maz.columns.values)
+    print("taz index %s columns %s" % (taz.index.name, taz.columns.values))
+    print("tap index %s columns %s" % (tap.index.name, tap.columns.values))
+    print("maz index %s columns %s" % (maz.index.name, maz.columns.values))
 
-    print "maz2maz index %s columns %s" % (maz2maz.index.name, maz2maz.columns.values)
-    print "maz2tap index %s columns %s" % (maz2tap.index.name, maz2tap.columns.values)
+    print ("maz2maz index %s columns %s" % (maz2maz.index.name, maz2maz.columns.values))
+    print ("maz2tap index %s columns %s" % (maz2tap.index.name, maz2tap.columns.values))
 
-    # print "tap index %s columns %s" % (tap.index.name, tap.columns.values)
-    # print "tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name,
-    #                                                 tap_skim_offsets.columns.values)
+    # print( )"tap index %s columns %s" % (tap.index.name, tap.columns.values))
+    # print( )"tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name, tap_skim_offsets.columns.values))
 
     nlos = NetworkLOS(taz, maz, tap, maz2maz, maz2tap, taz_skim_dict, tap_skim_dict)
 

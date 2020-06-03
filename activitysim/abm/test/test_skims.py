@@ -4,7 +4,7 @@ from collections import OrderedDict
 import numpy as np
 import pytest
 
-from activitysim.abm.tables import skims
+from activitysim.core import skim_loader
 
 
 @pytest.fixture(scope="session")
@@ -38,7 +38,7 @@ def skim_info(num_of_matrices, matrix_dimension):
             omx_key1_block_offsets[key1_name] = (0, i)
 
     skim_info = {
-        'omx_name': 'arc_skims',
+        'omx_tag': 'arc_skims',
         'omx_shape': (matrix_dimension, matrix_dimension),
         'num_skims': num_of_matrices,
         'dtype': np.float32,
@@ -53,15 +53,13 @@ def skim_info(num_of_matrices, matrix_dimension):
 
 def test_multiply_large_numbers(skim_info, num_of_matrices, matrix_dimension):
     omx_shape = skim_info['omx_shape']
-    blocks = skim_info['blocks']
+    block_size = skim_info['num_skims']
 
-    for block_name, block_size in blocks.items():
-        # If overflow, this number will go negative
-        assert int(skims.multiply_large_numbers(omx_shape) * block_size) == \
-               num_of_matrices * matrix_dimension ** 2
+    # If overflow, this number will go negative
+    assert int(skim_loader.multiply_large_numbers(omx_shape) * block_size) == num_of_matrices * matrix_dimension ** 2
 
 
 def test_multiple_large_floats():
-    calculated_value = skims.multiply_large_numbers([6205.1, 5423.2, 932.4, 15.4])
+    calculated_value = skim_loader.multiply_large_numbers([6205.1, 5423.2, 932.4, 15.4])
     actual_value = 483200518316.9472
     assert abs(calculated_value - actual_value) < 0.0001

@@ -20,13 +20,13 @@ from activitysim.core import config
 
 from activitysim.core import chunk
 from activitysim.core import mem
+from activitysim.core import skim_loader
 
 from activitysim.core.config import setting
 
 # activitysim.abm imported for its side-effects (dependency injection)
 from activitysim import abm
 
-from activitysim.abm.tables import skims
 from activitysim.abm.tables import shadow_pricing
 
 
@@ -845,14 +845,12 @@ def mp_setup_skims(injectables, **kwargs):
 
     try:
         shared_data_buffer = kwargs
-        omx_file_path = config.data_file_path(setting('skims_file'))
-        tags_to_load = setting('skim_time_periods')['labels']
 
-        skim_info = skims.get_skim_info(omx_file_path, tags_to_load)
+        skim_info = skim_loader.get_skim_info('skims_file')
         if TEST_SPAWN:
-            warning("mp_setup_skims TEST_SPAWN {TEST_SPAWN} skipping skims.load_skims")
+            warning("mp_setup_skims TEST_SPAWN {TEST_SPAWN} skipping skim_loader.load_skims")
         else:
-            skims.load_skims(omx_file_path, skim_info, shared_data_buffer)
+            skim_loader.load_skims(skim_info, shared_data_buffer)
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_setup_skims: {str(e)}")
@@ -899,12 +897,9 @@ def allocate_shared_skim_buffers():
 
     info("allocate_shared_skim_buffer")
 
-    omx_file_path = config.data_file_path(setting('skims_file'))
-    tags_to_load = setting('skim_time_periods')['labels']
-
     # select the skims to load
-    skim_info = skims.get_skim_info(omx_file_path, tags_to_load)
-    skim_buffers = skims.buffers_for_skims(skim_info, shared=True)
+    skim_info = skim_loader.get_skim_info('skims_file')
+    skim_buffers = skim_loader.buffers_for_skims(skim_info, shared=True)
 
     return skim_buffers
 

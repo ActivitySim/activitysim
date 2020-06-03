@@ -7,7 +7,6 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import simulate as asim
 
-
 import pandas as pd
 import numpy as np
 import os

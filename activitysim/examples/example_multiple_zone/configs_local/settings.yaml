@@ -1,0 +1,81 @@
+inherit_settings: True
+
+households_sample_size:  100
+chunk_size: 0
+
+# - shadow pricing global switches
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+want_dest_choice_sample_tables: False
+
+#read_skim_cache: True
+#write_skim_cache: True
+#skim_cache_dir: data/cache
+
+# - tracing
+trace_hh_id:
+trace_od:
+
+# set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: False
+
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_purpose
+
+models:
+  - initialize_landuse
+  - compute_accessibility
+  - initialize_households
+  - school_location
+#  - workplace_location
+#  - auto_ownership_simulate
+#  - free_parking
+#  - cdap_simulate
+#  - mandatory_tour_frequency
+#  - mandatory_tour_scheduling
+#  - joint_tour_frequency
+#  - joint_tour_composition
+#  - joint_tour_participation
+#  - joint_tour_destination
+#  - joint_tour_scheduling
+#  - non_mandatory_tour_frequency
+#  - non_mandatory_tour_destination
+#  - non_mandatory_tour_scheduling
+#  - tour_mode_choice_simulate
+#  - atwork_subtour_frequency
+#  - atwork_subtour_destination
+#  - atwork_subtour_scheduling
+#  - atwork_subtour_mode_choice
+#  - stop_frequency
+#  - trip_purpose
+#  - trip_destination
+#  - trip_purpose_and_destination
+#  - trip_scheduling
+#  - trip_mode_choice
+#  - write_data_dictionary
+  - track_skim_usage
+#  - write_trip_matrices
+  - write_tables
+
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+    # DEST_CHOICE_SAMPLE_TABLE_NAME
+#    - trip_destination_sample
+#    - tour_destination_sample
+#    - school_location_sample
+#    - workplace_location_sample

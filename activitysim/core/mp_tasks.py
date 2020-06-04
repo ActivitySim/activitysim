@@ -846,7 +846,7 @@ def mp_setup_skims(injectables, **kwargs):
     try:
         shared_data_buffer = kwargs
 
-        skim_info = skim_loader.get_skim_info('skims_file')
+        skim_info = skim_loader.get_skim_info(skim_tag='TAZ')
         if TEST_SPAWN:
             warning("mp_setup_skims TEST_SPAWN {TEST_SPAWN} skipping skim_loader.load_skims")
         else:
@@ -891,14 +891,14 @@ def allocate_shared_skim_buffers():
 
     Returns
     -------
-    skim_buffers : dict {<block_name>: <multiprocessing.RawArray>}
+    skim_buffers : dict {<skim_tag>: <multiprocessing.RawArray>}
 
     """
 
     info("allocate_shared_skim_buffer")
 
     # select the skims to load
-    skim_info = skim_loader.get_skim_info('skims_file')
+    skim_info = skim_loader.get_skim_info(skim_tag='TAZ')
     skim_buffers = skim_loader.buffers_for_skims(skim_info, shared=True)
 
     return skim_buffers

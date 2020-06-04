@@ -38,7 +38,7 @@ def skim_info(num_of_matrices, matrix_dimension):
             omx_key1_block_offsets[key1_name] = (0, i)
 
     skim_info = {
-        'omx_tag': 'arc_skims',
+        'skim_tag': 'arc_skims',
         'omx_shape': (matrix_dimension, matrix_dimension),
         'num_skims': num_of_matrices,
         'dtype': np.float32,

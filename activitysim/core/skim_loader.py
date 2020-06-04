@@ -24,11 +24,60 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 
-def get_skim_info(omx_tag):
-    omx_files = config.setting(omx_tag)
-    omx_files = [omx_files] if isinstance(omx_files, str) else omx_files  # want a list,not a single file name
+def get_skim_time_periods():
 
-    tags_to_load = config.setting('skim_time_periods')['labels']
+    return config.setting('skim_time_periods')
+
+
+def get_skims_manifest():
+    """
+
+    Parameters
+    ----------
+    skim_tag
+
+    Returns
+    -------
+    dict:
+        'omx_files': list of file names (of omx files in data dir)
+        'tags_to_load': list of time of day tags (e.g. ['AM', 'MD', 'PM'] in composite keys for  skim_stack
+    """
+
+    skims_manifest = config.setting('skims')
+
+    skim_time_periods = get_skim_time_periods()
+    tags_to_load = skim_time_periods and skim_time_periods['labels']
+
+    # legacy support for bare 'skims_file' setting
+    if skims_manifest is None:
+        omx_files = config.setting('skims_file')
+        if omx_files is not None:
+            logger.warning(f"No 'skims' setting. Using 'skims_file' setting for TAZ skims")
+            skims_manifest = {'TAZ': {'omx_files': omx_files}}
+
+    for skim_tag, skim_settings in skims_manifest.items():
+
+        print(f"skim_tag {skim_tag} {skim_settings}")
+        omx_files = skim_settings.get('omx_files')
+        assert 'omx_files' in skim_settings, f"get_skim_settings no 'omx_files' specified for skims.{skim_tag} setting"
+
+        # want a list, but allow string for single file
+        skim_settings['omx_files'] = [omx_files] if isinstance(omx_files, str) else omx_files
+
+        # FIXME - will these always be teh same for all skim types?
+        skim_settings['tags_to_load'] = tags_to_load
+
+    return skims_manifest
+
+
+def get_skim_info(skim_tag):
+
+    skims_manifest = get_skims_manifest()
+    assert skim_tag in skims_manifest, f"get_skim_info skims.{skim_tag} not in settings"
+
+    skim_settings = skims_manifest[skim_tag]
+    omx_files = skim_settings['omx_files']
+    tags_to_load = skim_settings['tags_to_load']
 
     # Note: we load all skims except those with key2 not in tags_to_load
     # Note: we require all skims to be of same dtype so they can share buffer - is that ok?
@@ -64,7 +113,7 @@ def get_skim_info(omx_tag):
                     offset_map = omx_file.mapentries(offset_map_name)
                     assert len(offset_map) == omx_shape[0]
 
-                    logger.debug(f"get_skim_info omx_tag {omx_tag} using offset_map {m}")
+                    logger.debug(f"get_skim_info skim_tag {skim_tag} using offset_map {m}")
                 else:
                     # don't really expect more than one, but ok if they are all the same
                     if not (offset_map == omx_file.mapentries(m)):
@@ -125,7 +174,7 @@ def get_skim_info(omx_tag):
                  (skim_dtype, omx_shape, num_skims,))
 
     skim_info = {
-        'omx_tag': omx_tag,
+        'skim_tag': skim_tag,
         'omx_files': omx_files,
         'omx_manifest': omx_manifest,
         'omx_shape': omx_shape,
@@ -136,7 +185,6 @@ def get_skim_info(omx_tag):
         'omx_keys': omx_keys,
         'key1_block_offsets': key1_block_offsets,
         'block_offsets': block_offsets,
-        'block_name': omx_tag,
     }
 
     return skim_info
@@ -150,7 +198,7 @@ def buffers_for_skims(skim_info, shared=False):
     skim_dtype = skim_info['dtype']
     omx_shape = skim_info['omx_shape']
     num_skims = skim_info['num_skims']
-    block_name = skim_info['block_name']
+    skim_tag = skim_info['skim_tag']
 
     skim_buffers = {}
 
@@ -160,7 +208,7 @@ def buffers_for_skims(skim_info, shared=False):
     itemsize = np.dtype(skim_dtype).itemsize
     csz = buffer_size * itemsize
     logger.info("allocating shared buffer %s for %s skims (skim size: %s * %s bytes = %s) total size: %s (%s)" %
-                (block_name, num_skims, omx_shape, itemsize, buffer_size, csz, util.GB(csz)))
+                (skim_tag, num_skims, omx_shape, itemsize, buffer_size, csz, util.GB(csz)))
 
     if shared:
         if np.issubdtype(skim_dtype, np.float64):
@@ -174,7 +222,7 @@ def buffers_for_skims(skim_info, shared=False):
     else:
         buffer = np.zeros(buffer_size, dtype=skim_dtype)
 
-    skim_buffers[block_name] = buffer
+    skim_buffers[skim_tag] = buffer
 
     return skim_buffers
 
@@ -185,12 +233,12 @@ def skim_data_from_buffers(skim_buffers, skim_info):
     omx_shape = skim_info['omx_shape']
     skim_dtype = skim_info['dtype']
     num_skims = skim_info['num_skims']
-    block_name = skim_info['block_name']
+    skim_tag = skim_info['skim_tag']
 
     skims_shape = omx_shape + (num_skims,)
-    block_buffer = skim_buffers[block_name]
-    assert len(block_buffer) == int(multiply_large_numbers(skims_shape))
-    skim_data = np.frombuffer(block_buffer, dtype=skim_dtype).reshape(skims_shape)
+    buffer = skim_buffers[skim_tag]
+    assert len(buffer) == int(multiply_large_numbers(skims_shape))
+    skim_data = np.frombuffer(buffer, dtype=skim_dtype).reshape(skims_shape)
 
     return skim_data
 
@@ -199,8 +247,8 @@ def default_skim_cache_dir():
     return inject.get_injectable('output_dir')
 
 
-def build_skim_cache_file_name(omx_tag):
-    return f"cached_{omx_tag}.mmap"
+def build_skim_cache_file_name(skim_tag):
+    return f"cached_{skim_tag}.mmap"
 
 
 def read_skim_cache(skim_info, skim_data):
@@ -211,17 +259,16 @@ def read_skim_cache(skim_info, skim_data):
     skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
     logger.info(f"load_skims reading skims data from cache directory {skim_cache_dir}")
 
-    omx_tag = skim_info['omx_tag']
+    skim_tag = skim_info['skim_tag']
     dtype = np.dtype(skim_info['dtype'])
-    block_name = skim_info['block_name']
 
-    skim_cache_file_name = build_skim_cache_file_name(omx_tag)
+    skim_cache_file_name = build_skim_cache_file_name(skim_tag)
     skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
 
     assert os.path.isfile(skim_cache_path), \
         "read_skim_cache could not find skim_cache_path: %s" % (skim_cache_path,)
 
-    logger.info(f"load_skims reading block_name {block_name} {skim_data.shape} from {skim_cache_file_name}")
+    logger.info(f"load_skims reading skim cache {skim_tag} {skim_data.shape} from {skim_cache_file_name}")
 
     data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='r')
     assert data.shape == skim_data.shape
@@ -237,14 +284,13 @@ def write_skim_cache(skim_info, skim_data):
     skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
     logger.info(f"load_skims writing skims data to cache directory {skim_cache_dir}")
 
-    omx_tag = skim_info['omx_tag']
+    skim_tag = skim_info['skim_tag']
     dtype = np.dtype(skim_info['dtype'])
-    block_name = skim_info['block_name']
 
-    skim_cache_file_name = build_skim_cache_file_name(omx_tag)
+    skim_cache_file_name = build_skim_cache_file_name(skim_tag)
     skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
 
-    logger.info(f"load_skims writing block_name {block_name} {skim_data.shape} to {skim_cache_file_name}")
+    logger.info(f"load_skims writing skim cache {skim_tag} {skim_data.shape} to {skim_cache_file_name}")
 
     data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='w+')
     data[::] = skim_data
@@ -307,26 +353,25 @@ def load_skims(skim_info, skim_buffers):
         write_skim_cache(skim_info, skim_data)
 
 
-def create_skim_dict(omx_tag):
-    logger.info(f"create_skim_dict loading skim dict {omx_tag}")
+def create_skim_dict(skim_tag):
+    logger.info(f"create_skim_dict loading skim dict skim_tag: {skim_tag}")
 
     # select the skims to load
-    skim_info = get_skim_info(omx_tag)
-    block_name = skim_info['block_name']
+    skim_info = get_skim_info(skim_tag=skim_tag)
 
-    logger.debug(f"create_skim_dict {omx_tag} omx_shape {skim_info['omx_shape']} skim_dtype {skim_info['dtype']}")
+    logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_info['omx_shape']} skim_dtype {skim_info['dtype']}")
 
     skim_buffers = inject.get_injectable('data_buffers', None)
     if skim_buffers:
-        logger.info('create_skim_dict {omx_tag} using existing skim_buffers for skims')
+        # we assume any existing skim buffers will already have skim data loaded into them
+        logger.info('create_skim_dict {skim_tag} using existing skim_buffers for skims')
     else:
         skim_buffers = buffers_for_skims(skim_info, shared=False)
         load_skims(skim_info, skim_buffers)
 
     skim_data = skim_data_from_buffers(skim_buffers, skim_info)
 
-    logger.info("create_skim_dict {omx_tag} block_name %s bytes %s (%s)" %
-                (block_name, skim_data.nbytes, util.GB(skim_data.nbytes)))
+    logger.info(f"create_skim_dict {skim_tag} bytes {skim_data.nbytes} ({util.GB(skim_data.nbytes)})")
 
     # create skim dict
     skim_dict = skim.SkimDict(skim_data, skim_info)
@@ -335,7 +380,7 @@ def create_skim_dict(omx_tag):
     if offset_map is not None:
         skim_dict.offset_mapper.set_offset_list(offset_map)
         logger.debug(
-            f"create_skim_dict {omx_tag} using offset map {skim_info['offset_map_name']} from omx file: {offset_map}")
+            f"create_skim_dict {skim_tag} using offset map {skim_info['offset_map_name']} from omx file: {offset_map}")
     else:
         # assume this is a one-based skim map
         skim_dict.offset_mapper.set_offset_int(-1)

@@ -30,8 +30,25 @@ Read in the omx files and create the skim objects
 
 
 @inject.injectable(cache=True)
-def skim_dict():
-    return skim_loader.create_skim_dict('skims_file')
+def skim_dicts():
+
+    skims_manifest = skim_loader.get_skims_manifest()
+
+    for skim_tag, skim_settings in skims_manifest.items():
+
+        skim_settings['skims'] = skim_loader.create_skim_dict(skim_tag)
+
+    return skims_manifest
+
+
+@inject.injectable(cache=True)
+def skim_dict(skim_dicts):
+
+    logger.debug("loading skim_dict injectable")
+
+    assert 'TAZ' in skim_dicts
+
+    return skim_dicts.get('TAZ').get('skims')
 
 
 @inject.injectable(cache=True)

@@ -1,0 +1,34 @@
+
+python scripts/create_2_zone.py
+
+### 2 zone
+
+TAZ
+MAZ <- households['MAZ']
+
+land_use.csv
+	MAZ	TAZ
+0	1	2, ...
+1	2	2, ...
+2	3	2, ...
+3	4	2, ...
+4	5	5, ...
+5	6	6, ...
+
+tazs.csv (not sure what this is for?)
+
+taz
+  2
+  5
+  6
+  7
+  8
+  9
+
+### 3 zone
+
+TAP
+TAZ
+MAZ  <- households
+
+

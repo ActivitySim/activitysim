@@ -1,0 +1,26 @@
+inherit_settings: True
+
+# input skims
+skims_file:
+
+skims:
+
+  TAZ:
+    omx_files: taz_skims.omx
+
+
+skim_time_periods:
+    period_minutes: 60
+    periods:
+        - 0
+        - 6
+        - 11
+        - 16
+        - 20
+        - 24
+    labels:
+        - EA
+        - AM
+        - MD
+        - PM
+        - EV

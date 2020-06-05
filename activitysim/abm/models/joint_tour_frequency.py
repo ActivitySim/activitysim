@@ -107,7 +107,7 @@ def joint_tour_frequency(
     temp_point_persons = persons.loc[persons.PNUM == 1]
     temp_point_persons['person_id'] = temp_point_persons.index
     temp_point_persons = temp_point_persons.set_index('household_id')
-    temp_point_persons = temp_point_persons[['person_id', 'home_taz']]
+    temp_point_persons = temp_point_persons[['person_id', 'home_zone_id']]
 
     joint_tours = \
         process_joint_tours(choices, alternatives, temp_point_persons)

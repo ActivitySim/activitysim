@@ -171,11 +171,11 @@ def regress_mini_location_choice_logsums():
     persons = pipeline.get_table("persons")
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
-    assert 'school_taz_logsum' in persons
-    assert not persons.school_taz_logsum.isnull().all()
+    assert 'school_location_logsum' in persons
+    assert not persons.school_location_logsum.isnull().all()
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is NOT specified in workplace_location.yaml
-    assert 'workplace_taz_logsum' not in persons
+    assert 'workplace_location_logsum' not in persons
 
 
 def test_mini_pipeline_run():

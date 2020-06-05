@@ -46,7 +46,7 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_
     skim_dict = inject.get_injectable('skim_dict')
     skim_stack = inject.get_injectable('skim_stack')
 
-    orig_col_name = 'TAZ'
+    orig_col_name = 'home_zone_id'
     dest_col_name = model_settings.get('DESTINATION_FOR_TOUR_PURPOSE').get(tour_purpose)
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,

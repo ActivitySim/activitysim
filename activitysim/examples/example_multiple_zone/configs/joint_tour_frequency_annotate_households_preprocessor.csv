@@ -29,4 +29,4 @@ Description,Target,Expression
 logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(time_window_overlap_adult)
 logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(time_window_overlap_child)
 logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time_window_overlap_adult_child)
-nmRetail,non_motorized_retail_accessibility,"reindex(accessibility.nmRetail, households.TAZ)"
+nmRetail,non_motorized_retail_accessibility,"reindex(accessibility.nmRetail, households.home_zone_id)"

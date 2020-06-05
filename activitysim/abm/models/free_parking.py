@@ -27,7 +27,7 @@ def free_parking(
     model_settings_file_name = 'free_parking.yaml'
 
     choosers = persons_merged.to_frame()
-    choosers = choosers[choosers.workplace_taz > -1]
+    choosers = choosers[choosers.workplace_zone_id > -1]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_settings = config.read_model_settings(model_settings_file_name)

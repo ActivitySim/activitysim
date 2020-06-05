@@ -97,7 +97,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
                                     right_index=True, how='left', suffixes=('', '_r'))
 
     # setup skim keys
-    orig_col_name = 'TAZ'
+    orig_col_name = 'home_zone_id'
     dest_col_name = 'destination'
     out_time_col_name = 'start'
     in_time_col_name = 'end'

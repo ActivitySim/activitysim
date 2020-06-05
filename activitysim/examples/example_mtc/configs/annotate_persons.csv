@@ -35,4 +35,4 @@ school_segment university,school_segment,"np.where(is_university, constants.SCHO
 #,,
 is_worker,is_worker,"persons.pemploy.isin([constants.PEMPLOY_FULL, constants.PEMPLOY_PART])"
 #,,
-home_taz,home_taz,"reindex(households.TAZ, persons.household_id)"
+home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"

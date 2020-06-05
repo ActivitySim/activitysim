@@ -243,8 +243,7 @@ def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=N
     Combine choosers and alternatives into one table for the purposes
     of creating interaction variables and/or sampling alternatives.
 
-    Any duplicate column names in alternatives table will be renamed with an '_r' suffix.
-    (e.g. TAZ field in alternatives will appear as TAZ_r so that it can be targeted in a skim)
+    Any duplicate column names in choosers table will be renamed with an '_chooser' suffix.
 
     Parameters
     ----------

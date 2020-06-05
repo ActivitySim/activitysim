@@ -43,13 +43,13 @@ def get_skims_manifest():
         'tags_to_load': list of time of day tags (e.g. ['AM', 'MD', 'PM'] in composite keys for  skim_stack
     """
 
-    skims_manifest = config.setting('skims')
+    skims_manifest = config.setting('skims', {})
 
     skim_time_periods = get_skim_time_periods()
     tags_to_load = skim_time_periods and skim_time_periods['labels']
 
     # legacy support for bare 'skims_file' setting
-    if skims_manifest is None:
+    if not skims_manifest:
         omx_files = config.setting('skims_file')
         if omx_files is not None:
             logger.warning(f"No 'skims' setting. Using 'skims_file' setting for TAZ skims")

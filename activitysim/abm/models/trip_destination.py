@@ -480,12 +480,12 @@ def run_trip_destination(
     # - size_terms and alternatives
     alternatives = tour_destination_size_terms(land_use, size_terms, 'trip')
 
-    # DataFrameMatrix alows us to treat dataframe as virtual a 2-D array, indexed by TAZ, purpose
+    # DataFrameMatrix alows us to treat dataframe as virtual a 2-D array, indexed by zone_id, purpose
     # e.g. size_terms.get(df.dest_taz, df.purpose)
     # returns a series of size_terms for each chooser's dest_taz and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
 
-    # don't need size terms in alternatives, just TAZ index
+    # don't need size terms in alternatives, just zone_id index
     alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = model_settings['ALT_DEST_COL_NAME']
 

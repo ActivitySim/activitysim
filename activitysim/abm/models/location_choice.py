@@ -111,12 +111,12 @@ def run_location_sample(
     which results in sample containing up to <sample_size> choices for each choose (e.g. person)
     and a pick_count indicating how many times that choice was selected for that chooser.)
 
-    person_id,  dest_TAZ, rand,            pick_count
-    23750,      14,       0.565502716034,  4
-    23750,      16,       0.711135838871,  6
+    person_id,  dest_zone_id, rand,            pick_count
+    23750,      14,           0.565502716034,  4
+    23750,      16,           0.711135838871,  6
     ...
-    23751,      12,       0.408038878552,  1
-    23751,      14,       0.972732479292,  2
+    23751,      12,           0.408038878552,  1
+    23751,      14,           0.972732479292,  2
     """
     assert not persons_merged.empty
 
@@ -135,11 +135,11 @@ def run_location_sample(
         logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
         sample_size = 0
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
     # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap('TAZ_chooser', 'TAZ')
+    skims = skim_dict.wrap('home_zone_id', 'zone_id')
 
     locals_d = {
         'skims': skims,
@@ -179,7 +179,7 @@ def run_location_logsums(
     in location_sample, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+
-    | PERID     | dest_TAZ     | rand           | pick_count | logsum (added) |
+    | PERID     | dest_zone_id | rand           | pick_count | logsum (added) |
     +===========+==============+================+============+================+
     | 23750     |  14          | 0.565502716034 | 4          |  1.85659498857 |
     +-----------+--------------+----------------+------------+----------------+
@@ -264,11 +264,10 @@ def run_location_simulate(
 
     logger.info("Running %s with %d persons" % (trace_label, len(choosers)))
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    orig_col_name = "TAZ_chooser"
-    skims = skim_dict.wrap(orig_col_name, alt_dest_col_name)
+    skims = skim_dict.wrap('home_zone_id', alt_dest_col_name)
 
     locals_d = {
         'skims': skims,
@@ -541,9 +540,9 @@ def iterate_location_choice(
     # We only chose school locations for the subset of persons who go to school
     # so we backfill the empty choices with -1 to code as no school location
     # names for location choice and (optional) logsums columns
-    NO_DEST_TAZ = -1
+    NO_DEST_ZONE = -1
     persons_df[dest_choice_column_name] = \
-        choices_df['choice'].reindex(persons_df.index).fillna(NO_DEST_TAZ).astype(int)
+        choices_df['choice'].reindex(persons_df.index).fillna(NO_DEST_ZONE).astype(int)
 
     # add the dest_choice_logsum column to persons dataframe
     if logsum_column_name:

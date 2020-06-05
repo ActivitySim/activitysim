@@ -447,7 +447,7 @@ def get_trace_target(df, slicer):
         # maps 'person_id' to 'persons', etc
         table_name = traceable_table_indexes[slicer]
         target_ids = traceable_table_ids.get(table_name, [])
-    elif slicer == 'TAZ':
+    elif slicer == 'zone_id':
         target_ids = inject.get_injectable('trace_od', [])
 
     return target_ids, column

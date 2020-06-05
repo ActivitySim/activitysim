@@ -18,7 +18,7 @@ ALT_DEST_COL_NAME: alt_dest
 IN_PERIOD: 17
 OUT_PERIOD: 8
 
-DEST_CHOICE_COLUMN_NAME: workplace_taz
+DEST_CHOICE_COLUMN_NAME: workplace_zone_id
 
 annotate_persons:
   SPEC: annotate_persons_workplace

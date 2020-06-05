@@ -314,7 +314,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
     """
 
     person_columns = ['mandatory_tour_frequency', 'is_worker',
-                      'school_taz', 'workplace_taz', 'home_taz', 'household_id']
+                      'school_zone_id', 'workplace_zone_id', 'home_zone_id', 'household_id']
     assert not persons.mandatory_tour_frequency.isnull().any()
 
     tours = process_tours(persons.mandatory_tour_frequency.dropna(),
@@ -332,12 +332,11 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
 
     tours.tour_num = tours.tour_num.where(~work_and_school_and_student, 3 - tours.tour_num)
 
-    # work tours destination is workplace_taz, school tours destination is school_taz
+    # work tours destination is workplace_zone_id, school tours destination is school_zone_id
     tours['destination'] = \
-        tours_merged.workplace_taz.where((tours_merged.tour_type == 'work'),
-                                         tours_merged.school_taz)
+        tours_merged.workplace_zone_id.where((tours_merged.tour_type == 'work'), tours_merged.school_zone_id)
 
-    tours['origin'] = tours_merged.home_taz
+    tours['origin'] = tours_merged.home_zone_id
 
     tours['household_id'] = tours_merged.household_id
 
@@ -392,7 +391,7 @@ def process_non_mandatory_tours(persons, tour_counts):
     tours = create_tours(tour_counts, tour_category='non_mandatory')
 
     tours['household_id'] = reindex(persons.household_id, tours.person_id)
-    tours['origin'] = reindex(persons.home_taz, tours.person_id)
+    tours['origin'] = reindex(persons.home_zone_id, tours.person_id)
 
     # assign stable (predictable) tour_id
     set_tour_index(tours)
@@ -538,7 +537,7 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
 
     # - assign a temp point person to tour so we can create stable index
     tours['person_id'] = reindex(point_persons.person_id, tours.household_id)
-    tours['origin'] = reindex(point_persons.home_taz, tours.household_id)
+    tours['origin'] = reindex(point_persons.home_zone_id, tours.household_id)
 
     # assign stable (predictable) tour_id
     set_tour_index(tours, is_joint=True)

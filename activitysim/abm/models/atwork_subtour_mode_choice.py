@@ -60,7 +60,7 @@ def atwork_subtour_mode_choice(
                           subtours_merged.tour_type, value_counts=True)
 
     # setup skim keys
-    orig_col_name = 'workplace_taz'
+    orig_col_name = 'workplace_zone_id'
     dest_col_name = 'destination'
     out_time_col_name = 'start'
     in_time_col_name = 'end'

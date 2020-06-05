@@ -25,19 +25,19 @@ if __name__ == "__main__":
             df.to_csv(output_folder+'tap.csv', index=True)
 
             for key in hdf.keys():
-                print "\n========== %s\n" % key
+                print("\n========== %s\n" % key)
                 df = hdf[key]
 
-                print "len", len(df.index)
+                print("len", len(df.index))
 
-                print df.columns.values
+                print(df.columns.values)
 
                 for c in ['TAZ', 'TAP', 'MAZ', 'OMAZ', 'DMAZ']:
                     if c in df.columns:
-                        print "%s min: %s max: %s" % (c, df[c].min(), df[c].max())
+                        print("%s min: %s max: %s" % (c, df[c].min(), df[c].max()))
 
                 if 'TAZ'in df.columns:
-                    print df.TAZ.value_counts().head(20)
+                    print(df.TAZ.value_counts().head(20))
                 # print df
 
     # process all skims
@@ -45,11 +45,11 @@ if __name__ == "__main__":
         with omx.open_file(input_folder+skim_file) as skims:
             # skims = omx.open_file(folder+skim_file)
 
-            print "\n##### %s %s" % (skim_file, skims.shape())
+            print("\n##### %s %s" % (skim_file, skims.shape()))
 
-            print "mappings:", skims.listMappings()
+            print("mappings:", skims.listMappings())
 
             skimsToProcess = skims.listMatrices()
             for skimName in skimsToProcess:
-                print skimName
+                print(skimName)
             # skims.close()

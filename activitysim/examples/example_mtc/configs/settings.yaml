@@ -8,8 +8,9 @@ input_table_list:
       PERSONS: hhsize
       workers: num_workers
       VEHICL: auto_ownership
+      TAZ: home_zone_id
     keep_columns:
-      - TAZ
+      - home_zone_id
       - income
       - hhsize
       - HHT
@@ -30,9 +31,9 @@ input_table_list:
       - ptype
   - tablename: land_use
     filename: land_use.csv
-    index_col: TAZ
+    index_col: zone_id
     rename_columns:
-      ZONE: TAZ
+      ZONE: zone_id
       COUNTY: county_id
     keep_columns:
       - DISTRICT
@@ -62,7 +63,10 @@ input_table_list:
 
 
 # input skims
-skims_file: skims.omx
+skims:
+  TAZ:
+    omx_files: skims.omx
+
 
 # convert input CSVs to HDF5 format and save to outputs directory
 # create_input_store: True

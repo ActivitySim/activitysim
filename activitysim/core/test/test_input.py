@@ -15,7 +15,7 @@ from activitysim.core import input
 def seed_households():
     return pd.DataFrame({
         'HHID': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'TAZ': [8, 8, 8, 8, 12, 12, 15, 16, 16, 18],
+        'home_zone_id': [8, 8, 8, 8, 12, 12, 15, 16, 16, 18],
     })
 
 

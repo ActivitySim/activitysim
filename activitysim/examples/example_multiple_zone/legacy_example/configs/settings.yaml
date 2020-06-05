@@ -8,11 +8,15 @@ input_table_list:
   - tablename: MAZtoMAZ
   - tablename: MAZtoTAP
 
-taz_skims_file: taz_skims.omx
+skims:
 
-tap_skims_files:
-  - tap_skims_locl.omx
-  - tap_skims_prem.omx
+  TAZ:
+    omx_files: taz_skims.omx
+
+  TAP:
+    omx_files:
+      - tap_skims_locl.omx
+      - tap_skims_prem.omx
 
 #number of households to simulate
 households_sample_size: 1000

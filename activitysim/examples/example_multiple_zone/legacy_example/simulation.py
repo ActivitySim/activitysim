@@ -14,9 +14,10 @@ import time
 import extensions
 
 # you will want to configure this with the locations of the canonical datasets
-DATA_REPO = "C:/projects/sandag-asim/toRSG/output/"
-DATA_REPO = "E:/activitysim/project/output/"
-DATA_REPO = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output/"
+# DATA_REPO = "C:/projects/sandag-asim/toRSG/output/"
+# DATA_REPO = "E:/activitysim/project/output/"
+# DATA_REPO = "/Users/jeff.doyle/work/activitysim-data/sandag_zone/output/"
+DATA_REPO = "./data"
 
 COMPARE_RESULTS = False
 

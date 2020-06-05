@@ -56,14 +56,17 @@ def run_destination_sample(
         logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
         sample_size = 0
 
-    # create wrapper with keys for this lookup - in this case there is a workplace_taz
-    # in the choosers and a TAZ in the alternatives which get merged during interaction
-    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
+    # create wrapper with keys for this lookup - in this case there is a workplace_zone_id
+    # in the choosers and a zone_id in the alternatives which ge t merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
     origin_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
-    if origin_col_name == 'TAZ':
-        origin_col_name = 'TAZ_chooser'
-    skims = skim_dict.wrap(origin_col_name, 'TAZ')
+    dest_column_name = destination_size_terms.index.name
+
+    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
+    if (origin_col_name == dest_column_name):
+        origin_col_name = f'{origin_col_name}_chooser'
+
+    skims = skim_dict.wrap(origin_col_name, dest_column_name)
 
     locals_d = {
         'skims': skims
@@ -173,8 +176,8 @@ def run_destination_simulate(
 
     logger.info("Running tour_destination_simulate with %d persons", len(choosers))
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
     skims = skim_dict.wrap(origin_col_name, alt_dest_col_name)
 

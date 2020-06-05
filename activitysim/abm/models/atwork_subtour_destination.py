@@ -54,10 +54,11 @@ def atwork_subtour_destination_sample(
 
     logger.info("Running atwork_subtour_location_sample with %d tours", len(choosers))
 
-    # create wrapper with keys for this lookup - in this case there is a workplace_taz
-    # in the choosers and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a workplace_zone_id
+    # in the choosers and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap('workplace_taz', 'TAZ')
+    dest_column_name = destination_size_terms.index.name
+    skims = skim_dict.wrap('workplace_zone_id', dest_column_name)
 
     locals_d = {
         'skims': skims
@@ -95,7 +96,7 @@ def atwork_subtour_destination_logsums(
     in atwork_subtour_destination_sample, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+
-    | person_id | dest_TAZ     | rand           | pick_count | logsum (added) |
+    | person_id | dest_zone_id | rand           | pick_count | logsum (added) |
     +===========+==============+================+============+================+
     | 23750     |  14          | 0.565502716034 | 4          |  1.85659498857 |
     +-----------+--------------+----------------+------------+----------------+
@@ -175,7 +176,7 @@ def atwork_subtour_destination_simulate(
         estimator.write_choosers(choosers)
 
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    chooser_col_name = 'workplace_taz'
+    chooser_col_name = 'workplace_zone_id'
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge destination_size_terms columns into alt sample list
@@ -189,8 +190,8 @@ def atwork_subtour_destination_simulate(
 
     logger.info("Running atwork_subtour_destination_simulate with %d persons", len(choosers))
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
     skims = skim_dict.wrap(chooser_col_name, alt_dest_col_name)
 
@@ -212,7 +213,7 @@ def atwork_subtour_destination_simulate(
         locals_d=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='workplace_location',
+        trace_choice_name='atwork_subtour',
         estimator=estimator)
 
     if not want_logsums:

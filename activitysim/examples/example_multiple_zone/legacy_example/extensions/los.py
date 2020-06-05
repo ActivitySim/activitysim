@@ -9,6 +9,7 @@ import pandas as pd
 from activitysim.core import inject
 from activitysim.core import skim as askim
 from activitysim.core.util import quick_loc_df
+from activitysim.core import config
 
 from activitysim.core.input import read_input_table
 
@@ -186,6 +187,12 @@ def network_los(taz_skim_dict, tap_skim_dict):
 
     # print( )"tap index %s columns %s" % (tap.index.name, tap.columns.values))
     # print( )"tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name, tap_skim_offsets.columns.values))
+
+    taz.to_csv(config.output_file_path('taz.csv'))
+    maz.to_csv(config.output_file_path('maz.csv'))
+    tap.to_csv(config.output_file_path('tap.csv'))
+    maz2maz.to_csv(config.output_file_path('maz2maz.csv'))
+    maz2tap.to_csv(config.output_file_path('maz2tap.csv'))
 
     nlos = NetworkLOS(taz, maz, tap, maz2maz, maz2tap, taz_skim_dict, tap_skim_dict)
 

@@ -57,7 +57,7 @@ def step_forget_tab():
 @inject.step()
 def create_households(trace_hh_id):
 
-    df = pd.DataFrame({'household_id': [1, 2, 3], 'TAZ': {100, 100, 101}})
+    df = pd.DataFrame({'household_id': [1, 2, 3], 'home_zone_id': {100, 100, 101}})
     inject.add_table('households', df)
 
     pipeline.get_rn_generator().add_channel('households', df)

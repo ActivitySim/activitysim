@@ -113,7 +113,7 @@ def make_sample_choices(
         choices_array[i] = np.take(alts, positions + offsets)
         choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
 
-    # explode to one row per chooser.index, alt_TAZ
+    # explode to one row per chooser.index, alt_zone_id
     choices_df = pd.DataFrame(
         {alt_col_name: choices_array.flatten(order='F'),
          'rand': rands.flatten(order='F'),

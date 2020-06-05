@@ -20,7 +20,7 @@ from activitysim.core import config
 
 from activitysim.core import chunk
 from activitysim.core import mem
-from activitysim.core import skim_loader
+from activitysim.core import los
 
 from activitysim.core.config import setting
 
@@ -33,9 +33,6 @@ from activitysim.abm.tables import shadow_pricing
 logger = logging.getLogger(__name__)
 
 LAST_CHECKPOINT = '_'
-
-# TEST_SPAWN = 'mp_households'
-TEST_SPAWN = False
 
 
 """
@@ -779,11 +776,6 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
 
     setup_injectables_and_logging(injectables, locutor=locutor)
 
-    if TEST_SPAWN and step_info['name'] == TEST_SPAWN:
-        time.sleep(30)
-        info(f"work up after TEST_SPAWN sleep - returning without doing anything")
-        return
-
     try:
         mem.init_trace(setting('mem_tick'))
 
@@ -846,11 +838,8 @@ def mp_setup_skims(injectables, **kwargs):
     try:
         shared_data_buffer = kwargs
 
-        skim_info = skim_loader.get_skim_info(skim_tag='TAZ')
-        if TEST_SPAWN:
-            warning("mp_setup_skims TEST_SPAWN {TEST_SPAWN} skipping skim_loader.load_skims")
-        else:
-            skim_loader.load_skims(skim_info, shared_data_buffer)
+        network_los = los.Network_LOS()
+        network_los.load_shared_data(shared_data_buffer)
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_setup_skims: {str(e)}")
@@ -897,9 +886,8 @@ def allocate_shared_skim_buffers():
 
     info("allocate_shared_skim_buffer")
 
-    # select the skims to load
-    skim_info = skim_loader.get_skim_info(skim_tag='TAZ')
-    skim_buffers = skim_loader.buffers_for_skims(skim_info, shared=True)
+    network_los = los.Network_LOS()
+    skim_buffers = network_los.allocate_shared_skim_buffers()
 
     return skim_buffers
 
@@ -916,7 +904,6 @@ def allocate_shared_shadow_pricing_buffers():
     info("allocate_shared_shadow_pricing_buffers")
 
     shadow_pricing_info = shadow_pricing.get_shadow_pricing_info()
-
     shadow_pricing_buffers = shadow_pricing.buffers_for_shadow_pricing(shadow_pricing_info)
 
     return shadow_pricing_buffers

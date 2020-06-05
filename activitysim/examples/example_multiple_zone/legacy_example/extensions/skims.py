@@ -8,7 +8,6 @@ import numpy as np
 import openmatrix as omx
 
 from activitysim.core import skim
-from activitysim.core import skim_loader
 from activitysim.core import config
 from activitysim.core import inject
 

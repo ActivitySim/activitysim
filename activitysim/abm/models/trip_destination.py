@@ -66,10 +66,10 @@ def trip_destination_sample(
     destination_sample: pandas.dataframe
         choices_df from interaction_sample with (up to) sample_size alts for each chooser row
         index (non unique) is trip_id from trips (duplicated for each alt)
-        and columns dest_taz, prob, and pick_count
+        and columns dest_zone_id, prob, and pick_count
 
-        dest_taz: int
-            alt identifier (dest_taz) from alternatives[<alt_col_name>]
+        dest_zone_id: int
+            alt identifier from alternatives[<alt_col_name>]
         prob: float
             the probability of the chosen alternative
         pick_count : int
@@ -481,8 +481,8 @@ def run_trip_destination(
     alternatives = tour_destination_size_terms(land_use, size_terms, 'trip')
 
     # DataFrameMatrix alows us to treat dataframe as virtual a 2-D array, indexed by zone_id, purpose
-    # e.g. size_terms.get(df.dest_taz, df.purpose)
-    # returns a series of size_terms for each chooser's dest_taz and purpose with chooser index
+    # e.g. size_terms.get(df.dest_zone_id, df.purpose)
+    # returns a series of size_terms for each chooser's dest_zone_id and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
 
     # don't need size terms in alternatives, just zone_id index

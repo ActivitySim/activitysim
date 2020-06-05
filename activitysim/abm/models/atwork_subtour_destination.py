@@ -92,7 +92,7 @@ def atwork_subtour_destination_logsums(
     """
     add logsum column to existing atwork_subtour_destination_sample table
 
-    logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
+    logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
     in atwork_subtour_destination_sample, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+

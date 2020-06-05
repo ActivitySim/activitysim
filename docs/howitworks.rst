@@ -1170,7 +1170,7 @@ uses the information stored in the pipeline file to create the table below for a
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | persons                    | workplace_in_cbd              | bool    | workplace_location           | 52   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | work_taz_area_type            | float64 | workplace_location           | 52   | 271  |
+| persons                    | work_zone_area_type            | float64 | workplace_location           | 52   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | persons                    | roundtrip_auto_time_to_work   | float32 | workplace_location           | 52   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+

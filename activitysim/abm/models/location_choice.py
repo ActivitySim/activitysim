@@ -175,7 +175,7 @@ def run_location_logsums(
     """
     add logsum column to existing location_sample table
 
-    logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
+    logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
     in location_sample, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+

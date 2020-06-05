@@ -513,7 +513,7 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
         A DataFrame which has as a unique index with joint_tour_frequency values
         and frequency counts for the tours to be generated for that choice
     point_persons : pandas DataFrame
-        table with columns for (at least) person_ids and home_taz indexed by household_id
+        table with columns for (at least) person_ids and home_zone_id indexed by household_id
 
     Returns
     -------

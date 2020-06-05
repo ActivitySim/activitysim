@@ -906,7 +906,7 @@ def allocate_shared_skim_buffers():
 
 def allocate_shared_shadow_pricing_buffers():
     """
-    This is called by the main process and allocate memory buffer to share with subprocs
+    This is called by the main process to allocate memory buffer to share with subprocs
 
     Returns
     -------

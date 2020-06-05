@@ -37,18 +37,6 @@ survey_tables:
   joint_tour_participants:
     file_name:  survey_data/override_joint_tour_participants.csv
 
-validation_tables:
-  households:
-    file_name: survey_data/final_households.csv
-    index_col: household_id
-  persons:
-    file_name:  survey_data/final_persons.csv
-    index_col: person_id
-  tours:
-    file_name:  survey_data/final_tours.csv
-  joint_tour_participants:
-    file_name:  survey_data/final_joint_tour_participants.csv
-
 estimation_table_recipes:
 
   interaction_sample_simulate:

@@ -16,6 +16,9 @@ from activitysim.core.util import quick_loc_series
 
 logger = logging.getLogger(__name__)
 
+NOT_IN_SKIM_ZONE_ID = -1
+NOT_IN_SKIM_NAN = np.nan
+
 
 class OffsetMapper(object):
     """
@@ -25,9 +28,23 @@ class OffsetMapper(object):
     or by an explicit mapping of zone id to offset (slower but more flexible)
     """
 
-    def __init__(self, offset_int=None):
+    def __init__(self, offset=None):
         self.offset_series = None
-        self.offset_int = offset_int
+        self.offset_int = None
+
+        if isinstance(offset, int):
+            self.set_offset_int(offset)
+        elif isinstance(offset, list):
+            # np.ndarray?
+            self.set_offset_list(offset)
+        elif isinstance(offset, pd.Series):
+            self.set_offset_series(offset)
+        else:
+            assert offset is None, f"OffsetMapper offset type not recognized: {type(offset)}"
+
+    def set_offset_series(self, offset_series):
+        self.offset_series = None
+        self.offset_series = offset_series
 
     def set_offset_list(self, offset_list):
         """
@@ -90,13 +107,11 @@ class OffsetMapper(object):
         offsets : numpy array of int
         """
 
-        NOT_IN_SKIM = -1
-
         if self.offset_series is not None:
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
-            offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM).astype(int))
-
+            offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series).
+                                    fillna(NOT_IN_SKIM_ZONE_ID).astype(int))
         elif self.offset_int:
             assert (self.offset_series is None)
             offsets = zone_ids + self.offset_int
@@ -152,11 +167,15 @@ class SkimWrapper(object):
         result = self.data[mapped_orig, mapped_dest]
 
         # FIXME - should return nan if not in skim (negative indices wrap around)
-        # NOT_IN_SKIM = np.nan
-        # in_skim = \
-        #     (mapped_orig <0) & (mapped_orig < self.data.shape[0]) & \
-        #     (mapped_dest <0) & (mapped_dest < self.data.shape[0])
-        # result = np.where(in_skim, result, NOT_IN_SKIM)
+        in_skim = \
+            (mapped_orig >= 0) & (mapped_orig < self.data.shape[0]) & \
+            (mapped_dest >= 0) & (mapped_dest < self.data.shape[0])
+
+        # check for bad indexes (other than NOT_IN_SKIM_ZONE_ID)
+        assert (in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all(), \
+            f"{(~in_skim).sum()} od pairs not in skim"
+
+        result = np.where(in_skim, result, NOT_IN_SKIM_NAN)
 
         return result
 
@@ -178,8 +197,16 @@ class SkimDict(object):
         self.offset_mapper = OffsetMapper()
         self.usage = set()
 
-    def touch(self, key):
+    def get_skim_info(self, key):
+        return self.skim_info.get(key)
 
+    def get_skim_data(self):
+        return self.skim_data
+
+    def get_skim_usage(self):
+        return self.usage
+
+    def touch(self, key):
         self.usage.add(key)
 
     def get(self, key):
@@ -198,6 +225,7 @@ class SkimDict(object):
         """
 
         offset = self.skim_info['block_offsets'].get(key)
+        assert offset is not None, f"SkimDict key '{key}' not in skims"
 
         self.touch(key)
 
@@ -252,9 +280,10 @@ class SkimDictWrapper(object):
 
         Returns
         -------
-        Nothing
+        self (to facilitiate chaining)
         """
         self.df = df
+        return self
 
     def lookup(self, key, reverse=False):
         """
@@ -333,6 +362,7 @@ class SkimDictWrapper(object):
             A Series of impedances which are elements of the Skim object and
             with the same index as df
         """
+
         return self.lookup(key)
 
 
@@ -345,7 +375,7 @@ class SkimStack(object):
 
         # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
         # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
-        block_offsets = skim_dict.skim_info['block_offsets']
+        block_offsets = skim_dict.get_skim_info('block_offsets')
         skim_dim3 = OrderedDict()
         for skim_key in block_offsets:
 
@@ -375,7 +405,7 @@ class SkimStack(object):
 
         assert key in self.skim_dim3, "SkimStack key %s missing" % key
 
-        stacked_skim_data = self.skim_dict.skim_data
+        stacked_skim_data = self.skim_dict.get_skim_data()
         skim_keys_to_indexes = self.skim_dim3[key]
 
         self.touch(key)
@@ -456,9 +486,10 @@ class SkimStackWrapper(object):
 
         Returns
         -------
-        Nothing
+        self (to facilitiate chaining)
         """
         self.df = df
+        return self
 
     def __getitem__(self, key):
         """
@@ -541,6 +572,8 @@ class DataFrameMatrix(object):
         col_indexes = np.vectorize(self.cols_to_indexes.get)(col_ids)
 
         row_indexes = self.offset_mapper.map(np.asanyarray(row_ids))
+
+        assert (row_indexes >= 0).all(), f"{row_indexes}"
 
         result = self.data[row_indexes, col_indexes]
 

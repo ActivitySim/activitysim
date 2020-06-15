@@ -34,9 +34,7 @@ class AccessibilitySkims(object):
 
     def __init__(self, skim_dict, orig_zones, dest_zones, transpose=False):
 
-        omx_shape = skim_dict.skim_info['omx_shape']
-        logger.info("init AccessibilitySkims with %d dest zones %d orig zones omx_shape %s" %
-                    (len(dest_zones), len(orig_zones), omx_shape, ))
+        logger.info(f"init AccessibilitySkims with {len(dest_zones)} dest zones {len(orig_zones)} orig zones")
 
         assert len(orig_zones) <= len(dest_zones)
         assert np.isin(orig_zones, dest_zones).all()
@@ -46,25 +44,29 @@ class AccessibilitySkims(object):
         self.skim_dict = skim_dict
         self.transpose = transpose
 
-        if omx_shape[0] == len(orig_zones) and skim_dict.offset_mapper.offset_series is None:
+        num_skim_zones = skim_dict.get_skim_info('omx_shape')[0]
+        if num_skim_zones == len(orig_zones) and skim_dict.offset_mapper.offset_series is None:
             # no slicing required because whatever the offset_int, the skim data aligns with zone list
             self.map_data = False
         else:
 
-            if omx_shape[0] == len(orig_zones):
-                logger.debug("AccessibilitySkims - applying offset_mapper")
+            logger.debug("AccessibilitySkims - applying offset_mapper")
 
-            skim_index = list(range(omx_shape[0]))
+            skim_index = list(range(num_skim_zones))
             orig_map = skim_dict.offset_mapper.map(orig_zones)
             dest_map = skim_dict.offset_mapper.map(dest_zones)
 
             # (we might be sliced multiprocessing)
             # assert np.isin(skim_index, orig_map).all()
 
-            if np.isin(skim_index, dest_map).all():
-                # not using the whole skim matrix
-                logger.info("%s skim zones not in dest_map: %s" %
-                            ((~dest_map).sum(), np.ix_(~dest_map)))
+            out_of_bounds = ~np.isin(skim_index, dest_map)
+            # if out_of_bounds.any():
+            #    print(f"{(out_of_bounds).sum()} skim zones not in dest_map")
+            #    print(f"dest_zones {dest_zones}")
+            #    print(f"dest_map {dest_map}")
+            #    print(f"skim_index {skim_index}")
+            assert not out_of_bounds.any(), \
+                f"AccessibilitySkims {(out_of_bounds).sum()} skim zones not in dest_map: {np.ix_(out_of_bounds)[0]}"
 
             self.map_data = True
             self.orig_map = orig_map
@@ -85,7 +87,6 @@ class AccessibilitySkims(object):
             data = data.transpose()
 
         if self.map_data:
-
             # slice skim to include only orig rows and dest columns
             # 2-d boolean slicing in numpy is a bit tricky
             # data = data[orig_map, dest_map]          # <- WRONG!
@@ -160,8 +161,10 @@ def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
     locals_d = {
         'log': np.log,
         'exp': np.exp,
-        'skim_od': AccessibilitySkims(skim_dict, orig_zones, dest_zones),
-        'skim_do': AccessibilitySkims(skim_dict, orig_zones, dest_zones, transpose=True)
+        # 'skim_od': AccessibilitySkims(skim_dict, orig_zones, dest_zones),
+        # 'skim_do': AccessibilitySkims(skim_dict, orig_zones, dest_zones, transpose=True)
+        'skim_od': skim_dict.wrap('orig', 'dest').set_df(od_df),
+        'skim_do': skim_dict.wrap('dest', 'orig').set_df(od_df)
     }
     if constants is not None:
         locals_d.update(constants)
@@ -180,7 +183,7 @@ def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
     if trace_od:
 
         if not trace_od_rows.any():
-            logger.warning("trace_od not found origin = %s, dest = %s" % (trace_orig, trace_dest))
+            logger.warning(f"trace_od not found origin = {trace_orig}, dest = {trace_dest}")
         else:
 
             # add OD columns to trace results

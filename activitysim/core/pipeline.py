@@ -462,6 +462,7 @@ def run_model(model_name):
     inject.set_step_args(args)
 
     t0 = print_elapsed_time()
+    logger.debug(f"running step {step_name}")
     orca.run([step_name])
     t0 = print_elapsed_time("run_model step '%s'" % model_name, t0, debug=True)
 

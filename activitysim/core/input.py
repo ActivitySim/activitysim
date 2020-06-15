@@ -124,7 +124,6 @@ def read_from_table_info(table_info):
         else:
             df.index.names = [index_col]
 
-    logger.info("keeping columns: %s" % keep_columns)
     if keep_columns:
         logger.info("keeping columns: %s" % keep_columns)
         df = df[keep_columns]

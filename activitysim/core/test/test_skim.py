@@ -12,7 +12,7 @@ from .. import skim
 
 @pytest.fixture
 def data():
-    return np.arange(100, dtype='int').reshape((10, 10))
+    return np.arange(100, dtype='int').reshape((10, 10)).astype(np.float32)
 
 
 def test_basic(data):

@@ -3,9 +3,12 @@ inherit_settings: True
 # input skims
 skims_file:
 
-skims:
-  TAZ:
-    omx_files: taz_skims.omx
+network_los:
+
+  zone_system: 1
+
+  skims:
+    taz: taz_skims.omx
 
 
 

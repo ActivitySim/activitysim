@@ -26,13 +26,13 @@ class NetworkLOS(object):
 
         # print("maz_df unique maz", len(self.maz_df.index))
 
-        # maz2maz_df
-        self.maz2maz_df = maz2maz
+        # maz_to_maz_df
+        self.maz_to_maz_df = maz2maz
         # create single index for fast lookup
         m = maz2maz.DMAZ.max() + 1
         maz2maz['i'] = maz2maz.OMAZ * m + maz2maz.DMAZ
         maz2maz.set_index('i', drop=True, inplace=True, verify_integrity=True)
-        self.maz2maz_cardinality = m
+        self.maz_to_maz_cardinality = m
 
         # maz2tap_df
         self.maz2tap_df = maz2tap
@@ -85,12 +85,12 @@ class NetworkLOS(object):
 
         # # this is slower
         # s = pd.merge(pd.DataFrame({'OMAZ': omaz, 'DMAZ': dmaz}),
-        #              self.maz2maz_df,
+        #              self.maz_to_maz_df,
         #              how="left")[attribute]
 
         # synthetic index method i : omaz_dmaz
-        i = np.asanyarray(omaz) * self.maz2maz_cardinality + np.asanyarray(dmaz)
-        s = quick_loc_df(i, self.maz2maz_df, attribute)
+        i = np.asanyarray(omaz) * self.maz_to_maz_cardinality + np.asanyarray(dmaz)
+        s = quick_loc_df(i, self.maz_to_maz_df, attribute)
 
         # FIXME - no point in returning series? unless maz and tap have same index?
         return np.asanyarray(s)
@@ -159,7 +159,7 @@ class NetworkLOS(object):
             "taz (%s)" % len(self.taz_df.index),
             "maz (%s)" % len(self.maz_df.index),
             "tap (%s)" % len(self.tap_df.index),
-            "maz2maz (%s)" % len(self.maz2maz_df.index),
+            "maz2maz (%s)" % len(self.maz_to_maz_df.index),
             "maz2tap (%s)" % len(self.maz2tap_df.index),
             "taz_skim_dict (%s keys)" % self.taz_skim_dict.key_count(),
             "tap_skim_dict (%s keys)" % self.tap_skim_dict.key_count(),

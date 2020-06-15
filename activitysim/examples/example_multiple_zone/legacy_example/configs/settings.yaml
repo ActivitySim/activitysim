@@ -1,22 +1,32 @@
 #input data store and skims
-input_store: NetworkData.h5
+#input_store: NetworkData.h5
 
 input_table_list:
   - tablename: TAZ
+    filename: taz.csv
+    index_col: TAZ
   - tablename: MAZ
+    filename: maz.csv
+    index_col: MAZ
   - tablename: TAP
+    filename: tap.csv
+    index_col: TAP
   - tablename: MAZtoMAZ
+    filename: maz2maz.csv
   - tablename: MAZtoTAP
+    filename: maz2tap.csv
 
-skims:
+network_los:
 
-  TAZ:
-    omx_files: taz_skims.omx
+  zone_system: 1
 
-  TAP:
-    omx_files:
+  skims:
+    TAZ: taz_skims.omx
+
+    TAP:
       - tap_skims_locl.omx
       - tap_skims_prem.omx
+
 
 #number of households to simulate
 households_sample_size: 1000

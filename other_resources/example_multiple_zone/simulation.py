@@ -147,9 +147,9 @@ def tap_skims(VECTOR_TEST_SIZE):
 
 
 def get_maz_pairs(VECTOR_TEST_SIZE):
-    maz2maz_df = network_los.maz2maz_df.sample(VECTOR_TEST_SIZE, replace=True)
-    omaz = maz2maz_df.OMAZ
-    dmaz = maz2maz_df.DMAZ
+    maz_to_maz_df = network_los.maz_to_maz_df.sample(VECTOR_TEST_SIZE, replace=True)
+    omaz = maz_to_maz_df.OMAZ
+    dmaz = maz_to_maz_df.DMAZ
     walk_actual = network_los.get_mazpairs(omaz, dmaz, 'walk_actual')
 
 

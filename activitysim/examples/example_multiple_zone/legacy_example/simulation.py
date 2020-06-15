@@ -69,19 +69,19 @@ def get_taz(VECTOR_TEST_SIZE):
     # select some random rows with non-null attributes
 
     random_taz = np.random.choice(
-        network_los.taz_df.terminal_time.dropna().index.values,
+        legacy_network_los.taz_df.terminal_time.dropna().index.values,
         size=VECTOR_TEST_SIZE, replace=True)
 
-    result = network_los.get_taz(random_taz, 'terminal_time')
+    result = legacy_network_los.get_taz(random_taz, 'terminal_time')
 
     if COMPARE_RESULTS:
 
         # Int64Index
-        result2 = network_los.get_taz(pd.Series(0, index=random_taz).index, 'terminal_time')
+        result2 = legacy_network_los.get_taz(pd.Series(0, index=random_taz).index, 'terminal_time')
         assert list(result) == list(result2)
 
         # Series
-        result2 = network_los.get_taz(pd.Series(data=random_taz), 'terminal_time')
+        result2 = legacy_network_los.get_taz(pd.Series(data=random_taz), 'terminal_time')
         assert list(result) == list(result2)
 
     return result
@@ -90,19 +90,19 @@ def get_taz(VECTOR_TEST_SIZE):
 def get_tap(VECTOR_TEST_SIZE):
 
     random_tap = np.random.choice(
-        network_los.tap_df.index.values,
+        legacy_network_los.tap_df.index.values,
         size=VECTOR_TEST_SIZE, replace=True)
 
-    result = network_los.get_tap(random_tap, 'TAZ')
+    result = legacy_network_los.get_tap(random_tap, 'TAZ')
 
     if COMPARE_RESULTS:
 
         # Int64Index
-        result2 = network_los.get_tap(pd.Series(index=random_tap).index, 'TAZ')
+        result2 = legacy_network_los.get_tap(pd.Series(index=random_tap).index, 'TAZ')
         assert list(result) == list(result2)
 
         # Series
-        result2 = network_los.get_tap(pd.Series(data=random_tap), 'TAZ')
+        result2 = legacy_network_los.get_tap(pd.Series(data=random_tap), 'TAZ')
         assert list(result) == list(result2)
 
     return result
@@ -111,62 +111,62 @@ def get_tap(VECTOR_TEST_SIZE):
 def get_maz(VECTOR_TEST_SIZE):
 
     random_maz = np.random.choice(
-        network_los.maz_df.index.values,
+        legacy_network_los.maz_df.index.values,
         size=VECTOR_TEST_SIZE, replace=True)
 
-    result = network_los.get_maz(random_maz, 'milestocoast')
+    result = legacy_network_los.get_maz(random_maz, 'milestocoast')
 
     if COMPARE_RESULTS:
 
         # Int64Index
-        result2 = network_los.get_maz(pd.Series(index=random_maz).index, 'milestocoast')
+        result2 = legacy_network_los.get_maz(pd.Series(index=random_maz).index, 'milestocoast')
         assert list(result) == list(result2)
 
         # Series
-        result2 = network_los.get_maz(pd.Series(data=random_maz), 'milestocoast')
+        result2 = legacy_network_los.get_maz(pd.Series(data=random_maz), 'milestocoast')
         assert list(result) == list(result2)
 
     return result
 
 
 def taz_skims(VECTOR_TEST_SIZE):
-    taz_values = network_los.taz_df.index.values
+    taz_values = legacy_network_los.taz_df.index.values
     otaz = np.random.choice(taz_values, size=VECTOR_TEST_SIZE, replace=True)
     dtaz = np.random.choice(taz_values, size=VECTOR_TEST_SIZE, replace=True)
 
     tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
-    sov_time = network_los.get_tazpairs3d(otaz, dtaz, tod, 'SOV_TIME')
+    sov_time = legacy_network_los.get_tazpairs3d(otaz, dtaz, tod, 'SOV_TIME')
 
 
 def tap_skims(VECTOR_TEST_SIZE):
-    tap_values = network_los.tap_df.index.values
+    tap_values = legacy_network_los.tap_df.index.values
 
     otap = np.random.choice(tap_values, size=VECTOR_TEST_SIZE, replace=True)
     dtap = np.random.choice(tap_values, size=VECTOR_TEST_SIZE, replace=True)
     tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
-    local_bus_fare = network_los.get_tappairs3d(otap, dtap, tod, 'LOCAL_BUS_FARE')
+    local_bus_fare = legacy_network_los.get_tappairs3d(otap, dtap, tod, 'LOCAL_BUS_FARE')
 
 
 def get_maz_pairs(VECTOR_TEST_SIZE):
-    maz2maz_df = network_los.maz2maz_df.sample(VECTOR_TEST_SIZE, replace=True)
-    omaz = maz2maz_df.OMAZ
-    dmaz = maz2maz_df.DMAZ
-    walk_actual = network_los.get_mazpairs(omaz, dmaz, 'walk_actual')
+    maz_to_maz_df = legacy_network_los.maz_to_maz_df.sample(VECTOR_TEST_SIZE, replace=True)
+    omaz = maz_to_maz_df.OMAZ
+    dmaz = maz_to_maz_df.DMAZ
+    walk_actual = legacy_network_los.get_mazpairs(omaz, dmaz, 'walk_actual')
 
 
 def get_maz_tap_pairs(VECTOR_TEST_SIZE):
-    maz2tap_df = network_los.maz2tap_df.sample(VECTOR_TEST_SIZE, replace=True)
+    maz2tap_df = legacy_network_los.maz2tap_df.sample(VECTOR_TEST_SIZE, replace=True)
     maz = maz2tap_df.MAZ
     tap = maz2tap_df.TAP
-    drive_distance = network_los.get_maztappairs(maz, tap, "drive_distance")
+    drive_distance = legacy_network_los.get_maztappairs(maz, tap, "drive_distance")
 
 
 def get_taps_mazs(VECTOR_TEST_SIZE, attribute=None):
 
-    random_omaz = np.random.choice(network_los.maz_df.index.values, size=VECTOR_TEST_SIZE,
+    random_omaz = np.random.choice(legacy_network_los.maz_df.index.values, size=VECTOR_TEST_SIZE,
                                    replace=True)
 
-    taps_mazs = network_los.get_taps_mazs(random_omaz, attribute=attribute)
+    taps_mazs = legacy_network_los.get_taps_mazs(random_omaz, attribute=attribute)
 
     return len(taps_mazs.index)
 
@@ -189,8 +189,8 @@ t0 = print_elapsed_time("load taz_skim_dict", t0)
 tap_skim_stack = inject.get_injectable('tap_skim_dict')
 t0 = print_elapsed_time("load tap_skim_dict", t0)
 
-network_los = inject.get_injectable('network_los')
-t0 = print_elapsed_time("load network_los", t0)
+legacy_network_los = inject.get_injectable('legacy_network_los')
+t0 = print_elapsed_time("load legacy_network_los", t0)
 
 # test sizes for all implemented methods
 VECTOR_TEST_SIZEs = (10000, 100000, 1000000, 5000000, 10000000, 20000000)

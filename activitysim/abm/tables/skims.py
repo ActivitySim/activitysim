@@ -16,11 +16,10 @@ import numpy as np
 import openmatrix as omx
 
 from activitysim.core import skim
+from activitysim.core import skim_maz
 from activitysim.core import los
 from activitysim.core import inject
-from activitysim.core import util
-from activitysim.core import config
-from activitysim.core import tracing
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +28,13 @@ Read in the omx files and create the skim objects
 """
 
 
-
 @inject.injectable(cache=True)
 def network_los():
 
     logger.debug("loading network_los injectable")
     nw_los = los.Network_LOS()
     nw_los.load_all_skims()
+    nw_los.load_all_tables()
 
     return nw_los
 
@@ -43,12 +42,22 @@ def network_los():
 @inject.injectable(cache=True)
 def skim_dict(network_los):
 
-    logger.debug("loading skim_dict injectable")
-    return network_los.get_skim_dict('TAZ')
+    taz_skim_dict = network_los.get_skim_dict('taz')
+
+    if network_los.zone_system == los.ONE_ZONE:
+        logger.debug("loading skim_dict injectable (TAZ)")
+        return taz_skim_dict
+    else:
+        logger.debug("loading skim_dict injectable (MAZ)")
+        return skim_maz.MazSkimDict(network_los)
 
 
 @inject.injectable(cache=True)
-def skim_stack(skim_dict):
+def skim_stack(network_los, skim_dict):
 
     logger.debug("loading skim_stack injectable")
-    return skim.SkimStack(skim_dict)
+
+    if network_los.zone_system == los.ONE_ZONE:
+        return skim.SkimStack(skim_dict)
+    else:
+        return skim.SkimStack(skim_dict.get_taz_skim_dict())

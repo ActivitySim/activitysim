@@ -27,13 +27,13 @@ class NetworkLOS(object):
 
         # print("maz_df unique maz", len(self.maz_df.index))
 
-        # maz2maz_df
-        self.maz2maz_df = maz2maz
+        # maz_to_maz_df
+        self.maz_to_maz_df = maz2maz
         # create single index for fast lookup
         m = maz2maz.DMAZ.max() + 1
         maz2maz['i'] = maz2maz.OMAZ * m + maz2maz.DMAZ
         maz2maz.set_index('i', drop=True, inplace=True, verify_integrity=True)
-        self.maz2maz_cardinality = m
+        self.maz_to_maz_cardinality = m
 
         # maz2tap_df
         self.maz2tap_df = maz2tap
@@ -86,12 +86,12 @@ class NetworkLOS(object):
 
         # # this is slower
         # s = pd.merge(pd.DataFrame({'OMAZ': omaz, 'DMAZ': dmaz}),
-        #              self.maz2maz_df,
+        #              self.maz_to_maz_df,
         #              how="left")[attribute]
 
         # synthetic index method i : omaz_dmaz
-        i = np.asanyarray(omaz) * self.maz2maz_cardinality + np.asanyarray(dmaz)
-        s = quick_loc_df(i, self.maz2maz_df, attribute)
+        i = np.asanyarray(omaz) * self.maz_to_maz_cardinality + np.asanyarray(dmaz)
+        s = quick_loc_df(i, self.maz_to_maz_df, attribute)
 
         # FIXME - no point in returning series? unless maz and tap have same index?
         return np.asanyarray(s)
@@ -138,13 +138,13 @@ class NetworkLOS(object):
 
         return df
 
-    def get_tappairs_mazpairs(network_los, omaz, dmaz, ofilter=None, dfilter=None):
+    def get_tappairs_mazpairs(legacy_network_los, omaz, dmaz, ofilter=None, dfilter=None):
 
         # get nearby boarding TAPs to origin
-        omaz_btap_df = network_los.get_taps_mazs(omaz, ofilter)
+        omaz_btap_df = legacy_network_los.get_taps_mazs(omaz, ofilter)
 
         # get nearby alighting TAPs to destination
-        dmaz_atap_df = network_los.get_taps_mazs(dmaz, dfilter)
+        dmaz_atap_df = legacy_network_los.get_taps_mazs(dmaz, dfilter)
 
         # expand to one row for every btab-atap pair
         atap_btap_df = pd.merge(omaz_btap_df, dmaz_atap_df, on='idx', how="inner")
@@ -160,7 +160,7 @@ class NetworkLOS(object):
             "taz (%s)" % len(self.taz_df.index),
             "maz (%s)" % len(self.maz_df.index),
             "tap (%s)" % len(self.tap_df.index),
-            "maz2maz (%s)" % len(self.maz2maz_df.index),
+            "maz2maz (%s)" % len(self.maz_to_maz_df.index),
             "maz2tap (%s)" % len(self.maz2tap_df.index),
             "taz_skim_dict (%s keys)" % self.taz_skim_dict.key_count(),
             "tap_skim_dict (%s keys)" % self.tap_skim_dict.key_count(),
@@ -170,7 +170,7 @@ class NetworkLOS(object):
 
 
 @inject.injectable(cache=True)
-def network_los(taz_skim_dict, tap_skim_dict):
+def legacy_network_los(taz_skim_dict, tap_skim_dict):
 
     taz = read_input_table("TAZ")
     maz = read_input_table("MAZ")
@@ -184,6 +184,13 @@ def network_los(taz_skim_dict, tap_skim_dict):
 
     print("maz2maz index %s columns %s" % (maz2maz.index.name, maz2maz.columns.values))
     print("maz2tap index %s columns %s" % (maz2tap.index.name, maz2tap.columns.values))
+
+    print(f"taz\n{taz.dtypes}")
+    print(f"maz\n{maz.dtypes}")
+    print(f"tap\n{tap.dtypes}")
+    print(f"maz2maz\n{maz2maz.dtypes}")
+    print(f"maz2tap{maz2tap}")
+    bug
 
     # print( )"tap index %s columns %s" % (tap.index.name, tap.columns.values))
     # print( )"tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name, tap_skim_offsets.columns.values))

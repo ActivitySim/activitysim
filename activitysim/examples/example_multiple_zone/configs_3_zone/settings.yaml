@@ -3,13 +3,15 @@ inherit_settings: True
 # input skims
 skims_file:
 
-skims:
+zone_system: 3
 
-  TAZ:
-    omx_files: taz_skims.omx
+  skims:
 
-  TAP:
-    omx_files: tap_skims.omx
+    TAZ:
+      omx_files: taz_skims.omx
+
+    TAP:
+      omx_files: tap_skims.omx
 
 
 skim_time_periods:

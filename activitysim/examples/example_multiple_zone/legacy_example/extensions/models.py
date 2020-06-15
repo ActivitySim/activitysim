@@ -20,21 +20,21 @@ def best_transit_path_spec():
     return assign.read_assignment_spec(config.config_file_path('best_transit_path.csv'))
 
 
-VECTOR_TEST_SIZE = 100000
+# VECTOR_TEST_SIZE = 100000
 VECTOR_TEST_SIZE = 1014699
 
 
 @inject.step()
 def best_transit_path(set_random_seed,
-                      network_los,
+                      legacy_network_los,
                       best_transit_path_spec):
 
     model_settings = config.read_model_settings('best_transit_path.yaml')
 
     logger.info("best_transit_path VECTOR_TEST_SIZE %s", VECTOR_TEST_SIZE)
 
-    omaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
-    dmaz = network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
+    omaz = legacy_network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
+    dmaz = legacy_network_los.maz_df.sample(VECTOR_TEST_SIZE, replace=True).index
     tod = np.random.choice(['AM', 'PM'], VECTOR_TEST_SIZE)
     od_df = pd.DataFrame({'omaz': omaz, 'dmaz': dmaz, 'tod': tod})
 
@@ -45,9 +45,9 @@ def best_transit_path(set_random_seed,
 
     # FIXME - pathological knowledge about mode - should be parameterized
     # filter out rows with no drive time omaz-btap or no walk time from dmaz-atap
-    atap_btap_df = network_los.get_tappairs_mazpairs(od_df.omaz, od_df.dmaz,
-                                                     ofilter='drive_time',
-                                                     dfilter='walk_alightingActual')
+    atap_btap_df = legacy_network_los.get_tappairs_mazpairs(od_df.omaz, od_df.dmaz,
+                                                            ofilter='drive_time',
+                                                            dfilter='walk_alightingActual')
 
     # add in tod column
     atap_btap_df = atap_btap_df.merge(
@@ -70,7 +70,7 @@ def best_transit_path(set_random_seed,
     constants = config.get_model_constants(model_settings)
     locals_d = {
         'np': np,
-        'network_los': network_los
+        'legacy_network_los': legacy_network_los
     }
     if constants is not None:
         locals_d.update(constants)

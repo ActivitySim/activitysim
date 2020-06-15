@@ -1,3 +1,10 @@
+
+# network_los
+network_los:
+  zone_system: 1
+  skims:
+    taz: skims.omx
+
 # input tables
 input_table_list:
   - tablename: households
@@ -60,13 +67,6 @@ input_table_list:
       - COLLPTE
       - TOPOLOGY
       - TERMINAL
-
-
-# input skims
-skims:
-  TAZ:
-    omx_files: skims.omx
-
 
 # convert input CSVs to HDF5 format and save to outputs directory
 # create_input_store: True

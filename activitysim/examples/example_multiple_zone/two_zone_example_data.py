@@ -126,9 +126,6 @@ with omx.open_file(os.path.join(input_data, 'taz_skims.omx'), 'r') as skims_file
 
 # ### Create maz to maz time/distance
 
-walk_speed = 3
-bike_speed = 10
-
 max_distance_for_walk = 1.0
 max_distance_for_bike = 5.0
 
@@ -145,8 +142,8 @@ with omx.open_file(os.path.join(input_data, 'taz_skims.omx')) as skims_file:
     for c in ['DISTBIKE', 'DISTWALK']:
         maz_to_maz[c] = pd.DataFrame(skims_file[c]).unstack().values
 
-    maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_walk, ['OMAZ', 'DMAZ', 'DIST', 'DISTWALK']].\
+    maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_walk, ['OMAZ', 'DMAZ', 'DISTWALK']].\
         to_csv(os.path.join(output_data, 'maz_to_maz_walk.csv'), index=False)
 
-    maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_bike, ['OMAZ', 'DMAZ', 'DISTBIKE']].\
+    maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_bike, ['OMAZ', 'DMAZ', 'DIST', 'DISTBIKE']].\
         to_csv(os.path.join(output_data, 'maz_to_maz_bike.csv'), index=False)

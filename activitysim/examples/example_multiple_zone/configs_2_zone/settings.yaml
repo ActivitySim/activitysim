@@ -78,6 +78,16 @@ network_los:
       - maz_to_maz_bike.csv
     maz_to_taz: maz_to_taz.csv
 
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  maz_to_maz_max_blend_distance:
+    DIST: 5
+    # no blending
+    DISTBIKE: 0
+    DISTWALK: 1
+
+  # missing means use the skim value itself rather than DIST skim (e.g. DISTBIKE)
+  maz_to_maz_blend_distance_skim_name: DIST
+
 skim_time_periods:
     period_minutes: 60
     periods:

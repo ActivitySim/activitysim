@@ -363,12 +363,14 @@ class Network_LOS(object):
         self.skim_info = {}
         self.skim_dicts = {}
         self.skim_buffers = {}
-        self.table_info = {}
 
         # TWO_ZONE tables
+        self.table_info = {}
         self.maz_to_taz_df = None
+
         self.maz_to_maz_df = None
         self.maz_to_maz_cardinality = None
+        self.max_blend_distance = {}
 
         self.skim_time_periods = config.setting('skim_time_periods')
         self.read_los_settings()
@@ -393,9 +395,15 @@ class Network_LOS(object):
         assert 'taz' in self.skim_info
 
         # load tables info
+
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
 
-            self.table_info = los_settings.get('tables', {})
+            self.max_blend_distance = los_settings.get('maz_to_maz_max_blend_distance', {})
+            if isinstance(self.max_blend_distance, int):
+                self.max_blend_distance = {'DEFAULT': self.max_blend_distance}
+            self.blend_distance_skim_name = los_settings.get('maz_to_maz_blend_distance_skim_name')
+
+            self.table_info = los_settings.get('tables')
 
             # FIXME - do we know which tables we expect?
             for table_name in REQUIRED_TWO_ZONE_TABLES:

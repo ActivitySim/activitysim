@@ -83,6 +83,11 @@ class MazSparseSkimWrapper(object):
         self.network_los = network_los
         self.key = key
         self.backstop = backstop_skim_dict
+        self.max_blend_distance = network_los.max_blend_distance.get(key, 0)
+
+        self.blend_distance_skim_name = network_los.blend_distance_skim_name
+        if (self.max_blend_distance == 0) or (self.blend_distance_skim_name == key):
+            self.blend_distance_skim_name = None
 
     def get(self, orig, dest):
         """
@@ -101,17 +106,41 @@ class MazSparseSkimWrapper(object):
         # fixme - remove?
         assert not (np.isnan(orig) | np.isnan(dest)).any()
 
-        result = self.network_los.get_mazpairs(orig, dest, self.key)
+        values = self.network_los.get_mazpairs(orig, dest, self.key)
 
-        is_nan = np.isnan(result)
+        is_nan = np.isnan(values)
 
-        if is_nan.any():
-            # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
+        if is_nan.any() or self.max_blend_distance:
+            print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
 
             backstop_values = self.backstop.get(self.key).get(orig, dest)
-            result = np.where(is_nan, backstop_values, result)
 
-        return result
+            if self.max_blend_distance > 0:
+
+                print(f"blend_distance_skim_name {self.blend_distance_skim_name}")
+                # get distance skim if a different key was specified by blend_distance_skim_name
+                if self.blend_distance_skim_name is not None:
+                    distance = self.network_los.get_mazpairs(orig, dest, self.blend_distance_skim_name)
+                else:
+                    distance = values
+
+                # blend according to backstop_fractions
+                backstop_fractions = np.minimum(distance / self.max_blend_distance, 1)
+                backstop_fractions = np.where(is_nan, 1, backstop_fractions)
+
+                # print(f"sparse values {values}")
+                # print(f"backstop_values {backstop_values}")
+                # print(f"backstop_fractions {backstop_fractions}")
+
+                values = np.where(is_nan,
+                                  backstop_values,
+                                  backstop_fractions * backstop_values + (1 - backstop_fractions) * values)
+
+            else:
+                # simple backstop
+                values = np.where(is_nan, backstop_values, values)
+
+        return values
 
 
 class MazSkimDict(object):

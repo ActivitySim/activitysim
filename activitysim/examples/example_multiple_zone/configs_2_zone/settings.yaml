@@ -73,10 +73,11 @@ network_los:
     taz: taz_skims.omx
 
   tables:
+    maz: maz.csv
     maz_to_maz:
       - maz_to_maz_walk.csv
       - maz_to_maz_bike.csv
-    maz_to_taz: maz_to_taz.csv
+
 
   # maz_to_maz blending distance (missing or 0 means no blending)
   maz_to_maz_max_blend_distance:

@@ -178,20 +178,16 @@ def legacy_network_los(taz_skim_dict, tap_skim_dict):
     maz2maz = read_input_table("MAZtoMAZ")
     maz2tap = read_input_table("MAZtoTAP")
 
-    print("taz index %s columns %s" % (taz.index.name, taz.columns.values))
-    print("tap index %s columns %s" % (tap.index.name, tap.columns.values))
-    print("maz index %s columns %s" % (maz.index.name, maz.columns.values))
-
-    print("maz2maz index %s columns %s" % (maz2maz.index.name, maz2maz.columns.values))
-    print("maz2tap index %s columns %s" % (maz2tap.index.name, maz2tap.columns.values))
-
-    print(f"taz\n{taz.dtypes}")
-    print(f"maz\n{maz.dtypes}")
-    print(f"tap\n{tap.dtypes}")
-    print(f"maz2maz\n{maz2maz.dtypes}")
-    print(f"maz2tap{maz2tap}")
-    bug
-
+    # print("taz index %s columns %s" % (taz.index.name, taz.columns.values))
+    # print("tap index %s columns %s" % (tap.index.name, tap.columns.values))
+    # print("maz index %s columns %s" % (maz.index.name, maz.columns.values))
+    # print("maz2maz index %s columns %s" % (maz2maz.index.name, maz2maz.columns.values))
+    # print("maz2tap index %s columns %s" % (maz2tap.index.name, maz2tap.columns.values))
+    # print(f"taz\n{taz.dtypes}")
+    # print(f"maz\n{maz.dtypes}")
+    # print(f"tap\n{tap.dtypes}")
+    # print(f"maz2maz\n{maz2maz.dtypes}")
+    # print(f"maz2tap{maz2tap}")
     # print( )"tap index %s columns %s" % (tap.index.name, tap.columns.values))
     # print( )"tap_skim_offsets index %s columns %s" % (tap_skim_offsets.index.name, tap_skim_offsets.columns.values))
 

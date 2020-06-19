@@ -21,9 +21,9 @@ network_los:
   zone_system: 1
 
   skims:
-    TAZ: taz_skims.omx
+    taz: taz_skims.omx
 
-    TAP:
+    tap:
       - tap_skims_locl.omx
       - tap_skims_prem.omx
 

@@ -65,7 +65,7 @@ input_table_list:
 # input skims
 skims:
   TAZ:
-    omx_files: taz_skims.omx
+    omx_files: skims.omx
 
 
 # convert input CSVs to HDF5 format and save to outputs directory

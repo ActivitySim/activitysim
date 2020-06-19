@@ -8,7 +8,7 @@ network_los:
   zone_system: 1
 
   skims:
-    taz: taz_skims.omx
+    taz: skims.omx
 
 
 

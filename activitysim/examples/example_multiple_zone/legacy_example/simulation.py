@@ -175,6 +175,54 @@ def set_random_seed():
     np.random.seed(0)
 
 
+def test_los():
+    # test sizes for all implemented methods
+    VECTOR_TEST_SIZEs = (10000, 100000, 1000000, 5000000, 10000000, 20000000)
+
+    # VECTOR_TEST_SIZEs = [20000000, 40000000]
+
+    for size in VECTOR_TEST_SIZEs:
+        logger.info("VECTOR_TEST_SIZE %s" % size)
+
+        get_taz(size)
+        t0 = print_elapsed_time_per_unit("get_taz", t0, size)
+
+        get_tap(size)
+        t0 = print_elapsed_time_per_unit("get_tap", t0, size)
+
+        get_maz(size)
+        t0 = print_elapsed_time_per_unit("get_maz", t0, size)
+
+        taz_skims(size)
+        t0 = print_elapsed_time_per_unit("taz_skims", t0, size)
+
+        tap_skims(size)
+        t0 = print_elapsed_time_per_unit("tap_skims", t0, size)
+
+        get_maz_pairs(size)
+        t0 = print_elapsed_time_per_unit("get_maz_pairs", t0, size)
+
+        get_maz_tap_pairs(size)
+        t0 = print_elapsed_time_per_unit("get_maz_tap_pairs", t0, size)
+
+        result_size = get_taps_mazs(size, attribute='drive_distance')
+        print_elapsed_time_per_unit("get_taps_mazs drive_distance by input", t0, size)
+        t0 = print_elapsed_time_per_unit("get_taps_mazs drive_distance by output", t0, result_size)
+
+        result_size = get_taps_mazs(size)
+        print_elapsed_time_per_unit("get_taps_mazs by input", t0, size)
+        t0 = print_elapsed_time_per_unit("get_taps_mazs by output", t0, result_size)
+
+        # - not sure why, but runs faster on subsequent calls time...
+        result_size = get_taps_mazs(size)
+        print_elapsed_time_per_unit("get_taps_mazs2 by input", t0, size)
+        t0 = print_elapsed_time_per_unit("get_taps_mazs2 by output", t0, result_size)
+
+        result_size = get_taps_mazs(size)
+        print_elapsed_time_per_unit("get_taps_mazs3 by input", t0, size)
+        t0 = print_elapsed_time_per_unit("get_taps_mazs3 by output", t0, result_size)
+
+
 # uncomment the line below to set random seed so that run results are reproducible
 set_random_seed()
 inject.add_injectable("set_random_seed", set_random_seed)
@@ -192,53 +240,7 @@ t0 = print_elapsed_time("load tap_skim_dict", t0)
 legacy_network_los = inject.get_injectable('legacy_network_los')
 t0 = print_elapsed_time("load legacy_network_los", t0)
 
-# test sizes for all implemented methods
-VECTOR_TEST_SIZEs = (10000, 100000, 1000000, 5000000, 10000000, 20000000)
-
-# VECTOR_TEST_SIZEs = [20000000, 40000000]
-
-for size in VECTOR_TEST_SIZEs:
-
-    logger.info("VECTOR_TEST_SIZE %s" % size)
-
-    get_taz(size)
-    t0 = print_elapsed_time_per_unit("get_taz", t0, size)
-
-    get_tap(size)
-    t0 = print_elapsed_time_per_unit("get_tap", t0, size)
-
-    get_maz(size)
-    t0 = print_elapsed_time_per_unit("get_maz", t0, size)
-
-    taz_skims(size)
-    t0 = print_elapsed_time_per_unit("taz_skims", t0, size)
-
-    tap_skims(size)
-    t0 = print_elapsed_time_per_unit("tap_skims", t0, size)
-
-    get_maz_pairs(size)
-    t0 = print_elapsed_time_per_unit("get_maz_pairs", t0, size)
-
-    get_maz_tap_pairs(size)
-    t0 = print_elapsed_time_per_unit("get_maz_tap_pairs", t0, size)
-
-    result_size = get_taps_mazs(size, attribute='drive_distance')
-    print_elapsed_time_per_unit("get_taps_mazs drive_distance by input", t0, size)
-    t0 = print_elapsed_time_per_unit("get_taps_mazs drive_distance by output", t0, result_size)
-
-    result_size = get_taps_mazs(size)
-    print_elapsed_time_per_unit("get_taps_mazs by input", t0, size)
-    t0 = print_elapsed_time_per_unit("get_taps_mazs by output", t0, result_size)
-
-    # - not sure why, but runs faster on subsequent calls time...
-    result_size = get_taps_mazs(size)
-    print_elapsed_time_per_unit("get_taps_mazs2 by input", t0, size)
-    t0 = print_elapsed_time_per_unit("get_taps_mazs2 by output", t0, result_size)
-
-    result_size = get_taps_mazs(size)
-    print_elapsed_time_per_unit("get_taps_mazs3 by input", t0, size)
-    t0 = print_elapsed_time_per_unit("get_taps_mazs3 by output", t0, result_size)
-
+# test_los()
 
 # # taz_skims() test sizes; comment out all other methods
 # VECTOR_TEST_SIZEs = (68374080, 568231216)
@@ -255,6 +257,6 @@ for size in VECTOR_TEST_SIZEs:
 #     t0 = print_elapsed_time_per_unit("get_maz_pairs", t0, size)
 
 # bug
-# t0 = print_elapsed_time()
-# pipeline.run(models=["best_transit_path"], resume_after=None)
-# t0 = print_elapsed_time("best_transit_path", t0)
+t0 = print_elapsed_time()
+pipeline.run(models=["best_transit_path"], resume_after=None)
+t0 = print_elapsed_time("best_transit_path", t0)

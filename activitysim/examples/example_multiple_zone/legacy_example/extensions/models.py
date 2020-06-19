@@ -21,8 +21,7 @@ def best_transit_path_spec():
 
 
 # VECTOR_TEST_SIZE = 100000
-VECTOR_TEST_SIZE = 1014699
-
+# VECTOR_TEST_SIZE = 1014699
 
 @inject.step()
 def best_transit_path(set_random_seed,
@@ -70,7 +69,7 @@ def best_transit_path(set_random_seed,
     constants = config.get_model_constants(model_settings)
     locals_d = {
         'np': np,
-        'legacy_network_los': legacy_network_los
+        'los': legacy_network_los
     }
     if constants is not None:
         locals_d.update(constants)

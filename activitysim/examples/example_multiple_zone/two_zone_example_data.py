@@ -37,9 +37,6 @@ if os.path.exists(output_data):
 else:
     os.makedirs(output_data)
 
-# copy taz_skims omx file to output_dir
-# shutil.copy(os.path.join(input_data, 'taz_skims.omx'), os.path.join(output_data, 'taz_skims.omx'))
-
 # ### Convert tazs to mazs and add transit access distance by mode
 
 land_use = pd.read_csv(os.path.join(input_data, 'land_use.csv'))
@@ -75,12 +72,12 @@ households.to_csv(os.path.join(output_data, 'households.csv'), index=False)
 persons = pd.read_csv(os.path.join(input_data, 'persons.csv'))
 persons.to_csv(os.path.join(output_data, 'persons.csv'), index=False)
 
-# ### Create maz_to_taz_df file
+# ### Create maz correspondence file
 
 # FIXME - not clear we need this
-maz_to_taz_df = land_use[['MAZ', 'TAZ']]
-maz_to_taz_df.to_csv(os.path.join(output_data, 'maz_to_taz.csv'), index=False)
-print("maz_to_taz.csv\n%s" % (maz_to_taz_df.head(6), ))
+maz_df = land_use[['MAZ', 'TAZ']]
+maz_df.to_csv(os.path.join(output_data, 'maz.csv'), index=False)
+print("maz.csv\n%s" % (maz_df.head(6), ))
 
 # ### Create taz file
 
@@ -92,9 +89,9 @@ print("maz_to_taz.csv\n%s" % (maz_to_taz_df.head(6), ))
 
 new_zone_labels = np.unique(land_use.TAZ)
 new_zone_indexes = (new_zone_labels-1)
-tazs_df = pd.DataFrame({'TAZ': new_zone_labels}, index=new_zone_indexes)
-tazs_df.to_csv(os.path.join(output_data, 'taz.csv'), index=False)
-print("taz.csv\n%s" % (tazs_df.head(6), ))
+taz_df = pd.DataFrame({'TAZ': new_zone_labels}, index=new_zone_indexes)
+taz_df.to_csv(os.path.join(output_data, 'taz.csv'), index=False)
+print("taz.csv\n%s" % (taz_df.head(6), ))
 
 # currently this has only the one TAZ column, but the legacy table had:
 # index TAZ
@@ -104,7 +101,7 @@ print("taz.csv\n%s" % (tazs_df.head(6), ))
 
 # ### Create taz skims
 
-with omx.open_file(os.path.join(input_data, 'taz_skims.omx'), 'r') as skims_file, \
+with omx.open_file(os.path.join(input_data, 'skims.omx'), 'r') as skims_file, \
         omx.open_file(os.path.join(output_data, 'taz_skims.omx'), "w") as output_skims_file:
 
     skims = skims_file.list_matrices()
@@ -130,7 +127,7 @@ max_distance_for_walk = 1.0
 max_distance_for_bike = 5.0
 
 
-with omx.open_file(os.path.join(input_data, 'taz_skims.omx')) as skims_file:
+with omx.open_file(os.path.join(input_data, 'skims.omx')) as skims_file:
 
     # create df with DIST column
     maz_to_maz = pd.DataFrame(skims_file['DIST']).unstack().reset_index()

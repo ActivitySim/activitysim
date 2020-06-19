@@ -1,0 +1,18 @@
+Label,Description,Expression,utility
+util_transit_available,transit_available,"@~df.transit_available * C_UNAVAILABLE",1
+#,,, local bus
+util_bus_wait,local bus wait time,"@c_wait * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_LOC_WLK_IWAIT')",1
+util_bus_ivt,local bus in vehicle time,"@c_ivt * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_LOC_WLK_TOTIVT')",1
+util_bus_fare,local bus fare,"@c_cost * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_LOC_WLK_FAR')",1
+#,,, commuter bus
+util_com_wait,commuter bus wait time,"@c_wait * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_COM_WLK_IWAIT')",1
+util_com_ivt,commuter bus in vehicle time,"@c_ivt * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_COM_WLK_TOTIVT')",1
+util_com_fare,commuter bus fare,"@c_cost * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_COM_WLK_FAR')",1
+#,,, express
+util_exp_wait,express wait time,"@c_wait * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_EXP_WLK_IWAIT')",1
+util_exp_ivt,express in vehicle time,"@c_ivt * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_EXP_WLK_TOTIVT')",1
+util_exp_fare,express fare,"@c_cost * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_EXP_WLK_FAR')",1
+#,,, heavy
+util_hvy_wait,heavy wait time,"@c_wait * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_HVY_WLK_IWAIT')",1
+util_hvy_ivt,heavy in vehicle time,"@c_ivt * vot * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_HVY_WLK_TOTIVT')",1
+util_hvy_fare,heavy fare,"@c_cost * los.get_tappairs3d(df.btap, df.atap, df.tod, 'WLK_HVY_WLK_FAR')",1

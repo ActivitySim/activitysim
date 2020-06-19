@@ -1,17 +1,31 @@
 inherit_settings: True
 
 # input skims
-skims_file:
+network_los:
 
-zone_system: 3
+  zone_system: 3
 
   skims:
+    taz: taz_skims.omx
+    tap: tap_skims.omx
 
-    TAZ:
-      omx_files: taz_skims.omx
+  tables:
+    maz: maz.csv
+    tap: tap.csv
+    maz_to_maz:
+      - maz_to_maz_walk.csv
+      - maz_to_maz_bike.csv
+    maz_to_tap:
+      - maz_to_tap_walk.csv
+      - maz_to_tap_bike.csv
+      - maz_to_tap_drive.csv
 
-    TAP:
-      omx_files: tap_skims.omx
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  maz_to_maz_max_blend_distance:
+    DIST: 5
+    # no blending
+    DISTBIKE: 0
+    DISTWALK: 1
 
 
 skim_time_periods:
@@ -65,7 +79,6 @@ input_table_list:
     filename: land_use.csv
     index_col: MAZ
     rename_columns:
-#      ZONE: TAZ
       COUNTY: county_id
     keep_columns:
       - DISTRICT
@@ -92,3 +105,40 @@ input_table_list:
       - COLLPTE
       - TOPOLOGY
       - TERMINAL
+
+
+models:
+  - transit_virtual_path_builder
+  - initialize_landuse
+  - compute_accessibility
+  - initialize_households
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - track_skim_usage
+  - write_trip_matrices
+  - write_tables

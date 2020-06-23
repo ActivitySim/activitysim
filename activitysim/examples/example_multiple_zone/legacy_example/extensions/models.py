@@ -22,6 +22,8 @@ def best_transit_path_spec():
 
 # VECTOR_TEST_SIZE = 100000
 # VECTOR_TEST_SIZE = 1014699
+VECTOR_TEST_SIZE = 100
+
 
 @inject.step()
 def best_transit_path(set_random_seed,

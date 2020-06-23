@@ -65,7 +65,7 @@ def evaluate_constants(expressions, constants):
     return d
 
 
-def read_assignment_spec(fname,
+def read_assignment_spec(file_name,
                          description_name="Description",
                          target_name="Target",
                          expression_name="Expression"):
@@ -81,7 +81,7 @@ def read_assignment_spec(fname,
 
     Parameters
     ----------
-    fname : str
+    file_name : str
         Name of a CSV spec file.
     description_name : str, optional
         Name of the column in `fname` that contains the component description.
@@ -96,7 +96,7 @@ def read_assignment_spec(fname,
         dataframe with three columns: ['description' 'target' 'expression']
     """
 
-    cfg = pd.read_csv(fname, comment='#')
+    cfg = pd.read_csv(file_name, comment='#')
 
     # drop null expressions
     # cfg = cfg.dropna(subset=[expression_name])

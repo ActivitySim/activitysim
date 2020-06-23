@@ -148,15 +148,25 @@ with \
 
         ur_skim = ur_skims[skim_name][:]
         new_skim = ur_skim[taz_zone_indexes, :][:, taz_zone_indexes]
-        print("skim:", skim_name, ": shape", str(new_skim.shape))
+        # print("skim:", skim_name, ": shape", str(new_skim.shape))
 
         mode_code = skim_name[0:3]
         is_tap_mode = (mode_code == "DRV" or mode_code == "WLK")
         is_taz_mode = not is_tap_mode
 
         if is_tap_mode:
-            output_tap_skims_file[skim_name] = new_skim
-            print("tap skim:", skim_name, ": shape", str(output_tap_skims_file.shape()))
+            # WLK_TRN_WLK_XWAIT__PM
+            # 012345678911111111112
+            #           01234567890
+            access_mode = skim_name[0:3]
+            transit_mode = skim_name[4:7]
+            egress_mode = skim_name[8:11]
+            suffix = skim_name[12:]
+            if access_mode == 'WLK' and egress_mode == 'WLK':
+                tap_skim_name = f'{transit_mode}_{suffix}'
+                output_tap_skims_file[tap_skim_name] = new_skim
+                print(f"tap skim: {skim_name} tap_skim_name: {tap_skim_name}, "
+                      f"shape: {str(output_tap_skims_file.shape())}")
 
         if is_taz_mode:
             output_taz_skims_file[skim_name] = new_skim

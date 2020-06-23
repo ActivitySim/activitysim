@@ -25,7 +25,7 @@ class MazSkimDictFacade(object):
     def __init__(self, network_los):
 
         taz_skim_dict = network_los.get_skim_dict('taz')
-        maz_to_taz_df = network_los.maz_to_taz_df
+        maz_df = network_los.maz_df
 
         print(f"MazSkimDictFacade shape {taz_skim_dict.skim_data.shape}")
 
@@ -38,7 +38,7 @@ class MazSkimDictFacade(object):
 
         # taz_skim_dict offset_series has taz_id index and 0-based offset values for each taz_id
         # we need offset_series with maz_id index and 0-based offset values for each maz_id
-        maz_offset_df = pd.merge(offset_series.to_frame('offset'), maz_to_taz_df, left_index=True, right_on='TAZ')
+        maz_offset_df = pd.merge(offset_series.to_frame('offset'), maz_df, left_index=True, right_on='TAZ')
 
         offset_series = pd.Series(data=maz_offset_df['offset'].values, index=maz_offset_df['MAZ'].values)
         # print(f"offset_series\n{offset_series.head(10)}")

@@ -1199,7 +1199,7 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
 
     if nest_spec is None:
         logsums = eval_mnl_logsums(choosers, spec, locals_d,
-                                   trace_label=trace_label, alt_col_name=alt_col_name)
+                                   trace_label=trace_label)
     else:
         logsums = eval_nl_logsums(choosers, spec, nest_spec, locals_d,
                                   trace_label=trace_label, alt_col_name=alt_col_name)

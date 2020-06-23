@@ -17,8 +17,9 @@ network_los:
       - maz_to_maz_bike.csv
     maz_to_tap:
       - maz_to_tap_walk.csv
-      - maz_to_tap_bike.csv
-      - maz_to_tap_drive.csv
+# not using these for now
+#      - maz_to_tap_bike.csv
+#      - maz_to_tap_drive.csv
 
   # maz_to_maz blending distance (missing or 0 means no blending)
   maz_to_maz_max_blend_distance:

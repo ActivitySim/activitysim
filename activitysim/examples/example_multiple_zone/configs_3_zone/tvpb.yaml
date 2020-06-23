@@ -18,11 +18,11 @@ MAZ_TAP_MODES:
     SPEC: tvpb_walk_maz_tap.csv
     CHOOSER_COLUMNS:
       - walk_time
-  drive:
-    SPEC: tvpb_drive_maz_tap.csv
-    CHOOSER_COLUMNS:
-      - drive_time
-      - DIST
+#  drive:
+#    SPEC: tvpb_drive_maz_tap.csv
+#    CHOOSER_COLUMNS:
+#      - drive_time
+#      - DIST
 
 TAP_TAP:
   SPEC: tvpb_tap_tap.csv

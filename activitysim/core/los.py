@@ -29,8 +29,8 @@ ONE_ZONE = 1
 TWO_ZONE = 2
 THREE_ZONE = 3
 
-REQUIRED_TWO_ZONE_TABLES = ['maz_to_maz', 'maz_to_taz']
-# REQIRED_TWO_ZONE_TABLES = []
+REQUIRED_TWO_ZONE_TABLES = ['maz', 'maz_to_maz']
+REQUIRED_THREE_ZONE_TABLES = REQUIRED_TWO_ZONE_TABLES + ['tap', 'maz_to_tap']
 
 
 def multiply_large_numbers(list_of_numbers):
@@ -257,6 +257,7 @@ def load_skim_info(skim_tag, omx_file_names, skim_time_periods):
             continue
 
         skim_key = (key1, key2) if sep else key1
+
         omx_keys[skim_key] = skim_name
 
     num_skims = len(omx_keys)
@@ -301,15 +302,15 @@ def load_skim_info(skim_tag, omx_file_names, skim_time_periods):
 
     skim_info = {
         'skim_tag': skim_tag,
-        'omx_file_names': omx_file_names,
-        'omx_manifest': omx_manifest,  # dict mapping { omx_key: skim_name }
+        'omx_file_names': omx_file_names,  # list of omx_file_names
+        'omx_manifest': omx_manifest,  # dict mapping { omx_key: omx_file_name }
         'omx_shape': omx_shape,
         'num_skims': num_skims,
         'dtype': skim_dtype,
         'offset_map_name': offset_map_name,
         'offset_map': offset_map,
         'omx_keys': omx_keys,
-        'key1_block_offsets': key1_block_offsets,
+        'base_keys': list(key1_block_offsets.keys()),  # list of base (key1) keys
         'block_offsets': block_offsets,
     }
 
@@ -363,14 +364,19 @@ class Network_LOS(object):
         self.skim_info = {}
         self.skim_dicts = {}
         self.skim_buffers = {}
-
-        # TWO_ZONE tables
         self.table_info = {}
-        self.maz_to_taz_df = None
 
+        self.skim_stacks = {}
+
+        # TWO_ZONE and THREE_ZONE
+        self.maz_df = None
         self.maz_to_maz_df = None
-        self.maz_to_maz_cardinality = None
+        self.maz_ceiling = None
         self.max_blend_distance = {}
+
+        # THREE_ZONE only
+        self.tap_df = None
+        self.maz_to_tap_df = None
 
         self.skim_time_periods = config.setting('skim_time_periods')
         self.read_los_settings()
@@ -381,7 +387,8 @@ class Network_LOS(object):
         assert los_settings is not None, f"Network_LOS: '{LOS_SETTINGS_NAME}' settings not in settings file "
 
         self.zone_system = los_settings.get('zone_system')
-        assert self.zone_system in [ONE_ZONE, TWO_ZONE], f"Network_LOS: unrecognized zone_system: {self.zone_system}"
+        assert self.zone_system in [ONE_ZONE, TWO_ZONE, THREE_ZONE], \
+            f"Network_LOS: unrecognized zone_system: {self.zone_system}"
 
         # load skim info
         skim_file_names = los_settings.get('skims')
@@ -389,13 +396,19 @@ class Network_LOS(object):
         for skim_tag, file_names in skim_file_names.items():
             # want skim_file_names list, not just single str file_name
             file_names = [file_names] if isinstance(file_names, str) else file_names
-            self.skim_info[skim_tag] = self.load_skim_info(skim_tag, file_names)
+            skim_info = self.load_skim_info(skim_tag, file_names)
+            self.skim_info[skim_tag] = skim_info
+
+            # for key in skim_info['base_keys']:
+            #     assert key not in self.skim_tag_for_key, \
+            #         f"key '{key}' in both {skim_tag} and {self.skim_tag_for_key[key]}"
+            #     self.skim_tag_for_key[key] = skim_tag
 
         # one zone
         assert 'taz' in self.skim_info
 
         # load tables info
-
+        self.table_info = los_settings.get('tables')
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
 
             self.max_blend_distance = los_settings.get('maz_to_maz_max_blend_distance', {})
@@ -403,10 +416,15 @@ class Network_LOS(object):
                 self.max_blend_distance = {'DEFAULT': self.max_blend_distance}
             self.blend_distance_skim_name = los_settings.get('maz_to_maz_blend_distance_skim_name')
 
-            self.table_info = los_settings.get('tables')
-
             # FIXME - do we know which tables we expect?
             for table_name in REQUIRED_TWO_ZONE_TABLES:
+                assert table_name in self.table_info, \
+                    f"'{table_name}' file name not listed in {LOS_SETTINGS_NAME}.tables {self.table_info}"
+
+        if self.zone_system == THREE_ZONE:
+
+            # FIXME - do we know which tables we expect?
+            for table_name in REQUIRED_THREE_ZONE_TABLES:
                 assert table_name in self.table_info, \
                     f"'{table_name}' file name not listed in {LOS_SETTINGS_NAME}.tables {self.table_info}"
 
@@ -417,23 +435,22 @@ class Network_LOS(object):
 
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
 
-            # maz_to_taz
-            file_name = self.table_info.get('maz_to_taz')
-            assert file_name is not None, f"file_names not found for 'maz_to_taz' in {LOS_SETTINGS_NAME}.tables"
-            file_path = config.data_file_path(file_name, mandatory=True)
-            self.maz_to_taz_df = pd.read_csv(file_path)
+            # maz
+            file_name = self.table_info.get('maz')
+            assert file_name is not None, f"file_names not found for 'maz' in {LOS_SETTINGS_NAME}.tables"
+            self.maz_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
-            self.maz_to_maz_cardinality = self.maz_to_taz_df.MAZ.max() + 1
+            self.maz_ceiling = self.maz_df.MAZ.max() + 1
 
             # maz_to_maz_df
             file_names = self.table_info.get('maz_to_maz')
             assert file_names is not None, f"file_names not found for 'maz_to_maz' in {LOS_SETTINGS_NAME}.tables"
             file_names = [file_names] if isinstance(file_names, str) else file_names
             for file_name in file_names:
-                table_file_path = config.data_file_path(file_name, mandatory=True)
-                df = pd.read_csv(table_file_path)
 
-                df['i'] = df.OMAZ * self.maz_to_maz_cardinality + df.DMAZ
+                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+
+                df['i'] = df.OMAZ * self.maz_ceiling + df.DMAZ
                 df.set_index('i', drop=True, inplace=True, verify_integrity=True)
                 logger.debug(f"loading maz_to_maz table {file_name} with {len(df)} rows")
 
@@ -447,8 +464,30 @@ class Network_LOS(object):
                     self.maz_to_maz_df = pd.concat([self.maz_to_maz_df, df], axis=1)
 
         if self.zone_system == THREE_ZONE:
-            # THREE_ZONE tables here...
-            pass
+
+            # tap
+            file_name = self.table_info.get('tap')
+            assert file_name is not None, f"file_names not found for 'tap' in {LOS_SETTINGS_NAME}.tables"
+            self.tap_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+
+            # self.tap_ceiling = self.tap_df.TAP.max() + 1
+
+            # maz_to_tap_df
+            file_names = self.table_info.get('maz_to_tap')
+            assert file_names is not None, f"file_names not found for 'maz_to_tap' in {LOS_SETTINGS_NAME}.tables"
+            file_names = [file_names] if isinstance(file_names, str) else file_names
+            for file_name in file_names:
+
+                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+
+                # df['i'] = df.MAZ * self.maz_ceiling + df.TAP
+                df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
+                logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
+
+                if self.maz_to_tap_df is None:
+                    self.maz_to_tap_df = df
+                else:
+                    self.maz_to_tap_df = pd.concat([self.maz_to_tap_df, df], axis=1)
 
     def load_skim_info(self, skim_tag, omx_file_names):
         """
@@ -464,7 +503,8 @@ class Network_LOS(object):
 
     def load_all_skims(self):
         for skim_tag in self.skim_info.keys():
-            self.skim_dicts[skim_tag] = self.create_skim_dict(skim_tag)
+            skim_dict = self.create_skim_dict(skim_tag)
+            self.skim_dicts[skim_tag] = skim_dict
 
     def load_shared_data(self, shared_data_buffers):
         for skim_tag in self.skim_info.keys():
@@ -487,6 +527,14 @@ class Network_LOS(object):
         assert skim_tag in self.skim_dicts
         return self.skim_dicts[skim_tag]
 
+    def get_skim_stack(self, skim_tag):
+
+        assert skim_tag in self.skim_dicts
+        if skim_tag not in self.skim_stacks:
+            logger.debug(f"network_los get_skim_stack initializing skim_stack for {skim_tag}")
+            self.skim_stacks[skim_tag] = skim.SkimStack(self.skim_dicts[skim_tag])
+        return self.skim_stacks[skim_tag]
+
     def get_table(self, table_name):
         assert table_name in self.tables, f"get_table: table '{table_name}' not loaded"
         return self.tables.get(table_name)
@@ -499,8 +547,22 @@ class Network_LOS(object):
         #              how="left")[attribute]
 
         # synthetic index method i : omaz_dmaz
-        i = np.asanyarray(omaz) * self.maz_to_maz_cardinality + np.asanyarray(dmaz)
+        i = np.asanyarray(omaz) * self.maz_ceiling + np.asanyarray(dmaz)
         s = util.quick_loc_df(i, self.maz_to_maz_df, attribute)
 
         # FIXME - no point in returning series? unless maz and tap have same index?
         return np.asanyarray(s)
+
+    def get_maztappairs(self, maz, tap, attribute):
+
+        # synthetic i method : maz_tap
+        i = np.asanyarray(maz) * self.maz_ceiling + np.asanyarray(tap)
+        s = util.quick_loc_df(i, self.maz_to_tap_df, attribute)
+
+        # FIXME - no point in returning series? unless maz and tap have same index?
+        return np.asanyarray(s)
+
+    def get_tappairs3d(self, otap, dtap, dim3, key):
+
+        s = self.get_skim_stack('tap').lookup(otap, dtap, dim3, key)
+        return s

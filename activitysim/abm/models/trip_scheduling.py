@@ -88,6 +88,40 @@ def set_tour_hour(trips, tours):
         reindex(subtours[subtours.tour_num == subtours.tour_count]['end'], trips[inbound].tour_id)
 
 
+def update_tour_earliest(trips, outbound_choices):
+    """
+    Updates "earliest" column for inbound trips based on
+    the maximum outbound trip departure time of the tour.
+    This is done to ensure inbound trips do not depart
+    before the last outbound trip of a tour. The "earliest"
+    values will be used to clip the choice probabilities to
+    zero for alternatives (hours) that fall before "earliest".
+    Parameters
+    ----------
+    trips: pd.DataFrame
+    outbound_choices: pd.Series
+        time periods depart choices, one per trip (except for trips with zero probs)
+    Returns
+    -------
+    modifies trips in place
+    """
+
+    # append outbound departure times to trips
+    trips['outbound_departure'] = outbound_choices.reindex(trips.index)
+
+    # get max outbound trip departure times for all person-tours
+    max_outbound_person_departures = trips.groupby(['person_id', 'tour_id'])['outbound_departure'].max()
+
+    # append max outbound trip departure times to trips
+    trips['max_outbound_departure'] = list(zip(trips['person_id'], trips['tour_id']))
+    trips['max_outbound_departure'] = trips.max_outbound_departure.map(max_outbound_person_departures)
+
+    # set the trips "earliest" column equal to the max outbound departure time if
+    # the max outbound departure time is greater than the current value of "earliest"
+    num_inbound = len(trips[~trips['outbound']])
+    num_updated = len(trips[(trips['earliest'] < trips['max_outbound_departure']) & (~trips['outbound'])])
+
+
 def clip_probs(trips, probs, model_settings):
     """
     zero out probs before trips.earliest or after trips.latest
@@ -323,7 +357,7 @@ def schedule_trips_in_leg(
     trips = trips.sort_index()
     trips['next_trip_id'] = np.roll(trips.index, -1 if outbound else 1)
     is_final = (trips.trip_num == trips.trip_count) if outbound else (trips.trip_num == 1)
-    trips.next_trip_id = trips.next_trip_id.where(is_final, NO_TRIP_ID)
+    trips.next_trip_id = trips.next_trip_id.where(~is_final, NO_TRIP_ID)
 
     # iterate over outbound trips in ascending trip_num order, skipping the initial trip
     # iterate over inbound trips in descending trip_num order, skipping the finial trip
@@ -445,6 +479,8 @@ def run_trip_scheduling(
                 trace_label=leg_trace_label)
         result_list.append(choices)
         chunk.log_close(leg_trace_label)
+
+        update_tour_earliest(trips_chunk, choices)
 
         leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
         chunk.log_open(leg_trace_label, chunk_size, effective_chunk_size)

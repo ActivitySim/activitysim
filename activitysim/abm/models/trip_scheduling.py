@@ -100,7 +100,8 @@ def update_tour_earliest(trips, outbound_choices):
     ----------
     trips: pd.DataFrame
     outbound_choices: pd.Series
-        time periods depart choices, one per trip (except for trips with zero probs)
+        time periods depart choices, one per trip (except for trips with
+        zero probs)
     Returns
     -------
     modifies trips in place
@@ -110,16 +111,20 @@ def update_tour_earliest(trips, outbound_choices):
     trips['outbound_departure'] = outbound_choices.reindex(trips.index)
 
     # get max outbound trip departure times for all person-tours
-    max_outbound_person_departures = trips.groupby(['person_id', 'tour_id'])['outbound_departure'].max()
+    max_outbound_person_departures = trips.groupby(
+        ['person_id', 'tour_id'])['outbound_departure'].max()
 
     # append max outbound trip departure times to trips
-    trips['max_outbound_departure'] = list(zip(trips['person_id'], trips['tour_id']))
-    trips['max_outbound_departure'] = trips.max_outbound_departure.map(max_outbound_person_departures)
+    trips['max_outbound_departure'] = list(
+        zip(trips['person_id'], trips['tour_id']))
+    trips['max_outbound_departure'] = trips.max_outbound_departure.map(
+        max_outbound_person_departures)
 
-    # set the trips "earliest" column equal to the max outbound departure time if
-    # the max outbound departure time is greater than the current value of "earliest"
-    num_inbound = len(trips[~trips['outbound']])
-    num_updated = len(trips[(trips['earliest'] < trips['max_outbound_departure']) & (~trips['outbound'])])
+    # set the trips "earliest" column equal to the max outbound departure
+    # time if the max outbound departure time is greater than the current
+    # value of "earliest"
+    trips['earliest'] = trips[[
+        'earliest', 'max_outbound_departure']].max(axis=1)
 
 
 def clip_probs(trips, probs, model_settings):

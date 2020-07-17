@@ -15,6 +15,7 @@ from activitysim.core import simulate
 
 from activitysim.abm.models.util import expressions
 
+
 logger = logging.getLogger('activitysim')
 
 
@@ -61,26 +62,27 @@ def compute_logsums(model_settings,
 
 def compute_tap_tap_utilities(network_los, model_settings, chunk_size, trace_label):
 
-    sub_model_name = 'TAP_TAP'
-    tap_tap_settings = model_settings[sub_model_name]
+    tap_tap_settings = network_los.setting('tap_to_tap.logsums')
+
     model_constants = config.get_model_constants(model_settings)
 
-    demographic_segments = model_settings.get('DEMOGRAPHIC_SEGMENTS')
+    demographic_segments = network_los.setting('DEMOGRAPHIC_SEGMENTS')
 
     spec = simulate.read_model_spec(file_name=tap_tap_settings['SPEC'])
-    time_of_day = tap_tap_settings['TIME_OF_DAY']
 
     taps = network_los.tap_df['TAP'].values
     tap_tap_df = pd.DataFrame({
         'btap': np.repeat(taps, len(taps)),
         'atap': np.tile(taps, len(taps)),
-        'tod': time_of_day
     })
 
     # FIXME drop diagonal?
     tap_tap_df = tap_tap_df[tap_tap_df.btap != tap_tap_df.atap]
 
     for seg, demographic_specific_parameters in demographic_segments.items():
+
+        print(f"seg {seg} demographic_specific_parameters: {demographic_specific_parameters}")
+        bug
 
         logsums = compute_logsums(
             tap_tap_settings,
@@ -95,13 +97,15 @@ def compute_tap_tap_utilities(network_los, model_settings, chunk_size, trace_lab
         tap_tap_df[seg] = logsums
 
     result_df = tap_tap_df.set_index(['btap', 'atap'], drop=True).drop(columns='tod')
+
     return result_df
 
 
 def compute_maz_tap_utilities(network_los, model_settings, chunk_size, trace_label):
 
     model_constants = config.get_model_constants(model_settings)
-    modes = model_settings['MAZ_TAP_MODES']
+    modes = network_los.setting('maz_tap_modes')
+
     demographic_segments = model_settings['DEMOGRAPHIC_SEGMENTS']
 
     maz_to_tap_utilities = {}
@@ -110,7 +114,7 @@ def compute_maz_tap_utilities(network_los, model_settings, chunk_size, trace_lab
 
         mode_specific_spec = simulate.read_model_spec(file_name=mode_settings['SPEC'])
 
-        choosers = network_los.maz_to_tap_df
+        choosers = network_los.maz_to_tap_dfs[mode]
         if 'CHOOSER_COLUMNS' in mode_settings:
             choosers = choosers[mode_settings.get('CHOOSER_COLUMNS')]
 
@@ -129,6 +133,13 @@ def compute_maz_tap_utilities(network_los, model_settings, chunk_size, trace_lab
                 trace_label=trace_label)
 
         maz_to_tap_utilities[mode] = utilities_df
+
+    DUMP = True
+    if DUMP:
+        for mode in maz_to_tap_utilities:
+            print(f"\nmode: {mode}")
+            print(f"\nmode: {maz_to_tap_utilities[mode]}")
+        bug
 
     return maz_to_tap_utilities
 
@@ -174,23 +185,34 @@ def generate_paths(orig_maz_tap_utilities, tap_tap_utilities, dest_maz_tap_utili
 
 
 @inject.step()
-def transit_virtual_path_builder(network_los, chunk_size, output_dir):
+def transit_virtual_path_builder(network_los, path_builder, chunk_size, output_dir):
 
     trace_label = 'tvpb'
 
     model_settings = config.read_model_settings('tvpb.yaml')
-    modes = model_settings['MAZ_TAP_MODES'].keys()
-    demographic_segments = model_settings['DEMOGRAPHIC_SEGMENTS'].keys()
+
+    path_builder.build_tap_tap_utilities(chunk_size, trace_label)
+
+    modes = network_los.maz_to_tap_modes
+    demographic_segments = network_los.setting('DEMOGRAPHIC_SEGMENTS').keys()
+
 
     # DataFrame indexed by atap, btap with utilities for each demographic_segment (vot varies by segment)
     tap_tap_utilities_df = \
         compute_tap_tap_utilities(network_los, model_settings, chunk_size, trace_label)
 
-    # dict keyd by mode of DataFrame with index ['MAZ', 'TAP'] and one column of utilities per demographic segment
+    # dict keyed by mode of DataFrame with index ['MAZ', 'TAP'] and one column of utilities per demographic segment
     maz_tap_utilities = \
         compute_maz_tap_utilities(network_los, model_settings, chunk_size, trace_label)
 
     logger.debug(f"{trace_label} tap_tap_utilities_df shape: {tap_tap_utilities_df.shape}")
+
+    mazs = network_los.maz_df['MAZ'].values
+    choosers_df = pd.DataFrame({
+        'orig_maz': np.repeat(mazs, len(mazs)),
+        'dest_maz': np.tile(mazs, len(mazs)),
+    })
+
 
     for orig_mode in modes:
         for dest_mode in modes:

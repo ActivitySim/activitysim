@@ -78,10 +78,10 @@ def trip_mode_choice(
     orig_col = 'origin'
     dest_col = 'destination'
 
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col, right_key=dest_col,
-                                             skim_key='trip_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col, right_key=orig_col,
-                                             skim_key='trip_period')
+    odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col, dest_key=dest_col,
+                                             dim3_key='trip_period')
+    dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col, dest_key=orig_col,
+                                             dim3_key='trip_period')
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
 
     skims = {

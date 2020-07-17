@@ -101,14 +101,14 @@ def tour_mode_choice_simulate(tours, persons_merged,
     dest_col_name = 'destination'
     out_time_col_name = 'start'
     in_time_col_name = 'end'
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,
-                                             skim_key='out_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
-                                             skim_key='in_period')
-    odr_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,
-                                             skim_key='in_period')
-    dor_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
-                                             skim_key='out_period')
+    odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
+                                             dim3_key='out_period')
+    dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
+                                             dim3_key='in_period')
+    odr_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
+                                             dim3_key='in_period')
+    dor_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
+                                             dim3_key='out_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
     skims = {

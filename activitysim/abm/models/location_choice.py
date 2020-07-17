@@ -96,7 +96,7 @@ def write_estimation_specs(estimator, model_settings, settings_file):
 def run_location_sample(
         segment_name,
         persons_merged,
-        skim_dict,
+        network_los,
         dest_size_terms,
         estimator,
         model_settings,
@@ -139,6 +139,7 @@ def run_location_sample(
     # and a zone_id in the alternatives which get merged during interaction
     # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
     # the skims will be available under the name "skims" for any @ expressions
+    skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap('home_zone_id', 'zone_id')
 
     locals_d = {
@@ -168,7 +169,7 @@ def run_location_sample(
 def run_location_logsums(
         segment_name,
         persons_merged_df,
-        skim_dict, skim_stack,
+        network_los,
         location_sample_df,
         model_settings,
         chunk_size, trace_hh_id, trace_label):
@@ -213,7 +214,7 @@ def run_location_logsums(
         choosers,
         tour_purpose,
         logsum_settings, model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_label)
 
@@ -230,7 +231,7 @@ def run_location_simulate(
         segment_name,
         persons_merged,
         location_sample_df,
-        skim_dict,
+        network_los,
         dest_size_terms,
         want_logsums,
         estimator,
@@ -267,6 +268,7 @@ def run_location_simulate(
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
     # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
+    skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap('home_zone_id', alt_dest_col_name)
 
     locals_d = {
@@ -310,7 +312,7 @@ def run_location_simulate(
 
 def run_location_choice(
         persons_merged_df,
-        skim_dict, skim_stack,
+        network_los,
         shadow_price_calculator,
         want_logsums,
         want_sample_table,
@@ -327,8 +329,7 @@ def run_location_choice(
     ----------
     persons_merged_df : pandas.DataFrame
         persons table merged with households and land_use
-    skim_dict : skim.SkimDict
-    skim_stack : skim.SkimStack
+    network_los : los.Network_LOS
     shadow_price_calculator : ShadowPriceCalculator
         to get size terms
     want_logsums : boolean
@@ -371,7 +372,7 @@ def run_location_choice(
             run_location_sample(
                 segment_name,
                 choosers,
-                skim_dict,
+                network_los,
                 dest_size_terms,
                 estimator,
                 model_settings,
@@ -383,7 +384,7 @@ def run_location_choice(
             run_location_logsums(
                 segment_name,
                 choosers,
-                skim_dict, skim_stack,
+                network_los,
                 location_sample_df,
                 model_settings,
                 chunk_size,
@@ -396,7 +397,7 @@ def run_location_choice(
                 segment_name,
                 choosers,
                 location_sample_df,
-                skim_dict,
+                network_los,
                 dest_size_terms,
                 want_logsums,
                 estimator,
@@ -441,7 +442,7 @@ def run_location_choice(
 def iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, locutor,
         trace_label):
@@ -456,8 +457,7 @@ def iterate_location_choice(
     model_settings : dict
     persons_merged : injected table
     persons : injected table
-    skim_dict : skim.SkimDict
-    skim_stack : skim.SkimStack
+    network_los : los.Network_LOS
     chunk_size : int
     trace_hh_id : int
     locutor : bool
@@ -502,7 +502,7 @@ def iterate_location_choice(
 
         choices_df, save_sample_df = run_location_choice(
             persons_merged_df,
-            skim_dict, skim_stack,
+            network_los,
             shadow_price_calculator=spc,
             want_logsums=logsum_column_name is not None,
             want_sample_table=want_sample_table,
@@ -595,7 +595,7 @@ def iterate_location_choice(
 @inject.step()
 def workplace_location(
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id, locutor):
     """
     workplace location choice model
@@ -618,7 +618,7 @@ def workplace_location(
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, locutor, trace_label
     )
@@ -630,7 +630,7 @@ def workplace_location(
 @inject.step()
 def school_location(
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id, locutor
         ):
     """
@@ -649,7 +649,7 @@ def school_location(
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, locutor, trace_label
     )

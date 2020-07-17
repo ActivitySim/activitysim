@@ -1,8 +1,5 @@
 inherit_settings: True
 
-# input skims
-skims_file:
-
 network_los:
 
   zone_system: 1

@@ -24,7 +24,7 @@ def taz_skim_dict(network_los):
 
     logger.info("loading taz_skim_dict")
 
-    return network_los.get_skim_dict('taz')
+    return network_los.skim_dict('taz')
 
 
 @inject.injectable(cache=True)
@@ -32,4 +32,4 @@ def tap_skim_dict(network_los):
 
     logger.info("loading tap_skim_dict")
 
-    return network_los.get_skim_dict('tap')
+    return network_los.skim_dict('tap')

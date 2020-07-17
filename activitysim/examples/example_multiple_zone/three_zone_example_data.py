@@ -161,12 +161,14 @@ with \
             access_mode = skim_name[0:3]
             transit_mode = skim_name[4:7]
             egress_mode = skim_name[8:11]
-            suffix = skim_name[12:]
+            datum_name = skim_name[12:-4]
+            tod = skim_name[-2:]
             if access_mode == 'WLK' and egress_mode == 'WLK':
-                tap_skim_name = f'{transit_mode}_{suffix}'
-                output_tap_skims_file[tap_skim_name] = new_skim
-                print(f"tap skim: {skim_name} tap_skim_name: {tap_skim_name}, "
-                      f"shape: {str(output_tap_skims_file.shape())}")
+                for suffix in ['FAST', 'SHORT', 'CHEAP']:
+                    tap_skim_name = f'{transit_mode}_{datum_name}_{suffix}__{tod}'
+                    output_tap_skims_file[tap_skim_name] = new_skim
+                    print(f"tap skim: {skim_name} tap_skim_name: {tap_skim_name}, "
+                          f"shape: {str(output_tap_skims_file.shape())}")
 
         if is_taz_mode:
             output_taz_skims_file[skim_name] = new_skim

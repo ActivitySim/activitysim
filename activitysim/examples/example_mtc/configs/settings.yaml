@@ -94,13 +94,6 @@ use_shadow_pricing: False
 # want_dest_choice_sample_tables: False
 
 
-# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
-#read_skim_cache: True
-# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
-#write_skim_cache: True
-#alternate dir to read/write skim cache (defaults to output_dir)
-#skim_cache_dir: data/cache
-
 # - tracing
 
 # trace household id; comment out or leave empty for no trace

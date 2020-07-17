@@ -401,10 +401,10 @@ def wrap_skims(model_settings):
     p = model_settings['PRIMARY_DEST']
 
     skims = {
-        "odt_skims": skim_stack.wrap(left_key=o, right_key=d, skim_key='trip_period'),
-        "dot_skims": skim_stack.wrap(left_key=d, right_key=o, skim_key='trip_period'),
-        "dpt_skims": skim_stack.wrap(left_key=d, right_key=p, skim_key='trip_period'),
-        "pdt_skims": skim_stack.wrap(left_key=p, right_key=d, skim_key='trip_period'),
+        "odt_skims": skim_stack.wrap(orig_key=o, dest_key=d, dim3_key='trip_period'),
+        "dot_skims": skim_stack.wrap(orig_key=d, dest_key=o, dim3_key='trip_period'),
+        "dpt_skims": skim_stack.wrap(orig_key=d, dest_key=p, dim3_key='trip_period'),
+        "pdt_skims": skim_stack.wrap(orig_key=p, dest_key=d, dim3_key='trip_period'),
         "od_skims": skim_dict.wrap(o, d),
         "dp_skims": skim_dict.wrap(d, p),
     }

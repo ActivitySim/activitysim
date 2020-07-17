@@ -17,20 +17,19 @@ import pandas as pd
 import openmatrix as omx
 
 from activitysim.core import skim
+from activitysim.core import skim_maz
+
 from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
 
 logger = logging.getLogger(__name__)
 
-LOS_SETTINGS_NAME = 'network_los'
+LOS_SETTINGS_FILE_NAME = 'network_los.yaml'
 
 ONE_ZONE = 1
 TWO_ZONE = 2
 THREE_ZONE = 3
-
-REQUIRED_TWO_ZONE_TABLES = ['maz', 'maz_to_maz']
-REQUIRED_THREE_ZONE_TABLES = REQUIRED_TWO_ZONE_TABLES + ['tap', 'maz_to_tap']
 
 
 def multiply_large_numbers(list_of_numbers):
@@ -88,13 +87,12 @@ def build_skim_cache_file_name(skim_tag):
     return f"cached_{skim_tag}.mmap"
 
 
-def read_skim_cache(skim_info, skim_data):
+def read_skim_cache(skim_info, skim_data, skim_cache_dir):
     """
         read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
     """
 
-    skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
-    logger.info(f"load_skims reading skims data from cache directory {skim_cache_dir}")
+    logger.info(f"reading skims data from cache directory {skim_cache_dir}")
 
     skim_tag = skim_info['skim_tag']
     dtype = np.dtype(skim_info['dtype'])
@@ -105,7 +103,7 @@ def read_skim_cache(skim_info, skim_data):
     assert os.path.isfile(skim_cache_path), \
         "read_skim_cache could not find skim_cache_path: %s" % (skim_cache_path,)
 
-    logger.info(f"load_skims reading skim cache {skim_tag} {skim_data.shape} from {skim_cache_file_name}")
+    logger.info(f"reading skim cache {skim_tag} {skim_data.shape} from {skim_cache_file_name}")
 
     data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='r')
     assert data.shape == skim_data.shape
@@ -113,13 +111,12 @@ def read_skim_cache(skim_info, skim_data):
     skim_data[::] = data[::]
 
 
-def write_skim_cache(skim_info, skim_data):
+def write_skim_cache(skim_info, skim_data, skim_cache_dir):
     """
         write skim data from skim_data to canonically named cache file(s) in output directory
     """
 
-    skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
-    logger.info(f"load_skims writing skims data to cache directory {skim_cache_dir}")
+    logger.info(f"writing skims data to cache directory {skim_cache_dir}")
 
     skim_tag = skim_info['skim_tag']
     dtype = np.dtype(skim_info['dtype'])
@@ -127,7 +124,7 @@ def write_skim_cache(skim_info, skim_data):
     skim_cache_file_name = build_skim_cache_file_name(skim_tag)
     skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
 
-    logger.info(f"load_skims writing skim cache {skim_tag} {skim_data.shape} to {skim_cache_file_name}")
+    logger.info(f"writing skim cache {skim_tag} {skim_data.shape} to {skim_cache_file_name}")
 
     data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='w+')
     data[::] = skim_data
@@ -172,22 +169,23 @@ def read_skims_from_omx(skim_info, skim_data):
         logger.info(f"read_skims_from_omx loaded {num_skims_loaded} skims from {omx_file_name}")
 
 
-def load_skims(skim_info, skim_buffer):
+def load_skims(skim_info, skim_buffer, network_los):
 
-    read_cache = config.setting('read_skim_cache')
-    write_cache = config.setting('write_skim_cache')
+    read_cache = network_los.setting('read_skim_cache')
+    write_cache = network_los.setting('write_skim_cache')
+
     assert not (read_cache and write_cache), \
         "read_skim_cache and write_skim_cache are both True in settings file. I am assuming this is a mistake"
 
     skim_data = skim_data_from_buffer(skim_info, skim_buffer)
 
     if read_cache:
-        read_skim_cache(skim_info, skim_data)
+        read_skim_cache(skim_info, skim_data, network_los.setting('skim_cache_dir', default_skim_cache_dir()))
     else:
         read_skims_from_omx(skim_info, skim_data)
 
     if write_cache:
-        write_skim_cache(skim_info, skim_data)
+        write_skim_cache(skim_info, skim_data, network_los.setting('skim_cache_dir', default_skim_cache_dir()))
 
 
 def load_skim_info(skim_tag, omx_file_names, skim_time_periods):
@@ -202,6 +200,9 @@ def load_skim_info(skim_tag, omx_file_names, skim_time_periods):
     -------
 
     """
+
+    # accept a single file_name str as well as list of file names
+    omx_file_names = [omx_file_names] if isinstance(omx_file_names, str) else omx_file_names
 
     tags_to_load = skim_time_periods and skim_time_periods['labels']
 
@@ -317,7 +318,7 @@ def load_skim_info(skim_tag, omx_file_names, skim_time_periods):
     return skim_info
 
 
-def create_skim_dict(skim_tag, skim_info):
+def create_skim_dict(skim_tag, skim_info, network_los):
 
     logger.info(f"create_skim_dict loading skim dict skim_tag: {skim_tag}")
 
@@ -332,7 +333,7 @@ def create_skim_dict(skim_tag, skim_info):
         skim_buffer = data_buffers[skim_tag]
     else:
         skim_buffer = allocate_skim_buffer(skim_info, shared=False)
-        load_skims(skim_info, skim_buffer)
+        load_skims(skim_info, skim_buffer, network_los)
 
     skim_data = skim_data_from_buffer(skim_info, skim_buffer)
 
@@ -341,6 +342,7 @@ def create_skim_dict(skim_tag, skim_info):
     # create skim dict
     skim_dict = skim.SkimDict(skim_data, skim_info)
 
+    # set offset
     offset_map = skim_info['offset_map']
     if offset_map is not None:
         skim_dict.offset_mapper.set_offset_list(offset_map)
@@ -361,12 +363,12 @@ class Network_LOS(object):
         self.zone_system = None
         self.skim_time_periods = None
 
-        self.skim_info = {}
-        self.skim_dicts = {}
+        self.skims_info = {}
         self.skim_buffers = {}
-        self.table_info = {}
-
+        self.skim_dicts = {}
         self.skim_stacks = {}
+
+        self.tables = {}
 
         # TWO_ZONE and THREE_ZONE
         self.maz_df = None
@@ -376,77 +378,90 @@ class Network_LOS(object):
 
         # THREE_ZONE only
         self.tap_df = None
-        self.maz_to_tap_df = None
+        self.maz_to_tap_dfs = {}
+        self.maz_to_tap_modes = []
 
-        self.skim_time_periods = config.setting('skim_time_periods')
+        self.settings = config.read_settings_file(LOS_SETTINGS_FILE_NAME, mandatory=True)
+
         self.read_los_settings()
+
+    def setting(self, keys, default='<REQUIRED>'):
+        # get setting value for single key or dot-delimited key path (e.g. 'maz_to_tap.modes')
+        key_list = keys.split('.')
+        s = self.settings
+        for key in key_list[:-1]:
+            s = s.get(key)
+            assert isinstance(s, dict), f"expected key '{key}' not found in '{keys}' in {LOS_SETTINGS_FILE_NAME}"
+        key = key_list[-1]  # last key
+        if default == '<REQUIRED>':
+            assert key in s, f"'{key}' not found in expected setting {keys} in {LOS_SETTINGS_FILE_NAME}"
+        return s.get(key, default)
 
     def read_los_settings(self):
 
-        los_settings = config.setting(LOS_SETTINGS_NAME)
-        assert los_settings is not None, f"Network_LOS: '{LOS_SETTINGS_NAME}' settings not in settings file "
+        self.settings = config.read_settings_file(LOS_SETTINGS_FILE_NAME, mandatory=True)
 
-        self.zone_system = los_settings.get('zone_system')
+        self.zone_system = self.setting('zone_system')
         assert self.zone_system in [ONE_ZONE, TWO_ZONE, THREE_ZONE], \
             f"Network_LOS: unrecognized zone_system: {self.zone_system}"
 
-        # load skim info
-        skim_file_names = los_settings.get('skims')
-        assert skim_file_names is not None, f"'skims' list nor found in {LOS_SETTINGS_NAME} settings"
-        for skim_tag, file_names in skim_file_names.items():
-            # want skim_file_names list, not just single str file_name
-            file_names = [file_names] if isinstance(file_names, str) else file_names
-            skim_info = self.load_skim_info(skim_tag, file_names)
-            self.skim_info[skim_tag] = skim_info
+        # load taz skim_info
+        skim_file_names = self.setting('taz_skims')
+        self.skims_info['taz'] = self.load_skim_info('taz', skim_file_names)
 
-            # for key in skim_info['base_keys']:
-            #     assert key not in self.skim_tag_for_key, \
-            #         f"key '{key}' in both {skim_tag} and {self.skim_tag_for_key[key]}"
-            #     self.skim_tag_for_key[key] = skim_tag
-
-        # one zone
-        assert 'taz' in self.skim_info
-
-        # load tables info
-        self.table_info = los_settings.get('tables')
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
 
-            self.max_blend_distance = los_settings.get('maz_to_maz_max_blend_distance', {})
+            # maz_to_maz_settings
+            self.max_blend_distance = self.setting('maz_to_maz.max_blend_distance', {})
             if isinstance(self.max_blend_distance, int):
                 self.max_blend_distance = {'DEFAULT': self.max_blend_distance}
-            self.blend_distance_skim_name = los_settings.get('maz_to_maz_blend_distance_skim_name')
-
-            # FIXME - do we know which tables we expect?
-            for table_name in REQUIRED_TWO_ZONE_TABLES:
-                assert table_name in self.table_info, \
-                    f"'{table_name}' file name not listed in {LOS_SETTINGS_NAME}.tables {self.table_info}"
+            self.blend_distance_skim_name = self.setting('maz_to_maz.blend_distance_skim_name', None)
 
         if self.zone_system == THREE_ZONE:
 
-            # FIXME - do we know which tables we expect?
-            for table_name in REQUIRED_THREE_ZONE_TABLES:
-                assert table_name in self.table_info, \
-                    f"'{table_name}' file name not listed in {LOS_SETTINGS_NAME}.tables {self.table_info}"
+            # load tap skim_info
+            skim_file_names = self.setting('tap_to_tap.skims')
+            self.skims_info['tap'] = self.load_skim_info('tap', skim_file_names)
+
+            # maz_to_tap_settings
+            self.maz_to_tap_modes = self.setting('maz_to_tap.modes')
 
         # read time_periods setting
         self.skim_time_periods = config.setting('skim_time_periods')
 
-    def load_all_tables(self):
+    def load_data(self):
+
+        self.load_tables()
+
+        assert 'taz' in self.skims_info
+        self.skim_dicts['taz'] = self.create_skim_dict('taz')
+
+        if self.zone_system in [TWO_ZONE, THREE_ZONE]:
+            # need to load both taz skim and maz tables before creating MazSkimDict
+
+            # create MazSkimDict facade skim_dict
+            self.skim_dicts['maz'] = skim_maz.MazSkimDict(self)
+
+        if self.zone_system == THREE_ZONE:
+            assert 'tap' in self.skims_info
+            self.skim_dicts['tap'] = self.create_skim_dict('tap')
+
+
+    def load_tables(self):
+
+        def as_list(file_name):
+            return [file_name] if isinstance(file_name, str) else file_name
 
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
 
             # maz
-            file_name = self.table_info.get('maz')
-            assert file_name is not None, f"file_names not found for 'maz' in {LOS_SETTINGS_NAME}.tables"
+            file_name = self.setting('maz')
             self.maz_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
             self.maz_ceiling = self.maz_df.MAZ.max() + 1
 
             # maz_to_maz_df
-            file_names = self.table_info.get('maz_to_maz')
-            assert file_names is not None, f"file_names not found for 'maz_to_maz' in {LOS_SETTINGS_NAME}.tables"
-            file_names = [file_names] if isinstance(file_names, str) else file_names
-            for file_name in file_names:
+            for file_name in as_list(self.setting('maz_to_maz.tables')):
 
                 df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
@@ -466,49 +481,47 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
 
             # tap
-            file_name = self.table_info.get('tap')
-            assert file_name is not None, f"file_names not found for 'tap' in {LOS_SETTINGS_NAME}.tables"
+            file_name = self.setting('tap')
             self.tap_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
             # self.tap_ceiling = self.tap_df.TAP.max() + 1
 
-            # maz_to_tap_df
-            file_names = self.table_info.get('maz_to_tap')
-            assert file_names is not None, f"file_names not found for 'maz_to_tap' in {LOS_SETTINGS_NAME}.tables"
-            file_names = [file_names] if isinstance(file_names, str) else file_names
-            for file_name in file_names:
+            # maz_to_tap_dfs
+            tables = self.setting('maz_to_tap.tables')
+            assert set(self.maz_to_tap_modes) == set(tables.keys()), \
+                f"maz_to_tap.tables keys do not match maz_to_tap.modes"
+            for mode in self.maz_to_tap_modes:
+                # for now, put them all in same df
+                # FIXME different sized sparse arrays, we may want to seperate them later?
+                for file_name in as_list(tables[mode]):
 
-                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                    df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
-                # df['i'] = df.MAZ * self.maz_ceiling + df.TAP
-                df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
-                logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
+                    # df['i'] = df.MAZ * self.maz_ceiling + df.TAP
+                    df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
+                    logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
 
-                if self.maz_to_tap_df is None:
-                    self.maz_to_tap_df = df
-                else:
-                    self.maz_to_tap_df = pd.concat([self.maz_to_tap_df, df], axis=1)
+                    if mode not in self.maz_to_tap_dfs:
+                        self.maz_to_tap_dfs[mode] = df
+                    else:
+                        self.maz_to_tap_dfs[mode] = pd.concat([self.maz_to_tap_dfs[mode], df], axis=1)
 
     def load_skim_info(self, skim_tag, omx_file_names):
         """
-        Read omx files for skim <skim_tag> (e.g. 'TAZ') and build skim_info dict
+        Read omx files for skim <skim_tag> (e.g. 'TAZ') and build skims dict
         """
 
         # we could just do nothing and return if already loaded, but for now tidier to track this
-        assert skim_tag not in self.skim_info
+        assert skim_tag not in self.skims_info
         return load_skim_info(skim_tag, omx_file_names, self.skim_time_periods)
 
     def create_skim_dict(self, skim_tag):
-        return create_skim_dict(skim_tag, self.skim_info[skim_tag])
+        return create_skim_dict(skim_tag, self.skims_info[skim_tag], self)
 
-    def load_all_skims(self):
-        for skim_tag in self.skim_info.keys():
-            skim_dict = self.create_skim_dict(skim_tag)
-            self.skim_dicts[skim_tag] = skim_dict
 
     def load_shared_data(self, shared_data_buffers):
-        for skim_tag in self.skim_info.keys():
-            load_skims(self.skim_info[skim_tag], shared_data_buffers[skim_tag])
+        for skim_tag in self.skims_info.keys():
+            load_skims(self.skims_info[skim_tag], shared_data_buffers[skim_tag], self)
 
         # FIXME - should also load tables - if we knew how to share data
         # for table_name in self.table_info:
@@ -518,17 +531,21 @@ class Network_LOS(object):
 
         assert not self.skim_buffers
 
-        for skim_tag in self.skim_info.keys():
-            self.skim_buffers[skim_tag] = allocate_skim_buffer(self.skim_info[skim_tag], shared=True)
+        for skim_tag in self.skims_info.keys():
+            self.skim_buffers[skim_tag] = allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
 
         return self.skim_buffers
 
     def get_skim_dict(self, skim_tag):
-        assert skim_tag in self.skim_dicts
         return self.skim_dicts[skim_tag]
 
-    def get_skim_stack(self, skim_tag):
+    def get_default_skim_dict(self):
+        if self.zone_system == ONE_ZONE:
+            return self.get_skim_dict('taz')
+        else:
+            return self.get_skim_dict('maz')
 
+    def get_skim_stack(self, skim_tag):
         assert skim_tag in self.skim_dicts
         if skim_tag not in self.skim_stacks:
             logger.debug(f"network_los get_skim_stack initializing skim_stack for {skim_tag}")

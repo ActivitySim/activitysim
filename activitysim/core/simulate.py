@@ -10,7 +10,6 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from .skim import SkimDictWrapper, SkimStackWrapper
 from . import logit
 from . import tracing
 from . import pipeline
@@ -141,6 +140,9 @@ def read_model_coefficients(model_settings=None, file_name=None):
 
     file_path = config.config_file_path(file_name)
     coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+
+    print(file_path)
+    #bug
 
     return coefficients
 
@@ -541,20 +543,16 @@ def set_skim_wrapper_targets(df, skims):
         the skims object is intended to be used.
     """
 
-    if isinstance(skims, list):
-        for skim in skims:
-            assert isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper)
-            skim.set_df(df)
-    elif isinstance(skims, dict):
-        # it it is a dict, then check for known types, ignore anything we don't recognize as a skim
-        # (this allows putting skim column names in same dict as skims for use in locals_dicts)
-        for skim in skims.values():
-            if isinstance(skim, SkimDictWrapper) or isinstance(skim, SkimStackWrapper):
-                skim.set_df(df)
-    else:
-        assert isinstance(skims, SkimDictWrapper) or isinstance(skims, SkimStackWrapper)
-        skims.set_df(df)
+    skims = skims if isinstance(skims, list) \
+        else skims.values() if isinstance(skims, dict) \
+        else [skims]
 
+    # assume any object in skims can be treated as a skim
+    for skim in skims:
+        try:
+            skim.set_df(df)
+        except AttributeError:
+            pass
 
 def _check_for_variability(expression_values, trace_label):
     """
@@ -1107,6 +1105,9 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     # trace choosers
     if have_trace_targets:
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
+
+    #print(choosers)
+    #bug
 
     utilities = eval_utilities(spec, choosers, locals_d, trace_label, have_trace_targets)
     chunk.log_df(trace_label, "utilities", utilities)

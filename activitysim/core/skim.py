@@ -233,11 +233,11 @@ class SkimDict(object):
 
         return SkimWrapper(data, self.offset_mapper)
 
-    def wrap(self, left_key, right_key):
+    def wrap(self, orig_key, dest_key):
         """
         return a SkimDictWrapper for self
         """
-        return SkimDictWrapper(self, left_key, right_key)
+        return SkimDictWrapper(self, orig_key, dest_key)
 
 
 class SkimDictWrapper(object):
@@ -246,15 +246,15 @@ class SkimDictWrapper(object):
     where each object is identified by a key.  It operates like a
     dictionary - i.e. use brackets to add and get skim objects - but also
     has information on how to lookup against the skim objects.
-    Specifically, this object has a dataframe, a left_key and right_key.
-    It is assumed that left_key and right_key identify columns in df.  The
+    Specifically, this object has a dataframe, an orig_key and dest_key.
+    It is assumed that orig_key and dest_key identify columns in df.  The
     parameter df is usually set by the simulation itself as it's a result of
     interacting choosers and alternatives.
 
     When the user calls skims[key], key is an identifier for which skim
     to use, and the object automatically looks up impedances of that skim
-    using the specified left_key column in df as the origin and
-    the right_key column in df as the destination.  In this way, the user
+    using the specified orig_key column in df as the origin and
+    the dest_key column in df as the destination.  In this way, the user
     does not do the O-D lookup by hand and only specifies which skim to use
     for this lookup.  This is the only purpose of this object: to
     abstract away the O-D lookup and use skims by specifying which skim
@@ -263,10 +263,10 @@ class SkimDictWrapper(object):
     Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
 
-    def __init__(self, skim_dict, left_key, right_key):
+    def __init__(self, skim_dict, orig_key, dest_key):
         self.skim_dict = skim_dict
-        self.left_key = left_key
-        self.right_key = right_key
+        self.orig_key = orig_key
+        self.dest_key = dest_key
         self.df = None
 
     def set_df(self, df):
@@ -306,12 +306,12 @@ class SkimDictWrapper(object):
         """
 
         # The skim object to perform the lookup
-        # using df[left_key] as the origin and df[right_key] as the destination
+        # using df[orig_key] as the origin and df[dest_key] as the destination
         skim = self.skim_dict.get(key)
 
         # assert self.df is not None, "Call set_df first"
-        # origins = self.df[self.left_key].astype('int')
-        # destinations = self.df[self.right_key].astype('int')
+        # origins = self.df[self.orig_key].astype('int')
+        # destinations = self.df[self.dest_key].astype('int')
         # if self.offset:
         #     origins = origins + self.offset
         #     destinations = destinations + self.offset
@@ -319,9 +319,9 @@ class SkimDictWrapper(object):
         assert self.df is not None, "Call set_df first"
 
         if reverse:
-            s = skim.get(self.df[self.right_key], self.df[self.left_key])
+            s = skim.get(self.df[self.dest_key], self.df[self.orig_key])
         else:
-            s = skim.get(self.df[self.left_key], self.df[self.right_key])
+            s = skim.get(self.df[self.orig_key], self.df[self.dest_key])
 
         return pd.Series(s, index=self.df.index)
 
@@ -341,8 +341,8 @@ class SkimDictWrapper(object):
         assert self.df is not None, "Call set_df first"
 
         s = np.maximum(
-            skim.get(self.df[self.right_key], self.df[self.left_key]),
-            skim.get(self.df[self.left_key], self.df[self.right_key])
+            skim.get(self.df[self.dest_key], self.df[self.orig_key]),
+            skim.get(self.df[self.orig_key], self.df[self.dest_key])
         )
 
         return pd.Series(s, index=self.df.index)
@@ -416,12 +416,12 @@ class SkimStack(object):
 
         return stacked_skim_data[orig, dest, skim_indexes]
 
-    def wrap(self, left_key, right_key, skim_key):
+    def wrap(self, orig_key, dest_key, dim3_key):
         """
         return a SkimStackWrapper for self
         """
         return SkimStackWrapper(stack=self,
-                                left_key=left_key, right_key=right_key, skim_key=skim_key)
+                                orig_key=orig_key, dest_key=dest_key, dim3_key=dim3_key)
 
 
 class SkimStackWrapper(object):
@@ -442,14 +442,14 @@ class SkimStackWrapper(object):
     To be more explicit, the input is a dictionary of Skims objects, each of
     which contains a 2D matrix.  These are stacked into a 3D matrix with a
     mapping of keys to indexes which is applied using pandas .map to a third
-    column in the object dataframe.  The three columns - left_key and
-    right_key from the Skims object and skim_key from this one, are then used to
+    column in the object dataframe.  The three columns - orig_key and
+    dest_key from the Skims object and dim3_key from this one, are then used to
     dereference the 3D matrix.  The tricky part comes in defining the key which
     matches the 3rd dimension of the matrix, and the key which is passed into
     __getitem__ below (i.e. the one used in the specs).  By convention,
     every key in the Skims object that is passed in MUST be a tuple with 2
     items.  The second item in the tuple maps to the items in the dataframe
-    referred to by the skim_key column and the first item in the tuple is
+    referred to by the dim3_key column and the first item in the tuple is
     then available to pass directly to __getitem__.
 
     The sum conclusion of this is that in the specs, you can say something
@@ -460,19 +460,19 @@ class SkimStackWrapper(object):
     ----------
     skims: Skims
         This is the Skims object to wrap
-    skim_key : str
+    dim3_key : str
         This identifies the column in the dataframe which is used to
         select among Skim object using the SECOND item in each tuple (see
         above for a more complete description)
     """
 
-    def __init__(self, stack, left_key, right_key, skim_key):
+    def __init__(self, stack, orig_key, dest_key, dim3_key):
 
         self.stack = stack
 
-        self.left_key = left_key
-        self.right_key = right_key
-        self.skim_key = skim_key
+        self.orig_key = orig_key
+        self.dest_key = dest_key
+        self.dim3_key = dim3_key
         self.df = None
 
     def set_df(self, df):
@@ -507,9 +507,9 @@ class SkimStackWrapper(object):
         """
 
         assert self.df is not None, "Call set_df first"
-        orig = self.df[self.left_key].astype('int')
-        dest = self.df[self.right_key].astype('int')
-        dim3 = self.df[self.skim_key]
+        orig = self.df[self.orig_key].astype('int')
+        dest = self.df[self.dest_key].astype('int')
+        dim3 = self.df[self.dim3_key]
 
         skim_values = self.stack.lookup(orig, dest, dim3, key)
 

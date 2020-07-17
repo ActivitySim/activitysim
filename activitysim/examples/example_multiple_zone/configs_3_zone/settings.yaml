@@ -1,33 +1,5 @@
 inherit_settings: True
 
-# input skims
-network_los:
-
-  zone_system: 3
-
-  skims:
-    taz: taz_skims.omx
-    tap: tap_skims.omx
-
-  tables:
-    maz: maz.csv
-    tap: tap.csv
-    maz_to_maz:
-      - maz_to_maz_walk.csv
-      - maz_to_maz_bike.csv
-    maz_to_tap:
-      - maz_to_tap_walk.csv
-# not using these for now
-#      - maz_to_tap_bike.csv
-#      - maz_to_tap_drive.csv
-
-  # maz_to_maz blending distance (missing or 0 means no blending)
-  maz_to_maz_max_blend_distance:
-    DIST: 5
-    # no blending
-    DISTBIKE: 0
-    DISTWALK: 1
-
 
 skim_time_periods:
     period_minutes: 60
@@ -56,8 +28,9 @@ input_table_list:
       PERSONS: hhsize
       workers: num_workers
       VEHICL: auto_ownership
+      MAZ: home_zone_id
     keep_columns:
-      - TAZ
+      - home_zone_id
       - income
       - hhsize
       - HHT
@@ -78,10 +51,12 @@ input_table_list:
       - ptype
   - tablename: land_use
     filename: land_use.csv
-    index_col: MAZ
+    index_col: zone_id
     rename_columns:
+      MAZ: zone_id
       COUNTY: county_id
     keep_columns:
+      - TAZ
       - DISTRICT
       - SD
       - county_id
@@ -106,10 +81,10 @@ input_table_list:
       - COLLPTE
       - TOPOLOGY
       - TERMINAL
-
+      - access_dist_transit
 
 models:
-  - transit_virtual_path_builder
+#  - transit_virtual_path_builder
   - initialize_landuse
   - compute_accessibility
   - initialize_households

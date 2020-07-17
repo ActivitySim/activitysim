@@ -68,8 +68,8 @@ def annotate_trips(trips, skim_dict, skim_stack, model_settings):
     assert ('trip_period' not in trips_df)
     trips_df['trip_period'] = skim_time_period_label(trips_df.depart)
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key='origin', right_key='destination',
-                                             skim_key='trip_period')
+    odt_skim_stack_wrapper = skim_stack.wrap(orig_key='origin', dest_key='destination',
+                                             dim3_key='trip_period')
     skims = {
         'od_skims': od_skim_wrapper,
         "odt_skims": odt_skim_stack_wrapper

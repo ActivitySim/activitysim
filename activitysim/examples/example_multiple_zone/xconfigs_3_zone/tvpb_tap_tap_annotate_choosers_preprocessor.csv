@@ -1,0 +1,8 @@
+Description,Target,Expression
+#,,
+,_bus_available,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_TOTIVT')>0"
+,_com_available,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'COM_TOTIVT')>0"
+,_exp_available,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'EXP_TOTIVT')>0"
+,_hvy_available,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HVY_TOTIVT')>0"
+,_lrf_available,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LRF_TOTIVT')>0"
+,transit_available,_bus_available | _com_available | _exp_available | _hvy_available | _lrf_available

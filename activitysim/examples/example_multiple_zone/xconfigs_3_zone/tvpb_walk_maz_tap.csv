@@ -1,0 +1,3 @@
+Label,Description,Expression,utility
+util_walk_available,walk available,"@df.walk_time.isna() * C_UNAVAILABLE",1
+util_walk_time,walk time,"@c_walk * vot * df.walk_time",1

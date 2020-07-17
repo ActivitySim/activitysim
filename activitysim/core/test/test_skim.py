@@ -126,7 +126,7 @@ def test_3dskims(data):
 
     stack = skim.SkimStack(skim_dict)
 
-    skims3d = stack.wrap(left_key="taz_l", right_key="taz_r", skim_key="period")
+    skims3d = stack.wrap(orig_key="taz_l", dest_key="taz_r", dim3_key="period")
 
     df = pd.DataFrame({
         "taz_l": [1, 9, 4],

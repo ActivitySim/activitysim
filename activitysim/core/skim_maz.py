@@ -60,8 +60,8 @@ class MazSkimDictFacade(object):
         taz_skim_wrapper.offset_mapper = self.offset_mapper
         return taz_skim_wrapper
 
-    def wrap(self, left_key, right_key):
-        return skim.SkimDictWrapper(self, left_key, right_key)
+    def wrap(self, orig_key, dest_key):
+        return skim.SkimDictWrapper(self, orig_key, dest_key)
 
 
 class MazSparseSkimWrapper(object):
@@ -182,5 +182,5 @@ class MazSkimDict(object):
 
         return skim_wrapper
 
-    def wrap(self, left_key, right_key):
-        return skim.SkimDictWrapper(self, left_key, right_key)
+    def wrap(self, orig_key, dest_key):
+        return skim.SkimDictWrapper(self, orig_key, dest_key)

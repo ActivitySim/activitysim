@@ -1,4 +1,5 @@
 coefficient_name,value,constrain
+coef_one,1,T
 coef_nest_root,1.00,T
 coef_nest_AUTO,0.72,T
 coef_nest_AUTO_DRIVEALONE,0.35,T

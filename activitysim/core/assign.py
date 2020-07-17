@@ -96,7 +96,13 @@ def read_assignment_spec(file_name,
         dataframe with three columns: ['description' 'target' 'expression']
     """
 
-    cfg = pd.read_csv(file_name, comment='#')
+    try:
+        cfg = pd.read_csv(file_name, comment='#')
+    except Exception as e:
+        logger.error(f"Error reading spec file: {file_name}")
+        logger.error(str(e))
+        raise e
+
 
     # drop null expressions
     # cfg = cfg.dropna(subset=[expression_name])

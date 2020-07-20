@@ -35,6 +35,13 @@ def write_trip_matrices(trips, skim_dict, skim_stack):
 
     logger.info('Aggregating trips...')
     aggregate_trips = trips_df.groupby(['origin', 'destination'], sort=False).sum()
+
+    # use the average household weight for all trips in the origin destination pair
+    hh_weight_col = model_settings.get('HH_EXPANSION_WEIGHT_COL')
+    aggregate_weight = trips_df[['origin', 'destination', hh_weight_col]].groupby(['origin', 'destination'],
+                                                                                  sort=False).mean()
+    aggregate_trips[hh_weight_col] = aggregate_weight[hh_weight_col]
+
     logger.info('Finished.')
 
     orig_vals = aggregate_trips.index.get_level_values('origin')

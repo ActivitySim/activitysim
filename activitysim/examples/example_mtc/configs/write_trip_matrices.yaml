@@ -272,3 +272,6 @@ CONSTANTS:
     EV:
       first_hour: 19
       last_hour: 2
+  # SHARED2 and SHARED3 Occupancies
+  OCC_SHARED2: 2.0
+  OCC_SHARED3: 3.33

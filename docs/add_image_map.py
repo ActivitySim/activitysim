@@ -39,10 +39,10 @@ with open(fileName) as file:
     lines = file.readlines()
 
 with open(fileName, 'w') as file:
-    for l in lines:
-        if line in l:
+    for aLine in lines:
+        if line in aLine:
             print("updated " + fileName)
-            file.writelines("%s" % l.replace(line, lineWithMap))
+            file.writelines("%s" % aLine.replace(line, lineWithMap))
             file.writelines("%s" % imageMap)
         else:
-            file.writelines("%s" % l)
+            file.writelines("%s" % aLine)

@@ -760,7 +760,7 @@ Data Schema
 ~~~~~~~~~~~
 
 The following table lists the pipeline data tables, each final field, the data type, the step that created it, and the
-number of columns and rows in the table at the time of creation.  The ``scripts\make_pipeline_output.py`` script
+number of columns and rows in the table at the time of creation.  The ``other_resources\scripts\make_pipeline_output.py`` script
 uses the information stored in the pipeline file to create the table below for a small sample of households.
 
 +----------------------------+-------------------------------+---------+------------------------------+------+------+

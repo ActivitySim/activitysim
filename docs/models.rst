@@ -798,6 +798,14 @@ CDAP
 .. index:: table annotation
 .. _table_annotation:
 
+Estimation
+~~~~~~~~~~
+
+Write estimation data bundles (EDBs). See :ref:`estimation` for more information.
+
+.. automodule:: activitysim.abm.models.util.estimation
+   :members:
+
 Expressions
 ~~~~~~~~~~~
 

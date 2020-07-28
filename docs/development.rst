@@ -168,11 +168,10 @@ ActivitySim uses the following `versioning convention <http://the-hitchhikers-gu
 
 ::
 
-  MAJOR.MINOR[.MICRO]
+  MAJOR.MINOR
 
 * where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs or ABIs.
 * MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.
-* Some softwares use a third level: MICRO. This level is used when the release cycle of minor release is quite long. In that case, micro releases are dedicated to bug fixes.
 
 Testing
 ~~~~~~~
@@ -214,12 +213,6 @@ Profiling
 A good way to profile ActivitySim model runs is to use `snakeviz <https://jiffyclub.github.io/snakeviz/>`__.  
 To do so, first install snakeviz and then run ActivitySim with the Python profiler (cProfile) to create 
 a profiler file.  Then run snakeviz on the profiler file to interactively explore the component runtimes.
-
-::
-
-    pip install snakeviz
-    python -m cProfile -o asim.prof simulation.py
-    snakeviz asim.prof
 
 Documentation
 ~~~~~~~~~~~~~

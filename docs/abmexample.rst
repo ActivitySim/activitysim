@@ -30,7 +30,7 @@ individual decision-makers.
 Space
 ~~~~~
 
-TM1 uses the 1454-zone system developed for the previous MTC trip-based model.  The zones are fairly large for the region,
+TM1 uses the 1454-zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
 which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the
 original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
@@ -53,8 +53,10 @@ two input data sets, transit virtual path building (TVPB) is done to generate LO
   * alighting TAP to destination microzone using microzone to TAP LOS measures
 
 The resulting complete transit path LOS for the best, or a bundle of, paths is then used in the demand model
-for representing transit LOS at the microzone level.  Support for multiple zone systems is **NOT YET IMPLEMENTED**, but
-planned for a future release.  For the time being, all travel is modeled at the TAZ level.
+for representing transit LOS at the microzone level.  
+
+Support for multiple zone systems is **NOT YET IMPLEMENTED**, but planned for the next release.  For the time being, 
+all travel is modeled at the TAZ level.
 
 Decision-making units
 ~~~~~~~~~~~~~~~~~~~~~
@@ -187,27 +189,43 @@ The trip modes defined in the example model are below. The modes include auto by
 occupancy and toll/non-toll choice, walk and bike, walk and drive access to five different
 transit line-haul modes, and ride hail with taxi, single TNC (Transportation Network Company), and shared TNC.
 
-  1. Auto - SOV (Free)
-  2. Auto - SOV (Pay)
-  3. Auto - 2 Person (Free)
-  4. Auto - 2 Person (Pay)
-  5. Auto - 3+ Person (Free)
-  6. Auto - 3+ Person (Pay)
-  7. Walk
-  8. Bike
-  9. Walk to Local Bus
-  10. Walk to Light-Rail Transit
-  11. Walk to Express Bus
-  12. Walk to Bus Rapid Transit
-  13. Walk to Heavy Rail
-  14. Drive to Local Bus
-  15. Drive to Light-Rail Transit
-  16. Drive to Express Bus
-  17. Drive to Bus Rapid Transit
-  18. Drive to Heavy Rail
-  19. Taxi
-  20. Single TNC
-  21. Shared TNC
+  * Auto
+  
+    * SOV Free
+    * SOV Pay
+    * 2 Person Free
+    * 2 Person Pay
+    * 3+ Person Free
+    * 3+ Person Pay
+  
+  * Nonmotorized
+    
+    * Walk
+    * Bike
+  
+  * Transit 
+  
+    * Walk
+    
+      * Walk to Local Bus
+      * Walk to Light-Rail Transit
+      * Walk to Express Bus
+      * Walk to Bus Rapid Transit
+      * Walk to Heavy Rail
+    
+    * Drive
+    
+      * Drive to Local Bus
+      * Drive to Light-Rail Transit
+      * Drive to Express Bus
+      * Drive to Bus Rapid Transit
+      * Drive to Heavy Rail
+  
+  * Ride Hail
+  
+    * Taxi
+    * Single TNC
+    * Shared TNC
 
 Sub-models
 ~~~~~~~~~~
@@ -283,12 +301,13 @@ of MTC TM1 households, persons, and OMX skims are on the MTC `box account <https
   ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
   HDF5 is binary and therefore results in faster read times. see :ref:`configuration`
 
-  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.
+  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__ or 
+  `HDFView <https://www.hdfgroup.org/downloads/hdfview>`__.
   
-  The ``scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
-  Cube to OMX using the ``scripts\mtc_tm1_omx_export.s`` script.
+  The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
+  Cube to OMX using the ``other_resources\scripts\mtc_tm1_omx_export.s`` script.
 
-  The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
+  The example inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
   skim inputs for a subset of user-defined zones.
 
 .. _configuration:
@@ -308,7 +327,8 @@ is the main settings file for the model run.  This file includes:
     * ``tablename`` - name of the injected table
     * ``filename`` - name of the CSV or HDF5 file to read (optional, defaults to `input_store`)
     * ``index_col`` - table column to use for the index
-    * ``column_map`` - dictionary of column name mappings
+    * ``rename_columns`` - dictionary of column name mappings
+    * ``keep_columns`` - columns to keep once read in to memory to save on memory needs and file I/O
     * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
 
 * ``create_input_store`` - write new 'input_data.h5' file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
@@ -320,6 +340,10 @@ is the main settings file for the model run.  This file includes:
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
+* ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models
+* ``read_skim_cache`` - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)
+* ``write_skim_cache`` - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+* ``skim_cache_dir`` - alternate dir to read/write skim cache (defaults to output_dir)
 * global variables that can be used in expressions tables and Python code such as:
 
     * ``urban_threshold`` - urban threshold area type max value
@@ -586,6 +610,10 @@ The model is run by calling the :func:`activitysim.core.pipeline.run` method.
 
   pipeline.run(models=_MODELS, resume_after=resume_after)
 
+.. note::
+   Users can skip persisting tables to the pipeline data store on disk by adding an underscore prefix to the models in the 
+   models list in the settings file: _school_location instead of school_location.  This will cut down on the disk writes.
+
 .. _example_run :
 
 Running the MTC Example
@@ -637,12 +665,12 @@ Multiprocessing
 ~~~~~~~~~~~~~~~
 
 The model system is parallelized via :ref:`multiprocessing`.  To setup and run the :ref:`example` using
-multiprocessing, follow the same steps as the above :ref:`example_run`, but use the ``-m`` flag to
-toggle multiprocessing:
+multiprocessing, follow the same steps as the above :ref:`example_run`, but add an additional ``-c`` flag to
+include the multiprocessing configuration settings as well:
 
 ::
 
-  activitysim run --working_dir my_test_example -m
+  activitysim run -c my_test_example/configs_mp -c my_test_example/configs -d my_test_example/data -o my_test_example/output
 
 The multiprocessing example also writes outputs to the ``output`` folder.
 
@@ -672,7 +700,7 @@ Outputs
 
 The key output of ActivitySim is the HDF5 data pipeline file ``outputs\pipeline.h5``.  This file contains a copy
 of each key data table after each model step in which the table was modified.  The
-``scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create the table
+``other_resources\scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create the table
 below for a small sample of households.  The table shows that for each table in the pipeline, the number of rows
 and/or columns changes as a result of the relevant model step.  A ``checkpoints`` table is also stored in the
 pipeline, which contains the crosswalk between model steps and table states in order to reload tables for
@@ -744,7 +772,7 @@ restarting the pipeline at any step.
 | workplace_modeled_size            | workplace_location                 | 1454 | 4    |
 +-----------------------------------+------------------------------------+------+------+
 
-The example ``simulation.py`` run model script also writes the final tables to CSV files by using 
+The example also writes the final tables to CSV files by using 
 the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.
 This method returns a pandas DataFrame, which is then written to a CSV file by the ``write_tables`` step.
 

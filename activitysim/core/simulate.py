@@ -220,12 +220,12 @@ def get_segment_coefficients(model_settings, segment_name):
         coef_ivt_school_univ        -0.0224         F
         coef_ivt_work               -0.0134         F
         coef_ivt_atwork             -0.0188         F
-        
+
         template_df
 
         coefficient_name     eatout                       school                 school                 work
         coef_ivt             coef_ivt_eatout_escort_...   coef_ivt_school_univ   coef_ivt_school_univ   coef_ivt_work
-        
+
         For school segment this will return the generic coefficient name withe h segment-specific coefficient value
         e.g. {'coef_ivt': -0.0224, ...}
         ...

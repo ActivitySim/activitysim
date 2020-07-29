@@ -243,7 +243,7 @@ actually uses the ``persons_merged`` table, which includes joined household, lan
 tables as well.  The school location model also requires the skims dictionary object, which is discussed next.
 Before running the generic iterate location choice function, the model reads the model settings file, which
 defines various settings, including the expression files, sample size, mode choice logsum
-calulcation settings, time periods for skim lookups, shadow pricing settings, etc.
+calculation settings, time periods for skim lookups, shadow pricing settings, etc.
 
 ::
 

@@ -29,7 +29,6 @@ Contents
    models
    howitworks
    core
-   estimation
    cli
    development
 

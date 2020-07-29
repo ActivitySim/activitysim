@@ -35,6 +35,7 @@ setup(
         'tables >= 3.5.1',
         'toolz >= 0.8.1',
         'zbox >= 1.2',
-        'psutil >= 4.1'
+        'psutil >= 4.1',
+        'requests >= 2.7'
     ]
 )

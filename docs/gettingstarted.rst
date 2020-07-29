@@ -43,17 +43,17 @@ Installation
   # required packages for running ActivitySim
   conda install cytoolz numpy pandas psutil
   conda install -c anaconda pytables pyyaml
-  pip install openmatrix zbox
+  pip install openmatrix zbox requests
 
   # optional required packages for testing and building documentation
   conda install pytest pytest-cov coveralls pycodestyle
   conda install sphinx numpydoc sphinx_rtd_theme
   
   # optional required packages for example notebooks and estimation integration
-  conda install jupyterlab # for notebooks
-  conda install matplotlib # for charts
+  conda install jupyterlab          # for notebooks
+  conda install matplotlib          # for charts
   conda install geopandas descartes # for maps
-  conda install larch # for estimation integration
+  conda install larch               # for estimation
 
 5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.
 
@@ -114,13 +114,13 @@ To setup and run the :ref:`example`, do the following:
 
 * Open a command prompt
 * Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)
-* Type ``activitysim create -e example_mtc -d test_example_mtc`` to copy the very small MTC example to a new directory
-* Change to the ``test_example_mtc`` directory
+* Type ``activitysim create -e example_mtc -d test_example_mtc`` to copy the very small MTC example to a new test_example_mtc directory
+* Change to the test_example_mtc directory
 * Type ``activitysim run -c configs -o output -d data`` to run the example
-* Review the outputs in the ``output`` directory
+* Review the outputs in the output directory
 
 .. note::
-   Common configuration settings can be overidden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
+   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
 
 More complete examples, including the full scale MTC regional demand model are available for creation by typing ``activitysim create -l``.  To create 
 these examples, ActivitySim downloads the large input files from the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.
@@ -132,7 +132,13 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 
 * Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
-* Type ``jupyter notebook``, navigate to the notebooks folder containing the ``*.ipynb`` files, and select a notebook to run in step-wise fashion to learn more!
+* Type ``jupyter notebook`` to launch the web-based notebook manager
+* Navigate to the notebooks folder and select a notebook to learn more:
+
+  * `Getting started <https://github.com/activitysim/activitysim/blob/develop/notebooks/getting_started.ipynb/>`__
+  * `Summarizing results <https://github.com/activitysim/activitysim/blob/develop/notebooks/summarizing_results.ipynb/>`__
+  * `Testing a change in auto ownership <https://github.com/activitysim/activitysim/blob/develop/notebooks/change_in_auto_ownership.ipynb/>`__
+  * `Adding TNCs <https://github.com/activitysim/activitysim/blob/develop/notebooks/adding_tncs.ipynb/>`__
 
 Hardware
 --------
@@ -146,10 +152,10 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
 access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
-households, 7.5 people, 1475 zones, 826 network skims and has been run between one hour and one day depending
+households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.
 
 .. note::
-   ActivitySim has been run in the cloud, on both Windows and Linux OS using
-   `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations,
-   Azure scripts, runtimes, and costs are in the ``other_resources\example_azure`` folder.
+   ActivitySim has been run in the cloud, on both Windows and Linux using
+   `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations, 
+   scripts, and runtimes are in the ``other_resources\example_azure`` folder.

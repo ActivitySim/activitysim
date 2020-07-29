@@ -1,0 +1,146 @@
+------------ azure Windows 432GB 64 processors
+
+# run1
+mem_tick: 30
+strict: False
+households_sample_size:  0
+chunk_size: 20000000000
+num_processes: 40
+
+INFO - activitysim.core.mem - high water mark used: 188.825035095 timestamp: 08/11/2018 18:10:42 label:
+INFO - activitysim.core.mem - high water mark rss: 314.619289398 timestamp: 08/11/2018 18:10:42 label:
+INFO - activitysim.core.tracing - Time to execute everything : 7731.622 seconds (128.9 minutes)
+
+# run2
+mem_tick: 30
+strict: False
+households_sample_size:  0
+chunk_size: 0
+num_processes: 30
+
+INFO - activitysim.core.mem - high water mark used: 312.758975983 timestamp: 08/11/2018 20:17:16 label:
+INFO - activitysim.core.mem - high water mark rss: 404.58372879 timestamp: 08/11/2018 20:17:16 label:
+INFO - activitysim.core.tracing - Time to execute everything : 7880.258 seconds (131.3 minutes)
+
+####
+
+multiprocess: True
+mem_tick: 30
+strict: False
+households_sample_size:  0
+chunk_size:  90000000000
+num_processes: 60
+
+INFO - activitysim.core.mem - high water mark used: 319.38 timestamp: 11/12/2018 18:52:26 label:
+INFO - activitysim.core.mem - high water mark rss: 506.01 timestamp: 11/12/2018 18:52:26 label:
+INFO - activitysim.core.tracing - Time to execute everything : 5344.844 seconds (89.1 minutes)
+
+
+------------ azure Windows 2TB 128 processors
+
+# 128 cpu 2TB ram $13.34/hour
+AZ_VM_SIZE=Standard_M128s
+
+# Standard_M128s
+households_sample_size:  0
+chunk_size:  0
+num_processes: 120
+
+------------ azure linux 432GB 64 processors
+
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
+Standard_E64_v3
+
+export OMP_NUM_THREADS=1
+
+multiprocess: True
+mem_tick: 0
+strict: False
+
+households_sample_size:  0
+chunk_size:  60000000000
+num_processes: 60
+
+
+INFO - activitysim.core.mem - high water mark used: 240.55 timestamp: 20/11/2018 15:21:53 label: mp_households_59.trip_purpose.completed
+INFO - activitysim.core.mem - high water mark rss: 480.60 timestamp: 20/11/2018 15:21:53 label: mp_households_59.trip_purpose.completed
+INFO - activitysim.core.tracing - Time to execute everything : 3609.947 seconds (60.2 minutes)
+
+
+####
+
+
+mem_tick: 0
+households_sample_size:  0
+chunk_size:  64000000000
+num_processes: 64
+
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export OMP_NUM_THREADS=1
+python simulation.py -d /datadrive/work/data/full
+
+INFO - activitysim.core.mem - high water mark used: 223.78 timestamp: 20/11/2018 16:34:41 label: mp_households_57.joint_tour_scheduling.completed
+INFO - activitysim.core.mem - high water mark rss: 478.95 timestamp: 20/11/2018 16:34:41 label: mp_households_56._joint_tour_destination_logsums.completed
+INFO - activitysim.core.tracing - Time to execute everything : 3636.418 seconds (60.6 minutes)
+
+
+mem_tick: 0
+households_sample_size:  0
+chunk_size:  90000000000
+num_processes: 60
+
+####
+
+mem_tick: 0
+households_sample_size:  0
+chunk_size:  90000000000
+num_processes: 60
+
+INFO - activitysim.core.mem - high water mark used: 233.90 timestamp: 20/11/2018 17:43:50 label: mp_households_2.non_mandatory_tour_scheduling.completed
+INFO - activitysim.core.mem - high water mark rss: 473.74 timestamp: 20/11/2018 17:43:50 label: mp_households_2.non_mandatory_tour_scheduling.completed
+INFO - activitysim.core.tracing - Time to execute everything : 3596.278 seconds (59.9 minutes)
+
+*** Full Activitysim run on Azure in one hour costs $5.00 ***
+Azure Standard_E64_v3
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
+households_sample_size:  0
+chunk_size:  90000000000
+num_processes: 60
+Time to execute everything : 3596.278 seconds (59.9 minutes)
+Max RAM 233.90GB
+
+
+# with shadow pricing 10 iterations
+
+households_sample_size:  0
+chunk_size:  80000000000
+num_processes: 60
+
+INFO - activitysim.core.mem - high water mark used: 342.87 timestamp: 18/12/2018 00:56:39 label: mp_households_50.non_mandatory_tour_scheduling.completed
+INFO - activitysim.core.mem - high water mark rss: 574.65 timestamp: 18/12/2018 00:56:39 label: mp_households_50.non_mandatory_tour_scheduling.completed
+INFO - activitysim.core.tracing - Time to execute everything : 8189.908 seconds (136.5 minutes)
+
+
+------------ azure Windows 2TB 128 processors
+
+# 128 cpu 2TB ram $13.34/hour
+AZ_VM_SIZE=Standard_M128s
+
+12/12/2018 03:32:11 - INFO - activitysim - process mp_households_62 failed with exitcode 1
+12/12/2018 03:32:13 - INFO - activitysim - process mp_households_70 failed with exitcode 1
+12/12/2018 03:32:40 - INFO - activitysim - process mp_households_53 failed with exitcode 1
+12/12/2018 03:32:54 - INFO - activitysim - process mp_households_57 failed with exitcode 1
+12/12/2018 03:33:09 - INFO - activitysim - process mp_households_45 failed with exitcode 1
+12/12/2018 03:33:13 - INFO - activitysim - process mp_households_51 failed with exitcode 1
+12/12/2018 03:33:32 - INFO - activitysim - process mp_households_31 failed with exitcode 1
+12/12/2018 04:13:57 - ERROR - activitysim - Process mp_households_31 failed with exitcode 1
+12/12/2018 04:13:57 - ERROR - activitysim - Process mp_households_45 failed with exitcode 1
+12/12/2018 04:13:57 - ERROR - activitysim - Process mp_households_51 failed with exitcode 1
+12/12/2018 04:13:57 - ERROR - activitysim - Process mp_households_53 failed with exitcode 1
+12/12/2018 04:13:57 - ERROR - activitysim - Process mp_households_57 failed with exitcode 1
+12/12/2018 04:13:57 - ERROR - activitysim - Process mp_households_62 failed with exitcode 1
+12/12/2018 04:13:57 - ERROR - activitysim - Process mp_households_70 failed with exitcode 1
+
+
+12/12/2018 04:13:57 - INFO - activitysim.core.tracing - Time to execute run_sub_simulations step mp_households : 2783.16 seconds (46.4 minutes)

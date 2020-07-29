@@ -59,7 +59,7 @@ def test_tables(df):
     table = orca._TABLES['test_func']
     assert table.index is None
     assert table.columns == []
-    assert len(table) is 0
+    assert len(table) == 0
     pdt.assert_frame_equal(table.to_frame(), df / 2)
     pdt.assert_frame_equal(table.to_frame([]), df[[]])
     pdt.assert_frame_equal(table.to_frame(columns=['a']), df[['a']] / 2)

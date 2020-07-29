@@ -37,7 +37,7 @@ logging:
       class: logging.StreamHandler
       stream: ext://sys.stdout
       formatter: simpleFormatter
-      #level: WARNING
+      #level: NOTSET
       level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [WARNING, NOTSET]
 
   formatters:

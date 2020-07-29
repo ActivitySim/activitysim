@@ -1,0 +1,16 @@
+
+# 50% stride
+
+python simulation.py -s 2,0 -d /datadrive/work/data/full
+
+multiprocess: True
+mem_tick: 0
+strict: False
+
+households_sample_size:  0
+chunk_size:  90000000000
+num_processes: 60
+
+INFO - activitysim.core.mem - high water mark used: 118.81 timestamp: 20/11/2018 21:02:18 label: mp_households_59.trip_purpose.completed
+INFO - activitysim.core.mem - high water mark rss: 359.20 timestamp: 20/11/2018 21:02:18 label: mp_households_59.trip_purpose.completed
+INFO - activitysim.core.tracing - Time to execute everything : 2202.026 seconds (36.7 minutes)

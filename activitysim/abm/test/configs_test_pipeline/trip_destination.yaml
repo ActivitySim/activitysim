@@ -1,0 +1,7 @@
+inherit_settings: True
+
+# drop failed trips and cleanup failed trip leg_mates for consistency
+# (i.e. adjust trip_count, trip_num, first for missing failed trips)
+CLEANUP: False
+
+fail_some_trips_for_testing: True

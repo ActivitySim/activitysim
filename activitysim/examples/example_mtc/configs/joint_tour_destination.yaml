@@ -1,3 +1,16 @@
+
+SAMPLE_SPEC: non_mandatory_tour_destination_sample.csv
+SPEC: non_mandatory_tour_destination.csv
+COEFFICIENTS: non_mandatory_tour_destination_coeffs.csv
+
+SEGMENTS:
+  - shopping
+  - othmaint
+  - othdiscr
+  - eatout
+  - social
+
+
 SAMPLE_SIZE: 30
 
 SIMULATE_CHOOSER_COLUMNS:

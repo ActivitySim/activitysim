@@ -13,14 +13,8 @@ fail_fast: True
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
 #chunk_size:  80000000000
-#num_processes: 60
-#stagger: 0
 
-# - full sample - 2875192 households on Standard_M128s
-#households_sample_size:  0
-#chunk_size:  0
-#num_processes: 124
-#stagger: 0
+#num_processes: 60
 
 
 # - ------------------------- dev config
@@ -29,26 +23,20 @@ strict: False
 mem_tick: 30
 use_shadow_pricing: False
 
-
-## - small sample
-#households_sample_size:  5000
-#chunk_size: 500000000
-#num_processes: 2
-#stagger: 5
-
-
-## - example sample
-households_sample_size:  100
+households_sample_size:  2000
 chunk_size: 0
 num_processes: 2
-stagger: 0
 
+# - -------------------------
+
+want_dest_choice_sample_tables: False
+
+#read_skim_cache: True
+#write_skim_cache: True
 
 # - tracing
 trace_hh_id:
 trace_od:
-#trace_hh_id: 1482966
-#trace_od: [5, 11]
 
 # to resume after last successful checkpoint, specify resume_after: _
 #resume_after: trip_purpose_and_destination
@@ -96,7 +84,6 @@ multiprocess_steps:
   - name: mp_households
     begin: school_location
     #num_processes: 9
-    #stagger: 30
     #chunk_size: 1000000000
     slice:
       tables:

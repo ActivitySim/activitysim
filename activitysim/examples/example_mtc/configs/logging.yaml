@@ -10,7 +10,7 @@ logging:
   # Configuring the default (root) logger is highly recommended
   root:
     level: NOTSET
-    handlers: [console]
+    handlers: [console, logfile]
 
   loggers:
 

@@ -29,9 +29,6 @@ def track_skim_usage(output_dir):
     pd.options.display.max_columns = 500
     pd.options.display.max_rows = 100
 
-    checkpoints = pipeline.get_checkpoints()
-    tables = OrderedDict()
-
     skim_dict = inject.get_injectable('skim_dict')
     skim_stack = inject.get_injectable('skim_stack', None)
 

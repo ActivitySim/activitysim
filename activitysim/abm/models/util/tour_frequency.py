@@ -95,6 +95,7 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
 
     assert tour_num_col in tours.columns
 
+    # create string tour_id corresonding to keys in possible_tours (e.g. 'work1', 'j_shopping2')
     tours['tour_id'] = tours.tour_type + tours[tour_num_col].map(str)
 
     if parent_tour_num_col:
@@ -105,7 +106,7 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
         if parent_tour_num.dtype != 'int64':
             # might get converted to float if non-subtours rows are None (but we try to avoid this)
             logger.error('parent_tour_num.dtype: %s' % parent_tour_num.dtype)
-            parent_tour_num = parent_tour_num.astype(int)
+            parent_tour_num = parent_tour_num.astype(np.int64)
 
         tours['tour_id'] = tours['tour_id'] + '_' + parent_tour_num.map(str)
 
@@ -117,15 +118,19 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
                                           value=list(range(possible_tours_count)))
 
     # convert to numeric - shouldn't be any NaNs - this will raise error if there are
-    tours.tour_id = pd.to_numeric(tours.tour_id, errors='coerce').astype(int)
+    tours.tour_id = pd.to_numeric(tours.tour_id, errors='raise').astype(np.int64)
 
     tours.tour_id = (tours.person_id * possible_tours_count) + tours.tour_id
 
     # if tours.tour_id.duplicated().any():
-    #     print "\ntours.tour_id not unique\n", tours[tours.tour_id.duplicated(keep=False)]
+    #     print("\ntours.tour_id not unique\n%s" % tours[tours.tour_id.duplicated(keep=False)])
+    #     print(tours[tours.tour_id.duplicated(keep=False)][['survey_tour_id', 'tour_type', 'tour_category']])
     assert not tours.tour_id.duplicated().any()
 
     tours.set_index('tour_id', inplace=True, verify_integrity=True)
+
+    # we modify tours, but return the dataframe for the convenience of the caller
+    return tours
 
 
 def create_tours(tour_counts, tour_category, parent_col='person_id'):
@@ -213,7 +218,7 @@ def create_tours(tour_counts, tour_category, parent_col='person_id'):
     # for joint tours, the correct number will be filled in after participation step
     tours['number_of_participants'] = 1
 
-    # index is arbitrary but don't want any duplicates
+    # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)
 
     return tours

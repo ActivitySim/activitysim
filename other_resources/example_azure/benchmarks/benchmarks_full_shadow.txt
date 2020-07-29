@@ -1,0 +1,50 @@
+------------ azure linux 432GB 64 processors
+
+households_sample_size:  0
+chunk_size:  80000000000
+num_processes: 60
+
+# 64 processor, 432 GiB RAM, 864 GiB SSD Temp, $4.011/hour
+Standard_E64_v3
+
+# just run models through workplace_location
+
+school_location : 937.825 seconds (15.6 minutes)
+workplace_location : 2038.713 seconds (34.0 minutes)
+
+
+MAX_ITERATIONS: 10
+SHADOW_PRICE_METHOD: daysim
+
+INFO - activitysim.core.mem - high water mark used: 96.55 timestamp: 21/12/2018 20:48:39 label: mp_households_44.school_location.completed
+INFO - activitysim.core.mem - high water mark rss: 338.87 timestamp: 21/12/2018 20:48:39 label: mp_households_44.school_location.completed
+INFO - activitysim.core.tracing - Time to execute everything : 3210.843 seconds (53.5 minutes)
+
+TAR_TAG=azure-64-ubuntu-shadow_daysim
+scp $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/sp_daysim_output.tar.gz example_azure/output_ubuntu/$TAR_TAG-output.tar.gz
+
+
+MAX_ITERATIONS: 10
+SHADOW_PRICE_METHOD: ctramp
+
+
+INFO - activitysim.core.tracing - Time to execute run_sub_simulations step mp_summarize : 9.111 seconds (0.2 minutes)
+INFO - activitysim.core.mem - high water mark used: 96.08 timestamp: 21/12/2018 21:49:13 label: mp_households_13.school_location.completed
+INFO - activitysim.core.mem - high water mark rss: 337.22 timestamp: 21/12/2018 21:49:13 label: mp_households_13.school_location.completed
+INFO - activitysim.core.tracing - Time to execute everything : 3212.896 seconds (53.5 minutes)
+
+
+
+school_location : 937.825 seconds (15.6 minutes)
+workplace_location : 2038.713 seconds (34.0 minutes)
+
+
+##########
+
+
+# - copy shadow prices to data dir
+scp ~/work/activitysim/example_azure/output_ubuntu/azure-64-ubuntu-shadow_daysim-output/trace/shadow_price_school_shadow_prices_9.csv $AZ_USERNAME@$VM_IP:/datadrive/work/data/full/school_shadow_prices.csv
+scp ~/work/activitysim/example_azure/output_ubuntu/azure-64-ubuntu-shadow_daysim-output/trace/shadow_price_workplace_shadow_prices_9.csv $AZ_USERNAME@$VM_IP:/datadrive/work/data/full/workplace_shadow_prices.csv
+
+
+scp ~/work/activitysim/example_azure/example_mp/settings.yaml $AZ_USERNAME@$VM_IP:/datadrive/work/activitysim/example_mp/configs/settings.yaml

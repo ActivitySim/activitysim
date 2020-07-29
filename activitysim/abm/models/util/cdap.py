@@ -189,7 +189,7 @@ def individual_utilities(
     """
 
     # calculate single person utilities
-    indiv_utils = simulate.eval_utilities(cdap_indiv_spec, persons, locals_d, trace_label)
+    indiv_utils = simulate.eval_utilities(cdap_indiv_spec, persons, locals_d, trace_label=trace_label)
 
     # add columns from persons to facilitate building household interactions
     useful_columns = [_hh_id_, _ptype_, 'cdap_rank', _hh_size_]
@@ -803,6 +803,13 @@ def _run_cdap(
     """
     Implements core run_cdap functionality on persons df (or chunked subset thereof)
     Aside from chunking of persons df, params are passed through from run_cdap unchanged
+
+    Returns pandas Dataframe with two columns:
+        cdap_activity : str
+            activity for that person expressed as 'M', 'N', 'H'
+        cdap_rank : int
+            activities for persons with cdap_rank <= MAX_HHSIZE are determined by cdap
+            'extra' household members activities are assigned by cdap_fixed_relative_proportions
     """
 
     # assign integer cdap_rank to each household member
@@ -852,8 +859,6 @@ def _run_cdap(
 
     persons['cdap_activity'] = person_choices
 
-    cdap_results = persons[['cdap_rank', 'cdap_activity']]
-
     # if DUMP:
     #     tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
     #                      transpose=False, slicer='NONE')
@@ -862,8 +867,7 @@ def _run_cdap(
 
     chunk.log_df(trace_label, 'persons', persons)
 
-    # return dataframe with two columns
-    return cdap_results
+    return persons[['cdap_rank', 'cdap_activity']]
 
 
 def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
@@ -927,9 +931,6 @@ def run_cdap(
 
         cdap_activity : str
             activity for that person expressed as 'M', 'N', 'H'
-        cdap_rank : int
-            activities for persons with cdap_rank <= MAX_HHSIZE are determined by cdap
-            'extra' household members activities are assigned by cdap_fixed_relative_proportions
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
@@ -947,21 +948,30 @@ def run_cdap(
 
         chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
 
-        choices = _run_cdap(persons_chunk,
-                            cdap_indiv_spec,
-                            cdap_interaction_coefficients,
-                            cdap_fixed_relative_proportions,
-                            locals_d,
-                            trace_hh_id, chunk_trace_label)
+        cdap_results = \
+            _run_cdap(persons_chunk,
+                      cdap_indiv_spec,
+                      cdap_interaction_coefficients,
+                      cdap_fixed_relative_proportions,
+                      locals_d,
+                      trace_hh_id, chunk_trace_label)
 
         chunk.log_close(chunk_trace_label)
 
-        result_list.append(choices)
+        result_list.append(cdap_results)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
     if len(result_list) > 1:
-        choices = pd.concat(result_list)
+        cdap_results = pd.concat(result_list)
 
-    return choices
+    if trace_hh_id:
+
+        tracing.trace_df(cdap_results,
+                         label="cdap",
+                         columns=['cdap_rank', 'cdap_activity'],
+                         warn_if_empty=True)
+
+    # return choices column as series
+    return cdap_results['cdap_activity']

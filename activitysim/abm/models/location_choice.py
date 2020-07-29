@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 import logging
 
+# import multiprocessing
+
 import pandas as pd
 
 from activitysim.core import tracing
@@ -16,6 +18,7 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from .util import expressions
 from .util import logsums as logsum
+from .util import estimation
 
 from activitysim.abm.tables import shadow_pricing
 
@@ -66,46 +69,28 @@ With shadow pricing, and iterative treatment of each segment, the structure of t
             run_location_logsums
             run_location_simulate
     until convergence
-
-The location choice is added to a column in choosers
-The column name is specified in the model_settings by DEST_CHOICE_COLUMN_NAME.
-
-Additionally, providing DEST_CHOICE_LOGSUM_COLUMN_NAME will add a column with the logsum of the
-utilities of the sampled location alternatives (the logarithm of the sum of the exponentiated
-utilities of all the alternatives.) This optional value is not used in the existing models
-(at least not in MTCTM1) but it is a capability provided by CTRAMP, and it apparently of use
-calibrating the model.
 """
 
 logger = logging.getLogger(__name__)
 
 
-def spec_for_segment(model_spec, segment_name):
+def write_estimation_specs(estimator, model_settings, settings_file):
     """
-    Select spec for specified segment from omnibus spec containing columns for each segment
+    write sample_spec, spec, and coefficients to estimation data bundle
 
     Parameters
     ----------
-    model_spec : pandas.DataFrame
-        omnibus spec file with expressions in index and one column per segment
-    segment_name : str
-        segment_name that is also column name in model_spec
-
-    Returns
-    -------
-    pandas.dataframe
-        canonical spec file with expressions in index and single column with utility coefficients
+    model_settings
+    settings_file
     """
 
-    spec = model_spec[[segment_name]]
+    estimator.write_model_settings(model_settings, settings_file)
+    # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
+    estimator.write_spec(model_settings, tag='SPEC')
+    estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
 
-    # drop spec rows with zero coefficients since they won't have any effect (0 marginal utility)
-    zero_rows = (spec == 0).all(axis=1)
-    if zero_rows.any():
-        logger.debug("dropping %s all-zero rows from spec" % (zero_rows.sum(),))
-        spec = spec.loc[~zero_rows]
-
-    return spec
+    estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
+    estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
 
 
 def run_location_sample(
@@ -113,6 +98,7 @@ def run_location_sample(
         persons_merged,
         skim_dict,
         dest_size_terms,
+        estimator,
         model_settings,
         chunk_size, trace_label):
     """
@@ -134,18 +120,20 @@ def run_location_sample(
     """
     assert not persons_merged.empty
 
-    model_spec = simulate.read_model_spec(file_name=model_settings['SAMPLE_SPEC'])
-
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = persons_merged[chooser_columns]
 
     alternatives = dest_size_terms
-
-    sample_size = model_settings['SAMPLE_SIZE']
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running %s with %d persons" % (trace_label, len(choosers.index)))
+
+    sample_size = model_settings["SAMPLE_SIZE"]
+    if estimator:
+        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+        logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
+        sample_size = 0
 
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
@@ -158,15 +146,17 @@ def run_location_sample(
         'segment_size': segment_name
     }
     constants = config.get_model_constants(model_settings)
-    if constants is not None:
-        locals_d.update(constants)
+    locals_d.update(constants)
+
+    spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
+                                     segment_name=segment_name, estimator=estimator)
 
     choices = interaction_sample(
         choosers,
         alternatives,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
-        spec=spec_for_segment(model_spec, segment_name),
+        spec=spec,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
@@ -243,6 +233,7 @@ def run_location_simulate(
         skim_dict,
         dest_size_terms,
         want_logsums,
+        estimator,
         model_settings,
         chunk_size, trace_label):
     """
@@ -258,8 +249,6 @@ def run_location_simulate(
     logsums optional & only returned if DEST_CHOICE_LOGSUM_COLUMN_NAME specified in model_settings
     """
     assert not persons_merged.empty
-
-    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -278,7 +267,8 @@ def run_location_simulate(
     # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
     # and a TAZ in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap("TAZ_chooser", alt_dest_col_name)
+    orig_col_name = "TAZ_chooser"
+    skims = skim_dict.wrap(orig_col_name, alt_dest_col_name)
 
     locals_d = {
         'skims': skims,
@@ -288,17 +278,26 @@ def run_location_simulate(
     if constants is not None:
         locals_d.update(constants)
 
+    if estimator:
+        # write choosers after annotation
+        estimator.write_choosers(choosers)
+        estimator.set_alt_id(alt_dest_col_name)
+        estimator.write_interaction_sample_alternatives(alternatives)
+
+    spec = simulate.spec_for_segment(model_settings, spec_id='SPEC', segment_name=segment_name, estimator=estimator)
+
     choices = interaction_sample_simulate(
         choosers,
         alternatives,
-        spec=spec_for_segment(model_spec, segment_name),
+        spec=spec,
         choice_column=alt_dest_col_name,
         want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name=model_settings['DEST_CHOICE_COLUMN_NAME'])
+        trace_choice_name=model_settings['DEST_CHOICE_COLUMN_NAME'],
+        estimator=estimator)
 
     if not want_logsums:
         # for consistency, always return a dataframe with canonical column name
@@ -316,6 +315,7 @@ def run_location_choice(
         shadow_price_calculator,
         want_logsums,
         want_sample_table,
+        estimator,
         model_settings,
         chunk_size, trace_hh_id, trace_label
         ):
@@ -334,6 +334,7 @@ def run_location_choice(
         to get size terms
     want_logsums : boolean
     want_sample_table : boolean
+    estimator: Estimator object
     model_settings : dict
     chunk_size : int
     trace_hh_id : int
@@ -359,12 +360,12 @@ def run_location_choice(
 
         choosers = persons_merged_df[persons_merged_df[chooser_segment_column] == segment_id]
 
+        # size_term and shadow price adjustment - one row per zone
+        dest_size_terms = shadow_price_calculator.dest_size_terms(segment_name)
+
         if choosers.shape[0] == 0:
             logger.info("%s skipping segment %s: no choosers", trace_label, segment_name)
             continue
-
-        # size_term and shadow price adjustment - one row per zone
-        dest_size_terms = shadow_price_calculator.dest_size_terms(segment_name)
 
         # - location_sample
         location_sample_df = \
@@ -373,6 +374,7 @@ def run_location_choice(
                 choosers,
                 skim_dict,
                 dest_size_terms,
+                estimator,
                 model_settings,
                 chunk_size,
                 tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
@@ -390,7 +392,7 @@ def run_location_choice(
                 tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
 
         # - location_simulate
-        choices = \
+        choices_df = \
             run_location_simulate(
                 segment_name,
                 choosers,
@@ -398,11 +400,18 @@ def run_location_choice(
                 skim_dict,
                 dest_size_terms,
                 want_logsums,
+                estimator,
                 model_settings,
                 chunk_size,
                 tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
 
-        choices_list.append(choices)
+        if estimator:
+            estimator.write_choices(choices_df.choice)
+            choices_df.choice = estimator.get_survey_values(choices_df.choice, 'persons',
+                                                            column_names=model_settings['DEST_CHOICE_COLUMN_NAME'])
+            estimator.write_override_choices(choices_df.choice)
+
+        choices_list.append(choices_df)
 
         if want_sample_table:
             # FIXME - sample_table
@@ -434,6 +443,7 @@ def iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
         skim_dict, skim_stack,
+        estimator,
         chunk_size, trace_hh_id, locutor,
         trace_label):
     """
@@ -470,16 +480,21 @@ def iterate_location_choice(
 
     dest_choice_column_name = model_settings['DEST_CHOICE_COLUMN_NAME']
     logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+
     sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     persons_merged_df = persons_merged.to_frame()
 
     persons_merged_df = persons_merged_df[persons_merged[chooser_filter_column]]
 
+    persons_merged_df.sort_index(inplace=True)  # interaction_sample expects chooser index to be monotonic increasing
+
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
     max_iterations = spc.max_iterations
+    assert not (spc.use_shadow_pricing and estimator)
 
-    logging.debug("%s max_iterations: %s" % (trace_label, max_iterations))
+    logger.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
     for iteration in range(1, max_iterations + 1):
 
@@ -491,7 +506,8 @@ def iterate_location_choice(
             skim_dict, skim_stack,
             shadow_price_calculator=spc,
             want_logsums=logsum_column_name is not None,
-            want_sample_table=sample_table_name is not None,
+            want_sample_table=want_sample_table,
+            estimator=estimator,
             model_settings=model_settings,
             chunk_size=chunk_size,
             trace_hh_id=trace_hh_id,
@@ -571,7 +587,6 @@ def iterate_location_choice(
                              label=trace_label,
                              warn_if_empty=True)
 
-    tracing.print_summary(dest_choice_column_name, choices_df['choice'], value_counts=True)
     if logsum_column_name:
         tracing.print_summary(logsum_column_name, choices_df['logsum'], value_counts=True)
 
@@ -592,12 +607,25 @@ def workplace_location(
     trace_label = 'workplace_location'
     model_settings = config.read_model_settings('workplace_location.yaml')
 
+    estimator = estimation.manager.begin_estimation('workplace_location')
+    if estimator:
+        write_estimation_specs(estimator, model_settings, 'workplace_location.yaml')
+
+    # FIXME - debugging code to test multiprocessing failure handling
+    # process_name = multiprocessing.current_process().name
+    # if multiprocessing.current_process().name =='mp_households_0':
+    #     raise RuntimeError(f"fake fail {process_name}")
+
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
         skim_dict, skim_stack,
+        estimator,
         chunk_size, trace_hh_id, locutor, trace_label
     )
+
+    if estimator:
+        estimator.end_estimation()
 
 
 @inject.step()
@@ -615,9 +643,17 @@ def school_location(
     trace_label = 'school_location'
     model_settings = config.read_model_settings('school_location.yaml')
 
+    estimator = estimation.manager.begin_estimation('school_location')
+    if estimator:
+        write_estimation_specs(estimator, model_settings, 'school_location.yaml')
+
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
         skim_dict, skim_stack,
+        estimator,
         chunk_size, trace_hh_id, locutor, trace_label
     )
+
+    if estimator:
+        estimator.end_estimation()

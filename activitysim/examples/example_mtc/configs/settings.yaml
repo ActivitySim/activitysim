@@ -1,20 +1,65 @@
-# input tables 
+# input tables
 input_table_list:
   - tablename: households
     filename: households.csv
     index_col: household_id
-    column_map:
+    rename_columns:
       HHID: household_id
+      PERSONS: hhsize
+      workers: num_workers
+      VEHICL: auto_ownership
+    keep_columns:
+      - TAZ
+      - income
+      - hhsize
+      - HHT
+      - auto_ownership
+      - num_workers
   - tablename: persons
     filename: persons.csv
     index_col: person_id
-    column_map:
+    rename_columns:
       PERID: person_id
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+      - sex
+      - pemploy
+      - pstudent
+      - ptype
   - tablename: land_use
     filename: land_use.csv
     index_col: TAZ
-    column_map:
+    rename_columns:
       ZONE: TAZ
+      COUNTY: county_id
+    keep_columns:
+      - DISTRICT
+      - SD
+      - county_id
+      - TOTHH
+      - TOTPOP
+      - TOTACRE
+      - RESACRE
+      - CIACRE
+      - TOTEMP
+      - AGE0519
+      - RETEMPN
+      - FPSEMPN
+      - HEREMPN
+      - OTHEMPN
+      - AGREMPN
+      - MWTEMPN
+      - PRKCST
+      - OPRKCST
+      - area_type
+      - HSENROLL
+      - COLLFTE
+      - COLLPTE
+      - TOPOLOGY
+      - TERMINAL
+
 
 # input skims
 skims_file: skims.omx
@@ -41,6 +86,16 @@ check_for_variability: False
 # see shadow_pricing.yaml for additional settings
 use_shadow_pricing: False
 
+# turn writing of sample_tables on and off for all models
+# want_dest_choice_sample_tables: False
+
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+#read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+#write_skim_cache: True
+#alternate dir to read/write skim cache (defaults to output_dir)
+#skim_cache_dir: data/cache
 
 # - tracing
 
@@ -53,6 +108,8 @@ trace_hh_id: 2223759
 # trace_od: [5, 11]
 trace_od:
 
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_scheduling
 
 models:
   - initialize_landuse
@@ -89,8 +146,6 @@ models:
   - write_trip_matrices
   - write_tables
 
-# to resume after last successful checkpoint, specify resume_after: _
-# resume_after: compute_accessibility
 
 output_tables:
   h5_store: False
@@ -104,6 +159,7 @@ output_tables:
     - persons
     - tours
     - trips
+    - joint_tour_participants
 
 # area_types less than this are considered urban
 urban_threshold: 4

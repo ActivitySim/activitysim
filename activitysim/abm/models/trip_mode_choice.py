@@ -49,7 +49,7 @@ def trip_mode_choice(
     model_spec = \
         simulate.read_model_spec(file_name=model_settings['SPEC'])
     omnibus_coefficients = \
-        assign.read_constant_spec(config.config_file_path(model_settings['COEFFS']))
+        assign.read_constant_spec(config.config_file_path(model_settings['COEFFICIENTS']))
 
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
@@ -80,10 +80,13 @@ def trip_mode_choice(
 
     odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col, right_key=dest_col,
                                              skim_key='trip_period')
+    dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col, right_key=orig_col,
+                                             skim_key='trip_period')
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
 
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
+        "dot_skims": dot_skim_stack_wrapper,
         "od_skims": od_skim_wrapper,
     }
 

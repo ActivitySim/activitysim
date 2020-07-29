@@ -28,9 +28,7 @@ def spec_name(data_dir):
 def spec(data_dir, spec_name):
     return simulate.read_model_spec(
         file_name=spec_name,
-        spec_dir=data_dir,
-        description_name='description',
-        expression_name='expression')
+        spec_dir=data_dir)
 
 
 @pytest.fixture(scope='module')
@@ -42,11 +40,10 @@ def test_read_model_spec(data_dir, spec_name):
 
     spec = simulate.read_model_spec(
         file_name=spec_name,
-        spec_dir=data_dir,
-        description_name='description', expression_name='expression')
+        spec_dir=data_dir)
 
     assert len(spec) == 4
-    assert spec.index.name == 'expression'
+    assert spec.index.name == 'Expression'
     assert list(spec.columns) == ['alt0', 'alt1']
     npt.assert_array_equal(
         spec.values,
@@ -68,8 +65,8 @@ def test_eval_variables(spec, data):
     expected[expected.columns[2]] = expected[expected.columns[2]].astype(np.int64)
     expected[expected.columns[3]] = expected[expected.columns[3]].astype(int)
 
-    print("\nexpected\n", expected.dtypes)
-    print("\nresult\n", result.dtypes)
+    print("\nexpected\n%s" % expected.dtypes)
+    print("\nresult\n%s" % result.dtypes)
 
     pdt.assert_frame_equal(result, expected, check_names=False)
 

@@ -14,6 +14,9 @@ from activitysim.core import chunk
 logger = logging.getLogger(__name__)
 
 
+INJECTABLES = ['data_dir', 'configs_dir', 'output_dir']
+
+
 def add_run_args(parser, multiprocess=True):
     """Run command args
     """
@@ -49,7 +52,7 @@ def add_run_args(parser, multiprocess=True):
                             default=False,
                             action='store_true',
                             help='run multiprocess. Adds configs_mp settings'
-                            'by default.')
+                            ' by default.')
 
 
 def validate_injectable(name):
@@ -76,19 +79,23 @@ def validate_injectable(name):
 
 def handle_standard_args(args, multiprocess=True):
 
+    def inject_arg(name, value):
+        assert name in INJECTABLES
+        inject.add_injectable(name, value)
+
     if args.working_dir:
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
 
     if args.config:
-        inject.add_injectable('configs_dir', args.config)
+        inject_arg('configs_dir', args.config)
 
     if args.data:
-        inject.add_injectable('data_dir', args.data)
+        inject_arg('data_dir', args.data)
 
     if args.output:
-        inject.add_injectable('output_dir', args.output)
+        inject_arg('output_dir', args.output)
 
     if multiprocess and args.multiprocess:
         config_paths = validate_injectable('configs_dir')
@@ -98,7 +105,7 @@ def handle_standard_args(args, multiprocess=True):
         else:
             logger.info("adding 'configs_mp' to config_dir list...")
             config_paths.insert(0, 'configs_mp')
-            inject.add_injectable('configs_dir', config_paths)
+            inject_arg('configs_dir', config_paths)
 
         config.override_setting('multiprocess', args.multiprocess)
 
@@ -175,8 +182,7 @@ def run(args):
 
         from activitysim.core import mp_tasks
         run_list = mp_tasks.get_run_list()
-        injectables = ['data_dir', 'configs_dir', 'output_dir']
-        injectables = {k: inject.get_injectable(k) for k in injectables}
+        injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
         mp_tasks.run_multiprocess(run_list, injectables)
     else:
         logger.info('run single process simulation')

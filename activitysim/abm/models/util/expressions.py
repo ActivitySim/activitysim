@@ -104,6 +104,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
 
     if not expressions_spec_name.endswith(".csv"):
         expressions_spec_name = '%s.csv' % expressions_spec_name
+    logger.debug(f"{trace_label} compute_columns using expression spec file {expressions_spec_name}")
     expressions_spec = assign.read_assignment_spec(config.config_file_path(expressions_spec_name))
 
     assert expressions_spec.shape[0] > 0, \

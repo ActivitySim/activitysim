@@ -414,6 +414,9 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         #     tracing.trace_df(df, '%s.%s.expression_values' % (trace_label, id),
         #                      slicer=None, transpose=False)
 
+    #print(f"utilities\n{utilities}")
+    #bug
+
     return utilities
 
 
@@ -1153,6 +1156,9 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None, alt_c
                                    trace_label=trace_label, have_trace_targets=have_trace_targets,
                                    alt_col_name=alt_col_name)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
+
+    #print(f"raw_utilities\n{raw_utilities[['DRIVEALONEFREE', 'WALK', 'BIKE', 'WALK_TRANSIT', 'DRIVE_TRANSIT', 'TAXI']]}")
+    #bug
 
     if have_trace_targets:
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,

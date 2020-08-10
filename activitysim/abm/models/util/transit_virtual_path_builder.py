@@ -238,6 +238,20 @@ class TransitVirtualPathBuilder(object):
         return path_df
     
     def get_tvpb_logsum(self, orig, dest, tod, demographic_segment, path_type):
+        """
+
+        Parameters
+        ----------
+        orig
+        dest
+        tod
+        demographic_segment
+        path_type
+
+        Returns
+        -------
+            np array of float logsums
+        """
 
         trace_label = ('get_tvpb_logsum')
 
@@ -283,7 +297,7 @@ class TransitVirtualPathBuilder(object):
         path_df = self.best_paths(path_type, maz_od_df, access_df, egress_df, transit_df)
         
         # logsums
-        # aone row per seq with utilities in columns
+        # one row per seq with utilities in columns
         path_df['path_num'] = path_df.groupby('seq').cumcount() + 1
 
         utilities_df = path_df[['seq', 'path_num', 'utility']].set_index(['seq', 'path_num']).unstack()
@@ -293,17 +307,13 @@ class TransitVirtualPathBuilder(object):
         assert not utilities_df.isnull().all(axis=1).any()
         # logsums = np.where(utilities_df.isnull().all(axis=1), -999, np.log(np.nansum(np.exp(x.values), axis=1)))
 
-        logsums = pd.Series(np.log(np.nansum(np.exp(utilities_df.values), axis=1)), index=utilities_df.index)
+        logsums = np.log(np.nansum(np.exp(utilities_df.values), axis=1))
 
-        #utilities_df['logsums'] = logsums
-        #print(f"utilities_df\n{utilities_df}")
-        #assert (utilities_df.index == maz_od_df.index).all()
+        #logsums = pd.Series(np.log(np.nansum(np.exp(utilities_df.values), axis=1)), index=orig.index)
+        #print(f"logsums as series with orig index\n{logsums}")
         #bug
 
-        #utilities_df['logsums']= logsums
-        #print(f"utilities_df\n{utilities_df}")
-        print(logsums)
-
+        assert len(logsums) == len(orig)
         return logsums
 
 
@@ -386,4 +396,10 @@ class TransitVirtualPathWrapper(object):
                 segment,
                 path_type)
 
-        return pd.Series(skim_values, self.df.index)
+        skim_values = pd.Series(skim_values, self.df.index)
+
+        #print(f"skim_values\n{skim_values}")
+        #print(skim_values)
+        #bug
+
+        return skim_values

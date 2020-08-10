@@ -224,6 +224,9 @@ def run_location_logsums(
     # logsums now does, since workplace_location_sample was on left side of merge de-dup merge
     location_sample_df['mode_choice_logsum'] = logsums
 
+    #print(location_sample_df)
+    #bug
+
     return location_sample_df
 
 

@@ -15,7 +15,7 @@ want_dest_choice_sample_tables: False
 
 
 # - tracing
-trace_hh_id:
+trace_hh_id: 257627
 trace_od:
 
 # set false to disable variability check in simple_simulate and interaction_simulate

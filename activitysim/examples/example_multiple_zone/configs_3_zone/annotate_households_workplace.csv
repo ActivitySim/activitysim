@@ -1,0 +1,7 @@
+Description,Target,Expression
+#,, annotate households table after workplace_location model has run
+#,, hh_work_auto_savings_ratio is sum of persons work_auto_savings_ratio
+#,,
+#,, FIXME: all we have is a logsum, not an actual transit choice...
+##### ,hh_work_auto_savings_ratio,persons.work_auto_savings_ratio.groupby(persons.household_id).sum().reindex(households.index).fillna(0.0)
+,hh_work_auto_savings_ratio,float(0.0)

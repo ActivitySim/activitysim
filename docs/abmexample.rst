@@ -886,7 +886,7 @@ The combination of writing an EDB for a submodel + a larch estimation notebook m
 combination of functionality means:
 
 * There is no duplication of model specifications. ActivitySim owns the specification and larch pivots off of it.  Users code model specifications and utility expressions in ActivitySim so as to facilitate ease of use and eliminate inconsistencies and errors between the code used to estimate the models and the code used to apply the models.
-* The EDB includes all the data and model structure information and the larch_asim module used by the example notebooks processes the EDB to setup and estimate the models.
+* The EDB includes all the data and model structure information and the larch.util.activitysim module used by the example notebooks processes the EDB to setup and estimate the models.
 * Users are able to add zones, alternatives, new chooser data, new taz data, new modes, new coefficients, revise utilities, and revise nesting structures in ActivitySim and larch responds accordingly.
 * Eventually it may be desirable for ActivitySim to automatically write larch estimators (or other types of estimators), but for now the integration is loosely coupled rather than tightly coupled in order to provide flexibility. 
 

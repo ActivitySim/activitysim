@@ -36,18 +36,6 @@ maz_to_tap:
   tables:
     walk: maz_to_tap_walk.csv
     drive: maz_to_tap_drive.csv
-  utilities:
-    walk:
-      SPEC: tvpb_walk_maz_tap.csv
-      CHOOSER_COLUMNS:
-        #- demographic_segment
-        - walk_time
-    drive:
-      SPEC: tvpb_drive_maz_tap.csv
-      CHOOSER_COLUMNS:
-        #- demographic_segment
-        - drive_time
-        - DIST
 
 tap_to_tap:
   skims:
@@ -55,80 +43,94 @@ tap_to_tap:
     # and can therefor share a single skim_dict without name collision
     # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
     - tap_skims.omx
-  utilities:
-    SPEC: tvpb_tap_tap.csv
-    PREPROCESSOR:
-      SPEC: tvpb_tap_tap_annotate_choosers_preprocessor.csv
-      DF: df
-  # this is redundant - should match alternative columns in spec
-  sets:
-    - fastest
-    - cheapest
-    - shortest
-
-# Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
-  #c_ivt,-0.022,-0.0271,-0.0271,-0.0279,-0.0279,-0.0279,-0.0175,-0.0175,-0.0279,-0.0279
-TVPB_CONSTANTS:
-    TVPB_demographic_segments_by_income_segment:
-      1: 0
-      2: 0
-      3: 1
-      4: 1
-    C_LOW_INCOME_SEGMENT_ID: 0
-    C_HIGH_INCOME_SEGMENT_ID: 1
-    c_ivt_high_income: -0.028
-    c_ivt_low_income: -0.0175
-    c_cost_high_income: -0.00112
-    c_cost_low_income: -0.00112
-
-    c_wait: 1.5
-    c_walk: 1.7
-    c_drive: 1.5
-    c_auto_operating_cost_per_mile: 18.29
-    C_UNAVAILABLE: -999
-
-    C_FASTEST_IVT_MULTIPLIER: 2
-    C_FASTEST_COST_MULTIPLIER: 1
-
-    C_CHEAPEST_IVT_MULTIPLIER: 1
-    C_CHEAPEST_COST_MULTIPLIER: 500
-
-    C_SHORTEST_IVT_MULTIPLIER: 1
-    C_SHORTEST_COST_MULTIPLIER: 1
-    C_SHORTEST_DIST_MULTIPLIER: 1
-
-#DEMOGRAPHIC_SEGMENTS:
-#    low_income:
-#      #segment_id: 0
-#      c_ivt: -0.028
-#      c_cost: -0.00112
-#
-#    high_income:
-#      #segment_id: 1
-#      c_ivt: -0.028
-#      c_cost: -0.00112
 
 
 TRANSIT_VIRTUAL_PATH_SETTINGS:
-  WTW:
-    access: walk
-    egress: walk
-    max_best_paths_across_tap_sets: 3
-    max_paths_for_logsum_per_tap_set: 1
-    path_nesting_coefficient: 0.24
-  DTW:
-    access: drive
-    egress: walk
-    max_best_paths_across_tap_sets: 1
-    max_paths_for_logsum_per_tap_set: 1
-    path_nesting_coefficient: 0.24
-  WTD:
-    access: walk
-    egress: drive
-    max_best_paths_across_tap_sets: 1
-    max_paths_for_logsum_per_tap_set: 1
-    path_nesting_coefficient: 0.24
 
+  tour_mode_choice:
+    units: utility
+    path_types:
+      WTW:
+        access: walk
+        egress: walk
+        max_paths_across_tap_sets: 3
+        max_paths_per_tap_set: 1
+      DTW:
+        access: drive
+        egress: walk
+        max_paths_across_tap_sets: 1
+        max_paths_per_tap_set: 1
+      WTD:
+        access: walk
+        egress: drive
+        max_paths_across_tap_sets: 1
+        max_paths_per_tap_set: 1
+    tap_tap_expressions:
+      SPEC: tvpb_utility_tap_tap.csv
+      PREPROCESSOR:
+        SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
+        DF: df
+      sets:  # this is redundant - should match alternative columns in spec
+        - fastest
+        - cheapest
+        - shortest
+    maz_tap_expressions:
+      walk:
+        SPEC: tvpb_utility_walk_maz_tap.csv
+        CHOOSER_COLUMNS:
+          #- demographic_segment
+          - walk_time
+      drive:
+        SPEC: tvpb_utility_drive_maz_tap.csv
+        CHOOSER_COLUMNS:
+          #- demographic_segment
+          - drive_time
+          - DIST
+    CONSTANTS:
+      TVPB_demographic_segments_by_income_segment:
+        1: 0
+        2: 0
+        3: 1
+        4: 1
+      C_LOW_INCOME_SEGMENT_ID: 0
+      C_HIGH_INCOME_SEGMENT_ID: 1
+      c_ivt_high_income: -0.028
+      c_ivt_low_income: -0.0175
+      c_cost_high_income: -0.00112
+      c_cost_low_income: -0.00112
+      c_wait: 1.5
+      c_walk: 1.7
+      c_drive: 1.5
+      c_auto_operating_cost_per_mile: 18.29
+      C_UNAVAILABLE: -999
+      C_FASTEST_IVT_MULTIPLIER: 2
+      C_FASTEST_COST_MULTIPLIER: 1
+      C_CHEAPEST_IVT_MULTIPLIER: 1
+      C_CHEAPEST_COST_MULTIPLIER: 500
+      C_SHORTEST_IVT_MULTIPLIER: 1
+      C_SHORTEST_COST_MULTIPLIER: 1
+      C_SHORTEST_DIST_MULTIPLIER: 1
+
+  accessibility:
+    units: time
+    path_types:
+      WTW:
+        access: walk
+        egress: walk
+        max_paths_across_tap_sets: 1
+        max_paths_per_tap_set: 1
+    tap_tap_expressions:
+      SPEC: tvpb_accessibility_tap_tap_.csv
+      sets:
+        - transit
+    maz_tap_expressions:
+        walk:
+          SPEC: tvpb_accessibility_walk_maz_tap.csv
+          CHOOSER_COLUMNS:
+            - walk_time
+    CONSTANTS:
+        out_of_vehicle_walk_time_weight: 1.5
+        out_of_vehicle_wait_time_weight: 2.0
 
 # tour mode choice expression file and trip mode choice expression file usage
 # los.get_tvpb_logsum_odt(DEMOGRAPHIC_SEGMENT, PATH_SETS), for example los.get_tvpb_logsum_odt("high_income", "WTW")

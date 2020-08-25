@@ -1,14 +1,5 @@
 inherit_settings: True
 
-network_los:
-
-  zone_system: 1
-
-  skims:
-    taz: skims.omx
-
-
-
 skim_time_periods:
     period_minutes: 60
     periods:
@@ -24,3 +15,20 @@ skim_time_periods:
         - MD
         - PM
         - EV
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: 1z_final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+# trace_od: [5, 11]
+trace_od: [5, 11]

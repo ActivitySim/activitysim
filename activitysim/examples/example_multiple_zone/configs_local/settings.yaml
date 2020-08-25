@@ -1,30 +1,12 @@
 inherit_settings: True
 
-households_sample_size:  100
-chunk_size: 0
-
-# - shadow pricing global switches
-# turn shadow_pricing on and off for all models (e.g. school and work)
-# shadow pricing is deprecated for less than full samples
-# see shadow_pricing.yaml for additional settings
-use_shadow_pricing: False
-
-# turn writing of sample_tables on and off for all models
-want_dest_choice_sample_tables: False
-
-
-
-# - tracing
-trace_hh_id: 257627
-trace_od:
-
-# set false to disable variability check in simple_simulate and interaction_simulate
-check_for_variability: False
+households_sample_size: 0
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: joint_tour_participation
+resume_after: trip_scheduling
 
 models:
+#  - transit_virtual_path_builder
   - initialize_landuse
   - compute_accessibility
   - initialize_households
@@ -56,24 +38,6 @@ models:
   - trip_mode_choice
   - write_data_dictionary
   - track_skim_usage
-  - write_trip_matrices
+#  - write_trip_matrices
   - write_tables
 
-
-output_tables:
-  h5_store: False
-  action: include
-  prefix: final_
-  tables:
-    - checkpoints
-    - accessibility
-    - land_use
-    - households
-    - persons
-    - tours
-    - trips
-    # DEST_CHOICE_SAMPLE_TABLE_NAME
-#    - trip_destination_sample
-#    - tour_destination_sample
-#    - school_location_sample
-#    - workplace_location_sample

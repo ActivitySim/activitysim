@@ -1,5 +1,22 @@
 inherit_settings: True
 
+skim_time_periods:
+    period_minutes: 60
+    periods:
+        - 0
+        - 6
+        - 11
+        - 16
+        - 20
+        - 24
+    labels:
+        - EA
+        - AM
+        - MD
+        - PM
+        - EV
+
+
 # input tables
 input_table_list:
   - tablename: households
@@ -66,3 +83,18 @@ input_table_list:
       - access_dist_transit
 
 #resume_after: initialize_landuse
+
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: 2z_final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+

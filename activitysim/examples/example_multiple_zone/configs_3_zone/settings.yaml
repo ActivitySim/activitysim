@@ -83,6 +83,8 @@ input_table_list:
       - TERMINAL
       - access_dist_transit
 
+#resume_after: stop_frequency
+
 models:
 #  - transit_virtual_path_builder
   - initialize_landuse
@@ -108,13 +110,32 @@ models:
   - atwork_subtour_destination
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
-  - stop_frequency
-  - trip_purpose
-  - trip_destination
-  - trip_purpose_and_destination
-  - trip_scheduling
-  - trip_mode_choice
+#  - stop_frequency
+#  - trip_purpose
+#  - trip_destination
+#  - trip_purpose_and_destination
+#  - trip_scheduling
+#  - trip_mode_choice
   - write_data_dictionary
   - track_skim_usage
-  - write_trip_matrices
+#  - write_trip_matrices
   - write_tables
+
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: 3z_final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+# trace_od: [5, 11]
+trace_od: [5000, 11000]

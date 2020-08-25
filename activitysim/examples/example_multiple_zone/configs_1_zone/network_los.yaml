@@ -1,0 +1,5 @@
+inherit_settings: True
+
+zone_system: 1
+
+taz_skims: skims.omx

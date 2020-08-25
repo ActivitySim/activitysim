@@ -2,22 +2,21 @@ inherit_settings: True
 
 zone_system: 2
 
-skims:
-  taz: taz_skims.omx
+taz_skims: taz_skims.omx
 
-tables:
-  maz: maz.csv
-  maz_to_maz:
+maz: maz.csv
+
+maz_to_maz:
+  tables:
     - maz_to_maz_walk.csv
     - maz_to_maz_bike.csv
 
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  max_blend_distance:
+    DIST: 5
+    # blend distance of 0 means no blending
+    DISTBIKE: 0
+    DISTWALK: 1
 
-# maz_to_maz blending distance (missing or 0 means no blending)
-maz_to_maz_max_blend_distance:
-  DIST: 5
-  # no blending
-  DISTBIKE: 0
-  DISTWALK: 1
-
-# missing means use the skim value itself rather than DIST skim (e.g. DISTBIKE)
-maz_to_maz_blend_distance_skim_name: DIST
+  # missing means use the skim value itself rather than DIST skim (e.g. DISTBIKE)
+  blend_distance_skim_name: DIST

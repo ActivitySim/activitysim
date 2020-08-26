@@ -10,6 +10,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
+from .assign import evaluate_constants
 from .skim import SkimDictWrapper, SkimStackWrapper
 from . import logit
 from . import tracing
@@ -141,12 +142,18 @@ def read_model_coefficients(model_settings=None, file_name=None):
 
     file_path = config.config_file_path(file_name)
     try:
-        coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+        coefficients_df = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+        assert {'constrain', 'value'}.issubset(coefficients_df.columns)
     except ValueError:
         logger.exception("Coefficient File Invalid: %s" % str(file_path))
         raise
 
-    return coefficients
+    constants = model_settings['CONSTANTS'] if 'CONSTANTS' in model_settings else None
+
+    coeffs = evaluate_constants(coefficients_df['value'], constants)
+
+    return pd.concat([pd.DataFrame(coeffs.values(), index=coeffs.keys(), columns=['value']),
+                      coefficients_df['constrain']], axis=1)
 
 
 def spec_for_segment(model_settings, spec_id, segment_name, estimator):
@@ -167,7 +174,7 @@ def spec_for_segment(model_settings, spec_id, segment_name, estimator):
     """
 
     spec = read_model_spec(file_name=model_settings[spec_id])
-    coefficients = read_model_coefficients(model_settings)
+    coefficients = read_model_coefficients(model_settings, None)
 
     if len(spec.columns) > 1:
         # if spec is segmented
@@ -192,11 +199,7 @@ def read_model_coefficient_template(model_settings):
     coeffs_file_name = model_settings['COEFFICIENT_TEMPLATE']
 
     file_path = config.config_file_path(coeffs_file_name)
-    try:
-        template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
-    except ValueError:
-        logger.exception("Coefficient Template File Invalid: %s" % str(file_path))
-        raise
+    template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
 
     # by convention, an empty cell in the template indicates that
     # the coefficient name should be propogated to across all segments

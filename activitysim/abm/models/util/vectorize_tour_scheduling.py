@@ -13,15 +13,17 @@ from activitysim.core import mem
 
 from activitysim.core import chunk
 from activitysim.core import simulate
-from activitysim.core import assign
 from activitysim.core import logit
+from activitysim.core import los
 
 from activitysim.core import timetable as tt
 
 from activitysim.core.util import reindex
 
 from . import expressions
-from . import mode
+
+from .transit_virtual_path_builder import TransitVirtualPathBuilder
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +43,16 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_
     logger.info("%s compute_logsums for %d choosers%s alts" %
                 (trace_label, choosers.shape[0], alt_tdd.shape[0]))
 
+    # - locals_dict
+    constants = config.get_model_constants(logsum_settings)
+    locals_dict = {}
+    locals_dict.update(constants)
+
     # - setup skims
 
     skim_dict = inject.get_injectable('skim_dict')
     skim_stack = inject.get_injectable('skim_stack')
+    network_los = inject.get_injectable('network_los')
 
     orig_col_name = 'home_zone_id'
     dest_col_name = model_settings.get('DESTINATION_FOR_TOUR_PURPOSE').get(tour_purpose)
@@ -69,11 +77,23 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_
         'dest_col_name': dest_col_name,
     }
 
-    # - locals_dict
-    constants = config.get_model_constants(logsum_settings)
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = TransitVirtualPathBuilder(network_los)
 
-    locals_dict = {}
-    locals_dict.update(constants)
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
+                                    tod_key='out_period', segment_key='demographic_segment')
+        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
+                                    tod_key='in_period', segment_key='demographic_segment')
+
+        skims.update({
+            'tvpb_logsum_odt': tvpb_logsum_odt,
+            'tvpb_logsum_dot': tvpb_logsum_dot
+        })
+
+        # TVPB constants can appear in expressions
+        locals_dict.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
+
     locals_dict.update(skims)
 
     # - run preprocessor to annotate choosers

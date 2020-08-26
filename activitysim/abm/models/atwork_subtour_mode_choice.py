@@ -10,13 +10,14 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import simulate
 
-from activitysim.core.mem import force_garbage_collect
-
-from activitysim.core.util import assign_in_place
+from activitysim.core import los
+from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
 
 from .util.mode import run_tour_mode_choice_simulate
 from .util import estimation
 
+from activitysim.core.mem import force_garbage_collect
+from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 def atwork_subtour_mode_choice(
         tours,
         persons_merged,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_hh_id):
     """
@@ -52,12 +53,16 @@ def atwork_subtour_mode_choice(
         pd.merge(subtours, persons_merged.to_frame(),
                  left_on='person_id', right_index=True, how='left')
 
-    constants = config.get_model_constants(model_settings)
-
     logger.info("Running %s with %d subtours" % (trace_label, subtours_merged.shape[0]))
 
     tracing.print_summary('%s tour_type' % trace_label,
                           subtours_merged.tour_type, value_counts=True)
+
+    constants = {}
+    constants.update(config.get_model_constants(model_settings))
+
+    skim_stack = network_los.get_skim_stack('taz')
+    skim_dict = network_los.get_default_skim_dict()
 
     # setup skim keys
     orig_col_name = 'workplace_zone_id'
@@ -85,6 +90,23 @@ def atwork_subtour_mode_choice(
         'out_time_col_name': out_time_col_name,
         'in_time_col_name': in_time_col_name
     }
+
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = TransitVirtualPathBuilder(network_los)
+
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
+                                    tod_key='out_period', segment_key='demographic_segment')
+        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
+                                    tod_key='in_period', segment_key='demographic_segment')
+
+        skims.update({
+            'tvpb_logsum_odt': tvpb_logsum_odt,
+            'tvpb_logsum_dot': tvpb_logsum_dot
+        })
+
+        # TVPB constants can appear in expressions
+        constants.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     estimator = estimation.manager.begin_estimation('atwork_subtour_mode_choice')
     if estimator:

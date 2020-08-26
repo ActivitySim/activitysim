@@ -17,10 +17,12 @@ from activitysim.core.mem import force_garbage_collect
 from .util.expressions import annotate_preprocessors
 
 from activitysim.core import assign
+from activitysim.core import los
+
 from activitysim.core.util import assign_in_place
 
+from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
 from .util.expressions import skim_time_period_label
-
 from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
@@ -30,7 +32,7 @@ logger = logging.getLogger(__name__)
 def trip_mode_choice(
         trips,
         tours_merged,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id):
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
@@ -78,6 +80,16 @@ def trip_mode_choice(
     orig_col = 'origin'
     dest_col = 'destination'
 
+    constants = {}
+    constants.update(config.get_model_constants(model_settings))
+    constants.update({
+        'ORIGIN': orig_col,
+        'DESTINATION': dest_col
+    })
+
+    skim_stack = network_los.get_skim_stack('taz')
+    skim_dict = network_los.get_default_skim_dict()
+
     odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col, dest_key=dest_col,
                                              dim3_key='trip_period')
     dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col, dest_key=orig_col,
@@ -90,11 +102,24 @@ def trip_mode_choice(
         "od_skims": od_skim_wrapper,
     }
 
-    constants = config.get_model_constants(model_settings)
-    constants.update({
-        'ORIGIN': orig_col,
-        'DESTINATION': dest_col
-    })
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = TransitVirtualPathBuilder(network_los)
+
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
+                                    tod_key='trip_period', segment_key='demographic_segment')
+        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col, dest_key=orig_col,
+                                    tod_key='trip_period', segment_key='demographic_segment')
+
+        skims.update({
+            'tvpb_logsum_odt': tvpb_logsum_odt,
+            'tvpb_logsum_dot': tvpb_logsum_dot
+        })
+
+        # TVPB constants can appear in expressions
+        constants.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
+
+
 
     choices_list = []
     for primary_purpose, trips_segment in trips_merged.groupby('primary_purpose'):

@@ -216,6 +216,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     trace_assigned_locals = trace_results = None
     if trace_rows is not None:
         # convert to numpy array so we can slice ndarrays as well as series
+
         trace_rows = np.asanyarray(trace_rows)
         if trace_rows.any():
             trace_results = OrderedDict()
@@ -298,6 +299,8 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
         # add df columns to trace_results
         trace_results = pd.concat([df[trace_rows], trace_results], axis=1)
+
+    assert variables, "No non-temp variables were assigned."
 
     # we stored result in dict - convert to df
     variables = util.df_from_dict(variables, index=df.index)

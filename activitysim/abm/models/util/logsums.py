@@ -115,9 +115,9 @@ def compute_logsums(choosers,
         # fixme - is this a lightweight object?
         tvpb = TransitVirtualPathBuilder(network_los)
 
-        tvpb_logsum_odt = tvpb.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
                                     tod_key='out_period', segment_key='demographic_segment')
-        tvpb_logsum_dot = tvpb.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
+        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
                                     tod_key='in_period', segment_key='demographic_segment')
 
         skims.update({
@@ -126,7 +126,7 @@ def compute_logsums(choosers,
         })
 
         # TVPB constants can appear in expressions
-        locals_dict.update(network_los.setting('TVPB_CONSTANTS'))
+        locals_dict.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     locals_dict.update(skims)
 

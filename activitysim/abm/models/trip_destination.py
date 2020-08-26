@@ -12,6 +12,8 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
+from activitysim.core import los
+from activitysim.core import assign
 
 from activitysim.core.tracing import print_elapsed_time
 
@@ -20,7 +22,7 @@ from activitysim.core.util import assign_in_place
 
 from .util import expressions
 
-from activitysim.core import assign
+from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
@@ -196,6 +198,11 @@ def compute_logsums(
     locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
     locals_dict.update(constants)
 
+    network_los = inject.get_injectable('network_los')
+    if network_los.zone_system == los.THREE_ZONE:
+        # TVPB constants can appear in expressions
+        locals_dict.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
+
     # - od_logsums
     od_skims = {
         'ORIGIN': model_settings['TRIP_ORIGIN'],
@@ -204,6 +211,11 @@ def compute_logsums(
         "dot_skims": skims['dot_skims'],
         "od_skims": skims['od_skims'],
     }
+    if network_los.zone_system == los.THREE_ZONE:
+        od_skims.update({
+            'tvpb_logsum_odt':  skims['tvpb_logsum_odt'],
+            'tvpb_logsum_dot': skims['tvpb_logsum_dot']
+        })
     destination_sample['od_logsum'] = compute_ood_logsums(
         choosers,
         logsum_settings,
@@ -220,6 +232,12 @@ def compute_logsums(
         "dot_skims": skims['pdt_skims'],
         "od_skims": skims['dp_skims'],
     }
+    if network_los.zone_system == los.THREE_ZONE:
+        dp_skims.update({
+            'tvpb_logsum_odt':  skims['tvpb_logsum_dpt'],
+            'tvpb_logsum_dot': skims['tvpb_logsum_pdt']
+        })
+
     destination_sample['dp_logsum'] = compute_ood_logsums(
         choosers,
         logsum_settings,
@@ -395,6 +413,7 @@ def wrap_skims(model_settings):
 
     skim_dict = inject.get_injectable('skim_dict')
     skim_stack = inject.get_injectable('skim_stack')
+    network_los = inject.get_injectable('network_los')
 
     o = model_settings['TRIP_ORIGIN']
     d = model_settings['ALT_DEST_COL_NAME']
@@ -408,6 +427,26 @@ def wrap_skims(model_settings):
         "od_skims": skim_dict.wrap(o, d),
         "dp_skims": skim_dict.wrap(d, p),
     }
+
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = TransitVirtualPathBuilder(network_los)
+
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
+                                    tod_key='trip_period', segment_key='demographic_segment')
+        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=d, dest_key=o,
+                                    tod_key='trip_period', segment_key='demographic_segment')
+        tvpb_logsum_dpt = tvpb.wrap_logsum(orig_key=d, dest_key=p,
+                                    tod_key='trip_period', segment_key='demographic_segment')
+        tvpb_logsum_pdt = tvpb.wrap_logsum(orig_key=p, dest_key=d,
+                                    tod_key='trip_period', segment_key='demographic_segment')
+
+        skims.update({
+            'tvpb_logsum_odt': tvpb_logsum_odt,
+            'tvpb_logsum_dot': tvpb_logsum_dot,
+            'tvpb_logsum_dpt': tvpb_logsum_dpt,
+            'tvpb_logsum_pdt': tvpb_logsum_pdt
+        })
 
     return skims
 

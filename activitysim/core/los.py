@@ -157,7 +157,7 @@ def read_skims_from_omx(skim_info, skim_data):
 
                     offset = block_offsets[skim_key]
 
-                    logger.debug(f"read_skims_from_omx load omx_key {omx_key} "
+                    logger.debug(f"read_skims_from_omx file {omx_file_name} omx_key {omx_key} "
                                  f"skim_key {skim_key} to offset {offset}")
 
                     # this will trigger omx readslice to read and copy data to skim_data's buffer
@@ -517,7 +517,6 @@ class Network_LOS(object):
 
     def create_skim_dict(self, skim_tag):
         return create_skim_dict(skim_tag, self.skims_info[skim_tag], self)
-
 
     def load_shared_data(self, shared_data_buffers):
         for skim_tag in self.skims_info.keys():

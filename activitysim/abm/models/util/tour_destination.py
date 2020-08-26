@@ -62,7 +62,7 @@ def run_destination_sample(
         tours,
         persons_merged,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
@@ -92,6 +92,8 @@ def run_destination_sample(
     # the skims will be available under the name "skims" for any @ expressions
     origin_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
     dest_col_name = 'zone_id'
+
+    skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap(origin_col_name, dest_col_name)
 
     locals_d = {
@@ -125,7 +127,7 @@ def run_destination_logsums(
         persons_merged,
         destination_sample,
         model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id, trace_label):
     """
     add logsum column to existing tour_destination_sample table
@@ -155,7 +157,7 @@ def run_destination_logsums(
         choosers,
         tour_purpose,
         logsum_settings, model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_label)
 
@@ -171,7 +173,7 @@ def run_destination_simulate(
         destination_sample,
         want_logsums,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
@@ -210,6 +212,7 @@ def run_destination_simulate(
     # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
     # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
+    skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap(origin_col_name, alt_dest_col_name)
 
     locals_d = {
@@ -247,8 +250,7 @@ def run_tour_destination(
         want_logsums,
         want_sample_table,
         model_settings,
-        skim_dict,
-        skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, trace_label):
 
@@ -283,7 +285,7 @@ def run_tour_destination(
                 choosers,
                 persons_merged,
                 model_settings,
-                skim_dict,
+                network_los,
                 segment_destination_size_terms,
                 estimator,
                 chunk_size=chunk_size,
@@ -297,7 +299,7 @@ def run_tour_destination(
                 persons_merged,
                 location_sample_df,
                 model_settings,
-                skim_dict, skim_stack,
+                network_los,
                 chunk_size=chunk_size,
                 trace_hh_id=trace_hh_id,
                 trace_label=tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
@@ -312,7 +314,7 @@ def run_tour_destination(
                 destination_sample=location_sample_df,
                 want_logsums=want_logsums,
                 model_settings=model_settings,
-                skim_dict=skim_dict,
+                network_los=network_los,
                 destination_size_terms=segment_destination_size_terms,
                 estimator=estimator,
                 chunk_size=chunk_size,

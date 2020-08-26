@@ -141,6 +141,7 @@ def read_model_coefficients(model_settings=None, file_name=None):
         file_name = model_settings['COEFFICIENTS']
 
     file_path = config.config_file_path(file_name)
+    print(file_path)
     try:
         coefficients_df = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
         assert {'constrain', 'value'}.issubset(coefficients_df.columns)
@@ -148,7 +149,10 @@ def read_model_coefficients(model_settings=None, file_name=None):
         logger.exception("Coefficient File Invalid: %s" % str(file_path))
         raise
 
-    constants = model_settings['CONSTANTS'] if 'CONSTANTS' in model_settings else None
+    if model_settings is not None and 'CONSTANTS' in model_settings:
+        constants = model_settings['CONSTANTS'] 
+    else:
+        constants = None
 
     coeffs = evaluate_constants(coefficients_df['value'], constants)
 

@@ -197,7 +197,7 @@ The CDAP model is a sequence of vectorized table operations:
 
 * create a person level table and rank each person in the household for inclusion in the CDAP model.  Priority is given to full time workers (up to two), then to part time workers (up to two workers, of any type), then to children (youngest to oldest, up to three).  Additional members up to five are randomly included for the CDAP calculation.
 * solve individual M/N/H utilities for each person
-* take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
+* take as input an interaction coefficients table and then programmatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
 * select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions
 * repeat for households size 2, 3, 4, and 5. Each model is independent of one another.
 
@@ -457,7 +457,7 @@ Tour Mode Choice
 
 The mandatory, non-mandatory, and joint tour mode choice model assigns to each tour the "primary" mode that 
 is used to get from the origin to the primary destination. The tour-based modeling approach requires a reconsideration
-of the conventional mode choice structure. Instead of a single mode choice model used in a fourstep
+of the conventional mode choice structure. Instead of a single mode choice model used in a four-step
 structure, there are two different levels where the mode choice decision is modeled: (a) the
 tour mode level (upper-level choice); and, (b) the trip mode level (lower-level choice conditional
 upon the upper-level choice).
@@ -481,7 +481,7 @@ from the automobile in-vehicle time coefficient and the persons' modeled value o
 characteristics of the destination zone, demographics, and the household's level of auto
 ownership.
 
-The main interface to the mandatory, non-mandatory, and joint tour tour mode model is the 
+The main interface to the mandatory, non-mandatory, and joint tour mode model is the 
 :py:func:`~activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate` function.  This function is 
 called in the orca step ``tour_mode_choice_simulate`` and is registered as an orca step in the example Pipeline.
 See :ref:`writing_logsums` for how to write logsums for estimation. 
@@ -663,7 +663,7 @@ within X miles walking distance of both the tour origin and primary destination,
 both the tour origin and primary destination. Additionally, only short and long walk zones are
 available destinations on walk-transit tours.
 
-The intermediate stop location choice model works by cycling through stops on tours. The level-ofservice
+The intermediate stop location choice model works by cycling through stops on tours. The level-of-service
 variables (including mode choice logsums) are calculated as the additional utility between the
 last location and the next known location on the tour. For example, the LOS variable for the first stop
 on the outbound direction of the tour is based on additional impedance between the tour origin and the
@@ -752,7 +752,7 @@ each tour mode. The correspondence rules are defined according to the following 
   * The walk mode is allowed for any trip.
   * The availability of transit line-haul submodes on transit tours depends on the skimming and tour mode choice hierarchy. Free shared-ride modes are also available in walk-transit tours, albeit with a low probability. Paid shared-ride modes are not allowed on transit tours because no stated preference data is available on the sensitivity of transit riders to automobile value tolls, and no observed data is available to verify the number of people shifting into paid shared-ride trips on transit tours. 
 
-The trip mode choice models explanatory variables include household and person variables, level-ofservice
+The trip mode choice models explanatory variables include household and person variables, level-of-service
 between the trip origin and destination according to the time period for the tour leg, urban form
 variables, and alternative-specific constants segmented by tour mode.
 
@@ -797,6 +797,14 @@ CDAP
 
 .. index:: table annotation
 .. _table_annotation:
+
+Estimation
+~~~~~~~~~~
+
+See :ref:`estimation` for more information.
+
+.. automodule:: activitysim.abm.models.util.estimation
+   :members:
 
 Expressions
 ~~~~~~~~~~~

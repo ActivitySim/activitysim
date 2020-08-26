@@ -156,6 +156,7 @@ output_tables:
     - persons
     - tours
     - trips
+    - joint_tour_participants
 
 # area_types less than this are considered urban
 urban_threshold: 4

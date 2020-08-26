@@ -446,7 +446,8 @@ if process_tm1:
     tm1_work_tours.groupby(["atWork_freq_str"]).count()["hh_id"].to_csv("outputs/tm1_atwork_tf.csv", na_rep=0)
 
 asim_work_tours = asim_tours[asim_tours["primary_purpose"] == "work"]
-asim_work_tours.groupby(["atwork_subtour_frequency"]).count()["household_id"].to_csv("outputs/asim_atwork_tf.csv", na_rep=0)
+asim_work_tours.groupby(["atwork_subtour_frequency"]).count()["household_id"].to_csv("outputs/asim_atwork_tf.csv",
+                                                                                     na_rep=0)
 
 # atwork_subtour_destination
 

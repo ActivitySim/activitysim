@@ -138,8 +138,7 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 * Simple table expressions are evaluated using ``DataFrame.eval()``.  `pandas' eval <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html>`__ operates on the current table.
 * Python expressions, denoted by beginning with ``@``, are evaluated with `Python's eval() <https://docs.python.org/2/library/functions.html#eval>`__.
 
-Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects 
-urrently in memory.
+Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects currently in memory.
 
 Conventions
 ~~~~~~~~~~~
@@ -159,22 +158,41 @@ Example Expressions File
 
 An expressions file has the following basic form:
 
-+---------------------------------+-------------------------------+-----------+----------+
-| Description                     |  Expression                   |     cars0 |    cars1 |
-+=================================+===============================+===========+==========+
-| 2 Adults (age 16+)              |  drivers==2                   |         0 |   3.0773 |
-+---------------------------------+-------------------------------+-----------+----------+
-| Persons age 35-34               |  num_young_adults             |         0 |  -0.4849 |
-+---------------------------------+-------------------------------+-----------+----------+
-| Number of workers, capped at 3  |  @df.workers.clip(upper=3)    |         0 |   0.2936 |
-+---------------------------------+-------------------------------+-----------+----------+
-| Distance, from 0 to 1 miles     |  @skims['DIST'].clip(1)       |   -3.2451 |  -0.9523 |
-+---------------------------------+-------------------------------+-----------+----------+
++---------------------------------+---------------------------------+-------------------------------+-----------+---------------------------------+
+| Label                           | Description                     |  Expression                   |     cars0 |    cars1                        |
++=================================+=================================+===============================+===========+=================================+
+| util_drivers_2                  | 2 Adults (age 16+)              |  drivers==2                   |           |   coef_cars1_drivers_2          |
++---------------------------------+---------------------------------+-------------------------------+-----------+---------------------------------+
+| util_persons_25_34              | Persons age 25-34               |  num_young_adults             |           |  coef_cars1_persons_25_34       |
++---------------------------------+---------------------------------+-------------------------------+-----------+---------------------------------+
+| util_num_workers_clip_3         | Number of workers, capped at 3  |  @df.workers.clip(upper=3)    |           |   coef_cars1_num_workers_clip_3 |
++---------------------------------+---------------------------------+-------------------------------+-----------+---------------------------------+
+| util_dist_0_1                   | Distance, from 0 to 1 miles     |  @skims['DIST'].clip(1)       |           |  coef_dist_0_1                  |
++---------------------------------+---------------------------------+-------------------------------+-----------+---------------------------------+
+
+In the :ref:`tour_mode_choice` model expression file example shown below, the ``@c_ivt*(@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'])`` 
+expression is travel time for the tour origin to destination at the tour start time plus the tour destination to tour origin at the tour end time.  
+The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.  The ``@c_ivt`` comes from the
+tour mode choice coefficient file.  The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting 
+coefficients) is specified in the YAML settings file.
+
++-----------------------------------------------------------+--------------------------------------------------------+------------------------------------------------+-----------------+---------------+
+| Label                                                     | Description                                            |  Expression                                    | DRIVEALONEFREE  | DRIVEALONEPAY |
++===========================================================+========================================================+================================================+=================+===============+ 
+| util_DRIVEALONEFREE_Unavailable                           | DRIVEALONEFREE - Unavailable                           | sov_available == False                         |            -999 |               | 
++-----------------------------------------------------------+--------------------------------------------------------+------------------------------------------------+-----------------+---------------+ 
+| util_DRIVEALONEFREE_In_vehicle_time                       | DRIVEALONEFREE - In-vehicle time                       | odt_skims['SOV_TIME'] + dot_skims['SOV_TIME']  |       coef_ivt  |               |
++-----------------------------------------------------------+--------------------------------------------------------+------------------------------------------------+-----------------+---------------+ 
+| util_DRIVEALONEFREE_Unavailable_for_persons_less_than_16  | DRIVEALONEFREE - Unavailable for persons less than 16  | age < 16                                       |            -999 |               | 
++-----------------------------------------------------------+--------------------------------------------------------+------------------------------------------------+-----------------+---------------+ 
+| util_DRIVEALONEFREE_Unavailable_for_joint_tours           | DRIVEALONEFREE - Unavailable for joint tours           | is_joint == True                               |            -999 |               | 
++-----------------------------------------------------------+--------------------------------------------------------+------------------------------------------------+-----------------+---------------+ 
 
 * Rows are vectorized expressions that will be calculated for every record in the current table being operated on
+* The Label column is the unique expression name (used for model estimation integration)
 * The Description column describes the expression
 * The Expression column contains a valid vectorized Python/pandas/numpy expression.  In the example above, ``drivers`` is a column in the current table.  Use ``@`` to refer to data outside the current table
-* There is a column for each alternative and its relevant coefficient
+* There is a column for each alternative and its relevant coefficient from the submodel coefficient file
 
 There are some variations on this setup, but the functionality is similar.  For example, 
 in the example destination choice model, the size terms expressions file has market segments as rows and employment type 
@@ -182,28 +200,7 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 
 * Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
 * :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The :ref:`non_mandatory_tour_destination_choice` model implements this approach.
-* Complex choice model - an expressions file, a coefficients file, and a YAML settings file with model structural definition.  The :ref:`tour_mode_choice` models are examples of this and are illustrated below.
 * Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
-
-The :ref:`tour_mode_choice` model is a complex choice model since the expressions file is structured a little bit differently, as shown below.  
-Each row is an expression for one of the alternatives, and each column contains either -999, 1, or blank.  The coefficients for each expression
-is in a separate file, with a separate column for each alternative.  In the example below, the ``@c_ivt*(@odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'])`` 
-expression is travel time for the tour origin to desination at the tour start time plus the tour destination to tour origin at the tour end time.  
-The ``odt_skims`` and ``dot_skims`` objects are setup ahead-of-time to refer to the relevant skims for this model.  The ``@c_ivt`` comes from the
-tour mode choice coefficient file.  The tour mode choice model is a nested logit (NL) model and the nesting structure (including nesting 
-coefficients) is specified in the YAML settings file.
-
-+----------------------------------------+----------------------------------------------------------+-----------------+---------------+
-| Description                            |  Expression                                              | DRIVEALONEFREE  | DRIVEALONEPAY |
-+========================================+==========================================================+=================+===============+ 
-|DA - Unavailable                        | sov_available == False                                   |            -999 |               | 
-+----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
-|DA - In-vehicle time                    | @c_ivt*(odt_skims['SOV_TIME'] + dot_skims['SOV_TIME'])   |               1 |               |
-+----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
-|DAP - Unavailable for age less than 16  | age < 16                                                 |                 |   -999        | 
-+----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
-|DAP - Unavailable for joint tours       | is_joint == True                                         |                 |   -999        | 
-+----------------------------------------+----------------------------------------------------------+-----------------+---------------+ 
 
 Sampling with Interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~

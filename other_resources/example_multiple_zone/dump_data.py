@@ -36,7 +36,7 @@ if __name__ == "__main__":
                     if c in df.columns:
                         print "%s min: %s max: %s" % (c, df[c].min(), df[c].max())
 
-                if 'TAZ'in df.columns:
+                if 'TAZ' in df.columns:
                     print df.TAZ.value_counts().head(20)
                 # print df
 

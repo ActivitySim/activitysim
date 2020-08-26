@@ -52,7 +52,7 @@ def add_run_args(parser, multiprocess=True):
                             default=False,
                             action='store_true',
                             help='run multiprocess. Adds configs_mp settings'
-                            'by default.')
+                            ' by default.')
 
 
 def validate_injectable(name):

@@ -243,7 +243,7 @@ actually uses the ``persons_merged`` table, which includes joined household, lan
 tables as well.  The school location model also requires the skims dictionary object, which is discussed next.
 Before running the generic iterate location choice function, the model reads the model settings file, which
 defines various settings, including the expression files, sample size, mode choice logsum
-calulcation settings, time periods for skim lookups, shadow pricing settings, etc.
+calculation settings, time periods for skim lookups, shadow pricing settings, etc.
 
 ::
 
@@ -760,7 +760,7 @@ Data Schema
 ~~~~~~~~~~~
 
 The following table lists the pipeline data tables, each final field, the data type, the step that created it, and the
-number of columns and rows in the table at the time of creation.  The ``scripts\make_pipeline_output.py`` script
+number of columns and rows in the table at the time of creation.  The ``other_resources\scripts\make_pipeline_output.py`` script
 uses the information stored in the pipeline file to create the table below for a small sample of households.
 
 +----------------------------+-------------------------------+---------+------------------------------+------+------+

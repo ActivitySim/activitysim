@@ -150,7 +150,7 @@ def read_model_coefficients(model_settings=None, file_name=None):
         raise
 
     if model_settings is not None and 'CONSTANTS' in model_settings:
-        constants = model_settings['CONSTANTS'] 
+        constants = model_settings['CONSTANTS']
     else:
         constants = None
 

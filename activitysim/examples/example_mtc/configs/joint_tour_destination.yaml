@@ -10,8 +10,10 @@ SEGMENTS:
   - eatout
   - social
 
-
 SAMPLE_SIZE: 30
+
+# we can't use use household income_segment as this will also be set for non-workers
+CHOOSER_SEGMENT_COLUMN_NAME: tour_type
 
 SIMULATE_CHOOSER_COLUMNS:
   - tour_type

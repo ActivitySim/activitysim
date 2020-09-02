@@ -12,19 +12,3 @@ write_skim_cache: False
 #alternate dir to read/write skim cache (defaults to output_dir)
 skim_cache_dir: data/cache
 
-
-skim_time_periods:
-    period_minutes: 60
-    periods:
-        - 0
-        - 6
-        - 11
-        - 16
-        - 20
-        - 24
-    labels:
-        - EA
-        - AM
-        - MD
-        - PM
-        - EV

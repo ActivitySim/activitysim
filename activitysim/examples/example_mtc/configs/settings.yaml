@@ -1,9 +1,6 @@
 
-# network_los
-network_los:
-  zone_system: 1
-  skims:
-    taz: skims.omx
+
+skims_file: skims.omx
 
 # input tables
 input_table_list:
@@ -169,20 +166,10 @@ rural_threshold: 6
 # upperPM	Upper limit on time of day for the PM time peak period		19
 
 skim_time_periods:
+    time_window: 1440
     period_minutes: 60
-    periods:
-        - 0
-        - 6
-        - 11
-        - 16
-        - 20
-        - 24
-    labels:
-        - EA
-        - AM
-        - MD
-        - PM
-        - EV
+    periods: [0, 6, 11, 16, 20, 24]
+    labels: ['EA', 'AM', 'MD', 'PM', 'EV']
 
 # - value of time
 

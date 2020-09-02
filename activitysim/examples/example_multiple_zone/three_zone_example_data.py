@@ -180,14 +180,14 @@ with \
 # Create maz to tap distance file by mode
 
 with omx.open_file(os.path.join(input_data, 'skims.omx')) as ur_skims:
-    distance_table = pd.DataFrame(ur_skims['DIST']).unstack()
+    distance_table = pd.DataFrame(np.transpose(ur_skims['DIST'])).unstack()
     distance_table = distance_table.reset_index()
     distance_table.columns = ["MAZ", "TAP", "DIST"]
 
-    distance_table['drive_time'] = pd.DataFrame(ur_skims['SOV_TIME__MD']).unstack().values
+    distance_table['drive_time'] = pd.DataFrame(np.transpose(ur_skims['SOV_TIME__MD'])).unstack().values
 
     for c in ['DISTBIKE', 'DISTWALK']:
-        distance_table[c] = pd.DataFrame(ur_skims[c]).unstack().values
+        distance_table[c] = pd.DataFrame(np.transpose(ur_skims[c])).unstack().values
 
 walk_speed = 3
 bike_speed = 10

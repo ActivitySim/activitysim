@@ -1,21 +1,5 @@
 inherit_settings: True
 
-skim_time_periods:
-    period_minutes: 60
-    periods:
-        - 0
-        - 6
-        - 11
-        - 16
-        - 20
-        - 24
-    labels:
-        - EA
-        - AM
-        - MD
-        - PM
-        - EV
-
 output_tables:
   h5_store: False
   action: include

@@ -176,7 +176,7 @@ def test_create_input_store(seed_households, data_dir):
             h5_tablename: seed_households
             filename: households.csv
             index_col: household_id
-            column_map:
+            rename_columns:
               HHID: household_id
     """
 

@@ -22,7 +22,6 @@ from activitysim.core import los
 from activitysim.core.util import assign_in_place
 
 from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
-from .util.expressions import skim_time_period_label
 from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
@@ -75,7 +74,7 @@ def trip_mode_choice(
 
     # setup skim keys
     assert ('trip_period' not in trips_merged)
-    trips_merged['trip_period'] = skim_time_period_label(trips_merged.depart)
+    trips_merged['trip_period'] = network_los.skim_time_period_label(trips_merged.depart)
 
     orig_col = 'origin'
     dest_col = 'destination'

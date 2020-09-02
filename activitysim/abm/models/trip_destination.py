@@ -168,6 +168,9 @@ def compute_logsums(
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
+    # FIXME should pass this in?
+    network_los = inject.get_injectable('network_los')
+
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
         trips,
@@ -198,7 +201,6 @@ def compute_logsums(
     locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
     locals_dict.update(constants)
 
-    network_los = inject.get_injectable('network_los')
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions
         locals_dict.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
@@ -492,6 +494,7 @@ def run_trip_destination(
 
     land_use = inject.get_table('land_use')
     size_terms = inject.get_injectable('size_terms')
+    network_los = inject.get_injectable('network_los')
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
@@ -543,12 +546,17 @@ def run_trip_destination(
             nth_trips = trips[intermediate & (trips.trip_num == trip_num)]
             nth_trace_label = tracing.extend_trace_label(trace_label, 'trip_num_%s' % trip_num)
 
+            locals_dict = {
+                'network_los': network_los
+            }
+            locals_dict.update(config.get_model_constants(model_settings))
+
             # - annotate nth_trips
             if preprocessor_settings:
                 expressions.assign_columns(
                     df=nth_trips,
                     model_settings=preprocessor_settings,
-                    locals_dict=config.get_model_constants(model_settings),
+                    locals_dict=locals_dict,
                     trace_label=nth_trace_label)
 
             logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])

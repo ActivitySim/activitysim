@@ -35,7 +35,7 @@ Number of subtours in the tour,num_atwork_subtours,"df.atwork_subtour_frequency.
 #,,
 Number of hh shop tours including joint,num_hh_shop_tours,"reindex_i(df[df.tour_type==SHOP_TOUR].groupby('household_id').size(), df.person_id)"
 Number of hh maint tours including joint,num_hh_maint_tours,"reindex_i(df[df.tour_type==MAINT_TOUR].groupby('household_id').size(), df.person_id)"
-tourStartsInPeakPeriod,_tour_starts_in_peak,(skim_time_period_label(df.start) == 'AM') | (skim_time_period_label(df.start) == 'PM')
+tourStartsInPeakPeriod,_tour_starts_in_peak,(network_los.skim_time_period_label(df.start) == 'AM') | (network_los.skim_time_period_label(df.start) == 'PM')
 AccesibilityAtOrigin fallback,hhacc,0
 AccesibilityAtOrigin if transit,hhacc,"hhacc.where(~tour_mode_is_transit, df.trPkRetail.where(_tour_starts_in_peak, df.trOpRetail))"
 AccesibilityAtOrigin if non_motorized,hhacc,"hhacc.where(~tour_mode_is_non_motorized, df.nmRetail)"

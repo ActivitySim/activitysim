@@ -7,6 +7,7 @@ import sys
 import os
 import logging
 import multiprocessing
+import warnings
 
 from collections import OrderedDict
 from functools import reduce
@@ -171,8 +172,8 @@ def read_skims_from_omx(skim_info, skim_data):
 
 def load_skims(skim_info, skim_buffer, network_los):
 
-    read_cache = network_los.setting('read_skim_cache')
-    write_cache = network_los.setting('write_skim_cache')
+    read_cache = network_los.setting('read_skim_cache', False)
+    write_cache = network_los.setting('write_skim_cache', False)
 
     assert not (read_cache and write_cache), \
         "read_skim_cache and write_skim_cache are both True in settings file. I am assuming this is a mistake"
@@ -358,7 +359,7 @@ def create_skim_dict(skim_tag, skim_info, network_los):
 
 class Network_LOS(object):
 
-    def __init__(self):
+    def __init__(self, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
 
         self.zone_system = None
         self.skim_time_periods = None
@@ -379,29 +380,68 @@ class Network_LOS(object):
         # THREE_ZONE only
         self.tap_df = None
         self.maz_to_tap_dfs = {}
-        self.maz_to_tap_modes = []
+        # map maz_to_tap_attributes to mode (for now, attribute names must be unique across modes)
+        self.maz_to_tap_attributes = {}
 
-        self.settings = config.read_settings_file(LOS_SETTINGS_FILE_NAME, mandatory=True)
-
-        self.read_los_settings()
+        self.los_settings_file_name = los_settings_file_name
+        self.load_settings()
 
     def setting(self, keys, default='<REQUIRED>'):
         # get setting value for single key or dot-delimited key path (e.g. 'maz_to_tap.modes')
         key_list = keys.split('.')
-        s = self.settings
+        s = self.los_settings
         for key in key_list[:-1]:
             s = s.get(key)
-            assert isinstance(s, dict), f"expected key '{key}' not found in '{keys}' in {LOS_SETTINGS_FILE_NAME}"
+            assert isinstance(s, dict), f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
         key = key_list[-1]  # last key
         if default == '<REQUIRED>':
-            assert key in s, f"'{key}' not found in expected setting {keys} in {LOS_SETTINGS_FILE_NAME}"
+            assert key in s, f"Expected setting {keys} not found in in {LOS_SETTINGS_FILE_NAME}"
         return s.get(key, default)
 
-    def read_los_settings(self):
+    def load_settings(self):
 
-        self.settings = config.read_settings_file(LOS_SETTINGS_FILE_NAME, mandatory=True)
+        try:
+            self.los_settings = config.read_settings_file(self.los_settings_file_name, mandatory=True)
+        except config.SettingsFileNotFound as e:
 
-        self.zone_system = self.setting('zone_system')
+            print(f"los_settings_file_name {self.los_settings_file_name} not found - trying global settings")
+            print(f"skims_file: {config.setting('skims_file')}")
+            print(f"skim_time_periods: {config.setting('skim_time_periods')}")
+            print(f"source_file_paths: {config.setting('source_file_paths')}")
+            print(f"inject.get_injectable('configs_dir') {inject.get_injectable('configs_dir')}")
+
+            # look for legacy 'skims_file' setting in global settings file
+            if config.setting('skims_file'):
+
+                warnings.warn("Support for 'skims_file' setting in global settings file will be removed."
+                              "Use 'taz_skims' in network_los.yaml config file instead.", FutureWarning)
+
+                # in which case, we also expect to find skim_time_periods in settings file
+                skim_time_periods = config.setting('skim_time_periods')
+                assert skim_time_periods is not None, "'skim_time_periods' setting not found."
+                warnings.warn("Support for 'skim_time_periods' setting in global settings file will be removed."
+                              "Put 'skim_time_periods' in network_los.yaml config file instead.", FutureWarning)
+
+                self.los_settings = {
+                    'taz_skims': config.setting('skims_file'),
+                    'zone_system': ONE_ZONE,
+                    'skim_time_periods': skim_time_periods
+                }
+
+            else:
+                raise e
+
+        # validate skim_time_periods
+        self.skim_time_periods = self.setting('skim_time_periods')
+        if 'hours' in self.skim_time_periods:
+            self.skim_time_periods['periods'] = self.skim_time_periods.pop('hours')
+            warnings.warn('support for `skim_time_periods` key `hours` will be removed in '
+                          'future verions. Use `periods` instead',
+                          FutureWarning)
+        assert 'periods' in self.skim_time_periods, "'periods' key not found in network_los.skim_time_periods"
+        assert 'labels' in self.skim_time_periods, "'labels' key not found in network_los.skim_time_periods"
+
+        self.zone_system = self.setting('zone_system', default=ONE_ZONE)
         assert self.zone_system in [ONE_ZONE, TWO_ZONE, THREE_ZONE], \
             f"Network_LOS: unrecognized zone_system: {self.zone_system}"
 
@@ -423,35 +463,16 @@ class Network_LOS(object):
             skim_file_names = self.setting('tap_to_tap.skims')
             self.skims_info['tap'] = self.load_skim_info('tap', skim_file_names)
 
-            # maz_to_tap_settings
-            self.maz_to_tap_modes = self.setting('maz_to_tap.modes')
-
-        # read time_periods setting
-        self.skim_time_periods = config.setting('skim_time_periods')
+        # validate skim_time_periods
+        self.skim_time_periods = self.setting('skim_time_periods')
+        assert {'periods', 'labels'}.issubset(set(self.skim_time_periods.keys()))
 
     def load_data(self):
-
-        self.load_tables()
-
-        assert 'taz' in self.skims_info
-        self.skim_dicts['taz'] = self.create_skim_dict('taz')
-
-        if self.zone_system in [TWO_ZONE, THREE_ZONE]:
-            # need to load both taz skim and maz tables before creating MazSkimDict
-
-            # create MazSkimDict facade skim_dict
-            self.skim_dicts['maz'] = skim_maz.MazSkimDict(self)
-
-        if self.zone_system == THREE_ZONE:
-            assert 'tap' in self.skims_info
-            self.skim_dicts['tap'] = self.create_skim_dict('tap')
-
-
-    def load_tables(self):
 
         def as_list(file_name):
             return [file_name] if isinstance(file_name, str) else file_name
 
+        # load maz tables
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
 
             # maz
@@ -478,6 +499,7 @@ class Network_LOS(object):
                 else:
                     self.maz_to_maz_df = pd.concat([self.maz_to_maz_df, df], axis=1)
 
+        # load tap tables
         if self.zone_system == THREE_ZONE:
 
             # tap
@@ -487,12 +509,14 @@ class Network_LOS(object):
             # self.tap_ceiling = self.tap_df.TAP.max() + 1
 
             # maz_to_tap_dfs
+            maz_to_tap_modes = self.setting('maz_to_tap.modes')
+
             tables = self.setting('maz_to_tap.tables')
-            assert set(self.maz_to_tap_modes) == set(tables.keys()), \
+            assert set(maz_to_tap_modes) == set(tables.keys()), \
                 f"maz_to_tap.tables keys do not match maz_to_tap.modes"
-            for mode in self.maz_to_tap_modes:
-                # for now, put them all in same df
-                # FIXME different sized sparse arrays, we may want to seperate them later?
+            for mode in maz_to_tap_modes:
+                # FIXME - should we ensure that there is no attribute name collision?
+                # different sized sparse arrays, so we keep them seperate
                 for file_name in as_list(tables[mode]):
 
                     df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
@@ -501,10 +525,32 @@ class Network_LOS(object):
                     df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
                     logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
 
+                    # ensure that there is no attribute name collision
+                    colliding_attributes = set(self.maz_to_tap_attributes.keys()).intersection(set(df.columns))
+                    assert not colliding_attributes, \
+                        f"duplicate maz_to_tap attributes {colliding_attributes}." \
+                        f"Attribute names should be unique across modes."
+                    self.maz_to_tap_attributes.update({c: mode for c in df.columns})
+
                     if mode not in self.maz_to_tap_dfs:
                         self.maz_to_tap_dfs[mode] = df
                     else:
                         self.maz_to_tap_dfs[mode] = pd.concat([self.maz_to_tap_dfs[mode], df], axis=1)
+
+        # create taz skim dict
+        assert 'taz' in self.skims_info
+        self.skim_dicts['taz'] = self.create_skim_dict('taz')
+
+        # create MazSkimDict facade
+        if self.zone_system in [TWO_ZONE, THREE_ZONE]:
+            # create MazSkimDict facade skim_dict
+            # (need to have already loaded both taz skim and maz tables)
+            self.skim_dicts['maz'] = skim_maz.MazSkimDict(self)
+
+        # create tap skim dict
+        if self.zone_system == THREE_ZONE:
+            assert 'tap' in self.skims_info
+            self.skim_dicts['tap'] = self.create_skim_dict('tap')
 
     def load_skim_info(self, skim_tag, omx_file_names):
         """
@@ -571,14 +617,53 @@ class Network_LOS(object):
 
     def get_maztappairs(self, maz, tap, attribute):
 
-        # synthetic i method : maz_tap
-        i = np.asanyarray(maz) * self.maz_ceiling + np.asanyarray(tap)
-        s = util.quick_loc_df(i, self.maz_to_tap_df, attribute)
+        mode = self.maz_to_tap_attributes.get(attribute)
 
-        # FIXME - no point in returning series? unless maz and tap have same index?
-        return np.asanyarray(s)
+        assert mode is not None, \
+            f"get_maztappairs attribute {attribute} not in any maz_to_tap table." \
+            f"Existing attributes are: {self.maz_to_tap_attributes.keys()}"
+
+        maz_to_tap_df = self.maz_to_tap_dfs[mode]
+
+        return maz_to_tap_df.loc[zip(maz, tap), attribute].values
 
     def get_tappairs3d(self, otap, dtap, dim3, key):
 
         s = self.get_skim_stack('tap').lookup(otap, dtap, dim3, key)
         return s
+
+    def skim_time_period_label(self, time_period):
+        """
+        convert time period times to skim time period labels (e.g. 9 -> 'AM')
+
+        Parameters
+        ----------
+        time_period : pandas Series
+
+        Returns
+        -------
+        pandas Series
+            string time period labels
+        """
+
+        assert self.skim_time_periods is not None, "'skim_time_periods' setting not found."
+
+        # Default to 60 minute time periods
+        period_minutes = self.skim_time_periods.get('period_minutes', 60)
+
+        # Default to a day
+        model_time_window_min = self.skim_time_periods.get('time_window', 1440)
+
+        # Check to make sure the intervals result in no remainder time through 24 hour day
+        assert 0 == model_time_window_min % period_minutes
+        total_periods = model_time_window_min / period_minutes
+
+        # FIXME - eventually test and use np version always?
+        if np.isscalar(time_period):
+            bin = np.digitize([time_period % total_periods],
+                              self.skim_time_periods['periods'], right=True)[0] - 1
+            return self.skim_time_periods['labels'][bin]
+
+        return pd.cut(time_period, self.skim_time_periods['periods'],
+                      labels=self.skim_time_periods['labels'], right=True).astype(str)
+

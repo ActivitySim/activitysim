@@ -130,14 +130,14 @@ max_distance_for_bike = 5.0
 with omx.open_file(os.path.join(input_data, 'skims.omx')) as skims_file:
 
     # create df with DIST column
-    maz_to_maz = pd.DataFrame(skims_file['DIST']).unstack().reset_index()
+    maz_to_maz = pd.DataFrame(np.transpose(skims_file['DIST'])).unstack().reset_index()
     maz_to_maz.columns = ['OMAZ', 'DMAZ', 'DIST']
     maz_to_maz['OMAZ'] = (maz_to_maz['OMAZ'] + 1) * MAZ_MULTIPLIER
     maz_to_maz['DMAZ'] = (maz_to_maz['DMAZ'] + 1) * MAZ_MULTIPLIER
 
     # additional columns
     for c in ['DISTBIKE', 'DISTWALK']:
-        maz_to_maz[c] = pd.DataFrame(skims_file[c]).unstack().values
+        maz_to_maz[c] = pd.DataFrame(np.transpose(skims_file[c])).unstack().values
 
     maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_walk, ['OMAZ', 'DMAZ', 'DISTWALK']].\
         to_csv(os.path.join(output_data, 'maz_to_maz_walk.csv'), index=False)

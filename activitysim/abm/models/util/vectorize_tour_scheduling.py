@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 TDD_CHOICE_COLUMN = 'tdd'
 
 
-def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_label):
+def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, network_los, trace_label):
     """
     compute logsums for tours using skims for alt_tdd out_period and in_period
     """
@@ -50,9 +50,8 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_
 
     # - setup skims
 
-    skim_dict = inject.get_injectable('skim_dict')
-    skim_stack = inject.get_injectable('skim_stack')
-    network_los = inject.get_injectable('network_los')
+    skim_dict = network_los.get_default_skim_dict()
+    skim_stack = network_los.get_skim_stack('taz')
 
     orig_col_name = 'home_zone_id'
     dest_col_name = model_settings.get('DESTINATION_FOR_TOUR_PURPOSE').get(tour_purpose)
@@ -147,11 +146,14 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_l
     For efficiency, rather compute a lot of redundant logsums, we compute logsums for the unique
     (out-period, in-period) pairs and then join them back to the alt_tdds.
     """
+
+    network_los = inject.get_injectable('network_los')
+
     # - in_period and out_period
     assert 'out_period' not in alt_tdd
     assert 'in_period' not in alt_tdd
-    alt_tdd['out_period'] = expressions.skim_time_period_label(alt_tdd['start'])
-    alt_tdd['in_period'] = expressions.skim_time_period_label(alt_tdd['end'])
+    alt_tdd['out_period'] = network_los.skim_time_period_label(alt_tdd['start'])
+    alt_tdd['in_period'] = network_los.skim_time_period_label(alt_tdd['end'])
     alt_tdd['duration'] = alt_tdd['end'] - alt_tdd['start']
 
     USE_BRUTE_FORCE = False
@@ -168,7 +170,7 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_l
 
     # - compute logsums for the alt_tdd_periods
     alt_tdd_periods['logsums'] = \
-        _compute_logsums(alt_tdd_periods, tours_merged, tour_purpose, model_settings, trace_label)
+        _compute_logsums(alt_tdd_periods, tours_merged, tour_purpose, model_settings, network_los, trace_label)
 
     # - join the alt_tdd_period logsums to alt_tdd to get logsums for alt_tdd
     logsums = pd.merge(

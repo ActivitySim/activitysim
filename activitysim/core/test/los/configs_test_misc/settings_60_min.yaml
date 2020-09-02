@@ -1,8 +1,6 @@
-inherit_settings: True
-
 zone_system: 1
 
-taz_skims: skims.omx
+taz_skims: z1_taz_skims.omx
 
 skim_time_periods:
     time_window: 1440

@@ -12,13 +12,12 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 
 from .util import expressions
-from .util.expressions import skim_time_period_label
 
 logger = logging.getLogger(__name__)
 
 
 @inject.step()
-def write_trip_matrices(trips, skim_dict, skim_stack):
+def write_trip_matrices(trips, network_los):
     """
     Write trip matrices step.
 
@@ -28,7 +27,7 @@ def write_trip_matrices(trips, skim_dict, skim_stack):
     """
 
     model_settings = config.read_model_settings('write_trip_matrices.yaml')
-    trips_df = annotate_trips(trips, skim_dict, skim_stack, model_settings)
+    trips_df = annotate_trips(trips, network_los, model_settings)
 
     if bool(model_settings.get('SAVE_TRIPS_TABLE')):
         pipeline.replace_table('trips', trips_df)
@@ -57,7 +56,7 @@ def write_trip_matrices(trips, skim_dict, skim_stack):
     write_matrices(aggregate_trips, zone_index, orig_index, dest_index, model_settings)
 
 
-def annotate_trips(trips, skim_dict, skim_stack, model_settings):
+def annotate_trips(trips, network_los, model_settings):
     """
     Add columns to local trips table. The annotator has
     access to the origin/destination skims and everything
@@ -71,9 +70,12 @@ def annotate_trips(trips, skim_dict, skim_stack, model_settings):
 
     trace_label = 'trip_matrices'
 
+    skim_dict = network_los.get_default_skim_dict()
+    skim_stack = network_los.get_skim_stack('taz')
+
     # setup skim keys
     assert ('trip_period' not in trips_df)
-    trips_df['trip_period'] = skim_time_period_label(trips_df.depart)
+    trips_df['trip_period'] = network_los.skim_time_period_label(trips_df.depart)
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
     odt_skim_stack_wrapper = skim_stack.wrap(orig_key='origin', dest_key='destination',
                                              dim3_key='trip_period')

@@ -59,6 +59,7 @@ def run_tour_mode_choice_simulate(
         tour_purpose, model_settings,
         mode_column_name,
         logsum_column_name,
+        network_los,
         skims,
         constants,
         estimator,
@@ -88,8 +89,8 @@ def run_tour_mode_choice_simulate(
     assert ('in_period' not in choosers) and ('out_period' not in choosers)
     in_time = skims['in_time_col_name']
     out_time = skims['out_time_col_name']
-    choosers['in_period'] = expressions.skim_time_period_label(choosers[in_time])
-    choosers['out_period'] = expressions.skim_time_period_label(choosers[out_time])
+    choosers['in_period'] = network_los.skim_time_period_label(choosers[in_time])
+    choosers['out_period'] = network_los.skim_time_period_label(choosers[out_time])
 
     expressions.annotate_preprocessors(
         choosers, locals_dict, skims,

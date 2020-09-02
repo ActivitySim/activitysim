@@ -1,22 +1,5 @@
 inherit_settings: True
 
-skim_time_periods:
-    period_minutes: 60
-    periods:
-        - 0
-        - 6
-        - 11
-        - 16
-        - 20
-        - 24
-    labels:
-        - EA
-        - AM
-        - MD
-        - PM
-        - EV
-
-
 # input tables
 input_table_list:
   - tablename: households

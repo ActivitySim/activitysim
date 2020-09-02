@@ -205,8 +205,8 @@ def register_traceable_table(table_name, df):
         logger.error("Can't register table '%s' without index name" % table_name)
         return
 
-    traceable_table_ids = inject.get_injectable('traceable_table_ids')
-    traceable_table_indexes = inject.get_injectable('traceable_table_indexes')
+    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
 
     if idx_name in traceable_table_indexes and traceable_table_indexes[idx_name] != table_name:
         logger.error("table '%s' index name '%s' already registered for table '%s'" %
@@ -224,6 +224,7 @@ def register_traceable_table(table_name, df):
 
         # find first already registered ref_col we can use to slice this table
         ref_col = next((c for c in traceable_table_indexes if c in df.columns), None)
+
         if ref_col is None:
             logger.error("can't find a registered table to slice table '%s' index name '%s'"
                          " in traceable_table_indexes: %s" %

@@ -67,8 +67,8 @@ def compute_logsums(choosers,
 
     # FIXME - are we ok with altering choosers (so caller doesn't have to set these)?
     assert ('in_period' not in choosers) and ('out_period' not in choosers)
-    choosers['in_period'] = expressions.skim_time_period_label(model_settings['IN_PERIOD'])
-    choosers['out_period'] = expressions.skim_time_period_label(model_settings['OUT_PERIOD'])
+    choosers['in_period'] = network_los.skim_time_period_label(model_settings['IN_PERIOD'])
+    choosers['out_period'] = network_los.skim_time_period_label(model_settings['OUT_PERIOD'])
 
     assert ('duration' not in choosers)
     choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']

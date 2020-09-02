@@ -132,18 +132,8 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
         out_of_vehicle_walk_time_weight: 1.5
         out_of_vehicle_wait_time_weight: 2.0
 
-# tour mode choice expression file and trip mode choice expression file usage
-# los.get_tvpb_logsum_odt(DEMOGRAPHIC_SEGMENT, PATH_SETS), for example los.get_tvpb_logsum_odt("high_income", "WTW")
-# returns logsum of max_best_paths for all paths across all skims sets (consistent with the max_paths_for_logsum) for mode utility
-# if mode selected, also return the path id '<access_tap>-<tap_to_tap_set>-<egress_tap>', for example '1000-fastest-1010'
-
-# for walk in tour mode choice - los.get_tvpb_logsum_odt(DEMOGRAPHIC_SEGMENT, WTW) + los.get_tvpb_logsum_dot(DEMOGRAPHIC_SEGMENT, WTW)
-# for drive in tour mode choice - los.get_tvpb_logsum_odt(DEMOGRAPHIC_SEGMENT, DTW) + los.get_tvpb_logsum_dot(DEMOGRAPHIC_SEGMENT, WTD)
-# for walk in trip mode choice - los.get_tvpb_logsum_odt(DEMOGRAPHIC_SEGMENT, WTW)
-# for drive in trip mode choice - los.get_tvpb_logsum_odt(DEMOGRAPHIC_SEGMENT, DTW)
-
-# go ahead and get it working with relculating the best paths each time and then we can figure out what and when to pre-calculate, cache, etc.
-
-# note users should trim the set of taps for each maz to remove maz-tap pairs that serve the same transit lines
-# for example, transit line 5 serves MAZ 100 via TAP 1000 and TAP 1010 and TAP 1000 is closer to MAZ 100.  Make
-# sure to remove the MAZ 100 to TAP 1010 entry from the MAZ to TAP file to avoid unnecessary calculations.
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 60
+    periods: [0, 6, 11, 16, 20, 24]
+    labels: ['EA', 'AM', 'MD', 'PM', 'EV']

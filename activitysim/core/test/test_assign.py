@@ -34,11 +34,6 @@ def data_dir():
 
 
 @pytest.fixture(scope='module')
-def configs_dir():
-    return os.path.join(os.path.dirname(__file__), 'configs')
-
-
-@pytest.fixture(scope='module')
 def spec_name(data_dir):
     return os.path.join(data_dir, 'assignment_spec.csv')
 

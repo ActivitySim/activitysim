@@ -6,8 +6,6 @@ import argparse
 
 from activitysim.cli.run import add_run_args, run
 
-import extensions
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()

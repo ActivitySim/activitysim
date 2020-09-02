@@ -1,4 +1,0 @@
-Label,Description,Expression,utility
-util_drive_available,walk available,"@df.drive_time.isna() * C_UNAVAILABLE",1
-util_drive_time,drive time,"@c_ivt * vot * df.drive_time",1
-util_drive_cost,drive cost,"@c_cost * df.DIST * c_auto_operating_cost_per_mile",1

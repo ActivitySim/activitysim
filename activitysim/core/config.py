@@ -246,6 +246,15 @@ def pipeline_file_path(file_name):
     return build_output_file_path(file_name, use_prefix=prefix)
 
 
+class SettingsFileNotFound(Exception):
+    def __init__(self, file_name, configs_dir):
+        self.file_name = file_name
+        self.configs_dir = configs_dir
+
+    def __str__(self):
+        return repr(f"Settings file '{self.file_name}' not found in {self.configs_dir}")
+
+
 def read_settings_file(file_name, mandatory=True):
 
     def backfill_settings(settings, backfill):
@@ -268,6 +277,7 @@ def read_settings_file(file_name, mandatory=True):
                 logger.debug("read settings for %s from %s" % (file_name, file_path))
 
             with open(file_path) as f:
+
                 s = yaml.load(f, Loader=yaml.SafeLoader)
                 if s is None:
                     s = {}
@@ -283,8 +293,10 @@ def read_settings_file(file_name, mandatory=True):
                 break
 
     if mandatory and not settings:
-        raise RuntimeError("read_settings_file: no settings file '%s' in %s" %
-                           (file_name, configs_dir))
+        #raise RuntimeError("read_settings_file: no settings file '%s' in %s" % (file_name, configs_dir))
+        #bug
+        print(f"SettingsFileNotFound {configs_dir} {file_name}")
+        raise SettingsFileNotFound(file_name, configs_dir)
 
     return settings
 

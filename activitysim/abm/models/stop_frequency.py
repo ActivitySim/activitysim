@@ -114,7 +114,7 @@ def process_trips(tours, stop_frequency_alts):
 def stop_frequency(
         tours, tours_merged,
         stop_frequency_alts,
-        skim_dict,
+        network_los,
         chunk_size,
         trace_hh_id):
     """
@@ -162,14 +162,16 @@ def stop_frequency(
     if preprocessor_settings:
 
         # hack: preprocessor adds origin column in place if it does not exist already
-        od_skim_stack_wrapper = skim_dict.wrap('origin', 'destination')
+        assert 'origin' in tours_merged
+        assert 'destination' in tours_merged
+        od_skim_stack_wrapper = network_los.get_default_skim_dict().wrap('origin', 'destination')
         skims = [od_skim_stack_wrapper]
 
         locals_dict = {
-            "od_skims": od_skim_stack_wrapper
+            "od_skims": od_skim_stack_wrapper,
+            'network_los': network_los
         }
-        if constants is not None:
-            locals_dict.update(constants)
+        locals_dict.update(constants)
 
         simulate.set_skim_wrapper_targets(tours_merged, skims)
 

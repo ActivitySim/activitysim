@@ -8,7 +8,7 @@ import pandas as pd
 
 from .. import tracing
 from .. import inject
-
+from .. import orca
 
 def close_handlers():
 
@@ -18,6 +18,12 @@ def close_handlers():
         logger.handlers = []
         logger.propagate = True
         logger.setLevel(logging.NOTSET)
+
+
+def setup_function(func):
+    orca.clear_all()
+    orca.enable_cache()
+    inject.reinject_decorated_tables()
 
 
 def add_canonical_dirs():
@@ -123,9 +129,11 @@ def test_register_tours(capsys):
     tracing.config_logger()
 
     inject.add_injectable('traceable_tables', ['households', 'tours'])
+    #inject.add_injectable('traceable_table_indexes', {})
 
     # in case another test injected this
     inject.add_injectable("trace_tours", [])
+    inject.add_injectable("trace_hh_id", 3)  # need this or register_traceable_table is a nop
 
     tours_df = pd.DataFrame({'zort': ['a', 'b', 'c']}, index=[10, 11, 12])
     tours_df.index.name = 'tour_id'
@@ -133,8 +141,6 @@ def test_register_tours(capsys):
     tracing.register_traceable_table('tours', tours_df)
 
     out, err = capsys.readouterr()
-    # print out  # don't consume output
-
     assert "can't find a registered table to slice table 'tours' index name 'tour_id'" in out
 
     inject.add_injectable("trace_hh_id", 3)

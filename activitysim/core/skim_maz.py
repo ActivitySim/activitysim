@@ -89,6 +89,9 @@ class MazSparseSkimWrapper(object):
         if (self.max_blend_distance == 0) or (self.blend_distance_skim_name == key):
             self.blend_distance_skim_name = None
 
+        # FIXME should we deduce this, config it?
+        self.skim_data_type = backstop_skim_dict.get_skim_info('dtype')
+
     def get(self, orig, dest):
         """
         Get impedence values for a set of origin, destination pairs.
@@ -106,10 +109,12 @@ class MazSparseSkimWrapper(object):
         # fixme - remove?
         assert not (np.isnan(orig) | np.isnan(dest)).any()
 
-        values = self.network_los.get_mazpairs(orig, dest, self.key)
+        # want to return same type as backstop skim
+        values = self.network_los.get_mazpairs(orig, dest, self.key).astype(self.skim_data_type)
 
         is_nan = np.isnan(values)
 
+        # need backstop if any nans or (possibly) there is a specified max_blend_distance
         if is_nan.any() or self.max_blend_distance:
             print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
 
@@ -124,13 +129,18 @@ class MazSparseSkimWrapper(object):
                 else:
                     distance = values
 
-                # blend according to backstop_fractions
+                # for distances less than max_blend_distance, we blend maz-maz and skim backstop values
+                # shorter distances have less fractional backstop, and more maz-maz
+                # beyond max_blend_distance, just use the skim values
                 backstop_fractions = np.minimum(distance / self.max_blend_distance, 1)
-                backstop_fractions = np.where(is_nan, 1, backstop_fractions)
+                #not needed?
+                backstop_fractions = np.where(is_nan, 1.0, backstop_fractions)
 
-                # print(f"sparse values {values}")
-                # print(f"backstop_values {backstop_values}")
-                # print(f"backstop_fractions {backstop_fractions}")
+                print(f"key={self.key}")
+                print(f"values\n{values}")
+                print(f"backstop_values\n{backstop_values}")
+                print(f"backstop_fractions\n{backstop_fractions}")
+                #bug
 
                 values = np.where(is_nan,
                                   backstop_values,

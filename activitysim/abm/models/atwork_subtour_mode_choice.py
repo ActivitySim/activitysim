@@ -121,6 +121,7 @@ def atwork_subtour_mode_choice(
         tour_purpose='atwork', model_settings=model_settings,
         mode_column_name=mode_column_name,
         logsum_column_name=logsum_column_name,
+        network_los=network_los,
         skims=skims,
         constants=constants,
         estimator=estimator,

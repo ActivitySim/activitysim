@@ -84,7 +84,8 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, f'compute_maz_tap_utilities.{leg}')
 
-        maz_tap_settings = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.maz_tap_expressions.{mode}')
+        maz_tap_settings = \
+            self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.maz_tap_expressions.{mode}')
         chooser_columns = maz_tap_settings['CHOOSER_COLUMNS']
         attribute_columns = list(chooser_attributes.columns) if chooser_attributes is not None else []
         model_constants = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.CONSTANTS')
@@ -301,29 +302,28 @@ class TransitVirtualPathBuilder(object):
             # zero-fill rows for O-D pairs where no best path exists because there was no tap-tap transit availability
             result = reindex(result, maz_od_df.idx).fillna(0.0)
 
-
         assert len(result) == len(orig)
 
         # diagnostic
         # maz_od_df['DIST'] = self.network_los.get_default_skim_dict().get('DIST').get(maz_od_df.omaz, maz_od_df.dmaz)
         # maz_od_df[units] = result if units == 'utility' else result.values
         # print(f"maz_od_df\n{maz_od_df}")
-        #bug
 
         return result
 
     def get_tvpb_logsum(self, path_type, orig, dest, tod, demographic_segment=None):
 
         recipe = 'tour_mode_choice'
-        return self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment, trace_label='get_tvpb_logsum')
+        return self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
+                                       trace_label='get_tvpb_logsum')
 
     def get_tvpb_best_transit_time(self, orig, dest, tod):
 
         recipe = 'accessibility'
         path_type = 'WTW'
 
-        return self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment=None, trace_label='get_tvpb_best_transit_time')
-
+        return self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment=None,
+                                       trace_label='get_tvpb_best_transit_time')
 
     def wrap_logsum(self, orig_key, dest_key, tod_key, segment_key):
 
@@ -405,9 +405,5 @@ class TransitVirtualPathLogsumWrapper(object):
                 )
 
         skim_values = pd.Series(skim_values, self.df.index)
-
-        #print(f"skim_values\n{skim_values}")
-        #print(skim_values)
-        #bug
 
         return skim_values

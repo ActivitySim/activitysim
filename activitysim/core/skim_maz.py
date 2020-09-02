@@ -133,14 +133,6 @@ class MazSparseSkimWrapper(object):
                 # shorter distances have less fractional backstop, and more maz-maz
                 # beyond max_blend_distance, just use the skim values
                 backstop_fractions = np.minimum(distance / self.max_blend_distance, 1)
-                #not needed?
-                backstop_fractions = np.where(is_nan, 1.0, backstop_fractions)
-
-                print(f"key={self.key}")
-                print(f"values\n{values}")
-                print(f"backstop_values\n{backstop_values}")
-                print(f"backstop_fractions\n{backstop_fractions}")
-                #bug
 
                 values = np.where(is_nan,
                                   backstop_values,

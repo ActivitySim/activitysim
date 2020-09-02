@@ -103,7 +103,6 @@ def read_assignment_spec(file_name,
         logger.error(str(e))
         raise e
 
-
     # drop null expressions
     # cfg = cfg.dropna(subset=[expression_name])
 

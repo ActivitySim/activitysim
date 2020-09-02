@@ -48,7 +48,6 @@ def local_utilities():
         'reindex': util.reindex,
         'reindex_i': reindex_i,
         'setting': config.setting,
-        #'skim_time_period_label': skim_time_period_label,
         'other_than': other_than,
         'skim_dict': inject.get_injectable('skim_dict', None)
     }

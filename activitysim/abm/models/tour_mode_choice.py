@@ -136,9 +136,9 @@ def tour_mode_choice_simulate(tours, persons_merged,
         tvpb = TransitVirtualPathBuilder(network_los)
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
-                                    tod_key='out_period', segment_key='demographic_segment')
+                                           tod_key='out_period', segment_key='demographic_segment')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
-                                    tod_key='in_period', segment_key='demographic_segment')
+                                           tod_key='in_period', segment_key='demographic_segment')
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
@@ -156,8 +156,12 @@ def tour_mode_choice_simulate(tours, persons_merged,
         estimator.write_model_settings(model_settings, model_settings_file_name)
         # FIXME run_tour_mode_choice_simulate writes choosers post-annotation
 
+    # FIXME should normalize handling of tour_type and tour_purpose
+    # mtctm1 school tour_type includes univ, which has different coefficients from elementary and HS
+    # we should either add this column when tours created or add univ to tour_types
+    not_university = (primary_tours_merged.tour_type != 'school') | ~primary_tours_merged.is_university
     primary_tours_merged['tour_purpose'] = \
-        primary_tours_merged.tour_type.where((primary_tours_merged.tour_type != 'school') | ~primary_tours_merged.is_university, 'univ')
+        primary_tours_merged.tour_type.where(not_university, 'univ')
 
     choices_list = []
     for tour_type, segment in primary_tours_merged.groupby('tour_type'):

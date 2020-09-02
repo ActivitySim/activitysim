@@ -157,7 +157,6 @@ def compute_accessibility(accessibility, network_los, land_use, trace_od):
     else:
         trace_od_rows = None
 
-
     # merge land_use_columns into od_df
     od_df = pd.merge(od_df, land_use_df, left_on='dest', right_index=True).sort_index()
 
@@ -189,8 +188,6 @@ def compute_accessibility(accessibility, network_los, land_use, trace_od):
     pipeline.replace_table("accessibility", accessibility_df)
 
     if trace_od:
-
-        #blort
 
         if not trace_od_rows.any():
             logger.warning(f"trace_od not found origin = {trace_orig}, dest = {trace_dest}")

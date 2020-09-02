@@ -81,9 +81,9 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
         tvpb = TransitVirtualPathBuilder(network_los)
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
-                                    tod_key='out_period', segment_key='demographic_segment')
+                                           tod_key='out_period', segment_key='demographic_segment')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
-                                    tod_key='in_period', segment_key='demographic_segment')
+                                           tod_key='in_period', segment_key='demographic_segment')
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,

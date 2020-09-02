@@ -666,4 +666,3 @@ class Network_LOS(object):
 
         return pd.cut(time_period, self.skim_time_periods['periods'],
                       labels=self.skim_time_periods['labels'], right=True).astype(str)
-

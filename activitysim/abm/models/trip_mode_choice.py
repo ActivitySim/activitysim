@@ -106,9 +106,9 @@ def trip_mode_choice(
         tvpb = TransitVirtualPathBuilder(network_los)
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
-                                    tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col, dest_key=orig_col,
-                                    tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment')
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
@@ -117,8 +117,6 @@ def trip_mode_choice(
 
         # TVPB constants can appear in expressions
         constants.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
-
-
 
     choices_list = []
     for primary_purpose, trips_segment in trips_merged.groupby('primary_purpose'):

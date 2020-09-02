@@ -10,6 +10,7 @@ from .. import tracing
 from .. import inject
 from .. import orca
 
+
 def close_handlers():
 
     loggers = logging.Logger.manager.loggerDict
@@ -129,7 +130,6 @@ def test_register_tours(capsys):
     tracing.config_logger()
 
     inject.add_injectable('traceable_tables', ['households', 'tours'])
-    #inject.add_injectable('traceable_table_indexes', {})
 
     # in case another test injected this
     inject.add_injectable("trace_tours", [])

@@ -41,7 +41,6 @@ def network_los():
     return nw_los
 
 
-
 @inject.injectable(cache=True)
 def path_builder(network_los):
 
@@ -51,24 +50,9 @@ def path_builder(network_los):
     return tvpb
 
 
-#
-# @inject.injectable(cache=True)
-# def skim_dict(network_los):
-#
-#     taz_skim_dict = network_los.get_skim_dict('taz')
-#
-#     if network_los.zone_system == los.ONE_ZONE:
-#         logger.debug("loading skim_dict injectable (TAZ)")
-#         return taz_skim_dict
-#     else:
-#         logger.debug("loading skim_dict injectable (MAZ)")
-#         return skim_maz.MazSkimDict(network_los)
-
-
 @inject.injectable(cache=True)
 def skim_dict(network_los):
     return network_los.get_default_skim_dict()
-
 
 
 @inject.injectable(cache=True)

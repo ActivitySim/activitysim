@@ -11,7 +11,6 @@ import pytest
 
 from activitysim.core import orca
 
-#from .. import tracing
 from .. import inject
 from .. import los
 
@@ -130,6 +129,7 @@ def test_two_zone():
     with pytest.raises(AssertionError) as excinfo:
         pdt.assert_series_equal(skims['DIST'], dist)
 
+
 def test_three_zone():
 
     add_canonical_dirs('configs_3z')
@@ -173,6 +173,7 @@ def test_30_minute_windows():
         network_los.skim_time_period_label(pd.Series([1, 16, 24, 36, 46])),
         pd.Series(['EA', 'AM', 'MD', 'PM', 'EV']))
 
+
 def test_60_minute_windows():
 
     add_canonical_dirs('configs_test_misc')
@@ -208,12 +209,10 @@ def test_1_week_time_window():
                                    pd.Series(['Sunday', 'Monday', 'Tuesday', 'Wednesday',
                                               'Thursday', 'Friday', 'Saturday']))
 
+
 def test_skim_time_periods_future_warning():
 
     add_canonical_dirs('configs_test_misc')
 
     with pytest.warns(FutureWarning) as warning_test:
         network_los = los.Network_LOS(los_settings_file_name='settings_legacy_hours_key.yaml')
-
-
-

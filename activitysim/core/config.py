@@ -293,9 +293,6 @@ def read_settings_file(file_name, mandatory=True):
                 break
 
     if mandatory and not settings:
-        #raise RuntimeError("read_settings_file: no settings file '%s' in %s" % (file_name, configs_dir))
-        #bug
-        print(f"SettingsFileNotFound {configs_dir} {file_name}")
         raise SettingsFileNotFound(file_name, configs_dir)
 
     return settings

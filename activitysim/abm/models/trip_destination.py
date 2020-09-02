@@ -435,13 +435,13 @@ def wrap_skims(model_settings):
         tvpb = TransitVirtualPathBuilder(network_los)
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
-                                    tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=d, dest_key=o,
-                                    tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment')
         tvpb_logsum_dpt = tvpb.wrap_logsum(orig_key=d, dest_key=p,
-                                    tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment')
         tvpb_logsum_pdt = tvpb.wrap_logsum(orig_key=p, dest_key=d,
-                                    tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment')
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,

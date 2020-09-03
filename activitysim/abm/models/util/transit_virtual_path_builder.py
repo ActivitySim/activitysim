@@ -33,18 +33,18 @@ logger = logging.getLogger(__name__)
 def compute_utilities(
         model_settings,
         choosers, spec,
-        model_constants, network_los,
+        locals_dict, network_los,
         chunk_size, trace_label):
 
     trace_label = tracing.extend_trace_label(trace_label, 'compute_utilities')
 
     logger.debug("Running compute_utilities with %d choosers" % choosers.shape[0])
 
-    locals_dict = {
+    locals_dict = locals_dict.copy()  # don't clobber argument
+    locals_dict.update({
         'np': np,
         'los': network_los
-    }
-    locals_dict.update(model_constants)
+    })
 
     # - run preprocessor to annotate choosers
     preprocessor_settings = model_settings.get('PREPROCESSOR')
@@ -121,7 +121,7 @@ class TransitVirtualPathBuilder(object):
                 maz_tap_settings,
                 access_df,
                 spec=mode_specific_spec,
-                model_constants=model_constants,
+                locals_dict=model_constants,
                 network_los=self.network_los,
                 chunk_size=self.chunk_size,
                 trace_label=trace_label)
@@ -138,7 +138,7 @@ class TransitVirtualPathBuilder(object):
 
         return access_df
 
-    def compute_tap_tap_utilities(self, recipe, access_df, egress_df, chooser_attributes, trace_label):
+    def compute_tap_tap_utilities(self, recipe, access_df, egress_df, chooser_attributes, path_info, trace_label):
 
         trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_utilities')
 
@@ -146,6 +146,10 @@ class TransitVirtualPathBuilder(object):
         tap_tap_settings = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.tap_tap_expressions')
         attribute_columns = list(chooser_attributes.columns) if chooser_attributes is not None else []
         units = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.units')
+
+        # FIXME some expressions may want to know access mode -
+        locals_dict = path_info.copy()
+        locals_dict.update(model_constants)
 
         # compute tap_to_tap utilities
         # deduped transit_df has one row per chooser for each boarding (btap) and alighting (atap) pair
@@ -164,7 +168,7 @@ class TransitVirtualPathBuilder(object):
                 tap_tap_settings,
                 choosers=transit_df,
                 spec=spec,
-                model_constants=model_constants,
+                locals_dict=locals_dict,
                 network_los=self.network_los,
                 chunk_size=self.chunk_size,
                 trace_label=trace_label)
@@ -272,11 +276,14 @@ class TransitVirtualPathBuilder(object):
             mode=egress_mode,
             trace_label=trace_label)
 
+        # path_info for use by expressions (e.g. penalty for drive access if no parking at access tap)
+        path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
         transit_df = self.compute_tap_tap_utilities(
             recipe,
             access_df,
             egress_df,
             chooser_attributes,
+            path_info=path_info,
             trace_label=trace_label)
 
         path_df = self.best_paths(recipe, path_type, maz_od_df, access_df, egress_df, transit_df)

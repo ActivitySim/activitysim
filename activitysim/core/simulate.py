@@ -104,7 +104,12 @@ def read_model_spec(file_name, spec_dir=None):
     else:
         file_path = config.config_file_path(file_name)
 
-    spec = pd.read_csv(file_path, comment='#')
+    try:
+        spec = pd.read_csv(file_path, comment='#')
+    except Exception as err:
+        logger.error(f"read_model_spec error reading {file_path}")
+        logger.error(f"read_model_spec error {type(err).__name__}: {str(err)}")
+        raise(err)
 
     spec = spec.dropna(subset=[SPEC_EXPRESSION_NAME])
 

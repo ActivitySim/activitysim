@@ -120,19 +120,41 @@ def config_logger(basic=False):
     """
 
     # look for conf file in configs_dir
-    log_config_file = None
-    if not basic:
+    if basic:
+        log_config_file = None
+    else:
         log_config_file = config.config_file_path(LOGGING_CONF_FILE_NAME, mandatory=False)
 
     if log_config_file:
-        with open(log_config_file) as f:
-            # FIXME need alternative to yaml.UnsafeLoader?
-            config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
+        try:
+            with open(log_config_file) as f:
+                config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
+        except Exception as e:
+            print(f"Unable to read logging config file {log_config_file}")
+            raise e
+
+        try:
             config_dict = config_dict['logging']
             config_dict.setdefault('version', 1)
             logging.config.dictConfig(config_dict)
+        except Exception as e:
+            print(f"Unable to config logging as specified in {log_config_file}")
+            raise e
+
     else:
         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+
+    # if log_config_file:
+    #     with open(log_config_file) as f:
+    #         #bug
+    #         print("############################################# opening", log_config_file)
+    #         # FIXME need alternative to yaml.UnsafeLoader?
+    #         config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
+    #         config_dict = config_dict['logging']
+    #         config_dict.setdefault('version', 1)
+    #         logging.config.dictConfig(config_dict)
+    # else:
+    #     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
     logger = logging.getLogger(ASIM_LOGGER)
 

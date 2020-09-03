@@ -27,12 +27,12 @@ class MazSkimDictFacade(object):
         taz_skim_dict = network_los.get_skim_dict('taz')
         maz_df = network_los.maz_df
 
-        print(f"MazSkimDictFacade shape {taz_skim_dict.skim_data.shape}")
+        # print(f"MazSkimDictFacade shape {taz_skim_dict.skim_data.shape}")
 
         offset_series = taz_skim_dict.offset_mapper.offset_series
         if offset_series is None:
             offset_int = taz_skim_dict.offset_mapper.offset_int or 0
-            print(f"fake offset_series {offset_int}")
+            # print(f"fake offset_series {offset_int}")
             offsets = np.arange(taz_skim_dict.skim_data.shape[0])
             offset_series = pd.Series(data=offsets, index=offsets + offset_int)
 
@@ -116,13 +116,13 @@ class MazSparseSkimWrapper(object):
 
         # need backstop if any nans or (possibly) there is a specified max_blend_distance
         if is_nan.any() or self.max_blend_distance:
-            print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
+            # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
 
             backstop_values = self.backstop.get(self.key).get(orig, dest)
 
             if self.max_blend_distance > 0:
 
-                print(f"blend_distance_skim_name {self.blend_distance_skim_name}")
+                # print(f"blend_distance_skim_name {self.blend_distance_skim_name}")
                 # get distance skim if a different key was specified by blend_distance_skim_name
                 if self.blend_distance_skim_name is not None:
                     distance = self.network_los.get_mazpairs(orig, dest, self.blend_distance_skim_name)

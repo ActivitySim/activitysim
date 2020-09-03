@@ -1,6 +1,7 @@
 Label,Description,Expression,fastest,cheapest,shortest
 # fastest,,,,,
-util_transit_available_fastest,transit_available,@~df.transit_available_fastest * C_UNAVAILABLE,1,,
+#,,, FIXME demonstrate that we can use path inor (access and egress modes here),,
+util_bus_xfer_fastest,number of transfers,"@C_DRIVE_TRANSFER_PENALTY * (access_mode == 'drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_BOARDS_FAST')-1).clip(0)",1,,
 #,,, local bus,,
 util_bus_ivt_fastest,local bus in vehicle time,"@C_FASTEST_IVT_MULTIPLIER * df.c_ivt_for_segment * los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_TOTIVT_FAST')",1,,
 util_bus_wait_fastest,local bus wait time,"@C_FASTEST_IVT_MULTIPLIER * c_wait * df.c_ivt_for_segment * los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_IWAIT_FAST')",1,,

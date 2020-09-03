@@ -14,6 +14,11 @@ from .. import logit
 from .. import inject
 
 
+def teardown_function(func):
+    inject.clear_cache()
+    inject.reinject_decorated_tables()
+
+
 @pytest.fixture(scope='module')
 def data_dir():
     return os.path.join(os.path.dirname(__file__), 'data')

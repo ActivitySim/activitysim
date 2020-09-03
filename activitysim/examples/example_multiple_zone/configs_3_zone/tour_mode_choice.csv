@@ -171,7 +171,7 @@ util_Joint_TNC_Single_Auto_sufficient,Joint - TNC Single - Auto sufficient,@(df.
 util_Joint_TNC_Shared_Zero_auto,Joint - TNC Shared - Zero auto,@(df.is_joint & (df.auto_ownership == 0)),,,,,,,,,,,,,joint_tnc_shared_ASC_no_auto
 util_Joint_TNC_Shared_Auto_deficient,Joint - TNC Shared - Auto deficient,@(df.is_joint & (df.auto_ownership < df.num_workers) & (df.auto_ownership > 0)),,,,,,,,,,,,,joint_tnc_shared_ASC_auto_deficient
 util_Joint_TNC_Shared_Auto_sufficient,Joint - TNC Shared - Auto sufficient,@(df.is_joint & (df.auto_ownership >= df.num_workers)),,,,,,,,,,,,,joint_tnc_shared_ASC_auto_sufficient
-util_Local_bus_ASC,Local bus ASC,1,,,,,,,,,local_bus_ASC,,,,,local_bus_ASC,,,,,,,
+util_Local_bus_ASC,Local bus ASC,1,,,,,,,,,local_bus_ASC,local_bus_ASC,,,
 #util_Walk_to_Light_Rail_ASC,Walk to Light Rail ASC,@(df.walk_ferry_available == False),,,,,,,,,,walk_light_rail_ASC,,,,,,,,,,,
 #util_Drive_to_Light_Rail_ASC,Drive to Light Rail ASC,@(df.drive_ferry_available == False),,,,,,,,,,,,,,,drive_light_rail_ASC,,,,,,
 #util_Walk_to_Ferry_ASC,Walk to Ferry ASC,@df.walk_ferry_available,,,,,,,,,,walk_ferry_ASC,,,,,,,,,,,

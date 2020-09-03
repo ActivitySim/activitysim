@@ -9,7 +9,7 @@ from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import mp_tasks
 
-from test_pipeline import example_path, setup_dirs
+from test_pipeline import setup_dirs
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100

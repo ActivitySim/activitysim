@@ -21,9 +21,8 @@ def close_handlers():
         logger.setLevel(logging.NOTSET)
 
 
-def setup_function(func):
-    orca.clear_all()
-    orca.enable_cache()
+def teardown_function(func):
+    inject.clear_cache()
     inject.reinject_decorated_tables()
 
 

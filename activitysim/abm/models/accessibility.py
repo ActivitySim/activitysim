@@ -184,6 +184,8 @@ def compute_accessibility(accessibility, network_los, land_use, trace_od):
         data.shape = (orig_zone_count, dest_zone_count)  # (o,d)
         accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
 
+    logger.info("{trace_label} added {len(results.columns} columns")
+
     # - write table to pipeline
     pipeline.replace_table("accessibility", accessibility_df)
 

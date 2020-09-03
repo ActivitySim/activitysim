@@ -5,3 +5,6 @@ python scripts/create_3_zone.py
 python simulation.py -c configs_local -c configs_1_zone -c configs -o output_1
 python simulation.py -c configs_local -c configs_2_zone -c configs -d data_2 -o output_2
 python simulation.py -c configs_local -c configs_3_zone -c configs -d data_3 -o output_3
+
+
+pytest -x activitysim/examples/example_multiple_zone/test/

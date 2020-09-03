@@ -110,6 +110,8 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
       C_SHORTEST_IVT_MULTIPLIER: 1
       C_SHORTEST_COST_MULTIPLIER: 1
       C_SHORTEST_DIST_MULTIPLIER: 1
+      # illustrate using access mode in tat-tap expressions files
+      C_DRIVE_TRANSFER_PENALTY: -1
 
   accessibility:
     units: time

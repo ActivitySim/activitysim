@@ -132,27 +132,31 @@ def tour_mode_choice_simulate(tours, persons_merged,
         # FIXME run_tour_mode_choice_simulate writes choosers post-annotation
 
     choices_list = []
-    for tour_type, segment in primary_tours_merged.groupby('tour_type'):
+    primary_tours_merged['primary_purpose'] = \
+        primary_tours_merged.tour_type.where((primary_tours_merged.tour_type != 'school') |
+                                             ~primary_tours_merged.is_university, 'univ')
 
-        logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
-                    (tour_type, len(segment.index), ))
+    for primary_purpose, tours_segment in primary_tours_merged.groupby('primary_purpose'):
+
+        logger.info("tour_mode_choice_simulate primary_purpose '%s' (%s tours)" %
+                    (primary_purpose, len(tours_segment.index), ))
 
         # name index so tracing knows how to slice
-        assert segment.index.name == 'tour_id'
+        assert tours_segment.index.name == 'tour_id'
 
         choices_df = run_tour_mode_choice_simulate(
-            segment,
-            tour_type, model_settings,
+            tours_segment,
+            primary_purpose, model_settings,
             mode_column_name=mode_column_name,
             logsum_column_name=logsum_column_name,
             skims=skims,
             constants=constants,
             estimator=estimator,
             chunk_size=chunk_size,
-            trace_label=tracing.extend_trace_label(trace_label, tour_type),
+            trace_label=tracing.extend_trace_label(trace_label, primary_purpose),
             trace_choice_name='tour_mode_choice')
 
-        tracing.print_summary('tour_mode_choice_simulate %s choices_df' % tour_type,
+        tracing.print_summary('tour_mode_choice_simulate %s choices_df' % primary_purpose,
                               choices_df.tour_mode, value_counts=True)
 
         choices_list.append(choices_df)

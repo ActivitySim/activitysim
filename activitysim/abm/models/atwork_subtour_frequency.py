@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import pandas as pd
@@ -15,6 +10,8 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
+
+from .util import estimation
 
 from .util.tour_frequency import process_atwork_subtours
 from .util.expressions import assign_columns
@@ -40,17 +37,9 @@ def atwork_subtour_frequency(tours,
     """
 
     trace_label = 'atwork_subtour_frequency'
-
-    model_settings = config.read_model_settings('atwork_subtour_frequency.yaml')
-    model_spec = simulate.read_model_spec(file_name='atwork_subtour_frequency.csv')
-
-    alternatives = simulate.read_model_alts(
-        config.config_file_path('atwork_subtour_frequency_alternatives.csv'), set_index='alt')
+    model_settings_file_name = 'atwork_subtour_frequency.yaml'
 
     tours = tours.to_frame()
-
-    persons_merged = persons_merged.to_frame()
-
     work_tours = tours[tours.tour_type == 'work']
 
     # - if no work_tours
@@ -58,7 +47,17 @@ def atwork_subtour_frequency(tours,
         add_null_results(trace_label, tours)
         return
 
+    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation('atwork_subtour_frequency')
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+
+    alternatives = simulate.read_model_alts('atwork_subtour_frequency_alternatives.csv', set_index='alt')
+
     # merge persons into work_tours
+    persons_merged = persons_merged.to_frame()
     work_tours = pd.merge(work_tours, persons_merged, left_on='person_id', right_index=True)
 
     logger.info("Running atwork_subtour_frequency with %d work tours", len(work_tours))
@@ -75,6 +74,12 @@ def atwork_subtour_frequency(tours,
             model_settings=preprocessor_settings,
             trace_label=trace_label)
 
+    if estimator:
+        estimator.write_spec(model_settings)
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        estimator.write_coefficients(coefficients_df)
+        estimator.write_choosers(work_tours)
+
     choices = simulate.simple_simulate(
         choosers=work_tours,
         spec=model_spec,
@@ -82,12 +87,17 @@ def atwork_subtour_frequency(tours,
         locals_d=constants,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='atwork_subtour_frequency')
+        trace_choice_name='atwork_subtour_frequency',
+        estimator=estimator)
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
 
-    tracing.print_summary('atwork_subtour_frequency', choices, value_counts=True)
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'tours', 'atwork_subtour_frequency')
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
 
     # add atwork_subtour_frequency column to tours
     # reindex since we are working with a subset of tours
@@ -104,6 +114,9 @@ def atwork_subtour_frequency(tours,
 
     tracing.register_traceable_table('tours', subtours)
     pipeline.get_rn_generator().add_channel('tours', subtours)
+
+    tracing.print_summary('atwork_subtour_frequency', tours.atwork_subtour_frequency,
+                          value_counts=True)
 
     if trace_hh_id:
         tracing.trace_df(tours,

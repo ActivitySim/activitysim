@@ -1,13 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import range
 from builtins import int
-
-from future.utils import iteritems
 
 import sys
 import os
@@ -25,6 +19,7 @@ from activitysim.core import skim
 from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
+from activitysim.core import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +49,19 @@ def get_skim_info(omx_file_path, tags_to_load=None):
 
         omx_skim_names = omx_file.listMatrices()
 
+        offset_map = None
+        offset_map_name = None
+        for m in omx_file.listMappings():
+            if offset_map is None:
+                offset_map_name = m
+                offset_map = omx_file.mapentries(offset_map_name)
+                assert len(offset_map) == omx_shape[0]
+
+                logger.debug(f"get_skim_info omx_name {omx_name} using offset_map {m}")
+            else:
+                # don't really expect more than one, but ok if they are all the same
+                assert((offset_map == omx_file.mapentries(m).all())), "Multiple different mappings in omx file"
+
     # - omx_keys dict maps skim key to omx_key
     # DISTWALK: DISTWALK
     # ('DRV_COM_WLK_BOARDS', 'AM'): DRV_COM_WLK_BOARDS__AM, ...
@@ -69,13 +77,12 @@ def get_skim_info(omx_file_path, tags_to_load=None):
         omx_keys[skim_key] = skim_name
 
     num_skims = len(omx_keys)
-    skim_data_shape = omx_shape + (num_skims, )
 
     # - key1_subkeys dict maps key1 to dict of subkeys with that key1
     # DIST: {'DIST': 0}
     # DRV_COM_WLK_BOARDS: {'MD': 1, 'AM': 0, 'PM': 2}, ...
     key1_subkeys = OrderedDict()
-    for skim_key, omx_key in iteritems(omx_keys):
+    for skim_key, omx_key in omx_keys.items():
         if isinstance(skim_key, tuple):
             key1, key2 = skim_key
         else:
@@ -102,7 +109,7 @@ def get_skim_info(omx_file_path, tags_to_load=None):
     key1_block_offsets = OrderedDict()
     blocks = OrderedDict()
     block = offset = 0
-    for key1, v in iteritems(key1_subkeys):
+    for key1, v in key1_subkeys.items():
         num_subkeys = len(v)
         if offset + num_subkeys > max_skims_per_block:  # next block
             blocks[block_name(block)] = offset
@@ -139,6 +146,8 @@ def get_skim_info(omx_file_path, tags_to_load=None):
         'omx_shape': omx_shape,
         'num_skims': num_skims,
         'dtype': skim_dtype,
+        'offset_map_name': offset_map_name,
+        'offset_map': offset_map,
         'omx_keys': omx_keys,
         'key1_block_offsets': key1_block_offsets,
         'block_offsets': block_offsets,
@@ -155,14 +164,15 @@ def buffers_for_skims(skim_info, shared=False):
     blocks = skim_info['blocks']
 
     skim_buffers = {}
-    for block_name, block_size in iteritems(blocks):
+    for block_name, block_size in blocks.items():
 
-        # buffer_size must be int (or p2.7 long), not np.int64
+        # buffer_size must be int, not np.int64
         buffer_size = int(multiply_large_numbers(omx_shape) * block_size)
 
-        csz = buffer_size * np.dtype(skim_dtype).itemsize
-        logger.info("allocating shared buffer %s for %s (%s) matrices (%s)" %
-                    (block_name, buffer_size, omx_shape, util.GB(csz)))
+        itemsize = np.dtype(skim_dtype).itemsize
+        csz = buffer_size * itemsize
+        logger.info("allocating shared buffer %s for %s skims (skim size: %s * %s bytes = %s) total size: %s (%s)" %
+                    (block_name, block_size, omx_shape, itemsize, buffer_size, csz, util.GB(csz)))
 
         if shared:
             if np.issubdtype(skim_dtype, np.float64):
@@ -190,7 +200,7 @@ def skim_data_from_buffers(skim_buffers, skim_info):
     blocks = skim_info['blocks']
 
     skim_data = []
-    for block_name, block_size in iteritems(blocks):
+    for block_name, block_size in blocks.items():
         skims_shape = omx_shape + (block_size,)
         block_buffer = skim_buffers[block_name]
         assert len(block_buffer) == int(multiply_large_numbers(skims_shape))
@@ -200,16 +210,84 @@ def skim_data_from_buffers(skim_buffers, skim_info):
     return skim_data
 
 
-def load_skims(omx_file_path, skim_info, skim_buffers):
+def default_skim_cache_dir():
+    return inject.get_injectable('output_dir')
 
-    skim_data = skim_data_from_buffers(skim_buffers, skim_info)
+
+def build_skim_cache_file_name(omx_name, block):
+    return f"cached_{omx_name}_{block}.mmap"
+
+
+def read_skim_cache(skim_info, skim_data):
+    """
+        read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
+    """
+
+    skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
+    logger.info(f"load_skims reading skims data from cache directory {skim_cache_dir}")
+
+    omx_name = skim_info['omx_name']
+    dtype = np.dtype(skim_info['dtype'])
+
+    blocks = skim_info['blocks']
+    block = 0
+    for block_name, block_size in blocks.items():
+        skim_cache_file_name = build_skim_cache_file_name(omx_name, block)
+        skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
+
+        assert os.path.isfile(skim_cache_path), \
+            "read_skim_cache could not find skim_cache_path: %s" % (skim_cache_path, )
+
+        block_data = skim_data[block]
+
+        logger.info(f"load_skims reading block_name {block_name} {block_data.shape} from {skim_cache_file_name}")
+
+        data = np.memmap(skim_cache_path, shape=block_data.shape, dtype=dtype, mode='r')
+        assert data.shape == block_data.shape
+
+        block_data[::] = data[::]
+
+        block += 1
+
+
+def write_skim_cache(skim_info, skim_data):
+    """
+        write skim data from skim_data to canonically named cache file(s) in output directory
+    """
+
+    skim_cache_dir = config.setting('skim_cache_dir', default_skim_cache_dir())
+    logger.info(f"load_skims writing skims data to cache directory {skim_cache_dir}")
+
+    omx_name = skim_info['omx_name']
+    dtype = np.dtype(skim_info['dtype'])
+
+    blocks = skim_info['blocks']
+    block = 0
+    for block_name, block_size in blocks.items():
+        skim_cache_file_name = build_skim_cache_file_name(omx_name, block)
+        skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
+
+        block_data = skim_data[block]
+
+        logger.info(f"load_skims writing block_name {block_name} {block_data.shape} to {skim_cache_file_name}")
+
+        data = np.memmap(skim_cache_path, shape=block_data.shape, dtype=dtype, mode='w+')
+        data[::] = block_data
+
+        block += 1
+
+
+def read_skims_from_omx(skim_info, skim_data, omx_file_path):
+    """
+    read skims from omx file into skim_data
+    """
 
     block_offsets = skim_info['block_offsets']
     omx_keys = skim_info['omx_keys']
 
     # read skims into skim_data
     with omx.open_file(omx_file_path) as omx_file:
-        for skim_key, omx_key in iteritems(omx_keys):
+        for skim_key, omx_key in omx_keys.items():
 
             omx_data = omx_file[omx_key]
             assert np.issubdtype(omx_data.dtype, np.floating)
@@ -227,8 +305,31 @@ def load_skims(omx_file_path, skim_info, skim_buffers):
     logger.info("load_skims loaded skims from %s" % (omx_file_path, ))
 
 
+def load_skims(omx_file_path, skim_info, skim_buffers):
+
+    read_cache = config.setting('read_skim_cache')
+    write_cache = config.setting('write_skim_cache')
+    assert not (read_cache and write_cache), \
+        "read_skim_cache and write_skim_cache are both True in settings file. I am assuming this is a mistake"
+
+    skim_data = skim_data_from_buffers(skim_buffers, skim_info)
+
+    t0 = tracing.print_elapsed_time()
+
+    if read_cache:
+        read_skim_cache(skim_info, skim_data)
+        t0 = tracing.print_elapsed_time("read_skim_cache", t0)
+    else:
+        read_skims_from_omx(skim_info, skim_data, omx_file_path)
+        t0 = tracing.print_elapsed_time("read_skims_from_omx", t0)
+
+    if write_cache:
+        write_skim_cache(skim_info, skim_data)
+        t0 = tracing.print_elapsed_time("write_skim_cache", t0)
+
+
 @inject.injectable(cache=True)
-def skim_dict(data_dir, settings):
+def skim_dict(settings):
 
     omx_file_path = config.data_file_path(settings["skims_file"])
     tags_to_load = settings['skim_time_periods']['labels']
@@ -258,7 +359,14 @@ def skim_dict(data_dir, settings):
 
     # create skim dict
     skim_dict = skim.SkimDict(skim_data, skim_info)
-    skim_dict.offset_mapper.set_offset_int(-1)
+
+    offset_map = skim_info['offset_map']
+    if offset_map is not None:
+        skim_dict.offset_mapper.set_offset_list(offset_map)
+        logger.debug(f"using offset map {skim_info['offset_map_name']}from omx file: {offset_map}")
+    else:
+        # assume this is a one-based skim map
+        skim_dict.offset_mapper.set_offset_int(-1)
 
     return skim_dict
 

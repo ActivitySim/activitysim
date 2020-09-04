@@ -1,11 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
+
+import pandas as pd
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -14,8 +11,11 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 
 from .util import expressions
+from .util import estimation
+
 from .util.vectorize_tour_scheduling import vectorize_joint_tour_scheduling
 from activitysim.core.util import assign_in_place
+from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +31,9 @@ def joint_tour_scheduling(
     This model predicts the departure time and duration of each joint tour
     """
     trace_label = 'joint_tour_scheduling'
-    model_settings = config.read_model_settings('joint_tour_scheduling.yaml')
-    model_spec = simulate.read_model_spec(file_name='tour_scheduling_joint.csv')
+
+    model_settings_file_name = 'joint_tour_scheduling.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -76,18 +77,54 @@ def joint_tour_scheduling(
             locals_dict=locals_d,
             trace_label=trace_label)
 
-    tdd_choices, timetable = vectorize_joint_tour_scheduling(
+    timetable = inject.get_injectable("timetable")
+
+    estimator = estimation.manager.begin_estimation('joint_tour_scheduling')
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+
+    if estimator:
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        estimator.write_spec(model_settings)
+        estimator.write_coefficients(coefficients_df)
+        timetable.begin_transaction(estimator)
+
+    choices = vectorize_joint_tour_scheduling(
         joint_tours, joint_tour_participants,
         persons_merged,
-        tdd_alts,
+        tdd_alts, timetable,
         spec=model_spec,
         model_settings=model_settings,
+        estimator=estimator,
         chunk_size=chunk_size,
         trace_label=trace_label)
 
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'tours', 'tdd')
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
+
+        # update timetable to reflect the override choices (assign tours in tour_num order)
+        timetable.rollback()
+        for tour_num, nth_tours in joint_tours.groupby('tour_num', sort=True):
+            nth_participants = \
+                joint_tour_participants[joint_tour_participants.tour_id.isin(nth_tours.index)]
+
+            estimator.log("assign timetable for %s participants in %s tours with tour_num %s" %
+                          (len(nth_participants), len(nth_tours), tour_num))
+            # - update timetables of all joint tour participants
+            timetable.assign(nth_participants.person_id, reindex(choices, nth_participants.tour_id))
+
     timetable.replace_table()
 
-    assign_in_place(tours, tdd_choices)
+    # choices are tdd alternative ids
+    # we want to add start, end, and duration columns to tours, which we have in tdd_alts table
+    choices = pd.merge(choices.to_frame('tdd'), tdd_alts, left_on=['tdd'], right_index=True, how='left')
+
+    assign_in_place(tours, choices)
     pipeline.replace_table("tours", tours)
 
     # updated df for tracing

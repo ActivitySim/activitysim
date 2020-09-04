@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import numpy as np
@@ -81,12 +76,34 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     chunk.log_df(trace_label, 'choosers', choosers)
 
     # select the matching depart range (this should result on in exactly one chooser row per trip)
-    choosers = choosers[(choosers.start >= choosers['depart_range_start']) & (
-                choosers.start <= choosers['depart_range_end'])]
+    chooser_probs = \
+        (choosers.start >= choosers['depart_range_start']) & (choosers.start <= choosers['depart_range_end'])
+
+    # if we failed to match a row in probs_spec
+    if chooser_probs.sum() < num_trips:
+        # this can happen if the spec doesn't have probs for the trips matching a trip's probs_join_cols
+        missing_trip_ids = trips.index[~trips.index.isin(choosers.index[chooser_probs])].values
+        unmatched_choosers = choosers[choosers.index.isin(missing_trip_ids)]
+        unmatched_choosers = unmatched_choosers[['person_id', 'start'] + non_purpose_cols]
+
+        # join to persons for better diagnostics
+        persons = inject.get_table('persons').to_frame()
+        persons_cols = ['age', 'is_worker', 'is_student', 'is_gradeschool', 'is_highschool', 'is_university']
+        unmatched_choosers = pd.merge(unmatched_choosers, persons[persons_cols],
+                                      left_on='person_id', right_index=True, how='left')
+
+        file_name = '%s.UNMATCHED_PROBS' % trace_label
+        logger.error("%s %s of %s intermediate trips could not be matched to probs based on join columns  %s" %
+                     (trace_label, len(unmatched_choosers), len(choosers), probs_join_cols))
+        logger.info("Writing %s unmatched choosers to %s" % (len(unmatched_choosers), file_name,))
+        tracing.write_csv(unmatched_choosers, file_name=file_name, transpose=False)
+        raise RuntimeError("Some trips could not be matched to probs based on join columns %s." % probs_join_cols)
+
+    # select the matching depart range (this should result on in exactly one chooser row per trip)
+    choosers = choosers[chooser_probs]
 
     # choosers should now match trips row for row
-    assert choosers.index.is_unique
-    assert len(choosers.index) == num_trips
+    assert choosers.index.identical(trips.index)
 
     choices, rands = logit.make_choices(
         choosers[purpose_cols],

@@ -7,8 +7,6 @@ Utilities used in testing of Orca.
 
 """
 
-from future.utils import iteritems
-
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
@@ -45,7 +43,7 @@ def assert_frames_equal(actual, expected, use_close=False):
 
         act_row = actual.loc[i]
 
-        for j, exp_item in iteritems(exp_row):
+        for j, exp_item in exp_row.items():
             assert j in act_row.index, \
                 'Expected column {!r} not found.'.format(j)
 

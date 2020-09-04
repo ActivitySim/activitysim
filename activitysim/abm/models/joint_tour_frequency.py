@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import numpy as np
@@ -17,6 +12,8 @@ from activitysim.core import config
 from activitysim.core import inject
 
 from .util import expressions
+from .util import estimation
+
 from .util.overlap import hh_time_window_overlap
 from .util.tour_frequency import process_joint_tours
 
@@ -33,11 +30,11 @@ def joint_tour_frequency(
     alternatives above).
     """
     trace_label = 'joint_tour_frequency'
-    model_settings = config.read_model_settings('joint_tour_frequency.yaml')
-    model_spec = simulate.read_model_spec(file_name='joint_tour_frequency.csv')
+    model_settings_file_name = 'joint_tour_frequency.yaml'
 
-    alternatives = simulate.read_model_alts(
-        config.config_file_path('joint_tour_frequency_alternatives.csv'), set_index='alt')
+    model_settings = config.read_model_settings(model_settings_file_name)
+
+    alternatives = simulate.read_model_alts('joint_tour_frequency_alternatives.csv', set_index='alt')
 
     # - only interested in households with more than one cdap travel_active person and
     # - at least one non-preschooler
@@ -67,10 +64,20 @@ def joint_tour_frequency(
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    # - simple_simulate
+    estimator = estimation.manager.begin_estimation('joint_tour_frequency')
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    if estimator:
+        estimator.write_spec(model_settings)
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        estimator.write_coefficients(coefficients_df)
+        estimator.write_choosers(multi_person_households)
 
     choices = simulate.simple_simulate(
         choosers=multi_person_households,
@@ -79,10 +86,17 @@ def joint_tour_frequency(
         locals_d=constants,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='joint_tour_frequency')
+        trace_choice_name='joint_tour_frequency',
+        estimator=estimator)
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'households', 'joint_tour_frequency')
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
 
     # - create joint_tours based on joint_tour_frequency choices
 
@@ -104,9 +118,10 @@ def joint_tour_frequency(
     pipeline.get_rn_generator().add_channel('tours', joint_tours)
 
     # - annotate households
-    # add joint_tour_frequency and num_hh_joint_tours columns to households
-    # reindex since we ran model on a subset of households
-    households['joint_tour_frequency'] = choices.reindex(households.index).fillna('').astype(str)
+
+    # we expect there to be an alt with no tours - which we can use to backfill non-travelers
+    no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
+    households['joint_tour_frequency'] = choices.reindex(households.index).fillna(no_tours_alt).astype(str)
 
     households['num_hh_joint_tours'] = joint_tours.groupby('household_id').size().\
         reindex(households.index).fillna(0).astype(np.int8)

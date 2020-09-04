@@ -1,12 +1,7 @@
-from __future__ import (absolute_import, division, print_function, )
-
 import pandas as pd
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import tracing
-
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 
 
 @inject.step()

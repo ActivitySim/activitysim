@@ -1,9 +1,0 @@
-Description,Expression,free,pay
-,@df.workplace_county_id == ID_SAN_FRANCISCO,-2.6403,
-,@df.workplace_county_id == ID_SANTA_CLARA,0.2118,
-,@df.workplace_county_id == ID_ALAMEDA,-0.1092,
-Very high income household dummy,@df.income>=100000,0.2300,
-High income housheold dummy,@(df.income>=60000) & (df.income<100000),0.2300,
-Household size is greater than 3 dummy,@df.hhsize>3,0.2530,
-More automobiles than workers dummy,@df.auto_ownership>df.num_workers,0.2310,
-Fewer automobiles than workers dummy,@df.auto_ownership<df.num_workers,-1.4790,

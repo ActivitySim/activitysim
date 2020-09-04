@@ -1,17 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 try:
     from inspect import getfullargspec as getargspec
 except ImportError:
     from inspect import getargspec
 import logging
 import warnings
-from collections import Callable, namedtuple
+from collections import namedtuple
+try:
+    from collections.abc import Callable
+except ImportError:
+    from collections import Callable
 from contextlib import contextmanager
 from functools import wraps
 import inspect

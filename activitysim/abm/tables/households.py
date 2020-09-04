@@ -1,9 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import range
 
 import logging
@@ -24,9 +20,11 @@ logger = logging.getLogger(__name__)
 def households(households_sample_size, override_hh_ids, trace_hh_id):
 
     df_full = read_input_table("households")
-    households_sliced = False
+    tot_households = df_full.shape[0]
 
-    logger.info("full household list contains %s households" % df_full.shape[0])
+    logger.info("full household list contains %s households" % tot_households)
+
+    households_sliced = False
 
     # only using households listed in override_hh_ids
     if override_hh_ids is not None:
@@ -52,9 +50,9 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
         households_sliced = True
 
     # if we need a subset of full store
-    elif households_sample_size > 0 and df_full.shape[0] > households_sample_size:
+    elif tot_households > households_sample_size > 0:
 
-        logger.info("sampling %s of %s households" % (households_sample_size, df_full.shape[0]))
+        logger.info("sampling %s of %s households" % (households_sample_size, tot_households))
 
         """
         Because random seed is set differently for each step, sampling of households using
@@ -83,6 +81,14 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
 
     # persons table
     inject.add_injectable('households_sliced', households_sliced)
+
+    if 'sample_rate' not in df.columns:
+        if households_sample_size == 0:
+            sample_rate = 1
+        else:
+            sample_rate = round(households_sample_size / tot_households, 3)
+
+        df['sample_rate'] = sample_rate
 
     logger.info("loaded households %s" % (df.shape,))
 

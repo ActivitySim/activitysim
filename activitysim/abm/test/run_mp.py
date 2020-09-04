@@ -1,19 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import os
 
 import pandas as pd
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 
-from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import mp_tasks
+
+from test_pipeline import example_path, setup_dirs
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
@@ -69,16 +65,8 @@ def regress_mini_auto():
 def test_mp_run():
 
     mp_configs_dir = os.path.join(os.path.dirname(__file__), 'configs_mp')
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    inject.add_injectable('configs_dir', [mp_configs_dir, configs_dir])
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable("output_dir", output_dir)
-
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    inject.add_injectable("data_dir", data_dir)
-
-    tracing.config_logger()
+    setup_dirs(ancillary_configs_dir=mp_configs_dir)
 
     run_list = mp_tasks.get_run_list()
     mp_tasks.print_run_list(run_list)

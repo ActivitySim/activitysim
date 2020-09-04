@@ -155,11 +155,11 @@ our GitHub workflow are:
 
 * The master branch contains the latest working/release version of the ActivitySim resources
 * The master branch is protected and therefore can only be written to by the `Travis <https://travis-ci.org/>`__ CI system
-* Work is done in an issue/feature branch (or a fork) and then pushed to a new brach
-* The test system automatically runs the tests for a subset of the model (a subset of zones, households, and models) on the new branch
+* Work is done in an issue/feature branch (or a fork) and then pushed to a new branch
+* The test system automatically runs the tests on the new branch
 * If the tests pass, then a manual pull request can be approved to merge into master
-* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  The repository manager also runs the full scale model (all zones, households, and models) to ensure the example model runs successfully.  
-* Every time a merge is made to master, the version is incremented and a new package posted to `Python Package Index <https://pypi.org/>`__
+* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  See :ref:`release_steps` for more information.
+
 
 Versioning
 ~~~~~~~~~~
@@ -168,11 +168,10 @@ ActivitySim uses the following `versioning convention <http://the-hitchhikers-gu
 
 ::
 
-  MAJOR.MINOR[.MICRO]
+  MAJOR.MINOR
 
-* where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs or ABIs.
+* where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs (Application Program Interface) or ABIs (Application Binary Interface).
 * MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.
-* Some softwares use a third level: MICRO. This level is used when the release cycle of minor release is quite long. In that case, micro releases are dedicated to bug fixes.
 
 Testing
 ~~~~~~~
@@ -211,15 +210,9 @@ the tests.
 Profiling
 ~~~~~~~~~
 
-A good way to profile ActivitySim model runs is to use `snakeviz <https://jiffyclub.github.io/snakeviz/>`__.  
+A handy way to profile ActivitySim model runs is to use `snakeviz <https://jiffyclub.github.io/snakeviz/>`__.  
 To do so, first install snakeviz and then run ActivitySim with the Python profiler (cProfile) to create 
 a profiler file.  Then run snakeviz on the profiler file to interactively explore the component runtimes.
-
-::
-
-    pip install snakeviz
-    python -m cProfile -o asim.prof simulation.py
-    snakeviz asim.prof
 
 Documentation
 ~~~~~~~~~~~~~
@@ -245,7 +238,7 @@ Next, build the documentation in html format with the following command run from
 
 If the activitysim package is installed, then the documentation will be built from that version of 
 the source code instead of the git repo version.  Make sure to ``pip uninstall activitysim`` before 
-bulding the documentation if needed.  
+building the documentation if needed.  
 
 When pushing revisions to the repo, the documentation is automatically built by Travis after 
 successfully passing the tests.  The documents are built with the ``bin/build_docs.sh`` script.  
@@ -255,9 +248,76 @@ The script does the following:
 * runs ``make html``
 * copies the ``master`` branch ``../activitysim/docs/_build/html/*`` pages to the ``gh-pages`` branch
 
-GitHub automagically publishes the gh-pages branch at https://activitysim.github.io/activitysim.  
+GitHub automatically publishes the gh-pages branch at https://activitysim.github.io/activitysim.  
+
+.. _release_steps :
 
 Releases
 ~~~~~~~~
 
-ActivitySim releases are manually uploaded to the `Python Package Index <https://pypi.python.org/pypi/activitysim>`__  (pypi). 
+Before releasing a new version of ActivitySim, the following release checklist should be consulted:
+
+* Create the required Anaconda environment
+* Run all the examples, including the full scale example
+* Build the package
+* Install and run the package in a new Anaconda environment
+* Build the documentation
+* Run the tests
+* Run pycodestyle
+* Increment the package version number
+* Update any necessary web links, such as switching from the develop branch to the master branch
+
+ActivitySim releases are manually uploaded to the `Python Package Index <https://pypi.python.org/pypi/activitysim>`__  
+(pypi) and also tagged as GitHub `releases <https://github.com/ActivitySim/activitysim/releases>`__.
+
+Issues and Support
+~~~~~~~~~~~~~~~~~~
+
+Issue tracking and support is done through GitHub `issues <https://github.com/ActivitySim/activitysim/issues>`__.  
+
+License
+~~~~~~~
+
+ActivitySim is provided "as is."  See the 
+`License <https://github.com/ActivitySim/activitysim/blob/master/LICENSE.txt>`__ for more information.
+
+Contribution Review Criteria
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When contributing to ActivitySim, the set of questions below will be asked of the contribution.  Make sure to also 
+review the documentation above before making a submittal.  The automated test system also provides some helpful 
+information where identified.
+
+To submit a contribution for review, issue a pull request with a comment introducing your contribution.  The comment 
+should include a brief overview, responses to the questions, and pointers to related information.  The entire submittal 
+should ideally be self contained so any additional documentation should be in the pull request as well.  
+The `PMC <https://github.com/ActivitySim/activitysim/wiki/Governance#project-management-committee-pmc>`__ and/or its Contractor will handle the review request, comment on each 
+question, complete the feedback form, and reply to the pull request.  If accepted, the commit(s) will 
+be `squashed and merged <https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-request-merges#squash-and-merge-your-pull-request-commits>`__.
+Its a good idea to setup a pre-submittal meeting to discuss questions and better understand expectations.
+
+**Review Criteria**
+
+  1. Does it contain all the required elements, including a runnable example, documentation, and tests?
+  2. Does it implement good methods (i.e. is it consistent with good practices in travel modeling)?
+  3. Are the runtimes reasonable and does it provide documentation justifying this claim?
+  4. Does it include non-Python code, such as C/C++?  If so, does it compile on any OS and are compilation instructions included?
+  5. Is it licensed with the ActivitySim license that allows the code to be freely distributed and modified and includes attribution so that the provenance of the code can be tracked? Does it include an official release of ownership from the funding agency if applicable?
+  6. Does it appropriately interact with the data pipeline (i.e. it doesn't create new ways of managing data)?  
+  7. Does it include regression tests to enable checking that consistent results will be returned when updates are made to the framework?
+  8. Does it include sufficient test coverage and test data for existing and proposed features? 
+  9. Any other comments or suggestions for improving the developer experience? 
+
+**Feedback**
+
+The PMC and/or its Contractor will provide feedback for each review criteria above and tag each submittal category as follows:
+
++-----------------------------------+-------------+-------------------+-------------------+
+| Status                            | Code        | Documentation     | Tests/Examples    |
++===================================+=============+===================+===================+ 
+| Accept                            |             |                   |                   |
++-----------------------------------+-------------+-------------------+-------------------+
+| Accept but recommend revisions    |             |                   |                   |
++-----------------------------------+-------------+-------------------+-------------------+
+| Do not accept                     |             |                   |                   |
++-----------------------------------+-------------+-------------------+-------------------+

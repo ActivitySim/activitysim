@@ -5,7 +5,7 @@ fileName = "_build/html/abmexample.html"
 line = 'src="_images/abmexample.jpg" />'
 lineWithMap = 'src="_images/abmexample.jpg" usemap="#image-map" />'
 imageMap = """\n   <map name="image-map">
-    <area target="" alt="" title="" href="models.html#trip-cbd-parking" coords="234,683,436,709" shape="rect">
+    <area target="" alt="" title="" href="models.html#write-trip-matrices" coords="234,683,436,709" shape="rect">
     <area target="" alt="" title="" href="models.html#trip-mode-choice" coords="438,670,235,646" shape="rect">
     <area target="" alt="" title="" href="models.html#trip-scheduling" coords="235,607,434,630" shape="rect">
     <area target="" alt="" title="" href="models.html#trip-destination-choice" coords="235,565,433,588" shape="rect">
@@ -39,10 +39,10 @@ with open(fileName) as file:
     lines = file.readlines()
 
 with open(fileName, 'w') as file:
-    for l in lines:
-        if line in l:
+    for aLine in lines:
+        if line in aLine:
             print("updated " + fileName)
-            file.writelines("%s" % l.replace(line, lineWithMap))
+            file.writelines("%s" % aLine.replace(line, lineWithMap))
             file.writelines("%s" % imageMap)
         else:
-            file.writelines("%s" % l)
+            file.writelines("%s" % aLine)

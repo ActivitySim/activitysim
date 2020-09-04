@@ -1,12 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
-
+import warnings
+import os
 import pandas as pd
 
 from activitysim.core import tracing
@@ -59,6 +55,12 @@ def annotate_tables(model_settings, trace_label):
         # - rename columns
         column_map = table_info.get('column_map', None)
         if column_map:
+
+            warnings.warn("annotate_tables option 'column_map' renamed 'rename_columns' and moved"
+                          "to settings.yaml. Support for 'column_map' in annotate_tables will be "
+                          "removed in future versions.",
+                          FutureWarning)
+
             logger.info("renaming %s columns %s" % (tablename, column_map,))
             df.rename(columns=column_map, inplace=True)
 
@@ -86,12 +88,9 @@ def initialize_landuse():
 
     annotate_tables(model_settings, trace_label)
 
-    # create accessibility
+    # create accessibility (only required if multiprocessing wants to slice accessibility)
     land_use = pipeline.get_table('land_use')
-
     accessibility_df = pd.DataFrame(index=land_use.index)
-
-    # - write table to pipeline
     pipeline.replace_table("accessibility", accessibility_df)
 
 
@@ -129,13 +128,28 @@ def preload_injectables():
 
     # default ActivitySim table names and indices
     if table_list is None:
-        logger.warn(
+        logger.warning(
             "No 'input_table_list' found in settings. This will be a "
             "required setting in upcoming versions of ActivitySim.")
 
         new_settings = inject.get_injectable('settings')
         new_settings['input_table_list'] = DEFAULT_TABLE_LIST
         inject.add_injectable('settings', new_settings)
+
+    # FIXME undocumented feature
+    if config.setting('write_raw_tables'):
+
+        # write raw input tables as csv (before annotation)
+        csv_dir = config.output_file_path('raw_tables')
+        if not os.path.exists(csv_dir):
+            os.makedirs(csv_dir)  # make directory if needed
+
+        table_names = [t['tablename'] for t in table_list]
+        for t in table_names:
+            df = inject.get_table(t).to_frame()
+            if t == 'households':
+                df.drop(columns='chunk_id', inplace=True)
+            df.to_csv(os.path.join(csv_dir, '%s.csv' % t), index=True)
 
     t0 = tracing.print_elapsed_time()
 

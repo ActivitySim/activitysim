@@ -1,9 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import next
 from builtins import range
 
@@ -273,7 +270,8 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
         df = df[columns]
 
     if not transpose:
-        df.to_csv(file_path, mode='a', index=df.index.name is not None, header=need_header)
+        want_index = isinstance(df.index, pd.MultiIndex) or df.index.name is not None
+        df.to_csv(file_path, mode='a', index=want_index, header=need_header)
         return
 
     df_t = df.transpose() if df.index.name in df else df.reset_index().transpose()
@@ -466,7 +464,8 @@ def trace_targets(df, slicer=None):
         if column is None:
             targets = df.index.isin(target_ids)
         else:
-            targets = df[column].isin(target_ids)
+            # convert to numpy array for consistency since that is what index.isin returns
+            targets = df[column].isin(target_ids).to_numpy()
 
     return targets
 
@@ -505,10 +504,38 @@ def hh_id_for_chooser(id, choosers):
     elif 'household_id' in choosers.columns:
         hh_id = choosers.loc[id]['household_id']
     else:
-        print(": hh_id_for_chooser: nada, \n", choosers.columns)
+        print(": hh_id_for_chooser: nada:\n%s" % choosers.columns)
         hh_id = None
 
     return hh_id
+
+
+def trace_id_for_chooser(id, choosers):
+    """
+
+    Parameters
+    ----------
+    id - scalar id (or list of ids) from chooser index
+    choosers - pandas dataframe whose index contains ids
+
+    Returns
+    -------
+        scalar household_id or series of household_ids
+    """
+
+    hh_id = None
+    for column_name in ['household_id', 'person_id']:
+        if choosers.index.name == column_name:
+            hh_id = id
+            break
+        elif column_name in choosers.columns:
+            hh_id = choosers.loc[id][column_name]
+            break
+
+    if hh_id is None:
+        print(": hh_id_for_chooser: nada:\n%s" % choosers.columns)
+
+    return hh_id, column_name
 
 
 def dump_df(dump_switch, df, trace_label, fname):

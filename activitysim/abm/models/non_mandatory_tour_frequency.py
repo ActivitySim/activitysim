@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import numpy as np
@@ -19,11 +14,12 @@ from activitysim.core import inject
 from activitysim.core import simulate
 from activitysim.core import logit
 
+from activitysim.core.mem import force_garbage_collect
+
 from .util import expressions
+from .util import estimation
+
 from .util.overlap import person_max_window
-
-from activitysim.abm.tables.constants import PTYPE_NAME
-
 from .util.tour_frequency import process_non_mandatory_tours
 
 logger = logging.getLogger(__name__)
@@ -86,6 +82,7 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
     # only extend if there are 1 - 4 non_mandatory tours to start with
     extend_tour_counts = tour_counts.sum(axis=1).between(1, 4)
     if not extend_tour_counts.any():
+        logger.info("extend_tour_counts - no persons eligible for tour_count extension")
         return tour_counts
 
     have_trace_targets = trace_hh_id and tracing.has_trace_targets(extend_tour_counts)
@@ -145,18 +142,18 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     """
 
     trace_label = 'non_mandatory_tour_frequency'
-    model_settings = config.read_model_settings('non_mandatory_tour_frequency.yaml')
-    model_spec = simulate.read_model_spec(file_name='non_mandatory_tour_frequency.csv')
+    model_settings_file_name = 'non_mandatory_tour_frequency.yaml'
 
-    alternatives = simulate.read_model_alts(
-        config.config_file_path('non_mandatory_tour_frequency_alternatives.csv'),
-        set_index=None)
-
-    choosers = persons_merged.to_frame()
+    model_settings = config.read_model_settings(model_settings_file_name)
 
     # FIXME kind of tacky both that we know to add this here and del it below
     # 'tot_tours' is used in model_spec expressions
+    alternatives = simulate.read_model_alts('non_mandatory_tour_frequency_alternatives.csv', set_index=None)
     alternatives['tot_tours'] = alternatives.sum(axis=1)
+
+    # filter based on results of CDAP
+    choosers = persons_merged.to_frame()
+    choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
 
     # - preprocessor
     preprocessor_settings = model_settings.get('preprocessor', None)
@@ -172,85 +169,164 @@ def non_mandatory_tour_frequency(persons, persons_merged,
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    # filter based on results of CDAP
-    choosers = choosers[choosers.cdap_activity.isin(['M', 'N'])]
-
     logger.info("Running non_mandatory_tour_frequency with %d persons", len(choosers))
 
     constants = config.get_model_constants(model_settings)
 
-    choices_list = []
-    # segment by person type and pick the right spec for each person type
-    for ptype, segment in choosers.groupby('ptype'):
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    spec_segments = model_settings.get('SPEC_SEGMENTS', {})
 
-        name = PTYPE_NAME[ptype]
+    # segment by person type and pick the right spec for each person type
+    choices_list = []
+    for segment_settings in spec_segments:
+
+        segment_name = segment_settings['NAME']
+        ptype = segment_settings['PTYPE']
 
         # pick the spec column for the segment
-        spec = model_spec[[name]]
+        segment_spec = model_spec[[segment_name]]
 
-        # drop any zero-valued rows
-        spec = spec[spec[name] != 0]
+        chooser_segment = choosers[choosers.ptype == ptype]
 
-        logger.info("Running segment '%s' of size %d", name, len(segment))
+        logger.info("Running segment '%s' of size %d", segment_name, len(chooser_segment))
+
+        if len(chooser_segment) == 0:
+            # skip empty segments
+            continue
+
+        estimator = \
+            estimation.manager.begin_estimation(model_name='non_mandatory_tour_frequency_%s' % segment_name,
+                                                bundle_name='non_mandatory_tour_frequency')
+
+        coefficients_df = simulate.read_model_coefficients(file_name=segment_settings['COEFFICIENTS'])
+        segment_spec = simulate.eval_coefficients(segment_spec, coefficients_df, estimator)
+
+        if estimator:
+            estimator.write_spec(model_settings)
+            estimator.write_model_settings(model_settings, model_settings_file_name)
+            estimator.write_coefficients(coefficients_df)
+            estimator.write_choosers(chooser_segment)
+            estimator.write_alternatives(alternatives)
+
+            # FIXME estimation_requires_chooser_id_in_df_column do it here or have interaction_simulate do it?
+            # chooser index must be duplicated in column or it will be omitted from interaction_dataset
+            # estimation requires that chooser_id is either in index or a column of interaction_dataset
+            # so it can be reformatted (melted) and indexed by chooser_id and alt_id
+            assert chooser_segment.index.name == 'person_id'
+            assert 'person_id' not in chooser_segment.columns
+            chooser_segment['person_id'] = chooser_segment.index
+
+            # FIXME set_alt_id - do we need this for interaction_simulate estimation bundle tables?
+            estimator.set_alt_id('alt_id')
+
+            estimator.set_chooser_id(chooser_segment.index.name)
 
         choices = interaction_simulate(
-            segment,
+            chooser_segment,
             alternatives,
-            spec=spec,
+            spec=segment_spec,
             locals_d=constants,
             chunk_size=chunk_size,
-            trace_label='non_mandatory_tour_frequency.%s' % name,
-            trace_choice_name='non_mandatory_tour_frequency')
+            trace_label='non_mandatory_tour_frequency.%s' % segment_name,
+            trace_choice_name='non_mandatory_tour_frequency',
+            estimator=estimator)
+
+        if estimator:
+            estimator.write_choices(choices)
+            choices = estimator.get_survey_values(choices, 'persons', 'non_mandatory_tour_frequency')
+            estimator.write_override_choices(choices)
+            estimator.end_estimation()
 
         choices_list.append(choices)
 
         # FIXME - force garbage collection?
-        # force_garbage_collect()
-
-    choices = pd.concat(choices_list)
+        force_garbage_collect()
 
     del alternatives['tot_tours']  # del tot_tours column we added above
 
-    # - add non_mandatory_tour_frequency column to persons
+    # The choice value 'non_mandatory_tour_frequency' assigned by interaction_simulate
+    # is the index value of the chosen alternative in the alternatives table.
+    choices = pd.concat(choices_list).sort_index()
+
+    # add non_mandatory_tour_frequency column to persons
     persons = persons.to_frame()
-    # need to reindex as we only handled persons with cdap_activity in ['M', 'N']
-    # (we expect there to be an alt with no tours - which we can use to backfill non-travelers)
+    # we expect there to be an alt with no tours - which we can use to backfill non-travelers
     no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
+    # need to reindex as we only handled persons with cdap_activity in ['M', 'N']
     persons['non_mandatory_tour_frequency'] = \
         choices.reindex(persons.index).fillna(no_tours_alt).astype(np.int8)
 
     """
-    We have now generated non-mandatory tours, but they are attributes of the person table
+    We have now generated non-mandatory tour frequencies, but they are attributes of the person table
     Now we create a "tours" table which has one row per tour that has been generated
     (and the person id it is associated with)
-    """
 
-    # - get counts of each of the alternatives (so we can extend)
-    # (choices is just the index values for the chosen alts)
-    """
+    But before we do that, we run an additional probablilistic step to extend/increase tour counts
+    beyond the strict limits of the tour_frequency alternatives chosen above (which are currently limited
+    to at most 2 escort tours and 1 each of shopping, othmaint, othdiscr, eatout, and social tours)
+
+    The choice value 'non_mandatory_tour_frequency' assigned by interaction_simulate is simply the
+    index value of the chosen alternative in the alternatives table.
+
+    get counts of each of the tour type alternatives (so we can extend)
                escort  shopping  othmaint  othdiscr    eatout    social
     parent_id
     2588676         2         0         0         1         1         0
     2588677         0         1         0         1         0         0
     """
-    tour_counts = alternatives.loc[choices]
-    tour_counts.index = choices.index  # assign person ids to the index
 
-    prev_tour_count = tour_counts.sum().sum()
+    # counts of each of the tour type alternatives (so we can extend)
+    modeled_tour_counts = alternatives.loc[choices]
+    modeled_tour_counts.index = choices.index  # assign person ids to the index
 
-    # - extend_tour_counts
-    tour_counts = extend_tour_counts(choosers, tour_counts, alternatives,
-                                     trace_hh_id,
-                                     tracing.extend_trace_label(trace_label, 'extend_tour_counts'))
+    # - extend_tour_counts - probabalistic
+    extended_tour_counts = \
+        extend_tour_counts(choosers, modeled_tour_counts.copy(), alternatives,
+                           trace_hh_id, tracing.extend_trace_label(trace_label, 'extend_tour_counts'))
 
-    extended_tour_count = tour_counts.sum().sum()
+    num_modeled_tours = modeled_tour_counts.sum().sum()
+    num_extended_tours = extended_tour_counts.sum().sum()
+    logger.info("extend_tour_counts increased tour count by %s from %s to %s" %
+                (num_extended_tours - num_modeled_tours, num_modeled_tours, num_extended_tours))
 
-    logging.info("extend_tour_counts increased nmtf tour count by %s from %s to %s" %
-                 (extended_tour_count - prev_tour_count, prev_tour_count, extended_tour_count))
+    """
+    create the non_mandatory tours based on extended_tour_counts
+    """
+    if estimator:
+        override_tour_counts = \
+            estimation.manager.get_survey_values(extended_tour_counts,
+                                                 table_name='persons',
+                                                 column_names=['_%s' % c for c in extended_tour_counts.columns])
+        override_tour_counts = \
+            override_tour_counts.rename(columns={('_%s' % c): c for c in extended_tour_counts.columns})
+        logger.info("estimation get_survey_values override_tour_counts %s changed cells" %
+                    (override_tour_counts != extended_tour_counts).sum().sum())
+        extended_tour_counts = override_tour_counts
 
-    # - create the non_mandatory tours
-    non_mandatory_tours = process_non_mandatory_tours(persons, tour_counts)
-    assert len(non_mandatory_tours) == extended_tour_count
+    """
+    create the non_mandatory tours based on extended_tour_counts
+    """
+    non_mandatory_tours = process_non_mandatory_tours(persons, extended_tour_counts)
+    assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
+
+    if estimator:
+        # make sure they created tours with the expected tour_ids
+
+        columns = ['person_id', 'household_id', 'tour_type', 'tour_category']
+        survey_tours = \
+            estimation.manager.get_survey_values(non_mandatory_tours,
+                                                 table_name='tours',
+                                                 column_names=columns)
+
+        tours_differ = (non_mandatory_tours[columns] != survey_tours[columns]).any(axis=1)
+
+        if tours_differ.any():
+            print("tours_differ\n%s" % tours_differ)
+            print("%s of %s tours differ" % (tours_differ.sum(), len(tours_differ)))
+            print("differing survey_tours\n%s" % survey_tours[tours_differ])
+            print("differing modeled_tours\n%s" % non_mandatory_tours[columns][tours_differ])
+
+        assert(not tours_differ.any())
 
     pipeline.extend_table("tours", non_mandatory_tours)
 

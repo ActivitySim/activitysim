@@ -1,0 +1,1 @@
+2000 household data file generated from data with random seed 1

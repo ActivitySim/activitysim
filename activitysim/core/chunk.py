@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 from builtins import input
 
 import logging
@@ -102,7 +97,7 @@ def log_df(trace_label, table_name, df):
     else:
 
         shape = df.shape
-        elements = np.prod(shape)
+        elements = np.prod(shape, dtype=np.int64)
         op = 'add'
 
         if isinstance(df, pd.Series):
@@ -125,8 +120,8 @@ def log_df(trace_label, table_name, df):
     cur_mem = mem.get_memory_info()
     hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
 
-    # logger.debug("total_elements: %s, total_bytes: %s cur_mem: %s: %s " %
-    #              (total_elements, GB(total_bytes), GB(cur_mem), hwm_trace_label))
+    logger.debug("total_elements: %s, total_bytes: %s cur_mem: %s: %s " %
+                 (total_elements, GB(total_bytes), GB(cur_mem), hwm_trace_label))
 
     mem.trace_memory_info(hwm_trace_label)
 
@@ -196,20 +191,19 @@ def rows_per_chunk(chunk_size, row_size, num_choosers, trace_label):
 
     if chunk_size > 0:
         # closest number of chooser rows to achieve chunk_size without exceeding
-        rpc = int(chunk_size / float(row_size))
+        max_rpc = int(chunk_size / float(row_size))
     else:
-        rpc = num_choosers
+        max_rpc = num_choosers
 
-    rpc = max(rpc, 1)
-    rpc = min(rpc, num_choosers)
+    rpc = int(np.clip(max_rpc, 1, num_choosers))
 
     # chunks = int(ceil(num_choosers / float(rpc)))
     effective_chunk_size = row_size * rpc
     num_chunks = (num_choosers // rpc) + (num_choosers % rpc > 0)
 
-    logger.debug("#chunk_calc num_chunks: %s, rows_per_chunk: %s, "
-                 "effective_chunk_size: %s, num_choosers: %s : %s" %
-                 (num_chunks, rpc, effective_chunk_size, num_choosers, trace_label))
+    logger.debug(f"#chunk_calc num_chunks: {num_chunks}, rows_per_chunk: {rpc}, "
+                 f"max_rpc: {max_rpc}, "
+                 f"effective_chunk_size: {effective_chunk_size}, num_choosers: {num_choosers} : {trace_label}")
 
     return rpc, effective_chunk_size
 

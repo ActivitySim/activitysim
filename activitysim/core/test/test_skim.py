@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 import pytest
 
 from .. import skim

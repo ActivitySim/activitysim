@@ -1,5 +1,4 @@
 sandbox/
-example/data/*
 .idea
 .ipynb_checkpoints
 .coverage*

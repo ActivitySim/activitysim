@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import pandas as pd
@@ -16,7 +11,7 @@ from activitysim.core import config
 from activitysim.core import inject
 
 from .util import expressions
-
+from .util import estimation
 
 from .util.overlap import hh_time_window_overlap
 
@@ -39,9 +34,7 @@ def joint_tour_composition(
     This model predicts the makeup of the travel party (adults, children, or mixed).
     """
     trace_label = 'joint_tour_composition'
-
-    model_settings = config.read_model_settings('joint_tour_composition.yaml')
-    model_spec = simulate.read_model_spec(file_name='joint_tour_composition.csv')
+    model_settings_file_name = 'joint_tour_composition.yaml'
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -50,6 +43,9 @@ def joint_tour_composition(
     if joint_tours.shape[0] == 0:
         add_null_results(trace_label, tours)
         return
+
+    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation('joint_tour_composition')
 
     # - only interested in households with joint_tours
     households = households.to_frame()
@@ -79,9 +75,18 @@ def joint_tour_composition(
                                   left_on='household_id', right_index=True, how='left')
 
     # - simple_simulate
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    if estimator:
+        estimator.write_spec(model_settings)
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        estimator.write_coefficients(coefficients_df)
+        estimator.write_choosers(joint_tours_merged)
 
     choices = simulate.simple_simulate(
         choosers=joint_tours_merged,
@@ -90,10 +95,17 @@ def joint_tour_composition(
         locals_d=constants,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='composition')
+        trace_choice_name='composition',
+        estimator=estimator)
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
+
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'tours', 'composition')
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
 
     # add composition column to tours for tracing
     joint_tours['composition'] = choices

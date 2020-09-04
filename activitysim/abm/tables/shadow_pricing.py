@@ -1,12 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import logging
 import time
 import multiprocessing
@@ -111,7 +104,12 @@ class ShadowPriceCalculator(object):
 
         full_model_run = config.setting('households_sample_size') == 0
         if self.use_shadow_pricing and not full_model_run:
-            logging.warning("deprecated combination of use_shadow_pricing and not full_model_run")
+            logger.warning("deprecated combination of use_shadow_pricing and not full_model_run")
+
+        if (self.num_processes > 1) and not config.setting('fail_fast'):
+            # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
+            logger.warning("deprecated combination of multiprocessing and not fail_fast")
+            raise RuntimeError("Shadow pricing requires fail_fast setting in multiprocessing mode")
 
         self.segment_ids = model_settings['SEGMENT_IDS']
 
@@ -189,9 +187,9 @@ class ShadowPriceCalculator(object):
             if file_path:
                 shadow_prices = pd.read_csv(file_path, index_col=0)
                 self.saved_shadow_price_file_path = file_path  # informational
-                logging.info("loaded saved_shadow_prices from %s" % file_path)
+                logger.info("loaded saved_shadow_prices from %s" % file_path)
             else:
-                logging.warning("Could not find saved_shadow_prices file %s" % file_path)
+                logger.warning("Could not find saved_shadow_prices file %s" % file_path)
 
         return shadow_prices
 
@@ -280,28 +278,30 @@ class ShadowPriceCalculator(object):
 
         return global_modeled_size_df
 
-    def set_choices(self, choices_df):
+    def set_choices(self, choices, segment_ids):
         """
         aggregate individual location choices to modeled_size by zone and segment
 
         Parameters
         ----------
-        choices_df : pandas.DataFrame
-            dataframe with disaggregate location choices and at least two columns:
-                segment_id : segment id tag for this individual
-                dest_choice : zone id of location choice
+        choices : pandas.Series
+            zone id of location choice indexed by person_id
+        segment_ids : pandas.Series
+            segment id tag for this individual indexed by person_id
+
         Returns
         -------
         updates self.modeled_size
         """
 
-        assert 'dest_choice' in choices_df
-
         modeled_size = pd.DataFrame(index=self.desired_size.index)
-        for c in self.desired_size:
+        for seg_name in self.desired_size:
+
             segment_choices = \
-                choices_df[choices_df['segment_id'] == self.segment_ids[c]]
-            modeled_size[c] = segment_choices.groupby('dest_choice').size()
+                choices[(segment_ids == self.segment_ids[seg_name])]
+
+            modeled_size[seg_name] = segment_choices.value_counts()
+
         modeled_size = modeled_size.fillna(0).astype(int)
 
         if self.num_processes == 1:
@@ -375,14 +375,14 @@ class ShadowPriceCalculator(object):
         #     print("  max abs diff %s" % (abs_diff[c].max()))
         #     print("  max rel diff %s" % (rel_diff[c].max()))
 
-        logging.info("check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s" %
-                     (self.model_selector, iteration, converged, max_fail, total_fails))
+        logger.info("check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s" %
+                    (self.model_selector, iteration, converged, max_fail, total_fails))
 
         # - convergence stats
         if converged or iteration == self.max_iterations:
-            logging.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
-            logging.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
-            logging.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
+            logger.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
+            logger.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
+            logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
 
         return converged
 
@@ -483,10 +483,10 @@ class ShadowPriceCalculator(object):
         else:
             raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
-        # print("\nself.desired_size\n", self.desired_size.head())
-        # print("\nself.modeled_size\n", self.modeled_size.head())
-        # print("\nprevious shadow_prices\n", self.shadow_prices.head())
-        # print("\nnew_shadow_prices\n", new_shadow_prices.head())
+        # print("\nself.desired_size\n%s" % self.desired_size.head())
+        # print("\nself.modeled_size\n%s" % self.modeled_size.head())
+        # print("\nprevious shadow_prices\n%s" % self.shadow_prices.head())
+        # print("\nnew_shadow_prices\n%s" % new_shadow_prices.head())
 
         self.shadow_prices = new_shadow_prices
 
@@ -636,10 +636,10 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     block_shapes = shadow_pricing_info['block_shapes']
 
     data_buffers = {}
-    for block_key, block_shape in iteritems(block_shapes):
+    for block_key, block_shape in block_shapes.items():
 
         # buffer_size must be int (or p2.7 long), not np.int64
-        buffer_size = int(np.prod(block_shape))
+        buffer_size = int(np.prod(block_shape, dtype=np.int64))
 
         csz = buffer_size * np.dtype(dtype).itemsize
         logger.info("allocating shared buffer %s %s buffer_size %s bytes %s (%s)" %
@@ -785,7 +785,7 @@ def add_size_tables():
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process
 
-    for model_selector, model_name in iteritems(shadow_pricing_models):
+    for model_selector, model_name in shadow_pricing_models.items():
 
         model_settings = config.read_model_settings(model_name)
 

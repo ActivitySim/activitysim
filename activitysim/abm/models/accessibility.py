@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import pandas as pd
@@ -51,25 +46,29 @@ class AccessibilitySkims(object):
         self.skim_dict = skim_dict
         self.transpose = transpose
 
-        if omx_shape[0] == len(orig_zones):
-            # no slicing required
-            self.slice_map = None
+        if omx_shape[0] == len(orig_zones) and skim_dict.offset_mapper.offset_series is None:
+            # no slicing required because whatever the offset_int, the skim data aligns with zone list
+            self.map_data = False
         else:
-            # 2-d boolean slicing in numpy is a bit tricky
-            # data = data[orig_map, dest_map]          # <- WRONG!
-            # data = data[orig_map, :][:, dest_map]    # <- RIGHT
-            # data = data[np.ix_(orig_map, dest_map)]  # <- ALSO RIGHT
+
+            if omx_shape[0] == len(orig_zones):
+                logger.debug("AccessibilitySkims - applying offset_mapper")
 
             skim_index = list(range(omx_shape[0]))
-            orig_map = np.isin(skim_index, skim_dict.offset_mapper.map(orig_zones))
-            dest_map = np.isin(skim_index, skim_dict.offset_mapper.map(dest_zones))
+            orig_map = skim_dict.offset_mapper.map(orig_zones)
+            dest_map = skim_dict.offset_mapper.map(dest_zones)
 
-            if not dest_map.all():
+            # (we might be sliced multiprocessing)
+            # assert np.isin(skim_index, orig_map).all()
+
+            if np.isin(skim_index, dest_map).all():
                 # not using the whole skim matrix
                 logger.info("%s skim zones not in dest_map: %s" %
                             ((~dest_map).sum(), np.ix_(~dest_map)))
 
-            self.slice_map = np.ix_(orig_map, dest_map)
+            self.map_data = True
+            self.orig_map = orig_map
+            self.dest_map = dest_map
 
     def __getitem__(self, key):
         """
@@ -85,10 +84,15 @@ class AccessibilitySkims(object):
         if self.transpose:
             data = data.transpose()
 
-        if self.slice_map is not None:
+        if self.map_data:
+
             # slice skim to include only orig rows and dest columns
-            # 2-d boolean slicing in numpy is a bit tricky - see explanation in __init__
-            data = data[self.slice_map]
+            # 2-d boolean slicing in numpy is a bit tricky
+            # data = data[orig_map, dest_map]          # <- WRONG!
+            # data = data[orig_map, :][:, dest_map]    # <- RIGHT
+            # data = data[np.ix_(orig_map, dest_map)]  # <- ALSO RIGHT
+
+            data = data[self.orig_map, :][:, self.dest_map]
 
         return data.flatten()
 
@@ -121,19 +125,12 @@ def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
     logger.info("Running %s with %d dest zones" % (trace_label, len(accessibility_df)))
 
     constants = config.get_model_constants(model_settings)
+
     land_use_columns = model_settings.get('land_use_columns', [])
-
     land_use_df = land_use.to_frame()
+    land_use_df = land_use_df[land_use_columns]
 
-    # #bug
-    #
-    # land_use_df = land_use_df[land_use_df.index % 2 == 1]
-    # accessibility_df = accessibility_df[accessibility_df.index.isin(land_use_df.index)].head(5)
-    #
-    # print "land_use_df", land_use_df.index
-    # print "accessibility_df", accessibility_df.index
-    # #bug
-
+    # don't assume they are the same: accessibility may be sliced if we are multiprocessing
     orig_zones = accessibility_df.index.values
     dest_zones = land_use_df.index.values
 
@@ -158,7 +155,6 @@ def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
         trace_od_rows = None
 
     # merge land_use_columns into od_df
-    land_use_df = land_use_df[land_use_columns]
     od_df = pd.merge(od_df, land_use_df, left_on='dest', right_index=True).sort_index()
 
     locals_d = {
@@ -175,7 +171,7 @@ def compute_accessibility(accessibility, skim_dict, land_use, trace_od):
 
     for column in results.columns:
         data = np.asanyarray(results[column])
-        data.shape = (orig_zone_count, dest_zone_count)
+        data.shape = (orig_zone_count, dest_zone_count)  # (o,d)
         accessibility_df[column] = np.log(np.sum(data, axis=1) + 1)
 
     # - write table to pipeline

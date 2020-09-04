@@ -1,16 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import pandas as pd
 
 from activitysim.core import simulate
 from activitysim.core import config
-from activitysim.core.assign import evaluate_constants
 
 from . import expressions
+from . import estimation
 
 
 """
@@ -20,28 +16,52 @@ looks like the other specs.
 """
 
 
-def tour_mode_choice_spec(model_settings):
+def mode_choice_simulate(
+        choosers, spec, nest_spec, skims, locals_d,
+        chunk_size,
+        mode_column_name,
+        logsum_column_name,
+        trace_label,
+        trace_choice_name,
+        estimator=None):
 
-    assert 'SPEC' in model_settings
+    want_logsums = logsum_column_name is not None
 
-    return simulate.read_model_spec(file_name=model_settings['SPEC'])
+    choices = simulate.simple_simulate(
+        choosers=choosers,
+        spec=spec,
+        nest_spec=nest_spec,
+        skims=skims,
+        locals_d=locals_d,
+        chunk_size=chunk_size,
+        want_logsums=want_logsums,
+        trace_label=trace_label,
+        trace_choice_name=trace_choice_name,
+        estimator=estimator)
 
+    # for consistency, always return dataframe, whether or not logsums were requested
+    if isinstance(choices, pd.Series):
+        choices = choices.to_frame('choice')
 
-def tour_mode_choice_coeffecients_spec(model_settings):
+    choices.rename(columns={'logsum': logsum_column_name,
+                            'choice': mode_column_name},
+                   inplace=True)
 
-    assert 'COEFFS' in model_settings
-    coeffs_file_name = model_settings['COEFFS']
+    alts = spec.columns
+    choices[mode_column_name] = \
+        choices[mode_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
 
-    file_path = config.config_file_path(coeffs_file_name)
-    return pd.read_csv(file_path, comment='#', index_col='Expression')
+    return choices
 
 
 def run_tour_mode_choice_simulate(
         choosers,
-        spec, tour_purpose, model_settings,
+        tour_purpose, model_settings,
+        mode_column_name,
+        logsum_column_name,
         skims,
         constants,
-        nest_spec,
+        estimator,
         chunk_size,
         trace_label=None, trace_choice_name=None):
     """
@@ -51,10 +71,19 @@ def run_tour_mode_choice_simulate(
     you want to use in the evaluation of variables.
     """
 
-    omnibus_coefficient_spec = tour_mode_choice_coeffecients_spec(model_settings)
-    locals_dict = evaluate_constants(omnibus_coefficient_spec[tour_purpose], constants=constants)
+    spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients = simulate.get_segment_coefficients(model_settings, tour_purpose)
+    spec = simulate.eval_coefficients(spec, coefficients, estimator)
+
+    nest_spec = config.get_logit_model_settings(model_settings)
+    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
+
+    locals_dict = {}
     locals_dict.update(constants)
     locals_dict.update(skims)
+
+    # constrained coefficients can appear in expressions
+    locals_dict.update(coefficients)
 
     assert ('in_period' not in choosers) and ('out_period' not in choosers)
     in_time = skims['in_time_col_name']
@@ -66,17 +95,21 @@ def run_tour_mode_choice_simulate(
         choosers, locals_dict, skims,
         model_settings, trace_label)
 
-    choices = simulate.simple_simulate(
+    if estimator:
+        # write choosers after annotation
+        estimator.write_choosers(choosers)
+
+    choices = mode_choice_simulate(
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
+        mode_column_name=mode_column_name,
+        logsum_column_name=logsum_column_name,
         trace_label=trace_label,
-        trace_choice_name=trace_choice_name)
-
-    alts = spec.columns
-    choices = choices.map(dict(list(zip(list(range(len(alts))), alts))))
+        trace_choice_name=trace_choice_name,
+        estimator=estimator)
 
     return choices

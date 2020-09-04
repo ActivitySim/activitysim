@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import pandas as pd
@@ -44,13 +39,13 @@ def run_trip_purpose_and_destination(
 
     trips_df['purpose'] = choices
 
-    trips_df = run_trip_destination(
+    trips_df, save_sample_df = run_trip_destination(
         trips_df,
         tours_merged_df,
         chunk_size, trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'destination'))
 
-    return trips_df
+    return trips_df, save_sample_df
 
 
 @inject.step()
@@ -62,6 +57,11 @@ def trip_purpose_and_destination(
 
     trace_label = "trip_purpose_and_destination"
     model_settings = config.read_model_settings('trip_purpose_and_destination.yaml')
+
+    # for consistency, read sample_table_name setting from trip_destination settings file
+    trip_destination_model_settings = config.read_model_settings('trip_destination.yaml')
+    sample_table_name = trip_destination_model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     MAX_ITERATIONS = model_settings.get('MAX_ITERATIONS', 5)
 
@@ -78,42 +78,67 @@ def trip_purpose_and_destination(
 
     # if trip_destination has been run before, keep only failed trips (and leg_mates) to retry
     if 'destination' in trips_df:
-        if trips_df.failed.any():
-            logger.info('trip_destination has already been run. Rerunning failed trips')
-            flag_failed_trip_leg_mates(trips_df, 'failed')
-            trips_df = trips_df[trips_df.failed]
-            tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
-            logger.info('Rerunning %s failed trips and leg-mates' % trips_df.shape[0])
-        else:
-            # no failed trips from prior run of trip_destination
+
+        if 'failed' not in trips_df.columns:
+            # trip_destination model cleaned up any failed trips
+            logger.info("%s - no failed column from prior model run." % trace_label)
+            return
+
+        elif not trips_df.failed.any():
+            # 'failed' column but no failed trips from prior run of trip_destination
             logger.info("%s - no failed trips from prior model run." % trace_label)
-            del trips_df['failed']
+            trips_df.drop(columns='failed', inplace=True)
             pipeline.replace_table("trips", trips_df)
             return
 
-    results = []
+        else:
+            logger.info("trip_destination has already been run. Rerunning failed trips")
+            flag_failed_trip_leg_mates(trips_df, 'failed')
+            trips_df = trips_df[trips_df.failed]
+            tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
+            logger.info("Rerunning %s failed trips and leg-mates" % trips_df.shape[0])
+
+            # drop any previously saved samples of failed trips
+            if want_sample_table and pipeline.is_table(sample_table_name):
+                logger.info("Dropping any previously saved samples of failed trips")
+                save_sample_df = pipeline.get_table(sample_table_name)
+                save_sample_df.drop(trips_df.index, level='trip_id', inplace=True)
+                pipeline.replace_table(sample_table_name, save_sample_df)
+                del save_sample_df
+
+    processed_trips = []
+    save_samples = []
     i = 0
-    RESULT_COLUMNS = ['purpose', 'destination', 'origin', 'failed']
+    TRIP_RESULT_COLUMNS = ['purpose', 'destination', 'origin', 'failed']
     while True:
 
         i += 1
 
-        for c in RESULT_COLUMNS:
+        for c in TRIP_RESULT_COLUMNS:
             if c in trips_df:
                 del trips_df[c]
 
-        trips_df = run_trip_purpose_and_destination(
+        trips_df, save_sample_df = run_trip_purpose_and_destination(
             trips_df,
             tours_merged_df,
-            chunk_size,
-            trace_hh_id,
+            chunk_size=chunk_size,
+            trace_hh_id=trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % i))
+
+        # # if testing, make sure at least one trip fails
+        if config.setting('testing_fail_trip_destination', False) \
+                and (i == 1) and not trips_df.failed.any():
+            fail_o = trips_df[trips_df.trip_num < trips_df.trip_count].origin.max()
+            trips_df.failed = (trips_df.origin == fail_o) & \
+                              (trips_df.trip_num < trips_df.trip_count)
 
         num_failed_trips = trips_df.failed.sum()
 
         # if there were no failed trips, we are done
         if num_failed_trips == 0:
-            results.append(trips_df[RESULT_COLUMNS])
+            processed_trips.append(trips_df[TRIP_RESULT_COLUMNS])
+            if save_sample_df is not None:
+                save_samples.append(save_sample_df)
             break
 
         logger.warning("%s %s failed trips in iteration %s" % (trace_label, num_failed_trips, i))
@@ -121,34 +146,61 @@ def trip_purpose_and_destination(
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 
-        # if max iterations reached, add remaining trips to results and give up
+        # if max iterations reached, add remaining trips to processed_trips and give up
         # note that we do this BEFORE failing leg_mates so resulting trip legs are complete
         if i >= MAX_ITERATIONS:
             logger.warning("%s too many iterations %s" % (trace_label, i))
-            results.append(trips_df[RESULT_COLUMNS])
+            processed_trips.append(trips_df[TRIP_RESULT_COLUMNS])
+            if save_sample_df is not None:
+                save_sample_df.drop(trips_df[trips_df.failed].index, level='trip_id', inplace=True)
+                save_samples.append(save_sample_df)
             break
 
         # otherwise, if any trips failed, then their leg-mates trips must also fail
         flag_failed_trip_leg_mates(trips_df, 'failed')
 
-        # add the good trips to results
-        results.append(trips_df[~trips_df.failed][RESULT_COLUMNS])
+        # add the good trips to processed_trips
+        processed_trips.append(trips_df[~trips_df.failed][TRIP_RESULT_COLUMNS])
 
         # and keep the failed ones to retry
         trips_df = trips_df[trips_df.failed]
         tours_merged_df = tours_merged_df[tours_merged_df.index.isin(trips_df.tour_id)]
 
-    # - assign result columns to trips
-    results = pd.concat(results)
+        #  add trip samples of processed_trips to processed_samples
+        if save_sample_df is not None:
+            # drop failed trip samples
+            save_sample_df.drop(trips_df.index, level='trip_id', inplace=True)
+            save_samples.append(save_sample_df)
 
-    logger.info("%s %s failed trips after %s iterations" % (trace_label, results.failed.sum(), i))
+    # - assign result columns to trips
+    processed_trips = pd.concat(processed_trips)
+
+    if len(save_samples) > 0:
+        save_sample_df = pd.concat(save_samples)
+        logger.info("adding %s samples to %s" % (len(save_sample_df), sample_table_name))
+        pipeline.extend_table(sample_table_name, save_sample_df)
+
+    logger.info("%s %s failed trips after %s iterations" %
+                (trace_label, processed_trips.failed.sum(), i))
 
     trips_df = trips.to_frame()
-    assign_in_place(trips_df, results)
+    assign_in_place(trips_df, processed_trips)
 
     trips_df = cleanup_failed_trips(trips_df)
 
     pipeline.replace_table("trips", trips_df)
+
+    # check to make sure we wrote sample file if requestsd
+    if want_sample_table and len(trips_df) > 0:
+        assert pipeline.is_table(sample_table_name)
+        # since we have saved samples for all successful trips
+        # once we discard failed trips, we should samples for all trips
+        save_sample_df = pipeline.get_table(sample_table_name)
+        # expect samples only for intermediate trip destinatinos
+        assert \
+            len(save_sample_df.index.get_level_values(0).unique()) == \
+            len(trips_df[trips_df.trip_num < trips_df.trip_count])
+        del save_sample_df
 
     if trace_hh_id:
         tracing.trace_df(trips_df,

@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import pandas as pd
@@ -19,6 +14,8 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.util import assign_in_place
 
+from .util import estimation
+
 from .util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
@@ -29,13 +26,15 @@ DUMP = False
 def atwork_subtour_destination_sample(
         tours,
         persons_merged,
+        model_settings,
         skim_dict,
         destination_size_terms,
-        chunk_size, trace_hh_id):
+        estimator,
+        chunk_size, trace_label):
 
-    trace_label = 'atwork_subtour_location_sample'
-    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
-    model_spec = simulate.read_model_spec(file_name='atwork_subtour_destination_sample.csv')
+    model_spec = simulate.read_model_spec(file_name=model_settings['SAMPLE_SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     # merge persons into tours
     choosers = pd.merge(tours, persons_merged, left_on='person_id', right_index=True)
@@ -45,8 +44,13 @@ def atwork_subtour_destination_sample(
 
     constants = config.get_model_constants(model_settings)
 
-    sample_size = model_settings["SAMPLE_SIZE"]
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    sample_size = model_settings['SAMPLE_SIZE']
+    if estimator:
+        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+        logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
+        sample_size = 0
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running atwork_subtour_location_sample with %d tours", len(choosers))
 
@@ -81,8 +85,9 @@ def atwork_subtour_destination_sample(
 def atwork_subtour_destination_logsums(
         persons_merged,
         destination_sample,
+        model_settings,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id):
+        chunk_size, trace_label):
     """
     add logsum column to existing atwork_subtour_destination_sample table
 
@@ -105,9 +110,6 @@ def atwork_subtour_destination_logsums(
 
     """
 
-    trace_label = 'atwork_subtour_destination_logsums'
-
-    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
@@ -131,7 +133,7 @@ def atwork_subtour_destination_logsums(
         tour_purpose,
         logsum_settings, model_settings,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id,
+        chunk_size,
         trace_label)
 
     destination_sample['mode_choice_logsum'] = logsums
@@ -143,18 +145,20 @@ def atwork_subtour_destination_simulate(
         subtours,
         persons_merged,
         destination_sample,
+        want_logsums,
+        model_settings,
         skim_dict,
         destination_size_terms,
-        chunk_size, trace_hh_id):
+        estimator,
+        chunk_size, trace_label):
     """
     atwork_subtour_destination model on atwork_subtour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
     """
 
-    trace_label = 'atwork_subtour_destination_simulate'
-
-    model_settings = config.read_model_settings('atwork_subtour_destination.yaml')
-    model_spec = simulate.read_model_spec(file_name='atwork_subtour_destination.csv')
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
     # interaction_sample_simulate insists choosers appear in same order as alts
     subtours = subtours.sort_index()
@@ -167,7 +171,10 @@ def atwork_subtour_destination_simulate(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    if estimator:
+        estimator.write_choosers(choosers)
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
     chooser_col_name = 'workplace_taz'
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
@@ -200,11 +207,18 @@ def atwork_subtour_destination_simulate(
         alternatives,
         spec=model_spec,
         choice_column=alt_dest_col_name,
+        want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='workplace_location')
+        trace_choice_name='workplace_location',
+        estimator=estimator)
+
+    if not want_logsums:
+        # for consistency, always return a dataframe with canonical column name
+        assert isinstance(choices, pd.Series)
+        choices = choices.to_frame('choice')
 
     return choices
 
@@ -218,49 +232,96 @@ def atwork_subtour_destination(
         land_use, size_terms,
         chunk_size, trace_hh_id):
 
+    trace_label = 'atwork_subtour_destination'
+    model_settings_file_name = 'atwork_subtour_destination.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
+
+    destination_column_name = 'destination'
+    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    want_logsums = logsum_column_name is not None
+
+    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
+
     persons_merged = persons_merged.to_frame()
 
     tours = tours.to_frame()
     subtours = tours[tours.tour_category == 'atwork']
+    # interaction_sample_simulate insists choosers appear in same order as alts
+    subtours = subtours.sort_index()
 
     # - if no atwork subtours
     if subtours.shape[0] == 0:
         tracing.no_results('atwork_subtour_destination')
         return
 
-    # interaction_sample_simulate insists choosers appear in same order as alts
-    subtours = subtours.sort_index()
+    estimator = estimation.manager.begin_estimation('atwork_subtour_destination')
+    if estimator:
+        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
+        # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
+        estimator.write_spec(model_settings, tag='SPEC')
+        estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
+        estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
+        estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
+        estimator.write_model_settings(model_settings, model_settings_file_name)
 
     destination_size_terms = tour_destination_size_terms(land_use, size_terms, 'atwork')
 
-    destination_sample = atwork_subtour_destination_sample(
+    destination_sample_df = atwork_subtour_destination_sample(
         subtours,
         persons_merged,
+        model_settings,
         skim_dict,
         destination_size_terms,
-        chunk_size, trace_hh_id)
+        estimator=estimator,
+        chunk_size=chunk_size,
+        trace_label=tracing.extend_trace_label(trace_label, 'sample'))
 
-    destination_sample = atwork_subtour_destination_logsums(
+    destination_sample_df = atwork_subtour_destination_logsums(
         persons_merged,
-        destination_sample,
+        destination_sample_df,
+        model_settings,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id)
+        chunk_size=chunk_size,
+        trace_label=tracing.extend_trace_label(trace_label, 'logsums'))
 
-    choices = atwork_subtour_destination_simulate(
+    choices_df = atwork_subtour_destination_simulate(
         subtours,
         persons_merged,
-        destination_sample,
+        destination_sample_df,
+        want_logsums,
+        model_settings,
         skim_dict,
         destination_size_terms,
-        chunk_size, trace_hh_id)
+        estimator=estimator,
+        chunk_size=chunk_size,
+        trace_label=tracing.extend_trace_label(trace_label, 'simulate'))
 
-    subtours['destination'] = choices
+    if estimator:
+        estimator.write_choices(choices_df['choice'])
+        choices_df['choice'] = estimator.get_survey_values(choices_df['choice'], 'tours', 'destination')
+        estimator.write_override_choices(choices_df['choice'])
+        estimator.end_estimation()
 
-    assign_in_place(tours, subtours[['destination']])
+    subtours[destination_column_name] = choices_df['choice']
+    assign_in_place(tours, subtours[[destination_column_name]])
+
+    if want_logsums:
+        subtours[logsum_column_name] = choices_df['logsum']
+        assign_in_place(tours, subtours[[logsum_column_name]])
 
     pipeline.replace_table("tours", tours)
 
-    tracing.print_summary('subtour destination', subtours.destination, describe=True)
+    if want_sample_table:
+        # FIXME - sample_table
+        assert len(destination_sample_df.index.unique()) == len(choices_df)
+        destination_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
+                                        append=True, inplace=True)
+        pipeline.extend_table(sample_table_name, destination_sample_df)
+
+    tracing.print_summary(destination_column_name,
+                          subtours[destination_column_name],
+                          describe=True)
 
     if trace_hh_id:
         tracing.trace_df(tours,

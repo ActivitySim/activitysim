@@ -98,7 +98,7 @@ The school location model is made up of four steps:
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`. 
 
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.school_location` function.  
-This function is registered as an orca step in the example Pipeline.
+This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
 
 Core Table: ``persons`` | Result Field: ``school_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, MD time period``
 
@@ -122,7 +122,7 @@ The work location model is made up of four steps:
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`.
 
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.workplace_location` function.  
-This function is registered as an orca step in the example Pipeline.
+This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
 
 Core Table: ``persons`` | Result Field: ``workplace_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, PM time period``
 
@@ -197,7 +197,7 @@ The CDAP model is a sequence of vectorized table operations:
 
 * create a person level table and rank each person in the household for inclusion in the CDAP model.  Priority is given to full time workers (up to two), then to part time workers (up to two workers, of any type), then to children (youngest to oldest, up to three).  Additional members up to five are randomly included for the CDAP calculation.
 * solve individual M/N/H utilities for each person
-* take as input an interaction coefficients table and then programatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
+* take as input an interaction coefficients table and then programmatically produce and write out the expression files for households size 1, 2, 3, 4, and 5 models independent of one another
 * select households of size 1, join all required person attributes, and then read and solve the automatically generated expressions
 * repeat for households size 2, 3, 4, and 5. Each model is independent of one another.
 
@@ -355,7 +355,8 @@ The joint tour destination choice model is made up of three model steps:
   * simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
 
 The main interface to the model is the :py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination`
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how 
+to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Fields: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period``
 
@@ -419,7 +420,8 @@ mandatory tour destination choice is used for non-mandatory tour destination cho
 
 The main interface to the non-mandatory tour destination choice model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` 
+for how to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Field: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period, MD time period``
 
@@ -455,7 +457,7 @@ Tour Mode Choice
 
 The mandatory, non-mandatory, and joint tour mode choice model assigns to each tour the "primary" mode that 
 is used to get from the origin to the primary destination. The tour-based modeling approach requires a reconsideration
-of the conventional mode choice structure. Instead of a single mode choice model used in a fourstep
+of the conventional mode choice structure. Instead of a single mode choice model used in a four-step
 structure, there are two different levels where the mode choice decision is modeled: (a) the
 tour mode level (upper-level choice); and, (b) the trip mode level (lower-level choice conditional
 upon the upper-level choice).
@@ -479,9 +481,10 @@ from the automobile in-vehicle time coefficient and the persons' modeled value o
 characteristics of the destination zone, demographics, and the household's level of auto
 ownership.
 
-The main interface to the mandatory, non-mandatory, and joint tour tour mode model is the 
+The main interface to the mandatory, non-mandatory, and joint tour mode model is the 
 :py:func:`~activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate` function.  This function is 
 called in the orca step ``tour_mode_choice_simulate`` and is registered as an orca step in the example Pipeline.
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Field: ``mode`` | Skims Keys: ``TAZ, destination, start, end``
 
@@ -532,6 +535,7 @@ Core Table: ``tours`` | Result Table: ``destination`` | Skims Keys: ``workplace_
 The main interface to the at-work subtour destination model is the 
 :py:func:`~activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination` 
 function.  This function is registered as an orca step in the example Pipeline.
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 .. automodule:: activitysim.abm.models.atwork_subtour_destination
    :members:
@@ -575,6 +579,7 @@ The main interface to the at-work subtour mode choice model is the
 :py:func:`~activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice`
 function.  This function is called in the orca step ``atwork_subtour_mode_choice`` and
 is registered as an orca step in the example Pipeline.  
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``tour`` | Result Field: ``tour_mode`` | Skims Keys: ``workplace_taz, destination, start, end``
 
@@ -658,7 +663,7 @@ within X miles walking distance of both the tour origin and primary destination,
 both the tour origin and primary destination. Additionally, only short and long walk zones are
 available destinations on walk-transit tours.
 
-The intermediate stop location choice model works by cycling through stops on tours. The level-ofservice
+The intermediate stop location choice model works by cycling through stops on tours. The level-of-service
 variables (including mode choice logsums) are calculated as the additional utility between the
 last location and the next known location on the tour. For example, the LOS variable for the first stop
 on the outbound direction of the tour is based on additional impedance between the tour origin and the
@@ -671,6 +676,7 @@ impedance between the first stop on the return leg and the tour origin, and so o
 The main interface to the trip destination choice model is the 
 :py:func:`~activitysim.abm.models.trip_destination.trip_destination` function.  
 This function is registered as an orca step in the example Pipeline.
+See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``trips`` | Result Field: ``(trip) destination`` | Skims Keys: ``origin, (tour primary) destination, dest_taz, trip_period``
 
@@ -746,42 +752,35 @@ each tour mode. The correspondence rules are defined according to the following 
   * The walk mode is allowed for any trip.
   * The availability of transit line-haul submodes on transit tours depends on the skimming and tour mode choice hierarchy. Free shared-ride modes are also available in walk-transit tours, albeit with a low probability. Paid shared-ride modes are not allowed on transit tours because no stated preference data is available on the sensitivity of transit riders to automobile value tolls, and no observed data is available to verify the number of people shifting into paid shared-ride trips on transit tours. 
 
-The trip mode choice models explanatory variables include household and person variables, level-ofservice
+The trip mode choice models explanatory variables include household and person variables, level-of-service
 between the trip origin and destination according to the time period for the tour leg, urban form
 variables, and alternative-specific constants segmented by tour mode.
 
 The main interface to the trip mode choice model is the 
-:py:func:`~activitysim.abm.models.trip_mode_choice.trip_mode_choice` function.  This function is registered as an orca step in the example Pipeline.
+:py:func:`~activitysim.abm.models.trip_mode_choice.trip_mode_choice` function.  This function 
+is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims Keys: ``origin, destination, trip_period``
 
 .. automodule:: activitysim.abm.models.trip_mode_choice
    :members:
-   
-.. _trip_cbd_parking:
 
-Trip CBD Parking
-----------------
+.. _write_trip_matrices:
 
-**NOT YET IMPLEMENTED**
+Write Trip Matrices
+-------------------
 
-The parking location choice model is applied to tours with a destination in the urban area/city center
-with parking charges. The model incorporates three of the following interrelated sub-models to
-capture the current parking conditions in CBD, and allows for testing various policies:
+Write open matrix (OMX) trip matrices for assignment.  Reads the trips table post preprocessor and run expressions 
+to code additional data fields, with one data fields for each matrix specified.  The matrices are scaled by a 
+household level expansion factor, which is the household sample rate by default, which is calculated when
+households are read in at the beginning of a model run.  The main interface to write trip
+matrices is the :py:func:`~activitysim.abm.models.trip_matrices.write_trip_matrices` function.  This function 
+is registered as an orca step in the example Pipeline.
 
-  * Parking cost model: determines the average cost of parking in each CBD zone.
-  * Person-free parking eligibility model: determines if each worker pays for parking in the CBD.
-  * Parking location choice model: determines for each tour the primary destination parking location zone. 
-  
-The nested logit structure consists of an upper level binary choice between parking inside versus outside 
-the modeled destination zone. At the lower level, the choice of parking zone is modeled for those who did 
-not park in the destination zone.   
+Core Table: ``trips`` | Result: ``omx trip matrices`` | Skims Keys: ``origin, destination``
 
-The main interface to the CBD parking model is the 
-XXXXX function.  This function is registered as an orca step in the example Pipeline.
-
-Core Table: ``trips`` | Result Field: ``XXXXX`` | Skims Keys: ``XXXXX``
-
+.. automodule:: activitysim.abm.models.trip_matrices
+   :members:
 
 .. _utility_steps:
 
@@ -798,6 +797,14 @@ CDAP
 
 .. index:: table annotation
 .. _table_annotation:
+
+Estimation
+~~~~~~~~~~
+
+See :ref:`estimation` for more information.
+
+.. automodule:: activitysim.abm.models.util.estimation
+   :members:
 
 Expressions
 ~~~~~~~~~~~

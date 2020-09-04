@@ -1,14 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import range
 from builtins import object
-
-from future.utils import iteritems
-from future.utils import listvalues
 
 import logging
 
@@ -96,21 +90,18 @@ class OffsetMapper(object):
         offsets : numpy array of int
         """
 
-        # print "\nmap_offsets zone_ids", zone_ids
+        NOT_IN_SKIM = -1
 
         if self.offset_series is not None:
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
-
-            offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series))
+            offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM).astype(int))
 
         elif self.offset_int:
             assert (self.offset_series is None)
             offsets = zone_ids + self.offset_int
         else:
             offsets = zone_ids
-
-        # print "map_offsets offsets", offsets
 
         return offsets
 
@@ -156,10 +147,16 @@ class SkimWrapper(object):
         orig = np.asanyarray(orig).astype(int)
         dest = np.asanyarray(dest).astype(int)
 
-        orig = self.offset_mapper.map(orig)
-        dest = self.offset_mapper.map(dest)
+        mapped_orig = self.offset_mapper.map(orig)
+        mapped_dest = self.offset_mapper.map(dest)
+        result = self.data[mapped_orig, mapped_dest]
 
-        result = self.data[orig, dest]
+        # FIXME - should return nan if not in skim (negative indices wrap around)
+        # NOT_IN_SKIM = np.nan
+        # in_skim = \
+        #     (mapped_orig <0) & (mapped_orig < self.data.shape[0]) & \
+        #     (mapped_dest <0) & (mapped_dest < self.data.shape[0])
+        # result = np.where(in_skim, result, NOT_IN_SKIM)
 
         return result
 
@@ -351,7 +348,7 @@ class SkimStack(object):
         # DISTWALK: 0,
         # DRV_COM_WLK_BOARDS: 0, ...
         key1_block_offsets = skim_dict.skim_info['key1_block_offsets']
-        self.key1_blocks = {k: v[0] for k, v in iteritems(key1_block_offsets)}
+        self.key1_blocks = {k: v[0] for k, v in key1_block_offsets.items()}
 
         # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
         # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
@@ -373,7 +370,7 @@ class SkimStack(object):
 
         logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
                     % (len(self.skim_dim3),
-                       sum([len(d) for d in listvalues(self.skim_dim3)])))
+                       sum([len(d) for d in self.skim_dim3.values()])))
 
         self.usage = set()
 

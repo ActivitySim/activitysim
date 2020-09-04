@@ -1,19 +1,19 @@
 language: python
 sudo: false
 python:
-  - '2.7'
+  - '3.6'
   - '3.7'
+  - '3.8'
 install:
-- wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh
+- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
 - bash miniconda.sh -b -p $HOME/miniconda
-- export PATH="$HOME/miniconda/bin:$PATH"
+- source "$HOME/miniconda/etc/profile.d/conda.sh"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
 - conda info -a
-- |
-  conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION future
-- source activate test-environment
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+- conda activate test-environment
 - conda install pytest pytest-cov coveralls pycodestyle
 - pip install .
 - pip freeze
@@ -40,6 +40,8 @@ deploy:
 
 notifications:
   slack:
+    on_success: never # default: change
+    on_failure: always # default: always
     secure: Dpp+zBrnPGBHXrYWjwHy/bnHvhINfepSIiViwKfBZizBvTDvzSJfu6gCH+/lQ3squF3D4qTWwxB+LQ9V6KTYhuma8vQVisyneI6ARjUI/qgX6aJjuvmDDGPk6DVeDow7+aCLZ8VEHRhSjwy+dv0Ij0rxI6I94xPVwXUkk7ZjcK0=
 env:
   global:

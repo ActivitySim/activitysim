@@ -1,9 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import range
 
 import logging
@@ -34,6 +30,7 @@ from activitysim.core.interaction_sample_simulate import interaction_sample_simu
 from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.abm.models.util.trip import cleanup_failed_trips
+from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
 
 
 logger = logging.getLogger(__name__)
@@ -82,8 +79,8 @@ def trip_destination_sample(
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SAMPLE_SPEC', primary_purpose)
 
-    sample_size = model_settings["SAMPLE_SIZE"]
-    alt_dest_col_name = model_settings["ALT_DEST"]
+    sample_size = model_settings['SAMPLE_SIZE']
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running %s with %d trips", trace_label, trips.shape[0])
 
@@ -155,7 +152,7 @@ def compute_logsums(
         tours_merged,
         model_settings,
         skims,
-        chunk_size, trace_hh_id,
+        chunk_size,
         trace_label):
     """
     Calculate mode choice logsums using the same recipe as for trip_mode_choice, but do it twice
@@ -191,7 +188,7 @@ def compute_logsums(
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     omnibus_coefficient_spec = \
-        assign.read_constant_spec(config.config_file_path(logsum_settings['COEFFS']))
+        assign.read_constant_spec(config.config_file_path(logsum_settings['COEFFICIENTS']))
 
     coefficient_spec = omnibus_coefficient_spec[primary_purpose]
 
@@ -202,8 +199,9 @@ def compute_logsums(
     # - od_logsums
     od_skims = {
         'ORIGIN': model_settings['TRIP_ORIGIN'],
-        'DESTINATION': model_settings['ALT_DEST'],
+        'DESTINATION': model_settings['ALT_DEST_COL_NAME'],
         "odt_skims": skims['odt_skims'],
+        "dot_skims": skims['dot_skims'],
         "od_skims": skims['od_skims'],
     }
     destination_sample['od_logsum'] = compute_ood_logsums(
@@ -216,9 +214,10 @@ def compute_logsums(
 
     # - dp_logsums
     dp_skims = {
-        'ORIGIN': model_settings['ALT_DEST'],
+        'ORIGIN': model_settings['ALT_DEST_COL_NAME'],
         'DESTINATION': model_settings['PRIMARY_DEST'],
         "odt_skims": skims['dpt_skims'],
+        "dot_skims": skims['pdt_skims'],
         "od_skims": skims['dp_skims'],
     }
     destination_sample['dp_logsum'] = compute_ood_logsums(
@@ -229,12 +228,15 @@ def compute_logsums(
         chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, 'dp'))
 
+    return destination_sample
+
 
 def trip_destination_simulate(
         primary_purpose,
         trips,
         destination_sample,
         model_settings,
+        want_logsums,
         size_term_matrix, skims,
         chunk_size, trace_hh_id,
         trace_label):
@@ -251,7 +253,7 @@ def trip_destination_simulate(
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SPEC', primary_purpose)
 
-    alt_dest_col_name = model_settings["ALT_DEST"]
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running trip_destination_simulate with %d trips", len(trips))
 
@@ -266,6 +268,7 @@ def trip_destination_simulate(
         alternatives=destination_sample,
         spec=spec,
         choice_column=alt_dest_col_name,
+        want_logsums=want_logsums,
         allow_zero_probs=True, zero_prob_choice_val=NO_DESTINATION,
         skims=skims,
         locals_d=locals_dict,
@@ -273,10 +276,15 @@ def trip_destination_simulate(
         trace_label=trace_label,
         trace_choice_name='trip_dest')
 
+    if not want_logsums:
+        # for consistency, always return a dataframe with canonical column name
+        assert isinstance(destinations, pd.Series)
+        destinations = destinations.to_frame('choice')
+
     # drop any failed zero_prob destinations
-    if (destinations == NO_DESTINATION).any():
-        # logger.debug("dropping %s failed destinations", destinations == NO_DESTINATION).sum()
-        destinations = destinations[destinations != NO_DESTINATION]
+    if (destinations.choice == NO_DESTINATION).any():
+        # logger.debug("dropping %s failed destinations", (destinations == NO_DESTINATION).sum())
+        destinations = destinations[destinations.choice != NO_DESTINATION]
 
     return destinations
 
@@ -287,6 +295,8 @@ def choose_trip_destination(
         alternatives,
         tours_merged,
         model_settings,
+        want_logsums,
+        want_sample_table,
         size_term_matrix, skims,
         chunk_size, trace_hh_id,
         trace_label):
@@ -315,17 +325,17 @@ def choose_trip_destination(
     t0 = print_elapsed_time("%s.trip_destination_sample" % trace_label, t0)
 
     if trips.empty:
-        return pd.Series(index=trips.index)
+        return pd.Series(index=trips.index).to_frame('choice'), None
 
     # - compute logsums
-    compute_logsums(
+    destination_sample = compute_logsums(
         primary_purpose=primary_purpose,
         trips=trips,
         destination_sample=destination_sample,
         tours_merged=tours_merged,
         model_settings=model_settings,
         skims=skims,
-        chunk_size=chunk_size, trace_hh_id=trace_hh_id,
+        chunk_size=chunk_size,
         trace_label=trace_label)
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
@@ -336,6 +346,7 @@ def choose_trip_destination(
         trips=trips,
         destination_sample=destination_sample,
         model_settings=model_settings,
+        want_logsums=want_logsums,
         size_term_matrix=size_term_matrix, skims=skims,
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
         trace_label=trace_label)
@@ -346,9 +357,15 @@ def choose_trip_destination(
                        "without viable destination alternatives" %
                        (trace_label, dropped_trips.sum()))
 
+    if want_sample_table:
+        # FIXME - sample_table
+        destination_sample.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
+    else:
+        destination_sample = None
+
     t0 = print_elapsed_time("%s.trip_destination_simulate" % trace_label, t0)
 
-    return destinations
+    return destinations, destination_sample
 
 
 def wrap_skims(model_settings):
@@ -380,7 +397,7 @@ def wrap_skims(model_settings):
     skim_stack = inject.get_injectable('skim_stack')
 
     o = model_settings['TRIP_ORIGIN']
-    d = model_settings['ALT_DEST']
+    d = model_settings['ALT_DEST_COL_NAME']
     p = model_settings['PRIMARY_DEST']
 
     skims = {
@@ -399,7 +416,8 @@ def run_trip_destination(
         trips,
         tours_merged,
         chunk_size, trace_hh_id,
-        trace_label):
+        trace_label,
+        fail_some_trips_for_testing=False):
     """
     trip destination - main functionality separated from model step so it can be called iteratively
 
@@ -413,6 +431,7 @@ def run_trip_destination(
     ----------
     trips
     tours_merged
+    want_sample_table
     chunk_size
     trace_hh_id
     trace_label
@@ -426,13 +445,19 @@ def run_trip_destination(
     preprocessor_settings = model_settings.get('preprocessor', None)
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
+    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    want_logsums = logsum_column_name is not None
+
+    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
+
     land_use = inject.get_table('land_use')
     size_terms = inject.get_injectable('size_terms')
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
-    tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(int)
-    tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(int)
+    tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(np.int64)
+    tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(np.int64)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
     trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
     trips['failed'] = False
@@ -462,7 +487,9 @@ def run_trip_destination(
 
     # don't need size terms in alternatives, just TAZ index
     alternatives = alternatives.drop(alternatives.columns, axis=1)
-    alternatives.index.name = model_settings['ALT_DEST']
+    alternatives.index.name = model_settings['ALT_DEST_COL_NAME']
+
+    sample_list = []
 
     # - process intermediate trips in ascending trip_num order
     intermediate = trips.trip_num < trips.trip_count
@@ -490,21 +517,30 @@ def run_trip_destination(
             # - choose destination for nth_trips, segmented by primary_purpose
             choices_list = []
             for primary_purpose, trips_segment in nth_trips.groupby('primary_purpose'):
-                choices = choose_trip_destination(
+                choices, destination_sample = choose_trip_destination(
                     primary_purpose,
                     trips_segment,
                     alternatives,
                     tours_merged,
                     model_settings,
+                    want_logsums,
+                    want_sample_table,
                     size_term_matrix, skims,
                     chunk_size, trace_hh_id,
                     trace_label=tracing.extend_trace_label(nth_trace_label, primary_purpose))
 
                 choices_list.append(choices)
+                if want_sample_table:
+                    assert destination_sample is not None
+                    sample_list.append(destination_sample)
 
-            destinations = pd.concat(choices_list)
+            destinations_df = pd.concat(choices_list)
 
-            failed_trip_ids = nth_trips.index.difference(destinations.index)
+            if fail_some_trips_for_testing:
+                if len(destinations_df) > 0:
+                    destinations_df = destinations_df.drop(destinations_df.index[0])
+
+            failed_trip_ids = nth_trips.index.difference(destinations_df.index)
             if failed_trip_ids.any():
                 logger.warning("%s sidelining %s trips without viable destination alternatives" %
                                (nth_trace_label, failed_trip_ids.shape[0]))
@@ -513,14 +549,30 @@ def run_trip_destination(
                 trips.loc[failed_trip_ids, 'destination'] = -1
                 trips.loc[next_trip_ids, 'origin'] = trips.loc[failed_trip_ids].origin.values
 
-            # - assign choices to these trips destinations and to next trips origin
-            assign_in_place(trips, destinations.to_frame('destination'))
-            destinations.index = nth_trips.next_trip_id.reindex(destinations.index)
-            assign_in_place(trips, destinations.to_frame('origin'))
+            if len(destinations_df) == 0:
+                assert failed_trip_ids.all()
+                logger.warning(f"all {len(nth_trips)} {primary_purpose} trip_num {trip_num} trips failed")
+
+            if len(destinations_df) > 0:
+                # - assign choices to this trip's destinations
+                assign_in_place(trips, destinations_df.choice.to_frame('destination'))
+                if want_logsums:
+                    assert 'logsum' in destinations_df.columns
+                    assign_in_place(trips, destinations_df.logsum.to_frame(logsum_column_name))
+
+                # - assign choice to next trip's origin
+                destinations_df.index = nth_trips.next_trip_id.reindex(destinations_df.index)
+                assign_in_place(trips, destinations_df.choice.to_frame('origin'))
 
     del trips['next_trip_id']
 
-    return trips
+    if len(sample_list) > 0:
+        save_sample_df = pd.concat(sample_list)
+    else:
+        # this could happen if no intermediate trips, or if no saved sample desired
+        save_sample_df = None
+
+    return trips, save_sample_df
 
 
 @inject.step()
@@ -539,17 +591,26 @@ def trip_destination(
     trace_label = 'trip_destination'
     model_settings = config.read_model_settings('trip_destination.yaml')
     CLEANUP = model_settings.get('CLEANUP', True)
+    fail_some_trips_for_testing = model_settings.get('fail_some_trips_for_testing', False)
 
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
 
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
-    trips_df = run_trip_destination(
+    trips_df, save_sample_df = run_trip_destination(
         trips_df,
         tours_merged_df,
-        chunk_size, trace_hh_id,
-        trace_label)
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
+        trace_label=trace_label,
+        fail_some_trips_for_testing=fail_some_trips_for_testing)
+
+    # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
+    if config.setting('testing_fail_trip_destination', False) and not trips_df.failed.any():
+        fail_o = trips_df[trips_df.trip_num < trips_df.trip_count].origin.max()
+        trips_df.failed = (trips_df.origin == fail_o) & \
+                          (trips_df.trip_num < trips_df.trip_count)
 
     if trips_df.failed.any():
         logger.warning("%s %s failed trips", trace_label, trips_df.failed.sum())
@@ -558,14 +619,18 @@ def trip_destination(
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 
     if CLEANUP:
-        trips_df = cleanup_failed_trips(trips_df)
-    elif trips_df.failed.any():
-        logger.warning("%s keeping %s sidelined failed trips" %
-                       (trace_label, trips_df.failed.sum()))
+
+        if trips_df.failed.any():
+            flag_failed_trip_leg_mates(trips_df, 'failed')
+
+            if save_sample_df is not None:
+                save_sample_df.drop(trips_df.index[trips_df.failed], level='trip_id', inplace=True)
+
+            trips_df = cleanup_failed_trips(trips_df)
+
+        trips_df.drop(columns='failed', inplace=True, errors='ignore')
 
     pipeline.replace_table("trips", trips_df)
-
-    print("trips_df\n", trips_df.shape)
 
     if trace_hh_id:
         tracing.trace_df(trips_df,
@@ -573,3 +638,20 @@ def trip_destination(
                          slicer='trip_id',
                          index_label='trip_id',
                          warn_if_empty=True)
+
+    if save_sample_df is not None:
+        # might be none if want_sample_table but there are no intermediate trips
+        # expect samples only for intermediate trip destinations
+
+        assert len(save_sample_df.index.get_level_values(0).unique()) == \
+               len(trips_df[trips_df.trip_num < trips_df.trip_count])
+
+        sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+        assert sample_table_name is not None
+
+        logger.info("adding %s samples to %s" % (len(save_sample_df), sample_table_name))
+
+        # lest they try to put tour samples into the same table
+        if pipeline.is_table(sample_table_name):
+            raise RuntimeError("sample table %s already exists" % sample_table_name)
+        pipeline.extend_table(sample_table_name, save_sample_df)

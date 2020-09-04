@@ -1,11 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-
 from builtins import range
 
 import logging
@@ -283,19 +277,33 @@ def _interaction_sample(
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
 
-    choices_df = make_sample_choices(
-        choosers, probs, alternatives,
-        sample_size, alternative_count, alt_col_name,
-        allow_zero_probs=allow_zero_probs,
-        trace_label=trace_label)
+    if sample_size == 0:
+        # FIXME return full alternative set rather than sample
+        logger.info("Estimation mode for %s using unsampled alternatives" % (trace_label, ))
+
+        index_name = probs.index.name
+        choices_df = \
+            pd.melt(probs.reset_index(), id_vars=[index_name])\
+            .sort_values(by=index_name, kind='mergesort')\
+            .set_index(index_name)\
+            .rename(columns={'value': 'prob'})\
+            .drop(columns='variable')
+
+        choices_df['pick_count'] = 1
+        choices_df.insert(0, alt_col_name, np.tile(alternatives.index.values, len(choosers.index)))
+
+        return choices_df
+    else:
+        choices_df = make_sample_choices(
+            choosers, probs, alternatives,
+            sample_size, alternative_count, alt_col_name,
+            allow_zero_probs=allow_zero_probs,
+            trace_label=trace_label)
 
     chunk.log_df(trace_label, 'choices_df', choices_df)
 
     del probs
     chunk.log_df(trace_label, 'probs', None)
-
-    # make_sample_choices should return choosers index as choices_df column
-    assert choosers.index.name in choices_df.columns
 
     # pick_count and pick_dup
     # pick_count is number of duplicate picks
@@ -360,9 +368,12 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
     # utilities and probs have one row per chooser and one column per alternative row
     row_size += 2 * alternatives.shape[0]
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+
+    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
+    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    logger.debug("%s #chunk_calc row_size %s" % (trace_label, row_size))
 
     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
@@ -434,9 +445,8 @@ def interaction_sample(
     # we return alternatives ordered in (index, alt_col_name)
     # if choosers index is not ordered, it is probably a mistake, since the alts wont line up
     assert alt_col_name is not None
-    assert choosers.index.is_monotonic
+    assert choosers.index.is_monotonic_increasing
 
-    assert sample_size > 0
     sample_size = min(sample_size, len(alternatives.index))
 
     rows_per_chunk, effective_chunk_size = \

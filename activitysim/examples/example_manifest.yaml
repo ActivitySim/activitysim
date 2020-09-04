@@ -1,0 +1,77 @@
+- name: example_mtc
+  description: 25-zone example for the MTC region
+  # activitysim create -e example_mtc -d test_example_mtc
+  # activitysim run -c configs -o output -d data
+  include:
+    - example_mtc/data
+    - example_mtc/configs
+    - example_mtc/configs_mp
+    - example_mtc/output
+    - example_mtc/README.MD
+- name: example_test
+  description: data and configs for the ActivitySim test system
+  # activitysim create -e example_test -d test_example_test
+  # activitysim run -c configs -o output -d data
+  include:
+    - example_mtc/data
+    - example_mtc/configs
+    - example_mtc/configs_mp
+    - example_mtc/output
+- name: example_mtc_full
+  description: Full 1475-zone dataset for the MTC region with 2.8M households and 7.5M persons
+  # activitysim create -e example_mtc_full -d test_example_mtc_full
+  # activitysim run -c configs_mp -c configs -o output -d data
+  include:
+    - example_mtc/configs
+    - example_mtc/configs_mp
+    - example_mtc/data
+    - example_mtc/output
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_full/skims.omx
+      data/skims.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_full/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_full/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_full/land_use.csv
+      data/land_use.csv
+- name: example_mtc_sf
+  description: San Francisco MTC dataset with 190 zones, 400k households and 900k persons
+  # activitysim create -e example_mtc_sf -d test_example_mtc_sf
+  # activitysim run -c configs -o output -d data
+  include:
+    - example_mtc/configs
+    - example_mtc/configs_mp
+    - example_mtc/data
+    - example_mtc/output
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_sf/skims.omx
+      data/skims.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_sf/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_sf/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_sf/land_use.csv
+      data/land_use.csv
+- name: example_estimation
+  description: Estimation mode 25 zone example
+  # activitysim create -e example_estimation -d test_example_estimation
+  # activitysim run -c configs_estimation/configs -c configs -o output -d data_test
+  include:
+    - example_mtc/configs
+    - example_estimation/configs
+      configs_estimation
+    - example_estimation/data_test
+    - example_mtc/data/skims.omx
+      data_test/skims.omx
+    - example_mtc/output
+- name: example_estimation_sf
+  description: Estimation mode San Francisco MTC dataset with 190 zones, 2k households and 8k persons
+  # activitysim create -e example_estimation_sf -d test_example_estimation_sf
+  # activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
+  include:
+    - example_mtc/configs
+    - example_estimation/configs
+      configs_estimation
+    - example_estimation/data_sf
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_sf/skims.omx
+      data_sf/skims.omx
+    - example_mtc/output

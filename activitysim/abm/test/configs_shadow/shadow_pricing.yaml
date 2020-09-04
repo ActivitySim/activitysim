@@ -1,7 +1,0 @@
-inherit_settings: True
-
-# global switch to enable/disable loading of saved shadow prices
-# (ignored if global use_shadow_pricing switch is False)
-LOAD_SAVED_SHADOW_PRICES: True
-
-MAX_ITERATIONS_SAVED: 1

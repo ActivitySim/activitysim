@@ -1,18 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import sys
 import os
 import time
 import logging
 import multiprocessing
-import cProfile
+import traceback
 
 from collections import OrderedDict
 
@@ -40,6 +33,10 @@ from activitysim.abm.tables import shadow_pricing
 logger = logging.getLogger(__name__)
 
 LAST_CHECKPOINT = '_'
+
+# TEST_SPAWN = 'mp_households'
+TEST_SPAWN = False
+
 
 """
 mp_tasks - activitysim multiprocessing overview
@@ -215,6 +212,55 @@ buffers. This is not very extensible and should be generalized.
 # FIXME - pathological knowledge of abm.tables.skims and abm.tables.shadow_pricing (see note above)
 
 
+def log(msg, level, write_to_log_file=True):
+
+    process_name = multiprocessing.current_process().name
+
+    if not write_to_log_file:
+        print(f"############ mp_tasks - {process_name} - {msg}")
+
+    if write_to_log_file:
+        with config.open_log_file('mp_tasks_log.txt', 'a') as log_file:
+            print(f"mp_tasks - {process_name} - {msg}", file=log_file)
+
+    if write_to_log_file:
+        logger.log(level, f"mp_tasks - {process_name} - {msg}")
+
+
+def debug(msg, write_to_log_file=True):
+    log(msg, level=logging.DEBUG, write_to_log_file=write_to_log_file)
+
+
+def info(msg, write_to_log_file=True):
+    log(msg, level=logging.INFO, write_to_log_file=write_to_log_file)
+
+
+def warning(msg, write_to_log_file=True):
+    log(msg, level=logging.WARNING, write_to_log_file=write_to_log_file)
+
+
+def error(msg, write_to_log_file=True):
+    log(msg, level=logging.ERROR, write_to_log_file=write_to_log_file)
+
+
+def exception(msg, write_to_log_file=True):
+
+    process_name = multiprocessing.current_process().name
+
+    if not write_to_log_file:
+        print(f"mp_tasks - {process_name} - {msg}")
+        print(f"---\n{traceback.format_exc()}---")
+
+    with config.open_log_file('mp_tasks_log.txt', 'a') as log_file:
+        print(f"---\nmp_tasks - {process_name} - {msg}", file=log_file)
+        traceback.print_exc(limit=10, file=log_file)
+        print("---", file=log_file)
+
+    if write_to_log_file:
+        logger.log(logging.ERROR, f"mp_tasks - {process_name} - {msg}")
+        logger.log(logging.ERROR, f"\n---\n{traceback.format_exc()}---\n")
+
+
 """
 ### child process methods (called within sub process)
 """
@@ -263,7 +309,7 @@ def pipeline_table_keys(pipeline_store):
 
     # hdf5 key is <table_name>/<checkpoint_name>
     checkpoint_tables = {table_name: pipeline.pipeline_table_key(table_name, checkpoint_name)
-                         for table_name, checkpoint_name in iteritems(checkpoint_tables)}
+                         for table_name, checkpoint_name in checkpoint_tables.items()}
 
     # checkpoint name and series mapping table name to hdf5 key for tables in that checkpoint
     return checkpoint_name, checkpoint_tables
@@ -362,10 +408,10 @@ def build_slice_rules(slice_info, pipeline_tables):
     if primary_slicer not in tables:
         raise RuntimeError("primary slice table '%s' not in pipeline" % primary_slicer)
 
-    logger.debug("build_slice_rules tables %s", list(tables.keys()))
-    logger.debug("build_slice_rules primary_slicer %s", primary_slicer)
-    logger.debug("build_slice_rules slicer_table_names %s", slicer_table_names)
-    logger.debug("build_slice_rules slicer_table_exceptions %s", slicer_table_exceptions)
+    debug(f"build_slice_rules tables {list(tables.keys())}")
+    debug(f"build_slice_rules primary_slicer {primary_slicer}")
+    debug(f"build_slice_rules slicer_table_names {slicer_table_names}")
+    debug(f"build_slice_rules slicer_table_exceptions {slicer_table_exceptions}")
 
     # dict mapping slicer table_name to index name
     # (also presumed to be name of ref col name in referencing table)
@@ -373,7 +419,7 @@ def build_slice_rules(slice_info, pipeline_tables):
 
     # build slice rules for loaded tables
     slice_rules = OrderedDict()
-    for table_name, df in iteritems(tables):
+    for table_name, df in tables.items():
 
         rule = {}
         if table_name == primary_slicer:
@@ -390,7 +436,7 @@ def build_slice_rules(slice_info, pipeline_tables):
                     # if df has a column with same name as the ref_col (index) of a slicer?
                     try:
                         source, ref_col = next((t, c)
-                                               for t, c in iteritems(slicer_ref_cols)
+                                               for t, c in slicer_ref_cols.items()
                                                if c in df.columns)
                         # then we can use that table to slice this df
                         rule = {'slice_by': 'column',
@@ -406,7 +452,7 @@ def build_slice_rules(slice_info, pipeline_tables):
         slice_rules[table_name] = rule
 
     for table_name in slice_rules:
-        logger.debug("%s: %s", table_name, slice_rules[table_name])
+        debug(f"table_name: {slice_rules[table_name]}")
 
     return slice_rules
 
@@ -437,7 +483,7 @@ def apportion_pipeline(sub_proc_names, slice_info):
     # get last checkpoint from first job pipeline
     pipeline_path = config.build_output_file_path(pipeline_file_name)
 
-    logger.debug("apportion_pipeline pipeline_path: %s", pipeline_path)
+    debug(f"apportion_pipeline pipeline_path: {pipeline_path}")
 
     # - load all tables from pipeline
     tables = {}
@@ -454,13 +500,13 @@ def apportion_pipeline(sub_proc_names, slice_info):
                 raise RuntimeError("slicer table %s not found in pipeline" % table_name)
 
         # load all tables from pipeline
-        for table_name, hdf5_key in iteritems(hdf5_keys):
+        for table_name, hdf5_key in hdf5_keys.items():
             # new checkpoint for all tables the same
             checkpoints_df[table_name] = checkpoint_name
             # load the dataframe
             tables[table_name] = pipeline_store[hdf5_key]
 
-            logger.debug("loaded table %s %s", table_name, tables[table_name].shape)
+            debug(f"loaded table {table_name} {tables[table_name].shape}")
 
     # keep only the last row of checkpoints and patch the last checkpoint name
     checkpoints_df = checkpoints_df.tail(1).copy()
@@ -489,7 +535,7 @@ def apportion_pipeline(sub_proc_names, slice_info):
             sliced_tables = {}
 
             # - for each table in pipeline
-            for table_name, rule in iteritems(slice_rules):
+            for table_name, rule in slice_rules.items():
 
                 df = tables[table_name]
 
@@ -518,8 +564,8 @@ def apportion_pipeline(sub_proc_names, slice_info):
                 hdf5_key = pipeline.pipeline_table_key(table_name, checkpoint_name)
                 pipeline_store[hdf5_key] = sliced_tables[table_name]
 
-            logger.debug("writing checkpoints (%s) to %s in %s",
-                         checkpoints_df.shape, pipeline.CHECKPOINT_TABLE_NAME, pipeline_path)
+            debug(f"writing checkpoints ({checkpoints_df.shape}) "
+                  f"to {pipeline.CHECKPOINT_TABLE_NAME} in {pipeline_path}")
             pipeline_store[pipeline.CHECKPOINT_TABLE_NAME] = checkpoints_df
 
 
@@ -545,7 +591,7 @@ def coalesce_pipelines(sub_proc_names, slice_info):
 
     pipeline_file_name = inject.get_injectable('pipeline_file_name')
 
-    logger.debug("coalesce_pipelines to: %s", pipeline_file_name)
+    debug(f"coalesce_pipelines to: {pipeline_file_name}")
 
     # - read all tables from first process pipeline
     tables = {}
@@ -556,29 +602,29 @@ def coalesce_pipelines(sub_proc_names, slice_info):
         # hdf5_keys is a dict mapping table_name to pipeline hdf5_key
         checkpoint_name, hdf5_keys = pipeline_table_keys(pipeline_store)
 
-        for table_name, hdf5_key in iteritems(hdf5_keys):
-            logger.debug("loading table %s %s", table_name, hdf5_key)
+        for table_name, hdf5_key in hdf5_keys.items():
+            debug(f"loading table {table_name} {hdf5_key}")
             tables[table_name] = pipeline_store[hdf5_key]
 
     # - use slice rules followed by apportion_pipeline to identify mirrored tables
     # (tables that are identical in every pipeline and so don't need to be concatenated)
     slice_rules = build_slice_rules(slice_info, tables)
-    mirrored_table_names = [t for t, rule in iteritems(slice_rules) if rule['slice_by'] is None]
+    mirrored_table_names = [t for t, rule in slice_rules.items() if rule['slice_by'] is None]
     mirrored_tables = {t: tables[t] for t in mirrored_table_names}
-    omnibus_keys = {t: k for t, k in iteritems(hdf5_keys) if t not in mirrored_table_names}
+    omnibus_keys = {t: k for t, k in hdf5_keys.items() if t not in mirrored_table_names}
 
-    logger.debug("coalesce_pipelines to: %s", pipeline_file_name)
-    logger.debug("mirrored_table_names: %s", mirrored_table_names)
-    logger.debug("omnibus_keys: %s", omnibus_keys)
+    debug(f"coalesce_pipelines to: {pipeline_file_name}")
+    debug(f"mirrored_table_names: {mirrored_table_names}")
+    debug(f"omnibus_keys: {omnibus_keys}")
 
     # assemble lists of omnibus tables from all sub_processes
     omnibus_tables = {table_name: [] for table_name in omnibus_keys}
     for process_name in sub_proc_names:
         pipeline_path = config.build_output_file_path(pipeline_file_name, use_prefix=process_name)
-        logger.info("coalesce pipeline %s", pipeline_path)
+        logger.info(f"coalesce pipeline {pipeline_path}")
 
         with pd.HDFStore(pipeline_path, mode='r') as pipeline_store:
-            for table_name, hdf5_key in iteritems(omnibus_keys):
+            for table_name, hdf5_key in omnibus_keys.items():
                 omnibus_tables[table_name].append(pipeline_store[hdf5_key])
 
     pipeline.open_pipeline()
@@ -586,13 +632,13 @@ def coalesce_pipelines(sub_proc_names, slice_info):
     # - add mirrored tables to pipeline
     for table_name in mirrored_tables:
         df = mirrored_tables[table_name]
-        logger.info("adding mirrored table %s %s", table_name, df.shape)
+        info(f"adding mirrored table {table_name} {df.shape}")
         pipeline.replace_table(table_name, df)
 
     # - concatenate omnibus tables and add them to pipeline
     for table_name in omnibus_tables:
         df = pd.concat(omnibus_tables[table_name], sort=False)
-        logger.info("adding omnibus table %s %s", table_name, df.shape)
+        info(f"adding omnibus table {table_name} {df.shape}")
         pipeline.replace_table(table_name, df)
 
     pipeline.add_checkpoint(checkpoint_name)
@@ -619,17 +665,28 @@ def setup_injectables_and_logging(injectables, locutor=True):
     injects injectables
     """
 
-    for k, v in iteritems(injectables):
-        inject.add_injectable(k, v)
+    try:
 
-    inject.add_injectable("is_sub_task", True)
-    inject.add_injectable("locutor", locutor)
+        for k, v in injectables.items():
+            inject.add_injectable(k, v)
 
-    config.filter_warnings()
+        inject.add_injectable("is_sub_task", True)
+        inject.add_injectable("locutor", locutor)
 
-    process_name = multiprocessing.current_process().name
-    inject.add_injectable("log_file_prefix", process_name)
-    tracing.config_logger()
+        config.filter_warnings()
+
+        process_name = multiprocessing.current_process().name
+        inject.add_injectable("log_file_prefix", process_name)
+
+    except Exception as e:
+        exception(f"{type(e).__name__} exception while setting up injectables: {str(e)}", write_to_log_file=False)
+        raise e
+
+    try:
+        tracing.config_logger()
+    except Exception as e:
+        exception(f"{type(e).__name__} exception while configuring logger: {str(e)}")
+        raise e
 
 
 def run_simulation(queue, step_info, resume_after, shared_data_buffer):
@@ -661,20 +718,20 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
     inject.add_injectable("num_processes", num_processes)
 
     if resume_after:
-        logger.info('resume_after %s', resume_after)
+        info(f"resume_after {resume_after}")
 
         # if they specified a resume_after model, check to make sure it is checkpointed
         if resume_after != LAST_CHECKPOINT and \
                 resume_after not in pipeline.get_checkpoints()[pipeline.CHECKPOINT_NAME].values:
             # if not checkpointed, then fall back to last checkpoint
-            logger.info("resume_after checkpoint '%s' not in pipeline.", resume_after)
+            info(f"resume_after checkpoint '{resume_after}' not in pipeline.")
             resume_after = LAST_CHECKPOINT
 
     pipeline.open_pipeline(resume_after)
     last_checkpoint = pipeline.last_checkpoint()
 
     if last_checkpoint in models:
-        logger.info("Resuming model run list after %s", last_checkpoint)
+        info(f"Resuming model run list after {last_checkpoint}")
         models = models[models.index(last_checkpoint) + 1:]
 
     # preload any bulky injectables (e.g. skims) not in pipeline
@@ -688,8 +745,7 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
         try:
             pipeline.run_model(model)
         except Exception as e:
-            logger.warning("%s exception running %s model: %s", type(e).__name__, model, str(e),
-                           exc_info=True)
+            warning(f"{type(e).__name__} exception running {model} model: {str(e)}")
             raise e
 
         queue.put({'model': model, 'time': time.time()-t1})
@@ -719,22 +775,32 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
         shared_data_buffers passed as kwargs to avoid picking dict
     """
 
-    shared_data_buffer = kwargs
-    # handle_standard_args()
+    debug(f"mp_run_simulation {step_info['name']}", write_to_log_file=False)
 
-    setup_injectables_and_logging(injectables, locutor)
+    setup_injectables_and_logging(injectables, locutor=locutor)
 
-    mem.init_trace(setting('mem_tick'))
+    if TEST_SPAWN and step_info['name'] == TEST_SPAWN:
+        time.sleep(30)
+        info(f"work up after TEST_SPAWN sleep - returning without doing anything")
+        return
 
-    if step_info['num_processes'] > 1:
-        pipeline_prefix = multiprocessing.current_process().name
-        logger.debug("injecting pipeline_file_prefix '%s'", pipeline_prefix)
-        inject.add_injectable("pipeline_file_prefix", pipeline_prefix)
+    try:
+        mem.init_trace(setting('mem_tick'))
 
-    run_simulation(queue, step_info, resume_after, shared_data_buffer)
+        if step_info['num_processes'] > 1:
+            pipeline_prefix = multiprocessing.current_process().name
+            logger.debug(f"injecting pipeline_file_prefix '{pipeline_prefix}'")
+            inject.add_injectable("pipeline_file_prefix", pipeline_prefix)
 
-    chunk.log_write_hwm()
-    mem.log_hwm()
+        shared_data_buffer = kwargs
+        run_simulation(queue, step_info, resume_after, shared_data_buffer)
+
+        chunk.log_write_hwm()
+        mem.log_hwm()
+
+    except Exception as e:
+        exception(f"{type(e).__name__} exception caught in mp_run_simulation: {str(e)}")
+        raise e
 
 
 def mp_apportion_pipeline(injectables, sub_proc_names, slice_info):
@@ -752,7 +818,12 @@ def mp_apportion_pipeline(injectables, sub_proc_names, slice_info):
     """
 
     setup_injectables_and_logging(injectables)
-    apportion_pipeline(sub_proc_names, slice_info)
+
+    try:
+        apportion_pipeline(sub_proc_names, slice_info)
+    except Exception as e:
+        exception(f"{type(e).__name__} exception caught in mp_apportion_pipeline: {str(e)}")
+        raise e
 
 
 def mp_setup_skims(injectables, **kwargs):
@@ -770,14 +841,22 @@ def mp_setup_skims(injectables, **kwargs):
         shared_data_buffers passed as kwargs to avoid picking dict
     """
 
-    shared_data_buffer = kwargs
     setup_injectables_and_logging(injectables)
 
-    omx_file_path = config.data_file_path(setting('skims_file'))
-    tags_to_load = setting('skim_time_periods')['labels']
+    try:
+        shared_data_buffer = kwargs
+        omx_file_path = config.data_file_path(setting('skims_file'))
+        tags_to_load = setting('skim_time_periods')['labels']
 
-    skim_info = skims.get_skim_info(omx_file_path, tags_to_load)
-    skims.load_skims(omx_file_path, skim_info, shared_data_buffer)
+        skim_info = skims.get_skim_info(omx_file_path, tags_to_load)
+        if TEST_SPAWN:
+            warning("mp_setup_skims TEST_SPAWN {TEST_SPAWN} skipping skims.load_skims")
+        else:
+            skims.load_skims(omx_file_path, skim_info, shared_data_buffer)
+
+    except Exception as e:
+        exception(f"{type(e).__name__} exception caught in mp_setup_skims: {str(e)}")
+        raise e
 
 
 def mp_coalesce_pipelines(injectables, sub_proc_names, slice_info):
@@ -795,7 +874,12 @@ def mp_coalesce_pipelines(injectables, sub_proc_names, slice_info):
     """
 
     setup_injectables_and_logging(injectables)
-    coalesce_pipelines(sub_proc_names, slice_info)
+
+    try:
+        coalesce_pipelines(sub_proc_names, slice_info)
+    except Exception as e:
+        exception(f"{type(e).__name__} exception caught in coalesce_pipelines: {str(e)}")
+        raise e
 
 
 """
@@ -813,7 +897,7 @@ def allocate_shared_skim_buffers():
 
     """
 
-    logger.info("allocate_shared_skim_buffer")
+    info("allocate_shared_skim_buffer")
 
     omx_file_path = config.data_file_path(setting('skims_file'))
     tags_to_load = setting('skim_time_periods')['labels']
@@ -834,9 +918,10 @@ def allocate_shared_shadow_pricing_buffers():
         multiprocessing.RawArray
     """
 
-    logger.info("allocate_shared_shadow_pricing_buffers")
+    info("allocate_shared_shadow_pricing_buffers")
 
     shadow_pricing_info = shadow_pricing.get_shadow_pricing_info()
+
     shadow_pricing_buffers = shadow_pricing.buffers_for_shadow_pricing(shadow_pricing_info)
 
     return shadow_pricing_buffers
@@ -886,8 +971,7 @@ def run_sub_simulations(
         for process, queue in zip(procs, queues):
             while not queue.empty():
                 msg = queue.get(block=False)
-                logger.info("%s %s : %s", process.name, msg['model'],
-                            tracing.format_elapsed_time(msg['time']))
+                info(f"{process.name} {msg['model']} : {tracing.format_elapsed_time(msg['time'])}")
                 mem.trace_memory_info("%s.%s.completed" % (process.name, msg['model']))
 
     def check_proc_status():
@@ -899,17 +983,25 @@ def run_sub_simulations(
             elif p.exitcode == 0:
                 # completed successfully
                 if p.name not in completed:
-                    logger.info("process %s completed", p.name)
+                    info(f"process {p.name} completed")
                     completed.add(p.name)
                     drop_breadcrumb(step_name, 'completed', list(completed))
                     mem.trace_memory_info("%s.completed" % p.name)
             else:
                 # process failed
                 if p.name not in failed:
-                    logger.info("process %s failed with exitcode %s", p.name, p.exitcode)
+                    warning(f"process {p.name} failed with exitcode {p.exitcode}")
                     failed.add(p.name)
                     mem.trace_memory_info("%s.failed" % p.name)
                     if fail_fast:
+                        warning(f"fail_fast terminating remaining running processes")
+                        for op in procs:
+                            if op.exitcode is None:
+                                try:
+                                    info(f"terminating process {op.name}")
+                                    op.terminate()
+                                except Exception as e:
+                                    info(f"error terminating process {op.name}: {e}")
                         raise RuntimeError("Process %s failed" % (p.name,))
 
     def idle(seconds):
@@ -928,7 +1020,7 @@ def run_sub_simulations(
     step_name = step_info['name']
 
     t0 = tracing.print_elapsed_time()
-    logger.info('run_sub_simulations step %s models resume_after %s', step_name, resume_after)
+    info(f'run_sub_simulations step {step_name} models resume_after {resume_after}')
 
     # if resuming and some processes completed successfully in previous run
     if previously_completed:
@@ -939,8 +1031,7 @@ def run_sub_simulations(
             # if we are resuming where previous run left off, then we can skip running
             # any subprocudures that successfully complete the previous run
             process_names = [name for name in process_names if name not in previously_completed]
-            logger.info('step %s: skipping %s previously completed subprocedures',
-                        step_name, len(previously_completed))
+            info(f'step {step_name}: skipping {len(previously_completed)} previously completed subprocedures')
         else:
             # if we are resuming after a specific model, then force all subprocesses to run
             # (assuming if they specified a model, they really want everything after that to run)
@@ -953,7 +1044,6 @@ def run_sub_simulations(
     num_simulations = len(process_names)
     procs = []
     queues = []
-    stagger_starts = step_info['stagger']
 
     completed = set(previously_completed)
     failed = set([])  # so we can log process failure first time it happens
@@ -962,19 +1052,49 @@ def run_sub_simulations(
     for i, process_name in enumerate(process_names):
         q = multiprocessing.Queue()
         spokesman = (i == 0)
+
+        args = OrderedDict(spokesman=spokesman,
+                           queue=q,
+                           injectables=injectables,
+                           step_info=step_info,
+                           resume_after=resume_after)
+
+        debug(f"create_process {process_name} target={mp_run_simulation}")
+        for k in args:
+            debug(f"create_process {process_name} arg {k}={args[k]}")
+        for k in shared_data_buffers:
+            debug(f"create_process {process_name} shared_data_buffers {k}={shared_data_buffers[k]}")
+
         p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
                                     args=(spokesman, q, injectables, step_info, resume_after,),
                                     kwargs=shared_data_buffers)
+
         procs.append(p)
         queues.append(q)
 
     # - start processes
     for i, p in zip(list(range(num_simulations)), procs):
-        if stagger_starts > 0 and i > 0:
-            logger.info("stagger process %s by %s seconds", p.name, stagger_starts)
-            idle(seconds=stagger_starts)
-        logger.info("start process %s", p.name)
+        info(f"start process {p.name}")
         p.start()
+
+        """
+        windows mmap does not handle multiple simultaneous calls from different processes for the same tagname.
+        Process start causes a call to mmap to initialize the wrapper for the anonymous shared memory arrays
+        in the shared_data_buffers kwargs. some of the processses fail with WinError 1450 (or similar error)
+        OSError: [WinError 1450] Insufficient system resources exist to complete the requested service.
+        Judging by the commented-out assert, this (or a related) issue may have been around in some form for a while.
+
+        def __setstate__(self, state):
+            self.size, self.name = self._state = state
+            # Reopen existing mmap
+            self.buffer = mmap.mmap(-1, self.size, tagname=self.name)
+            # XXX Temporarily preventing buildbot failures while determining
+            # XXX the correct long-term fix. See issue 23060
+            #assert _winapi.GetLastError() == _winapi.ERROR_ALREADY_EXISTS
+        """
+        if sys.platform == 'win32':
+            time.sleep(1)
+
         mem.trace_memory_info("%s.start" % p.name)
 
     # - idle logging queued messages and proc completion
@@ -987,10 +1107,10 @@ def run_sub_simulations(
     for p in procs:
         assert p.exitcode is not None
         if p.exitcode:
-            logger.error("Process %s failed with exitcode %s", p.name, p.exitcode)
+            error(f"Process %s failed with exitcode {p.exitcode}")
             assert p.name in failed
         else:
-            logger.info("Process %s completed with exitcode %s", p.name, p.exitcode)
+            info(f"Process {p.name} completed with exitcode {p.exitcode}")
             assert p.name in completed
 
     t0 = tracing.print_elapsed_time('run_sub_simulations step %s' % step_name, t0)
@@ -1008,7 +1128,7 @@ def run_sub_task(p):
     ----------
     p : multiprocessing.Process
     """
-    logger.info("running sub_process %s", p.name)
+    info(f"running sub_process {p.name}")
 
     mem.trace_memory_info("%s.start" % p.name)
 
@@ -1023,12 +1143,12 @@ def run_sub_task(p):
     # p.join()
 
     t0 = tracing.print_elapsed_time('sub_process %s' % p.name, t0)
-    # logger.info('%s.exitcode = %s' % (p.name, p.exitcode))
+    # info(f'{p.name}.exitcode = {p.exitcode}')
 
     mem.trace_memory_info("%s.completed" % p.name)
 
     if p.exitcode:
-        logger.error("Process %s returned exitcode %s", p.name, p.exitcode)
+        error(f"Process {p.name} returned exitcode {p.exitcode}")
         raise RuntimeError("Process %s returned exitcode %s" % (p.name, p.exitcode))
 
 
@@ -1084,7 +1204,7 @@ def run_multiprocess(run_list, injectables):
         dict of values to inject in sub-processes
     """
 
-    mem.init_trace(setting('mem_tick'))
+    mem.init_trace(setting('mem_tick'), write_header=True)
     mem.trace_memory_info("run_multiprocess.start")
 
     if not run_list['multiprocess']:
@@ -1095,12 +1215,12 @@ def run_multiprocess(run_list, injectables):
 
     # raise error if any sub-process fails without waiting for others to complete
     fail_fast = setting('fail_fast')
-    logger.info("run_multiprocess fail_fast: %s", fail_fast)
+    info(f"run_multiprocess fail_fast: {fail_fast}")
 
     def skip_phase(phase):
         skip = old_breadcrumbs and old_breadcrumbs.get(step_name, {}).get(phase, False)
         if skip:
-            logger.info("Skipping %s %s", step_name, phase)
+            info(f"Skipping {step_name} {phase}")
         return skip
 
     def find_breadcrumb(crumb, default=None):
@@ -1215,7 +1335,7 @@ def get_breadcrumbs(run_list):
 
     # - can't resume multiprocess without breadcrumbs file
     if not breadcrumbs:
-        logger.error("empty breadcrumbs for resume_after '%s'", resume_after)
+        error(f"empty breadcrumbs for resume_after '{resume_after}'")
         raise RuntimeError("empty breadcrumbs for resume_after '%s'" % resume_after)
 
     # if resume_after is specified by name
@@ -1231,7 +1351,7 @@ def get_breadcrumbs(run_list):
         resume_step_name = resume_step['name']
 
         if resume_step_name not in previous_steps:
-            logger.error("resume_after model '%s' not in breadcrumbs", resume_after)
+            error(f"resume_after model '{resume_after}' not in breadcrumbs")
             raise RuntimeError("resume_after model '%s' not in breadcrumbs" % resume_after)
 
         # drop any previous_breadcrumbs steps after resume_step
@@ -1258,7 +1378,7 @@ def get_run_list():
     """
     validate and annotate run_list from settings
 
-    Assign defaults to missing settings (e.g. stagger, chunk_size)
+    Assign defaults to missing settings (e.g. chunk_size)
     Build individual step model lists based on step starts
     If resuming, read breadcrumbs file for info on previous run execution status
 
@@ -1284,7 +1404,6 @@ def get_run_list():
                - compute_accessibility
                - initialize_households
             num_processes: 1
-            stagger: 5
             chunk_size: 0
             step_num: 0
           step: mp_households
@@ -1295,7 +1414,6 @@ def get_run_list():
                - school_location
                - workplace_location
             num_processes: 2
-            stagger: 5
             chunk_size: 10000
             step_num: 1
 
@@ -1314,10 +1432,9 @@ def get_run_list():
     # default settings that can be overridden by settings in individual steps
     global_chunk_size = setting('chunk_size', 0)
     default_mp_processes = setting('num_processes', 0) or int(1 + multiprocessing.cpu_count() / 2.0)
-    default_stagger = setting('stagger', 0)
 
     if multiprocess and multiprocessing.cpu_count() == 1:
-        logger.warning("Can't multiprocess because there is only 1 cpu")
+        warning("Can't multiprocess because there is only 1 cpu")
 
     run_list = {
         'models': models,
@@ -1364,11 +1481,11 @@ def get_run_list():
 
             if 'slice' in step:
                 if num_processes == 0:
-                    logger.info("Setting num_processes = %s for step %s", num_processes, name)
+                    info(f"Setting num_processes = {num_processes} for step {name}")
                     num_processes = default_mp_processes
                 if num_processes > multiprocessing.cpu_count():
-                    logger.warning("num_processes setting (%s) greater than cpu count (%s",
-                                   num_processes, multiprocessing.cpu_count())
+                    warning(f"num_processes setting ({num_processes}) "
+                            f"greater than cpu count ({ multiprocessing.cpu_count()})")
             else:
                 if num_processes == 0:
                     num_processes = 1
@@ -1388,9 +1505,6 @@ def get_run_list():
                     chunk_size = global_chunk_size
 
             multiprocess_steps[istep]['chunk_size'] = chunk_size
-
-            # - validate stagger and assign default
-            multiprocess_steps[istep]['stagger'] = max(int(step.get('stagger', default_stagger)), 0)
 
         # - determine index in models list of step starts
         start_tag = 'begin'

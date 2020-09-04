@@ -1,15 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import pandas as pd
-
-from activitysim.core.interaction_simulate import interaction_simulate
 
 from activitysim.core import tracing
 from activitysim.core import config
@@ -18,9 +11,10 @@ from activitysim.core import pipeline
 from activitysim.core import simulate
 
 from activitysim.core.util import assign_in_place
-from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
 from .util import tour_destination
+from .util import estimation
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +34,14 @@ def non_mandatory_tour_destination(
     """
 
     trace_label = 'non_mandatory_tour_destination'
-    model_settings = config.read_model_settings('non_mandatory_tour_destination.yaml')
+    model_settings_file_name = 'non_mandatory_tour_destination.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
+
+    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    want_logsums = logsum_column_name is not None
+
+    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     tours = tours.to_frame()
 
@@ -54,19 +55,46 @@ def non_mandatory_tour_destination(
         tracing.no_results(trace_label)
         return
 
-    choices = tour_destination.run_tour_destination(
-        tours,
+    estimator = estimation.manager.begin_estimation('non_mandatory_tour_destination')
+    if estimator:
+        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
+        # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
+        estimator.write_spec(model_settings, tag='SPEC')
+        estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
+        estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
+        estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+
+    choices_df, save_sample_df = tour_destination.run_tour_destination(
+        non_mandatory_tours,
         persons_merged,
+        want_logsums,
+        want_sample_table,
         model_settings,
         skim_dict,
         skim_stack,
+        estimator,
         chunk_size, trace_hh_id, trace_label)
 
-    non_mandatory_tours['destination'] = choices
+    if estimator:
+        estimator.write_choices(choices_df.choice)
+        choices_df.choice = estimator.get_survey_values(choices_df.choice, 'tours', 'destination')
+        estimator.write_override_choices(choices_df.choice)
+        estimator.end_estimation()
+
+    non_mandatory_tours['destination'] = choices_df.choice
 
     assign_in_place(tours, non_mandatory_tours[['destination']])
 
+    if want_logsums:
+        non_mandatory_tours[logsum_column_name] = choices_df['logsum']
+        assign_in_place(tours, non_mandatory_tours[[logsum_column_name]])
+
     pipeline.replace_table("tours", tours)
+
+    if want_sample_table:
+        assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
+        pipeline.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
         tracing.trace_df(tours[tours.tour_category == 'non_mandatory'],

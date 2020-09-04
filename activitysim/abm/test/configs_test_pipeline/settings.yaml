@@ -1,0 +1,4 @@
+inherit_settings: True
+
+# turn writing of sample_tables on and off for all models
+want_dest_choice_sample_tables: True

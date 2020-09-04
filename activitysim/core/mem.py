@@ -1,12 +1,6 @@
 
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-
 import time
 import datetime
 import psutil
@@ -15,6 +9,7 @@ import gc
 
 
 from activitysim.core import config
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +26,7 @@ def GB(bytes):
     return (bytes / (1024 * 1024 * 1024.0))
 
 
-def init_trace(tick_len=None, file_name="mem.csv"):
+def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
     MEM['tick'] = 0
     if file_name is not None:
         MEM['file_name'] = file_name
@@ -41,6 +36,13 @@ def init_trace(tick_len=None, file_name="mem.csv"):
         MEM['tick_len'] = tick_len
 
     logger.info("init_trace file_name %s" % file_name)
+
+    # - check for optional process name prefix
+    MEM['prefix'] = inject.get_injectable('log_file_prefix', '')
+
+    if write_header:
+        with config.open_log_file(file_name, 'w') as log_file:
+            print("process,time,rss,used,available,percent,event", file=log_file)
 
 
 def trace_hwm(tag, value, timestamp, label):
@@ -63,8 +65,8 @@ def log_hwm():
     with config.open_log_file(MEM['file_name'], 'a') as log_file:
         for tag in HWM:
             hwm = HWM[tag]
-            print("high water mark %s: %.2f timestamp: %s label: %s" %
-                  (tag, hwm['mark'], hwm['timestamp'], hwm['label']), file=log_file)
+            print("%s high water mark %s: %.2f timestamp: %s label: %s" %
+                  (MEM['prefix'], tag, hwm['mark'], hwm['timestamp'], hwm['label']), file=log_file)
 
 
 def trace_memory_info(event=''):
@@ -80,10 +82,6 @@ def trace_memory_info(event=''):
         return
 
     vmi = psutil.virtual_memory()
-
-    if last_tick == 0:
-        with config.open_log_file(MEM['file_name'], 'w') as log_file:
-            print("time,rss,used,available,percent,event", file=log_file)
 
     MEM['tick'] = t
 
@@ -105,8 +103,9 @@ def trace_memory_info(event=''):
 
     with config.open_log_file(MEM['file_name'], 'a') as output_file:
 
-        print("%s, %.2f, %.2f, %.2f, %s%%, %s" %
-              (timestamp,
+        print("%s, %s, %.2f, %.2f, %.2f, %s%%, %s" %
+              (MEM['prefix'],
+               timestamp,
                GB(rss),
                GB(vmi.used),
                GB(vmi.available),

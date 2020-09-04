@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 import sys
 import pandas as pd
@@ -33,9 +28,6 @@ def track_skim_usage(output_dir):
     """
     pd.options.display.max_columns = 500
     pd.options.display.max_rows = 100
-
-    checkpoints = pipeline.get_checkpoints()
-    tables = OrderedDict()
 
     skim_dict = inject.get_injectable('skim_dict')
     skim_stack = inject.get_injectable('skim_stack', None)

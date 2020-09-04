@@ -1,10 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
 import logging
 
 import pandas as pd
@@ -19,6 +14,8 @@ from activitysim.core import logit
 from activitysim.core.util import assign_in_place
 
 from .util import expressions
+from .util import estimation
+
 from activitysim.core.util import reindex
 from .util.overlap import person_time_window_overlap
 
@@ -235,8 +232,8 @@ def joint_tour_participation(
     Predicts for each eligible person to participate or not participate in each joint tour.
     """
     trace_label = 'joint_tour_participation'
-    model_settings = config.read_model_settings('joint_tour_participation.yaml')
-    model_spec = simulate.read_model_spec(file_name='joint_tour_participation.csv')
+    model_settings_file_name = 'joint_tour_participation.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == 'joint']
@@ -273,8 +270,20 @@ def joint_tour_participation(
 
     # - simple_simulate
 
+    estimator = estimation.manager.begin_estimation('joint_tour_participation')
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
+
+    if estimator:
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        estimator.write_spec(model_settings)
+        estimator.write_coefficients(coefficients_df)
+        estimator.write_choosers(candidates)
 
     choices = simulate.simple_simulate(
         choosers=candidates,
@@ -284,7 +293,8 @@ def joint_tour_participation(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='participation',
-        custom_chooser=participants_chooser)
+        custom_chooser=participants_chooser,
+        estimator=estimator)
 
     # choice is boolean (participate or not)
     choice_col = model_settings.get('participation_choice', 'participate')
@@ -293,6 +303,26 @@ def joint_tour_participation(
     PARTICIPATE_CHOICE = model_spec.columns.get_loc(choice_col)
 
     participate = (choices == PARTICIPATE_CHOICE)
+
+    if estimator:
+        estimator.write_choices(choices)
+
+        # we override the 'participate' boolean series, instead of raw alternative index in 'choices' series
+        # its value is determined by whether or not the candidate's person_id is found
+        # as a participant row in the joint_tour_participant table rows for that tour
+        df = estimator.join_survey_values(df=candidates[['tour_id', 'person_id']],
+                                          table_name='joint_tour_participants')
+        participate = ~df.isnull().any(axis=1)
+
+        print("model_spec.columns", model_spec.columns)
+        # PARTICIPATE_CHOICE is presumably either 0 or 1, and so NOT_PARTICIPATE is necessarily the other
+        assert len(model_spec.columns == 2)
+
+        # but estimation software wants to know the choices value (alternative index)
+        choices = participate.replace({True: PARTICIPATE_CHOICE, False: 1-PARTICIPATE_CHOICE})
+        estimator.write_override_choices(choices)
+
+        estimator.end_estimation()
 
     # satisfaction indexed by tour_id
     tour_satisfaction = get_tour_satisfaction(candidates, participate)

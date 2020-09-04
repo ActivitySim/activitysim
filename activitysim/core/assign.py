@@ -1,12 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import zip
 from builtins import object
-from future.utils import iteritems
 
 import logging
 from collections import OrderedDict
@@ -64,7 +59,7 @@ def evaluate_constants(expressions, constants):
 
     # FIXME why copy?
     d = {}
-    for k, v in iteritems(expressions):
+    for k, v in expressions.items():
         d[k] = eval(str(v), d.copy(), constants)
 
     return d

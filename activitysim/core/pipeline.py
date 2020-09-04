@@ -1,14 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import next
 from builtins import map
 from builtins import object
-
-from future.utils import iteritems
 
 import os
 import logging
@@ -98,7 +92,7 @@ def close_on_exit(file, name):
 
 
 def close_open_files():
-    for name, file in iteritems(_PIPELINE.open_files):
+    for name, file in _PIPELINE.open_files.items():
         print("Closing %s" % name)
         file.close()
     _PIPELINE.open_files.clear()
@@ -329,7 +323,7 @@ def checkpointed_tables():
     Return a list of the names of all checkpointed tables
     """
 
-    return [name for name, checkpoint_name in iteritems(_PIPELINE.last_checkpoint)
+    return [name for name, checkpoint_name in _PIPELINE.last_checkpoint.items()
             if checkpoint_name and name not in NON_TABLE_COLUMNS]
 
 
@@ -516,7 +510,8 @@ def open_pipeline(resume_after=None):
         # - not sure why I thought we needed this?
         # could have exogenous tables or prng instantiation under some circumstance??
         _PIPELINE.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
-        # add_checkpoint(INITIAL_CHECKPOINT_NAME)
+        # empty table, in case they have turned off all checkpointing
+        add_checkpoint(INITIAL_CHECKPOINT_NAME)
 
     logger.debug("open_pipeline complete")
 
@@ -673,7 +668,7 @@ def get_checkpoints():
 
     store = get_pipeline_store()
 
-    if store:
+    if store is not None:
         df = store[CHECKPOINT_TABLE_NAME]
     else:
         pipeline_file_path = config.pipeline_file_path(orca.get_injectable('pipeline_file_name'))
@@ -708,6 +703,13 @@ def replace_table(table_name, df):
     """
 
     be_open()
+
+    if df.columns.duplicated().any():
+        logger.error("replace_table: dataframe '%s' has duplicate columns: %s" %
+                     (table_name, df.columns[df.columns.duplicated()]))
+
+        raise RuntimeError("replace_table: dataframe '%s' has duplicate columns: %s" %
+                           (table_name, df.columns[df.columns.duplicated()]))
 
     rewrap(table_name, df)
 
@@ -786,3 +788,7 @@ def drop_table(table_name):
         logger.debug("drop_table removing table %s from last_checkpoint" % table_name)
 
         _PIPELINE.last_checkpoint[table_name] = ''
+
+
+def is_table(table_name):
+    return orca.is_table(table_name)

@@ -1,9 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
 from builtins import zip
 
 import logging
@@ -17,9 +13,8 @@ from . import tracing
 from . import config
 from .simulate import set_skim_wrapper_targets
 from . import chunk
-from . import mem
 
-from . import assign
+from . import simulate
 
 from activitysim.core.mem import force_garbage_collect
 
@@ -29,7 +24,7 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
+def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, estimator=None):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
 
@@ -98,11 +93,37 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
     utilities = pd.DataFrame({'utility': 0.0}, index=df.index)
     no_variability = has_missing_vals = 0
 
-    for expr, coefficient in zip(spec.index, spec.iloc[:, 0]):
+    if estimator:
+        # ensure alt_id from interaction_dataset is available in expression_values_df for
+        # estimator.write_interaction_expression_values and eventual omnibus table assembly
+        alt_id = estimator.get_alt_id()
+        assert alt_id in df.columns
+        expression_values_df = df[[alt_id]]
+
+        # FIXME estimation_requires_chooser_id_in_df_column
+        # estimation requires that chooser_id is either in index or a column of interaction_dataset
+        # so it can be reformatted (melted) and indexed by chooser_id and alt_id
+        # we assume caller has this under control if index is named
+        if df.index.name is None:
+            chooser_id = estimator.get_chooser_id()
+            assert chooser_id in df.columns, \
+                "Expected to find choose_id column '%s' in interaction dataset" % (chooser_id, )
+            assert df.index.name is None
+            expression_values_df[chooser_id] = df[chooser_id]
+
+    if isinstance(spec.index, pd.MultiIndex):
+        exprs = spec.index.get_level_values(simulate.SPEC_EXPRESSION_NAME)
+        labels = spec.index.get_level_values(simulate.SPEC_LABEL_NAME)
+    else:
+        exprs = spec.index
+        labels = spec.index
+
+    for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
         try:
 
             # - allow temps of form _od_DIST@od_skim['DIST']
             if expr.startswith('_'):
+
                 target = expr[:expr.index('@')]
                 rhs = expr[expr.index('@') + 1:]
                 v = to_series(eval(rhs, globals(), locals_d))
@@ -130,6 +151,12 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
                 logger.info("%s: missing values in: %s" % (trace_label, expr))
                 has_missing_vals += 1
 
+            if estimator:
+                # in case we modified expression_values_df index
+                v = v.values if isinstance(v, pd.Series) else v
+                expression_values_df.insert(loc=len(expression_values_df.columns), column=label,
+                                            value=v.values if isinstance(v, pd.Series) else v)
+
             utilities.utility += (v * coefficient).astype('float')
 
             if trace_eval_results is not None:
@@ -148,6 +175,11 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
             raise err
 
         # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
+
+    if estimator:
+        estimator.log("eval_interaction_utilities write_interaction_expression_values %s" % trace_label)
+        estimator.write_interaction_expression_values(expression_values_df)
+        del expression_values_df
 
     if no_variability > 0:
         logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
@@ -170,7 +202,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows):
 def _interaction_simulate(
         choosers, alternatives, spec,
         skims=None, locals_d=None, sample_size=None,
-        trace_label=None, trace_choice_name=None):
+        trace_label=None, trace_choice_name=None,
+        estimator=None):
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -245,7 +278,8 @@ def _interaction_simulate(
     # cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
-    interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size)
+    alt_index_id = estimator.get_alt_id() if estimator else None
+    interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size, alt_index_id)
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if skims is not None:
@@ -267,7 +301,7 @@ def _interaction_simulate(
         trace_rows = trace_ids = None
 
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
+        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
     if have_trace_targets:
@@ -315,6 +349,7 @@ def _interaction_simulate(
     offsets = np.arange(len(positions)) * sample_size
     # resulting Int64Index has one element per chooser row and is in same order as choosers
     choices = interaction_utilities.index.take(positions + offsets)
+
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
     chunk.log_df(trace_label, 'choices', choices)
@@ -359,7 +394,8 @@ def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, skims, 
 def interaction_simulate(
         choosers, alternatives, spec,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
-        trace_label=None, trace_choice_name=None):
+        trace_label=None, trace_choice_name=None,
+        estimator=None):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -432,7 +468,8 @@ def interaction_simulate(
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,
                                         chunk_trace_label,
-                                        trace_choice_name)
+                                        trace_choice_name,
+                                        estimator)
 
         chunk.log_close(chunk_trace_label)
 

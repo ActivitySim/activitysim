@@ -1,12 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import logging
 
 import numpy as np
@@ -22,7 +15,7 @@ def enumerate_tour_types(tour_flavors):
     # tour_flavors: {'eat': 1, 'business': 2, 'maint': 1}
     # channels:      ['eat1', 'business1', 'business2', 'maint1']
     channels = [tour_type + str(tour_num)
-                for tour_type, max_count in iteritems(tour_flavors)
+                for tour_type, max_count in tour_flavors.items()
                 for tour_num in range(1, max_count + 1)]
     return channels
 
@@ -102,6 +95,7 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
 
     assert tour_num_col in tours.columns
 
+    # create string tour_id corresonding to keys in possible_tours (e.g. 'work1', 'j_shopping2')
     tours['tour_id'] = tours.tour_type + tours[tour_num_col].map(str)
 
     if parent_tour_num_col:
@@ -112,7 +106,7 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
         if parent_tour_num.dtype != 'int64':
             # might get converted to float if non-subtours rows are None (but we try to avoid this)
             logger.error('parent_tour_num.dtype: %s' % parent_tour_num.dtype)
-            parent_tour_num = parent_tour_num.astype(int)
+            parent_tour_num = parent_tour_num.astype(np.int64)
 
         tours['tour_id'] = tours['tour_id'] + '_' + parent_tour_num.map(str)
 
@@ -124,15 +118,19 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
                                           value=list(range(possible_tours_count)))
 
     # convert to numeric - shouldn't be any NaNs - this will raise error if there are
-    tours.tour_id = pd.to_numeric(tours.tour_id, errors='coerce').astype(int)
+    tours.tour_id = pd.to_numeric(tours.tour_id, errors='raise').astype(np.int64)
 
     tours.tour_id = (tours.person_id * possible_tours_count) + tours.tour_id
 
     # if tours.tour_id.duplicated().any():
-    #     print "\ntours.tour_id not unique\n", tours[tours.tour_id.duplicated(keep=False)]
+    #     print("\ntours.tour_id not unique\n%s" % tours[tours.tour_id.duplicated(keep=False)])
+    #     print(tours[tours.tour_id.duplicated(keep=False)][['survey_tour_id', 'tour_type', 'tour_category']])
     assert not tours.tour_id.duplicated().any()
 
     tours.set_index('tour_id', inplace=True, verify_integrity=True)
+
+    # we modify tours, but return the dataframe for the convenience of the caller
+    return tours
 
 
 def create_tours(tour_counts, tour_category, parent_col='person_id'):
@@ -219,6 +217,9 @@ def create_tours(tour_counts, tour_category, parent_col='person_id'):
 
     # for joint tours, the correct number will be filled in after participation step
     tours['number_of_participants'] = 1
+
+    # index is arbitrary but don't want any duplicates in index
+    tours.reset_index(drop=True, inplace=True)
 
     return tours
 
@@ -531,6 +532,9 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
                           joint_tour_frequency_alts,
                           tour_category='joint',
                           parent_col='household_id')
+
+    assert not tours.index.duplicated().any()
+    assert point_persons.index.name == 'household_id'
 
     # - assign a temp point person to tour so we can create stable index
     tours['person_id'] = reindex(point_persons.person_id, tours.household_id)

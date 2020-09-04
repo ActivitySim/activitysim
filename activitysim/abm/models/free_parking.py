@@ -1,27 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
-from __future__ import (absolute_import, division, print_function, )
-from future.standard_library import install_aliases
-install_aliases()  # noqa: E402
-
-from future.utils import iteritems
-
 import logging
-
-import pandas as pd
 
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
-from activitysim.core.mem import force_garbage_collect
-
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.interaction_sample import interaction_sample
 
 from .util import expressions
+from .util import estimation
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +24,14 @@ def free_parking(
     """
 
     trace_label = 'free_parking'
-    model_settings = config.read_model_settings('free_parking.yaml')
+    model_settings_file_name = 'free_parking.yaml'
 
     choosers = persons_merged.to_frame()
     choosers = choosers[choosers.workplace_taz > -1]
-
     logger.info("Running %s with %d persons", trace_label, len(choosers))
+
+    model_settings = config.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation('free_parking')
 
     constants = config.get_model_constants(model_settings)
 
@@ -59,8 +49,17 @@ def free_parking(
             locals_dict=locals_d,
             trace_label=trace_label)
 
-    model_spec = simulate.read_model_spec(file_name='free_parking.csv')
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+
     nest_spec = config.get_logit_model_settings(model_settings)
+
+    if estimator:
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        estimator.write_spec(model_settings)
+        estimator.write_coefficients(coefficients_df)
+        estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
         choosers=choosers,
@@ -69,13 +68,19 @@ def free_parking(
         locals_d=constants,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='free_parking_at_work')
+        trace_choice_name='free_parking_at_work',
+        estimator=estimator)
 
-    persons = persons.to_frame()
-
-    # no need to reindex as we used all households
     free_parking_alt = model_settings['FREE_PARKING_ALT']
     choices = (choices == free_parking_alt)
+
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'persons', 'free_parking_at_work')
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
+
+    persons = persons.to_frame()
     persons['free_parking_at_work'] = choices.reindex(persons.index).fillna(0).astype(bool)
 
     pipeline.replace_table("persons", persons)

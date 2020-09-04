@@ -29,6 +29,7 @@ Contents
    models
    howitworks
    core
+   cli
    development
 
 

@@ -1,40 +1,40 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; ActivitySim 0.9.2
- documentation</title>
+  <title>Getting Started &mdash; ActivitySim 0.9.5 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Example" href="abmexample.html" />
@@ -52,7 +52,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> ActivitySim
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> ActivitySim
           
 
           
@@ -62,8 +62,7 @@
             
             
               <div class="version">
-                0.9.2
-
+                0.9.5
               </div>
             
           
@@ -80,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -89,11 +89,9 @@
             
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-the-example">Run the Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#try-the-notebooks">Try the Notebooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hardware">Hardware</a></li>
 </ul>
 </li>
@@ -101,12 +99,14 @@
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -145,7 +145,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Getting Started</li>
     
@@ -170,14 +170,14 @@
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>This page describes how to get started with ActivitySim.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">ActivitySim is under development</p>
+<p class="admonition-title">Note</p>
+<p>ActivitySim is under development</p>
 </div>
 <div class="section" id="installation">
 <span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li>Install <a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda 64bit Python 3</a>.  It is best to use <a class="reference internal" href="#anaconda-notes"><span class="std std-ref">Anaconda</span></a> with ActivitySim.</li>
-<li>If you access the internet from behind a firewall, then you need to configure your proxy server. To do so, create a .condarc file in your Anaconda installation folder, such as:</li>
+<li><p>Install <a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda 64bit Python 3</a>.  It is best to use Anaconda as noted below with ActivitySim.</p></li>
+<li><p>If you access the internet from behind a firewall, then you need to configure your proxy server. To do so, create a .condarc file in your Anaconda installation folder, such as:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
   <span class="n">http</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
@@ -186,10 +186,9 @@
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
-<li>Create and activate an Anaconda environment (basically a Python install just for this project) using Anaconda Prompt or the terminal.</li>
+<li><p>Create and activate an Anaconda environment (basically a Python install just for this project) using Anaconda Prompt or the terminal.</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.7</span>
-<span class="c1">#conda create -n asimtest python=2.7</span>
 
 <span class="c1">#Windows</span>
 <span class="n">activate</span> <span class="n">asimtest</span>
@@ -199,20 +198,26 @@
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li>Get and install other required libraries on the activated conda Python environment using <a class="reference external" href="https://pypi.org/project/pip">pip</a>:</li>
+<li><p>Get and install other required libraries on the activated conda Python environment using <a class="reference external" href="https://pypi.org/project/pip">pip</a>:</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#required packages for running ActivitySim</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span> <span class="n">future</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># required packages for running ActivitySim</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span>
 <span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">anaconda</span> <span class="n">pytables</span> <span class="n">pyyaml</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">openmatrix</span> <span class="n">zbox</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">openmatrix</span> <span class="n">zbox</span> <span class="n">requests</span>
 
-<span class="c1">#optional required packages for testing and building documentation</span>
+<span class="c1"># optional required packages for testing and building documentation</span>
 <span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
 <span class="n">conda</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
+
+<span class="c1"># optional required packages for example notebooks and estimation integration</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span>          <span class="c1"># for notebooks</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">matplotlib</span>          <span class="c1"># for charts</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="c1"># for maps</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">larch</span>               <span class="c1"># for estimation</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="5">
-<li>If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.</li>
+<li><p>If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.</p></li>
 </ol>
 <p>For <cite>conda</cite> for example, create a <cite>.condarc</cite> file in your Anaconda installation folder with the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
@@ -226,7 +231,7 @@
 </pre></div>
 </div>
 <ol class="arabic simple" start="6">
-<li>Get and install the ActivitySim package on the activated conda Python environment:</li>
+<li><p>Get and install the ActivitySim package on the activated conda Python environment:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#new install</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
@@ -235,14 +240,11 @@
 <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">activitysim</span>
 </pre></div>
 </div>
-<div class="section" id="anaconda">
-<span id="anaconda-notes"></span><h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>ActivitySim is a 64bit Python 2 or 3 library that uses a number of packages from the
+<p class="admonition-title">Note</p>
+<p>ActivitySim is a 64bit Python 3 library that uses a number of packages from the
 scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
-and <a class="reference external" href="http://numpy.org">numpy</a>. ActivitySim currently supports Python 2, but Python 2
-will be <a class="reference external" href="https://pythonclock.org/">retired</a> at the end of 2019 so Python 3 is recommended.</p>
+and <a class="reference external" href="http://numpy.org">numpy</a>.</p>
 <p>The recommended way to get your own scientific Python installation is to
 install 64 bit Anaconda, which contains many of the libraries upon which
 ActivitySim depends + some handy Python installation management tools.</p>
@@ -254,54 +256,63 @@ environments keeps multiple Python setups from conflicting with one another.</p>
 <p>You need to activate the activitysim environment each time you start a new command
 session.  You can remove an environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asimtest</span> <span class="pre">--all</span></code> and
 check the current active environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
-<p class="last">For more information on Anaconda, see Anaconda’s <a class="reference external" href="https://docs.anaconda.com/anaconda/user-guide/getting-started">getting started</a> guide.</p>
-</div>
+<p>For more information on Anaconda, see Anaconda’s <a class="reference external" href="https://docs.anaconda.com/anaconda/user-guide/getting-started">getting started</a> guide.</p>
 </div>
 </div>
 <div class="section" id="run-the-example">
 <h2>Run the Example<a class="headerlink" href="#run-the-example" title="Permalink to this headline">¶</a></h2>
+<p>ActivitySim includes a <a class="reference internal" href="cli.html#cli"><span class="std std-ref">Command Line Interface</span></a> for creating examples and running the model.</p>
 <p>To setup and run the <a class="reference internal" href="abmexample.html#example"><span class="std std-ref">Example</span></a>, do the following:</p>
 <ul class="simple">
-<li>Copy <code class="docutils literal notranslate"><span class="pre">households.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">persons.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">land_use.csv</span></code>, and <code class="docutils literal notranslate"><span class="pre">skims.omx</span></code> from <code class="docutils literal notranslate"><span class="pre">activitysim\abm\test\data</span></code> to <code class="docutils literal notranslate"><span class="pre">example\data</span></code>.</li>
-<li>Open a command prompt in the <code class="docutils literal notranslate"><span class="pre">example</span></code> folder</li>
-<li>Run the following commands:</li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#Windows</span>
-<span class="n">activate</span> <span class="n">asimtest</span>
-
-<span class="c1">#Mac</span>
-<span class="n">source</span> <span class="n">activate</span> <span class="n">asimtest</span>
-
-<span class="c1">#run example</span>
-<span class="n">python</span> <span class="n">simulation</span><span class="o">.</span><span class="n">py</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li>Review the outputs in the <code class="docutils literal notranslate"><span class="pre">output</span></code> folder</li>
+<li><p>Open a command prompt</p></li>
+<li><p>Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)</p></li>
+<li><p>Type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-e</span> <span class="pre">example_mtc</span> <span class="pre">-d</span> <span class="pre">test_example_mtc</span></code> to copy the very small MTC example to a new test_example_mtc directory</p></li>
+<li><p>Change to the test_example_mtc directory</p></li>
+<li><p>Type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-c</span> <span class="pre">configs</span> <span class="pre">-o</span> <span class="pre">output</span> <span class="pre">-d</span> <span class="pre">data</span></code> to run the example</p></li>
+<li><p>Review the outputs in the output directory</p></li>
 </ul>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Common configuration settings can be overidden at runtime.  See <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">simulation.py</span> <span class="pre">-h</span></code>.</p>
+<p class="admonition-title">Note</p>
+<p>Common configuration settings can be overridden at runtime.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-h</span></code> and <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-h</span></code>.</p>
 </div>
+<p>More complete examples, including the full scale MTC regional demand model are available for creation by typing <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-l</span></code>.  To create
+these examples, ActivitySim downloads the large input files from the <a class="reference external" href="https://github.com/rsginc/activitysim_resources">ActivitySim resources</a> repository.</p>
+</div>
+<div class="section" id="try-the-notebooks">
+<h2>Try the Notebooks<a class="headerlink" href="#try-the-notebooks" title="Permalink to this headline">¶</a></h2>
+<p>ActivitySim includes a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a> recipe book with interactive examples.  To run a Jupyter notebook, do the following:</p>
+<ul class="simple">
+<li><p>Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed</p></li>
+<li><p>If needed, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code> so you can run jupyter notebooks</p></li>
+<li><p>Type <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> to launch the web-based notebook manager</p></li>
+<li><p>Navigate to the notebooks folder and select a notebook to learn more:</p>
+<ul>
+<li><p><a class="reference external" href="https://github.com/activitysim/activitysim/blob/develop/notebooks/getting_started.ipynb/">Getting started</a></p></li>
+<li><p><a class="reference external" href="https://github.com/activitysim/activitysim/blob/develop/notebooks/summarizing_results.ipynb/">Summarizing results</a></p></li>
+<li><p><a class="reference external" href="https://github.com/activitysim/activitysim/blob/develop/notebooks/change_in_auto_ownership.ipynb/">Testing a change in auto ownership</a></p></li>
+<li><p><a class="reference external" href="https://github.com/activitysim/activitysim/blob/develop/notebooks/adding_tncs.ipynb/">Adding TNCs</a></p></li>
+</ul>
+</li>
+</ul>
 </div>
 <div class="section" id="hardware">
 <h2>Hardware<a class="headerlink" href="#hardware" title="Permalink to this headline">¶</a></h2>
 <p>The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:</p>
 <ul class="simple">
-<li>the number of households to be simulated for disaggregate model steps</li>
-<li>the number of model zones (for each zone system) for aggregate model steps</li>
-<li>the number and size of network skims by mode and time-of-day</li>
-<li>the desired runtimes</li>
+<li><p>The number of households to be simulated for disaggregate model steps</p></li>
+<li><p>The number of model zones (for each zone system) for aggregate model steps</p></li>
+<li><p>The number and size of network skims by mode and time-of-day</p></li>
+<li><p>The desired runtimes</p></li>
 </ul>
 <p>ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
 access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
-households, 7.5 people, 1475 zones, 826 network skims and has been run between one hour and one day depending
+households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">ActivitySim has been run in the cloud, on both Windows and Linux OS using
+<p class="admonition-title">Note</p>
+<p>ActivitySim has been run in the cloud, on both Windows and Linux using
 <a class="reference external" href="https://azure.microsoft.com/en-us/">Microsoft Azure</a>.  Example configurations,
-Azure scripts, runtimes, and costs are in the <code class="docutils literal notranslate"><span class="pre">example_azure</span></code> folder.</p>
+scripts, and runtimes are in the <code class="docutils literal notranslate"><span class="pre">other_resources\example_azure</span></code> folder.</p>
 </div>
 </div>
 </div>
@@ -326,11 +337,19 @@ Azure scripts, runtimes, and costs are in the <code class="docutils literal notr
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright contributing authors
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -341,7 +360,6 @@ Azure scripts, runtimes, and costs are in the <code class="docutils literal notr
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

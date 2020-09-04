@@ -4,11 +4,10 @@
 Example
 =======
 
-This page describes the example model design and how to setup and run the example. The default
-configuration of the example is limited to a small sample of households and zones so that it can
-be run quickly and require less than 1 GB of RAM.  The full scale example can be configurd and run
-as well.
-
+This page describes the example model design, how to setup and run the example, how to review outputs, and 
+how to re-estimate submodels. The default configuration of the example is limited to a small sample of 
+households and zones so that it can be run quickly and require less than 1 GB of RAM.  The full scale example 
+can be configured and run as well.
 
 .. index:: tutorial
 .. index:: example
@@ -30,7 +29,7 @@ individual decision-makers.
 Space
 ~~~~~
 
-TM1 uses the 1454-zone system developed for the previous MTC trip-based model.  The zones are fairly large for the region,
+TM1 uses the 1454-zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
 which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the
 original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
@@ -53,8 +52,10 @@ two input data sets, transit virtual path building (TVPB) is done to generate LO
   * alighting TAP to destination microzone using microzone to TAP LOS measures
 
 The resulting complete transit path LOS for the best, or a bundle of, paths is then used in the demand model
-for representing transit LOS at the microzone level.  Support for multiple zone systems is **NOT YET IMPLEMENTED**, but
-planned for a future release.  For the time being, all travel is modeled at the TAZ level.
+for representing transit LOS at the microzone level.  
+
+Support for multiple zone systems is **NOT YET IMPLEMENTED**, but planned for the next release.  For the time being, 
+all travel is modeled at the TAZ level.
 
 Decision-making units
 ~~~~~~~~~~~~~~~~~~~~~
@@ -184,27 +185,46 @@ Trip modes
 ~~~~~~~~~~
 
 The trip modes defined in the example model are below. The modes include auto by
-occupancy and toll/non-toll choice, walk and bike, and walk and drive access to five different
-transit line-haul modes.
+occupancy and toll/non-toll choice, walk and bike, walk and drive access to five different
+transit line-haul modes, and ride hail with taxi, single TNC (Transportation Network Company), and shared TNC.
 
-  1. Auto - SOV (Free)
-  2. Auto - SOV (Pay)
-  3. Auto - 2 Person (Free)
-  4. Auto - 2 Person (Pay)
-  5. Auto - 3+ Person (Free)
-  6. Auto - 3+ Person (Pay)
-  7. Walk
-  8. Bike
-  9. Walk to Local Bus
-  10. Walk to Light-Rail Transit
-  11. Walk to Express Bus
-  12. Walk to Bus Rapid Transit
-  13. Walk to Heavy Rail
-  14. Drive to Local Bus
-  15. Drive to Light-Rail Transit
-  16. Drive to Express Bus
-  17. Drive to Bus Rapid Transit
-  18. Drive to Heavy Rail
+  * Auto
+  
+    * SOV Free
+    * SOV Pay
+    * 2 Person Free
+    * 2 Person Pay
+    * 3+ Person Free
+    * 3+ Person Pay
+  
+  * Nonmotorized
+    
+    * Walk
+    * Bike
+  
+  * Transit 
+  
+    * Walk
+    
+      * Walk to Local Bus
+      * Walk to Light-Rail Transit
+      * Walk to Express Bus
+      * Walk to Bus Rapid Transit
+      * Walk to Heavy Rail
+    
+    * Drive
+    
+      * Drive to Local Bus
+      * Drive to Light-Rail Transit
+      * Drive to Express Bus
+      * Drive to Bus Rapid Transit
+      * Drive to Heavy Rail
+  
+  * Ride Hail
+  
+    * Taxi
+    * Single TNC
+    * Shared TNC
 
 Sub-models
 ~~~~~~~~~~
@@ -255,9 +275,9 @@ Folder and File Setup
 The example has the following root folder/file setup:
 
   * configs - settings, expressions files, etc.
+  * configs_mp - override settings for the multiprocess configuration
   * data - input data such as land use, synthetic population files, and skims
   * output - outputs folder
-  * simulation.py - main script to run the model
 
 Inputs
 ~~~~~~
@@ -280,12 +300,13 @@ of MTC TM1 households, persons, and OMX skims are on the MTC `box account <https
   ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
   HDF5 is binary and therefore results in faster read times. see :ref:`configuration`
 
-  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__.
+  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__ or 
+  `HDFView <https://www.hdfgroup.org/downloads/hdfview>`__.
   
-  The ``scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
-  Cube to OMX using the ``scripts\mtc_tm1_omx_export.s`` script.
+  The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
+  Cube to OMX using the ``other_resources\scripts\mtc_tm1_omx_export.s`` script.
 
-  The example inputs were created by the ``scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
+  The example inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
   skim inputs for a subset of user-defined zones.
 
 .. _configuration:
@@ -305,7 +326,8 @@ is the main settings file for the model run.  This file includes:
     * ``tablename`` - name of the injected table
     * ``filename`` - name of the CSV or HDF5 file to read (optional, defaults to `input_store`)
     * ``index_col`` - table column to use for the index
-    * ``column_map`` - dictionary of column name mappings
+    * ``rename_columns`` - dictionary of column name mappings
+    * ``keep_columns`` - columns to keep once read in to memory to save on memory needs and file I/O
     * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
 
 * ``create_input_store`` - write new 'input_data.h5' file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
@@ -317,11 +339,16 @@ is the main settings file for the model run.  This file includes:
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
+* ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models
+* ``read_skim_cache`` - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)
+* ``write_skim_cache`` - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+* ``skim_cache_dir`` - alternate dir to read/write skim cache (defaults to output_dir)
 * global variables that can be used in expressions tables and Python code such as:
 
     * ``urban_threshold`` - urban threshold area type max value
     * ``county_map`` - mapping of county codes to county names
     * ``skim_time_periods`` - time period upper bound values and labels
+
         * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
         * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
         * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
@@ -355,6 +382,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - annotate_persons_after_hh.csv                                   |
 +------------------------------------------------+--------------------------------------------------------------------+
 |   :ref:`school_location`                       |  - school_location.yaml                                            |
+|                                                |  - school_location_coeffs.csv                                      |
 |                                                |  - annotate_persons_school.csv                                     |
 |                                                |  - school_location_sample.csv                                      |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
@@ -363,6 +391,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - shadow_pricing.yaml                                             |
 +------------------------------------------------+--------------------------------------------------------------------+
 |    :ref:`work_location`                        |  - workplace_location.yaml                                         |
+|                                                |  - workplace_location_coeffs.csv                                   |
 |                                                |  - annotate_persons_workplace.csv                                  |
 |                                                |  - annotate_households_workplace.csv                               |
 |                                                |  - workplace_location_sample.csv                                   |
@@ -372,9 +401,11 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - shadow_pricing.yaml                                             |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`auto_ownership`                          |  - auto_ownership.yaml                                             |
+|                                                |  - auto_ownership_coeffs.csv                                       |
 |                                                |  - auto_ownership.csv                                              |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`freeparking`                             |  - free_parking.yaml                                               |
+|                                                |  - free_parking_coeffs.csv                                         |
 |                                                |  - free_parking.csv                                                |
 |                                                |  - free_parking_annotate_persons_preprocessor.csv                  |
 +------------------------------------------------+--------------------------------------------------------------------+
@@ -386,40 +417,48 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - cdap_fixed_relative_proportions.csv                             |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`mandatory_tour_frequency`               |  - mandatory_tour_frequency.yaml                                   |
+|                                                |  - mandatory_tour_frequency_coeffs.csv                             |
 |                                                |  - mandatory_tour_frequency.csv                                    |
 |                                                |  - mandatory_tour_frequency_alternatives.csv                       |
 |                                                |  - annotate_persons_mtf.csv                                        |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`mandatory_tour_scheduling`               |  - mandatory_tour_scheduling.yaml                                  |
+|                                                |  - tour_scheduling_work_coeffs.csv                                 |
 |                                                |  - tour_scheduling_work.csv                                        |
 |                                                |  - tour_scheduling_school.csv                                      |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_frequency`                    |  - joint_tour_frequency.yaml                                       |
+|                                                |  - joint_tour_frequency_coeffs.csv                                 |
 |                                                |  - annotate_persons_jtf.csv                                        |
 |                                                |  - joint_tour_frequency_annotate_households_preprocessor.csv       |
 |                                                |  - joint_tour_frequency_alternatives.csv                           |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_composition`                  |  - joint_tour_composition.yaml                                     |
+|                                                |  - joint_tour_composition_coeffs.csv                               |
 |                                                |  - joint_tour_composition_annotate_households_preprocessor.csv     |
 |                                                |  - joint_tour_composition.csv                                      |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_participation`                |  - joint_tour_participation.yaml                                   |
+|                                                |  - joint_tour_participation_coeffs.csv                             |
 |                                                |  - joint_tour_participation_annotate_participants_preprocessor.csv |
 |                                                |  - joint_tour_participation.csv                                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_destination_choice`           |  - joint_tour_destination.yaml                                     |
+|                                                |  - non_mandatory_tour_destination_coeffs.csv                       |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
 |                                                |  - non_mandatory_tour_destination.csv                              |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_scheduling`                   |  - joint_tour_scheduling.yaml                                      |
+|                                                |  - tour_scheduling_joint_coeffs.csv                                |
 |                                                |  - joint_tour_scheduling_annotate_tours_preprocessor.csv           |
 |                                                |  - tour_scheduling_joint.csv                                       |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.yaml                               |
+|                                                |  - non_mandatory_tour_frequency_coeffs_{ptype}.csv                 |
 |                                                |  - non_mandatory_tour_frequency.csv                                |
 |                                                |  - non_mandatory_tour_frequency_alternatives.csv                   |
 |                                                |  - non_mandatory_tour_frequency_annotate_persons_preprocessor.csv  |
@@ -427,13 +466,15 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - annotate_persons_nmtf.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_destination_choice`   |  - non_mandatory_tour_destination.yaml                             |
+|                                                |  - non_mandatory_tour_destination_coeffs.csv                       |
 |                                                |  - non_mandatory_tour_destination.csv                              |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_scheduling`           |  - non_mandatory_tour_scheduling.yaml                              |
-|                                                |  - non_mandatory_tour_scheduling_annotate_tours_preprocessor       |
+|                                                |  - tour_scheduling_nonmandatory_coeffs.csv                         |
+|                                                |  - non_mandatory_tour_scheduling_annotate_tours_preprocessor.csv   |
 |                                                |  - tour_scheduling_nonmandatory.csv                                |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
@@ -441,19 +482,23 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - tour_mode_choice_annotate_choosers_preprocessor.csv             |
 |                                                |  - tour_mode_choice.csv                                            |
 |                                                |  - tour_mode_choice_coeffs.csv                                     |
+|                                                |  - tour_mode_choice_coeffs_template.csv                            |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`atwork_subtour_frequency`               |  - atwork_subtour_frequency.yaml                                   |
+|                                                |  - atwork_subtour_frequency_coeffs.csv                             |
 |                                                |  - atwork_subtour_frequency.csv                                    |
 |                                                |  - atwork_subtour_frequency_alternatives.csv                       |
 |                                                |  - atwork_subtour_frequency_annotate_tours_preprocessor.csv        |
 +------------------------------------------------+--------------------------------------------------------------------+
 |   :ref:`atwork_subtour_destination`            |  - atwork_subtour_destination.yaml                                 |
+|                                                |  - atwork_subtour_destination_coeffs.csv                           |
 |                                                |  - atwork_subtour_destination_sample.csv                           |
 |                                                |  - atwork_subtour_destination.csv                                  |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`atwork_subtour_scheduling`               |  - tour_scheduling_atwork.yaml                                     |
+|                                                |  - tour_scheduling_atwork_coeffs.csv                               |
 |                                                |  - tour_scheduling_atwork.csv                                      |
 |                                                |  - tour_scheduling_atwork_preprocessor.csv                         |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
@@ -494,7 +539,8 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - trip_mode_choice_coeffs.csv                                     |
 |                                                |  - trip_mode_choice.csv                                            |
 +------------------------------------------------+--------------------------------------------------------------------+
-|  :ref:`trip_cbd_parking`                       |  **NOT YET IMPLEMENTED**                                           |
+|  :ref:`write_trip_matrices`                    |  - write_trip_matrices.yaml                                        |
+|                                                |  - write_trip_matrices_annotate_trips_preprocessor.csv             |
 +------------------------------------------------+--------------------------------------------------------------------+
 
 .. index:: chunk_size
@@ -564,6 +610,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - trip_mode_choice
     - write_data_dictionary
     - track_skim_usage
+    - write_trip_matrices
     - write_tables
 
 These model steps must be registered orca steps, as noted below.  If you provide a ``resume_after``
@@ -581,28 +628,69 @@ The model is run by calling the :func:`activitysim.core.pipeline.run` method.
 
   pipeline.run(models=_MODELS, resume_after=resume_after)
 
-Running the Example
--------------------
+.. note::
+   Users can skip persisting tables to the pipeline data store on disk by adding an underscore prefix to the models in the 
+   models list in the settings file: _school_location instead of school_location.  This will cut down on the disk writes.
+
+.. _example_run :
+
+Running the MTC Example
+-----------------------
 
 To run the example, do the following:
 
-* Open a command line window in the ``example`` folder
 * Activate the correct conda environment if needed
-* Run ``python simulation.py`` to run the data pipeline (i.e. model steps)
-* ActivitySim should log some information and write outputs to the ``output`` folder.
+* View the list of available examples
+
+::
+
+  activitysim create --list
+
+* Create a local copy of an example folder
+
+::
+
+  activitysim create --example example_mtc --destination my_test_example
+
+* Run the example
+
+::
+
+  activitysim run --working_dir my_test_example
+
+or
+
+::
+
+  activitysim run -c my_test_example/configs -d my_test_example/data -o my_test_example/output
+
+* ActivitySim should log some information and write outputs to the output folder.
 
 The example should complete within a couple minutes since it is running a small sample of households.
+
+.. note::
+
+  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/master/scripts>`__.
+  This script takes many of the same arguments as the ``activitysim run`` command, including paths to
+  ``--config``, ``--data``, and ``--output`` directories. It looks for these folders in the current
+  working directory by default.
+
+  ::
+
+    python simulation.py
 
 Multiprocessing
 ~~~~~~~~~~~~~~~
 
 The model system is parallelized via :ref:`multiprocessing`.  To setup and run the :ref:`example` using
-multiprocessing, follow the same steps as above, but use the configuration in the ``example_mp`` folder:
+multiprocessing, follow the same steps as the above :ref:`example_run`, but add an additional ``-c`` flag to
+include the multiprocessing configuration settings as well:
 
-* Open a command prompt in the ``example_mp`` folder.  The data does not need to be copied into the folder since the mp setup inherits from the example single-processed setup.
-* Run ``python simulation.py``.
+::
 
-The multiprocessing example also writes outputs to the ``output`` folder.
+  activitysim run -c my_test_example/configs_mp -c my_test_example/configs -d my_test_example/data -o my_test_example/output
+
+The multiprocessing example also writes outputs to the output folder.
 
 The default multiprocessed example is configured to run with two processors: ``num_processes: 2``.  Additional more performant configurations are
 included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server
@@ -613,7 +701,6 @@ machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See
   households_sample_size:  0
   chunk_size:  5000000000
   num_processes: 24
-  stagger: 0
 
 .. note::
    Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for
@@ -630,9 +717,12 @@ Outputs
 -------
 
 The key output of ActivitySim is the HDF5 data pipeline file ``outputs\pipeline.h5``.  This file contains a copy
-of each key data table after each model step in which the table was modified.  The
-``scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create the table
-below for a small sample of households.  The table shows that for each table in the pipeline, the number of rows
+of each key data table after each model step in which the table was modified.  The example also writes the final tables to 
+CSV files by using the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.
+This method returns a pandas DataFrame, which is then written to a CSV file by the ``write_tables`` step.
+
+The ``other_resources\scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create 
+the table below for a small sample of households.  The table shows that for each table in the pipeline, the number of rows
 and/or columns changes as a result of the relevant model step.  A ``checkpoints`` table is also stored in the
 pipeline, which contains the crosswalk between model steps and table states in order to reload tables for
 restarting the pipeline at any step.
@@ -703,9 +793,9 @@ restarting the pipeline at any step.
 | workplace_modeled_size            | workplace_location                 | 1454 | 4    |
 +-----------------------------------+------------------------------------+------+------+
 
-The example ``simulation.py`` run model script also writes the final tables to CSV files by using 
-the :func:`activitysim.core.pipeline.get_table` method via the ``write_tables`` step.
-This method returns a pandas DataFrame, which is then written to a CSV file by the ``write_tables`` step.
+The ``write_trip_matrices`` step processes the trips table to create open matrix (OMX) trip matrices for
+assignment.  The matrices are configured and coded according to the expressions in the model step
+trip annotation file.  See :ref:`write_trip_matrices` for more information.
 
 ActivitySim also writes log and trace files to the ``outputs`` folder.  The activitysim.log file,
 which is the overall log file is always produced.  If tracing is specified, then trace files are
@@ -730,3 +820,127 @@ file:
 
 With the set of output CSV files, the user can trace ActivitySim calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.
+
+.. _writing_logsums :
+
+Writing Logsums
+~~~~~~~~~~~~~~~
+
+The tour and trip destination and mode choice models calculate logsums but do not persist them by default.  
+Mode and destination choice logsums are essential for re-estimating these models and can therefore be 
+saved to the pipeline if desired.  To save the tour and trip destination and mode choice model logsums, include 
+the following optional settings in the model settings file.  The data is saved to the pipeline for later use.
+
+::
+
+  # in workplace_location.yaml for example
+  DEST_CHOICE_LOGSUM_COLUMN_NAME: workplace_location_logsum
+  DEST_CHOICE_SAMPLE_TABLE_NAME: workplace_location_sample
+  
+  # in tour_mode_choice.yaml for example
+  MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum
+
+The `DEST_CHOICE_SAMPLE_TABLE_NAME` contains the fields in the table below.  Writing out the 
+destination choice sample table, which includes the mode choice logsum for each sampled 
+alternative destination, adds significant size to the pipeline.  Therefore, this feature should
+only be activated when writing logsums for a small set of households for model estimation.
+
++-----------------------------------+---------------------------------------+
+| Field                             | Description                           |
++===================================+=======================================+ 
+| chooser_id                        | chooser id such as person or tour id  |
++-----------------------------------+---------------------------------------+
+| alt_dest                          | destination alternative id            |
++-----------------------------------+---------------------------------------+
+| prob                              | alternative probability               |
++-----------------------------------+---------------------------------------+
+| pick_count                        | sampling with replacement pick count  |
++-----------------------------------+---------------------------------------+
+| mode_choice_logsum                | mode choice logsum                    |
++-----------------------------------+---------------------------------------+
+
+.. _estimation :
+
+Estimation
+----------
+
+.. note::
+   Estimation mode is under development.  Estimation mode has not yet been implemented for the
+   trip models (stop_frequency, trip_destination, trip_scheduling, and trip_mode_choice).  The trip 
+   model expressions files are also in the old format - i.e. data and coefficients have yet to be 
+   separated into different files.
+
+ActivitySim includes the ability to easily re-estimate submodels using choice model estimation tools
+such as `larch <https://larch.newman.me/>`__.  In order to do so, ActivitySim adopts the concept of an estimation 
+data bundle (EDB), which is a collection of the necessary data to restimate a submodel.  For example, for the auto ownership submodel,
+the EDB consists of the following files:
+
+* model settings - the auto_ownership_model_settings.yaml file
+* coefficients - the auto_ownership_coefficients.csv file with each coefficient name, value, and constrain set to True or False if the coefficient is estimatable
+* utilities specification - the auto_ownership_SPEC.csv utility expressions file
+* chooser and alternatives data - the auto_ownership_values_combined.csv file with all chooser and alternatives data such as household information, land use information, and the utility data components for each alternative
+
+ActivitySim also includes :ref:`estimation_example` Jupyter notebooks for estimating models with larch.
+
+The combination of writing an EDB for a submodel + a larch estimation notebook means users can easily re-estimate submodels. This 
+combination of functionality means:
+
+* There is no duplication of model specifications. ActivitySim owns the specification and larch pivots off of it.  Users code model specifications and utility expressions in ActivitySim so as to facilitate ease of use and eliminate inconsistencies and errors between the code used to estimate the models and the code used to apply the models.
+* The EDB includes all the data and model structure information and the larch.util.activitysim module used by the example notebooks processes the EDB to setup and estimate the models.
+* Users are able to add zones, alternatives, new chooser data, new taz data, new modes, new coefficients, revise utilities, and revise nesting structures in ActivitySim and larch responds accordingly.
+* Eventually it may be desirable for ActivitySim to automatically write larch estimators (or other types of estimators), but for now the integration is loosely coupled rather than tightly coupled in order to provide flexibility. 
+
+Workflow
+~~~~~~~~
+
+The general workflow for estimating models is shown in the figure below and explained in more detail below.
+
+.. image:: images/estimation_example.jpg
+
+* The user converts their household travel survey into ActivitySim format households, persons, tours, joint tour participants, and trip tables.  The households and persons tables must have the same fields as the synthetic population input tables since the surveyed households and persons will be run through the same set of submodels as the simulated households and persons.
+* The ActivitySim estimation example ``scripts\infer.py`` module reads the ActivitySim format household travel survey files and checks for inconsistencies in the input tables versus the model design + calculates additional fields such as the household joint tour frequency based on the trips and joint tour participants table.  Survey households and persons observed choices much match the model design (i.e. a person cannot have more work tours than the model allows).
+* ActivitySim is then run in estimation mode to read the ActivitySim format household travel survey files, run the ActivitySim submodels to write estimation data bundles (EDB) that contains the model utility specifications, coefficients, chooser data, and alternatives data for each submodel.  Estimation mode runs single-processed and without destination sampling.
+* The relevant EDBs are read and transformed into the format required by the model estimation tool (i.e. larch) and then the coefficients are re-estimated.
+* The user can then update the ActivitySim model coefficients file for the estimated submodel and re-run the model in simulation mode.  The user may want to use the restartable pipeline feature of ActivitySim to just run the submodel of interest.
+
+.. _estimation_example:
+
+Example
+~~~~~~~
+
+To run the estimation example, do the following:
+
+* Activate the correct conda environment if needed
+* Create a local copy of the estimation example folder
+
+::
+
+  activitysim create -e example_estimation -d test_example_estimation
+
+* Run the example
+
+::
+
+  cd test_example_estimation
+  activitysim run -c configs_estimation/configs -c configs -o output -d data_test
+
+
+* ActivitySim should log some information and write outputs to the output folder, including EDBs for each submodel.  The estimation example runs in about 5 minutes and writes EDBs for 2000 households.
+
+* Open the relevant estimation with larch example Jupyter Notebook and re-estimate the submodel:
+
+  * `Estimating auto ownership <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_auto_ownership.ipynb/>`__
+  * `Estimating school location <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_school_location.ipynb/>`__
+  * `Estimating work location <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_workplace_location.ipynb/>`__
+  * `Estimating tour mode choice <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_tour_mode_choice.ipynb/>`__
+
+* Save the updated coefficient file to the configs folder and run the model in simulation mode.
+
+Settings
+~~~~~~~~
+
+Additional settings for running ActivitySim in estimation mode are specified in an ``estimation.yaml`` file that is specified in addition to ``settings.yaml``.  The settings are:
+
+* ``enable`` - enable estimation, either True or False
+* ``bundles`` - the list of submodels for which to write EDBs
+* ``survey_tables`` - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the ``scripts\infer.py`` script that pre-processes the ActivitySim format household travel survey files

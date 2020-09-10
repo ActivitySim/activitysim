@@ -929,10 +929,10 @@ To run the estimation example, do the following:
 
 * Open the relevant estimation with larch example Jupyter Notebook and re-estimate the submodel:
 
-  * `Estimating auto ownership <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_auto_ownership.ipynb/>`__
-  * `Estimating school location <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_school_location.ipynb/>`__
-  * `Estimating work location <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_workplace_location.ipynb/>`__
-  * `Estimating tour mode choice <https://github.com/activitysim/activitysim/blob/develop/activitysim/examples/example_estimation/notebooks/estimating_tour_mode_choice.ipynb/>`__
+  * `Estimating auto ownership <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/estimating_auto_ownership.ipynb/>`__
+  * `Estimating school location <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/estimating_school_location.ipynb/>`__
+  * `Estimating work location <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/estimating_workplace_location.ipynb/>`__
+  * `Estimating tour mode choice <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/estimating_tour_mode_choice.ipynb/>`__
 
 * Save the updated coefficient file to the configs folder and run the model in simulation mode.
 

@@ -133,12 +133,12 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 * Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
-* Navigate to the notebooks folder and select a notebook to learn more:
+* Navigate to the examples notebooks folder and select a notebook to learn more:
 
-  * `Getting started <https://github.com/activitysim/activitysim/blob/develop/notebooks/getting_started.ipynb/>`__
-  * `Summarizing results <https://github.com/activitysim/activitysim/blob/develop/notebooks/summarizing_results.ipynb/>`__
-  * `Testing a change in auto ownership <https://github.com/activitysim/activitysim/blob/develop/notebooks/change_in_auto_ownership.ipynb/>`__
-  * `Adding TNCs <https://github.com/activitysim/activitysim/blob/develop/notebooks/adding_tncs.ipynb/>`__
+  * `Getting started <https://github.com/activitysim/activitysim/blob/master/notebooks/getting_started.ipynb/>`__
+  * `Summarizing results <https://github.com/activitysim/activitysim/blob/master/notebooks/summarizing_results.ipynb/>`__
+  * `Testing a change in auto ownership <https://github.com/activitysim/activitysim/blob/master/notebooks/change_in_auto_ownership.ipynb/>`__
+  * `Adding TNCs <https://github.com/activitysim/activitysim/blob/master/notebooks/adding_tncs.ipynb/>`__
 
 Hardware
 --------

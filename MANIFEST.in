@@ -1,9 +1,6 @@
 
 include ez_setup.py
 include README.rst
-include LICENSE.txt
-
-graft notebooks
 graft activitysim/examples
 
 # required for test system

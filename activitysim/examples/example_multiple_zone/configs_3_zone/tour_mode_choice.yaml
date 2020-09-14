@@ -1,6 +1,14 @@
 LOGIT_TYPE: NL
 #LOGIT_TYPE: MNL
 
+tvpb_mode_path_types:
+  DRIVE_TRANSIT:
+    od: DTW
+    do: WTD
+  WALK_TRANSIT:
+    od: WTW
+    do: WTW
+
 NESTS:
   name: root
   coefficient: coef_nest_root

@@ -14,5 +14,5 @@ output_tables:
     - trips
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
-# trace_od: [5, 11]
 trace_od: [5, 11]
+

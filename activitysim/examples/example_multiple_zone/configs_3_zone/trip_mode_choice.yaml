@@ -1,6 +1,11 @@
 SPEC: trip_mode_choice.csv
 COEFFICIENTS: trip_mode_choice_coeffs.csv
 
+tvpb_mode_path_types:
+  DRIVE_TRANSIT: DTW
+  WALK_TRANSIT: WTW
+
+
 LOGIT_TYPE: NL
 
 NESTS:

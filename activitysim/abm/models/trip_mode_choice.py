@@ -6,6 +6,7 @@ from builtins import range
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -106,13 +107,17 @@ def trip_mode_choice(
         tvpb = TransitVirtualPathBuilder(network_los)
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
-                                           tod_key='trip_period', segment_key='demographic_segment')
-        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col, dest_key=orig_col,
-                                           tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           cache_choices=True,
+                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
+        # tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col, dest_key=orig_col,
+        #                                    tod_key='trip_period', segment_key='demographic_segment',
+        #                                    cache_choices=True,
+        #                                    trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
-            'tvpb_logsum_dot': tvpb_logsum_dot
+            # 'tvpb_logsum_dot': tvpb_logsum_dot
         })
 
         # TVPB constants can appear in expressions
@@ -128,6 +133,10 @@ def trip_mode_choice(
 
         # name index so tracing knows how to slice
         assert trips_segment.index.name == 'trip_id'
+
+        if network_los.zone_system == los.THREE_ZONE:
+            tvpb_logsum_odt.extend_trace_label(primary_purpose)
+            # tvpb_logsum_dot.extend_trace_label(primary_purpose)
 
         locals_dict = assign.evaluate_constants(omnibus_coefficients[primary_purpose],
                                                 constants=constants)
@@ -172,11 +181,26 @@ def trip_mode_choice(
         # FIXME - force garbage collection
         force_garbage_collect()
 
-    choices = pd.concat(choices_list)
+    choices_df = pd.concat(choices_list)
 
-    # keep mode_choice and (optionally) logsum columns
+    # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
+    if network_los.zone_system == los.THREE_ZONE:
+
+        tvpb_mode_path_types = model_settings.get('tvpb_mode_path_types')
+        for mode, path_type in tvpb_mode_path_types.items():
+
+            skim_cache = tvpb_logsum_odt.cache[path_type]
+
+            print(f"mode {mode} path_type {path_type}")
+
+            for c in skim_cache:
+                dest_col = c
+                if dest_col not in choices_df:
+                    choices_df[dest_col] = np.nan
+                choices_df[dest_col].where(choices_df[mode_column_name] != mode, skim_cache[c], inplace=True)
+    # update trips table with choices (and otionally logssums)
     trips_df = trips.to_frame()
-    assign_in_place(trips_df, choices)
+    assign_in_place(trips_df, choices_df)
 
     tracing.print_summary('tour_modes',
                           trips_merged.tour_mode, value_counts=True)

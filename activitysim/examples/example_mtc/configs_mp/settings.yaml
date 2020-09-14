@@ -29,6 +29,7 @@ num_processes: 2
 
 # - -------------------------
 
+# not recommended or supported for multiprocessing
 want_dest_choice_sample_tables: False
 
 #read_skim_cache: True

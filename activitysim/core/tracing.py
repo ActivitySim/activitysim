@@ -68,7 +68,8 @@ def delete_output_files(file_type, ignore=None, subdir=None):
 
     output_dir = inject.get_injectable('output_dir')
 
-    directories = ['', 'log', 'trace']
+    subdir = [subdir] if subdir else None
+    directories = subdir or ['', 'log', 'trace']
 
     for subdir in directories:
 
@@ -97,7 +98,7 @@ def delete_output_files(file_type, ignore=None, subdir=None):
                     print(e)
 
 
-def delete_csv_files():
+def delete_trace_files():
     """
     Delete CSV files in output_dir
 
@@ -105,7 +106,7 @@ def delete_csv_files():
     -------
     Nothing
     """
-    delete_output_files(CSV_FILE_TYPE)
+    delete_output_files(CSV_FILE_TYPE, subdir='trace')
 
 
 def config_logger(basic=False):
@@ -420,7 +421,7 @@ def slice_ids(df, ids, column=None):
     return df
 
 
-def get_trace_target(df, slicer):
+def get_trace_target(df, slicer, column=None):
     """
     get target ids and column or index to identify target trace rows in df
 
@@ -442,7 +443,6 @@ def get_trace_target(df, slicer):
     """
 
     target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
-    column = None  # column name to slice on or None to slice on index
 
     # special do-not-slice code for dumping entire df
     if slicer == 'NONE':
@@ -476,9 +476,9 @@ def get_trace_target(df, slicer):
     return target_ids, column
 
 
-def trace_targets(df, slicer=None):
+def trace_targets(df, slicer=None, column=None):
 
-    target_ids, column = get_trace_target(df, slicer)
+    target_ids, column = get_trace_target(df, slicer, column)
 
     if target_ids is None:
         targets = None
@@ -493,9 +493,9 @@ def trace_targets(df, slicer=None):
     return targets
 
 
-def has_trace_targets(df, slicer=None):
+def has_trace_targets(df, slicer=None, column=None):
 
-    target_ids, column = get_trace_target(df, slicer)
+    target_ids, column = get_trace_target(df, slicer, column)
 
     if target_ids is None:
         found = False

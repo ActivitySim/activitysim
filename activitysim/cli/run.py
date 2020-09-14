@@ -176,6 +176,8 @@ def run(args):
     # cleanup if not resuming
     if not resume_after:
         cleanup_output_files()
+    elif config.setting('cleanup_trace_files_on_resume', False):
+        tracing.delete_trace_files()
 
     if config.setting('multiprocess', False):
         logger.info('run multiprocess simulation')

@@ -11,6 +11,7 @@ Description,Target,Expression
 ,_hvy_available_fastest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HVY_TOTIVT_FAST')>0"
 ,_lrf_available_fastest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LRF_TOTIVT_FAST')>0"
 ,transit_available_fastest,_bus_available_fastest | _com_available_fastest | _exp_available_fastest | _hvy_available_fastest | _lrf_available_fastest
+,not_transit_available_fastest,~transit_available_fastest
 # cheapest,,
 ,_bus_available_cheapest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_TOTIVT_CHEAP')>0"
 ,_com_available_cheapest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'COM_TOTIVT_CHEAP')>0"

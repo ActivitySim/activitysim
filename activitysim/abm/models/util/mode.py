@@ -4,6 +4,8 @@ import pandas as pd
 
 from activitysim.core import simulate
 from activitysim.core import config
+from activitysim.core import tracing
+from activitysim.core import inject
 
 from . import expressions
 from . import estimation

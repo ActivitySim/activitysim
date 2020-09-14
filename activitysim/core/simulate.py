@@ -298,7 +298,8 @@ def eval_coefficients(spec, coefficients, estimator):
 
 
 def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
-                   have_trace_targets=False, estimator=None, alt_col_name=None):
+                   have_trace_targets=False, trace_all_rows=False,
+                   estimator=None, alt_col_name=None):
     """
 
     Parameters
@@ -311,8 +312,9 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    trace_label
-    have_trace_targets
+    trace_label: str
+    have_trace_targets: boolean - choosers has targets to trace
+    trace_all_rows: boolean - trace all chooser rows, bypassing tracing.trace_targets
     estimator :
         called to report intermediate table results (used for estimation)
 
@@ -324,6 +326,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     # fixme - restore tracing and _check_for_variability
 
     t0 = tracing.print_elapsed_time()
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_utilities')
 
     # if False:  #fixme SLOWER
     #     expression_values = eval_variables(spec.index, choosers, locals_d)
@@ -379,12 +382,21 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
 
-    t0 = tracing.print_elapsed_time(" eval_utilities", t0)
-
-    if have_trace_targets:
+    if trace_all_rows:
+        # chooser df with appended additional expression value columns (named by spec label)
+        trace_df = pd.DataFrame(
+            data=expression_values.transpose().astype(np.float32),
+            index=choosers.index,
+            columns=spec.index.get_level_values(SPEC_LABEL_NAME))
+        trace_df = pd.concat([choosers, trace_df], axis=1)
+        tracing.trace_df(trace_df, tracing.extend_trace_label(trace_label, 'expression_values'),
+                         slicer=None, transpose=False)
+    elif have_trace_targets:
 
         # get int offsets of the trace_targets (offsets of bool=True values)
         trace_targets = tracing.trace_targets(choosers)
+        assert trace_targets.any()  # since they claimed to have targets...
+
         offsets = np.nonzero(list(trace_targets))[0]
 
         # get array of expression_values
@@ -400,22 +412,8 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         if alt_col_name is not None:
             trace_df.columns = choosers[alt_col_name][trace_targets].values
 
-        tracing.trace_df(trace_df, '%s.expression_values' % trace_label,
+        tracing.trace_df(trace_df, tracing.extend_trace_label(trace_label, 'expression_values'),
                          slicer=None, transpose=False)
-
-        # excruciating level of detail for debugging problems with coefficients
-        # for id in trace_df.columns:
-        #     df = spec.copy()
-        #     for c in df.columns:
-        #         df[c] = df[c] * trace_df[id]
-        #
-        #     row_sums = df.sum(axis=1)
-        #     tracing.trace_df(row_sums, '%s.%s.utility_row_sums' % (trace_label, id),
-        #                      slicer=None, transpose=False)
-        #
-        #     df.insert(0, id, trace_df[id])
-        #     tracing.trace_df(df, '%s.%s.expression_values' % (trace_label, id),
-        #                      slicer=None, transpose=False)
 
     return utilities
 

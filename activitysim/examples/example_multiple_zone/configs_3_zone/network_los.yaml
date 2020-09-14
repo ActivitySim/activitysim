@@ -58,12 +58,12 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
       DTW:
         access: drive
         egress: walk
-        max_paths_across_tap_sets: 1
+        max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
       WTD:
         access: walk
         egress: drive
-        max_paths_across_tap_sets: 1
+        max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
     tap_tap_expressions:
       SPEC: tvpb_utility_tap_tap.csv

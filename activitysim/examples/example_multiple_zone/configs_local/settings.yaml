@@ -1,9 +1,15 @@
 inherit_settings: True
 
-households_sample_size: 0
+households_sample_size: 10
+chunk_size: 0
+
+trace_hh_id: 2848373
+
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: atwork_subtour_mode_choice
+#resume_after: non_mandatory_tour_scheduling
+
+cleanup_trace_files_on_resume: True
 
 models:
 #  - transit_virtual_path_builder

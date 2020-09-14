@@ -122,8 +122,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
         "dot_skims": dot_skim_stack_wrapper,
-        "odr_skims": odr_skim_stack_wrapper,
-        "dor_skims": dor_skim_stack_wrapper,
+        "odr_skims": odr_skim_stack_wrapper,  # dot return skims for e.g. TNC bridge return fare
+        "dor_skims": dor_skim_stack_wrapper,  # odt return skims for e.g. TNC bridge return fare
         "od_skims": od_skim_stack_wrapper,
         'orig_col_name': orig_col_name,
         'dest_col_name': dest_col_name,
@@ -136,9 +136,13 @@ def tour_mode_choice_simulate(tours, persons_merged,
         tvpb = TransitVirtualPathBuilder(network_los)
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
-                                           tod_key='out_period', segment_key='demographic_segment')
+                                           tod_key='out_period', segment_key='demographic_segment',
+                                           cache_choices=True,
+                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
-                                           tod_key='in_period', segment_key='demographic_segment')
+                                           tod_key='in_period', segment_key='demographic_segment',
+                                           cache_choices=True,
+                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_dot'))
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
@@ -154,7 +158,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         estimator.write_coefficients_template(simulate.read_model_coefficient_template(model_settings))
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
-        # FIXME run_tour_mode_choice_simulate writes choosers post-annotation
+        # (run_tour_mode_choice_simulate writes choosers post-annotation)
 
     # FIXME should normalize handling of tour_type and tour_purpose
     # mtctm1 school tour_type includes univ, which has different coefficients from elementary and HS
@@ -164,17 +168,21 @@ def tour_mode_choice_simulate(tours, persons_merged,
         primary_tours_merged.tour_type.where(not_university, 'univ')
 
     choices_list = []
-    for tour_type, segment in primary_tours_merged.groupby('tour_type'):
+    for tour_purpose, tours_segment in primary_tours_merged.groupby('tour_purpose'):
 
         logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
-                    (tour_type, len(segment.index), ))
+                    (tour_purpose, len(tours_segment.index), ))
+
+        if network_los.zone_system == los.THREE_ZONE:
+            tvpb_logsum_odt.extend_trace_label(tour_purpose)
+            tvpb_logsum_dot.extend_trace_label(tour_purpose)
 
         # name index so tracing knows how to slice
-        assert segment.index.name == 'tour_id'
+        assert tours_segment.index.name == 'tour_id'
 
         choices_df = run_tour_mode_choice_simulate(
-            segment,
-            tour_type, model_settings,
+            tours_segment,
+            tour_purpose, model_settings,
             mode_column_name=mode_column_name,
             logsum_column_name=logsum_column_name,
             network_los=network_los,
@@ -182,10 +190,10 @@ def tour_mode_choice_simulate(tours, persons_merged,
             constants=constants,
             estimator=estimator,
             chunk_size=chunk_size,
-            trace_label=tracing.extend_trace_label(trace_label, tour_type),
+            trace_label=tracing.extend_trace_label(trace_label, tour_purpose),
             trace_choice_name='tour_mode_choice')
 
-        tracing.print_summary('tour_mode_choice_simulate %s choices_df' % tour_type,
+        tracing.print_summary('tour_mode_choice_simulate %s choices_df' % tour_purpose,
                               choices_df.tour_mode, value_counts=True)
 
         choices_list.append(choices_df)
@@ -194,6 +202,25 @@ def tour_mode_choice_simulate(tours, persons_merged,
         force_garbage_collect()
 
     choices_df = pd.concat(choices_list)
+
+    # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
+    if network_los.zone_system == los.THREE_ZONE:
+
+        tvpb_mode_path_types = model_settings.get('tvpb_mode_path_types')
+        for mode, path_types in tvpb_mode_path_types.items():
+
+            for direction, skim in zip(['od', 'do'], [tvpb_logsum_odt, tvpb_logsum_dot]):
+
+                path_type = path_types[direction]
+                skim_cache = skim.cache[path_type]
+
+                print(f"mode {mode} direction {direction} path_type {path_type}")
+
+                for c in skim_cache:
+                    dest_col = f'{direction}_{c}'
+                    if dest_col not in choices_df:
+                        choices_df[dest_col] = np.nan
+                    choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
 
     if estimator:
         estimator.write_choices(choices_df.tour_mode)
@@ -207,7 +234,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     # so we can trace with annotations
     assign_in_place(primary_tours, choices_df)
 
-    # but only keep mode choice col
+    # update tours table with mode choice (and optionally logsums)
     all_tours = tours.to_frame()
     assign_in_place(all_tours, choices_df)
 

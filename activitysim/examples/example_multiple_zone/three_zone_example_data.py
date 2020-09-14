@@ -165,8 +165,15 @@ with \
             tod = skim_name[-2:]
             if access_mode == 'WLK' and egress_mode == 'WLK':
                 for suffix in ['FAST', 'SHORT', 'CHEAP']:
+                    if (suffix == 'FAST') and (datum_name == 'TOTIVT'):
+                        random_variation = np.random.rand(*new_skim.shape)*-0.1 + 1.0
+                    elif (suffix == 'CHEAP') and (datum_name == 'FAR'):
+                        random_variation = np.random.rand(*new_skim.shape) * -0.5 + 1.0
+                    else:
+                        random_variation = np.ones_like(new_skim)
+
                     tap_skim_name = f'{transit_mode}_{datum_name}_{suffix}__{tod}'
-                    output_tap_skims_file[tap_skim_name] = new_skim
+                    output_tap_skims_file[tap_skim_name] = new_skim * random_variation
                     print(f"tap skim: {skim_name} tap_skim_name: {tap_skim_name}, "
                           f"shape: {str(output_tap_skims_file.shape())}")
 

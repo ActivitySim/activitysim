@@ -18,9 +18,11 @@ import openmatrix as omx
 
 from activitysim.core import tracing
 from activitysim.core import inject
+from activitysim.core import config
+
+from activitysim.core import logit
 from activitysim.core import simulate
 from activitysim.core import los
-from activitysim.core import config
 
 from activitysim.core.util import reindex
 
@@ -28,44 +30,6 @@ from activitysim.abm.models.util import expressions
 from activitysim.core import assign
 
 logger = logging.getLogger(__name__)
-
-
-def compute_utilities(
-        model_settings,
-        choosers, spec,
-        locals_dict, network_los,
-        chunk_size, trace_label):
-
-    trace_label = tracing.extend_trace_label(trace_label, 'compute_utilities')
-
-    logger.debug("Running compute_utilities with %d choosers" % choosers.shape[0])
-
-    locals_dict = locals_dict.copy()  # don't clobber argument
-    locals_dict.update({
-        'np': np,
-        'los': network_los
-    })
-
-    # - run preprocessor to annotate choosers
-    preprocessor_settings = model_settings.get('PREPROCESSOR')
-    if preprocessor_settings:
-
-        # don't want to alter caller's dataframe
-        choosers = choosers.copy()
-
-        expressions.assign_columns(
-            df=choosers,
-            model_settings=preprocessor_settings,
-            locals_dict=locals_dict,
-            trace_label=trace_label)
-
-    utilities = simulate.eval_utilities(
-        spec,
-        choosers,
-        locals_d=locals_dict,
-        trace_label=trace_label)
-
-    return utilities
 
 
 class TransitVirtualPathBuilder(object):
@@ -80,7 +44,57 @@ class TransitVirtualPathBuilder(object):
         assert network_los.zone_system == los.THREE_ZONE, \
             f"TransitVirtualPathBuilder: network_los zone_system not THREE_ZONE"
 
-    def compute_maz_tap_utilities(self, recipe, maz_od_df, chooser_attributes, leg, mode, trace_label):
+    def trace_df(self, df, trace_label, extension=None, bug=False):
+
+        if extension:
+            trace_label = tracing.extend_trace_label(trace_label, extension)
+
+        assert len(df) > 0
+
+        tracing.trace_df(df, label=trace_label, slicer='NONE', transpose=False)
+
+        if bug:
+            print(f"{trace_label}\n{df}")
+            bug_out
+
+    def compute_utilities(self, model_settings, choosers, spec, locals_dict, network_los, trace_label, trace):
+
+        trace_label = tracing.extend_trace_label(trace_label, 'compute_utilities')
+
+        logger.debug("Running compute_utilities with %d choosers" % choosers.shape[0])
+
+        locals_dict = locals_dict.copy()  # don't clobber argument
+        locals_dict.update({
+            'np': np,
+            'los': network_los
+        })
+
+        # - run preprocessor to annotate choosers
+        preprocessor_settings = model_settings.get('PREPROCESSOR')
+        if preprocessor_settings:
+
+            # don't want to alter caller's dataframe
+            choosers = choosers.copy()
+
+            expressions.assign_columns(
+                df=choosers,
+                model_settings=preprocessor_settings,
+                locals_dict=locals_dict,
+                trace_label=trace_label)
+
+            if trace:
+                self.trace_df(choosers, trace_label, 'choosers')
+
+        utilities = simulate.eval_utilities(
+            spec,
+            choosers,
+            locals_d=locals_dict,
+            trace_all_rows=trace,
+            trace_label=trace_label)
+
+        return utilities
+
+    def compute_maz_tap_utilities(self, recipe, maz_od_df, chooser_attributes, leg, mode, trace_label, trace):
 
         trace_label = tracing.extend_trace_label(trace_label, f'compute_maz_tap_utilities.{leg}')
 
@@ -115,16 +129,16 @@ class TransitVirtualPathBuilder(object):
 
         if units == 'utility':
 
-            mode_specific_spec = simulate.read_model_spec(file_name=maz_tap_settings['SPEC'])
+            maz_tap_spec = simulate.read_model_spec(file_name=maz_tap_settings['SPEC'])
 
-            access_df[leg] = compute_utilities(
+            access_df[leg] = self.compute_utilities(
                 maz_tap_settings,
                 access_df,
-                spec=mode_specific_spec,
+                spec=maz_tap_spec,
                 locals_dict=model_constants,
                 network_los=self.network_los,
-                chunk_size=self.chunk_size,
-                trace_label=trace_label)
+                trace_label=trace_label, trace=trace)
+
         else:
 
             assignment_spec = assign.read_assignment_spec(file_name=config.config_file_path(maz_tap_settings['SPEC']))
@@ -136,9 +150,13 @@ class TransitVirtualPathBuilder(object):
         # drop utility computation columns ('tod', 'demographic_segment' and maz_to_tap_df time/distance columns)
         access_df.drop(columns=attribute_columns + chooser_columns, inplace=True)
 
+        if trace:
+            self.trace_df(access_df, trace_label, 'access_df')
+
         return access_df
 
-    def compute_tap_tap_utilities(self, recipe, access_df, egress_df, chooser_attributes, path_info, trace_label):
+    def compute_tap_tap_utilities(self, recipe, access_df, egress_df, chooser_attributes, path_info,
+                                  trace_label, trace):
 
         trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_utilities')
 
@@ -158,22 +176,25 @@ class TransitVirtualPathBuilder(object):
             egress_df[['idx', 'atap']],
             on='idx').drop_duplicates()
 
+        # don't want transit trips that start and stop in same tap
+        transit_df = transit_df[transit_df.atap != transit_df.btap]
+
         for c in list(attribute_columns):
             transit_df[c] = reindex(chooser_attributes[c], transit_df['idx'])
 
         if units == 'utility':
             spec = simulate.read_model_spec(file_name=tap_tap_settings['SPEC'])
 
-            transit_utilities = compute_utilities(
+            transit_utilities = self.compute_utilities(
                 tap_tap_settings,
                 choosers=transit_df,
                 spec=spec,
                 locals_dict=locals_dict,
                 network_los=self.network_los,
-                chunk_size=self.chunk_size,
-                trace_label=trace_label)
+                trace_label=trace_label, trace=trace)
 
             transit_df = pd.concat([transit_df[['idx', 'btap', 'atap']], transit_utilities], axis=1)
+
         else:
 
             locals_d = {'los': self.network_los}
@@ -191,11 +212,24 @@ class TransitVirtualPathBuilder(object):
 
             transit_df.drop(columns=attribute_columns, inplace=True)
 
+        if trace:
+            self.trace_df(transit_df, trace_label, 'transit_df')
+
         return transit_df
 
-    def best_paths(self, recipe, path_type, maz_od_df, access_df, egress_df, transit_df):
+    def best_paths(self, recipe, path_type, maz_od_df, access_df, egress_df, transit_df, trace_label, trace=False):
+
+        trace_label = tracing.extend_trace_label(trace_label, 'best_paths')
 
         units = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.units')
+        transit_sets = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.tap_tap_expressions.sets')
+
+        path_settings = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}')
+        max_paths_per_tap_set = path_settings.get('max_paths_per_tap_set', 1)
+        max_paths_across_tap_sets = path_settings.get('max_paths_across_tap_sets', 1)
+
+        assert units in ['utility', 'time'], f"unrecognized units: {units}. Expected either 'time' or 'utility'."
+        smaller_is_better = (units in ['time'])
 
         maz_od_df['seq'] = maz_od_df.index
         # maz_od_df has one row per chooser
@@ -205,40 +239,66 @@ class TransitVirtualPathBuilder(object):
             merge(egress_df, on=['idx', 'dmaz'], how='inner'). \
             merge(transit_df, on=['idx', 'atap', 'btap'], how='inner')
 
-        transit_sets = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.tap_tap_expressions.sets')
         for c in transit_sets:
             path_df[c] = path_df[c] + path_df['access'] + path_df['egress']
         path_df.drop(columns=['access', 'egress'], inplace=True)
-
-        path_settings = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}')
-        max_paths_across_tap_sets = path_settings.get('max_paths_across_tap_sets', 1)
-        max_paths_per_tap_set = path_settings.get('max_paths_per_tap_set', 1)
 
         # best paths by tap set
         keep = pd.Series(False, index=path_df.index)
         for c in transit_sets:
             keep |= path_df.index.isin(
-                path_df[['seq', c]].sort_values(by=c, ascending=False).
+                path_df[['seq', c]].sort_values(by=c, ascending=smaller_is_better).
                 groupby(['seq']).head(max_paths_per_tap_set).index
             )
         path_df = path_df[keep]
 
+        # (only trace if we actually might remove some sets)
+        if trace and max_paths_across_tap_sets < (max_paths_per_tap_set * len(transit_sets)):
+            self.trace_df(path_df, trace_label, 'best_paths.max_per_set')
+
         # best paths overall by seq
-        path_df[units] = path_df[transit_sets].max(axis=1)
+        path_df[units] = path_df[transit_sets].min(axis=1) if smaller_is_better else path_df[transit_sets].max(axis=1)
         path_df.drop(columns=transit_sets, inplace=True)
-        path_df = path_df.sort_values(by=['seq', units], ascending=[True, False])
+        path_df = path_df.sort_values(by=['seq', units], ascending=[True, smaller_is_better])
         keep = path_df.index.isin(
             path_df.
             groupby(['seq']).head(max_paths_across_tap_sets).index
         )
+
         path_df = path_df[keep]
+
+        if trace:
+            self.trace_df(path_df, trace_label, 'best_paths.best_paths')
 
         return path_df
 
-    def build_virtual_path(self, recipe, path_type, orig, dest, tod, demographic_segment, trace_label):
+    def build_virtual_path(self, recipe, path_type, orig, dest, tod, demographic_segment,
+                           want_choices, trace_label,
+                           trace_targets=None, override_choices=None):
+
+        trace_label = tracing.extend_trace_label(trace_label, 'build_virtual_path')
+
+        trace = trace_targets is not None
+        if trace:
+            assert trace_targets.any()
+            orig = orig[trace_targets]
+            dest = dest[trace_targets]
+            assert len(orig) > 0
+            assert len(dest) > 0
+
+            if not isinstance(tod, str):
+                tod = tod[trace_targets]
+            if demographic_segment is not None:
+                demographic_segment = demographic_segment[trace_targets]
+                assert len(demographic_segment) > 0
+
+            if want_choices:
+                assert override_choices is not None
+                override_choices = override_choices[trace_targets]
 
         units = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.units')
         assert units in ['utility', 'time'], f"unrecognized units: {units}. Expected either 'time' or 'utility'."
+        assert units == 'utility' or not want_choices, "'want_choices' only supported supported if units is utility"
 
         access_mode = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}.access')
         egress_mode = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}.egress')
@@ -266,7 +326,7 @@ class TransitVirtualPathBuilder(object):
             chooser_attributes,
             leg='access',
             mode=access_mode,
-            trace_label=trace_label)
+            trace_label=trace_label, trace=trace)
 
         egress_df = self.compute_maz_tap_utilities(
             recipe,
@@ -274,7 +334,7 @@ class TransitVirtualPathBuilder(object):
             chooser_attributes,
             leg='egress',
             mode=egress_mode,
-            trace_label=trace_label)
+            trace_label=trace_label, trace=trace)
 
         # path_info for use by expressions (e.g. penalty for drive access if no parking at access tap)
         path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
@@ -284,62 +344,142 @@ class TransitVirtualPathBuilder(object):
             egress_df,
             chooser_attributes,
             path_info=path_info,
-            trace_label=trace_label)
+            trace_label=trace_label, trace=trace)
 
-        path_df = self.best_paths(recipe, path_type, maz_od_df, access_df, egress_df, transit_df)
+        path_df = self.best_paths(recipe, path_type, maz_od_df, access_df, egress_df, transit_df, trace_label, trace)
 
         if units == 'utility':
             # logsums
             # one row per seq with utilities in columns
-            path_df['path_num'] = path_df.groupby('seq').cumcount() + 1
+            # path_num 0-based to aligh with logit.make_choices 0-based choice indexes
+            path_df['path_num'] = path_df.groupby('seq').cumcount()
 
             utilities_df = path_df[['seq', 'path_num', units]].set_index(['seq', 'path_num']).unstack()
 
             # paths with fewer than the max number of paths will have Nan values for missing data
             # but there should always be at least one path/utility per seq
+            # FIXME what if there is no tap-tap transit availability?
             assert not utilities_df.isnull().all(axis=1).any()
 
+            assert (utilities_df.index == maz_od_df.seq).all()  # should be aligned with maz_od_df and so with orig
+
             # logsum of utilities_df columns
-            result = np.log(np.nansum(np.exp(utilities_df.values), axis=1))
+            logsum = np.log(np.nansum(np.exp(utilities_df.values), axis=1))
 
-        else:
+            if want_choices:
+                # FIXME - for aid debugging, increase the likelihood of getting 2nd choice
+                # if len(utilities_df.columns)>1:
+                #     utilities_df.columns = utilities_df.columns.droplevel()
+                #     utilities_df[1] = utilities_df[1]/2.5
 
-            result = pd.Series(path_df[units].values, index=path_df['idx'])
+                # utilities for missing paths will be Nan
+                utilities_df = utilities_df.fillna(-999.0)
+                # orig index to identify appropriate random number channel to use making choices
+                utilities_df.index = orig.index
+
+                probs = logit.utils_to_probs(utilities_df, trace_label=trace_label)
+
+                if trace:
+                    choices = override_choices
+                else:
+                    choices, rands = logit.make_choices(probs, trace_label=trace_label)
+
+                # we need to get btap and atap from path_df with same seq and path_num
+                columns_to_cache = ['btap', 'atap']
+                logsum_df = \
+                    pd.merge(pd.DataFrame({'seq': range(len(orig)), 'path_num': choices.values}),
+                             path_df[['seq', 'path_num'] + columns_to_cache],
+                             on=['seq', 'path_num'], how='left')
+
+                # keep path_num choice for caller to pass as override_choices when tracing
+                logsum_df.drop(columns=['seq'], inplace=True)
+
+                logsum_df.index = orig.index
+                logsum_df['logsum'] = logsum
+                results = logsum_df
+
+                if trace:
+                    utilities_df['choices'] = choices
+                    self.trace_df(utilities_df, trace_label, 'utilities_df')
+                    self.trace_df(logsum_df, trace_label, 'logsum_df')
+            else:
+
+                assert len(logsum) == len(orig)
+                results = pd.DataFrame({'logsum': logsum}, index=orig.index)
+
+        elif units == 'time':
+
+            # return a series
+            results = pd.Series(path_df[units].values, index=path_df['idx'])
 
             # zero-fill rows for O-D pairs where no best path exists because there was no tap-tap transit availability
-            result = reindex(result, maz_od_df.idx).fillna(0.0)
+            results = reindex(results, maz_od_df.idx).fillna(0.0)
+        else:
+            raise RuntimeError(f"Unrecognized units: '{units}")
 
-        assert len(result) == len(orig)
+        assert len(results) == len(orig)
 
         # diagnostic
         # maz_od_df['DIST'] = self.network_los.get_default_skim_dict().get('DIST').get(maz_od_df.omaz, maz_od_df.dmaz)
-        # maz_od_df[units] = result if units == 'utility' else result.values
+        # maz_od_df[units] = results.logsum if units == 'utility' else results.values
         # print(f"maz_od_df\n{maz_od_df}")
 
-        return result
+        return results
 
-    def get_tvpb_logsum(self, path_type, orig, dest, tod, demographic_segment=None):
+    def get_tvpb_logsum(self, path_type, orig, dest, tod, demographic_segment, want_choices, trace_label=None):
+
+        # assume they have given us a more specific name (since there may be more than one active wrapper)
+        trace_label = trace_label or 'get_tvpb_logsum'
 
         recipe = 'tour_mode_choice'
-        return self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
-                                       trace_label='get_tvpb_logsum')
+        logsum_df = \
+            self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
+                                    want_choices, trace_label)
+
+        trace_hh_id = inject.get_injectable("trace_hh_id", None)
+        if trace_hh_id:
+            trace_targets = tracing.trace_targets(orig)
+            # choices from preceding run (because random numbers)
+            override_choices = logsum_df['path_num'] if want_choices else None
+            if trace_targets.any():
+                self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
+                                        want_choices=want_choices, override_choices=override_choices,
+                                        trace_label=trace_label, trace_targets=trace_targets,
+                                        )
+
+        return logsum_df
 
     def get_tvpb_best_transit_time(self, orig, dest, tod):
 
+        # FIXME lots of pathological knowledge here as we are only called by accessibility directly from expressions
+
+        trace_label = tracing.extend_trace_label('accessibility.get_tvpb_best_transit_time', tod)
         recipe = 'accessibility'
         path_type = 'WTW'
+        result = \
+            self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment=None,
+                                    want_choices=False, trace_label=trace_label)
 
-        return self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment=None,
-                                       trace_label='get_tvpb_best_transit_time')
+        trace_od = inject.get_injectable("trace_od", None)
+        if trace_od:
+            trace_targets = (orig == trace_od[0]) & (dest == trace_od[1])
+            if trace_targets.any():
+                self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment=None,
+                                        want_choices=False, trace_label=trace_label, trace_targets=trace_targets)
 
-    def wrap_logsum(self, orig_key, dest_key, tod_key, segment_key):
+        return result
 
-        return TransitVirtualPathLogsumWrapper(self, orig_key, dest_key, tod_key, segment_key)
+    def wrap_logsum(self, orig_key, dest_key, tod_key, segment_key,
+                    cache_choices=False, trace_label=None):
+
+        return TransitVirtualPathLogsumWrapper(self, orig_key, dest_key, tod_key, segment_key,
+                                               cache_choices, trace_label)
 
 
 class TransitVirtualPathLogsumWrapper(object):
 
-    def __init__(self, transit_virtual_path_builder, orig_key, dest_key, tod_key, segment_key):
+    def __init__(self, transit_virtual_path_builder, orig_key, dest_key, tod_key, segment_key,
+                 cache_choices, trace_label):
 
         self.tvpb = transit_virtual_path_builder
         assert hasattr(transit_virtual_path_builder, 'get_tvpb_logsum')
@@ -349,6 +489,12 @@ class TransitVirtualPathLogsumWrapper(object):
         self.tod_key = tod_key
         self.segment_key = segment_key
         self.df = None
+
+        self.cache_choices = cache_choices
+        self.cache = {} if cache_choices else None
+
+        self.base_trace_label = trace_label or 'tvpb_logsum'
+        self.trace_label = self.base_trace_label
 
         assert isinstance(orig_key, str)
         assert isinstance(dest_key, str)
@@ -371,6 +517,12 @@ class TransitVirtualPathLogsumWrapper(object):
 
         self.df = df
         return self
+
+    def extend_trace_label(self, extension=None):
+        if extension:
+            self.trace_label = tracing.extend_trace_label(self.base_trace_label, extension)
+        else:
+            self.trace_label = self.base_trace_label
 
     def __getitem__(self, path_type):
         """
@@ -402,15 +554,24 @@ class TransitVirtualPathLogsumWrapper(object):
         tod = self.df[self.tod_key]
         segment = self.df[self.segment_key]
 
-        skim_values = \
-            self.tvpb.get_tvpb_logsum(
-                path_type,
-                orig,
-                dest,
-                tod,
-                segment
-                )
+        logsum_df = \
+            self.tvpb.get_tvpb_logsum(path_type, orig, dest, tod, segment,
+                                      want_choices=self.cache_choices,
+                                      trace_label=self.trace_label)
 
-        skim_values = pd.Series(skim_values, self.df.index)
+        if self.cache_choices:
 
-        return skim_values
+            # not tested on duplicate index because not currently needed
+            # caching strategy does not require unique indexes but care would need to be taken to maintain alignment
+            assert not orig.index.duplicated().any()
+
+            # we only need to cache taps
+            choices_df = logsum_df[['atap', 'btap']]
+
+            if path_type in self.cache:
+                assert len(self.cache.get(path_type).index.intersection(logsum_df.index)) == 0
+                choices_df = pd.concat([self.cache.get(path_type), choices_df])
+
+            self.cache[path_type] = choices_df
+
+        return logsum_df.logsum

@@ -19,11 +19,19 @@ from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import config
 
-# set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100
+EXPECT_2_ZONE_TOUR_COUNT = 206
+
+# 3-zone is currently big and slow - so set this way low
+HOUSEHOLDS_SAMPLE_SIZE_3_ZONE = 10
+EXPECT_3_ZONE_TOUR_COUNT = 31
+
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
 HH_ID = 257341
+
+# household with WALK_TRANSIT tours and trips
+HH_ID_3_ZONE = 2848373
 
 #  [ 257341 1234246 1402915 1511245 1931827 1931908 2307195 2366390 2408855
 # 2518594 2549865  982981 1594365 1057690 1234121 2098971]
@@ -127,16 +135,21 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_2_ZONE_TOUR_COUNT = 206
-EXPECT_3_ZONE_TOUR_COUNT = 219
-
-
 def regress_2_zone():
     pass
 
 
 def regress_3_zone():
-    pass
+
+    tours_df = pipeline.get_table('tours')
+    assert len(tours_df[tours_df.tour_mode == 'WALK_TRANSIT']) > 0
+
+    # should cache atap and btap for transit modes only
+    for od_do in ['od', 'do']:
+        for a_b in ['a', 'b']:
+            c = f'{od_do}_{a_b}tap'
+            assert not tours_df[tours_df.tour_mode == 'WALK_TRANSIT'][c].isnull().any()
+            assert tours_df[~tours_df.tour_mode.isin(['WALK_TRANSIT', 'DRIVE_TRANSIT'])][c].isnull().all()
 
 
 def test_full_run_2_zone():
@@ -160,8 +173,8 @@ def test_full_run_3_zone():
 
     tour_count = full_run(configs_dir=[example_path('configs_3_zone'), example_path('configs')],
                           data_dir=example_path('data_3'),
-                          trace_hh_id=HH_ID, check_for_variability=True,
-                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+                          trace_hh_id=HH_ID_3_ZONE, check_for_variability=True,
+                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE_3_ZONE)
 
     print("tour_count", tour_count)
 

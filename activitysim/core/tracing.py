@@ -108,6 +108,9 @@ def delete_trace_files():
     """
     delete_output_files(CSV_FILE_TYPE, subdir='trace')
 
+    active_log_files = [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
+    delete_output_files('log', ignore=active_log_files)
+
 
 def config_logger(basic=False):
     """

@@ -12,6 +12,8 @@ from collections import OrderedDict
 from functools import reduce
 from operator import mul
 
+from contextlib import contextmanager
+
 import numpy as np
 import pandas as pd
 import openmatrix as omx
@@ -30,6 +32,18 @@ from activitysim.abm.models.util import expressions
 from activitysim.core import assign
 
 logger = logging.getLogger(__name__)
+
+TIMING = True
+
+
+@contextmanager
+def timeit(trace_label, tag=None):
+    t0 = tracing.print_elapsed_time()
+    try:
+        yield
+    finally:
+        tracing.print_elapsed_time(f"{trace_label} {tag}", t0, debug=True)
+        # tracing.print_elapsed_time(f"timeit {tag}", t0, debug=True)
 
 
 class TransitVirtualPathBuilder(object):
@@ -61,7 +75,7 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, 'compute_utilities')
 
-        logger.debug("Running compute_utilities with %d choosers" % choosers.shape[0])
+        logger.debug(f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers")
 
         locals_dict = locals_dict.copy()  # don't clobber argument
         locals_dict.update({
@@ -272,9 +286,67 @@ class TransitVirtualPathBuilder(object):
 
         return path_df
 
+    def trace_headroom(self, recipe, path_type, orig, dest, tod, demographic_segment, want_choices, trace_label=None):
+
+        def trace_headroom_maz_tap_utilities(recipe, maz_od_df, leg, mode):
+            maz_tap_settings = \
+                self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.maz_tap_expressions.{mode}')
+            chooser_columns = maz_tap_settings.get('CHOOSER_COLUMNS', [])
+
+            maz_col, tap_col = ('omaz', 'btap') if leg == 'access' else ('dmaz', 'atap')
+            access_df = self.network_los.maz_to_tap_dfs[mode]
+            access_df = access_df[chooser_columns]. \
+                reset_index(drop=False). \
+                rename(columns={'MAZ': maz_col, 'TAP': tap_col})
+            access_df = pd.merge(
+                maz_od_df[['idx', maz_col]].drop_duplicates(),
+                access_df, on=maz_col, how='inner')
+
+            access_df_shape = list(access_df.shape)
+
+            return access_df_shape
+
+        trace_label = tracing.extend_trace_label(trace_label, 'trace_headroom')
+
+        units = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.units')
+        assert units in ['utility', 'time'], f"unrecognized units: {units}. Expected either 'time' or 'utility'."
+
+        access_mode = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}.access')
+        egress_mode = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}.egress')
+
+        logger.debug(f"{trace_label} recipe {recipe} {units}")
+
+        maz_od_df = pd.DataFrame({
+            'idx': orig.index.values,
+            'omaz': orig.values,
+            'dmaz': dest.values,
+            'seq': range(len(orig))
+        })
+
+        # for location choice, there will be multiple alt dest rows per chooser and duplicate orig.index values
+        # but tod and demographic_segment should be the same for all chooser rows (unique orig index values)
+        # knowing this allows us to eliminate redundant computations (e.g. utilities of maz_tap pairs)
+        duplicated = orig.index.duplicated(keep='first')
+        tod_cardinality = 1 if isinstance(tod, str) else len(tod.unique())
+        demographic_segment_cardinality = 1 if isinstance(tod, str) else len(tod.unique())
+
+        access_headroom = trace_headroom_maz_tap_utilities(recipe, maz_od_df, leg='access', mode=access_mode)
+        egress_headroom = trace_headroom_maz_tap_utilities(recipe, maz_od_df, leg='egress', mode=egress_mode)
+
+        logger.debug(f"{trace_label} maz_od_df {maz_od_df.shape}")
+        logger.debug(f"{trace_label} tod_cardinality {tod_cardinality}")
+        logger.debug(f"{trace_label} demographic_segment_cardinality {demographic_segment_cardinality}")
+        logger.debug(f"{trace_label} access_headroom {access_mode} {access_headroom}")
+        logger.debug(f"{trace_label} egress_headroom {egress_mode} {egress_headroom}")
+
+        bug
+
     def build_virtual_path(self, recipe, path_type, orig, dest, tod, demographic_segment,
                            want_choices, trace_label,
                            trace_targets=None, override_choices=None):
+
+        # under development...
+        # self.trace_headroom(recipe, path_type, orig, dest, tod, demographic_segment, want_choices, trace_label)
 
         trace_label = tracing.extend_trace_label(trace_label, 'build_virtual_path')
 
@@ -320,33 +392,38 @@ class TransitVirtualPathBuilder(object):
         if demographic_segment is not None:
             chooser_attributes['demographic_segment'] = demographic_segment.loc[~duplicated]
 
-        access_df = self.compute_maz_tap_utilities(
-            recipe,
-            maz_od_df,
-            chooser_attributes,
-            leg='access',
-            mode=access_mode,
-            trace_label=trace_label, trace=trace)
+        with timeit(trace_label, "compute_maz_tap_utilities access_df"):
+            access_df = self.compute_maz_tap_utilities(
+                recipe,
+                maz_od_df,
+                chooser_attributes,
+                leg='access',
+                mode=access_mode,
+                trace_label=trace_label, trace=trace)
 
-        egress_df = self.compute_maz_tap_utilities(
-            recipe,
-            maz_od_df,
-            chooser_attributes,
-            leg='egress',
-            mode=egress_mode,
-            trace_label=trace_label, trace=trace)
+        with timeit(trace_label, "compute_maz_tap_utilities access_df"):
+            egress_df = self.compute_maz_tap_utilities(
+                recipe,
+                maz_od_df,
+                chooser_attributes,
+                leg='egress',
+                mode=egress_mode,
+                trace_label=trace_label, trace=trace)
 
         # path_info for use by expressions (e.g. penalty for drive access if no parking at access tap)
-        path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
-        transit_df = self.compute_tap_tap_utilities(
-            recipe,
-            access_df,
-            egress_df,
-            chooser_attributes,
-            path_info=path_info,
-            trace_label=trace_label, trace=trace)
+        with timeit(trace_label, "compute_tap_tap_utilities"):
+            path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
+            transit_df = self.compute_tap_tap_utilities(
+                recipe,
+                access_df,
+                egress_df,
+                chooser_attributes,
+                path_info=path_info,
+                trace_label=trace_label, trace=trace)
 
-        path_df = self.best_paths(recipe, path_type, maz_od_df, access_df, egress_df, transit_df, trace_label, trace)
+        with timeit(trace_label, "compute_tap_tap_utilities"):
+            path_df = self.best_paths(recipe, path_type, maz_od_df, access_df, egress_df, transit_df,
+                                      trace_label, trace)
 
         if units == 'utility':
             # logsums
@@ -377,26 +454,27 @@ class TransitVirtualPathBuilder(object):
                 # orig index to identify appropriate random number channel to use making choices
                 utilities_df.index = orig.index
 
-                probs = logit.utils_to_probs(utilities_df, trace_label=trace_label)
+                with timeit(trace_label, "make_choices"):
+                    probs = logit.utils_to_probs(utilities_df, trace_label=trace_label)
 
-                if trace:
-                    choices = override_choices
-                else:
-                    choices, rands = logit.make_choices(probs, trace_label=trace_label)
+                    if trace:
+                        choices = override_choices
+                    else:
+                        choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
-                # we need to get btap and atap from path_df with same seq and path_num
-                columns_to_cache = ['btap', 'atap']
-                logsum_df = \
-                    pd.merge(pd.DataFrame({'seq': range(len(orig)), 'path_num': choices.values}),
-                             path_df[['seq', 'path_num'] + columns_to_cache],
-                             on=['seq', 'path_num'], how='left')
+                    # we need to get btap and atap from path_df with same seq and path_num
+                    columns_to_cache = ['btap', 'atap']
+                    logsum_df = \
+                        pd.merge(pd.DataFrame({'seq': range(len(orig)), 'path_num': choices.values}),
+                                 path_df[['seq', 'path_num'] + columns_to_cache],
+                                 on=['seq', 'path_num'], how='left')
 
-                # keep path_num choice for caller to pass as override_choices when tracing
-                logsum_df.drop(columns=['seq'], inplace=True)
+                    # keep path_num choice for caller to pass as override_choices when tracing
+                    logsum_df.drop(columns=['seq'], inplace=True)
 
-                logsum_df.index = orig.index
-                logsum_df['logsum'] = logsum
-                results = logsum_df
+                    logsum_df.index = orig.index
+                    logsum_df['logsum'] = logsum
+                    results = logsum_df
 
                 if trace:
                     utilities_df['choices'] = choices
@@ -432,6 +510,7 @@ class TransitVirtualPathBuilder(object):
         trace_label = trace_label or 'get_tvpb_logsum'
 
         recipe = 'tour_mode_choice'
+
         logsum_df = \
             self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
                                     want_choices, trace_label)

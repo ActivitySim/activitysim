@@ -110,11 +110,6 @@ def trip_mode_choice(
                                            tod_key='trip_period', segment_key='demographic_segment',
                                            cache_choices=True,
                                            trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
-        # tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col, dest_key=orig_col,
-        #                                    tod_key='trip_period', segment_key='demographic_segment',
-        #                                    cache_choices=True,
-        #                                    trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
-
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
             # 'tvpb_logsum_dot': tvpb_logsum_dot

@@ -388,7 +388,7 @@ def choose_trip_destination(
     return destinations, destination_sample
 
 
-def wrap_skims(model_settings):
+def wrap_skims(model_settings, trace_label):
     """
     wrap skims of trip destination using origin, dest column names from model settings.
     Various of these are used by destination_sample, compute_logsums, and destination_simulate
@@ -435,13 +435,17 @@ def wrap_skims(model_settings):
         tvpb = TransitVirtualPathBuilder(network_los)
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
-                                           tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=d, dest_key=o,
-                                           tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_dot'))
         tvpb_logsum_dpt = tvpb.wrap_logsum(orig_key=d, dest_key=p,
-                                           tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_dpt'))
         tvpb_logsum_pdt = tvpb.wrap_logsum(orig_key=p, dest_key=d,
-                                           tod_key='trip_period', segment_key='demographic_segment')
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_pdt'))
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
@@ -517,7 +521,7 @@ def run_trip_destination(
     tours_merged = tours_merged[tours_merged_cols]
 
     # - skims
-    skims = wrap_skims(model_settings)
+    skims = wrap_skims(model_settings, trace_label)
 
     # - size_terms and alternatives
     alternatives = tour_destination_size_terms(land_use, size_terms, 'trip')

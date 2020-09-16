@@ -19,9 +19,8 @@ import openmatrix as omx
 
 # Create example directory
 
-input_data = 'data'
-output_data = 'data_2'
-
+input_data = os.path.join(os.path.dirname(__file__), 'data')
+output_data = os.path.join(os.path.dirname(__file__), 'data_2')
 MAZ_MULTIPLIER = 1000
 
 # ### initialize output data directory

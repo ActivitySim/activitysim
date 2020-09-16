@@ -19,8 +19,6 @@ from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
 from .util.mode import run_tour_mode_choice_simulate
 from .util import estimation
 
-DEBUG = False
-
 logger = logging.getLogger(__name__)
 
 """
@@ -90,6 +88,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
     assert not (primary_tours.tour_category == 'atwork').any()
 
     persons_merged = persons_merged.to_frame()
+
+    constants = config.get_model_constants(model_settings)
 
     logger.info("Running %s with %d tours" % (trace_label, primary_tours.shape[0]))
 
@@ -172,12 +172,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
     choices_list = []
     for tour_purpose, tours_segment in primary_tours_merged.groupby('tour_purpose'):
 
-        if DEBUG:
-            print(tour_purpose, len(tours_segment))
-            # if tour_purpose != 'work':
-            #     continue
-            # continue
-
         logger.info("tour_mode_choice_simulate tour_type '%s' (%s tours)" %
                     (tour_purpose, len(tours_segment.index), ))
 
@@ -245,10 +239,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
     # update tours table with mode choice (and optionally logsums)
     all_tours = tours.to_frame()
     assign_in_place(all_tours, choices_df)
-
-    if DEBUG:
-        print(f"{all_tours[all_tours.tour_mode=='WALK_TRANSIT']}")
-        # bug
 
     pipeline.replace_table("tours", all_tours)
 

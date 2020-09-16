@@ -326,8 +326,8 @@ def joint_tour_destination(
     person that's making the tour)
     """
 
-    trace_label = 'non_mandatory_tour_destination'
-    model_settings_file_name = 'non_mandatory_tour_destination.yaml'
+    trace_label = 'joint_tour_destination'
+    model_settings_file_name = 'joint_tour_destination.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')

@@ -140,7 +140,11 @@ def read_model_coefficients(model_settings=None, file_name=None):
         file_name = model_settings['COEFFICIENTS']
 
     file_path = config.config_file_path(file_name)
-    coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    try:
+        coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient File Invalid: %s" % str(file_path))
+        raise
 
     return coefficients
 
@@ -188,7 +192,11 @@ def read_model_coefficient_template(model_settings):
     coeffs_file_name = model_settings['COEFFICIENT_TEMPLATE']
 
     file_path = config.config_file_path(coeffs_file_name)
-    template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    try:
+        template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient Template File Invalid: %s" % str(file_path))
+        raise
 
     # by convention, an empty cell in the template indicates that
     # the coefficient name should be propogated to across all segments

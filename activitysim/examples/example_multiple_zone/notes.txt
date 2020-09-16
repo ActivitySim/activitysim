@@ -1,5 +1,11 @@
+# depending on where you are, run:
 
-python scripts/create_2_zone.py
+# from top level activitysim repo:
+python activitysim/examples/example_multiple_zone/two_zone_example_data.py
+python activitysim/examples/example_multiple_zone/three_zone_example_data.py
+
+# or from this directory:
+python two_zone_example_data.py
 python three_zone_example_data.py
 
 python simulation.py -c configs_local -c configs_1_zone -c configs -o output_1

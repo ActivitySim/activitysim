@@ -18,6 +18,9 @@ install:
 - pip install .
 - pip freeze
 script:
+# build 2 and 3 zone test data
+- python activitysim/examples/example_multiple_zone/two_zone_example_data.py
+- python activitysim/examples/example_multiple_zone/three_zone_example_data.py
 - pycodestyle activitysim
 - py.test --cov activitysim --cov-report term-missing
 after_success:

@@ -255,7 +255,7 @@ class SettingsFileNotFound(Exception):
         return repr(f"Settings file '{self.file_name}' not found in {self.configs_dir}")
 
 
-def read_settings_file(file_name, mandatory=True):
+def read_settings_file(file_name, mandatory=True, include_stack=[]):
 
     def backfill_settings(settings, backfill):
         new_settings = backfill.copy()
@@ -270,11 +270,16 @@ def read_settings_file(file_name, mandatory=True):
     assert isinstance(configs_dir, list)
 
     settings = {}
+    source_file_paths = include_stack.copy()
     for dir in configs_dir:
         file_path = os.path.join(dir, file_name)
         if os.path.exists(file_path):
             if settings:
-                logger.debug("read settings for %s from %s" % (file_name, file_path))
+                # we must be inheriting
+                logger.debug("inheriting additional settings for %s from %s" % (file_name, file_path))
+
+            assert file_path not in source_file_paths, \
+                f"read_settings_file - recursion in reading 'file_path' after loading: {source_file_paths}"
 
             with open(file_path) as f:
 
@@ -284,18 +289,47 @@ def read_settings_file(file_name, mandatory=True):
 
             settings = backfill_settings(settings, s)
 
-            settings['source_file_paths'] = settings.get('source_file_path', []) + [file_path]
+            # maintain a list of files we read from to improve error message when an expected setting is not found
+            source_file_paths += [file_path]
 
-            if s.get('inherit_settings', False):
-                logger.debug("inherit_settings flag set for %s in %s" % (file_name, file_path))
-                continue
-            else:
+            include_file_name = s.get('include_settings', False)
+            if include_file_name:
+                # FIXME - prevent users from creating borgesian garden of branching paths?
+                # There is a lot of opportunity for confusion if this feature were over-used
+                # Maybe we insist that a file with an include directive is the 'end of the road'
+                # essentially the current settings firle is an alias for the included file
+                if len(s) > 1:
+                    logger.error(f"'include_settings' must appear alone in settings file.")
+                    additional_settings = list(set(s.keys()).difference({'include_settings'}))
+                    logger.error(f"Unexpected additional settings: {additional_settings}")
+                    raise RuntimeError(f"'include_settings' must appear alone in settings file.")
+
+                logger.debug("including settings for %s from %s" % (file_name, include_file_name))
+
+                # recursive call to read included file INSTEAD of the file  with include_settings sepcified
+                s, source_file_paths = \
+                    read_settings_file(include_file_name, mandatory=True, include_stack=source_file_paths)
+
+                # FIXME backfill with the included file
+                settings = backfill_settings(settings, s)
+
+            # we are done as soon as we read one file successfully
+            # unless if inherit_settings is set to true in this file
+            # if inheriting, continue and backfill settings from the next existing settings file configs_dir list
+            if not s.get('inherit_settings', False):
                 break
+
+    settings['source_file_paths'] = source_file_paths
 
     if mandatory and not settings:
         raise SettingsFileNotFound(file_name, configs_dir)
 
-    return settings
+    if include_stack:
+        # if we were called recursively, return an updated list of source_file_paths
+        return settings, source_file_paths
+
+    else:
+        return settings
 
 
 def base_settings_file_path(file_name):

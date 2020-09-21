@@ -6,11 +6,8 @@ from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import los
+from activitysim.core import expressions
 
-from activitysim.core.assign import evaluate_constants
-
-
-from . import expressions
 from .transit_virtual_path_builder import TransitVirtualPathBuilder
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import os
 import logging
-import warnings
 
 import numpy as np
 import pandas as pd
-
-from activitysim.abm.tables import constants
 
 from activitysim.core import tracing
 from activitysim.core import config
@@ -23,14 +19,6 @@ from activitysim.core import util
 logger = logging.getLogger(__name__)
 
 
-def reindex_i(series1, series2, dtype=np.int8):
-    """
-    version of reindex that replaces missing na values and converts to int
-    helpful in expression files that compute counts (e.g. num_work_tours)
-    """
-    return util.reindex(series1, series2).fillna(0).astype(dtype)
-
-
 def local_utilities():
     """
     Dict of useful modules and functions to provides as locals for use in eval of expressions
@@ -44,13 +32,14 @@ def local_utilities():
     utility_dict = {
         'pd': pd,
         'np': np,
-        'constants': constants,
         'reindex': util.reindex,
-        'reindex_i': reindex_i,
+        'reindex_i': util.reindex_i,
         'setting': config.setting,
         'other_than': other_than,
         'skim_dict': inject.get_injectable('skim_dict', None)
     }
+
+    utility_dict.update(config.get_global_constants())
 
     return utility_dict
 

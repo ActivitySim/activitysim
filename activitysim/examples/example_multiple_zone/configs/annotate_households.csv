@@ -25,8 +25,8 @@ num_children_5_to_15,num_children_5_to_15,"_PERSON_COUNT('5 <= age <= 15', perso
 num_children_16_to_17,num_children_16_to_17,"_PERSON_COUNT('16 <= age <= 17', persons, households)"
 num_college_age,num_college_age,"_PERSON_COUNT('18 <= age <= 24', persons, households)"
 num_young_adults,num_young_adults,"_PERSON_COUNT('25 <= age <= 34', persons, households)"
-non_family,non_family,households.HHT.isin(constants.HHT_NONFAMILY)
-family,family,households.HHT.isin(constants.HHT_FAMILY)
+non_family,non_family,households.HHT.isin(HHT_NONFAMILY)
+family,family,households.HHT.isin(HHT_FAMILY)
 home_is_urban,home_is_urban,"reindex(land_use.area_type, households.home_zone_id) < setting('urban_threshold')"
 home_is_rural,home_is_rural,"reindex(land_use.area_type, households.home_zone_id) > setting('rural_threshold')"
 

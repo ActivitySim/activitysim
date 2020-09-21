@@ -13,9 +13,9 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-from activitysim.core.mem import force_garbage_collect
+from activitysim.core import expressions
 
-from .util.expressions import annotate_preprocessors
+from activitysim.core.mem import force_garbage_collect
 
 from activitysim.core import assign
 from activitysim.core import los
@@ -137,7 +137,7 @@ def trip_mode_choice(
                                                 constants=constants)
         locals_dict.update(constants)
 
-        annotate_preprocessors(
+        expressions.annotate_preprocessors(
             trips_segment, locals_dict, skims,
             model_settings, segment_trace_label)
 

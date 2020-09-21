@@ -9,12 +9,11 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import expressions
 
 from activitysim.core.steps.output import write_data_dictionary
 from activitysim.core.steps.output import write_tables
 from activitysim.core.steps.output import track_skim_usage
-
-from .util import expressions
 
 from activitysim.abm.tables import shadow_pricing
 

@@ -80,6 +80,18 @@ def override_setting(key, value):
     inject.add_injectable('settings', new_settings)
 
 
+def get_global_constants():
+    """
+    Read global constants from settings file
+
+    Returns
+    -------
+    constants : dict
+        dictionary of constants to add to locals for use by expressions in model spec
+    """
+    return read_settings_file('constants.yaml', mandatory=False)
+
+
 def read_model_settings(file_name, mandatory=False):
     """
 
@@ -256,6 +268,32 @@ class SettingsFileNotFound(Exception):
 
 
 def read_settings_file(file_name, mandatory=True, include_stack=[]):
+    """
+
+    look for first occurence of yaml file named <file_name> in directories in configs_dir list,
+    read settings from yaml file and return as dict.
+
+    Settings file may contain directives that affect which file settings are returned:
+
+    inherit_settings: boolean
+        backfill settings in the current file with values from the next settings file in configs_dir list
+    include_settings: string <include_file_name>
+        read settings from specified include_file in placd of the current file settings
+        (to avoid confusion, this directive must appea ALONE in fiel, without any additional settings or directives.)
+
+    Parameters
+    ----------
+    file_name
+    mandatory: booelan
+        if true, raise SettingsFileNotFound exception if no settings file, otherwise return empty dict
+    include_stack: boolean
+        only used for recursive calls to provide list of files included so far to detect cycles
+
+    Returns: dict
+        settings from speciified settings file/s
+    -------
+
+    """
 
     def backfill_settings(settings, backfill):
         new_settings = backfill.copy()
@@ -319,7 +357,8 @@ def read_settings_file(file_name, mandatory=True, include_stack=[]):
             if not s.get('inherit_settings', False):
                 break
 
-    settings['source_file_paths'] = source_file_paths
+    if len(source_file_paths) > 0:
+        settings['source_file_paths'] = source_file_paths
 
     if mandatory and not settings:
         raise SettingsFileNotFound(file_name, configs_dir)

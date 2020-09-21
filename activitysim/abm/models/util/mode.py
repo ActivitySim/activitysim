@@ -4,12 +4,7 @@ import pandas as pd
 
 from activitysim.core import simulate
 from activitysim.core import config
-from activitysim.core import tracing
-from activitysim.core import inject
-
-from . import expressions
-from . import estimation
-
+from activitysim.core import expressions
 
 """
 At this time, these utilities are mostly for transforming the mode choice

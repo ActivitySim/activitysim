@@ -1,7 +1,5 @@
 
 
-skims_file: skims.omx
-
 # input tables
 input_table_list:
   - tablename: households

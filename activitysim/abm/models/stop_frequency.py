@@ -10,9 +10,9 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import expressions
 
 from activitysim.core.util import assign_in_place
-from .util import expressions
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)

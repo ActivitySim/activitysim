@@ -12,11 +12,11 @@ from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
 from activitysim.core.mem import force_garbage_collect
+from activitysim.core import expressions
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
 
-from .util import expressions
 from .util import logsums as logsum
 from .util import estimation
 

@@ -64,6 +64,7 @@ def log_open(trace_label, chunk_size, effective_chunk_size):
 
 def log_close(trace_label):
 
+    # they should be closing the last log opened (LIFO)
     assert CHUNK_LOG and next(reversed(CHUNK_LOG)) == trace_label
 
     logger.debug("log_close %s" % trace_label)
@@ -81,6 +82,16 @@ def log_close(trace_label):
 
 
 def log_df(trace_label, table_name, df):
+    """
+    Parameters
+    ----------
+    trace_label :
+        serves as a label for this nesting level of logging
+    table_name : str
+        name to use logging df, and which will be used in any subsequent calls reporting activity on the table
+    df: numpy.ndarray, pandas.Series, pandas.DataFrame, or None
+        table to log (or None if df was deleted)
+    """
 
     if df is None:
         # FIXME force_garbage_collect on delete?
@@ -89,6 +100,7 @@ def log_df(trace_label, table_name, df):
     cur_chunker = next(reversed(CHUNK_LOG))
 
     if df is None:
+        # remove table from log
         CHUNK_LOG.get(cur_chunker).pop(table_name)
         op = 'del'
 

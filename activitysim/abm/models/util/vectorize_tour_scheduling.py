@@ -19,8 +19,7 @@ from activitysim.core import los
 from activitysim.core import timetable as tt
 
 from activitysim.core.util import reindex
-
-from . import expressions
+from activitysim.core import expressions
 
 from .transit_virtual_path_builder import TransitVirtualPathBuilder
 

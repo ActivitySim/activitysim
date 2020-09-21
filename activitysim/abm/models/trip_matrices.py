@@ -10,8 +10,7 @@ import numpy as np
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-
-from .util import expressions
+from activitysim.core import expressions
 
 logger = logging.getLogger(__name__)
 

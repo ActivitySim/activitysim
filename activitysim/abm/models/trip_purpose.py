@@ -11,8 +11,7 @@ from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import pipeline
-
-from .util import expressions
+from activitysim.core import expressions
 
 logger = logging.getLogger(__name__)
 

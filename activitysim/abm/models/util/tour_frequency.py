@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core.util import reindex
-from activitysim.abm.tables import constants
 
 logger = logging.getLogger(__name__)
 

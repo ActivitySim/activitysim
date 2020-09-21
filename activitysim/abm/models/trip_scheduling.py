@@ -14,8 +14,6 @@ from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import pipeline
 
-from activitysim.core.util import assign_in_place
-from .util import expressions
 from activitysim.core.util import reindex
 
 from activitysim.abm.models.util.trip import failed_trip_cohorts

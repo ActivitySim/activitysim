@@ -14,13 +14,12 @@ from activitysim.core import simulate
 from activitysim.core import inject
 from activitysim.core import los
 from activitysim.core import assign
+from activitysim.core import expressions
 
 from activitysim.core.tracing import print_elapsed_time
 
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
-
-from .util import expressions
 
 from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
 

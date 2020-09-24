@@ -1,13 +1,15 @@
 inherit_settings: True
 
-households_sample_size: 0
+households_sample_size: 100
+#chunk_size: 400000
+
 chunk_size: 0
 
 trace_hh_id: 2848373
 
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: non_mandatory_tour_scheduling
+resume_after: mandatory_tour_frequency
 
 cleanup_trace_files_on_resume: True
 

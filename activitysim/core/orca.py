@@ -982,8 +982,8 @@ def _collect_variables(names, expressions=None):
         expressions = []
     offset = len(names) - len(expressions)
     labels_map = dict(tz.concatv(
-        tz.compatibility.zip(names[:offset], names[:offset]),
-        tz.compatibility.zip(names[offset:], expressions)))
+        zip(names[:offset], names[:offset]),
+        zip(names[offset:], expressions)))
 
     all_variables = tz.merge(_INJECTABLES, _TABLES)
     variables = {}

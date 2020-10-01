@@ -21,7 +21,7 @@ from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
-from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
@@ -435,16 +435,16 @@ def wrap_skims(model_settings, trace_label):
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
                                            tod_key='trip_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
+                                           trace_label=trace_label, tag='tvpb_logsum_odt')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=d, dest_key=o,
                                            tod_key='trip_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_dot'))
+                                           trace_label=trace_label, tag='tvpb_logsum_dot')
         tvpb_logsum_dpt = tvpb.wrap_logsum(orig_key=d, dest_key=p,
                                            tod_key='trip_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_dpt'))
+                                           trace_label=trace_label, tag='tvpb_logsum_dpt')
         tvpb_logsum_pdt = tvpb.wrap_logsum(orig_key=p, dest_key=d,
                                            tod_key='trip_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_pdt'))
+                                           trace_label=trace_label, tag='tvpb_logsum_pdt')
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,

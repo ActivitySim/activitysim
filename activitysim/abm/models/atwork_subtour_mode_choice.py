@@ -11,7 +11,7 @@ from activitysim.core import pipeline
 from activitysim.core import simulate
 
 from activitysim.core import los
-from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
 
 from .util.mode import run_tour_mode_choice_simulate
 from .util import estimation
@@ -97,10 +97,10 @@ def atwork_subtour_mode_choice(
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
                                            tod_key='out_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
+                                           trace_label=trace_label, tag='tvpb_logsum_odt')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
                                            tod_key='in_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_dot'))
+                                           trace_label=trace_label, tag='tvpb_logsum_dot')
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,

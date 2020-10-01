@@ -4,6 +4,7 @@ from builtins import range
 
 import logging
 import time
+import math
 
 from contextlib import contextmanager
 
@@ -304,29 +305,33 @@ class TransitVirtualPathBuilder(object):
 
     def build_virtual_path(self, recipe, path_type, orig, dest, tod, demographic_segment,
                            want_choices, trace_label,
-                           trace_targets=None, override_choices=None):
+                           filter_targets=None, trace=False, override_choices=None):
 
         trace_label = tracing.extend_trace_label(trace_label, 'build_virtual_path')
 
-        chunk.log_open(trace_label, chunk_size=0, effective_chunk_size=0)
+        # Tracing is implemented as a seperate, second call that operates ONLY on filter_targets
+        assert not (trace and filter_targets is None)
+        if filter_targets is not None:
+            assert filter_targets.any()
 
-        trace = trace_targets is not None
-        if trace:
-            assert trace_targets.any()
-            orig = orig[trace_targets]
-            dest = dest[trace_targets]
+            # slice orig and dest
+            orig = orig[filter_targets]
+            dest = dest[filter_targets]
             assert len(orig) > 0
             assert len(dest) > 0
 
+            # slice tod and demographic_segment if not scalar
             if not isinstance(tod, str):
-                tod = tod[trace_targets]
+                tod = tod[filter_targets]
             if demographic_segment is not None:
-                demographic_segment = demographic_segment[trace_targets]
+                demographic_segment = demographic_segment[filter_targets]
                 assert len(demographic_segment) > 0
 
+            # slice choices
+            # (requires actual choices from the previous call lest rands change on second call)
+            assert want_choices == (override_choices is not None)
             if want_choices:
-                assert override_choices is not None
-                override_choices = override_choices[trace_targets]
+                override_choices = override_choices[filter_targets]
 
         units = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.units')
         assert units in ['utility', 'time'], f"unrecognized units: {units}. Expected either 'time' or 'utility'."
@@ -391,12 +396,13 @@ class TransitVirtualPathBuilder(object):
                                       trace_label, trace)
             chunk.log_df(trace_label, "path_df", path_df)
 
-            del access_df
-            chunk.log_df(trace_label, "access_df", None)
-            del egress_df
-            chunk.log_df(trace_label, "egress_df", None)
-            del transit_df
-            chunk.log_df(trace_label, "transit_df", None)
+        # now that we have created path_df, we are done with the dataframes for the seperate legs
+        del access_df
+        chunk.log_df(trace_label, "access_df", None)
+        del egress_df
+        chunk.log_df(trace_label, "egress_df", None)
+        del transit_df
+        chunk.log_df(trace_label, "transit_df", None)
 
         if units == 'utility':
             # logsums
@@ -459,17 +465,17 @@ class TransitVirtualPathBuilder(object):
 
                     logsum_df.index = orig.index
                     logsum_df['logsum'] = logsum
-                    chunk.log_df(trace_label, "logsum_df", logsum_df)
-
-                if trace:
-                    self.trace_df(logsum_df, trace_label, 'logsum_df')
-
-                results = logsum_df
 
             else:
 
                 assert len(logsum) == len(orig)
-                results = pd.DataFrame({'logsum': logsum}, index=orig.index)
+                logsum_df = pd.DataFrame({'logsum': logsum}, index=orig.index)
+
+            if trace:
+                self.trace_df(logsum_df, trace_label, 'logsum_df')
+
+            chunk.log_df(trace_label, "logsum_df", logsum_df)
+            results = logsum_df
 
         elif units == 'time':
 
@@ -478,41 +484,94 @@ class TransitVirtualPathBuilder(object):
 
             # zero-fill rows for O-D pairs where no best path exists because there was no tap-tap transit availability
             results = reindex(results, maz_od_df.idx).fillna(0.0)
+
+            chunk.log_df(trace_label, "results", results)
+
         else:
             raise RuntimeError(f"Unrecognized units: '{units}")
 
         assert len(results) == len(orig)
+
+        del path_df
+        chunk.log_df(trace_label, "path_df", None)
 
         # diagnostic
         # maz_od_df['DIST'] = self.network_los.get_default_skim_dict().get('DIST').get(maz_od_df.omaz, maz_od_df.dmaz)
         # maz_od_df[units] = results.logsum if units == 'utility' else results.values
         # print(f"maz_od_df\n{maz_od_df}")
 
-        chunk.log_close(trace_label)
-
         return results
+
+    def get_logsum_chunk_overhead(self, orig, dest, tod, demographic_segment, want_choices, trace_label):
+
+        trace_label = tracing.extend_trace_label(trace_label, 'get_logsum_chunk_overhead')
+
+        recipe = 'tour_mode_choice'
+        path_types = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types').keys()
+
+        # create a boolean array the length of orig with sample_size true values
+        CHUNK_OVERHEAD_SAMPLE_SIZE = 50
+        sample_size = min(CHUNK_OVERHEAD_SAMPLE_SIZE, len(orig))
+        filter_targets = np.zeros(len(orig), dtype=bool)
+        filter_targets[np.random.choice(len(orig), size=sample_size, replace=False)] = True
+        filter_targets = pd.Series(filter_targets, index=orig.index)
+
+        logger.info(f"{trace_label} running sample size of {sample_size} for path_types: {path_types}")
+
+        # doesn't make any difference what they choose
+        override_choices = pd.Series(0, index=orig.index) if want_choices else None
+
+        oh = {}
+        for path_type in path_types:
+
+            # chunker will track our memory footprint
+            with chunk.chunk_log(trace_label):
+
+                # run asample
+                self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
+                                        want_choices=want_choices,
+                                        override_choices=override_choices,
+                                        trace_label=trace_label,
+                                        filter_targets=filter_targets,
+                                        trace=False
+                                        )
+
+                # get number of elements allocated during this chunk from the high water mark dict
+                hwm_elements = chunk.get_high_water_mark().get('elements').get('mark')
+
+            row_size = math.ceil(hwm_elements / sample_size)
+
+            oh[path_type] = row_size
+
+        return oh
 
     def get_tvpb_logsum(self, path_type, orig, dest, tod, demographic_segment, want_choices, trace_label=None):
 
         # assume they have given us a more specific name (since there may be more than one active wrapper)
         trace_label = trace_label or 'get_tvpb_logsum'
+        trace_label = tracing.extend_trace_label(trace_label, path_type)
 
         recipe = 'tour_mode_choice'
 
-        logsum_df = \
-            self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
-                                    want_choices, trace_label)
-
-        trace_hh_id = inject.get_injectable("trace_hh_id", None)
-        if trace_hh_id:
-            trace_targets = tracing.trace_targets(orig)
-            # choices from preceding run (because random numbers)
-            override_choices = logsum_df['path_num'] if want_choices else None
-            if trace_targets.any():
+        with chunk.chunk_log(trace_label):
+            logsum_df = \
                 self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
-                                        want_choices=want_choices, override_choices=override_choices,
-                                        trace_label=trace_label, trace_targets=trace_targets,
-                                        )
+                                        want_choices=want_choices, trace_label=trace_label)
+
+            # log number of elements allocated during this chunk from the high water mark dict
+            # oh = chunk.get_high_water_mark().get('elements').get('mark')
+            # row_size = math.ceil(oh / len(orig))
+            # logger.debug(f"#chunk_history get_tvpb_logsum {trace_label} oh: {oh} row_size: {row_size}")
+
+            trace_hh_id = inject.get_injectable("trace_hh_id", None)
+            if trace_hh_id:
+                filter_targets = tracing.trace_targets(orig)
+                # choices from preceding run (because random numbers)
+                override_choices = logsum_df['path_num'] if want_choices else None
+                if filter_targets.any():
+                    self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
+                                            want_choices=want_choices, override_choices=override_choices,
+                                            trace_label=trace_label, filter_targets=filter_targets, trace=True)
 
         return logsum_df
 
@@ -523,30 +582,34 @@ class TransitVirtualPathBuilder(object):
         trace_label = tracing.extend_trace_label('accessibility.get_tvpb_best_transit_time', tod)
         recipe = 'accessibility'
         path_type = 'WTW'
-        result = \
-            self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment=None,
-                                    want_choices=False, trace_label=trace_label)
 
-        trace_od = inject.get_injectable("trace_od", None)
-        if trace_od:
-            trace_targets = (orig == trace_od[0]) & (dest == trace_od[1])
-            if trace_targets.any():
-                self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment=None,
-                                        want_choices=False, trace_label=trace_label, trace_targets=trace_targets)
+        with chunk.chunk_log(trace_label):
+            result = \
+                self.build_virtual_path(recipe, path_type, orig, dest, tod,
+                                        demographic_segment=None, want_choices=False,
+                                        trace_label=trace_label)
+
+            trace_od = inject.get_injectable("trace_od", None)
+            if trace_od:
+                filter_targets = (orig == trace_od[0]) & (dest == trace_od[1])
+                if filter_targets.any():
+                    self.build_virtual_path(recipe, path_type, orig, dest, tod,
+                                            demographic_segment=None, want_choices=False,
+                                            trace_label=trace_label, filter_targets=filter_targets, trace=True)
 
         return result
 
     def wrap_logsum(self, orig_key, dest_key, tod_key, segment_key,
-                    cache_choices=False, trace_label=None):
+                    cache_choices=False, trace_label=None, tag=None):
 
         return TransitVirtualPathLogsumWrapper(self, orig_key, dest_key, tod_key, segment_key,
-                                               cache_choices, trace_label)
+                                               cache_choices, trace_label, tag)
 
 
 class TransitVirtualPathLogsumWrapper(object):
 
     def __init__(self, transit_virtual_path_builder, orig_key, dest_key, tod_key, segment_key,
-                 cache_choices, trace_label):
+                 cache_choices, trace_label, tag):
 
         self.tvpb = transit_virtual_path_builder
         assert hasattr(transit_virtual_path_builder, 'get_tvpb_logsum')
@@ -560,8 +623,11 @@ class TransitVirtualPathLogsumWrapper(object):
         self.cache_choices = cache_choices
         self.cache = {} if cache_choices else None
 
-        self.base_trace_label = trace_label or 'tvpb_logsum'
+        self.base_trace_label = tracing.extend_trace_label(trace_label, tag) or f'tvpb_logsum.{tag}'
         self.trace_label = self.base_trace_label
+        self.tag = tag
+
+        self.chunk_overhead = None
 
         assert isinstance(orig_key, str)
         assert isinstance(dest_key, str)
@@ -621,7 +687,7 @@ class TransitVirtualPathLogsumWrapper(object):
         tod = self.df[self.tod_key]
         segment = self.df[self.segment_key]
 
-        logsum_df = \
+        logsum_df, oh = \
             self.tvpb.get_tvpb_logsum(path_type, orig, dest, tod, segment,
                                       want_choices=self.cache_choices,
                                       trace_label=self.trace_label)
@@ -632,7 +698,7 @@ class TransitVirtualPathLogsumWrapper(object):
             # caching strategy does not require unique indexes but care would need to be taken to maintain alignment
             assert not orig.index.duplicated().any()
 
-            # we only need to cache taps
+            # we only need to cache taps and path_set
             choices_df = logsum_df[['atap', 'btap', 'path_set']]
 
             if path_type in self.cache:
@@ -642,3 +708,33 @@ class TransitVirtualPathLogsumWrapper(object):
             self.cache[path_type] = choices_df
 
         return logsum_df.logsum
+
+    def estimate_overhead(self, df, trace_label):
+
+        # not really any of our business but...
+        # would expect to be called during chunk estimation BEFORE df is set
+        assert self.df is None
+        assert chunk.not_chunking()
+
+        trace_label = tracing.extend_trace_label(trace_label, 'estimate_overhead')
+
+        orig = df[self.orig_key].astype('int')
+        dest = df[self.dest_key].astype('int')
+        tod = df[self.tod_key]
+        segment = df[self.segment_key]
+
+        oh = self.tvpb.get_logsum_chunk_overhead(orig, dest, tod, segment,
+                                                 want_choices=self.cache_choices,
+                                                 trace_label=trace_label)
+
+        for path_type, row_size in oh.items():
+            logger.info(f"{trace_label} tag {self.tag} path_type {path_type} row_size {row_size} ")
+
+        # spare them the details
+        max_row_size = max(oh.values())
+
+        if self.cache_choices:
+            # room to cache 'atap', 'btap', 'path_set'
+            max_row_size += 3
+
+        return max_row_size

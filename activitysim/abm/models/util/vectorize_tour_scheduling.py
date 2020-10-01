@@ -21,33 +21,20 @@ from activitysim.core import timetable as tt
 from activitysim.core.util import reindex
 from activitysim.core import expressions
 
-from .transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
 
 
 logger = logging.getLogger(__name__)
 
 TDD_CHOICE_COLUMN = 'tdd'
+USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS = False
 
 
-def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, network_los, trace_label):
-    """
-    compute logsums for tours using skims for alt_tdd out_period and in_period
-    """
+def skims_for_logsums(tour_purpose, model_settings, trace_label):
 
-    trace_label = tracing.extend_trace_label(trace_label, 'logsums')
+    assert 'LOGSUM_SETTINGS' in model_settings
 
-    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
-
-    choosers = alt_tdd.join(tours_merged, how='left', rsuffix='_chooser')
-    logger.info("%s compute_logsums for %d choosers%s alts" %
-                (trace_label, choosers.shape[0], alt_tdd.shape[0]))
-
-    # - locals_dict
-    constants = config.get_model_constants(logsum_settings)
-    locals_dict = {}
-    locals_dict.update(constants)
-
-    # - setup skims
+    network_los = inject.get_injectable('network_los')
 
     skim_dict = network_los.get_default_skim_dict()
     skim_stack = network_los.get_skim_stack('taz')
@@ -81,16 +68,38 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
                                            tod_key='out_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
+                                           trace_label=trace_label, tag='tvpb_logsum_odt')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
                                            tod_key='in_period', segment_key='demographic_segment',
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_dot'))
+                                           trace_label=trace_label, tag='tvpb_logsum_dot')
 
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
             'tvpb_logsum_dot': tvpb_logsum_dot
         })
 
+    return skims
+
+
+def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label):
+    """
+    compute logsums for tours using skims for alt_tdd out_period and in_period
+    """
+
+    trace_label = tracing.extend_trace_label(trace_label, 'logsums')
+
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
+
+    choosers = alt_tdd.join(tours_merged, how='left', rsuffix='_chooser')
+    logger.info("%s compute_logsums for %d choosers%s alts" %
+                (trace_label, choosers.shape[0], alt_tdd.shape[0]))
+
+    # - locals_dict
+    constants = config.get_model_constants(logsum_settings)
+    locals_dict = {}
+    locals_dict.update(constants)
+
+    if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions
         locals_dict.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
 
@@ -135,7 +144,7 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
     return logsums
 
 
-def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_label):
+def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, skims, trace_label):
     """
     Compute logsums for the tour alt_tdds, which will differ based on their different start, stop
     times of day, which translate to different odt_skim out_period and in_periods.
@@ -157,10 +166,9 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_l
     alt_tdd['in_period'] = network_los.skim_time_period_label(alt_tdd['end'])
     alt_tdd['duration'] = alt_tdd['end'] - alt_tdd['start']
 
-    USE_BRUTE_FORCE = False
-    if USE_BRUTE_FORCE:
+    if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS:
         # compute logsums for all the tour alt_tdds (inefficient)
-        logsums = _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_label)
+        logsums = _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label)
         return logsums
 
     # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
@@ -171,7 +179,11 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, trace_l
 
     # - compute logsums for the alt_tdd_periods
     alt_tdd_periods['logsums'] = \
-        _compute_logsums(alt_tdd_periods, tours_merged, tour_purpose, model_settings, network_los, trace_label)
+        _compute_logsums(alt_tdd_periods, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label)
+
+    logger.debug(f"{trace_label} compute_logsums "
+                 f"alt_tdd_periods reduced number of rows by {round(100*len(alt_tdd_periods)/len(alt_tdd), 2)}% "
+                 f" compared to alt_tdd len when USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS")
 
     # - join the alt_tdd_period logsums to alt_tdd to get logsums for alt_tdd
     logsums = pd.merge(
@@ -268,6 +280,7 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     # slice out all non-available tours
     available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
     assert available.any()
+
     alt_tdd = alt_tdd[available]
 
     # FIXME - don't need this any more after slicing
@@ -279,7 +292,7 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 def _schedule_tours(
         tours, persons_merged, alts,
         spec, logsum_tour_purpose,
-        model_settings,
+        model_settings, skims,
         timetable, window_id_col,
         previous_tour, tour_owner_id_col,
         estimator,
@@ -357,7 +370,7 @@ def _schedule_tours(
     # - add logsums
     if logsum_tour_purpose:
         logsums = \
-            compute_logsums(alt_tdd, tours, logsum_tour_purpose, model_settings, tour_trace_label)
+            compute_logsums(alt_tdd, tours, logsum_tour_purpose, model_settings, skims, tour_trace_label)
     else:
         logsums = 0
     alt_tdd['mode_choice_logsum'] = logsums
@@ -404,24 +417,58 @@ def _schedule_tours(
     return choices
 
 
-def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives, model_settings, trace_label=None):
+# def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives, model_settings, trace_label=None):
+#
+#     num_choosers = len(tours.index)
+#     chooser_row_size = tours.shape[1]
+#     sample_size = alternatives.shape[0]
+#
+#     # persons_merged columns plus 2 previous tour columns
+#     extra_chooser_columns = persons_merged.shape[1] + 2
+#
+#     # one column per alternative plus skim and join columns
+#     alt_row_size = alternatives.shape[1] + 2
+#
+#     logsum_columns = 0
+#     if 'LOGSUM_SETTINGS' in model_settings:
+#         logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
+#         logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
+#         logsum_nest_spec = config.get_logit_model_settings(logsum_settings)
+#
+#         if logsum_nest_spec is None:
+#             # expression_values for each spec row
+#             # utilities and probs for each alt
+#             logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1])
+#         else:
+#             # expression_values for each spec row
+#             # raw_utilities and base_probabilities) for each alt
+#             # nested_exp_utilities, nested_probabilities for each nest
+#             # less 1 as nested_probabilities lacks root
+#             nest_count = logit.count_nests(logsum_nest_spec)
+#             logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1]) + (2 * nest_count) - 1
+#
+#     row_size = (chooser_row_size + extra_chooser_columns + alt_row_size + logsum_columns) * sample_size
+#
+#     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
-    num_choosers = len(tours.index)
+def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, model_settings, trace_label):
 
-    # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers, 0
+    sizer = chunk.RowSizeEstimator(trace_label)
 
-    chooser_row_size = tours.shape[1]
-    sample_size = alternatives.shape[0]
+    # chooser is tours merged with persons_merged
+    chooser_row_size = len(tours.columns) + len(persons_merged.columns)
 
-    # persons_merged columns plus 2 previous tour columns
-    extra_chooser_columns = persons_merged.shape[1] + 2
+    # e.g. start, end, duration
+    alt_row_size = alternatives.shape[1]
 
-    # one column per alternative plus skim and join columns
-    alt_row_size = alternatives.shape[1] + 2
+    # non-available alternatives will be sliced out so this is an over-estimate
+    sample_size = len(alternatives)
 
-    logsum_columns = 0
+    sizer.add_elements(chooser_row_size, 'tours')  # tours_merged with persons
+
+    # alt_tdd tdd_interaction_dataset is cross join of choosers with alternatives
+    sizer.add_elements(alt_row_size * sample_size, 'alt_tdd')  # tours_merged with persons
+
     if 'LOGSUM_SETTINGS' in model_settings:
         logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
         logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
@@ -439,15 +486,27 @@ def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives, model_s
             nest_count = logit.count_nests(logsum_nest_spec)
             logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1]) + (2 * nest_count) - 1
 
-    row_size = (chooser_row_size + extra_chooser_columns + alt_row_size + logsum_columns) * sample_size
+        if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS:
+            sizer.add_elements(logsum_columns * sample_size, 'logsum_columns')
+        else:
+            # if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS is falsem compute_logsums prunes alt_tdd
+            # to only compute logsums for unique (tour_id, out_period, in_period, duration) in alt_tdd
+            # which cuts the number of alts by roughly 50% (44% for 100 hh mtctm1 test dataset)
+            # grep the log for USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS to check actual % savings
+            duplicate_sample_reduction = 0.5
+            sizer.add_elements(logsum_columns * sample_size * duplicate_sample_reduction, 'logsum_columns')
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, tours.shape))
-    logger.debug("%s #chunk_calc extra_chooser_columns %s" % (trace_label, extra_chooser_columns))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
-    logger.debug("%s #chunk_calc logsum_columns %s" % (trace_label, logsum_columns))
+    row_size = sizer.get_hwm()
 
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+    if simulate.tvpb_skims(skims):
+        assert 'LOGSUM_SETTINGS' in model_settings
+        # simulate.estimate_tvpb_skims_overhead(tours, skims)
+        logger.debug("disable calc_row_size because can't estimate_tvpb_skims_overhead from here")
+        logger.info(f"tour_scheduling_calc_row_size returning row_size 0 for THREE_ZONE "
+                    f"because of difficulty computing logsum_chunk_overhead")
+        row_size = 0
+
+    return row_size
 
 
 def schedule_tours(
@@ -480,29 +539,26 @@ def schedule_tours(
     else:
         assert not tours[timetable_window_id_col].duplicated().any()
 
-    rows_per_chunk, effective_chunk_size = \
-        calc_rows_per_chunk(chunk_size, tours, persons_merged, alts,
-                            model_settings=model_settings, trace_label=tour_trace_label)
+    if 'LOGSUM_SETTINGS' in model_settings:
+        # we need skims to calculate tvpb skim overhead in 3_ZONE systems for use by calc_rows_per_chunk
+        skims = skims_for_logsums(logsum_tour_purpose, model_settings, tour_trace_label)
+    else:
+        skims = None
+
+    row_size = chunk_size and \
+        tour_scheduling_calc_row_size(tours, persons_merged, alts, skims, model_settings,  tour_trace_label)
 
     result_list = []
-    for i, num_chunks, chooser_chunk \
-            in chunk.chunked_choosers(tours, rows_per_chunk):
+    for i, chooser_chunk, chunk_trace_label \
+            in chunk.adaptive_chunked_choosers(tours, chunk_size, row_size, tour_trace_label):
 
-        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
-
-        chunk_trace_label = tracing.extend_trace_label(tour_trace_label, 'chunk_%s' % i) \
-            if num_chunks > 1 else tour_trace_label
-
-        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
         choices = _schedule_tours(chooser_chunk, persons_merged,
                                   alts, spec, logsum_tour_purpose,
-                                  model_settings,
+                                  model_settings, skims,
                                   timetable, timetable_window_id_col,
                                   previous_tour, tour_owner_id_col,
                                   estimator,
                                   tour_trace_label=chunk_trace_label)
-
-        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

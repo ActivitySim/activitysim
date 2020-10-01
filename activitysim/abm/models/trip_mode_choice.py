@@ -1,7 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import zip
-from builtins import range
 
 import logging
 
@@ -22,7 +20,7 @@ from activitysim.core import los
 
 from activitysim.core.util import assign_in_place
 
-from .util.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
 from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
@@ -109,7 +107,7 @@ def trip_mode_choice(
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
                                            tod_key='trip_period', segment_key='demographic_segment',
                                            cache_choices=True,
-                                           trace_label=tracing.extend_trace_label(trace_label, 'tvpb_logsum_odt'))
+                                           trace_label=trace_label, tag='tvpb_logsum_odt')
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
             # 'tvpb_logsum_dot': tvpb_logsum_dot

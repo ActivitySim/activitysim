@@ -471,9 +471,6 @@ def iterate_location_choice(
     adds annotations to persons table
     """
 
-    # column containing segment id
-    chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
-
     # boolean to filter out persons not needing location modeling (e.g. is_worker, is_student)
     chooser_filter_column = model_settings['CHOOSER_FILTER_COLUMN_NAME']
 
@@ -488,6 +485,29 @@ def iterate_location_choice(
     persons_merged_df = persons_merged_df[persons_merged[chooser_filter_column]]
 
     persons_merged_df.sort_index(inplace=True)  # interaction_sample expects chooser index to be monotonic increasing
+
+    # chooser segmentation allows different sets coefficients for e.g. different income_segments or tour_types
+    chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
+
+    # - run segment preprocessor to assign chooser_segment_column if it is not already in chooser df
+    segment_preprocessor_settings = model_settings.get('segment_preprocessor')
+    if segment_preprocessor_settings:
+
+        assert chooser_segment_column not in persons_merged_df, \
+            f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' already in persons " \
+            f"but segment_preprocessor was specified in model settings."
+
+        expressions.assign_columns(
+            df=persons_merged_df,
+            model_settings=segment_preprocessor_settings,
+            trace_label=tracing.extend_trace_label(trace_label, 'segment_preprocessor'))
+
+        assert chooser_segment_column in persons_merged_df, \
+            f"segment_preprocessor failed to add CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' to persons table. "
+    else:
+        assert chooser_segment_column in persons_merged_df, \
+            f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' not already in persons table " \
+            f"and no segment_preprocessor specified in model settings fiel to add it."
 
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
     max_iterations = spc.max_iterations

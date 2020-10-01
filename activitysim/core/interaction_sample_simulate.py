@@ -272,17 +272,14 @@ def _interaction_sample_simulate(
     return choices
 
 
-def calc_rows_per_chunk(chunk_size, choosers, alt_sample, spec, trace_label=None):
+def interaction_sample_simulate_calc_row_size(choosers, alt_sample, spec, trace_label):
 
     # It is hard to estimate the size of the utilities_df since it conflates duplicate picks.
     # Currently we ignore it, but maybe we should chunk based on worst case?
 
+    sizer = chunk.RowSizeEstimator(trace_label)
+
     num_choosers = len(choosers.index)
-
-    # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers, 0
-
     chooser_row_size = len(choosers.columns)
 
     # one column per alternative plus skims and interaction_utilities
@@ -290,15 +287,11 @@ def calc_rows_per_chunk(chunk_size, choosers, alt_sample, spec, trace_label=None
     # average sample size
     sample_size = alt_sample.shape[0] / float(num_choosers)
 
-    row_size = (chooser_row_size + alt_row_size) * sample_size
+    # interaction_df
+    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
 
-    # logger.debug("%s #chunk_calc spec %s" % (trace_label, spec.shape))
-    # logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
-    # logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
-    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
-    # logger.debug("%s #chunk_calc alt_sample %s" % (trace_label, alt_sample.shape))
-
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+    row_size = sizer.get_hwm()
+    return row_size
 
 
 def interaction_sample_simulate(
@@ -366,19 +359,12 @@ def interaction_sample_simulate(
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
 
-    rows_per_chunk, effective_chunk_size = \
-        calc_rows_per_chunk(chunk_size, choosers, alternatives, spec=spec, trace_label=trace_label)
+    row_size = chunk_size and interaction_sample_simulate_calc_row_size(choosers, alternatives, spec, trace_label)
 
     result_list = []
-    for i, num_chunks, chooser_chunk, alternative_chunk \
-            in chunk.chunked_choosers_and_alts(choosers, alternatives, rows_per_chunk):
-
-        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
-
-        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
-            if num_chunks > 1 else trace_label
-
-        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+    for i, chooser_chunk, alternative_chunk, chunk_trace_label \
+            in chunk.adaptive_chunked_choosers_and_alts(choosers, alternatives,
+                                                        chunk_size, row_size, trace_label):
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
@@ -386,8 +372,6 @@ def interaction_sample_simulate(
             skims, locals_d,
             chunk_trace_label, trace_choice_name,
             estimator)
-
-        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

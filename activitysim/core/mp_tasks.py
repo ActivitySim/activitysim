@@ -838,7 +838,7 @@ def mp_setup_skims(injectables, **kwargs):
     try:
         shared_data_buffer = kwargs
 
-        network_los = los.Network_LOS()
+        network_los = inject.get_injectable('network_los')
         network_los.load_shared_data(shared_data_buffer)
 
     except Exception as e:
@@ -886,7 +886,7 @@ def allocate_shared_skim_buffers():
 
     info("allocate_shared_skim_buffer")
 
-    network_los = los.Network_LOS()
+    network_los = inject.get_injectable('network_los')
     skim_buffers = network_los.allocate_shared_skim_buffers()
 
     return skim_buffers

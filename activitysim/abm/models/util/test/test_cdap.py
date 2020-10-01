@@ -76,6 +76,7 @@ def test_individual_utilities(people, cdap_indiv_and_hhsize1):
 
     cdap.assign_cdap_rank(people)
     individual_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
+
     individual_utils = individual_utils[['M', 'N', 'H']]
 
     expected = pd.DataFrame([

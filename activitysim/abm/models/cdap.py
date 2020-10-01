@@ -11,6 +11,8 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import expressions
 
+from activitysim.core.util import reindex
+
 from .util import cdap
 from .util import estimation
 
@@ -50,6 +52,12 @@ def cdap_simulate(persons_merged, persons, households,
         simulate.read_model_spec(file_name=model_settings['FIXED_RELATIVE_PROPORTIONS_SPEC'])
 
     persons_merged = persons_merged.to_frame()
+
+    # add tour-based chunk_id so we can chunk all trips in tour together
+    assert 'chunk_id' not in persons_merged.columns
+    unique_household_ids = persons_merged.household_id.unique()
+    household_chunk_ids = pd.Series(range(len(unique_household_ids)), index=unique_household_ids)
+    persons_merged['chunk_id'] = reindex(household_chunk_ids, persons_merged.household_id)
 
     constants = config.get_model_constants(model_settings)
 

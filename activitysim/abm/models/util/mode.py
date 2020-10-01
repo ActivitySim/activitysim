@@ -21,7 +21,27 @@ def mode_choice_simulate(
         trace_label,
         trace_choice_name,
         estimator=None):
+    """
+    common method for  both tour_mode_choice and trip_mode_choice
 
+    Parameters
+    ----------
+    choosers
+    spec
+    nest_spec
+    skims
+    locals_d
+    chunk_size
+    mode_column_name
+    logsum_column_name
+    trace_label
+    trace_choice_name
+    estimator
+
+    Returns
+    -------
+
+    """
     want_logsums = logsum_column_name is not None
 
     choices = simulate.simple_simulate(

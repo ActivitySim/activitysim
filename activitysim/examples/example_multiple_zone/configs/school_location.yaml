@@ -56,6 +56,12 @@ SEGMENT_IDS:
   highschool: 2
   gradeschool: 1
 
+
+segment_preprocessor:
+  SPEC: school_location_segment_choosers_preprocessor
+  DF: persons
+
+
 # model adds these tables (informational - not added if commented out)
 SHADOW_PRICE_TABLE: school_shadow_prices
 MODELED_SIZE_TABLE: school_modeled_size

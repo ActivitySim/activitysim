@@ -1,27 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import range
-from builtins import int
 
-import sys
-import os
 import logging
-import multiprocessing
-
-from collections import OrderedDict
-from functools import reduce
-from operator import mul
-
-import numpy as np
-import openmatrix as omx
 
 from activitysim.core import skim
-from activitysim.core import skim_maz
 from activitysim.core import los
 from activitysim.core import inject
 
 
-from activitysim.abm.models.util.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
 
 
 logger = logging.getLogger(__name__)

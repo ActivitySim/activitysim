@@ -92,10 +92,6 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
 
     logger.info("loaded households %s" % (df.shape,))
 
-    # FIXME - pathological knowledge of name of chunk_id column used by chunked_choosers_by_chunk_id
-    assert 'chunk_id' not in df.columns
-    df['chunk_id'] = pd.Series(list(range(len(df))), df.index)
-
     # replace table function with dataframe
     inject.add_table('households', df)
 

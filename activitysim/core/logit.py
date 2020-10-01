@@ -456,8 +456,9 @@ def count_nests(nest_spec):
 
     def count_each_nest(spec, count):
         if isinstance(spec, dict):
-            return count + sum([count_each_nest(alt, count) for alt in spec['alternatives']])
+            return count + 1 + sum([count_each_nest(alt, count) for alt in spec['alternatives']])
         else:
+            assert isinstance(spec, str)
             return 1
 
     return count_each_nest(nest_spec, 0) if nest_spec is not None else 0

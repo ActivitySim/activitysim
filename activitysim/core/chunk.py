@@ -27,6 +27,9 @@ EFFECTIVE_CHUNK_SIZE = []
 HWM = [{}]
 
 INITIAL_ROWS_PER_CHUNK = 10
+MAX_ROWSIZE_ERROR = 0.5  # estimated_row_size percentage error warning threshold
+TRACE_CHUNKING = False
+TRACE_CHUNK_WARNING = True
 
 
 def GB(bytes):
@@ -67,7 +70,7 @@ class RowSizeEstimator(object):
         self.tag_count[tag] = self.tag_count.setdefault(tag, 0) + 1  # number of times tag has been seen
         self.row_size += elements
         logger.debug(f"{self.trace_label} #chunk_calc {tag} {elements} ({self.row_size})")
-        #input("add_elements")
+        input("add_elements>") if TRACE_CHUNKING else None
 
         if self.row_size > self.hwm:
             self.hwm = self.row_size
@@ -81,6 +84,7 @@ class RowSizeEstimator(object):
 
     def get_hwm(self):
         logger.debug(f"{self.trace_label} #chunk_calc hwm {self.row_size} after {self.hwm_tag}")
+        input("get_hwm>") if TRACE_CHUNKING else None
         return self.hwm
 
 
@@ -93,16 +97,17 @@ def chunk_log(trace_label, chunk_size=0, effective_chunk_size=0):
         hwm = log_close(trace_label)
 
 
-def get_high_water_mark():
+def get_high_water_mark(tag='elements'):
 
     # should always have at least the base chunker
     assert len(HWM) > 0
 
-    # for e in HWM:
-    #    print(f"\n{e['elements']}")
-    #  bug
+    hwm = HWM[-1]
 
-    return HWM[-1]
+    # hwm might be empty if there were no calls to log_df
+    mark = hwm.get(tag).get('mark') if hwm else 0
+
+    return mark
 
 
 def not_chunking():
@@ -229,6 +234,11 @@ def log_df(trace_label, table_name, df):
            (commas(total_elements), GB(total_bytes), GB(cur_mem),
             commas(CHUNK_SIZE[0]), commas(EFFECTIVE_CHUNK_SIZE[0]))
 
+    if TRACE_CHUNKING:
+        print(f"table_name {table_name} {df.shape if df is not None else 0}")
+        print(f"table_name {table_name} {info}")
+        input("log_df>")
+
     check_hwm('elements', total_elements, info, hwm_trace_label)
     check_hwm('bytes', total_bytes, info, hwm_trace_label)
     check_hwm('mem', cur_mem, info, hwm_trace_label)
@@ -300,14 +310,14 @@ def write_history(caller, history, chunk_size, trace_label):
                 f"observed_row_size: {observed_row_size} "
                 f"num_chunks: {num_chunks}")
 
-    MAX_ROWSIZE_ERROR = -1
     error = (initial_row_size - observed_row_size) / observed_row_size
     if initial_row_size and abs(error) > MAX_ROWSIZE_ERROR:
         percent_error = round(error * 100, 1)
         logger.warning(f"#chunk_history MAX_ROWSIZE_ERROR {percent_error}% "
                        f"estimated {initial_row_size} but observed {observed_row_size} in {trace_label}")
-        print(history)
-        #input(f"{trace_label} type any key to continue")
+        if TRACE_CHUNK_WARNING:
+            print(history)
+            input(f"{trace_label} type any key to continue")
 
 
 def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_label):
@@ -331,8 +341,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
             estimated_number_of_chunks = None
         else:
             row_size = math.ceil(estimated_row_size)  # FIXME - no real need to be in here or below?
-            rows_per_chunk = int(chunk_size / float(row_size))
-            rows_per_chunk = int(np.clip(rows_per_chunk, 1, num_choosers))
+            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
 
         logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
@@ -348,7 +357,6 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
 
         # grab the next chunk based on current rows_per_chunk
         chooser_chunk = choosers.iloc[offset: offset + rows_per_chunk]
-        # rows_per_chunk = len(chooser_chunk)
 
         logger.info(f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
                     f"with {len(chooser_chunk)} of {num_choosers} choosers")
@@ -358,7 +366,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
             yield i+1, chooser_chunk, chunk_trace_label
 
             # get number of elements allocated during this chunk from the high water mark dict
-            observed_chunk_size = get_high_water_mark().get('elements').get('mark')
+            observed_chunk_size = get_high_water_mark()
 
         i += 1
         offset += rows_per_chunk
@@ -376,8 +384,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
             row_size = math.ceil(observed_chunk_size / rows_per_chunk)
 
             # closest number of chooser rows to achieve chunk_size without exceeding it
-            rows_per_chunk = int(chunk_size / row_size)
-            rows_per_chunk = int(np.clip(rows_per_chunk, 1, rows_remaining))
+            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, rows_remaining)
 
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 
@@ -457,8 +464,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
             estimated_number_of_chunks = None
         else:
             row_size = math.ceil(estimated_row_size)  # FIXME - no real need to be in here or below?
-            rows_per_chunk = int(chunk_size / row_size)
-            rows_per_chunk = int(np.clip(rows_per_chunk, 1, num_choosers))
+            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
         logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
 
@@ -493,7 +499,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
             yield i+1, chooser_chunk, alternative_chunk, chunk_trace_label
 
             # get number of elements allocated during this chunk from the high water mark dict
-            observed_chunk_size = get_high_water_mark().get('elements').get('mark')
+            observed_chunk_size = get_high_water_mark()
 
         i += 1
         offset += rows_per_chunk
@@ -512,8 +518,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
             row_size = math.ceil(observed_chunk_size / rows_per_chunk)
 
             # closest number of chooser rows to achieve chunk_size without exceeding it
-            rows_per_chunk = int(chunk_size / float(row_size))
-            rows_per_chunk = int(np.clip(rows_per_chunk, 1, rows_remaining))
+            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
 
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 
@@ -553,8 +558,8 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
             estimated_number_of_chunks = None
         else:
             row_size = math.ceil(estimated_row_size)
-            rows_per_chunk = int(chunk_size / float(row_size))
-            rows_per_chunk = int(np.clip(rows_per_chunk, 1, num_choosers))
+            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
+
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
 
         logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
@@ -578,14 +583,14 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
             yield i+1, chooser_chunk, chunk_trace_label
 
             # get number of elements allocated during this chunk from the high water mark dict
-            observed_chunk_size = get_high_water_mark().get('elements').get('mark')
+            observed_chunk_size = get_high_water_mark()
 
         offset += rows_per_chunk
         i += 1
         rows_remaining = num_choosers - offset
+        rows_remaining >= 0
 
-        if rows_remaining > 0:
-            assert chunk_size > 0
+        if chunk_size > 0:
 
             history.setdefault('row_size', []).append(row_size)
             history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
@@ -595,8 +600,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
             row_size = math.ceil(observed_chunk_size / rows_per_chunk)
 
             # closest number of chooser rows to achieve chunk_size without exceeding it
-            rows_per_chunk = int(chunk_size / float(row_size))
-            rows_per_chunk = int(np.clip(rows_per_chunk, 1, rows_remaining))
+            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
 
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 

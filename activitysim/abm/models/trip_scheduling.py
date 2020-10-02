@@ -301,6 +301,8 @@ def schedule_trips_in_leg(
 
     # logger.debug("%s scheduling %s trips" % (trace_label, trips.shape[0]))
 
+    assert len(trips) > 0
+
     assert (trips.outbound == outbound).all()
 
     # initial trip of leg and all atwork trips get tour_hour
@@ -381,22 +383,20 @@ def trip_scheduling_calc_row_size(trips, spec, trace_label):
     num_choosers = trips['chunk_id'].max() + 1
     rows_per_chunk_id = len(trips) / num_choosers
 
-    sizer.add_elements(len(trips.columns), 'trips_chunk')
-
     # only non-initial trips require scheduling
     outbound_chooser = (trips.trip_num == 2) & trips.outbound & (trips.primary_purpose != 'atwork')
     inbound_chooser = (trips.trip_num == trips.trip_count-1) & ~trips.outbound & (trips.primary_purpose != 'atwork')
 
-    # furthermore, inbound and outbound are scheduled indpendantly
+    # furthermore, inbound and outbound are scheduled indpendently
     if outbound_chooser.sum() > inbound_chooser.sum():
         is_chooser = outbound_chooser
-        print(f"{is_chooser.sum()} outbound_choosers of {len(trips)} require scheduling")
+        logger.debug(f"{trace_label} {is_chooser.sum()} outbound_choosers of {len(trips)} require scheduling")
     else:
         is_chooser = inbound_chooser
-        print(f"{is_chooser.sum()} inbound_choosers of {len(trips)} require scheduling")
+        logger.debug(f"{trace_label} {is_chooser.sum()} inbound_choosers of {len(trips)} require scheduling")
 
     chooser_fraction = is_chooser.sum()/len(trips)
-    print(f"chooser_fraction {chooser_fraction *100}%")
+    logger.debug(f"{trace_label} chooser_fraction {chooser_fraction *100}%")
 
     chooser_row_size = len(trips.columns) + len(spec.columns) - len(PROBS_JOIN_COLUMNS)
     sizer.add_elements(chooser_fraction * chooser_row_size, 'choosers')
@@ -433,33 +433,33 @@ def run_trip_scheduling(
     for i, trips_chunk, chunk_trace_label \
             in chunk.adaptive_chunked_choosers_by_chunk_id(trips, chunk_size, row_size, trace_label):
 
-        chunk.log_df(trace_label, 'trips_chunk', trips_chunk)
+        if trips_chunk.outbound.any():
+            leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'outbound')
+            with chunk.chunk_log(leg_trace_label):
+                choices = \
+                    schedule_trips_in_leg(
+                        outbound=True,
+                        trips=trips_chunk[trips_chunk.outbound],
+                        probs_spec=probs_spec,
+                        model_settings=model_settings,
+                        last_iteration=last_iteration,
+                        trace_hh_id=trace_hh_id,
+                        trace_label=leg_trace_label)
+                result_list.append(choices)
 
-        leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'outbound')
-        with chunk.chunk_log(leg_trace_label):
-            choices = \
-                schedule_trips_in_leg(
-                    outbound=True,
-                    trips=trips_chunk[trips_chunk.outbound],
-                    probs_spec=probs_spec,
-                    model_settings=model_settings,
-                    last_iteration=last_iteration,
-                    trace_hh_id=trace_hh_id,
-                    trace_label=leg_trace_label)
-            result_list.append(choices)
-
-        leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
-        with chunk.chunk_log(leg_trace_label):
-            choices = \
-                schedule_trips_in_leg(
-                    outbound=False,
-                    trips=trips_chunk[~trips_chunk.outbound],
-                    probs_spec=probs_spec,
-                    model_settings=model_settings,
-                    last_iteration=last_iteration,
-                    trace_hh_id=trace_hh_id,
-                    trace_label=leg_trace_label)
-            result_list.append(choices)
+        if (~trips_chunk.outbound).any():
+            leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
+            with chunk.chunk_log(leg_trace_label):
+                choices = \
+                    schedule_trips_in_leg(
+                        outbound=False,
+                        trips=trips_chunk[~trips_chunk.outbound],
+                        probs_spec=probs_spec,
+                        model_settings=model_settings,
+                        last_iteration=last_iteration,
+                        trace_hh_id=trace_hh_id,
+                        trace_label=leg_trace_label)
+                result_list.append(choices)
 
     choices = pd.concat(result_list)
 

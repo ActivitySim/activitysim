@@ -279,6 +279,7 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 
     # slice out all non-available tours
     available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
+    logger.debug(f"tdd_interaction_dataset keeping {available.sum()} of ({len(available)}) available alt_tdds")
     assert available.any()
 
     alt_tdd = alt_tdd[available]
@@ -365,6 +366,7 @@ def _schedule_tours(
     choice_column = TDD_CHOICE_COLUMN
     alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
                                       tour_trace_label)
+    print(f"tours {tours.shape} alts {alts.shape}")
     chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     # - add logsums
@@ -417,40 +419,6 @@ def _schedule_tours(
     return choices
 
 
-# def calc_rows_per_chunk(chunk_size, tours, persons_merged, alternatives, model_settings, trace_label=None):
-#
-#     num_choosers = len(tours.index)
-#     chooser_row_size = tours.shape[1]
-#     sample_size = alternatives.shape[0]
-#
-#     # persons_merged columns plus 2 previous tour columns
-#     extra_chooser_columns = persons_merged.shape[1] + 2
-#
-#     # one column per alternative plus skim and join columns
-#     alt_row_size = alternatives.shape[1] + 2
-#
-#     logsum_columns = 0
-#     if 'LOGSUM_SETTINGS' in model_settings:
-#         logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
-#         logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
-#         logsum_nest_spec = config.get_logit_model_settings(logsum_settings)
-#
-#         if logsum_nest_spec is None:
-#             # expression_values for each spec row
-#             # utilities and probs for each alt
-#             logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1])
-#         else:
-#             # expression_values for each spec row
-#             # raw_utilities and base_probabilities) for each alt
-#             # nested_exp_utilities, nested_probabilities for each nest
-#             # less 1 as nested_probabilities lacks root
-#             nest_count = logit.count_nests(logsum_nest_spec)
-#             logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1]) + (2 * nest_count) - 1
-#
-#     row_size = (chooser_row_size + extra_chooser_columns + alt_row_size + logsum_columns) * sample_size
-#
-#     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
-
 def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, model_settings, trace_label):
 
     sizer = chunk.RowSizeEstimator(trace_label)
@@ -489,7 +457,7 @@ def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, mo
         if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS:
             sizer.add_elements(logsum_columns * sample_size, 'logsum_columns')
         else:
-            # if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS is falsem compute_logsums prunes alt_tdd
+            # if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS is false compute_logsums prunes alt_tdd
             # to only compute logsums for unique (tour_id, out_period, in_period, duration) in alt_tdd
             # which cuts the number of alts by roughly 50% (44% for 100 hh mtctm1 test dataset)
             # grep the log for USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS to check actual % savings
@@ -505,6 +473,9 @@ def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, mo
         logger.info(f"tour_scheduling_calc_row_size returning row_size 0 for THREE_ZONE "
                     f"because of difficulty computing logsum_chunk_overhead")
         row_size = 0
+
+    #FIXME - broken - disable for now
+    return 0
 
     return row_size
 

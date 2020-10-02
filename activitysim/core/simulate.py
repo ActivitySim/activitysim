@@ -1043,19 +1043,19 @@ def estimate_tvpb_skims_overhead(choosers, skims, trace_label):
     return max_overhead, skim_tag
 
 
-def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims, trace_label):
+def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):
     """
     rows_per_chunk calculator for simple_simulate
     """
+
+    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_calc_row_size')
+
     sizer = chunk.RowSizeEstimator(trace_label)
 
     # if there are skims, and zone_system is THREE_ZONE, and there are any
     # then we want to estimate the per-row overhead tvpb skims
     # (do this first to facilitate tracing of rowsize estimation below)
     skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
-
-    # choosers
-    sizer.add_elements(len(choosers.columns), 'choosers')
 
     #  expression_values for each spec row
     sizer.add_elements(spec.shape[0], 'expression_values')
@@ -1081,7 +1081,9 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims, trace_label)
 
     logger.debug(f"{trace_label} #chunk_calc row_size hwm after {sizer.hwm_tag} {sizer.hwm}")
 
-    return sizer.hwm
+    row_size = sizer.get_hwm()
+
+    return row_size
 
 
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
@@ -1106,8 +1108,6 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     for i, chooser_chunk, chunk_trace_label \
             in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
 
-        chunk.log_df(trace_label, 'choosers', chooser_chunk)
-
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
             skims=skims,
@@ -1124,6 +1124,44 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         choices = pd.concat(result_list)
 
     assert len(choices.index == len(choosers.index))
+
+    return choices
+
+
+def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
+                                skims=None, locals_d=None,
+                                chunk_size=0, custom_chooser=None,
+                                want_logsums=False,
+                                estimator=None,
+                                trace_label=None,
+                                trace_choice_name=None):
+    """
+    chunk_by_chunk_id wrapper for simple_simulate
+    """
+    row_size = chunk_size and simple_simulate_calc_row_size(choosers, spec, nest_spec, trace_label=trace_label)
+
+    # NOTE we chunk chunk_id so we have to scale row_size by average number of chooser rows per chunk_id
+    num_choosers = choosers['chunk_id'].max() + 1
+    rows_per_chunk_id = len(choosers) / num_choosers
+    row_size = row_size * rows_per_chunk_id
+
+    result_list = []
+    for i, chooser_chunk, chunk_trace_label \
+            in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label):
+
+        choices = _simple_simulate(
+            chooser_chunk, spec, nest_spec,
+            skims=skims,
+            locals_d=locals_d,
+            custom_chooser=custom_chooser,
+            want_logsums=want_logsums,
+            estimator=estimator,
+            trace_label=chunk_trace_label,
+            trace_choice_name=trace_choice_name)
+
+        result_list.append(choices)
+
+    choices = pd.concat(result_list)
 
     return choices
 
@@ -1260,9 +1298,6 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
 
     sizer = chunk.RowSizeEstimator(trace_label)
 
-    # choosers
-    sizer.add_elements(len(choosers.columns), 'choosers')
-
     #  expression_values for each spec row
     sizer.add_elements(spec.shape[0], 'expression_values')
 
@@ -1308,8 +1343,6 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
             in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
-
-        chunk.log_df(trace_label, 'choosers', chooser_chunk)
 
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,

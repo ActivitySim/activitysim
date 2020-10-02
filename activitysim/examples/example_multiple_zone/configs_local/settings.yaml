@@ -2,15 +2,18 @@ inherit_settings: True
 
 households_sample_size: 100
 
-#chunk_size: 418
-
 chunk_size: 0
 
-trace_hh_id: 2848373
+#chunk_size: 0
+
+#trace_hh_id: 2848373
+
+# household with mandatory, non mandatory, atwork_subtours, and joint tours
+trace_hh_id: 257341
 
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: joint_tour_composition
+resume_after: trip_purpose_and_destination
 
 cleanup_trace_files_on_resume: True
 

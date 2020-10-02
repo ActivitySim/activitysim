@@ -888,7 +888,7 @@ def cdap_calc_row_size(choosers, cdap_indiv_spec, trace_label):
 
     chooser_row_size = len(choosers.columns)
 
-    sizer.add_elements(chooser_row_size, 'choosers_chunk')
+    sizer.add_elements(chooser_row_size, 'persons')
     sizer.add_elements(len(cdap_indiv_spec), 'indiv_utils')
     sizer.add_elements(1, 'hh_activity_choices')
     sizer.add_elements(1, 'cdap_rank')
@@ -953,8 +953,6 @@ def run_cdap(
     # segment by person type and pick the right spec for each person type
     for i, persons_chunk, chunk_trace_label \
             in chunk.adaptive_chunked_choosers_by_chunk_id(persons, chunk_size, row_size, trace_label):
-
-        chunk.log_df(trace_label, 'persons', persons_chunk)
 
         cdap_results = \
             _run_cdap(persons_chunk,

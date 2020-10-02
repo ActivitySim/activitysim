@@ -687,7 +687,7 @@ class TransitVirtualPathLogsumWrapper(object):
         tod = self.df[self.tod_key]
         segment = self.df[self.segment_key]
 
-        logsum_df, oh = \
+        logsum_df = \
             self.tvpb.get_tvpb_logsum(path_type, orig, dest, tod, segment,
                                       want_choices=self.cache_choices,
                                       trace_label=self.trace_label)

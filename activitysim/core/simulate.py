@@ -1096,6 +1096,99 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
     return choices
 
 
+def simple_simulate_by_chunk_id_rpc(chunk_size, choosers, spec, nest_spec, trace_label):
+    """
+    rows_per_chunk calculator for simple_simulate
+
+    FIXME - this is a temporary expedient to support simple_simulate_by_chunk_id
+    """
+
+    num_choosers = len(choosers.index)
+
+    # if not chunking, then return num_choosers
+    # if chunk_size == 0:
+    #     return num_choosers, 0
+
+    chooser_row_size = len(choosers.columns)
+
+    if nest_spec is None:
+        # expression_values for each spec row
+        # utilities and probs for each alt
+        extra_columns = spec.shape[0] + (2 * spec.shape[1])
+    else:
+        # expression_values for each spec row
+        # raw_utilities and base_probabilities) for each alt
+        # nested_exp_utilities, nested_probabilities for each nest
+        # less 1 as nested_probabilities lacks root
+        nest_count = logit.count_nests(nest_spec)
+        extra_columns = spec.shape[0] + (2 * spec.shape[1]) + (2 * nest_count) - 1
+
+        # logger.debug("%s #chunk_calc nest_count %s" % (trace_label, nest_count))
+
+    row_size = chooser_row_size + extra_columns
+
+    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
+    # NOTE we chunk chunk_id so we have to scale row_size by average number of chooser rows per chunk_id
+    num_choosers = choosers['chunk_id'].max() + 1
+    rows_per_chunk_id = len(choosers) / num_choosers
+    row_size = row_size * rows_per_chunk_id
+
+    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+
+
+def simple_simulate_by_chunk_id(choosers, spec, nest_spec, skims=None, locals_d=None,
+                                chunk_size=0, custom_chooser=None,
+                                want_logsums=False,
+                                estimator=None,
+                                trace_label=None, trace_choice_name=None):
+    """
+    Run an MNL or NL simulation for when the model spec does not involve alternative
+    specific data, e.g. there are no interactions with alternative
+    properties and no need to sample from alternatives.
+
+    FIXME - this is a short-term expedient to implement simple_simulate_by_chunk_id for joint_tpur_participation
+    """
+
+    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate')
+
+    assert len(choosers) > 0
+
+    rows_per_chunk, effective_chunk_size = \
+        simple_simulate_by_chunk_id_rpc(chunk_size, choosers, spec, nest_spec, trace_label)
+
+    result_list = []
+    # segment by person type and pick the right spec for each person type
+    for i, num_chunks, chooser_chunk in chunk.chunked_choosers_by_chunk_id(choosers, rows_per_chunk):
+
+        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
+
+        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
+            if num_chunks > 1 else trace_label
+
+        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+
+        choices = _simple_simulate(
+            chooser_chunk, spec, nest_spec,
+            skims=skims,
+            locals_d=locals_d,
+            custom_chooser=custom_chooser,
+            want_logsums=want_logsums,
+            estimator=estimator,
+            trace_label=chunk_trace_label,
+            trace_choice_name=trace_choice_name)
+
+        chunk.log_close(chunk_trace_label)
+
+        result_list.append(choices)
+
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
+
+    assert len(choices.index == len(choosers.index))
+
+    return choices
+
+
 def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     """
     like eval_nl except return logsums instead of making choices

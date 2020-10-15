@@ -10,5 +10,5 @@ read_skim_cache: False
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
 write_skim_cache: False
 #alternate dir to read/write skim cache (defaults to output_dir)
-skim_cache_dir: data/cache
+#skim_cache_dir: data/cache
 

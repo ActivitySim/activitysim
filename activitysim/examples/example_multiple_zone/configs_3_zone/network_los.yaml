@@ -70,10 +70,10 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
       PREPROCESSOR:
         SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
         DF: df
-      sets:  # this is redundant - should match alternative columns in spec
-        - fastest
-        - cheapest
-        - shortest
+#      sets:  # this is redundant - should match alternative columns in spec
+#        - fastest
+#        - cheapest
+#        - shortest
     maz_tap_expressions:
       walk:
         SPEC: tvpb_utility_walk_maz_tap.csv
@@ -123,8 +123,8 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
         max_paths_per_tap_set: 1
     tap_tap_expressions:
       SPEC: tvpb_accessibility_tap_tap_.csv
-      sets:
-        - transit
+#      sets:
+#        - transit
     maz_tap_expressions:
         walk:
           SPEC: tvpb_accessibility_walk_maz_tap.csv

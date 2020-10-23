@@ -29,6 +29,8 @@ def local_utilities():
         name, entity pairs of locals
     """
 
+    #duplicate
+
     utility_dict = {
         'pd': pd,
         'np': np,
@@ -166,7 +168,6 @@ def annotate_preprocessors(
 
     simulate.set_skim_wrapper_targets(tours_df, skims)
 
-    annotations = None
     for model_settings in preprocessor_settings:
 
         results = compute_columns(

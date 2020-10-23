@@ -80,50 +80,48 @@ def skim_data_from_buffer(skim_info, skim_buffer):
     return skim_data
 
 
-def default_skim_cache_dir():
-    return inject.get_injectable('output_dir')
-
-
 def build_skim_cache_file_name(skim_tag):
     return f"cached_{skim_tag}.mmap"
 
 
-def read_skim_cache(skim_info, skim_data, skim_cache_dir):
+def read_skim_cache(skim_info, skim_data, cache_dir):
     """
         read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
+        return True if it was there and we read it, return False if not found
     """
-
-    logger.info(f"reading skims data from cache directory {skim_cache_dir}")
 
     skim_tag = skim_info['skim_tag']
     dtype = np.dtype(skim_info['dtype'])
 
     skim_cache_file_name = build_skim_cache_file_name(skim_tag)
-    skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
+    skim_cache_path = os.path.join(cache_dir, skim_cache_file_name)
 
-    assert os.path.isfile(skim_cache_path), \
-        "read_skim_cache could not find skim_cache_path: %s" % (skim_cache_path,)
+    if not os.path.isfile(skim_cache_path):
+        logger.warning(f"read_skim_cache file not found: {skim_cache_path}")
+        return False
 
+    logger.debug(f"reading skims data from cache directory {cache_dir}")
     logger.info(f"reading skim cache {skim_tag} {skim_data.shape} from {skim_cache_file_name}")
 
     data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='r')
     assert data.shape == skim_data.shape
 
     skim_data[::] = data[::]
+    return True
 
 
-def write_skim_cache(skim_info, skim_data, skim_cache_dir):
+def write_skim_cache(skim_info, skim_data, cache_dir):
     """
         write skim data from skim_data to canonically named cache file(s) in output directory
     """
 
-    logger.info(f"writing skims data to cache directory {skim_cache_dir}")
+    logger.info(f"writing skims data to cache directory {cache_dir}")
 
     skim_tag = skim_info['skim_tag']
     dtype = np.dtype(skim_info['dtype'])
 
     skim_cache_file_name = build_skim_cache_file_name(skim_tag)
-    skim_cache_path = os.path.join(skim_cache_dir, skim_cache_file_name)
+    skim_cache_path = os.path.join(cache_dir, skim_cache_file_name)
 
     logger.info(f"writing skim cache {skim_tag} {skim_data.shape} to {skim_cache_file_name}")
 
@@ -175,18 +173,17 @@ def load_skims(skim_info, skim_buffer, network_los):
     read_cache = network_los.setting('read_skim_cache', False)
     write_cache = network_los.setting('write_skim_cache', False)
 
-    assert not (read_cache and write_cache), \
-        "read_skim_cache and write_skim_cache are both True in settings file. I am assuming this is a mistake"
-
     skim_data = skim_data_from_buffer(skim_info, skim_buffer)
+    cache_dir = network_los.get_cache_dir()
 
-    if read_cache:
-        read_skim_cache(skim_info, skim_data, network_los.setting('skim_cache_dir', default_skim_cache_dir()))
+    # if they specify both read_cache and write_cache, thern read cache if it is there and write it if it is not
+    if read_cache and read_skim_cache(skim_info, skim_data, cache_dir):
+        write_cache = False
     else:
         read_skims_from_omx(skim_info, skim_data)
 
     if write_cache:
-        write_skim_cache(skim_info, skim_data, network_los.setting('skim_cache_dir', default_skim_cache_dir()))
+        write_skim_cache(skim_info, skim_data, cache_dir)
 
 
 def load_skim_info(skim_tag, omx_file_names, skim_time_periods):
@@ -311,9 +308,9 @@ def load_skim_info(skim_tag, omx_file_names, skim_time_periods):
         'dtype': skim_dtype,
         'offset_map_name': offset_map_name,
         'offset_map': offset_map,
-        'omx_keys': omx_keys,
+        'omx_keys': omx_keys,  # dict mapping skim key tuple to omx_key
         'base_keys': list(key1_block_offsets.keys()),  # list of base (key1) keys
-        'block_offsets': block_offsets,
+        'block_offsets': block_offsets,  # dict mapping skim key tuple to offset
     }
 
     return skim_info
@@ -346,10 +343,10 @@ def create_skim_dict(skim_tag, skim_info, network_los):
     # set offset
     offset_map = skim_info['offset_map']
     if offset_map is not None:
-        skim_dict.offset_mapper.set_offset_list(offset_map)
-        logger.debug(f"create_skim_dict {skim_tag} "
-                     f"using offset map {skim_info['offset_map_name']} "
-                     f"from omx file: {offset_map}")
+        logger.debug(f"create_skim_dict {skim_tag} using offset map {skim_info['offset_map_name']}  from omx file.")
+        # logger.debug(f"create_skim_dict {skim_tag} offset_map: {offset_map")
+        # offset_map (omx mapentry) is an int array, equivalent to offset_mapper offset_list
+        skim_dict.offset_mapper.set_offset_list(offset_list=offset_map)
     else:
         # assume this is a one-based skim map
         skim_dict.offset_mapper.set_offset_int(-1)
@@ -372,7 +369,7 @@ class Network_LOS(object):
         self.tables = {}
 
         # TWO_ZONE and THREE_ZONE
-        self.maz_df = None
+        self.maz_taz_df = None
         self.maz_to_maz_df = None
         self.maz_ceiling = None
         self.max_blend_distance = {}
@@ -477,9 +474,10 @@ class Network_LOS(object):
 
             # maz
             file_name = self.setting('maz')
-            self.maz_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+            self.maz_taz_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+            self.maz_taz_df = self.maz_taz_df[['MAZ', 'TAZ']]  # only fields we need
 
-            self.maz_ceiling = self.maz_df.MAZ.max() + 1
+            self.maz_ceiling = self.maz_taz_df.MAZ.max() + 1
 
             # maz_to_maz_df
             for file_name in as_list(self.setting('maz_to_maz.tables')):
@@ -561,6 +559,20 @@ class Network_LOS(object):
         assert skim_tag not in self.skims_info
         return load_skim_info(skim_tag, omx_file_names, self.skim_time_periods)
 
+    def get_cache_dir(self):
+
+        cache_dir = self.setting('cache_dir', None)
+        if cache_dir is None:
+            cache_dir = os.path.join(inject.get_injectable('output_dir'), 'cache')
+
+        if not os.path.isdir(cache_dir):
+            os.mkdir(cache_dir)
+
+        assert os.path.isdir(cache_dir)
+
+        return cache_dir
+
+
     def create_skim_dict(self, skim_tag):
         return create_skim_dict(skim_tag, self.skims_info[skim_tag], self)
 
@@ -594,8 +606,17 @@ class Network_LOS(object):
         assert skim_tag in self.skim_dicts
         if skim_tag not in self.skim_stacks:
             logger.debug(f"network_los get_skim_stack initializing skim_stack for {skim_tag}")
-            self.skim_stacks[skim_tag] = skim.SkimStack(self.skim_dicts[skim_tag])
+            if skim_tag == 'maz':
+                self.skim_stacks[skim_tag] = skim_maz.MazSkimStackFacade(network_los=self)
+            else:
+                self.skim_stacks[skim_tag] = skim.SkimStack(self.skim_dicts[skim_tag])
         return self.skim_stacks[skim_tag]
+
+    def get_default_skim_stack(self):
+        if self.zone_system == ONE_ZONE:
+            return self.get_skim_stack('taz')
+        else:
+            return self.get_skim_stack('maz')
 
     def get_table(self, table_name):
         assert table_name in self.tables, f"get_table: table '{table_name}' not loaded"

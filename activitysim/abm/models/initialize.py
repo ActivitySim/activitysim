@@ -17,7 +17,6 @@ from activitysim.core.steps.output import track_skim_usage
 
 from activitysim.abm.tables import shadow_pricing
 
-
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
 # with previous versions of ActivitySim in which only 'input_store'
@@ -42,7 +41,10 @@ def annotate_tables(model_settings, trace_label):
     annotate_tables = model_settings.get('annotate_tables', [])
 
     if not annotate_tables:
-        logger.warning("annotate_tables setting is empty - nothing to do!")
+        logger.warning(f"{trace_label} - annotate_tables setting is empty - nothing to do!")
+
+    assert isinstance(annotate_tables, list), \
+        f"annotate_tables settings should be a list but is {type(annotate_tables)}"
 
     t0 = tracing.print_elapsed_time()
 
@@ -55,18 +57,18 @@ def annotate_tables(model_settings, trace_label):
         column_map = table_info.get('column_map', None)
         if column_map:
 
-            warnings.warn("annotate_tables option 'column_map' renamed 'rename_columns' and moved"
-                          "to settings.yaml. Support for 'column_map' in annotate_tables will be "
+            warnings.warn(f"{trace_label} - annotate_tables option 'column_map' renamed 'rename_columns' "
+                          f"and moved to settings.yaml. Support for 'column_map' in annotate_tables will be "
                           "removed in future versions.",
                           FutureWarning)
 
-            logger.info("renaming %s columns %s" % (tablename, column_map,))
+            logger.info(f"{trace_label} - renaming {tablename} columns {column_map}")
             df.rename(columns=column_map, inplace=True)
 
         # - annotate
         annotate = table_info.get('annotate', None)
         if annotate:
-            logger.info("annotated %s SPEC %s" % (tablename, annotate['SPEC'],))
+            logger.info(f"{trace_label} - annotating {tablename} SPEC {annotate['SPEC']}")
             expressions.assign_columns(
                 df=df,
                 model_settings=annotate,

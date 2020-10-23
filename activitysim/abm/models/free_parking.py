@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def free_parking(
         persons_merged, persons, households,
         skim_dict, skim_stack,
-        chunk_size, trace_hh_id, locutor):
+        chunk_size, trace_hh_id):
     """
 
     """

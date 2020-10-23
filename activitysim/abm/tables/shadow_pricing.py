@@ -585,7 +585,7 @@ def get_shadow_pricing_info():
     shadow_settings = config.read_model_settings('shadow_pricing.yaml')
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
-    shadow_pricing_models = shadow_settings['shadow_pricing_models']
+    shadow_pricing_models = shadow_settings.get('shadow_pricing_models', {})
 
     blocks = OrderedDict()
     for model_selector in shadow_pricing_models:
@@ -772,15 +772,15 @@ def add_size_tables():
     use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
 
     shadow_settings = config.read_model_settings('shadow_pricing.yaml')
-    shadow_pricing_models = shadow_settings['shadow_pricing_models']
-
-    # probably ought not scale if not shadow_pricing (breaks partial sample replicability)
-    # but this allows compatability with existing CTRAMP behavior...
-    scale_size_table = shadow_settings.get('SCALE_SIZE_TABLE', False)
+    shadow_pricing_models = shadow_settings.get('shadow_pricing_models')
 
     if shadow_pricing_models is None:
         logger.warning('shadow_pricing_models list not found in shadow_pricing settings')
         return
+
+    # probably ought not scale if not shadow_pricing (breaks partial sample replicability)
+    # but this allows compatability with existing CTRAMP behavior...
+    scale_size_table = shadow_settings.get('SCALE_SIZE_TABLE', False)
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process

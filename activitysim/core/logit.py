@@ -181,7 +181,7 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     return probs
 
 
-def make_choices(probs, trace_label=None, trace_choosers=None):
+def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=False):
     """
     Make choices for each chooser from among a set of alternatives.
 
@@ -216,7 +216,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
         probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
         > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
-    if bad_probs.any():
+    if bad_probs.any() and not allow_bad_probs:
 
         report_bad_choices(bad_probs, probs,
                            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),

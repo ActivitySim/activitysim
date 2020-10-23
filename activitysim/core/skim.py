@@ -26,73 +26,102 @@ class OffsetMapper(object):
 
     Can map either by a fixed offset (e.g. -1 to map 1-based to 0-based)
     or by an explicit mapping of zone id to offset (slower but more flexible)
+
+    offset_int: int which when added to zone_id yields skim array index
+    (e.g. offset_int of 1-based zone ids to 0-based array indices)
+
+    offset_int:
+        int offset which when added to zone_id yields skim array index (e.g. -1 to map 1-based to 0-based)
+    offset_list:
+        list the same size as target skim dimension with zone_id values corresponding to as the skim array index
+    offset_series:
+        pandas series with zone_id index and skim array offset values (can map many zone_ids to skim array index)
     """
 
-    def __init__(self, offset=None):
-        self.offset_series = None
-        self.offset_int = None
+    def __init__(self, offset_int=None, offset_list=None, offset_series=None):
 
-        if isinstance(offset, int):
-            self.set_offset_int(offset)
-        elif isinstance(offset, list):
-            # np.ndarray?
-            self.set_offset_list(offset)
-        elif isinstance(offset, pd.Series):
-            self.set_offset_series(offset)
+        self.offset_int = self.offset_series = None
+
+        assert (offset_int is not None) + (offset_list is not None) + (offset_series is not None) <= 1
+
+        if offset_int is not None:
+            self.set_offset_int(offset_int)
+        elif offset_list is not None:
+            self.set_offset_list(offset_list)
+        elif offset_series is not None:
+            self.set_offset_series(offset_series)
+
+    def print_offset(self, message=''):
+        assert (self.offset_int is not None) or (self.offset_series is not None)
+
+        if self.offset_int is not None:
+            print(f"{message} offset_int: {self.offset_int}")
+        elif self.offset_series is not None:
+            print(f"{message} offset_series:\n {self.offset_series}")
         else:
-            assert offset is None, f"OffsetMapper offset type not recognized: {type(offset)}"
+            print(f"{message} offset: None")
 
     def set_offset_series(self, offset_series):
-        self.offset_series = None
+        """
+        offset_series: pandas.Series
+            series with zone_id index and skim array offset values (can map many zone_ids to skim array index)
+        """
+        assert isinstance(offset_series, pd.Series)
         self.offset_series = offset_series
+        self.offset_int = None
 
     def set_offset_list(self, offset_list):
         """
-        Specify the zone ids corresponding to the offsets (ordinal positions)
+        offset_list
+            list the same size as target skim dimension with zone_id values corresponding to as the skim array index
 
         set_offset_list([10, 20, 30, 40])
-        map([30, 20, 40])
-        returns offsets [2, 1, 3]
+        map([30, 10, 40])
+        returns offsets [2, 0, 3]
 
         Parameters
         ----------
         offset_list : list of int
         """
         assert isinstance(offset_list, list)
-        assert self.offset_int is None
 
-        # - for performance, check if this is a simple int-based series
+        # - for performance, check if this is a simple range that can ber represented by an int offset
         first_offset = offset_list[0]
         if (offset_list == list(range(first_offset, len(offset_list)+first_offset))):
             offset_int = -1 * first_offset
-            # print "set_offset_list substituting offset_int of %s" % offset_int
             self.set_offset_int(offset_int)
             return
 
         if self.offset_series is None:
-            self.offset_series = pd.Series(data=list(range(len(offset_list))), index=offset_list)
+            offset_series = pd.Series(data=list(range(len(offset_list))), index=offset_list)
+            self.set_offset_series(offset_series)
         else:
-            # make sure it offsets are the same
+            # make sure offsets are the same
             assert (offset_list == self.offset_series.index).all()
+            #FIXME - does this ever happen?
+            bug
 
     def set_offset_int(self, offset_int):
         """
-        specify fixed offset (e.g. -1 to map 1-based to 0-based)
+        specify int offset which when added to zone_id yields skim array index (e.g. -1 to map 1-based to 0-based)
 
         Parameters
         ----------
         offset_int : int
-        """
 
-        # should be some kind of integer
+        """
+        # should be some duck subtype of integer (but might be, say, numpy.int64)
         assert int(offset_int) == offset_int
-        assert self.offset_series is None
 
         if self.offset_int is None:
             self.offset_int = int(offset_int)
+            self.offset_series = None
         else:
             # make sure it is the same
             assert offset_int == self.offset_int
+            assert self.offset_series is None
+            #FIXME - does this ever happen?
+            bug
 
     def map(self, zone_ids):
         """
@@ -110,8 +139,15 @@ class OffsetMapper(object):
         if self.offset_series is not None:
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
-            offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series).
-                                    fillna(NOT_IN_SKIM_ZONE_ID).astype(int))
+
+            #FIXME - faster to use series.map if zone_ids is a series?
+            #offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int))
+
+            # why were we returning ndarray?
+
+            offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
+
+
         elif self.offset_int:
             assert (self.offset_series is None)
             offsets = zone_ids + self.offset_int
@@ -125,15 +161,9 @@ class SkimWrapper(object):
     """
     Container for skim arrays.
 
-    Parameters
-    ----------
     data : 2D array
-    offset : int, optional
-        An optional offset that will be added to origin/destination
-        values to turn them into array indices.
-        For example, if zone IDs are 1-based, an offset of -1
-        would turn them into 0-based array indices.
-
+    offset_mapper : OffsetMapper
+        maps origin/destination values to array indices.
     """
     def __init__(self, data, offset_mapper=None):
 
@@ -183,8 +213,7 @@ class SkimWrapper(object):
 class SkimDict(object):
     """
     A SkimDict object is a wrapper around a dict of multiple skim objects,
-    where each object is identified by a key.  It operates like a
-    dictionary - i.e. use brackets to add and get skim objects.
+    where each object is identified by a key.
 
     Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
@@ -196,6 +225,9 @@ class SkimDict(object):
 
         self.offset_mapper = OffsetMapper()
         self.usage = set()
+
+    def has_key(self, key):
+        return key in self.skim_info
 
     def get_skim_info(self, key):
         return self.skim_info.get(key)
@@ -307,7 +339,7 @@ class SkimDictWrapper(object):
 
         # The skim object to perform the lookup
         # using df[orig_key] as the origin and df[dest_key] as the destination
-        skim = self.skim_dict.get(key)
+        skim_wrapper = self.skim_dict.get(key)
 
         # assert self.df is not None, "Call set_df first"
         # origins = self.df[self.orig_key].astype('int')
@@ -319,9 +351,9 @@ class SkimDictWrapper(object):
         assert self.df is not None, "Call set_df first"
 
         if reverse:
-            s = skim.get(self.df[self.dest_key], self.df[self.orig_key])
+            s = skim_wrapper.get(self.df[self.dest_key], self.df[self.orig_key])
         else:
-            s = skim.get(self.df[self.orig_key], self.df[self.dest_key])
+            s = skim_wrapper.get(self.df[self.orig_key], self.df[self.dest_key])
 
         return pd.Series(s, index=self.df.index)
 
@@ -336,13 +368,13 @@ class SkimDictWrapper(object):
         return max skim value in either o-d or d-o direction
         """
 
-        skim = self.skim_dict.get(key)
+        skim_wrapper = self.skim_dict.get(key)
 
         assert self.df is not None, "Call set_df first"
 
         s = np.maximum(
-            skim.get(self.df[self.dest_key], self.df[self.orig_key]),
-            skim.get(self.df[self.orig_key], self.df[self.dest_key])
+            skim_wrapper.get(self.df[self.dest_key], self.df[self.orig_key]),
+            skim_wrapper.get(self.df[self.orig_key], self.df[self.dest_key])
         )
 
         return pd.Series(s, index=self.df.index)
@@ -403,8 +435,6 @@ class SkimStack(object):
         orig = self.offset_mapper.map(orig)
         dest = self.offset_mapper.map(dest)
 
-        assert key in self.skim_dim3, "SkimStack key %s missing" % key
-
         stacked_skim_data = self.skim_dict.get_skim_data()
         skim_keys_to_indexes = self.skim_dim3[key]
 
@@ -414,7 +444,18 @@ class SkimStack(object):
         # this should be faster than map
         skim_indexes = np.vectorize(skim_keys_to_indexes.get)(dim3)
 
-        return stacked_skim_data[orig, dest, skim_indexes]
+        try:
+            result = stacked_skim_data[orig, dest, skim_indexes]
+        except Exception as err:
+            logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
+            logger.error(f"orig max {orig.max()} min {orig.min()}")
+            logger.error(f"dest max {dest.max()} min {dest.min()}")
+            logger.error(f"skim_indexes max '{max(skim_indexes)}")
+            logger.error(f"skim_indexes min '{min(skim_indexes)}")
+            print(f"stacked_skim_data.shape {stacked_skim_data.shape}")
+            raise err
+
+        return result
 
     def wrap(self, orig_key, dest_key, dim3_key):
         """

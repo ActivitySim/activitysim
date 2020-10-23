@@ -122,11 +122,25 @@ def read_from_table_info(table_info):
             assert not df.duplicated(index_col).any()
             df.set_index(index_col, inplace=True)
         else:
-            df.index.names = [index_col]
+            #FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?
+            #df.index.names = [index_col]
+            logger.error(f"index_col '{index_col}' specified in configs but not in {tablename} table!")
+            logger.error(f"{tablename} columns are: {list(df.columns)}")
+            raise RuntimeError(f"index_col '{index_col}' not in {tablename} table!")
 
     if keep_columns:
         logger.info("keeping columns: %s" % keep_columns)
+        if not set(keep_columns).issubset(set(df.columns)):
+            logger.error(f"Required columns missing from {tablename} table: "
+                         f"{list(set(keep_columns).difference(set(df.columns)))}")
+            logger.error(f"{tablename} table has columns: {list(df.columns)}")
+            raise RuntimeError(f"Required columns missing from {tablename} table")
+
         df = df[keep_columns]
+
+    if df.columns.duplicated().any():
+        duplicate_column_names = df.columns[df.columns.duplicated(keep=False)].unique().to_list()
+        assert not df.columns.duplicated().any(), f"duplicate columns names in {tablename}: {duplicate_column_names}"
 
     logger.debug('%s table columns: %s' % (tablename, df.columns.values))
     logger.debug('%s table size: %s' % (tablename, util.df_size(df)))

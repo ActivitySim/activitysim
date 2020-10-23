@@ -151,7 +151,6 @@ def compute_logsums(choosers,
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
-        trace_label=trace_label,
-        alt_col_name=dest_col_name)
+        trace_label=trace_label)
 
     return logsums

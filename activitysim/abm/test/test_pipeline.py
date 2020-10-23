@@ -527,13 +527,16 @@ def test_full_run4_stability():
 
 def test_full_run5_singleton():
 
-    # should wrk with only one hh
+    # should work with only one hh
+    # run with minimum chunk size to drive potential chunking errors in models
+    # where choosers has multiple rows that all have to be included in the same chunk
 
     if SKIP_FULL_RUN:
         return
 
     tour_count = full_run(trace_hh_id=HH_ID,
-                          households_sample_size=1)
+                          households_sample_size=1,
+                          chunk_size=1)
 
     regress()
 

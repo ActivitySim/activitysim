@@ -20,6 +20,7 @@ def mode_choice_simulate(
         logsum_column_name,
         trace_label,
         trace_choice_name,
+        chooser_tag_col_name=None,
         estimator=None):
     """
     common method for  both tour_mode_choice and trip_mode_choice
@@ -54,7 +55,8 @@ def mode_choice_simulate(
         want_logsums=want_logsums,
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
-        estimator=estimator)
+        estimator=estimator,
+        chooser_tag_col_name=chooser_tag_col_name)
 
     # for consistency, always return dataframe, whether or not logsums were requested
     if isinstance(choices, pd.Series):
@@ -109,9 +111,16 @@ def run_tour_mode_choice_simulate(
     choosers['in_period'] = network_los.skim_time_period_label(choosers[in_time])
     choosers['out_period'] = network_los.skim_time_period_label(choosers[out_time])
 
+    #FIXME - this may require chunking in 3-zone system
+
     expressions.annotate_preprocessors(
         choosers, locals_dict, skims,
         model_settings, trace_label)
+
+    chooser_tag_col_name = choosers.index.name
+    assert chooser_tag_col_name == 'tour_id'
+    if chooser_tag_col_name not in choosers:
+        choosers[chooser_tag_col_name] = choosers.index
 
     if estimator:
         # write choosers after annotation
@@ -128,6 +137,7 @@ def run_tour_mode_choice_simulate(
         logsum_column_name=logsum_column_name,
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
+        chooser_tag_col_name=chooser_tag_col_name,
         estimator=estimator)
 
     return choices

@@ -29,15 +29,6 @@ def network_los():
 
 
 @inject.injectable(cache=True)
-def path_builder(network_los):
-
-    logger.debug("loading network_los injectable")
-    tvpb = TransitVirtualPathBuilder(network_los)
-
-    return tvpb
-
-
-@inject.injectable(cache=True)
 def skim_dict(network_los):
     return network_los.get_default_skim_dict()
 

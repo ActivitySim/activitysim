@@ -142,6 +142,8 @@ def local_utilities():
         name, entity pairs of locals
     """
 
+    #duplicate
+
     utility_dict = {
         'pd': pd,
         'np': np,
@@ -150,6 +152,8 @@ def local_utilities():
         'other_than': util.other_than,
         'rng': pipeline.get_rn_generator(),
     }
+
+    utility_dict.update(config.get_global_constants())
 
     return utility_dict
 
@@ -276,10 +280,14 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             np.seterr(**save_err)
             np.seterrcall(saved_handler)
 
+        # except Exception as err:
+        #     logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
+        #     logger.error("assign_variables expression: %s = %s", str(target), str(expression))
+        #     raise err
+
         except Exception as err:
-            logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
-            logger.error("assign_variables expression: %s = %s", str(target), str(expression))
-            raise err
+            logger.exception(f"assign_variables - {type(err).__name__} ({str(err)}) evaluating: {str(expression)}")
+            raise type(err)(f'{str(err)} evaluating: "{str(expression)}"').with_traceback(err.__traceback__)
 
         if not is_temp(target):
             variables[target] = expr_values

@@ -28,8 +28,11 @@ HWM = [{}]
 
 INITIAL_ROWS_PER_CHUNK = 10
 MAX_ROWSIZE_ERROR = 0.5  # estimated_row_size percentage error warning threshold
-TRACE_CHUNKING = False
-TRACE_CHUNK_WARNING = True
+INTERACTIVE_TRACE_CHUNKING = False
+INTERACTIVE_TRACE_CHUNK_WARNING = False
+
+# chunk size being a bit opaque, it may be helpful to know the chunk size of a small sample run to titrate chunk_size
+CHUNK_HISTORY = True  # always log chunk history even if chunk_size == 0
 
 
 def GB(bytes):
@@ -70,7 +73,7 @@ class RowSizeEstimator(object):
         self.tag_count[tag] = self.tag_count.setdefault(tag, 0) + 1  # number of times tag has been seen
         self.row_size += elements
         logger.debug(f"{self.trace_label} #chunk_calc {tag} {elements} ({self.row_size})")
-        input("add_elements>") if TRACE_CHUNKING else None
+        input("add_elements>") if INTERACTIVE_TRACE_CHUNKING else None
 
         if self.row_size > self.hwm:
             self.hwm = self.row_size
@@ -84,7 +87,7 @@ class RowSizeEstimator(object):
 
     def get_hwm(self):
         logger.debug(f"{self.trace_label} #chunk_calc hwm {self.row_size} after {self.hwm_tag}")
-        input("get_hwm>") if TRACE_CHUNKING else None
+        input("get_hwm>") if INTERACTIVE_TRACE_CHUNKING else None
         return self.hwm
 
 
@@ -94,7 +97,7 @@ def chunk_log(trace_label, chunk_size=0, effective_chunk_size=0):
     try:
         yield
     finally:
-        hwm = log_close(trace_label)
+        log_close(trace_label)
 
 
 def get_high_water_mark(tag='elements'):
@@ -129,6 +132,8 @@ def not_chunking():
     for trace_label in reversed(CHUNK_LOG):
         print(f"   {trace_label}")
 
+    return False
+
 
 def log_open(trace_label, chunk_size=0, effective_chunk_size=0):
 
@@ -137,7 +142,7 @@ def log_open(trace_label, chunk_size=0, effective_chunk_size=0):
         assert chunk_size == 0
         assert trace_label not in CHUNK_LOG
 
-    logger.debug("log_open chunker %s chunk_size %s effective_chunk_size %s" %
+    logger.debug("#chunk log_open chunker %s chunk_size %s effective_chunk_size %s" %
                  (trace_label, commas(chunk_size), commas(effective_chunk_size)))
 
     CHUNK_LOG[trace_label] = OrderedDict()
@@ -152,7 +157,8 @@ def log_close(trace_label):
     # they should be closing the last log opened (LIFO)
     assert CHUNK_LOG and next(reversed(CHUNK_LOG)) == trace_label
 
-    logger.debug("log_close %s" % trace_label)
+    hwm_elements = get_high_water_mark(tag='elements')
+    logger.debug(f"#chunk log_close elements {hwm_elements} {trace_label}")
 
     # if we are closing base level chunker
     if len(CHUNK_LOG) == 1:
@@ -162,8 +168,7 @@ def log_close(trace_label):
     assert label == trace_label
     CHUNK_SIZE.pop()
     EFFECTIVE_CHUNK_SIZE.pop()
-
-    return HWM.pop()
+    HWM.pop()
 
 
 def log_df(trace_label, table_name, df):
@@ -234,7 +239,7 @@ def log_df(trace_label, table_name, df):
            (commas(total_elements), GB(total_bytes), GB(cur_mem),
             commas(CHUNK_SIZE[0]), commas(EFFECTIVE_CHUNK_SIZE[0]))
 
-    if TRACE_CHUNKING:
+    if INTERACTIVE_TRACE_CHUNKING:
         print(f"table_name {table_name} {df.shape if df is not None else 0}")
         print(f"table_name {table_name} {info}")
         input("log_df>")
@@ -295,29 +300,43 @@ def log_write_hwm():
         check_chunk_size(hwm, CHUNK_SIZE[0], 'chunk_size', max_leeway=1)
 
 
-def write_history(caller, history, chunk_size, trace_label):
+def write_history(caller, history, trace_label):
 
     observed_size = history.observed_chunk_size.sum()
     number_of_rows = history.rows_per_chunk.sum()
     observed_row_size = math.ceil(observed_size / number_of_rows)  # FIXME
-    initial_row_size = history.row_size.values[0]
 
     num_chunks = len(history)
 
     logger.info(f"#chunk_history {caller} {trace_label} "
-                f"initial_row_size: {initial_row_size} "
                 f"number_of_rows: {number_of_rows} "
                 f"observed_row_size: {observed_row_size} "
                 f"num_chunks: {num_chunks}")
 
-    error = (initial_row_size - observed_row_size) / observed_row_size
-    if initial_row_size and abs(error) > MAX_ROWSIZE_ERROR:
+    initial_row_size = history.row_size.values[0]
+    if initial_row_size > 0:
+
+        # if they provided an initial estimated row size, then report error
+
+        error = (initial_row_size - observed_row_size) / observed_row_size
         percent_error = round(error * 100, 1)
-        logger.warning(f"#chunk_history MAX_ROWSIZE_ERROR {percent_error}% "
-                       f"estimated {initial_row_size} but observed {observed_row_size} in {trace_label}")
-        if TRACE_CHUNK_WARNING:
-            print(history)
-            input(f"{trace_label} type any key to continue")
+
+        logger.info(f"#chunk_history {caller} {trace_label} "
+                    f"initial_row_size: {initial_row_size} "
+                    f"observed_row_size: {observed_row_size}"
+                    f"percent_error: {percent_error}%")
+
+        if abs(error) > MAX_ROWSIZE_ERROR:
+
+            logger.warning(f"#chunk_history MAX_ROWSIZE_ERROR "
+                           f"initial_row_size {initial_row_size} "
+                           f"observed_row_size {observed_row_size} "
+                           f"percent_error: {percent_error}% in {trace_label}")
+
+            if INTERACTIVE_TRACE_CHUNK_WARNING:
+                # for debugging adaptive chunking internals
+                print(history)
+                input(f"{trace_label} type any key to continue")
 
 
 def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_label):
@@ -326,8 +345,13 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
 
     num_choosers = len(choosers.index)
     assert num_choosers > 0
+    assert chunk_size >= 0
+    assert estimated_row_size >= 0
 
     logger.info(f"Running adaptive_chunked_choosers with chunk_size {chunk_size} and {num_choosers} choosers")
+
+    #FIXME do we care if it is an int?
+    row_size = estimated_row_size = math.ceil(estimated_row_size)
 
     if chunk_size == 0:
         assert estimated_row_size == 0  # we ignore this but make sure caller realizes that
@@ -336,11 +360,9 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
     else:
         assert len(HWM) == 1
         if estimated_row_size == 0:
-            row_size = 0
             rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
             estimated_number_of_chunks = None
         else:
-            row_size = math.ceil(estimated_row_size)  # FIXME - no real need to be in here or below?
             rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
 
@@ -372,9 +394,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
         offset += rows_per_chunk
         rows_remaining = num_choosers - offset
 
-        if chunk_size == 0:
-            assert rows_remaining == 0
-        else:
+        if CHUNK_HISTORY or chunk_size > 0:
 
             history.setdefault('row_size', []).append(row_size)
             history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
@@ -394,7 +414,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
 
     if history:
         history = pd.DataFrame.from_dict(history)
-        write_history('adaptive_chunked_choosers', history, chunk_size, trace_label)
+        write_history('adaptive_chunked_choosers', history, trace_label)
 
 
 def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estimated_row_size, trace_label):
@@ -444,26 +464,28 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
     assert choosers.index.equals(alternatives.index[~alternatives.index.duplicated(keep='first')])
 
     last_repeat = alternatives.index != np.roll(alternatives.index, -1)
-    assert (num_choosers == 1) or choosers.index.equals(alternatives.index[last_repeat])
 
+    assert (num_choosers == 1) or choosers.index.equals(alternatives.index[last_repeat])
     assert 'pick_count' in alternatives.columns or choosers.index.name == alternatives.index.name
     assert choosers.index.name == alternatives.index.name
 
     logger.info(f"Running adaptive_chunked_choosers_and_alts with chunk_size {chunk_size} "
                 f"and {num_choosers} choosers and {num_alternatives} alternatives")
 
+    #FIXME do we care if it is an int?
+    row_size = estimated_row_size = math.ceil(estimated_row_size)
+
     if chunk_size == 0:
         assert estimated_row_size == 0  # we ignore this but make sure caller realizes that
         rows_per_chunk = num_choosers
         estimated_number_of_chunks = 1
+        row_size = 0
     else:
         assert len(HWM) == 1
         if estimated_row_size == 0:
-            row_size = 0
             rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
             estimated_number_of_chunks = None
         else:
-            row_size = math.ceil(estimated_row_size)  # FIXME - no real need to be in here or below?
             rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
         logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
@@ -504,11 +526,8 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
         i += 1
         offset += rows_per_chunk
         alt_offset = alt_end
-        rows_remaining = num_choosers - offset
-        alts_remaining = num_alternatives - alt_offset
 
-        if rows_remaining > 0:
-            assert chunk_size > 0
+        if CHUNK_HISTORY or chunk_size > 0:
 
             history.setdefault('row_size', []).append(row_size)
             history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
@@ -520,6 +539,8 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
             # closest number of chooser rows to achieve chunk_size without exceeding it
             rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
 
+            rows_remaining = num_choosers - offset
+
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 
             history.setdefault('new_row_size', []).append(row_size)
@@ -528,11 +549,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
 
     if history:
         history = pd.DataFrame.from_dict(history)
-        write_history('adaptive_chunked_choosers_and_alts', history, chunk_size, trace_label)
-
-    # should have consumed all choosers and alts
-    assert rows_remaining == 0
-    assert alts_remaining == 0
+        write_history('adaptive_chunked_choosers_and_alts', history, trace_label)
 
 
 def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_size, trace_label):
@@ -545,6 +562,9 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
     num_choosers = choosers['chunk_id'].max() + 1
     assert num_choosers > 0
 
+    #FIXME do we care if it is an int?
+    row_size = estimated_row_size = math.ceil(estimated_row_size)
+
     if chunk_size == 0:
         assert estimated_row_size == 0  # we ignore this but make sure caller realizes that
         rows_per_chunk = num_choosers
@@ -553,16 +573,17 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
         assert len(HWM) == 1
 
         if estimated_row_size == 0:
-            row_size = 0
             rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
             estimated_number_of_chunks = None
-        else:
-            row_size = math.ceil(estimated_row_size)
-            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
+            logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} "
+                         f"based on INITIAL_ROWS_PER_CHUNK {INITIAL_ROWS_PER_CHUNK}")
 
+        else:
+            rows_per_chunk = np.clip(int(chunk_size / estimated_row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
 
-        logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
+            logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} "
+                         f"based on estimated_row_size {estimated_row_size}")
 
     history = {}
     i = offset = 0
@@ -587,10 +608,8 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
 
         offset += rows_per_chunk
         i += 1
-        rows_remaining = num_choosers - offset
-        rows_remaining >= 0
 
-        if chunk_size > 0:
+        if CHUNK_HISTORY or chunk_size > 0:
 
             history.setdefault('row_size', []).append(row_size)
             history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
@@ -602,6 +621,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
             # closest number of chooser rows to achieve chunk_size without exceeding it
             rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
 
+            rows_remaining = num_choosers - offset
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 
             history.setdefault('new_row_size', []).append(row_size)
@@ -610,4 +630,4 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
 
     if history:
         history = pd.DataFrame.from_dict(history)
-        write_history('adaptive_chunked_choosers_by_chunk_id', history, chunk_size, trace_label)
+        write_history('adaptive_chunked_choosers_by_chunk_id', history, trace_label)

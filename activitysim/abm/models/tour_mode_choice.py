@@ -87,15 +87,12 @@ def tour_mode_choice_simulate(tours, persons_merged,
     primary_tours = tours.to_frame()
     assert not (primary_tours.tour_category == 'atwork').any()
 
-    persons_merged = persons_merged.to_frame()
-
-    constants = config.get_model_constants(model_settings)
-
     logger.info("Running %s with %d tours" % (trace_label, primary_tours.shape[0]))
 
     tracing.print_summary('tour_types',
                           primary_tours.tour_type, value_counts=True)
 
+    persons_merged = persons_merged.to_frame()
     primary_tours_merged = pd.merge(primary_tours, persons_merged, left_on='person_id',
                                     right_index=True, how='left', suffixes=('', '_r'))
 
@@ -103,12 +100,13 @@ def tour_mode_choice_simulate(tours, persons_merged,
     # model_constants can appear in expressions
     constants.update(config.get_model_constants(model_settings))
 
-    skim_stack = network_los.get_skim_stack('taz')
     skim_dict = network_los.get_default_skim_dict()
+    skim_stack = network_los.get_default_skim_stack()
 
     # setup skim keys
     orig_col_name = 'home_zone_id'
     dest_col_name = 'destination'
+
     out_time_col_name = 'start'
     in_time_col_name = 'end'
     odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
@@ -135,7 +133,9 @@ def tour_mode_choice_simulate(tours, persons_merged,
 
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
+
         tvpb = TransitVirtualPathBuilder(network_los)
+        tvpb.open_cache()
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
                                            tod_key='out_period', segment_key='demographic_segment',
@@ -219,10 +219,14 @@ def tour_mode_choice_simulate(tours, persons_merged,
                 print(f"mode {mode} direction {direction} path_type {path_type}")
 
                 for c in skim_cache:
+
                     dest_col = f'{direction}_{c}'
+
                     if dest_col not in choices_df:
-                        choices_df[dest_col] = np.nan
+                        choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
                     choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
+
+        tvpb.close_cache()  # close - and flush if write_tvpb_cache
 
     if estimator:
         estimator.write_choices(choices_df.tour_mode)

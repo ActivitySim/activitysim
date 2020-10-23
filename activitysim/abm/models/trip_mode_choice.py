@@ -191,6 +191,7 @@ def trip_mode_choice(
                 if dest_col not in choices_df:
                     choices_df[dest_col] = np.nan
                 choices_df[dest_col].where(choices_df[mode_column_name] != mode, skim_cache[c], inplace=True)
+
     # update trips table with choices (and otionally logssums)
     trips_df = trips.to_frame()
     assign_in_place(trips_df, choices_df)

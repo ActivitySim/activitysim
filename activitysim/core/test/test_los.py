@@ -152,9 +152,9 @@ def test_three_zone():
     dist = network_los.get_mazpairs(od_df.orig, od_df.dest, 'DIST').astype(np.float32)
     np.testing.assert_almost_equal(dist, [0.24, 0.14, 2.55, 1.9, 0.62])
 
-    od_df['tap'] = 90025
-    dist = network_los.get_maztappairs(od_df.orig, od_df.tap, 'DIST')
-    np.testing.assert_almost_equal(dist, [0.87, 0.59, 1.03, 1.03, 1.03])
+    #od_df['tap'] = 90025
+    #dist = network_los.get_maztappairs(od_df.orig, od_df.tap, 'DIST')
+    #np.testing.assert_almost_equal(dist, [0.87, 0.59, 1.03, 1.03, 1.03])
 
 
 def test_30_minute_windows():

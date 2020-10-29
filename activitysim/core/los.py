@@ -8,14 +8,20 @@ import os
 import logging
 import multiprocessing
 import warnings
+import psutil
+import time
 
 from collections import OrderedDict
 from functools import reduce
 from operator import mul
+from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
 import openmatrix as omx
+import pyarrow as pa
+
+from activitysim.core.mem import force_garbage_collect
 
 from activitysim.core import skim
 from activitysim.core import skim_maz
@@ -23,7 +29,7 @@ from activitysim.core import skim_maz
 from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
-
+from activitysim.core import tracing
 logger = logging.getLogger(__name__)
 
 LOS_SETTINGS_FILE_NAME = 'network_los.yaml'
@@ -31,6 +37,19 @@ LOS_SETTINGS_FILE_NAME = 'network_los.yaml'
 ONE_ZONE = 1
 TWO_ZONE = 2
 THREE_ZONE = 3
+
+
+@contextmanager
+def memo(tag):
+    t0 = tracing.print_elapsed_time()
+    pre_mem = psutil.Process(os.getpid()).memory_info().rss >> 20
+    try:
+        yield
+    finally:
+        post_mem = (psutil.Process(os.getpid()).memory_info().rss >> 20)
+        mem = post_mem - pre_mem
+        t = time.time() - t0
+        logger.debug(f"MEM {tag} changed by {mem} MB from {pre_mem} to {post_mem} in {tracing.format_elapsed_time(t)}")
 
 
 def multiply_large_numbers(list_of_numbers):
@@ -81,7 +100,8 @@ def skim_data_from_buffer(skim_info, skim_buffer):
 
 
 def build_skim_cache_file_name(skim_tag):
-    return f"cached_{skim_tag}.mmap"
+    #return f"cached_{skim_tag}.mmap"
+    return f"cached_{skim_tag}.pa"
 
 
 def read_skim_cache(skim_info, skim_data, cache_dir):
@@ -103,10 +123,16 @@ def read_skim_cache(skim_info, skim_data, cache_dir):
     logger.debug(f"reading skims data from cache directory {cache_dir}")
     logger.info(f"reading skim cache {skim_tag} {skim_data.shape} from {skim_cache_file_name}")
 
-    data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='r')
-    assert data.shape == skim_data.shape
+    # data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='r')
+    # assert data.shape == skim_data.shap
+    # skim_data[::] = data[::]
 
-    skim_data[::] = data[::]
+    with memo(f'read_skim_cache'):
+
+        array = pa.feather.read_feather(skim_cache_path).data.values.reshape(skim_data.shape)
+        skim_data[::] = array[::]  #bug why does this take memory?
+        del array
+
     return True
 
 
@@ -125,8 +151,12 @@ def write_skim_cache(skim_info, skim_data, cache_dir):
 
     logger.info(f"writing skim cache {skim_tag} {skim_data.shape} to {skim_cache_file_name}")
 
-    data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='w+')
-    data[::] = skim_data
+    #data = np.memmap(skim_cache_path, shape=skim_data.shape, dtype=dtype, mode='w+')
+    #data[::] = skim_data
+
+    table = pa.table([skim_data.reshape(np.prod(skim_data.shape))], ['data'])
+    pa.feather.write_feather(table, skim_cache_path)
+    del table
 
 
 def read_skims_from_omx(skim_info, skim_data):
@@ -174,15 +204,17 @@ def load_skims(skim_info, skim_buffer, network_los):
     write_cache = network_los.setting('write_skim_cache', False)
 
     skim_data = skim_data_from_buffer(skim_info, skim_buffer)
-    cache_dir = network_los.get_cache_dir()
 
     # if they specify both read_cache and write_cache, thern read cache if it is there and write it if it is not
-    if read_cache and read_skim_cache(skim_info, skim_data, cache_dir):
-        write_cache = False
+    if read_cache:
+        cache_dir = network_los.get_cache_dir()
+        if read_skim_cache(skim_info, skim_data, cache_dir):
+            write_cache = False
     else:
         read_skims_from_omx(skim_info, skim_data)
 
     if write_cache:
+        cache_dir = network_los.get_cache_dir()
         write_skim_cache(skim_info, skim_data, cache_dir)
 
 
@@ -376,15 +408,14 @@ class Network_LOS(object):
 
         # THREE_ZONE only
         self.tap_df = None
+        self.tap_lines_df = None
         self.maz_to_tap_dfs = {}
-        # map maz_to_tap_attributes to mode (for now, attribute names must be unique across modes)
-        self.maz_to_tap_attributes = {}
 
         self.los_settings_file_name = los_settings_file_name
         self.load_settings()
 
     def setting(self, keys, default='<REQUIRED>'):
-        # get setting value for single key or dot-delimited key path (e.g. 'maz_to_tap.modes')
+        # get setting value for single key or dot-delimited key path (e.g. 'maz_to_maz.tables')
         key_list = keys.split('.')
         s = self.los_settings
         for key in key_list[:-1]:
@@ -504,36 +535,53 @@ class Network_LOS(object):
             file_name = self.setting('tap')
             self.tap_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
-            # self.tap_ceiling = self.tap_df.TAP.max() + 1
+            # maz_to_tap_dfs - different sized sparse arrays with different columns, so we keep them seperate
+            for mode, maz_to_tap_settings in self.setting('maz_to_tap').items():
 
-            # maz_to_tap_dfs
-            maz_to_tap_modes = self.setting('maz_to_tap.modes')
+                assert 'table' in maz_to_tap_settings, \
+                    f"Expected setting maz_to_tap.{mode}.table not found in in {LOS_SETTINGS_FILE_NAME}"
 
-            tables = self.setting('maz_to_tap.tables')
-            assert set(maz_to_tap_modes) == set(tables.keys()), \
-                f"maz_to_tap.tables keys do not match maz_to_tap.modes"
-            for mode in maz_to_tap_modes:
-                # FIXME - should we ensure that there is no attribute name collision?
-                # different sized sparse arrays, so we keep them seperate
-                for file_name in as_list(tables[mode]):
+                df = pd.read_csv(config.data_file_path(maz_to_tap_settings['table'], mandatory=True))
 
-                    df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                # trim tap set
+                # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
+                # to only include the nearest tap to origin when more than one tap serves the same line
+                distance_col = maz_to_tap_settings.get('tap_line_distance_col')
+                if distance_col:
 
-                    # df['i'] = df.MAZ * self.maz_ceiling + df.TAP
-                    df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
-                    logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
+                    if self.tap_lines_df is None:
+                        # load tap_lines on demand (required if they specify tap_line_distance_col)
+                        file_name = self.setting('tap_lines',)
+                        self.tap_lines_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
-                    # ensure that there is no attribute name collision
-                    colliding_attributes = set(self.maz_to_tap_attributes.keys()).intersection(set(df.columns))
-                    assert not colliding_attributes, \
-                        f"duplicate maz_to_tap attributes {colliding_attributes}." \
-                        f"Attribute names should be unique across modes."
-                    self.maz_to_tap_attributes.update({c: mode for c in df.columns})
+                        # csv file has one row per TAP with space-delimited list of lines served by that TAP
+                        #  TAP                                      LINES
+                        # 6020  GG_024b_SB GG_068_RT GG_228_WB GG_023X_RT
+                        # stack to create dataframe with one column 'line' indexed by TAP with one row per line served
+                        #  TAP        line
+                        # 6020  GG_024b_SB
+                        # 6020   GG_068_RT
+                        # 6020   GG_228_WB
+                        self.tap_lines_df = \
+                            self.tap_lines_df.set_index('TAP').LINES.str.split(expand=True)\
+                                .stack().droplevel(1).to_frame('line')
 
-                    if mode not in self.maz_to_tap_dfs:
-                        self.maz_to_tap_dfs[mode] = df
-                    else:
-                        self.maz_to_tap_dfs[mode] = pd.concat([self.maz_to_tap_dfs[mode], df], axis=1)
+                    # NOTE - merge will remove unused taps (not appearing in tap_lines)
+                    df = pd.merge(df, self.tap_lines_df, left_on='TAP', right_index=True)
+
+                    # find nearest TAP to MAz that serves line
+                    df = df.sort_values(by=distance_col).drop_duplicates(subset=['MAZ', 'line'])
+
+                    # we don't need to remember which lines are served by which TAPs
+                    df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP'])
+
+                    #df = df.sort_values(by=['MAZ', 'TAP']) #FIXME - not actually necessary
+
+                df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
+                logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
+
+                assert mode not in self.maz_to_tap_dfs
+                self.maz_to_tap_dfs[mode] = df
 
         # create taz skim dict
         assert 'taz' in self.skims_info
@@ -635,18 +683,6 @@ class Network_LOS(object):
 
         # FIXME - no point in returning series? unless maz and tap have same index?
         return np.asanyarray(s)
-
-    def get_maztappairs(self, maz, tap, attribute):
-
-        mode = self.maz_to_tap_attributes.get(attribute)
-
-        assert mode is not None, \
-            f"get_maztappairs attribute {attribute} not in any maz_to_tap table." \
-            f"Existing attributes are: {self.maz_to_tap_attributes.keys()}"
-
-        maz_to_tap_df = self.maz_to_tap_dfs[mode]
-
-        return maz_to_tap_df.loc[zip(maz, tap), attribute].values
 
     def get_tappairs3d(self, otap, dtap, dim3, key):
 

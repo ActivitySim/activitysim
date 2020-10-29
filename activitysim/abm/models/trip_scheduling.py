@@ -383,11 +383,11 @@ def trip_scheduling_calc_row_size(trips, spec, trace_label):
     num_choosers = trips['chunk_id'].max() + 1
     rows_per_chunk_id = len(trips) / num_choosers
 
-    # only non-initial trips require scheduling
+    # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
     outbound_chooser = (trips.trip_num == 2) & trips.outbound & (trips.primary_purpose != 'atwork')
     inbound_chooser = (trips.trip_num == trips.trip_count-1) & ~trips.outbound & (trips.primary_purpose != 'atwork')
 
-    # furthermore, inbound and outbound are scheduled indpendently
+    # furthermore, inbound and outbound are scheduled independently
     if outbound_chooser.sum() > inbound_chooser.sum():
         is_chooser = outbound_chooser
         logger.debug(f"{trace_label} {is_chooser.sum()} outbound_choosers of {len(trips)} require scheduling")
@@ -415,6 +415,7 @@ def trip_scheduling_calc_row_size(trips, spec, trace_label):
     return row_size
 
 
+
 def run_trip_scheduling(
         trips,
         tours,
@@ -428,6 +429,13 @@ def run_trip_scheduling(
     set_tour_hour(trips, tours)
 
     row_size = chunk_size and trip_scheduling_calc_row_size(trips, probs_spec, trace_label)
+
+    ## only non-initial trips require scheduling, segment handing first such trip in tour will use most space
+    #is_outbound_chooser = (trips.trip_num > 1) & trips.outbound & (trips.primary_purpose != 'atwork')
+    #is_inbound_chooser = (trips.trip_num < trips.trip_count) & ~trips.outbound & (trips.primary_purpose != 'atwork')
+    #num_choosers = (is_inbound_chooser | is_outbound_chooser).sum()
+    #print(f"num_choosers {num_choosers}")
+    #bug
 
     result_list = []
     for i, trips_chunk, chunk_trace_label \

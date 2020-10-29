@@ -135,7 +135,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
         # fixme - is this a lightweight object?
 
         tvpb = TransitVirtualPathBuilder(network_los)
-        tvpb.open_cache()
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
                                            tod_key='out_period', segment_key='demographic_segment',

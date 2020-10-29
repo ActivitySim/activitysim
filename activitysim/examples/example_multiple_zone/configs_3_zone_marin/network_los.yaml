@@ -21,6 +21,8 @@ maz: maz_taz.csv
 
 tap: tap_data.csv
 
+tap_lines: tap_lines.csv
+
 maz_to_maz:
   tables:
     - maz_maz_walk.csv
@@ -34,12 +36,17 @@ maz_to_maz:
 
 
 maz_to_tap:
-  modes:
-    - walk
-    - drive
-  tables:
-    walk: maz_tap_walk.csv
-    drive: maz_taz_tap_drive.csv
+  walk:
+    table: maz_tap_walk.csv
+    # if provided, this column will be used (together with tap_lines table) to trim the near tap set
+    # to only include the nearest tap to origin when more than one tap serves the same line
+    tap_line_distance_col: WALK_TRANSIT_DIST
+  drive:
+    table: maz_taz_tap_drive.csv
+    # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost
+    # though some sort of trimming appears to have been done as there are not so many of these in marin data
+    #tap_line_distance_col: DDIST
+
 
 tap_to_tap:
   skims:

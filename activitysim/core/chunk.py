@@ -404,7 +404,12 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
             row_size = math.ceil(observed_chunk_size / rows_per_chunk)
 
             # closest number of chooser rows to achieve chunk_size without exceeding it
-            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, rows_remaining)
+            if row_size == 0:
+                # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
+                rows_per_chunk = rows_remaining if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100 else 10 * rows_per_chunk
+            else:
+                rows_per_chunk = int(chunk_size / row_size)
+            rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
 
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 
@@ -523,9 +528,11 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
             # get number of elements allocated during this chunk from the high water mark dict
             observed_chunk_size = get_high_water_mark()
 
+        alt_offset = alt_end
+
         i += 1
         offset += rows_per_chunk
-        alt_offset = alt_end
+        rows_remaining = num_choosers - offset
 
         if CHUNK_HISTORY or chunk_size > 0:
 
@@ -537,9 +544,12 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
             row_size = math.ceil(observed_chunk_size / rows_per_chunk)
 
             # closest number of chooser rows to achieve chunk_size without exceeding it
-            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
-
-            rows_remaining = num_choosers - offset
+            if row_size == 0:
+                # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
+                rows_per_chunk = rows_remaining if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100 else 10 * rows_per_chunk
+            else:
+                rows_per_chunk = int(chunk_size / row_size)
+            rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
 
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 
@@ -606,8 +616,9 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
             # get number of elements allocated during this chunk from the high water mark dict
             observed_chunk_size = get_high_water_mark()
 
-        offset += rows_per_chunk
         i += 1
+        offset += rows_per_chunk
+        rows_remaining = num_choosers - offset
 
         if CHUNK_HISTORY or chunk_size > 0:
 
@@ -619,9 +630,13 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
             row_size = math.ceil(observed_chunk_size / rows_per_chunk)
 
             # closest number of chooser rows to achieve chunk_size without exceeding it
-            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
+            if row_size == 0:
+                # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
+                rows_per_chunk = rows_remaining if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100 else 10 * rows_per_chunk
+            else:
+                rows_per_chunk = int(chunk_size / row_size)
+            rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
 
-            rows_remaining = num_choosers - offset
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
 
             history.setdefault('new_row_size', []).append(row_size)

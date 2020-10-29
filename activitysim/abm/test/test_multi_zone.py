@@ -20,7 +20,7 @@ from activitysim.core import inject
 from activitysim.core import config
 
 HOUSEHOLDS_SAMPLE_SIZE = 100
-EXPECT_2_ZONE_TOUR_COUNT = 206
+EXPECT_2_ZONE_TOUR_COUNT = 205
 
 # 3-zone is currently big and slow - so set this way low
 HOUSEHOLDS_SAMPLE_SIZE_3_ZONE = 10
@@ -145,11 +145,13 @@ def regress_3_zone():
     assert len(tours_df[tours_df.tour_mode == 'WALK_TRANSIT']) > 0
 
     # should cache atap and btap for transit modes only
-    for od_do in ['od', 'do']:
-        for a_b in ['a', 'b']:
-            c = f'{od_do}_{a_b}tap'
-            assert not tours_df[tours_df.tour_mode == 'WALK_TRANSIT'][c].isnull().any()
-            assert tours_df[~tours_df.tour_mode.isin(['WALK_TRANSIT', 'DRIVE_TRANSIT'])][c].isnull().all()
+    for c in ['od_atap', 'od_btap', 'do_atap', 'do_btap']:
+        # tour_mode_choice sets non-transit taps to 0
+        assert not (tours_df[tours_df.tour_mode.isin(['WALK_TRANSIT', 'DRIVE_TRANSIT'])][c] == 0).any()
+        baddies = ~tours_df.tour_mode.isin(['WALK_TRANSIT', 'DRIVE_TRANSIT']) & (tours_df[c] != 0)
+        if baddies.any():
+            print(tours_df[baddies][['tour_type', 'tour_mode', 'od_atap', 'od_btap', 'do_atap', 'do_btap']])
+            assert False
 
 
 def test_full_run_2_zone():

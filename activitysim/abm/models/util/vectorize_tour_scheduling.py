@@ -467,12 +467,9 @@ def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, mo
     row_size = sizer.get_hwm()
 
     if simulate.tvpb_skims(skims):
-        assert 'LOGSUM_SETTINGS' in model_settings
-        # simulate.estimate_tvpb_skims_overhead(tours, skims)
-        logger.debug("disable calc_row_size because can't estimate_tvpb_skims_overhead from here")
-        logger.info(f"tour_scheduling_calc_row_size returning row_size 0 for THREE_ZONE "
-                    f"because of difficulty computing logsum_chunk_overhead")
-        row_size = 0
+        #FIME
+        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        return 0
 
     #FIXME - broken - disable for now
     return 0

@@ -30,12 +30,10 @@ maz_to_maz:
   blend_distance_skim_name: DIST
 
 maz_to_tap:
-  modes:
-    - walk
-    - drive
-  tables:
-    walk: maz_to_tap_walk.csv
-    drive: maz_to_tap_drive.csv
+  walk:
+    table: maz_to_tap_walk.csv
+  drive:
+    table: maz_to_tap_drive.csv
 
 tap_to_tap:
   skims:

@@ -410,9 +410,6 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
             for c in spec.columns:
                 name = f'expression_value_{c}'
 
-                utilitized_expression_values_df = \
-                    expression_values_df.multiply(spec[c].values, axis=0)
-
                 tracing.trace_df(expression_values_df.multiply(spec[c].values, axis=0),
                                  tracing.extend_trace_label(trace_label, name),
                                  slicer=None, transpose=False)
@@ -1023,23 +1020,24 @@ def tvpb_skims(skims):
 
     return [skim for skim in as_list(skims) if isinstance(skim, tvpb.TransitVirtualPathLogsumWrapper)]
 
-
-def estimate_tvpb_skims_overhead(choosers, skims, trace_label):
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead of
-    max_overhead = 0
-    skim_tag = None
-
-    for skim in tvpb_skims(skims):
-        overhead = skim.estimate_overhead(choosers, trace_label=trace_label)
-
-        logger.debug(f"{trace_label} overhead {overhead} skim.tag {skim.tag}")
-
-        if overhead > max_overhead:
-            max_overhead = overhead
-            skim_tag = skim.tag
-
-    return max_overhead, skim_tag
+#FIXME
+# def estimate_tvpb_skims_overhead(choosers, skims, trace_label):
+#     # if there are skims, and zone_system is THREE_ZONE, and there are any
+#     # then we want to estimate the per-row overhead of
+#
+#     max_overhead = 0
+#     skim_tag = None
+#
+#     for skim in tvpb_skims(skims):
+#         overhead = skim.estimate_overhead(choosers, trace_label=trace_label)
+#
+#         logger.debug(f"{trace_label} overhead {overhead} skim.tag {skim.tag}")
+#
+#         if overhead > max_overhead:
+#             max_overhead = overhead
+#             skim_tag = skim.tag
+#
+#     return max_overhead, skim_tag
 
 
 def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):
@@ -1054,7 +1052,13 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
     # if there are skims, and zone_system is THREE_ZONE, and there are any
     # then we want to estimate the per-row overhead tvpb skims
     # (do this first to facilitate tracing of rowsize estimation below)
-    skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
+    #DISABLE_TVPB_OVERHEAD
+    if tvpb_skims(skims):
+        #skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
+        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        return 0
+    else:
+        skim_oh = None
 
     #  expression_values for each spec row
     sizer.add_elements(spec.shape[0], 'expression_values')
@@ -1293,7 +1297,13 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
     # if there are skims, and zone_system is THREE_ZONE, and there are any
     # then we want to estimate the per-row overhead tvpb skims
     # (do this first to facilitate tracing of rowsize estimation below)
-    skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
+    #DISABLE_TVPB_OVERHEAD
+    if tvpb_skims(skims):
+        #skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
+        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        return 0
+    else:
+        skim_oh = None
 
     sizer = chunk.RowSizeEstimator(trace_label)
 

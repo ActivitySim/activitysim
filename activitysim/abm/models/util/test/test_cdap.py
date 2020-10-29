@@ -10,6 +10,7 @@ import pytest
 from .. import cdap
 
 from activitysim.core import simulate
+from activitysim.core import inject
 
 
 @pytest.fixture(scope='module')
@@ -48,6 +49,16 @@ def individual_utils(
     return cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
 
+def teardown_function(func):
+    inject.clear_cache()
+    inject.reinject_decorated_tables()
+
+
+def setup_dirs():
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    inject.add_injectable('configs_dir', configs_dir)
+
+
 def test_bad_coefficients(configs_dir):
 
     f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
@@ -73,6 +84,8 @@ def test_assign_cdap_rank(people):
 
 
 def test_individual_utilities(people, cdap_indiv_and_hhsize1):
+
+    setup_dirs()
 
     cdap.assign_cdap_rank(people)
     individual_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
@@ -107,6 +120,8 @@ def test_individual_utilities(people, cdap_indiv_and_hhsize1):
 
 
 def test_build_cdap_spec_hhsize2(people, cdap_indiv_and_hhsize1, cdap_interaction_coefficients):
+
+    setup_dirs()
 
     hhsize = 2
 

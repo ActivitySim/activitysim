@@ -97,9 +97,11 @@ def atwork_subtour_mode_choice(
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
                                            tod_key='out_period', segment_key='demographic_segment',
+                                           cache_choices=True,
                                            trace_label=trace_label, tag='tvpb_logsum_odt')
         tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
                                            tod_key='in_period', segment_key='demographic_segment',
+                                           cache_choices=True,
                                            trace_label=trace_label, tag='tvpb_logsum_dot')
 
         skims.update({
@@ -130,6 +132,29 @@ def atwork_subtour_mode_choice(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='tour_mode_choice')
+
+    # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
+    if network_los.zone_system == los.THREE_ZONE:
+
+        tvpb_mode_path_types = model_settings.get('tvpb_mode_path_types')
+        for mode, path_types in tvpb_mode_path_types.items():
+
+            for direction, skim in zip(['od', 'do'], [tvpb_logsum_odt, tvpb_logsum_dot]):
+
+                path_type = path_types[direction]
+                skim_cache = skim.cache[path_type]
+
+                print(f"mode {mode} direction {direction} path_type {path_type}")
+
+                for c in skim_cache:
+
+                    dest_col = f'{direction}_{c}'
+
+                    if dest_col not in choices_df:
+                        choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
+                    choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
+
+        tvpb.close_cache()  # close - and flush if write_tvpb_cache
 
     if estimator:
         estimator.write_choices(choices_df[mode_column_name])

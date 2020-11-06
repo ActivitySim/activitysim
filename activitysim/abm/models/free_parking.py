@@ -16,8 +16,7 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def free_parking(
-        persons_merged, persons, households,
-        skim_dict, skim_stack,
+        persons_merged, persons,
         chunk_size, trace_hh_id):
     """
 

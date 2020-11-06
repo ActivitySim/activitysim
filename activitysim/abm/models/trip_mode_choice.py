@@ -85,13 +85,12 @@ def trip_mode_choice(
         'DESTINATION': dest_col
     })
 
-    skim_stack = network_los.get_skim_stack('taz')
     skim_dict = network_los.get_default_skim_dict()
 
-    odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col, dest_key=dest_col,
-                                             dim3_key='trip_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col, dest_key=orig_col,
-                                             dim3_key='trip_period')
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col, dest_key=dest_col,
+                                               dim3_key='trip_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col, dest_key=orig_col,
+                                               dim3_key='trip_period')
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
 
     skims = {

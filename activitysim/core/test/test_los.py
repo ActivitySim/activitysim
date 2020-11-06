@@ -120,7 +120,11 @@ def test_two_zone():
     # assert no blending for DISTBIKE
     assert network_los.max_blend_distance.get('DISTBIKE', 0) == 0
 
-    pdt.assert_series_equal(skims['DISTBIKE'], dist)
+    skim_dist = skims['DISTBIKE']
+
+    print(type(skims), type(skim_dist.iloc[0]))
+    print(type(dist.iloc[0]))
+    pdt.assert_series_equal(skim_dist, dist)
 
     # but should be different where maz-maz distance differs from skim backstop and blending desired
     # blending enabled for DIST

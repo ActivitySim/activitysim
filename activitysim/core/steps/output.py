@@ -30,7 +30,6 @@ def track_skim_usage(output_dir):
     pd.options.display.max_rows = 100
 
     skim_dict = inject.get_injectable('skim_dict')
-    skim_stack = inject.get_injectable('skim_stack', None)
 
     mode = 'wb' if sys.version_info < (3,) else 'w'
     with open(config.output_file_path('skim_usage.txt'), mode) as output_file:
@@ -39,33 +38,10 @@ def track_skim_usage(output_dir):
         for key in skim_dict.get_skim_usage():
             print(key, file=output_file)
 
-        if skim_stack is None:
-
-            unused_keys = {k for k in skim_dict.get_skim_info('omx_keys')} - \
-                          {k for k in skim_dict.get_skim_usage()}
-
-            print("\n### unused skim keys", file=output_file)
-            for key in unused_keys:
-                print(key, file=output_file)
-
-        else:
-
-            print("\n### skim_stack usage", file=output_file)
-            for key in skim_stack.usage:
-                print(key, file=output_file)
-
-            unused = {k for k in skim_dict.get_skim_info('omx_keys') if not isinstance(k, tuple)} - \
-                     {k for k in skim_dict.get_skim_usage() if not isinstance(k, tuple)}
-            print("\n### unused skim str keys", file=output_file)
-            for key in unused:
-                print(key, file=output_file)
-
-                unused = {k[0] for k in skim_dict.get_skim_info('omx_keys') if isinstance(k, tuple)} - \
-                         {k[0] for k in skim_dict.get_skim_usage() if isinstance(k, tuple)} - \
-                         {k for k in skim_stack.usage}
-            print("\n### unused skim dim3 keys", file=output_file)
-            for key in unused:
-                print(key, file=output_file)
+        unused = {k for k in skim_dict.skim_info['base_keys']} - {k for k in skim_dict.get_skim_usage()}
+        print("\n### unused skim keys", file=output_file)
+        for key in unused:
+            print(key, file=output_file)
 
 
 def write_data_dictionary(output_dir):

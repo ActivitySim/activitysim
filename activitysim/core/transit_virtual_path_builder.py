@@ -21,7 +21,7 @@ from activitysim.core.util import reindex
 from activitysim.core import expressions
 from activitysim.core import assign
 
-from activitysim.core.los import memo
+from activitysim.core.tracing import memo
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,8 @@ class TransitVirtualPathBuilder(object):
     def close_cache(self):
         self.table_cache.close()
 
-    def compute_utilities(self, model_settings, choosers, model_constants, trace_label, trace, chooser_tag_col_name=None):
+    def compute_utilities(self, model_settings, choosers, model_constants,
+                          trace_label, trace, chooser_tag_col_name=None):
 
         trace_label = tracing.extend_trace_label(trace_label, 'compute_utilities')
 
@@ -227,7 +228,8 @@ class TransitVirtualPathBuilder(object):
 
         with memo("#TVPB compute_tap_tap_utilities all_transit_paths"):
             transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace)
-            transit_df.reset_index(drop=True, inplace=True)  # index is arbitrary, but we use it  to redupe unique_transit_df
+            # index is arbitrary, but we use it  to redupe unique_transit_df
+            transit_df.reset_index(drop=True, inplace=True)
             chunk_log_df(trace_label, "transit_df", transit_df)
 
         if self.units_for_recipe(recipe) == 'utility':
@@ -259,81 +261,83 @@ class TransitVirtualPathBuilder(object):
             if ERR_CHECK:
                 # ensure we can redupe
                 for c in unique_transit_df:
-                   assert (transit_df[c] == reindex(unique_transit_df[c], map_dupe_to_unique)).all()
+                    assert (transit_df[c] == reindex(unique_transit_df[c], map_dupe_to_unique)).all()
 
             transit_df = transit_df[['idx', 'btap', 'atap']]  # don't need chooser columns
             chunk_log_df(trace_label, "transit_df", transit_df)
 
             # identify any cached utilities and remove them from unique_transit_df
             tap_tap_cache_tag = path_info['cache_tag']  #FIXME
-            cached_transit_utilities_df = self.table_cache.get_cached_table(tap_tap_cache_tag)
-            if cached_transit_utilities_df is not None:
-                utility_columns = [c for c in cached_transit_utilities_df if c not in chooser_columns]
+            cached_utilities_df = self.table_cache.get_cached_table(tap_tap_cache_tag)
+            if cached_utilities_df is not None:
+                utility_columns = [c for c in cached_utilities_df if c not in chooser_columns]
                 assert len(utility_columns) > 0
 
                 # merge cached utilities where available
-                cached_transit_utilities_df = pd.merge(unique_transit_df, cached_transit_utilities_df, how='left', on=chooser_columns, sort=False)
-                cached_transit_utilities_df.index = unique_transit_df.index  # left merge on columns preserves order but not index
-                chunk_log_df(trace_label, "cached_transit_utilities_df", cached_transit_utilities_df)
+                cached_utilities_df = \
+                    pd.merge(unique_transit_df, cached_utilities_df, how='left', on=chooser_columns, sort=False)
+                cached_utilities_df.index = unique_transit_df.index  # left merge on columns doesn't preserve index
+                chunk_log_df(trace_label, "cached_utilities_df", cached_utilities_df)
 
                 for c in chooser_columns:
-                    assert (unique_transit_df[c].values == cached_transit_utilities_df[c].values).all()
+                    assert (unique_transit_df[c].values == cached_utilities_df[c].values).all()
 
                 # rows missing from cache will have null values for all utility_columns
-                cached = ~cached_transit_utilities_df[utility_columns[0]].isna()
+                cached = ~cached_utilities_df[utility_columns[0]].isna()
 
-                logger.debug(f"#UCACHE {cached.sum()} rows cached out of {len(unique_transit_df)} rows in unique_transit_df")
+                logger.debug(f"#UCACHE {cached.sum()} rows in unique_transit_df cached out of {len(unique_transit_df)}")
 
                 # we want to calculate utilities for uncached rows
-                unique_transit_df = cached_transit_utilities_df[~cached][chooser_columns]
+                unique_transit_df = cached_utilities_df[~cached][chooser_columns]
                 chunk_log_df(trace_label, "unique_transit_df", unique_transit_df)
 
                 # cached utilities (with index of corresponding unique_transit_df so we can dedupe)
-                cached_transit_utilities_df = cached_transit_utilities_df[cached][utility_columns]
-                chunk_log_df(trace_label, "cached_transit_utilities_df", cached_transit_utilities_df)
+                cached_utilities_df = cached_utilities_df[cached][utility_columns]
+                chunk_log_df(trace_label, "cached_utilities_df", cached_utilities_df)
 
             if len(unique_transit_df) > 0:
                 # compute utilities for any uncached rows
 
                 with memo("#TVPB compute_tap_tap_utilities compute_utilities"):
                     with chunk.chunk_log(f'#TVPB.unique_transit_utilities'):
-                        unique_transit_utilities_df = self.compute_utilities(
+                        unique_utilities_df = self.compute_utilities(
                             tap_tap_settings,
                             choosers=unique_transit_df,
                             model_constants=locals_dict,
                             trace_label=trace_label,
                             trace=trace,
-                            #chooser_tag_col_name=['idx', 'btap', 'atap'] if trace else None
-                            chooser_tag_col_name = chooser_columns if trace else None
+                            chooser_tag_col_name=chooser_columns if trace else None
                         )
-                    chunk_log_df(trace_label, "unique_transit_utilities_df", unique_transit_utilities_df)
+                    chunk_log_df(trace_label, "unique_utilities_df", unique_utilities_df)
 
                 # add newly newly computed utilities (including their chooser_columns) to cache
-                self.table_cache.extend_cached_table(tap_tap_cache_tag, pd.concat([unique_transit_df, unique_transit_utilities_df], axis=1))
+                self.table_cache.extend_cached_table(tap_tap_cache_tag,
+                                                     pd.concat([unique_transit_df, unique_utilities_df], axis=1))
 
                 # if there were also some cached utilities, add them and their utilities back into unique_transit_df
-                if cached_transit_utilities_df is not None and len(cached_transit_utilities_df) > 0:
-                    unique_transit_utilities_df = pd.concat([unique_transit_utilities_df, cached_transit_utilities_df], axis=0)
-                    chunk_log_df(trace_label, "unique_transit_utilities_df", unique_transit_utilities_df)
+                if cached_utilities_df is not None and len(cached_utilities_df) > 0:
+                    unique_utilities_df = \
+                        pd.concat([unique_utilities_df, cached_utilities_df], axis=0)
+                    chunk_log_df(trace_label, "unique_utilities_df", unique_utilities_df)
             else:
                 # all utilities were in cache
-                unique_transit_utilities_df = cached_transit_utilities_df
+                unique_utilities_df = cached_utilities_df
 
             # redupe unique_transit_df back into transit_df
             with memo("#TVPB compute_tap_tap_utilities redupe transit_df"):
 
-                for c in unique_transit_utilities_df:
-                    transit_df[c] = reindex(unique_transit_utilities_df[c], map_dupe_to_unique)
+                for c in unique_utilities_df:
+                    transit_df[c] = reindex(unique_utilities_df[c], map_dupe_to_unique)
 
                 chunk_log_df(trace_label, "transit_df", transit_df)
 
-            for c in unique_transit_utilities_df:
+            for c in unique_utilities_df:
                 assert ERR_CHECK and not transit_df[c].isnull().any()
 
             if len(unique_transit_df) > 0:
-                # if all rows were cached, then unique_transit_utilities_df is just a ref to cache
-                del unique_transit_utilities_df
-                chunk_log_df(trace_label, "unique_transit_utilities_df", None)
+                # if all rows were cached, then unique_utilities_df is just a ref to cache
+                del unique_utilities_df
+                chunk_log_df(trace_label, "unique_utilities_df", None)
 
         else:  # units == 'time'
 
@@ -389,7 +393,6 @@ class TransitVirtualPathBuilder(object):
         # transit sets are the transit_df non-join columns
         transit_sets = [c for c in transit_df.columns if c not in ['idx', 'atap', 'btap']]
 
-        #FIXME - but have to multiply if these are exponentiated
         for c in transit_sets:
             path_df[c] = path_df[c] + path_df['access'] + path_df['egress']
         path_df.drop(columns=['access', 'egress'], inplace=True)
@@ -553,7 +556,7 @@ class TransitVirtualPathBuilder(object):
                 utilities_df.index = orig.index
 
                 with memo("#TVPB build_virtual_path make_choices"):
-                    #FIXME - exponentiated=?
+
                     probs = logit.utils_to_probs(utilities_df, allow_zero_probs=True, trace_label=trace_label)
                     chunk_log_df(trace_label, "probs", probs)
 
@@ -626,7 +629,6 @@ class TransitVirtualPathBuilder(object):
         # print(f"maz_od_df\n{maz_od_df}")
 
         return results
-
 
     def get_tvpb_logsum(self, path_type, orig, dest, tod, demographic_segment, want_choices, trace_label=None):
 

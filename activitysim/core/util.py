@@ -2,7 +2,6 @@
 # See full license in LICENSE.txt.
 
 from builtins import zip
-
 import logging
 
 from operator import itemgetter
@@ -11,8 +10,6 @@ import numpy as np
 import pandas as pd
 
 from zbox import toolz as tz
-
-from . import mem
 
 logger = logging.getLogger(__name__)
 

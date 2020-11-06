@@ -61,7 +61,6 @@ def atwork_subtour_mode_choice(
     constants = {}
     constants.update(config.get_model_constants(model_settings))
 
-    skim_stack = network_los.get_skim_stack('taz')
     skim_dict = network_los.get_default_skim_dict()
 
     # setup skim keys
@@ -69,14 +68,14 @@ def atwork_subtour_mode_choice(
     dest_col_name = 'destination'
     out_time_col_name = 'start'
     in_time_col_name = 'end'
-    odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='out_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='in_period')
-    odr_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='in_period')
-    dor_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='out_period')
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='out_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='in_period')
+    odr_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='in_period')
+    dor_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='out_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
     skims = {

@@ -396,12 +396,12 @@ def wrap_skims(model_settings, trace_label):
     Note that compute_logsums aliases their names so it can use the same equations to compute
     logsums from origin to alt_dest, and from alt_dest to primarly destination
 
-    odt_skims - SkimStackWrapper: trip origin, trip alt_dest, time_of_day
-    dot_skims - SkimStackWrapper: trip alt_dest, trip origin, time_of_day
-    dpt_skims - SkimStackWrapper: trip alt_dest, trip primary_dest, time_of_day
-    pdt_skims - SkimStackWrapper: trip primary_dest,trip alt_dest, time_of_day
-    od_skims - SkimDictWrapper: trip origin, trip alt_dest
-    dp_skims - SkimDictWrapper: trip alt_dest, trip primary_dest
+    odt_skims - Skim3dWrapper: trip origin, trip alt_dest, time_of_day
+    dot_skims - Skim3dWrapper: trip alt_dest, trip origin, time_of_day
+    dpt_skims - Skim3dWrapper: trip alt_dest, trip primary_dest, time_of_day
+    pdt_skims - Skim3dWrapper: trip primary_dest,trip alt_dest, time_of_day
+    od_skims - SkimWrapper: trip origin, trip alt_dest
+    dp_skims - SkimWrapper: trip alt_dest, trip primary_dest
 
     Parameters
     ----------
@@ -412,19 +412,18 @@ def wrap_skims(model_settings, trace_label):
         dict containing skims, keyed by canonical names relative to tour orientation
     """
 
-    skim_dict = inject.get_injectable('skim_dict')
-    skim_stack = inject.get_injectable('skim_stack')
     network_los = inject.get_injectable('network_los')
+    skim_dict = network_los.get_default_skim_dict()
 
     o = model_settings['TRIP_ORIGIN']
     d = model_settings['ALT_DEST_COL_NAME']
     p = model_settings['PRIMARY_DEST']
 
     skims = {
-        "odt_skims": skim_stack.wrap(orig_key=o, dest_key=d, dim3_key='trip_period'),
-        "dot_skims": skim_stack.wrap(orig_key=d, dest_key=o, dim3_key='trip_period'),
-        "dpt_skims": skim_stack.wrap(orig_key=d, dest_key=p, dim3_key='trip_period'),
-        "pdt_skims": skim_stack.wrap(orig_key=p, dest_key=d, dim3_key='trip_period'),
+        "odt_skims": skim_dict.wrap_3d(orig_key=o, dest_key=d, dim3_key='trip_period'),
+        "dot_skims": skim_dict.wrap_3d(orig_key=d, dest_key=o, dim3_key='trip_period'),
+        "dpt_skims": skim_dict.wrap_3d(orig_key=d, dest_key=p, dim3_key='trip_period'),
+        "pdt_skims": skim_dict.wrap_3d(orig_key=p, dest_key=d, dim3_key='trip_period'),
         "od_skims": skim_dict.wrap(o, d),
         "dp_skims": skim_dict.wrap(d, p),
     }

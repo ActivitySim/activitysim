@@ -19,26 +19,24 @@ Read in the omx files and create the skim objects
 
 
 @inject.injectable(cache=True)
-def network_los():
+def network_los_preload():
 
-    logger.debug("loading network_los injectable")
+    # when multiprocessing with shared data mp_tasks has to call network_los methods
+    # allocate_shared_skim_buffers() and load_shared_data() BEFORE network_los.load_data()
+    logger.debug("loading network_los_without_data_loaded injectable")
     nw_los = los.Network_LOS()
-    nw_los.load_data()
 
     return nw_los
 
 
 @inject.injectable(cache=True)
-def skim_dict(network_los):
-    return network_los.get_default_skim_dict()
+def network_los(network_los_preload):
+
+    logger.debug("loading network_los injectable")
+    network_los_preload.load_data()
+    return network_los_preload
 
 
 @inject.injectable(cache=True)
-def skim_stack(network_los, skim_dict):
-
-    logger.debug("loading skim_stack injectable")
-
-    if network_los.zone_system == los.ONE_ZONE:
-        return skim.SkimStack(skim_dict)
-    else:
-        return skim.SkimStack(skim_dict.get_taz_skim_dict())
+def skim_dict(network_los):
+    return network_los.get_default_skim_dict()

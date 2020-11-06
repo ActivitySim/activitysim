@@ -101,7 +101,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
     constants.update(config.get_model_constants(model_settings))
 
     skim_dict = network_los.get_default_skim_dict()
-    skim_stack = network_los.get_default_skim_stack()
 
     # setup skim keys
     orig_col_name = 'home_zone_id'
@@ -109,14 +108,14 @@ def tour_mode_choice_simulate(tours, persons_merged,
 
     out_time_col_name = 'start'
     in_time_col_name = 'end'
-    odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='out_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='in_period')
-    odr_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='in_period')
-    dor_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='out_period')
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='out_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='in_period')
+    odr_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='in_period')
+    dor_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='out_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
     skims = {

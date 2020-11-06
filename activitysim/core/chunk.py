@@ -406,7 +406,10 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
             # closest number of chooser rows to achieve chunk_size without exceeding it
             if row_size == 0:
                 # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
-                rows_per_chunk = rows_remaining if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100 else 10 * rows_per_chunk
+                if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100:
+                    rows_per_chunk = rows_remaining
+                else:
+                    rows_per_chunk = 10 * rows_per_chunk
             else:
                 rows_per_chunk = int(chunk_size / row_size)
             rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
@@ -546,7 +549,10 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
             # closest number of chooser rows to achieve chunk_size without exceeding it
             if row_size == 0:
                 # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
-                rows_per_chunk = rows_remaining if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100 else 10 * rows_per_chunk
+                if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100:
+                    rows_per_chunk = rows_remaining
+                else:
+                    rows_per_chunk = 10 * rows_per_chunk
             else:
                 rows_per_chunk = int(chunk_size / row_size)
             rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
@@ -629,12 +635,16 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
             # revise predicted row_size based on observed_chunk_size
             row_size = math.ceil(observed_chunk_size / rows_per_chunk)
 
-            # closest number of chooser rows to achieve chunk_size without exceeding it
+            if row_size > 0:
+                # closest number of chooser rows to achieve chunk_size without exceeding it
+                rows_per_chunk = int(chunk_size / row_size)
             if row_size == 0:
                 # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
-                rows_per_chunk = rows_remaining if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100 else 10 * rows_per_chunk
-            else:
-                rows_per_chunk = int(chunk_size / row_size)
+                if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100:
+                    rows_per_chunk = rows_remaining
+                else:
+                    rows_per_chunk = 10 * rows_per_chunk
+
             rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
 
             estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i

@@ -7,22 +7,13 @@ import time
 import math
 import os
 
-
-
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.feather as feather
 
-from activitysim.core import tracing
-from activitysim.core import inject
-from activitysim.core import config
-from activitysim.core import chunk
-from activitysim.core import logit
-from activitysim.core import simulate
-from activitysim.core import los
 
-from activitysim.core.los import memo
+from activitysim.core.tracing import memo
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +21,8 @@ logger = logging.getLogger(__name__)
 class TableCache(object):
     def __init__(self, network_los):
 
-        #self.network_los = network_los
         self.cache_dir = network_los.get_cache_dir()
-        self.read_cache =network_los.setting('read_tvpb_cache', False)
+        self.read_cache = network_los.setting('read_tvpb_cache', False)
         self.write_cache = network_los.setting('write_tvpb_cache', False)
         self.caches = {}
 
@@ -56,18 +46,15 @@ class TableCache(object):
 
             if os.path.isfile(cache_path):
 
-                with memo(f'open_cache {cache_tag}'):
-                    # table = pa.ipc.RecordBatchFileReader(pa.memory_map(cache_path, 'r')).read_all()
-                    # df = table.to_pandas(split_blocks=True, self_destruct=True)
-                    # del table
-                    #
-                    df = pa.feather.read_feather(cache_path, columns=None, use_threads=True, memory_map=True)
+                # table = pa.ipc.RecordBatchFileReader(pa.memory_map(cache_path, 'r')).read_all()
+                # df = table.to_pandas(split_blocks=True, self_destruct=True)
+                # del table
+                #
+                df = pa.feather.read_feather(cache_path, columns=None, use_threads=True, memory_map=True)
 
                 cache['df'] = df
                 logger.debug(f"open_cache read {cache['df'].shape} table {cache_tag} from {cache_path}")
 
-                #print(df)
-                #bug
             else:
                 logger.warning(f"open_cache file for {cache_tag} not found: {cache_path}")
 
@@ -88,33 +75,19 @@ class TableCache(object):
                 cache_path = self.get_cache_path(cache_tag)
                 df = cache['df']
 
-                with memo(f'close_cache {cache_tag}'):
-
-                    pa.feather.write_feather(df, cache_path, compression=None, compression_level=None, chunksize=None, version=2)
-
-                    # table = pa.Table.from_pandas(df)
-                    # with pa.OSFile(cache_path, 'wb') as sink:
-                    #     with pa.RecordBatchFileWriter(sink, table.schema) as writer:
-                    #         writer.write_table(table)
-                    # del table
-
+                pa.feather.write_feather(df, cache_path, compression=None,
+                                         compression_level=None, chunksize=None, version=2)
 
                 logger.debug(f"wrote cache table {cache_tag} ({cache['df'].shape}) to {cache_path}")
 
             else:
                 logger.debug(f"not writing {cache_tag} table to cache since unchanged.")
 
-            #utility_cols = [c for c in self.utility_cache.columns if c not in ['btap', 'atap', 'tod', 'demographic_segment']]
-            #print(utility_cols)
-            #num_unavailable = (self.utility_cache[utility_cols] < -998).all(axis=1).sum()
-            #percent_unavailable = round(100*num_unavailable/len(self.utility_cache) if num_unavailable>0 else 0, 2)
-            #logger.debug(f"close_utility_cache {percent_unavailable}% ({num_unavailable}) tap pairs unavailable")
-
         self.caches.pop(cache_tag)
 
     def get_cached_table(self, cache_tag):
 
-        if not cache_tag in self.caches:
+        if cache_tag not in self.caches:
             logger.debug(f"TableCache.get_cached_table opening {cache_tag}")
             self.open_cache(cache_tag)
 

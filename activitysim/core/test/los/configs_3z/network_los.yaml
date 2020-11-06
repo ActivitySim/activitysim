@@ -27,20 +27,10 @@ maz_to_maz:
   blend_distance_skim_name: DIST
 
 maz_to_tap:
-  modes:
-    - walk
-    - drive
-  tables:
-    walk: maz_to_tap_walk.csv
-    drive: maz_to_tap_drive.csv
-
-tap_to_tap:
-  skims:
-    # we require that skims for all tap_tap sets have unique names
-    # and can therefor share a single skim_dict without name collision
-    # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
-    - z3_tap_skims.omx
-
+  walk:
+    table: maz_to_tap_walk.csv
+  drive:
+    table: maz_to_tap_drive.csv
 
 skim_time_periods:
     time_window: 1440

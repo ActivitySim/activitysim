@@ -37,19 +37,18 @@ def skims_for_logsums(tour_purpose, model_settings, trace_label):
     network_los = inject.get_injectable('network_los')
 
     skim_dict = network_los.get_default_skim_dict()
-    skim_stack = network_los.get_skim_stack('taz')
 
     orig_col_name = 'home_zone_id'
     dest_col_name = model_settings.get('DESTINATION_FOR_TOUR_PURPOSE').get(tour_purpose)
 
-    odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='out_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='in_period')
-    odr_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='in_period')
-    dor_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='out_period')
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='out_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='in_period')
+    odr_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='in_period')
+    dor_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='out_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
     skims = {

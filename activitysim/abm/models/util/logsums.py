@@ -85,17 +85,16 @@ def compute_logsums(choosers,
     locals_dict.update(coefficients)
 
     # setup skim keys
-    skim_stack = network_los.get_skim_stack('taz')
     skim_dict = network_los.get_default_skim_dict()
 
-    odt_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='out_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='in_period')
-    odr_skim_stack_wrapper = skim_stack.wrap(orig_key=orig_col_name, dest_key=dest_col_name,
-                                             dim3_key='in_period')
-    dor_skim_stack_wrapper = skim_stack.wrap(orig_key=dest_col_name, dest_key=orig_col_name,
-                                             dim3_key='out_period')
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='out_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='in_period')
+    odr_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='in_period')
+    dor_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='out_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
     skims = {

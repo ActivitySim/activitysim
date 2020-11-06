@@ -1,7 +1,7 @@
 inherit_settings: True
 
 #households_sample_size:  100000
-households_sample_size: 1
+households_sample_size: 100
 
 #chunk_size: 0
 chunk_size: 4000000000
@@ -13,7 +13,7 @@ trace_hh_id: 257341
 
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: trip_purpose_and_destination
+#resume_after: initialize_households
 
 cleanup_trace_files_on_resume: True
 
@@ -50,6 +50,6 @@ models:
   - trip_mode_choice
   - write_data_dictionary
   - track_skim_usage
-#  - write_trip_matrices
+  - write_trip_matrices
   - write_tables
 

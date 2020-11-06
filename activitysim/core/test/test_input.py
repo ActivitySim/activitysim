@@ -59,7 +59,7 @@ def test_csv_reader(seed_households, data_dir):
           - tablename: households
             filename: households.csv
             index_col: household_id
-            column_map:
+            rename_columns:
               HHID: household_id
     """
 
@@ -83,7 +83,7 @@ def test_hdf_reader1(seed_households, data_dir):
           - tablename: households
             filename: households.h5
             index_col: household_id
-            column_map:
+            rename_columns:
               HHID: household_id
     """
 
@@ -108,7 +108,7 @@ def test_hdf_reader2(seed_households, data_dir):
             h5_tablename: seed_households
             filename: households.h5
             index_col: household_id
-            column_map:
+            rename_columns:
               HHID: household_id
     """
 
@@ -132,7 +132,7 @@ def test_hdf_reader3(seed_households, data_dir):
         input_table_list:
           - tablename: households
             index_col: household_id
-            column_map:
+            rename_columns:
               HHID: household_id
     """
 
@@ -155,7 +155,7 @@ def test_missing_filename(seed_households, data_dir):
         input_table_list:
           - tablename: households
             index_col: household_id
-            column_map:
+            rename_columns:
               HHID: household_id
     """
 

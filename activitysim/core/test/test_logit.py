@@ -14,6 +14,11 @@ from .. import logit
 from .. import inject
 
 
+def setup_function():
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    inject.add_injectable("configs_dir", configs_dir)
+
+
 def teardown_function(func):
     inject.clear_cache()
     inject.reinject_decorated_tables()

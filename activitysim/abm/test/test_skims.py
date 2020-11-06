@@ -49,17 +49,3 @@ def skim_info(num_of_matrices, matrix_dimension):
     }
 
     return skim_info
-
-
-def test_multiply_large_numbers(skim_info, num_of_matrices, matrix_dimension):
-    omx_shape = skim_info['omx_shape']
-    block_size = skim_info['num_skims']
-
-    # If overflow, this number will go negative
-    assert int(los.multiply_large_numbers(omx_shape) * block_size) == num_of_matrices * matrix_dimension ** 2
-
-
-def test_multiple_large_floats():
-    calculated_value = los.multiply_large_numbers([6205.1, 5423.2, 932.4, 15.4])
-    actual_value = 483200518316.9472
-    assert abs(calculated_value - actual_value) < 0.0001

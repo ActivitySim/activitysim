@@ -9,8 +9,11 @@ import logging
 import logging.config
 import sys
 import time
-
 import yaml
+import gc as _gc
+import psutil
+
+from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
@@ -27,6 +30,46 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
 
 logger = logging.getLogger(__name__)
+
+#       nano micro milli    kilo mega giga tera peta exa  zeta yotta
+tiers = ['n', 'µ', 'm', '', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+
+
+def si_units(x, kind='B', f="{}{:.3g} {}{}"):
+    tier = 3
+    shift = 1024 if kind=='B' else 1000
+    sign = '-' if x < 0 else ''
+    x = abs(x)
+    if x > 0:
+        while x > shift and tier < len(tiers):
+            x /= shift
+            tier += 1
+        while x < 1 and tier >= 0:
+            x *= shift
+            tier -= 1
+    return f.format(sign, x, tiers[tier], kind)
+
+
+@contextmanager
+def memo(tag, gc=True):
+    t0 = time.time()
+    previous_mem = psutil.Process(os.getpid()).memory_info().rss
+    if gc:
+        _gc.collect()
+        _gc.disable()
+    try:
+        yield
+    finally:
+        elapsed_time = time.time() - t0
+        current_mem = (psutil.Process(os.getpid()).memory_info().rss)
+        marginal_mem = current_mem - previous_mem
+        mem_str = f"net {si_units(marginal_mem)} ({str(marginal_mem)}) total {si_units(current_mem)}"
+        if gc:
+            _gc.enable()
+            _gc.collect()
+
+        #logger.debug(f"MEM  {tag}{mem_str} in {si_units(elapsed_time, kind='s')}")
+        print(f"MEMO {tag} Time: {si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
 
 
 def extend_trace_label(trace_label, extension):

@@ -70,14 +70,12 @@ def annotate_trips(trips, network_los, model_settings):
     trace_label = 'trip_matrices'
 
     skim_dict = network_los.get_default_skim_dict()
-    skim_stack = network_los.get_skim_stack('taz')
 
     # setup skim keys
     assert ('trip_period' not in trips_df)
     trips_df['trip_period'] = network_los.skim_time_period_label(trips_df.depart)
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
-    odt_skim_stack_wrapper = skim_stack.wrap(orig_key='origin', dest_key='destination',
-                                             dim3_key='trip_period')
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='origin', dest_key='destination', dim3_key='trip_period')
     skims = {
         'od_skims': od_skim_wrapper,
         "odt_skims": odt_skim_stack_wrapper

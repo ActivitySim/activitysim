@@ -24,7 +24,7 @@ EXPECT_2_ZONE_TOUR_COUNT = 205
 
 # 3-zone is currently big and slow - so set this way low
 HOUSEHOLDS_SAMPLE_SIZE_3_ZONE = 10
-EXPECT_3_ZONE_TOUR_COUNT = 31
+EXPECT_3_ZONE_TOUR_COUNT = 30
 
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours

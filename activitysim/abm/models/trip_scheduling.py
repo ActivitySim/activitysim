@@ -415,7 +415,6 @@ def trip_scheduling_calc_row_size(trips, spec, trace_label):
     return row_size
 
 
-
 def run_trip_scheduling(
         trips,
         tours,
@@ -430,12 +429,10 @@ def run_trip_scheduling(
 
     row_size = chunk_size and trip_scheduling_calc_row_size(trips, probs_spec, trace_label)
 
-    ## only non-initial trips require scheduling, segment handing first such trip in tour will use most space
-    #is_outbound_chooser = (trips.trip_num > 1) & trips.outbound & (trips.primary_purpose != 'atwork')
-    #is_inbound_chooser = (trips.trip_num < trips.trip_count) & ~trips.outbound & (trips.primary_purpose != 'atwork')
-    #num_choosers = (is_inbound_chooser | is_outbound_chooser).sum()
-    #print(f"num_choosers {num_choosers}")
-    #bug
+    # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
+    # is_outbound_chooser = (trips.trip_num > 1) & trips.outbound & (trips.primary_purpose != 'atwork')
+    # is_inbound_chooser = (trips.trip_num < trips.trip_count) & ~trips.outbound & (trips.primary_purpose != 'atwork')
+    # num_choosers = (is_inbound_chooser | is_outbound_chooser).sum()
 
     result_list = []
     for i, trips_chunk, chunk_trace_label \

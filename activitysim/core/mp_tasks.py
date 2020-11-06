@@ -838,8 +838,8 @@ def mp_setup_skims(injectables, **kwargs):
     try:
         shared_data_buffer = kwargs
 
-        network_los = inject.get_injectable('network_los')
-        network_los.load_shared_data(shared_data_buffer)
+        network_los_preload = inject.get_injectable('network_los_preload')
+        network_los_preload.load_shared_data(shared_data_buffer)
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_setup_skims: {str(e)}")

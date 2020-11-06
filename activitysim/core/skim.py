@@ -13,11 +13,31 @@ import pandas as pd
 
 from activitysim.core.util import quick_loc_series
 
-
 logger = logging.getLogger(__name__)
 
 NOT_IN_SKIM_ZONE_ID = -1
 NOT_IN_SKIM_NAN = np.nan
+
+ROW_MAJOR_LAYOUT = True
+
+
+class SkimData(object):
+    def __init__(self, skim_data):
+        self._skim_data = skim_data
+
+    def __getitem__(self, indexes):
+        if len(indexes) != 3:
+            raise ValueError(f'number of indexes ({len(indexes)}) should be 3')
+        return self._skim_data[indexes]
+
+    @property
+    def shape(self):
+        return self._skim_data.shape
+
+    # def close(self):
+        # self._skim_data._mmap.close()
+        # del self._skim_data
+
 
 
 class OffsetMapper(object):
@@ -113,15 +133,8 @@ class OffsetMapper(object):
         # should be some duck subtype of integer (but might be, say, numpy.int64)
         assert int(offset_int) == offset_int
 
-        if self.offset_int is None:
-            self.offset_int = int(offset_int)
-            self.offset_series = None
-        else:
-            # make sure it is the same
-            assert offset_int == self.offset_int
-            assert self.offset_series is None
-            #FIXME - does this ever happen?
-            bug
+        self.offset_int = int(offset_int)
+        self.offset_series = None
 
     def map(self, zone_ids):
         """
@@ -139,14 +152,8 @@ class OffsetMapper(object):
         if self.offset_series is not None:
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
-
             #FIXME - faster to use series.map if zone_ids is a series?
-            #offsets = np.asanyarray(quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int))
-
-            # why were we returning ndarray?
-
             offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
-
 
         elif self.offset_int:
             assert (self.offset_series is None)
@@ -157,33 +164,58 @@ class OffsetMapper(object):
         return offsets
 
 
-class SkimWrapper(object):
+
+class SkimDict(object):
     """
-    Container for skim arrays.
+    A SkimDict object is a wrapper around a dict of multiple skim objects,
+    where each object is identified by a key.
 
-    data : 2D array
-    offset_mapper : OffsetMapper
-        maps origin/destination values to array indices.
+    Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
-    def __init__(self, data, offset_mapper=None):
 
-        self.data = data
-        self.offset_mapper = offset_mapper if offset_mapper is not None else OffsetMapper()
+    def __init__(self, skim_tag, skim_info, skim_data):
 
-    def get(self, orig, dest):
-        """
-        Get impedence values for a set of origin, destination pairs.
+        logger.info(f"SkimDict init {skim_tag}")
 
-        Parameters
-        ----------
-        orig : 1D array
-        dest : 1D array
+        self.skim_tag = skim_tag
+        self.skim_info = skim_info
+        self.usage = set()
 
-        Returns
-        -------
-        values : 1D array
+        self.offset_mapper = self._offset_mapper()  # (in function so subclass can override)
 
-        """
+        self.omx_shape = skim_info['omx_shape']
+        self.skim_data = skim_data
+        self.dtype = np.dtype(skim_info['dtype_name'])  # so we can coerce if we have missing values
+
+        # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
+        # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
+        block_offsets = skim_info['block_offsets']
+        self.skim_dim3 = {}
+        for skim_key, offset in block_offsets.items():
+            if isinstance(skim_key, tuple):
+                key1, key2 = skim_key
+                self.skim_dim3.setdefault(key1, {})[key2] = offset
+        logger.info(f"SkimDict.build_3d_skim_block_offset_table registered {len(self.skim_dim3)} 3d keys")
+
+    def _offset_mapper(self):
+        offset_mapper = OffsetMapper()
+        offset_map = self.skim_info.get('offset_map', None)
+        if offset_map is not None:
+            #logger.debug(f"SkimDict _offset_mapper {self.skim_info['skim_tag']} offset_map: {offset_map}")
+            offset_mapper.set_offset_list(offset_list=offset_map)
+        else:
+            # assume this is a one-based skim map
+            offset_mapper.set_offset_int(-1)
+
+        return offset_mapper
+
+    def get_skim_usage(self):
+        return self.usage
+
+    def touch(self, key):
+        self.usage.add(key)
+
+    def _lookup(self, orig, dest, block_offsets):
 
         # fixme - remove?
         assert not (np.isnan(orig) | np.isnan(dest)).any()
@@ -194,87 +226,81 @@ class SkimWrapper(object):
 
         mapped_orig = self.offset_mapper.map(orig)
         mapped_dest = self.offset_mapper.map(dest)
-        result = self.data[mapped_orig, mapped_dest]
+        if ROW_MAJOR_LAYOUT:
+            result = self.skim_data[block_offsets, mapped_orig, mapped_dest]
+        else:
+            result = self.skim_data[mapped_orig, mapped_dest, block_offsets]
 
         # FIXME - should return nan if not in skim (negative indices wrap around)
-        in_skim = \
-            (mapped_orig >= 0) & (mapped_orig < self.data.shape[0]) & \
-            (mapped_dest >= 0) & (mapped_dest < self.data.shape[0])
+        in_skim = (mapped_orig >= 0) & (mapped_orig < self.omx_shape[0]) & \
+                  (mapped_dest >= 0) & (mapped_dest < self.omx_shape[1])
 
         # check for bad indexes (other than NOT_IN_SKIM_ZONE_ID)
         assert (in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all(), \
             f"{(~in_skim).sum()} od pairs not in skim"
 
-        result = np.where(in_skim, result, NOT_IN_SKIM_NAN)
+        if not in_skim.all():
+            result = np.where(in_skim, result, NOT_IN_SKIM_NAN).astype(self.dtype)
 
         return result
 
+    def lookup(self, orig, dest, key):
 
-class SkimDict(object):
-    """
-    A SkimDict object is a wrapper around a dict of multiple skim objects,
-    where each object is identified by a key.
-
-    Note that keys are either strings or tuples of two strings (to support stacking of skims.)
-    """
-
-    def __init__(self, skim_data, skim_info):
-
-        self.skim_info = skim_info
-        self.skim_data = skim_data
-
-        self.offset_mapper = OffsetMapper()
-        self.usage = set()
-
-    def has_key(self, key):
-        return key in self.skim_info
-
-    def get_skim_info(self, key):
-        return self.skim_info.get(key)
-
-    def get_skim_data(self):
-        return self.skim_data
-
-    def get_skim_usage(self):
-        return self.usage
-
-    def touch(self, key):
-        self.usage.add(key)
-
-    def get(self, key):
-        """
-        Get an available wrapped skim object (not the lookup)
-
-        Parameters
-        ----------
-        key : hashable
-             The key (identifier) for this skim object
-
-        Returns
-        -------
-        skim: Skim
-             The skim object
-        """
-
-        offset = self.skim_info['block_offsets'].get(key)
-        assert offset is not None, f"SkimDict key '{key}' not in skims"
+        block_offset = self.skim_info['block_offsets'].get(key)
+        assert block_offset is not None, f"SkimDict lookup key '{key}' not in skims"
 
         self.touch(key)
 
-        data = self.skim_data[:, :, offset]
+        try:
+            result = self._lookup(orig, dest, block_offset)
+        except Exception as err:
+            logger.error("SkimDict lookup error: %s: %s", type(err).__name__, str(err))
+            logger.error(f"key {key}")
+            logger.error(f"orig max {orig.max()} min {orig.min()}")
+            logger.error(f"dest max {dest.max()} min {dest.min()}")
+            raise err
 
-        return SkimWrapper(data, self.offset_mapper)
+        return result
+
+    def lookup_3d(self, orig, dest, dim3, key):
+
+        assert key in self.skim_dim3, f"3d skim key {key} not in skims."
+
+        # map dim3 to block_offsets
+        skim_keys_to_indexes = self.skim_dim3[key]
+
+        # skim_indexes = dim3.map(skim_keys_to_indexes).astype('int')
+        try:
+            block_offsets = np.vectorize(skim_keys_to_indexes.get)(dim3)  # this should be faster than map
+            result = self._lookup(orig, dest, block_offsets)
+        except Exception as err:
+            logger.error("SkimDict lookup_3d error: %s: %s", type(err).__name__, str(err))
+            logger.error(f"key {key}")
+            logger.error(f"orig max {orig.max()} min {orig.min()}")
+            logger.error(f"dest max {dest.max()} min {dest.min()}")
+            logger.error(f"skim_keys_to_indexes: {skim_keys_to_indexes}")
+            logger.error(f"dim3 {np.unique(dim3)}")
+            logger.error(f"dim3 block_offsets {np.unique(block_offsets)}")
+            raise err
+
+        return result
 
     def wrap(self, orig_key, dest_key):
         """
-        return a SkimDictWrapper for self
+        return a SkimWrapper for self
         """
-        return SkimDictWrapper(self, orig_key, dest_key)
+        return SkimWrapper(self, orig_key, dest_key)
+
+    def wrap_3d(self, orig_key, dest_key, dim3_key):
+        """
+        return a SkimWrapper for self
+        """
+        return Skim3dWrapper(self, orig_key, dest_key, dim3_key)
 
 
-class SkimDictWrapper(object):
+class SkimWrapper(object):
     """
-    A SkimDictWrapper object is an access wrapper around a SkimDict of multiple skim objects,
+    A SkimWrapper object is an access wrapper around a SkimDict of multiple skim objects,
     where each object is identified by a key.  It operates like a
     dictionary - i.e. use brackets to add and get skim objects - but also
     has information on how to lookup against the skim objects.
@@ -337,23 +363,12 @@ class SkimDictWrapper(object):
             with the same index as df
         """
 
-        # The skim object to perform the lookup
-        # using df[orig_key] as the origin and df[dest_key] as the destination
-        skim_wrapper = self.skim_dict.get(key)
-
-        # assert self.df is not None, "Call set_df first"
-        # origins = self.df[self.orig_key].astype('int')
-        # destinations = self.df[self.dest_key].astype('int')
-        # if self.offset:
-        #     origins = origins + self.offset
-        #     destinations = destinations + self.offset
-
         assert self.df is not None, "Call set_df first"
 
         if reverse:
-            s = skim_wrapper.get(self.df[self.dest_key], self.df[self.orig_key])
+            s = self.skim_dict.lookup(self.df[self.dest_key], self.df[self.orig_key], key)
         else:
-            s = skim_wrapper.get(self.df[self.orig_key], self.df[self.dest_key])
+            s = self.skim_dict.lookup(self.df[self.orig_key], self.df[self.dest_key], key)
 
         return pd.Series(s, index=self.df.index)
 
@@ -368,13 +383,13 @@ class SkimDictWrapper(object):
         return max skim value in either o-d or d-o direction
         """
 
-        skim_wrapper = self.skim_dict.get(key)
+        #skim_wrapper = self.skim_dict.get(key)
 
         assert self.df is not None, "Call set_df first"
 
         s = np.maximum(
-            skim_wrapper.get(self.df[self.dest_key], self.df[self.orig_key]),
-            skim_wrapper.get(self.df[self.orig_key], self.df[self.dest_key])
+            self.skim_dict.lookup(self.df[self.dest_key], self.df[self.orig_key], key),
+            self.skim_dict.lookup(self.df[self.orig_key], self.df[self.dest_key], key)
         )
 
         return pd.Series(s, index=self.df.index)
@@ -398,103 +413,10 @@ class SkimDictWrapper(object):
         return self.lookup(key)
 
 
-class SkimStack(object):
-
-    def __init__(self, skim_dict):
-
-        self.offset_mapper = skim_dict.offset_mapper
-        self.skim_dict = skim_dict
-
-        # - skim_dim3 dict maps key1 to dict of key2 absolute offsets into block
-        # DRV_COM_WLK_BOARDS: {'MD': 4, 'AM': 3, 'PM': 5}, ...
-        block_offsets = skim_dict.get_skim_info('block_offsets')
-        skim_dim3 = OrderedDict()
-        for skim_key in block_offsets:
-
-            if not isinstance(skim_key, tuple):
-                continue
-
-            key1, key2 = skim_key
-            offset = block_offsets[skim_key]
-
-            skim_dim3.setdefault(key1, OrderedDict())[key2] = offset
-
-        self.skim_dim3 = skim_dim3
-
-        logger.info("SkimStack.__init__ loaded %s keys with %s total skims"
-                    % (len(self.skim_dim3),
-                       sum([len(d) for d in self.skim_dim3.values()])))
-
-        self.usage = set()
-
-    def touch(self, key):
-        self.usage.add(key)
-
-    def lookup(self, orig, dest, dim3, key):
-
-        orig = self.offset_mapper.map(orig)
-        dest = self.offset_mapper.map(dest)
-
-        stacked_skim_data = self.skim_dict.get_skim_data()
-        skim_keys_to_indexes = self.skim_dim3[key]
-
-        self.touch(key)
-
-        # skim_indexes = dim3.map(skim_keys_to_indexes).astype('int')
-        # this should be faster than map
-        skim_indexes = np.vectorize(skim_keys_to_indexes.get)(dim3)
-
-        try:
-            result = stacked_skim_data[orig, dest, skim_indexes]
-        except Exception as err:
-            logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
-            logger.error(f"orig max {orig.max()} min {orig.min()}")
-            logger.error(f"dest max {dest.max()} min {dest.min()}")
-            logger.error(f"skim_indexes max '{max(skim_indexes)}")
-            logger.error(f"skim_indexes min '{min(skim_indexes)}")
-            print(f"stacked_skim_data.shape {stacked_skim_data.shape}")
-            raise err
-
-        return result
-
-    def wrap(self, orig_key, dest_key, dim3_key):
-        """
-        return a SkimStackWrapper for self
-        """
-        return SkimStackWrapper(stack=self,
-                                orig_key=orig_key, dest_key=dest_key, dim3_key=dim3_key)
-
-
-class SkimStackWrapper(object):
+class Skim3dWrapper(object):
     """
-    A SkimStackWrapper object wraps a SkimStack object to add an additional wrinkle of
-    lookup functionality.  Upon init the separate skims objects are
-    processed into a 3D matrix so that lookup of the different skims can
-    be performed quickly for each row in the dataframe.  In this very
-    particular formulation, the keys are assumed to be tuples with two
-    elements - the second element of which will be taken from the
-    different rows in the dataframe.  The first element can then be
-    dereferenced like an array.  This is useful, for instance, to have a
-    certain skim vary by time of day - the skims are set with keys of
-    ('SOV', 'AM"), ('SOV', 'PM') etc.  The time of day is then taken to
-    be different for every row in the tours table, and the 'SOV' portion
-    of the key can be used in __getitem__.
 
-    To be more explicit, the input is a dictionary of Skims objects, each of
-    which contains a 2D matrix.  These are stacked into a 3D matrix with a
-    mapping of keys to indexes which is applied using pandas .map to a third
-    column in the object dataframe.  The three columns - orig_key and
-    dest_key from the Skims object and dim3_key from this one, are then used to
-    dereference the 3D matrix.  The tricky part comes in defining the key which
-    matches the 3rd dimension of the matrix, and the key which is passed into
-    __getitem__ below (i.e. the one used in the specs).  By convention,
-    every key in the Skims object that is passed in MUST be a tuple with 2
-    items.  The second item in the tuple maps to the items in the dataframe
-    referred to by the dim3_key column and the first item in the tuple is
-    then available to pass directly to __getitem__.
-
-    The sum conclusion of this is that in the specs, you can say something
-    like out_skim['SOV'] and it will automatically dereference the 3D matrix
+    you can say something like out_skim['SOV'] and it will automatically dereference the 3D matrix
     using origin, destination, and time of day.
 
     Parameters
@@ -507,9 +429,9 @@ class SkimStackWrapper(object):
         above for a more complete description)
     """
 
-    def __init__(self, stack, orig_key, dest_key, dim3_key):
+    def __init__(self, skim_dict, orig_key, dest_key, dim3_key):
 
-        self.stack = stack
+        self.skim_dict = skim_dict
 
         self.orig_key = orig_key
         self.dest_key = dest_key
@@ -552,9 +474,125 @@ class SkimStackWrapper(object):
         dest = self.df[self.dest_key].astype('int')
         dim3 = self.df[self.dim3_key]
 
-        skim_values = self.stack.lookup(orig, dest, dim3, key)
+        skim_values = self.skim_dict.lookup_3d(orig, dest, dim3, key)
 
         return pd.Series(skim_values, self.df.index)
+
+
+class MazSkimDict(SkimDict):
+
+    def __init__(self, skim_tag, network_los):
+
+        self.network_los = network_los
+
+        taz_skim_dict = network_los.get_skim_dict('taz')
+        super().__init__(skim_tag, taz_skim_dict.skim_info, taz_skim_dict.skim_data)
+        assert self.offset_mapper is not None  # _offset_mapper
+
+        self.dtype = np.dtype(self.skim_info['dtype_name'])
+        self.base_keys = taz_skim_dict.skim_info['base_keys']
+        self.sparse_keys = list(set(network_los.maz_to_maz_df.columns) - {'OMAZ', 'DMAZ'})
+        self.sparse_key_usage = set()
+
+    def _offset_mapper(self):
+        # called by super().__init__
+
+        # we want to build a series with MAZ zone_id index and TAZ skim array offset values
+
+        # start with a series with MAZ zone_id index and TAZ zone id values
+        maz_to_taz = self.network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').sort_values(by='TAZ').TAZ
+
+        # use taz offset_mapper to create series mapping directly from MAZ to TAZ skim index
+        taz_offset_mapper = super()._offset_mapper()
+        maz_to_skim_offset = taz_offset_mapper.map(maz_to_taz)
+
+        offset_mapper = OffsetMapper(offset_series=maz_to_skim_offset)
+
+        return offset_mapper
+
+    def get_skim_usage(self):
+        return self.sparse_key_usage.union(self.usage)
+
+    def sparse_lookup(self, orig, dest, key):
+        """
+        Get impedence values for a set of origin, destination pairs.
+
+        Parameters
+        ----------
+        orig : 1D array
+        dest : 1D array
+
+        Returns
+        -------
+        values : numpy 1D array
+        """
+
+        self.sparse_key_usage.add(key)
+
+        max_blend_distance = self.network_los.max_blend_distance.get(key, 0)
+
+        if max_blend_distance == 0:
+            blend_distance_skim_name = None
+        else:
+            blend_distance_skim_name = self.network_los.blend_distance_skim_name
+
+        # fixme - remove?
+        assert not (np.isnan(orig) | np.isnan(dest)).any()
+
+        # we want values from mazpairs, where we have them
+        values = self.network_los.get_mazpairs(orig, dest, key)
+
+        is_nan = np.isnan(values)
+
+        if max_blend_distance > 0:
+
+            # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
+            # print(f"blend_distance_skim_name {self.blend_distance_skim_name}")
+
+            backstop_values = super().lookup(orig, dest, key)
+
+            # get distance skim if a different key was specified by blend_distance_skim_name
+            if (blend_distance_skim_name != key):
+                distance = self.network_los.get_mazpairs(orig, dest, blend_distance_skim_name)
+            else:
+                distance = values
+
+            # for distances less than max_blend_distance, we blend maz-maz and skim backstop values
+            # shorter distances have less fractional backstop, and more maz-maz
+            # beyond max_blend_distance, just use the skim values
+            backstop_fractions = np.minimum(distance / max_blend_distance, 1)
+
+            values = np.where(is_nan,
+                              backstop_values,
+                              backstop_fractions * backstop_values + (1 - backstop_fractions) * values)
+
+        elif is_nan.any():
+
+            # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
+
+            if key in self.base_keys:
+                # replace nan values using simple backstop without blending
+                backstop_values = super().lookup(orig, dest, key)
+                values = np.where(is_nan, backstop_values, values)
+            else:
+                #bug
+                # FIXME - if no backstop skim, then return 0 (which conventionally means "not available")
+                values = np.where(is_nan, 0, values)
+
+        # want to return same type as backstop skim
+        values = values.astype(self.dtype)
+
+        return values
+
+    def lookup(self, orig, dest, key):
+
+        if key in self.sparse_keys:
+            # logger.debug(f"MazSkimDict using SparseSkimDict for key '{key}'")
+            values =  self.sparse_lookup(orig, dest, key)
+        else:
+            values = super().lookup(orig, dest, key)
+
+        return values
 
 
 class DataFrameMatrix(object):

@@ -64,7 +64,7 @@ def read_model_alts(file_name, set_index=None):
     return df
 
 
-def read_model_spec(file_name, spec_dir=None):
+def read_model_spec(file_name):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -82,9 +82,7 @@ def read_model_spec(file_name, spec_dir=None):
     model_settings : dict
         name of spec_file is in model_settings['SPEC'] and file is relative to configs
     file_name : str
-        file_name id spec file in configs folder (or in spec_dir is specified)
-    spec_dir : str
-        directory in which to fine spec file if not in configs
+        file_name id spec file in configs folder
 
     description_name : str, optional
         Name of the column in `fname` that contains the component description.
@@ -102,11 +100,7 @@ def read_model_spec(file_name, spec_dir=None):
     if not file_name.lower().endswith('.csv'):
         file_name = '%s.csv' % (file_name,)
 
-    if spec_dir is not None:
-        # FIXME sadly, this is only used in test_cdap to read cdap_indiv_and_hhsize1
-        file_path = os.path.join(spec_dir, file_name)
-    else:
-        file_path = config.config_file_path(file_name)
+    file_path = config.config_file_path(file_name)
 
     try:
         spec = pd.read_csv(file_path, comment='#')
@@ -531,7 +525,7 @@ def compute_utilities(expression_values, spec):
 
 def set_skim_wrapper_targets(df, skims):
     """
-    Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
+    Add the dataframe to the SkimWrapper object so that it can be dereferenced
     using the parameters of the skims object.
 
     Parameters
@@ -539,7 +533,7 @@ def set_skim_wrapper_targets(df, skims):
     df : pandas.DataFrame
         Table to which to add skim data as new columns.
         `df` is modified in-place.
-    skims : SkimDictWrapper or SkimStackWrapper object, or a list or dict of skims
+    skims : SkimWrapper or Skim3dWrapper object, or a list or dict of skims
         The skims object is used to contain multiple matrices of
         origin-destination impedances.  Make sure to also add it to the
         locals_d below in order to access it in expressions.  The *only* job
@@ -1299,7 +1293,7 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
     # (do this first to facilitate tracing of rowsize estimation below)
     #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
-        #skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
+        # skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
         logger.info("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
     else:

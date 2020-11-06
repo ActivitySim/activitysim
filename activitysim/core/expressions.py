@@ -19,33 +19,6 @@ from activitysim.core import util
 logger = logging.getLogger(__name__)
 
 
-def local_utilities():
-    """
-    Dict of useful modules and functions to provides as locals for use in eval of expressions
-
-    Returns
-    -------
-    utility_dict : dict
-        name, entity pairs of locals
-    """
-
-    #duplicate
-
-    utility_dict = {
-        'pd': pd,
-        'np': np,
-        'reindex': util.reindex,
-        'reindex_i': util.reindex_i,
-        'setting': config.setting,
-        'other_than': other_than,
-        'skim_dict': inject.get_injectable('skim_dict', None)
-    }
-
-    utility_dict.update(config.get_global_constants())
-
-    return utility_dict
-
-
 def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     """
     Evaluate expressions_spec in context of df, with optional additional pipeline tables in locals
@@ -109,9 +82,15 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     # be nice and also give it to them as df?
     tables['df'] = df
 
-    _locals_dict = local_utilities()
+    _locals_dict = assign.local_utilities()
     _locals_dict.update(locals_dict)
     _locals_dict.update(tables)
+
+    # FIXME a number of asim model preprocessors want skim_dict - should they request it in model_settings.TABLES?
+    _locals_dict.update({
+        #'los': inject.get_injectable('network_los', None),
+        'skim_dict': inject.get_injectable('skim_dict', None),
+    })
 
     results, trace_results, trace_assigned_locals \
         = assign.assign_variables(expressions_spec,

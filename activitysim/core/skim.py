@@ -588,7 +588,7 @@ class MazSkimDict(SkimDict):
 
         if key in self.sparse_keys:
             # logger.debug(f"MazSkimDict using SparseSkimDict for key '{key}'")
-            values =  self.sparse_lookup(orig, dest, key)
+            values = self.sparse_lookup(orig, dest, key)
         else:
             values = super().lookup(orig, dest, key)
 

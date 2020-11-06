@@ -37,7 +37,7 @@ tiers = ['n', 'µ', 'm', '', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
 def si_units(x, kind='B', f="{}{:.3g} {}{}"):
     tier = 3
-    shift = 1024 if kind=='B' else 1000
+    shift = 1024 if kind == 'B' else 1000
     sign = '-' if x < 0 else ''
     x = abs(x)
     if x > 0:

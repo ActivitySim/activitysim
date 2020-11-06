@@ -32,6 +32,7 @@ JIT_MMAP = True
 class JitMemMapSkimData(skim.SkimData):
 
     def __init__(self, skim_cache_path, skim_info):
+        super().__init__(skim_info)
         self.skim_cache_path = skim_cache_path
         self.dtype = np.dtype(skim_info['dtype_name'])
         self._shape = skim_info['skim_data_shape']
@@ -56,14 +57,10 @@ class JitMemMapSkimData(skim.SkimData):
 
 class MemMapSkimData(skim.SkimData):
 
-    def __init__(self, skim_cache_path, skim_info):
-        self.skim_cache_path = skim_cache_path
-        self.dtype = np.dtype(skim_info['dtype_name'])
-        self._shape = skim_info['skim_data_shape']
-
     def close(self):
         self._skim_data._mmap.close()
         del self._skim_data
+
 
 class MemMapSkimFactory(skim_omx.AbstractSkimFactory):
 
@@ -90,4 +87,3 @@ class MemMapSkimFactory(skim_omx.AbstractSkimFactory):
         logger.info(f"get_skim_data {skim_tag} SkimData shape {skim_data.shape}")
 
         return skim_data
-

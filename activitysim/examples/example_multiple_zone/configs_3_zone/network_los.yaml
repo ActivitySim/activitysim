@@ -35,13 +35,6 @@ maz_to_tap:
   drive:
     table: maz_to_tap_drive.csv
 
-tap_to_tap:
-  skims:
-    # we require that skims for all tap_tap sets have unique names
-    # and can therefor share a single skim_dict without name collision
-    # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
-    - tap_skims.omx
-
 
 TRANSIT_VIRTUAL_PATH_SETTINGS:
 

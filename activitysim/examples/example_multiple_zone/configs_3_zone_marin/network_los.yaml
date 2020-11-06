@@ -17,6 +17,26 @@ taz_skims:
   - HWYSKMMD_taz_rename.omx
   - HWYSKMPM_taz_rename.omx
 
+tap_skims:
+    # we require that skims for all tap_tap sets have unique names
+    # and can therefor share a single skim_dict without name collision
+    # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
+    - transit_skims_AM_SET1_rename.omx
+    - transit_skims_AM_SET2_rename.omx
+    - transit_skims_AM_SET3_rename.omx
+    - transit_skims_EA_SET1_rename.omx
+    - transit_skims_EA_SET2_rename.omx
+    - transit_skims_EA_SET3_rename.omx
+    - transit_skims_EV_SET1_rename.omx
+    - transit_skims_EV_SET2_rename.omx
+    - transit_skims_EV_SET3_rename.omx
+    - transit_skims_MD_SET1_rename.omx
+    - transit_skims_MD_SET2_rename.omx
+    - transit_skims_MD_SET3_rename.omx
+    - transit_skims_PM_SET1_rename.omx
+    - transit_skims_PM_SET2_rename.omx
+    - transit_skims_PM_SET3_rename.omx
+
 maz: maz_taz.csv
 
 tap: tap_data.csv
@@ -46,28 +66,6 @@ maz_to_tap:
     # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost
     # though some sort of trimming appears to have been done as there are not so many of these in marin data
     #tap_line_distance_col: DDIST
-
-
-tap_to_tap:
-  skims:
-    # we require that skims for all tap_tap sets have unique names
-    # and can therefor share a single skim_dict without name collision
-    # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
-    - transit_skims_AM_SET1_rename.omx
-    - transit_skims_AM_SET2_rename.omx
-    - transit_skims_AM_SET3_rename.omx
-    - transit_skims_EA_SET1_rename.omx
-    - transit_skims_EA_SET2_rename.omx
-    - transit_skims_EA_SET3_rename.omx
-    - transit_skims_EV_SET1_rename.omx
-    - transit_skims_EV_SET2_rename.omx
-    - transit_skims_EV_SET3_rename.omx
-    - transit_skims_MD_SET1_rename.omx
-    - transit_skims_MD_SET2_rename.omx
-    - transit_skims_MD_SET3_rename.omx
-    - transit_skims_PM_SET1_rename.omx
-    - transit_skims_PM_SET2_rename.omx
-    - transit_skims_PM_SET3_rename.omx
 
 
 TRANSIT_VIRTUAL_PATH_SETTINGS:

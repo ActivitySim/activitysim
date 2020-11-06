@@ -8,6 +8,7 @@ import openmatrix as omx
 input_dir = './data_3_marin'
 output_dir = './data_3_marin/fix'  # don't overwrite - but these files shold replace 'oritinals'
 
+
 def input_path(filenane):
     return os.path.join(input_dir, filenane)
 

@@ -11,9 +11,7 @@ from activitysim.core import assign
 from activitysim.core import inject
 from activitysim.core import simulate
 
-from activitysim.core.util import other_than
 from activitysim.core.util import assign_in_place
-from activitysim.core import util
 
 
 logger = logging.getLogger(__name__)
@@ -88,7 +86,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
 
     # FIXME a number of asim model preprocessors want skim_dict - should they request it in model_settings.TABLES?
     _locals_dict.update({
-        #'los': inject.get_injectable('network_los', None),
+        # 'los': inject.get_injectable('network_los', None),
         'skim_dict': inject.get_injectable('skim_dict', None),
     })
 

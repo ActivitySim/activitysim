@@ -38,8 +38,7 @@ def test_legacy_configs():
 
     assert network_los.setting('zone_system') == los.ONE_ZONE
 
-    taz_skims_info = network_los.skims_info['taz']
-    assert 'z1_taz_skims.omx' in taz_skims_info['omx_file_names']
+    assert 'z1_taz_skims.omx' in network_los.omx_file_names('taz')
 
 
 def test_one_zone():
@@ -50,8 +49,7 @@ def test_one_zone():
 
     assert network_los.setting('zone_system') == los.ONE_ZONE
 
-    taz_skims_info = network_los.skims_info['taz']
-    assert 'z1_taz_skims.omx' in taz_skims_info['omx_file_names']
+    assert 'z1_taz_skims.omx' in network_los.omx_file_names('taz')
 
     network_los.load_data()
 
@@ -96,8 +94,7 @@ def test_two_zone():
 
     assert network_los.setting('zone_system') == los.TWO_ZONE
 
-    taz_skims_info = network_los.skims_info['taz']
-    assert 'z2_taz_skims.omx' in taz_skims_info['omx_file_names']
+    assert 'z2_taz_skims.omx' in network_los.omx_file_names('taz')
 
     assert network_los.blend_distance_skim_name == 'DIST'
 
@@ -141,8 +138,7 @@ def test_three_zone():
 
     assert network_los.setting('zone_system') == los.THREE_ZONE
 
-    taz_skims_info = network_los.skims_info['taz']
-    assert 'z3_taz_skims.omx' in taz_skims_info['omx_file_names']
+    assert 'z3_taz_skims.omx' in network_los.omx_file_names('taz')
 
     assert network_los.blend_distance_skim_name == 'DIST'
 
@@ -155,10 +151,6 @@ def test_three_zone():
 
     dist = network_los.get_mazpairs(od_df.orig, od_df.dest, 'DIST').astype(np.float32)
     np.testing.assert_almost_equal(dist, [0.24, 0.14, 2.55, 1.9, 0.62])
-
-    #od_df['tap'] = 90025
-    #dist = network_los.get_maztappairs(od_df.orig, od_df.tap, 'DIST')
-    #np.testing.assert_almost_equal(dist, [0.87, 0.59, 1.03, 1.03, 1.03])
 
 
 def test_30_minute_windows():

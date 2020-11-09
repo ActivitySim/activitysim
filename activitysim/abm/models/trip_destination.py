@@ -25,7 +25,7 @@ from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuil
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
-from activitysim.core.skim import DataFrameMatrix
+from activitysim.core.skim_dictionary import DataFrameMatrix
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample

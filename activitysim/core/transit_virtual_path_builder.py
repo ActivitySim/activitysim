@@ -795,30 +795,3 @@ class TransitVirtualPathLogsumWrapper(object):
             self.cache[path_type] = choices_df
 
         return logsum_df.logsum
-
-    # def estimate_overhead(self, df, trace_label):
-    #
-    #     assert chunk.not_chunking()
-    #
-    #     trace_label = tracing.extend_trace_label(trace_label, 'estimate_overhead')
-    #
-    #     orig = df[self.orig_key].astype('int')
-    #     dest = df[self.dest_key].astype('int')
-    #     tod = df[self.tod_key]
-    #     segment = df[self.segment_key]
-    #
-    #     oh = self.tvpb.get_logsum_chunk_overhead(orig, dest, tod, segment,
-    #                                              want_choices=self.cache_choices,
-    #                                              trace_label=trace_label)
-    #
-    #     for path_type, row_size in oh.items():
-    #         logger.info(f"{trace_label} tag {self.tag} path_type {path_type} row_size {row_size} ")
-    #
-    #     # spare them the details
-    #     max_row_size = max(oh.values())
-    #
-    #     if self.cache_choices:
-    #         # room to cache 'atap', 'btap', 'path_set'
-    #         max_row_size += 3
-    #
-    #     return max_row_size

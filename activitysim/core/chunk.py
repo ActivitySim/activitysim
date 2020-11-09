@@ -350,7 +350,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
 
     logger.info(f"Running adaptive_chunked_choosers with chunk_size {chunk_size} and {num_choosers} choosers")
 
-    #FIXME do we care if it is an int?
+    # FIXME do we care if it is an int?
     row_size = estimated_row_size = math.ceil(estimated_row_size)
 
     if chunk_size == 0:
@@ -480,7 +480,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
     logger.info(f"Running adaptive_chunked_choosers_and_alts with chunk_size {chunk_size} "
                 f"and {num_choosers} choosers and {num_alternatives} alternatives")
 
-    #FIXME do we care if it is an int?
+    # FIXME do we care if it is an int?
     row_size = estimated_row_size = math.ceil(estimated_row_size)
 
     if chunk_size == 0:
@@ -578,7 +578,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
     num_choosers = choosers['chunk_id'].max() + 1
     assert num_choosers > 0
 
-    #FIXME do we care if it is an int?
+    # FIXME do we care if it is an int?
     row_size = estimated_row_size = math.ceil(estimated_row_size)
 
     if chunk_size == 0:

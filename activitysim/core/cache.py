@@ -37,7 +37,7 @@ class TableCache(object):
 
     def open_cache(self, cache_tag):
 
-        assert self.caches.get(cache_tag) == None
+        assert self.caches.get(cache_tag) is None
 
         cache = {'changed': False}
 
@@ -57,7 +57,6 @@ class TableCache(object):
 
             else:
                 logger.warning(f"open_cache file for {cache_tag} not found: {cache_path}")
-
 
         self.caches[cache_tag] = cache
 

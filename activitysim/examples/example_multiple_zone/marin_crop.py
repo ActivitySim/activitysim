@@ -60,7 +60,7 @@ tazs_indexes = (tazs - 1).tolist()
 
 taps = read_csv("tap_data.csv")
 taps = taps[taps["TAZ"].isin(tazs)]
-to_csv(taps, "tap_data.csv")
+# to_csv(taps, "tap_data.csv")
 
 taps_indexes = (taps["TAP"] - 1).tolist()
 

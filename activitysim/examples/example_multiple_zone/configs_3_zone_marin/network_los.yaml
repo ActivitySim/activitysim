@@ -39,8 +39,6 @@ tap_skims:
 
 maz: maz_taz.csv
 
-tap: tap_data.csv
-
 tap_lines: tap_lines.csv
 
 maz_to_maz:

@@ -65,8 +65,7 @@ def validate_injectable(name):
                  "containing 'configs', 'data', and 'output' folders "
                  'or all three of --config, --data, and --output')
 
-    if isinstance(dir_paths, str):
-        dir_paths = [dir_paths]
+    dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
 
     for dir_path in dir_paths:
         if not os.path.exists(dir_path):

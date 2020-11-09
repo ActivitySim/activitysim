@@ -17,8 +17,6 @@ from . import config
 from . import util
 from . import assign
 from . import chunk
-from . import los
-from . import inject
 
 from . import transit_virtual_path_builder as tvpb
 
@@ -393,7 +391,8 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         expression_values_df = pd.DataFrame(data=data, index=index)
 
         if chooser_tag_col_name is not None:
-            chooser_tag_col_name = [chooser_tag_col_name] if isinstance(chooser_tag_col_name, str) else chooser_tag_col_name
+            if isinstance(chooser_tag_col_name, str):
+                chooser_tag_col_name = [chooser_tag_col_name]
             expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, chooser_tag_col_name])
 
         tracing.trace_df(expression_values_df, tracing.extend_trace_label(trace_label, 'expression_values'),
@@ -1005,33 +1004,14 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
 def tvpb_skims(skims):
 
-    def as_list(skims):
+    def list_of_skims(skims):
         return \
             skims if isinstance(skims, list) \
             else skims.values() if isinstance(skims, dict) \
             else [skims] if skims is not None \
             else []
 
-    return [skim for skim in as_list(skims) if isinstance(skim, tvpb.TransitVirtualPathLogsumWrapper)]
-
-#FIXME
-# def estimate_tvpb_skims_overhead(choosers, skims, trace_label):
-#     # if there are skims, and zone_system is THREE_ZONE, and there are any
-#     # then we want to estimate the per-row overhead of
-#
-#     max_overhead = 0
-#     skim_tag = None
-#
-#     for skim in tvpb_skims(skims):
-#         overhead = skim.estimate_overhead(choosers, trace_label=trace_label)
-#
-#         logger.debug(f"{trace_label} overhead {overhead} skim.tag {skim.tag}")
-#
-#         if overhead > max_overhead:
-#             max_overhead = overhead
-#             skim_tag = skim.tag
-#
-#     return max_overhead, skim_tag
+    return [skim for skim in list_of_skims(skims) if isinstance(skim, tvpb.TransitVirtualPathLogsumWrapper)]
 
 
 def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):
@@ -1048,7 +1028,6 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
     # (do this first to facilitate tracing of rowsize estimation below)
     #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
-        #skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
         logger.info("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
     else:

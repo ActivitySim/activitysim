@@ -15,7 +15,7 @@ from . import inject
 from . import config
 from . import random
 from . import tracing
-from . import mem
+
 
 from . import util
 from .tracing import print_elapsed_time

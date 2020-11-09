@@ -28,7 +28,7 @@ tazs = mazs["TAZ"].unique()
 tazs.sort()
 assert ((tazs - 1) == range(len(tazs))).all()
 
-#MAZ,TAZ
+# MAZ,TAZ
 taps = pd.read_csv(input_path("maz_taz.csv"))
 # nothing
 taps.to_csv(output_path("maz_taz.csv"), index=False)

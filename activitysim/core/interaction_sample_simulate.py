@@ -10,8 +10,6 @@ import pandas as pd
 from . import logit
 from . import tracing
 from . import chunk
-from . import util
-from . import mem
 from .simulate import set_skim_wrapper_targets
 
 from activitysim.core.mem import force_garbage_collect

@@ -13,7 +13,7 @@ trace_hh_id: 257341
 
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: initialize_households
+#resume_after: write_data_dictionary
 
 cleanup_trace_files_on_resume: True
 

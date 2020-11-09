@@ -21,6 +21,8 @@ def track_skim_usage(output_dir):
 
     FIXME - have not yet implemented a facility to avoid loading of unused skims
 
+    FIXME - if resume_after, this will only reflect skims used after resume
+
     Parameters
     ----------
     output_dir: str
@@ -38,8 +40,8 @@ def track_skim_usage(output_dir):
         for key in skim_dict.get_skim_usage():
             print(key, file=output_file)
 
-        unused = {k for k in skim_dict.skim_info['base_keys']} - {k for k in skim_dict.get_skim_usage()}
-        print("\n### unused skim keys", file=output_file)
+        unused = set(k for k in skim_dict.skim_info.base_keys) - set(k for k in skim_dict.get_skim_usage())
+
         for key in unused:
             print(key, file=output_file)
 

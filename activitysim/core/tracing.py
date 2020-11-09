@@ -51,7 +51,7 @@ def si_units(x, kind='B', f="{}{:.3g} {}{}"):
 
 
 @contextmanager
-def memo(tag, gc=True):
+def memo(tag, gc=True, console=False):
     t0 = time.time()
     previous_mem = psutil.Process(os.getpid()).memory_info().rss
     if gc:
@@ -68,8 +68,10 @@ def memo(tag, gc=True):
             _gc.enable()
             _gc.collect()
 
-        #logger.debug(f"MEM  {tag}{mem_str} in {si_units(elapsed_time, kind='s')}")
-        print(f"MEMO {tag} Time: {si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
+        if console:
+            print(f"MEMO {tag} Time: {si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
+        else:
+            logger.debug(f"MEM  {tag}{mem_str} in {si_units(elapsed_time, kind='s')}")
 
 
 def extend_trace_label(trace_label, extension):

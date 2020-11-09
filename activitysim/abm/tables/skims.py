@@ -3,7 +3,6 @@
 
 import logging
 
-from activitysim.core import skim
 from activitysim.core import los
 from activitysim.core import inject
 

@@ -146,4 +146,3 @@ pipeline['/land_use/initialize_landuse'] = mazs               #index zone_id
 pipeline['/tours/non_mandatory_tour_scheduling'] = work_tours #index tour_id
 
 pipeline.close()
-

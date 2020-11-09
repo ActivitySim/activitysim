@@ -171,15 +171,11 @@ def build_output_file_path(file_name, use_prefix=None):
 
 def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=True):
 
-    dir_list = inject.get_injectable(dir_list_injectable_name)
-
-    if isinstance(dir_list, str):
-        dir_list = [dir_list]
-
-    assert isinstance(dir_list, list)
+    dir_paths = inject.get_injectable(dir_list_injectable_name)
+    dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
 
     file_path = None
-    for dir in dir_list:
+    for dir in dir_paths:
         p = os.path.join(dir, file_name)
         if os.path.isfile(p):
             file_path = p
@@ -187,7 +183,7 @@ def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=Tru
 
     if mandatory and not file_path:
         raise RuntimeError("file_path %s: file '%s' not in %s" %
-                           (dir_list_injectable_name, file_name, dir_list))
+                           (dir_list_injectable_name, file_name, dir_paths))
 
     return file_path
 
@@ -301,10 +297,7 @@ def read_settings_file(file_name, mandatory=True, include_stack=[]):
         return new_settings
 
     configs_dir = inject.get_injectable('configs_dir')
-
-    if isinstance(configs_dir, str):
-        configs_dir = [configs_dir]
-
+    configs_dir = [configs_dir] if isinstance(configs_dir, str) else configs_dir
     assert isinstance(configs_dir, list)
 
     settings = {}
@@ -389,11 +382,7 @@ def base_settings_file_path(file_name):
         file_name = '%s.yaml' % (file_name, )
 
     configs_dir = inject.get_injectable('configs_dir')
-
-    if isinstance(configs_dir, str):
-        configs_dir = [configs_dir]
-
-    assert isinstance(configs_dir, list)
+    configs_dir = [configs_dir] if isinstance(configs_dir, str) else configs_dir
 
     for dir in configs_dir:
         file_path = os.path.join(dir, file_name)

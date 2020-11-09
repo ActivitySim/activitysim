@@ -7,12 +7,17 @@ import numpy.testing as npt
 import pandas.testing as pdt
 import pytest
 
-from .. import skim
+from .. import skim_dictionary
 
 
 @pytest.fixture
 def data():
     return np.arange(100, dtype='int').reshape((10, 10))
+
+
+class FakeSkimInfo(object):
+    def __init__(self):
+        self.offset_map = None
 
 
 def test_skims(data):
@@ -25,13 +30,12 @@ def test_skims(data):
     skim_data[0, :, :] = data
     skim_data[1, :, :] = data*10
 
-    skim_info = {
-        'block_offsets': {'AM': 0, 'PM': 1},
-        'omx_shape': omx_shape,
-        'dtype_name': 'int'
-    }
+    skim_info = FakeSkimInfo()
+    skim_info.block_offsets = {'AM': 0, 'PM': 1}
+    skim_info.omx_shape = omx_shape
+    skim_info.dtype_name = 'int'
 
-    skim_dict = skim.SkimDict('taz', skim_info, skim_data)
+    skim_dict = skim_dictionary.SkimDict('taz', skim_info, skim_data)
     skim_dict.offset_mapper.set_offset_int(0)  # default is -1
     skims = skim_dict.wrap("taz_l", "taz_r")
 
@@ -69,13 +73,13 @@ def test_3dskims(data):
     skim_data[0, :, :] = data
     skim_data[1, :, :] = data*10
 
-    skim_info = {
-        'block_offsets': {('SOV', 'AM'): 0, ('SOV', 'PM'): 1},
-        'key1_block_offsets': {'SOV': 0},
-        'omx_shape': omx_shape,
-        'dtype_name': 'int'
-    }
-    skim_dict = skim.SkimDict('taz', skim_info, skim_data)
+    skim_info = FakeSkimInfo()
+    skim_info.block_offsets = {('SOV', 'AM'): 0, ('SOV', 'PM'): 1}
+    skim_info.omx_shape = omx_shape
+    skim_info.dtype_name = 'int'
+    skim_info.key1_block_offsets = {'SOV': 0}
+
+    skim_dict = skim_dictionary.SkimDict('taz', skim_info, skim_data)
     skim_dict.offset_mapper.set_offset_int(0)  # default is -1
     skims3d = skim_dict.wrap_3d(orig_key="taz_l", dest_key="taz_r", dim3_key="period")
 

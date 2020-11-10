@@ -55,11 +55,13 @@ class Network_LOS(object):
     max_blend_distance: dict            # dict of int maz_to_maz max_blend_distance values keyed by skim_tag
 
     # THREE_ZONE only
+    tap_df: pandas.DataFrame
     tap_lines_df: pandas.DataFrame      # if specified in settings, list of transit lines served, indexed by TAP
                                         # used to prune maz_to_tap_dfs to drop more distant TAPS with redundant service
                                         # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
     maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
                                         # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
+    tap_ceiling: int                    # max tap_id + 1 (to compute synthetic tap_tap index values)
 
 
     """
@@ -83,6 +85,7 @@ class Network_LOS(object):
         # THREE_ZONE only
         self.tap_lines_df = None
         self.maz_to_tap_dfs = {}
+        self.tap_ceiling = None
 
         self.los_settings_file_name = los_settings_file_name
         self.load_settings()
@@ -189,14 +192,13 @@ class Network_LOS(object):
         Load tables and skims from files specified in network_los settigns
         """
 
-
         # load maz tables
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
 
             # maz
             file_name = self.setting('maz')
             self.maz_taz_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
-            self.maz_taz_df = self.maz_taz_df[['MAZ', 'TAZ']]  # only fields we need
+            self.maz_taz_df = self.maz_taz_df[['MAZ', 'TAZ']].sort_values(by='MAZ')  # only fields we need
 
             self.maz_ceiling = self.maz_taz_df.MAZ.max() + 1
 
@@ -225,6 +227,12 @@ class Network_LOS(object):
 
         # load tap tables
         if self.zone_system == THREE_ZONE:
+
+            # tap
+            file_name = self.setting('tap')
+            self.tap_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+
+            self.tap_ceiling = self.tap_df.TAP.max() + 1
 
             # maz_to_tap_dfs - different sized sparse arrays with different columns, so we keep them seperate
             for mode, maz_to_tap_settings in self.setting('maz_to_tap').items():
@@ -275,6 +283,8 @@ class Network_LOS(object):
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
+        # make sure skim has all tap_ids
+        # FIXME - weird that there is no list of tazs?
 
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
@@ -282,11 +292,15 @@ class Network_LOS(object):
             # (need to have already loaded both taz skim and maz tables)
             assert 'maz' not in self.skim_dicts
             self.skim_dicts['maz'] = self.create_skim_dict('maz')
+            # make sure skim has all maz_ids
+            assert set(self.maz_taz_df ['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
             assert 'tap' not in self.skim_dicts
             self.skim_dicts['tap'] = self.create_skim_dict('tap')
+            # make sure skim has all tap_ids
+            assert set(self.tap_df['TAP'].values).issubset(set(self.skim_dicts['tap'].zone_ids))
 
     def create_skim_dict(self, skim_tag):
         """

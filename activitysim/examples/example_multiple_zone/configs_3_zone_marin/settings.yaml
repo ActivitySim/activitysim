@@ -1,10 +1,10 @@
 inherit_settings: True
 
 # number of households to simulate
-households_sample_size: 1000
+households_sample_size: 100
 
-chunk_size: 2500000000
-#chunk_size: 0
+#chunk_size: 2500000000
+chunk_size: 0
 
 trace_hh_id: 662398
 
@@ -198,6 +198,7 @@ want_dest_choice_sample_tables: False
 models:
   - initialize_landuse
   - initialize_households
+  #- initialize_los
   - initialize_tours
   - tour_mode_choice_simulate
   - write_data_dictionary

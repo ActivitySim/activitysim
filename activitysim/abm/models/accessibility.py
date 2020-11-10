@@ -146,8 +146,8 @@ def compute_accessibility(accessibility, network_los, land_use, trace_od):
     # create OD dataframe
     od_df = pd.DataFrame(
         data={
-            'orig': np.repeat(np.asanyarray(accessibility_df.index), dest_zone_count),
-            'dest': np.tile(np.asanyarray(land_use_df.index), orig_zone_count)
+            'orig': np.repeat(orig_zones, dest_zone_count),
+            'dest': np.tile(dest_zones, orig_zone_count)
         }
     )
 

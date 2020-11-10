@@ -182,6 +182,22 @@ class SkimDict(object):
 
         return offset_mapper
 
+    @property
+    def zone_ids(self):
+        """
+        Return list of zone_ids we grok in skim index order
+
+        Returns
+        -------
+        ndarray of int domain zone_ids
+        """
+
+        if self.offset_mapper.offset_series is not None:
+            ids = self.offset_mapper.offset_series.index.values
+        else:
+            ids = np.array(range(self.omx_shape[0])) - self.offset_mapper.offset_int
+        return ids
+
     def get_skim_usage(self):
         """
         return set of keys of skims looked up. e.g. {'DIST', 'SOV'}

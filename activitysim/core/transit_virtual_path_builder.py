@@ -234,6 +234,8 @@ class TransitVirtualPathBuilder(object):
 
         if self.units_for_recipe(recipe) == 'utility':
 
+            USE_CACHE = None if trace else True  # yes, None and not False
+
             # FIXME some expressions may want to know access mode -
             locals_dict = path_info.copy()
             locals_dict.update(model_constants)
@@ -268,7 +270,7 @@ class TransitVirtualPathBuilder(object):
 
             # identify any cached utilities and remove them from unique_transit_df
             tap_tap_cache_tag = path_info['cache_tag']  #FIXME
-            cached_utilities_df = self.table_cache.get_cached_table(tap_tap_cache_tag)
+            cached_utilities_df = USE_CACHE and self.table_cache.get_cached_table(tap_tap_cache_tag)
             if cached_utilities_df is not None:
                 utility_columns = [c for c in cached_utilities_df if c not in chooser_columns]
                 assert len(utility_columns) > 0
@@ -311,8 +313,9 @@ class TransitVirtualPathBuilder(object):
                     chunk_log_df(trace_label, "unique_utilities_df", unique_utilities_df)
 
                 # add newly newly computed utilities (including their chooser_columns) to cache
-                self.table_cache.extend_cached_table(tap_tap_cache_tag,
-                                                     pd.concat([unique_transit_df, unique_utilities_df], axis=1))
+                if USE_CACHE:    #TRACEFIX
+                    self.table_cache.extend_cached_table(tap_tap_cache_tag,
+                                                         pd.concat([unique_transit_df, unique_utilities_df], axis=1))
 
                 # if there were also some cached utilities, add them and their utilities back into unique_transit_df
                 if cached_utilities_df is not None and len(cached_utilities_df) > 0:

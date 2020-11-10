@@ -9,6 +9,8 @@ tap_skims: z3_tap_skims.omx
 
 maz: maz.csv
 
+tap: tap.csv
+
 maz_to_maz:
   tables:
     - maz_to_maz_walk.csv

@@ -12,6 +12,8 @@ tap_skims: tap_skims.omx
 
 maz: maz.csv
 
+tap: tap.csv
+
 maz_to_maz:
   tables:
     - maz_to_maz_walk.csv
@@ -35,6 +37,13 @@ maz_to_tap:
 
 
 TRANSIT_VIRTUAL_PATH_SETTINGS:
+
+  # FIXME we need to know demographic_segments and time_periods to pre-compute tap-tap utilities
+  # FIXME this has to be explicitly specified, since demographic_segments are assigned in expression files
+  # this should perhaps be reorganized to accomodate accessibility calculations
+  demographic_segments:
+    low_income: &low_income_segment_id 0
+    high_income: &high_income_segment_id 1
 
   tour_mode_choice:
     units: utility
@@ -76,13 +85,13 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
           - drive_time
           - DIST
     CONSTANTS:
+      C_LOW_INCOME_SEGMENT_ID: *low_income_segment_id
+      C_HIGH_INCOME_SEGMENT_ID: *high_income_segment_id
       TVPB_demographic_segments_by_income_segment:
-        1: 0
-        2: 0
-        3: 1
-        4: 1
-      C_LOW_INCOME_SEGMENT_ID: 0
-      C_HIGH_INCOME_SEGMENT_ID: 1
+        1: *low_income_segment_id
+        2: *low_income_segment_id
+        3: *high_income_segment_id
+        4: *high_income_segment_id
       c_ivt_high_income: -0.028
       c_ivt_low_income: -0.0175
       c_cost_high_income: -0.00112

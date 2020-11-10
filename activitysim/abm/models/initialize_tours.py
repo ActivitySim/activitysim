@@ -5,20 +5,15 @@ import warnings
 import os
 import pandas as pd
 
-from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import expressions
 
-from activitysim.core.util import reindex
 from activitysim.core.input import read_input_table
 
-from activitysim.abm.models import initialize
-
 from activitysim.abm.models.util import tour_frequency as tf
-
 
 logger = logging.getLogger(__name__)
 

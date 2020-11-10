@@ -3,7 +3,7 @@ inherit_settings: True
 zone_system: 3
 
 # read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
-read_skim_cache: False
+read_skim_cache: True
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
 write_skim_cache: True
 
@@ -37,7 +37,13 @@ tap_skims:
     - transit_skims_PM_SET2_rename.omx
     - transit_skims_PM_SET3_rename.omx
 
+
+# FIXME why no taz.csv?
+# tas: taz.csv
+
 maz: maz_taz.csv
+
+tap: tap_data.csv
 
 tap_lines: tap_lines.csv
 
@@ -64,6 +70,18 @@ maz_to_tap:
     # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost
     # though some sort of trimming appears to have been done as there are not so many of these in marin data
     #tap_line_distance_col: DDIST
+
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 30
+    periods: [0, 12, 20, 30, 38, 48]
+    labels: &skim_time_period_labels ['EA', 'AM', 'MD', 'PM', 'EV']
+
+demographic_segments: &demographic_segments
+  - &low_income_segment_id 0
+  - &high_income_segment_id 1
+
 
 
 TRANSIT_VIRTUAL_PATH_SETTINGS:
@@ -104,14 +122,23 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
           - DDIST
           - DTIME
           - WDIST
+
+    # FIXME we need to know demographic_segments and time_periods to pre-compute tap-tap utilities
+    # FIXME this has to be explicitly specified, since demographic_segments are assigned in expression files
+    # this should perhaps be reorganized to accomodate accessibility calculations
+    precompute_tap_tap_segments:
+      demographic_segment: *demographic_segments
+      tod: *skim_time_period_labels
+      access_mode: ['drive', 'walk']
+
     CONSTANTS:
+      C_LOW_INCOME_SEGMENT_ID: *low_income_segment_id
+      C_HIGH_INCOME_SEGMENT_ID: *high_income_segment_id
       TVPB_demographic_segments_by_income_segment:
-        1: 0
-        2: 0
-        3: 1
-        4: 1
-      C_LOW_INCOME_SEGMENT_ID: 0
-      C_HIGH_INCOME_SEGMENT_ID: 1
+        1: *low_income_segment_id
+        2: *low_income_segment_id
+        3: *high_income_segment_id
+        4: *high_income_segment_id
       c_ivt_high_income: -0.028
       c_ivt_low_income: -0.0175
       c_cost_high_income: -0.00112
@@ -141,8 +168,3 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
       #"max(IVT/Drive time - 0.3,0)",drvRatio,c_ivt* 6
       C_UNAVAILABLE: -999
 
-skim_time_periods:
-    time_window: 1440
-    period_minutes: 30
-    periods: [0, 12, 20, 30, 38, 48]
-    labels: ['EA', 'AM', 'MD', 'PM', 'EV']

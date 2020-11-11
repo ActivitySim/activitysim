@@ -32,7 +32,7 @@ def cdap_simulate(persons_merged, persons, households,
 
     trace_label = 'cdap'
     model_settings = config.read_model_settings('cdap.yaml')
-
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
     cdap_indiv_spec = simulate.read_model_spec(file_name=model_settings['INDIV_AND_HHSIZE1_SPEC'])
 
     # Rules and coefficients for generating interaction specs for different household sizes
@@ -80,6 +80,7 @@ def cdap_simulate(persons_merged, persons, households,
 
     choices = cdap.run_cdap(
         persons=persons_merged,
+        person_type_map=person_type_map,
         cdap_indiv_spec=cdap_indiv_spec,
         cdap_interaction_coefficients=cdap_interaction_coefficients,
         cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,

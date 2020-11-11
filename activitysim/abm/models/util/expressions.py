@@ -205,7 +205,7 @@ def skim_time_period_label(time_period):
         return skim_time_periods['labels'][bin]
 
     return pd.cut(time_period, skim_time_periods[period_label],
-                  labels=skim_time_periods['labels'], right=True).astype(str)
+                  labels=skim_time_periods['labels'], ordered=False).astype(str)
 
 
 def annotate_preprocessors(

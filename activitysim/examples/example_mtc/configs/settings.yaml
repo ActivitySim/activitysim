@@ -175,12 +175,14 @@ skim_time_periods:
     period_minutes: 60
     periods:
         - 0
+        - 3
         - 6
         - 11
         - 16
         - 20
         - 24
     labels:
+        - EA
         - EA
         - AM
         - MD

@@ -35,8 +35,8 @@ maz_to_tap:
   drive:
     table: maz_to_tap_drive.csv
 
-
-TRANSIT_VIRTUAL_PATH_SETTINGS:
+# transit virtual path builder settings
+TVPB_SETTINGS:
 
   # FIXME we need to know demographic_segments and time_periods to pre-compute tap-tap utilities
   # FIXME this has to be explicitly specified, since demographic_segments are assigned in expression files
@@ -68,10 +68,6 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
       PREPROCESSOR:
         SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
         DF: df
-#      sets:  # this is redundant - should match alternative columns in spec
-#        - fastest
-#        - cheapest
-#        - shortest
     maz_tap_expressions:
       walk:
         SPEC: tvpb_utility_walk_maz_tap.csv

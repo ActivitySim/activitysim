@@ -1,7 +1,7 @@
 inherit_settings: True
 
 # number of households to simulate
-households_sample_size: 100
+households_sample_size: 5000
 
 #chunk_size: 2500000000
 chunk_size: 0
@@ -195,10 +195,12 @@ use_shadow_pricing: False
 # (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
 want_dest_choice_sample_tables: False
 
+#resume_after: initialize_los
+
 models:
   - initialize_landuse
   - initialize_households
-  #- initialize_los
+  - initialize_los
   - initialize_tours
   - tour_mode_choice_simulate
   - write_data_dictionary

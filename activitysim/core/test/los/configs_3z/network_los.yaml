@@ -36,5 +36,26 @@ skim_time_periods:
     time_window: 1440
     period_minutes: 60
     periods: [0, 6, 11, 16, 20, 24]
-    labels: ['EA', 'AM', 'MD', 'PM', 'EV']
+    labels: &skim_time_period_labels ['EA', 'AM', 'MD', 'PM', 'EV']
 
+demographic_segments: &demographic_segments
+  - &low_income_segment_id 0
+  - &high_income_segment_id 1
+
+
+# transit virtual path builder settings
+TVPB_SETTINGS:
+  tour_mode_choice:
+    tap_tap_settings:
+      SPEC: tvpb_utility_tap_tap.csv
+      PREPROCESSOR:
+        SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
+        DF: df
+      # FIXME this has to be explicitly specified, since e.g. attribute columns are assigned in expression files
+      attribute_segments:
+        demographic_segment: *demographic_segments
+        tod: *skim_time_period_labels
+        access_mode: ['drive', 'walk']
+      attributes_as_columns:
+        - demographic_segment
+        - tod

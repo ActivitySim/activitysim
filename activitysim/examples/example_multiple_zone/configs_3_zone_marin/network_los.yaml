@@ -2,13 +2,19 @@ inherit_settings: True
 
 zone_system: 3
 
+skim_dict_factory:
+
 # read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
-read_skim_cache: True
+read_skim_cache: False
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
 write_skim_cache: True
 
-read_tvpb_cache: True
-write_tvpb_cache: False
+#tvpb_cache_type: dynamic
+tvpb_cache_type: static
+
+# checkpoint dynamic cache to speed subsequent runs/resume?
+write_tvpb_dynamic_cache: True
+trace_tvpb_dynamic_cache_as_csv: False
 
 taz_skims: 
   - HWYSKMAM_taz_rename.omx
@@ -104,12 +110,21 @@ TVPB_SETTINGS:
         egress: drive
         max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
-    tap_tap_expressions:
+    tap_tap_settings:
       SPEC: tvpb_utility_tap_tap.csv
       PREPROCESSOR:
         SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
         DF: df
-    maz_tap_expressions:
+      # FIXME this has to be explicitly specified, since e.g. attribute columns are assigned in expression files
+      attribute_segments:
+        demographic_segment: *demographic_segments
+        tod: *skim_time_period_labels
+        access_mode: ['drive', 'walk']
+      attributes_as_columns:
+        - demographic_segment
+        - tod
+
+    maz_tap_settings:
       walk:
         SPEC: tvpb_utility_walk_maz_tap.csv
         CHOOSER_COLUMNS:
@@ -122,18 +137,6 @@ TVPB_SETTINGS:
           - DDIST
           - DTIME
           - WDIST
-
-    # FIXME we need to know demographic_segments and time_periods to pre-compute tap-tap utilities
-    # FIXME this has to be explicitly specified, since demographic_segments are assigned in expression files
-    # this should perhaps be reorganized to accomodate accessibility calculations
-    precompute_tap_tap:
-      attribute_segments:
-        demographic_segment: *demographic_segments
-        tod: *skim_time_period_labels
-        access_mode: ['drive', 'walk']
-      attributes_as_columns:
-        - demographic_segment
-        - tod
 
     CONSTANTS:
       C_LOW_INCOME_SEGMENT_ID: *low_income_segment_id

@@ -202,7 +202,7 @@ def compute_logsums(
 
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions
-        locals_dict.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
+        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     # - od_logsums
     od_skims = {
@@ -430,7 +430,7 @@ def wrap_skims(model_settings, trace_label):
 
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
-        tvpb = TransitVirtualPathBuilder(network_los)
+        tvpb = network_los.tvpb
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
                                            tod_key='trip_period', segment_key='demographic_segment',

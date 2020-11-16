@@ -427,7 +427,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
             # copy memmapped cache to RAM numpy ndarray
             if cache_data is not None:
                 assert cache_data.shape == skim_data.shape
-                skim_data[::] = cache_data[::]
+                np.copyto(skim_data, cache_data)
                 cache_data._mmap.close()
                 del cache_data
                 return
@@ -437,7 +437,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
 
         if write_cache:
             cache_data = self._create_empty_writable_memmap_skim_cache(skim_info)
-            cache_data[::] = skim_data[::]
+            np.copyto(cache_data, skim_data)
             cache_data._mmap.close()
             del cache_data
 

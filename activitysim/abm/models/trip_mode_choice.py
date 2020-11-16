@@ -101,7 +101,7 @@ def trip_mode_choice(
 
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
-        tvpb = TransitVirtualPathBuilder(network_los)
+        tvpb = network_los.tvpb
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
                                            tod_key='trip_period', segment_key='demographic_segment',
@@ -113,7 +113,7 @@ def trip_mode_choice(
         })
 
         # TVPB constants can appear in expressions
-        constants.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
+        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     choices_list = []
     for primary_purpose, trips_segment in trips_merged.groupby('primary_purpose'):

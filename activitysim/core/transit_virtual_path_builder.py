@@ -32,67 +32,16 @@ ERR_CHECK = True
 UNAVAILABLE = -999
 
 
-def chunk_log_df(trace_label, name, df):
 
-    chunk.log_df(trace_label, name, df)
+def compute_utilities(network_los, model_settings, choosers, model_constants,
+                      trace_label, trace=False, trace_column_names=None):
 
-    if TRACE_CHUNK:
-        logger.debug(f"#TVPB CHUNK {name} {df.shape if df is not None else '-'}")
-
-
-def trace_maz_tap(maz_od_df, access_mode, egress_mode, network_los):
-
-    def maz_tap_stats(mode, name):
-        maz_tap_df = network_los.maz_to_tap_dfs[mode].reset_index()
-        logger.debug(f"TVPB access_maz_tap {maz_tap_df.shape}")
-        MAZ_count = len(maz_tap_df.MAZ.unique())
-        TAP_count = len(maz_tap_df.TAP.unique())
-        MAZ_PER_TAP = MAZ_count / TAP_count
-        logger.debug(f"TVPB maz_tap_stats {name} {mode} MAZ {MAZ_count} TAP {TAP_count} ratio {MAZ_PER_TAP}")
-
-    logger.debug(f"TVPB maz_od_df {maz_od_df.shape}")
-
-    maz_tap_stats(access_mode, 'access')
-    maz_tap_stats(egress_mode, 'egress')
-
-
-class TransitVirtualPathBuilder(object):
-
-    def __init__(self, network_los):
-
-        self.network_los = network_los
-        self.table_cache = cache.TableCache(network_los)
-
-        # FIXME - need to recompute headroom?
-        self.chunk_size = inject.get_injectable('chunk_size')
-
-        assert network_los.zone_system == los.THREE_ZONE, \
-            f"TransitVirtualPathBuilder: network_los zone_system not THREE_ZONE"
-
-    def trace_df(self, df, trace_label, extension=None, bug=False):
-
-        if extension:
-            trace_label = tracing.extend_trace_label(trace_label, extension)
-
-        assert len(df) > 0
-
-        tracing.trace_df(df, label=trace_label, slicer='NONE', transpose=False)
-
-        if bug:
-            print(f"{trace_label}\n{df}")
-            bug_out
-
-    def close_cache(self):
-        self.table_cache.close()
-
-    def compute_utilities(self, model_settings, choosers, model_constants,
-                          trace_label, trace, chooser_tag_col_name=None):
-
+    with chunk.chunk_log(f'tvpb compute_utilities'):
         trace_label = tracing.extend_trace_label(trace_label, 'compute_utilities')
 
         logger.debug(f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers")
 
-        locals_dict = {'np': np, 'los': self.network_los}
+        locals_dict = {'np': np, 'los': network_los}
         locals_dict.update(model_constants)
 
         # we don't grok coefficients, but allow them to use constants in spec alt columns
@@ -101,34 +50,70 @@ class TransitVirtualPathBuilder(object):
             if c != simulate.SPEC_LABEL_NAME:
                 spec[c] = spec[c].map(lambda s: model_constants.get(s, s)).astype(float)
 
-        # - run preprocessor to annotate choosers
-        preprocessor_settings = model_settings.get('PREPROCESSOR')
-        if preprocessor_settings:
+        with chunk.chunk_log(f'compute_utilities'):
 
-            # don't want to alter caller's dataframe
-            choosers = choosers.copy()
+            # - run preprocessor to annotate choosers
+            preprocessor_settings = model_settings.get('PREPROCESSOR')
+            if preprocessor_settings:
 
-            expressions.assign_columns(
-                df=choosers,
-                model_settings=preprocessor_settings,
-                locals_dict=locals_dict,
-                trace_label=trace_label)
+                # don't want to alter caller's dataframe
+                choosers = choosers.copy()
 
-            if trace:
-                self.trace_df(choosers, trace_label, 'annotated_choosers')
+                expressions.assign_columns(
+                    df=choosers,
+                    model_settings=preprocessor_settings,
+                    locals_dict=locals_dict,
+                    trace_label=trace_label)
 
-        utilities = simulate.eval_utilities(
-            spec,
-            choosers,
-            locals_d=locals_dict,
-            trace_all_rows=trace,
-            trace_label=trace_label,
-            chooser_tag_col_name=chooser_tag_col_name)
+            utilities = simulate.eval_utilities(
+                spec,
+                choosers,
+                locals_d=locals_dict,
+                trace_all_rows=trace,
+                trace_label=trace_label,
+                trace_column_names=trace_column_names)
 
-        return utilities
+
+    return utilities
+
+
+class TransitVirtualPathBuilder(object):
+
+    def __init__(self, network_los):
+
+        self.network_los = network_los
+
+        self.uid_calculator = cache.TapTapUidCalculator(network_los)
+        self.tap_cache = cache.TVPBCache(self.network_los, self.uid_calculator)  # lightweight until opened
+
+        assert network_los.zone_system == los.THREE_ZONE, \
+            f"TransitVirtualPathBuilder: network_los zone_system not THREE_ZONE"
+
+    def flush_cache(self):
+        #FIXME  not clear when, if ever, we should flush cache?
+        self.tap_cache.flush()
+
+    def trace_df(self, df, trace_label, extension):
+        assert len(df) > 0
+        tracing.trace_df(df, label=tracing.extend_trace_label(trace_label, extension), slicer='NONE', transpose=False)
+
+    def trace_maz_tap(self, maz_od_df, access_mode, egress_mode):
+
+        def maz_tap_stats(mode, name):
+            maz_tap_df = self.network_los.maz_to_tap_dfs[mode].reset_index()
+            logger.debug(f"TVPB access_maz_tap {maz_tap_df.shape}")
+            MAZ_count = len(maz_tap_df.MAZ.unique())
+            TAP_count = len(maz_tap_df.TAP.unique())
+            MAZ_PER_TAP = MAZ_count / TAP_count
+            logger.debug(f"TVPB maz_tap_stats {name} {mode} MAZ {MAZ_count} TAP {TAP_count} ratio {MAZ_PER_TAP}")
+
+        logger.debug(f"TVPB maz_od_df {maz_od_df.shape}")
+
+        maz_tap_stats(access_mode, 'access')
+        maz_tap_stats(egress_mode, 'egress')
 
     def units_for_recipe(self, recipe):
-        units = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.units')
+        units = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.units')
         assert units in ['utility', 'time'], \
             f"unrecognized units: {units} for {recipe}. Expected either 'time' or 'utility'."
         return units
@@ -138,10 +123,10 @@ class TransitVirtualPathBuilder(object):
         trace_label = tracing.extend_trace_label(trace_label, f'compute_maz_tap_utilities.{leg}')
 
         maz_tap_settings = \
-            self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.maz_tap_expressions.{mode}')
+            self.network_los.setting(f'TVPB_SETTINGS.{recipe}.maz_tap_settings.{mode}')
         chooser_columns = maz_tap_settings['CHOOSER_COLUMNS']
         attribute_columns = list(chooser_attributes.columns) if chooser_attributes is not None else []
-        model_constants = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.CONSTANTS')
+        model_constants = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.CONSTANTS')
 
         if leg == 'access':
             maz_col = 'omaz'
@@ -165,16 +150,19 @@ class TransitVirtualPathBuilder(object):
         for c in attribute_columns:
             utilities_df[c] = reindex(chooser_attributes[c], utilities_df['idx'])
 
-        chunk_log_df(trace_label, "utilities_df", utilities_df)
+        chunk.log_df(trace_label, "utilities_df", utilities_df)
 
         if self.units_for_recipe(recipe) == 'utility':
 
-            utilities_df[leg] = self.compute_utilities(
+            utilities_df[leg] = compute_utilities(
+                self.network_los,
                 maz_tap_settings,
                 utilities_df,
                 model_constants=model_constants,
                 trace_label=trace_label, trace=trace,
-                chooser_tag_col_name=['idx', maz_col, tap_col] if trace else None)
+                trace_column_names=['idx', maz_col, tap_col] if trace else None)
+
+            chunk.log_df(trace_label, "utilities_df", utilities_df)  # annotated
 
         else:
 
@@ -184,7 +172,7 @@ class TransitVirtualPathBuilder(object):
             assert len(results.columns == 1)
             utilities_df[leg] = results
 
-        chunk_log_df(trace_label, "utilities_df", utilities_df)
+        chunk.log_df(trace_label, "utilities_df", utilities_df)
 
         if trace:
             self.trace_df(utilities_df, trace_label, 'utilities_df')
@@ -223,154 +211,232 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_utilities')
 
-        model_constants = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.CONSTANTS')
-        tap_tap_settings = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.tap_tap_expressions')
+        model_constants = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.CONSTANTS')
+        tap_tap_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.tap_tap_settings')
 
-        with memo("#TVPB compute_tap_tap_utilities all_transit_paths"):
+        with memo("#TVPB CACHE compute_tap_tap_utilities all_transit_paths"):
             transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace)
-            # index is arbitrary, but we use it  to redupe unique_transit_df
-            transit_df.reset_index(drop=True, inplace=True)
-            chunk_log_df(trace_label, "transit_df", transit_df)
+            # note: transit_df index is arbitrary
+            chunk.log_df(trace_label, "transit_df", transit_df)
 
-        if self.units_for_recipe(recipe) == 'utility':
+        USE_CACHE = not trace  # disable cache when tracing so utility calculations will be traced
 
-            USE_CACHE = None if trace else True  # yes, None and not False
+        # FIXME some expressions may want to know access mode -
+        locals_dict = path_info.copy()
+        locals_dict.update(model_constants)
 
-            # FIXME some expressions may want to know access mode -
-            locals_dict = path_info.copy()
-            locals_dict.update(model_constants)
+        # columns needed for compute_utilities
+        chooser_columns = ['btap', 'atap'] + list(chooser_attributes.columns)
 
-            logger.debug(f"deduplicating... {trace_label}")
+        # deduplicate transit_df to unique_transit_df
+        with memo("#TVPB compute_tap_tap_utilities deduplicate transit_df"):
 
-            # columns needed for compute_utilities
-            chooser_columns = ['btap', 'atap'] + list(chooser_attributes.columns)
+            attribute_segments = \
+                self.network_los.setting('TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attribute_segments')
+            #scalar_attributes = {k: locals_dict[k] for k in attribute_segments.keys() if k in locals_dict}
+            scalar_attributes = {k: locals_dict[k] for k in attribute_segments.keys() if k not in transit_df}
 
-            with memo("#TVPB compute_tap_tap_utilities deduplicate slice"):
-                unique_transit_df = transit_df[chooser_columns]  # low-cost temp slice
-                unique_transit_df = unique_transit_df[~unique_transit_df.duplicated()]
-                logger.debug(f"#UCACHE deduped transit_df from {len(transit_df)} to {len(unique_transit_df)}")
-                chunk_log_df(trace_label, "unique_transit_df", unique_transit_df)
+            transit_df['uid'] = self.uid_calculator.get_unique_ids(transit_df, scalar_attributes)
 
-            # build reduplication series
-            with memo("#TVPB compute_tap_tap_utilities build redupe series"):
-                # build series mapping transit_df.index to unique_transit_df.index
-                # this permits mapping (using reindex) values in unique_transit_df back to transit_df
-                unique_transit_df['i'] = unique_transit_df.index
-                map_dupe_to_unique = pd.merge(transit_df, unique_transit_df, how='left', on=chooser_columns)['i']
-                del unique_transit_df['i']
-                chunk_log_df(trace_label, "map_dupe_to_unique", map_dupe_to_unique)
+            unique_transit_df = transit_df.loc[~transit_df.uid.duplicated(), chooser_columns + ['uid']]
+            logger.debug(f"#TVPB CACHE deduped transit_df from {len(transit_df)} to {len(unique_transit_df)}")
 
-            if ERR_CHECK:
-                # ensure we can redupe
-                for c in unique_transit_df:
-                    assert (transit_df[c] == reindex(unique_transit_df[c], map_dupe_to_unique)).all()
+            unique_transit_df.set_index('uid', inplace=True)
+            chunk.log_df(trace_label, "unique_transit_df", unique_transit_df)
 
-            transit_df = transit_df[['idx', 'btap', 'atap']]  # don't need chooser columns
-            chunk_log_df(trace_label, "transit_df", transit_df)
+            transit_df = transit_df[['idx', 'btap', 'atap', 'uid']]  # don't need chooser columns
+            chunk.log_df(trace_label, "transit_df", transit_df)
 
-            # identify any cached utilities and remove them from unique_transit_df
-            tap_tap_cache_tag = path_info['cache_tag']  #FIXME
-            cached_utilities_df = USE_CACHE and self.table_cache.get_cached_table(tap_tap_cache_tag)
-            if cached_utilities_df is not None:
-                utility_columns = [c for c in cached_utilities_df if c not in chooser_columns]
-                assert len(utility_columns) > 0
+        logger.debug(f"#TVPB CACHE compute_tap_tap_utilities dedupe transit_df from {len(transit_df)} to {len(unique_transit_df)} rows")
 
-                # merge cached utilities where available
-                cached_utilities_df = \
-                    pd.merge(unique_transit_df, cached_utilities_df, how='left', on=chooser_columns, sort=False)
-                cached_utilities_df.index = unique_transit_df.index  # left merge on columns doesn't preserve index
-                chunk_log_df(trace_label, "cached_utilities_df", cached_utilities_df)
+        num_unique_transit_rows = len(unique_transit_df)  #errcheck
 
-                for c in chooser_columns:
-                    assert (unique_transit_df[c].values == cached_utilities_df[c].values).all()
+        # identify any cached utilities and remove them from unique_transit_df
+        if USE_CACHE:
+            with memo("#TVPB compute_tap_tap_utilities cached_utilities_df"):
+                cached_utilities_df = self.tap_cache.table()
+                if cached_utilities_df is not None:
 
-                # rows missing from cache will have null values for all utility_columns
-                cached = ~cached_utilities_df[utility_columns[0]].isna()
+                    assert len(cached_utilities_df) > 0
 
-                logger.debug(f"#UCACHE {cached.sum()} rows in unique_transit_df cached out of {len(unique_transit_df)}")
+                    # cached_utilities_df gets cached utilities that are in unique_transit_df
+                    cached_utilities_df = cached_utilities_df[cached_utilities_df.index.isin(unique_transit_df.index)]
 
-                # we want to calculate utilities for uncached rows
-                unique_transit_df = cached_utilities_df[~cached][chooser_columns]
-                chunk_log_df(trace_label, "unique_transit_df", unique_transit_df)
+                    # we only want to calculate utilities for uncached rows
+                    if len(cached_utilities_df) > 0:
+                        unique_transit_df = unique_transit_df[~unique_transit_df.index.isin(cached_utilities_df.index)]
+                        chunk.log_df(trace_label, "unique_transit_df", unique_transit_df)
 
-                # cached utilities (with index of corresponding unique_transit_df so we can dedupe)
-                cached_utilities_df = cached_utilities_df[cached][utility_columns]
-                chunk_log_df(trace_label, "cached_utilities_df", cached_utilities_df)
+                        assert num_unique_transit_rows == len(unique_transit_df) + len(cached_utilities_df)  #errcheck
+                        logger.debug(f"#TVPB CACHE compute_tap_tap_utilities cached_utilities_df: {len(cached_utilities_df)} unique_transit_df: {len(unique_transit_df)} rows")
+                    else:
+                        cached_utilities_df = None
+        else:
+            cached_utilities_df = None
 
-            if len(unique_transit_df) > 0:
-                # compute utilities for any uncached rows
+        if len(unique_transit_df) > 0:
+            # compute utilities for any uncached rows
 
-                with memo("#TVPB compute_tap_tap_utilities compute_utilities"):
-                    with chunk.chunk_log(f'#TVPB.unique_transit_utilities'):
-                        unique_utilities_df = self.compute_utilities(
-                            tap_tap_settings,
-                            choosers=unique_transit_df,
-                            model_constants=locals_dict,
-                            trace_label=trace_label,
-                            trace=trace,
-                            chooser_tag_col_name=chooser_columns if trace else None
-                        )
-                    chunk_log_df(trace_label, "unique_utilities_df", unique_utilities_df)
+            logger.debug(f"#TVPB CACHE compute_tap_tap_utilities compute_utilities for {len(unique_transit_df)} rows")
 
-                # add newly newly computed utilities (including their chooser_columns) to cache
-                if USE_CACHE:    #TRACEFIX
-                    self.table_cache.extend_cached_table(tap_tap_cache_tag,
-                                                         pd.concat([unique_transit_df, unique_utilities_df], axis=1))
+            with memo("#TVPB compute_tap_tap_utilities compute_utilities"):
+                unique_utilities_df = compute_utilities(
+                    self.network_los,
+                    tap_tap_settings,
+                    choosers=unique_transit_df,
+                    model_constants=locals_dict,
+                    trace_label=trace_label,
+                    trace=trace,
+                    trace_column_names=chooser_columns if trace else None
+                )
+                chunk.log_df(trace_label, "unique_utilities_df", unique_utilities_df)
+                chunk.log_df(trace_label, "unique_transit_df", unique_transit_df)  # annotated
+
+                if trace:
+                    self.trace_df(unique_utilities_df, trace_label, 'unique_utilities_df')
+
+            # add newly newly computed utilities (including their chooser_columns) to cache
+            if USE_CACHE:
+                with memo("#TVPB compute_tap_tap_utilities extend cached table"):
+                    self.tap_cache.extend_table(unique_utilities_df)
 
                 # if there were also some cached utilities, add them and their utilities back into unique_transit_df
-                if cached_utilities_df is not None and len(cached_utilities_df) > 0:
-                    unique_utilities_df = \
-                        pd.concat([unique_utilities_df, cached_utilities_df], axis=0)
-                    chunk_log_df(trace_label, "unique_utilities_df", unique_utilities_df)
-            else:
-                # all utilities were in cache
-                unique_utilities_df = cached_utilities_df
+                if cached_utilities_df is not None:
+                    assert len(cached_utilities_df) > 0
+                    assert num_unique_transit_rows == len(unique_utilities_df) + len(cached_utilities_df)  #errcheck
+                    unique_utilities_df = pd.concat([unique_utilities_df, cached_utilities_df], axis=0)
+                    chunk.log_df(trace_label, "unique_utilities_df", unique_utilities_df)
+        else:
+            # all utilities were in cache
+            assert cached_utilities_df is not None
+            unique_utilities_df = cached_utilities_df
 
-            # redupe unique_transit_df back into transit_df
-            with memo("#TVPB compute_tap_tap_utilities redupe transit_df"):
+        assert num_unique_transit_rows == len(unique_utilities_df)  #errcheck
 
-                for c in unique_utilities_df:
-                    transit_df[c] = reindex(unique_utilities_df[c], map_dupe_to_unique)
+        # redupe unique_transit_df back into transit_df
+        with memo("#TVPB compute_tap_tap_utilities redupe transit_df"):
 
-                chunk_log_df(trace_label, "transit_df", transit_df)
+            # idx = transit_df.index
+            transit_df = pd.merge(transit_df, unique_utilities_df, left_on='uid', right_index=True)
+            del transit_df['uid']
+            # transit_df.index = idx
+            # note: left merge on columns does not preserve index, but transit_df index is arbitrary so no need to restore
 
-            for c in unique_utilities_df:
-                assert ERR_CHECK and not transit_df[c].isnull().any()
+            chunk.log_df(trace_label, "transit_df", transit_df)
 
-            if len(unique_transit_df) > 0:
-                # if all rows were cached, then unique_utilities_df is just a ref to cache
-                del unique_utilities_df
-                chunk_log_df(trace_label, "unique_utilities_df", None)
+        for c in unique_utilities_df:
+            assert ERR_CHECK and not transit_df[c].isnull().any()
 
-        else:  # units == 'time'
+        if len(unique_transit_df) > 0:
+            # if all rows were cached, then unique_utilities_df is just a ref to cache
+            del unique_utilities_df
+            chunk.log_df(trace_label, "unique_utilities_df", None)
 
-            locals_d = {'los': self.network_los}
-            locals_d.update(model_constants)
-
-            assignment_spec = assign.read_assignment_spec(file_name=config.config_file_path(tap_tap_settings['SPEC']))
-
-            results, _, _ = assign.assign_variables(assignment_spec, transit_df, locals_d)
-            assert len(results.columns == 1)
-            transit_df['transit'] = results
-
-            # filter out unavailable btap_atap pairs
-            logger.debug(f"{(transit_df['transit'] <= 0).sum()} unavailable tap_tap pairs out of {len(transit_df)}")
-            transit_df = transit_df[transit_df.transit > 0]
-
-            transit_df.drop(columns=chooser_attributes.columns, inplace=True)
-
-        chunk_log_df(trace_label, "transit_df", None)
+        chunk.log_df(trace_label, "transit_df", None)
 
         if trace:
             self.trace_df(transit_df, trace_label, 'transit_df')
 
         return transit_df
 
+    def lookup_tap_tap_utilities(self, recipe, access_df, egress_df, chooser_attributes, path_info, trace_label):
+
+        trace_label = tracing.extend_trace_label(trace_label, 'lookup_tap_tap_utilities')
+
+        assert self.tap_cache.is_fully_populated
+
+        with memo("#TVPB CACHE lookup_tap_tap_utilities all_transit_paths"):
+            transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace=False)
+            # note: transit_df index is arbitrary
+            chunk.log_df(trace_label, "transit_df", transit_df)
+
+        # FIXME some expressions may want to know access mode -
+        locals_dict = path_info.copy()
+
+        # add uid column to transit_df
+        with memo("#TVPB lookup_tap_tap_utilities assign uid"):
+            attribute_segments = \
+                self.network_los.setting('TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attribute_segments')
+            scalar_attributes = {k: locals_dict[k] for k in attribute_segments.keys() if k not in transit_df}
+
+            transit_df.index = self.uid_calculator.get_unique_ids(transit_df, scalar_attributes)
+            transit_df = transit_df[['idx', 'btap', 'atap']]  # just needed chooser_columns for uid calculation
+
+        # get transit_df utilities from cache
+        with memo("#TVPB lookup_tap_tap_utilities cached_utilities_df"):
+            utilities_df = self.tap_cache.table()
+            transit_uids = transit_df.index.unique()
+            utilities_df = utilities_df[utilities_df.index.isin(transit_uids)]
+
+        # redupe unique_transit_df back into transit_df
+        with memo("#TVPB compute_tap_tap_utilities redupe transit_df"):
+            transit_df = pd.merge(transit_df, utilities_df, left_index=True, right_index=True)
+            chunk.log_df(trace_label, "transit_df", transit_df)
+
+        for c in utilities_df:
+            assert ERR_CHECK and not transit_df[c].isnull().any()
+
+        chunk.log_df(trace_label, "transit_df", None)
+
+        return transit_df
+
+    def compute_tap_tap_time(self, recipe, access_df, egress_df, chooser_attributes, trace_label, trace):
+
+        trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_utilities')
+
+        model_constants = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.CONSTANTS')
+        tap_tap_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.tap_tap_settings')
+
+        with memo("#TVPB CACHE compute_tap_tap_utilities all_transit_paths"):
+            transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace)
+            # note: transit_df index is arbitrary
+            chunk.log_df(trace_label, "transit_df", transit_df)
+
+        locals_d = {'los': self.network_los}
+        locals_d.update(model_constants)
+
+        assignment_spec = assign.read_assignment_spec(file_name=config.config_file_path(tap_tap_settings['SPEC']))
+
+        results, _, _ = assign.assign_variables(assignment_spec, transit_df, locals_d)
+        assert len(results.columns == 1)
+        transit_df['transit'] = results
+
+        # filter out unavailable btap_atap pairs
+        logger.debug(f"{(transit_df['transit'] <= 0).sum()} unavailable tap_tap pairs out of {len(transit_df)}")
+        transit_df = transit_df[transit_df.transit > 0]
+
+        transit_df.drop(columns=chooser_attributes.columns, inplace=True)
+
+        chunk.log_df(trace_label, "transit_df", None)
+
+        if trace:
+            self.trace_df(transit_df, trace_label, 'transit_df')
+
+        return transit_df
+
+    def compute_tap_tap(self, recipe, access_df, egress_df, chooser_attributes, path_info, trace_label, trace):
+
+        if self.units_for_recipe(recipe) == 'utility':
+
+            if not self.tap_cache.is_open:
+                self.tap_cache.open()
+
+            if not trace and self.tap_cache.is_fully_populated:
+                result = self.lookup_tap_tap_utilities(recipe, access_df, egress_df, chooser_attributes, path_info, trace_label)
+            else:
+                result = self.compute_tap_tap_utilities(recipe, access_df, egress_df, chooser_attributes, path_info, trace_label, trace)
+            return result
+        else:
+            assert self.units_for_recipe(recipe) == 'time'
+            result = self.compute_tap_tap_time(recipe, access_df, egress_df, chooser_attributes, trace_label, trace)
+
+        return result
+
     def best_paths(self, recipe, path_type, maz_od_df, access_df, egress_df, transit_df, trace_label, trace=False):
 
         trace_label = tracing.extend_trace_label(trace_label, 'best_paths')
 
-        path_settings = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}')
+        path_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}')
         max_paths_per_tap_set = path_settings.get('max_paths_per_tap_set', 1)
         max_paths_across_tap_sets = path_settings.get('max_paths_across_tap_sets', 1)
 
@@ -385,16 +451,18 @@ class TransitVirtualPathBuilder(object):
             merge(egress_df, on=['idx', 'dmaz'], how='inner'). \
             merge(transit_df, on=['idx', 'atap', 'btap'], how='inner')
 
-        chunk_log_df(trace_label, "path_df", path_df)
-
-        if trace:
-            # self.trace_df(access_df, trace_label, 'access')
-            # self.trace_df(egress_df, trace_label, 'egress')
-            # self.trace_df(transit_df, trace_label, 'transit')
-            self.trace_df(path_df, trace_label, 'best_paths.full')
+        chunk.log_df(trace_label, "path_df", path_df)
 
         # transit sets are the transit_df non-join columns
         transit_sets = [c for c in transit_df.columns if c not in ['idx', 'atap', 'btap']]
+
+        if trace:
+            # be nice and show both tap_tap set utility and total_set = access + set + egress
+            for c in transit_sets:
+                path_df[f'total_{c}'] = path_df[c] + path_df['access'] + path_df['egress']
+            self.trace_df(path_df, trace_label, 'best_paths.full')
+            for c in transit_sets:
+                del path_df[f'total_{c}']
 
         for c in transit_sets:
             path_df[c] = path_df[c] + path_df['access'] + path_df['egress']
@@ -458,8 +526,8 @@ class TransitVirtualPathBuilder(object):
         units = self.units_for_recipe(recipe)
         assert units == 'utility' or not want_choices, "'want_choices' only supported supported if units is utility"
 
-        access_mode = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}.access')
-        egress_mode = self.network_los.setting(f'TRANSIT_VIRTUAL_PATH_SETTINGS.{recipe}.path_types.{path_type}.egress')
+        access_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.access')
+        egress_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.egress')
 
         # maz od pairs requested
         with memo("#TVPB build_virtual_path maz_od_df"):
@@ -469,8 +537,8 @@ class TransitVirtualPathBuilder(object):
                 'dmaz': dest.values,
                 'seq': range(len(orig))
             })
-            chunk_log_df(trace_label, "maz_od_df", maz_od_df)
-            trace_maz_tap(maz_od_df, access_mode, egress_mode, self.network_los)
+            chunk.log_df(trace_label, "maz_od_df", maz_od_df)
+            self.trace_maz_tap(maz_od_df, access_mode, egress_mode)
 
         # for location choice, there will be multiple alt dest rows per chooser and duplicate orig.index values
         # but tod and demographic_segment should be the same for all chooser rows (unique orig index values)
@@ -490,7 +558,7 @@ class TransitVirtualPathBuilder(object):
                     leg='access',
                     mode=access_mode,
                     trace_label=trace_label, trace=trace)
-        chunk_log_df(trace_label, "access_df", access_df)
+        chunk.log_df(trace_label, "access_df", access_df)
 
         with memo("#TVPB build_virtual_path egress_df"):
             with chunk.chunk_log(f'#TVPB.compute_maz_tap_utilities.egress.{egress_mode}'):
@@ -501,21 +569,20 @@ class TransitVirtualPathBuilder(object):
                     leg='egress',
                     mode=egress_mode,
                     trace_label=trace_label, trace=trace)
-        chunk_log_df(trace_label, "egress_df", egress_df)
+        chunk.log_df(trace_label, "egress_df", egress_df)
 
         # path_info for use by expressions (e.g. penalty for drive access if no parking at access tap)
-        with memo("#TVPB build_virtual_path compute_tap_tap_utilities"):
-            with chunk.chunk_log(f'#TVPB.compute_tap_tap_utilities'):
+        with memo("#TVPB build_virtual_path compute_tap_tap"):
+            with chunk.chunk_log(f'#TVPB.compute_tap_tap'):
                 path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
-                path_info['cache_tag'] = f'tap_tap_{path_type}'  # FIXME
-                transit_df = self.compute_tap_tap_utilities(
+                transit_df = self.compute_tap_tap(
                     recipe,
                     access_df,
                     egress_df,
                     chooser_attributes,
                     path_info=path_info,
                     trace_label=trace_label, trace=trace)
-        chunk_log_df(trace_label, "transit_df", transit_df)
+        chunk.log_df(trace_label, "transit_df", transit_df)
 
         with memo("#TVPB build_virtual_path best_paths"):
             with chunk.chunk_log(f'#TVPB.best_paths'):
@@ -523,15 +590,15 @@ class TransitVirtualPathBuilder(object):
                     recipe, path_type,
                     maz_od_df, access_df, egress_df, transit_df,
                     trace_label, trace)
-        chunk_log_df(trace_label, "path_df", path_df)
+        chunk.log_df(trace_label, "path_df", path_df)
 
         # now that we have created path_df, we are done with the dataframes for the separate legs
         del access_df
-        chunk_log_df(trace_label, "access_df", None)
+        chunk.log_df(trace_label, "access_df", None)
         del egress_df
-        chunk_log_df(trace_label, "egress_df", None)
+        chunk.log_df(trace_label, "egress_df", None)
         del transit_df
-        chunk_log_df(trace_label, "transit_df", None)
+        chunk.log_df(trace_label, "transit_df", None)
 
         if units == 'utility':
 
@@ -540,7 +607,7 @@ class TransitVirtualPathBuilder(object):
                 # one row per seq with utilities in columns
                 # path_num 0-based to aligh with logit.make_choices 0-based choice indexes
                 path_df['path_num'] = path_df.groupby('seq').cumcount()
-                chunk_log_df(trace_label, "path_df", path_df)
+                chunk.log_df(trace_label, "path_df", path_df)
 
                 utilities_df = path_df[['seq', 'path_num', units]].set_index(['seq', 'path_num']).unstack()
                 utilities_df.columns = utilities_df.columns.droplevel()  # for legibility
@@ -549,7 +616,7 @@ class TransitVirtualPathBuilder(object):
                 utilities_df = pd.concat([pd.DataFrame(index=maz_od_df.seq), utilities_df], axis=1)
                 utilities_df = utilities_df.fillna(UNAVAILABLE)  # set utilities for missing paths to UNAVAILABLE
 
-                chunk_log_df(trace_label, "utilities_df", utilities_df)
+                chunk.log_df(trace_label, "utilities_df", utilities_df)
 
                 logsums = np.maximum(np.log(np.nansum(np.exp(utilities_df.values), axis=1)), UNAVAILABLE)
 
@@ -561,7 +628,7 @@ class TransitVirtualPathBuilder(object):
                 with memo("#TVPB build_virtual_path make_choices"):
 
                     probs = logit.utils_to_probs(utilities_df, allow_zero_probs=True, trace_label=trace_label)
-                    chunk_log_df(trace_label, "probs", probs)
+                    chunk.log_df(trace_label, "probs", probs)
 
                     if trace:
                         choices = override_choices
@@ -575,12 +642,12 @@ class TransitVirtualPathBuilder(object):
 
                         choices, rands = logit.make_choices(probs, allow_bad_probs=True, trace_label=trace_label)
 
-                        chunk_log_df(trace_label, "rands", rands)
+                        chunk.log_df(trace_label, "rands", rands)
                         del rands
-                        chunk_log_df(trace_label, "rands", None)
+                        chunk.log_df(trace_label, "rands", None)
 
                     del probs
-                    chunk_log_df(trace_label, "probs", None)
+                    chunk.log_df(trace_label, "probs", None)
 
                 # we need to get path_set, btap, atap from path_df row with same seq and path_num
                 # drop seq join column, but keep path_num of choice to override_choices when tracing
@@ -599,15 +666,15 @@ class TransitVirtualPathBuilder(object):
                 assert len(logsums) == len(orig)
                 logsum_df = pd.DataFrame({'logsum': logsums}, index=orig.index)
 
-            chunk_log_df(trace_label, "logsum_df", logsum_df)
+            chunk.log_df(trace_label, "logsum_df", logsum_df)
 
             del utilities_df
-            chunk_log_df(trace_label, "utilities_df", None)
+            chunk.log_df(trace_label, "utilities_df", None)
 
             if trace:
                 self.trace_df(logsum_df, trace_label, 'logsum_df')
 
-            chunk_log_df(trace_label, "logsum_df", logsum_df)
+            chunk.log_df(trace_label, "logsum_df", logsum_df)
             results = logsum_df
 
         else:
@@ -619,12 +686,12 @@ class TransitVirtualPathBuilder(object):
             # zero-fill rows for O-D pairs where no best path exists because there was no tap-tap transit availability
             results = reindex(results, maz_od_df.idx).fillna(0.0)
 
-            chunk_log_df(trace_label, "results", results)
+            chunk.log_df(trace_label, "results", results)
 
         assert len(results) == len(orig)
 
         del path_df
-        chunk_log_df(trace_label, "path_df", None)
+        chunk.log_df(trace_label, "path_df", None)
 
         # diagnostic
         # maz_od_df['DIST'] = self.network_los.get_default_skim_dict().get('DIST').get(maz_od_df.omaz, maz_od_df.dmaz)

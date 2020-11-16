@@ -71,7 +71,7 @@ def memo(tag, gc=True, console=False):
         if console:
             print(f"MEMO {tag} Time: {si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
         else:
-            logger.debug(f"MEM  {tag}{mem_str} in {si_units(elapsed_time, kind='s')}")
+            logger.debug(f"MEM  {tag} {mem_str} in {si_units(elapsed_time, kind='s')}")
 
 
 def extend_trace_label(trace_label, extension):

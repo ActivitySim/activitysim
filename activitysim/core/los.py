@@ -12,7 +12,7 @@ from activitysim.core import skim_dictionary
 from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
-from activitysim.core import tracing
+from activitysim.core import transit_virtual_path_builder
 
 #
 from activitysim.core.skim_dict_factory import NumpyArraySkimFactory
@@ -61,8 +61,7 @@ class Network_LOS(object):
                                         # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
     maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
                                         # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
-    tap_ceiling: int                    # max tap_id + 1 (to compute synthetic tap_tap index values)
-
+    tap_tap_uid: TapTapUidCalculator
 
     """
 
@@ -85,7 +84,7 @@ class Network_LOS(object):
         # THREE_ZONE only
         self.tap_lines_df = None
         self.maz_to_tap_dfs = {}
-        self.tap_ceiling = None
+        self.tvpb = None
 
         self.los_settings_file_name = los_settings_file_name
         self.load_settings()
@@ -183,9 +182,16 @@ class Network_LOS(object):
         assert self.skim_dict_factory is not None
         # load taz skim_info
         self.skims_info['taz'] = self.skim_dict_factory.load_skim_info('taz')
+
         if self.zone_system == THREE_ZONE:
             # load tap skim_info
             self.skims_info['tap'] = self.skim_dict_factory.load_skim_info('tap')
+
+        if self.zone_system == THREE_ZONE:
+            # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
+            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            self.tvpb = transit_virtual_path_builder.TransitVirtualPathBuilder(self)  # dependent on self.tap_df
+
 
     def load_data(self):
         """
@@ -228,11 +234,10 @@ class Network_LOS(object):
         # load tap tables
         if self.zone_system == THREE_ZONE:
 
-            # tap
-            file_name = self.setting('tap')
-            self.tap_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
-
-            self.tap_ceiling = self.tap_df.TAP.max() + 1
+            # tap_df should already have been loaded by load_skim_info because,
+            # during multiprocessing, it is required by TapTapUidCalculator to size TVPBCache
+            # self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            assert self.tap_df is not None
 
             # maz_to_tap_dfs - different sized sparse arrays with different columns, so we keep them seperate
             for mode, maz_to_tap_settings in self.setting('maz_to_tap').items():
@@ -363,25 +368,34 @@ class Network_LOS(object):
         file_names = [file_names] if isinstance(file_names, str) else file_names
         return file_names
 
+    @property
+    def SHARED_BUFFER_TAG(self):
+        return transit_virtual_path_builder.SHARED_BUFFER_TAG
+
     def load_shared_data(self, shared_data_buffers):
         """
         Load omx skim data into shared_data buffers
-        Only called when multiprocessing.
+        Only called when multiprocessing - BEFORE load_data()
 
         Parameters
         ----------
         shared_data_buffers: dict of multiprocessing.RawArray keyed by skim_tag
         """
 
-        if self.skim_dict_factory.share_data_for_multiprocessing:
-            for skim_tag in self.skims_info.keys():
-                assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
-                self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
+        assert self.skim_dict_factory.share_data_for_multiprocessing
+        for skim_tag in self.skims_info.keys():
+            assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
+            self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
+
+        if self.zone_system == THREE_ZONE:
+            assert self._tvpb is not None
+            self.tvpb.tap_cache.load_data_to_buffer(shared_data_buffers[self.SHARED_BUFFER_TAG])
+
 
     def allocate_shared_skim_buffers(self):
         """
         Allocate multiprocessing.RawArray shared data buffers sized to hold data for the omx skims.
-        Only called when multiprocessing.
+        Only called when multiprocessing - BEFORE load_data()
 
         Returns dict of allocated buffers so they can be added to mp_tasks can add them to dict of data
         to be shared with subprocesses.
@@ -395,10 +409,16 @@ class Network_LOS(object):
 
         skim_buffers = {}
 
-        if self.skim_dict_factory.share_data_for_multiprocessing:
-            for skim_tag in self.skims_info.keys():
-                skim_buffers[skim_tag] = \
-                    self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
+        assert self.skim_dict_factory.share_data_for_multiprocessing
+
+        for skim_tag in self.skims_info.keys():
+            skim_buffers[skim_tag] = \
+                self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
+
+        if self.zone_system == THREE_ZONE:
+            assert self._tvpb is not None
+            skim_buffers[self.SHARED_BUFFER_TAG] = \
+                self.tvpb.tap_cache.allocate_data_buffer(self, shared=True)
 
         return skim_buffers
 
@@ -512,3 +532,4 @@ class Network_LOS(object):
 
         return pd.cut(time_period, self.skim_time_periods['periods'],
                       labels=self.skim_time_periods['labels'], right=True).astype(str)
+

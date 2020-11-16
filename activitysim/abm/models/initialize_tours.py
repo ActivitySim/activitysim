@@ -71,16 +71,21 @@ def patch_tour_ids(tours):
 
 
 @inject.step()
-def initialize_tours(households, persons, trace_hh_id):
+def initialize_tours(network_los, households, persons, trace_hh_id):
 
     trace_label = 'initialize_tours'
 
     tours = read_input_table("tours")
 
-    if inject.get_injectable('households_sliced', False):
+    # FIXME can't use households_sliced injectable as flag like persons table does in case of resume_after.
+    # FIXME could just always slice...
+    slice_happened = \
+        inject.get_injectable('households_sample_size', 0) > 0 \
+        or len(inject.get_injectable('override_hh_ids', [])) > 0
+    if slice_happened:
+        logger.info("slicing tours %s" % (tours.shape,))
         # keep all persons in the sampled households
         tours = tours[tours.person_id.isin(persons.index)]
-    logger.info("loaded tours %s" % (tours.shape,))
 
     # annotate before patching tour_id to allow addition of REQUIRED_TOUR_COLUMNS defined above
     model_settings = config.read_model_settings('initialize_tours.yaml', mandatory=True)
@@ -109,3 +114,8 @@ def initialize_tours(households, persons, trace_hh_id):
         logger.error(f"{tours_without_persons.sum()} tours out of {len(persons)} without persons\n"
                      f"{pd.Series({'person_id': tours_without_persons.index.values})}")
         raise RuntimeError(f"{tours_without_persons.sum()} tours with bad person_id")
+
+    if trace_hh_id:
+        tracing.trace_df(tours,
+                         label='initialize_tours',
+                         warn_if_empty=True)

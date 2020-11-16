@@ -295,7 +295,7 @@ def eval_coefficients(spec, coefficients, estimator):
 
 def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                    have_trace_targets=False, trace_all_rows=False,
-                   estimator=None, chooser_tag_col_name=None):
+                   estimator=None, trace_column_names=None):
     """
 
     Parameters
@@ -313,6 +313,8 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     trace_all_rows: boolean - trace all chooser rows, bypassing tracing.trace_targets
     estimator :
         called to report intermediate table results (used for estimation)
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -390,10 +392,10 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
         expression_values_df = pd.DataFrame(data=data, index=index)
 
-        if chooser_tag_col_name is not None:
-            if isinstance(chooser_tag_col_name, str):
-                chooser_tag_col_name = [chooser_tag_col_name]
-            expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, chooser_tag_col_name])
+        if trace_column_names is not None:
+            if isinstance(trace_column_names, str):
+                trace_column_names = [trace_column_names]
+            expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, trace_column_names])
 
         tracing.trace_df(expression_values_df, tracing.extend_trace_label(trace_label, 'expression_values'),
                          slicer=None, transpose=False)
@@ -713,7 +715,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 
 def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
              want_logsums=False, trace_label=None,
-             trace_choice_name=None, chooser_tag_col_name=None):
+             trace_choice_name=None, trace_column_names=None):
     """
     Run a simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -746,6 +748,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -765,7 +769,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 
     utilities = eval_utilities(spec, choosers, locals_d,
                                trace_label=trace_label, have_trace_targets=have_trace_targets,
-                               estimator=estimator, chooser_tag_col_name=chooser_tag_col_name)
+                               estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
@@ -803,7 +807,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 
 def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
             want_logsums=False, trace_label=None,
-            trace_choice_name=None, chooser_tag_col_name=None):
+            trace_choice_name=None, trace_column_names=None):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -831,6 +835,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -850,7 +856,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
 
     raw_utilities = eval_utilities(spec, choosers, locals_d,
                                    trace_label=trace_label, have_trace_targets=have_trace_targets,
-                                   estimator=estimator, chooser_tag_col_name=chooser_tag_col_name)
+                                   estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
@@ -938,7 +944,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                      custom_chooser=None,
                      want_logsums=False,
                      estimator=None,
-                     trace_label=None, trace_choice_name=None, chooser_tag_col_name=None,
+                     trace_label=None, trace_choice_name=None, trace_column_names=None,
                      ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -975,6 +981,8 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -991,13 +999,13 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                            want_logsums=want_logsums,
                            estimator=estimator,
                            trace_label=trace_label,
-                           trace_choice_name=trace_choice_name, chooser_tag_col_name=chooser_tag_col_name)
+                           trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
     else:
         choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
                           want_logsums=want_logsums,
                           estimator=estimator,
                           trace_label=trace_label,
-                          trace_choice_name=trace_choice_name, chooser_tag_col_name=chooser_tag_col_name)
+                          trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
 
     return choices
 
@@ -1066,7 +1074,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     chunk_size=0, custom_chooser=None,
                     want_logsums=False,
                     estimator=None,
-                    trace_label=None, trace_choice_name=None, chooser_tag_col_name=None):
+                    trace_label=None, trace_choice_name=None, trace_column_names=None):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -1093,7 +1101,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
             estimator=estimator,
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
-            chooser_tag_col_name=chooser_tag_col_name)
+            trace_column_names=trace_column_names)
 
         result_list.append(choices)
 

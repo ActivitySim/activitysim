@@ -5,6 +5,7 @@ import pandas as pd
 from activitysim.core import simulate
 from activitysim.core import config
 from activitysim.core import expressions
+from activitysim.core import tracing
 
 """
 At this time, these utilities are mostly for transforming the mode choice
@@ -20,7 +21,7 @@ def mode_choice_simulate(
         logsum_column_name,
         trace_label,
         trace_choice_name,
-        chooser_tag_col_name=None,
+        trace_column_names=None,
         estimator=None):
     """
     common method for  both tour_mode_choice and trip_mode_choice
@@ -56,7 +57,7 @@ def mode_choice_simulate(
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
         estimator=estimator,
-        chooser_tag_col_name=chooser_tag_col_name)
+        trace_column_names=trace_column_names)
 
     # for consistency, always return dataframe, whether or not logsums were requested
     if isinstance(choices, pd.Series):
@@ -117,10 +118,10 @@ def run_tour_mode_choice_simulate(
         choosers, locals_dict, skims,
         model_settings, trace_label)
 
-    chooser_tag_col_name = choosers.index.name
-    assert chooser_tag_col_name == 'tour_id'
-    if chooser_tag_col_name not in choosers:
-        choosers[chooser_tag_col_name] = choosers.index
+    trace_column_names = choosers.index.name
+    assert trace_column_names == 'tour_id'
+    if trace_column_names not in choosers:
+        choosers[trace_column_names] = choosers.index
 
     if estimator:
         # write choosers after annotation
@@ -137,7 +138,7 @@ def run_tour_mode_choice_simulate(
         logsum_column_name=logsum_column_name,
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
-        chooser_tag_col_name=chooser_tag_col_name,
+        trace_column_names=trace_column_names,
         estimator=estimator)
 
     return choices

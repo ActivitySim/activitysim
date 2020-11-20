@@ -1,10 +1,11 @@
 inherit_settings: True
 
 # number of households to simulate
-households_sample_size: 100
+#households_sample_size: 200000
+households_sample_size: 50000
 
-#chunk_size: 2500000000
-chunk_size: 0
+#chunk_size: 4000000000
+chunk_size:
 
 #trace_hh_id: 662398
 trace_hh_id:
@@ -200,17 +201,26 @@ want_dest_choice_sample_tables: False
 models:
   - initialize_landuse
   - initialize_households
-  - initialize_los
   - initialize_tours
+  # --- STATIC cache prebuild steps
+  # single-process step to create attribute_combination list
+  - initialize_los
+  # multi-processable step to build STATIC cache
+  # (this step is a NOP if cache already exists and network_los.rebuild_tvpb_cache setting is False)
+  - initialize_tvpb
+  # ---
   - tour_mode_choice_simulate
   - write_data_dictionary
   - track_skim_usage
   - write_tables
+  - write_summaries
 
 output_tables:
   h5_store: False
   action: include
   prefix: final_
+  # FIXME sort is an undocumented feature - sorts table by best index or ref_col according to traceable_table_indexes
+  sort: True
   tables:
     - checkpoints
     - accessibility
@@ -218,3 +228,10 @@ output_tables:
     - households
     - persons
     - tours
+    - attribute_combinations
+
+output_summaries:
+  tours:
+    - tour_mode
+    - od_path_set
+    - do_path_set

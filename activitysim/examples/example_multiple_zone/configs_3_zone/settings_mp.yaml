@@ -1,0 +1,37 @@
+inherit_settings: settings_static.yaml
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+
+# - ------------------------- dev config
+multiprocess: True
+strict: False
+mem_tick: 30
+use_shadow_pricing: False
+
+num_processes: 2
+
+# - -------------------------
+
+# not recommended or supported for multiprocessing
+want_dest_choice_sample_tables: False
+
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    chunk_size: 0
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_models
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary

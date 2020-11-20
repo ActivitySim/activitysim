@@ -1,6 +1,0 @@
-
-# rebuild and overwrite existing cache or skip step if cache already esists?
-rebuild_static_cache: True
-
-# delete existing dynamic cache so it will be rebuilt dynamically by subsequent model steps?
-rebuild_dynamic_cache: True

@@ -2,6 +2,9 @@
 # See full license in LICENSE.txt.
 import logging
 import os
+import time
+
+from contextlib import contextmanager
 
 import pandas as pd
 import numpy as np
@@ -55,42 +58,45 @@ def od_choosers(network_los, uid_calculator, scalar_attributes):
 def initialize_los(network_los):
 
     trace_label = 'initialize_los'
-    model_settings_file_name = 'initialize_los.yaml'
-    model_settings = config.read_model_settings(model_settings_file_name)
 
-    #tap_cache = cache.TVPBCache(network_los)
     tap_cache = network_los.tvpb.tap_cache
     uid_calculator = network_los.tvpb.uid_calculator
 
     assert not tap_cache.is_open
 
-    # if DYNAMIC
-    if tap_cache.cache_type == cache.DYNAMIC:
-        if os.path.isfile(tap_cache.cache_path) and model_settings.get('rebuild_dynamic_cache', True):
-            logger.info(f"initialize_los deleting DYNAMIC cache {tap_cache.cache_path}")
-            os.unlink(tap_cache.cache_path)
+    if os.path.isfile(tap_cache.cache_path(cache.STATIC)):
+        # otherwise should have been deleted by TVPBCache.cleanup at start of run
+        assert not network_los.get('rebuild_tvpb_cache', cache.REBUILD_DEFAULT)
+        logger.info(f"initialize_los skipping rebuild of STATIC cache because rebuild_tvpb_cache setting is False"
+                    f" and cache already exists: {tap_cache.cache_path}")
         return
 
-    if tap_cache.cache_type == cache.STATIC and os.path.isfile(tap_cache.cache_path):
-        if model_settings.get('rebuild_static_cache', True):
-            logger.info(f"initialize_los deleting STATIC cache {tap_cache.cache_path}")
-            os.unlink(tap_cache.cache_path)
-        else:
-            logger.info(f"initialize_los skipping build STATIC cache because rebuild_static_cache setting is False"
-                        f" and cache already exists: {tap_cache.cache_path}")
-            return
+    assert not os.path.isfile(tap_cache.cache_path)
 
-    assert tap_cache.cache_type == cache.STATIC and not os.path.isfile(tap_cache.cache_path)
+    attribute_combinations_df = uid_calculator.scalar_attribute_combinations()
+    shared_data = cache.multiprocess()
 
-    data = tap_cache.allocate_data_buffer(shared=False)
+    if shared_data:
+        # multiprocess - we will compute 'skim' chunks at offsets specified by our slice of attribute_combinations_df
+        data, lock = tap_cache.get_data_and_lock_from_buffers()
+        write_results = inject.get_injectable('locutor', False)
+    else:
+        # singleprocess - we will compute all data
+        assert not cache.multiprocess()
+        data = tap_cache.allocate_data_buffer(shared=False)
+        write_results = True
 
     data = data.reshape(uid_calculator.skim_shape)
 
-    offset = 0
     with chunk.chunk_log(trace_label):
-        for scalar_attributes in uid_calculator.each_scalar_attribute_combination():
+
+        for offset, scalar_attributes in attribute_combinations_df.to_dict('index').items():
+
+            print(f"compute utilities for offset {offset} scalar_attributes: {scalar_attributes}")
 
             # compute utilities for this 'skim' with a single full set of scalar attributes
+
+            assert (offset == uid_calculator.get_skim_offset(scalar_attributes)).all()
 
             # scalar_attributes is a dict of attribute name/value pairs for this combination
             # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
@@ -117,22 +123,31 @@ def initialize_los(network_los):
 
             chunk.log_df(chunk_trace_label, f'{trace_attributes} utilities_df', utilities_df)
 
-            #tap_cache.extend_table(utilities_df)
-
             assert utilities_df.values.shape == data[offset].shape
-            data[offset, :, :] = utilities_df.values
+            if shared_data:
+                with lock:
+                    data[offset, :, :] = utilities_df.values
+            else:
+                data[offset, :, :] = utilities_df.values
 
             # FIXME do we care about offset?
             assert (offset == uid_calculator.get_skim_offset(scalar_attributes)).all()
-            offset += 1
 
-    #tap_cache.close()
+    if write_results:
 
-    data = data.reshape(uid_calculator.fully_populated_shape)
-    final_df = pd.DataFrame(data, columns=uid_calculator.set_names, index=uid_calculator.fully_populated_uids)
-    final_df.index.name = 'uid'
+        if shared_data:
+            def populated():
+                with lock:
+                    return np.any(data == cache.UNINITIALIZED)
+            while not populated():
+                print(f"initialize_los locutor waiting on lock")
+                time.sleep(1)
 
-    tap_cache.open(for_rebuild=True)
-    tap_cache.extend_table(final_df)
-    tap_cache.close()
+        data = data.reshape(uid_calculator.fully_populated_shape)
+        final_df = pd.DataFrame(data, columns=uid_calculator.set_names, index=uid_calculator.fully_populated_uids)
+        final_df.index.name = 'uid'
+
+        tap_cache.open(for_rebuild=True)
+        tap_cache.extend_table(final_df)
+        tap_cache.close()
 

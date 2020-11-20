@@ -70,6 +70,7 @@ output_tables:
   h5_store: False
   action: include
   prefix: 3z_final_
+  sort: True
   tables:
     - checkpoints
     - accessibility
@@ -81,4 +82,4 @@ output_tables:
 
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
-trace_od: [5000, 11000]
+#trace_od: [5000, 11000]

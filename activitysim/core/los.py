@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 LOS_SETTINGS_FILE_NAME = 'network_los.yaml'
 
+REBUILD_TVPB_CACHE_DEFAULT = False
+
 ONE_ZONE = 1
 TWO_ZONE = 2
 THREE_ZONE = 3
@@ -98,6 +100,12 @@ class Network_LOS(object):
 
         # load SkimInfo for all skims for this zone_system (TAZ for ONE_ZONE and TWO_ZONE, TAZ and MAZ for THREE_ZONE)
         self.load_skim_info()
+
+    @property
+    def rebuild_tvpb_cache(self):
+        # setting as property here so others don't need to know default
+        assert self.zone_system == THREE_ZONE, f"Should'nt even be asking about rebuild_tvpb_cache if not THREE_ZONE"
+        return self.setting('rebuild_tvpb_cache', REBUILD_TVPB_CACHE_DEFAULT)
 
     def setting(self, keys, default='<REQUIRED>'):
         # get setting value for single key or dot-delimited key path (e.g. 'maz_to_maz.tables')
@@ -191,7 +199,6 @@ class Network_LOS(object):
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
             self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
             self.tvpb = transit_virtual_path_builder.TransitVirtualPathBuilder(self)  # dependent on self.tap_df
-
 
     def load_data(self):
         """
@@ -298,7 +305,7 @@ class Network_LOS(object):
             assert 'maz' not in self.skim_dicts
             self.skim_dicts['maz'] = self.create_skim_dict('maz')
             # make sure skim has all maz_ids
-            assert set(self.maz_taz_df ['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
+            assert set(self.maz_taz_df['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
@@ -368,10 +375,6 @@ class Network_LOS(object):
         file_names = [file_names] if isinstance(file_names, str) else file_names
         return file_names
 
-    @property
-    def SHARED_BUFFER_TAG(self):
-        return transit_virtual_path_builder.SHARED_BUFFER_TAG
-
     def load_shared_data(self, shared_data_buffers):
         """
         Load omx skim data into shared_data buffers
@@ -388,9 +391,8 @@ class Network_LOS(object):
             self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
 
         if self.zone_system == THREE_ZONE:
-            assert self._tvpb is not None
-            self.tvpb.tap_cache.load_data_to_buffer(shared_data_buffers[self.SHARED_BUFFER_TAG])
-
+            assert self.tvpb is not None
+            self.tvpb.tap_cache.load_data_to_buffer(shared_data_buffers[self.tvpb.tap_cache.cache_tag])
 
     def allocate_shared_skim_buffers(self):
         """
@@ -416,9 +418,9 @@ class Network_LOS(object):
                 self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
 
         if self.zone_system == THREE_ZONE:
-            assert self._tvpb is not None
-            skim_buffers[self.SHARED_BUFFER_TAG] = \
-                self.tvpb.tap_cache.allocate_data_buffer(self, shared=True)
+            assert self.tvpb is not None
+            skim_buffers[self.tvpb.tap_cache.cache_tag] = \
+                self.tvpb.tap_cache.allocate_data_buffer(shared=True)
 
         return skim_buffers
 
@@ -532,4 +534,3 @@ class Network_LOS(object):
 
         return pd.cut(time_period, self.skim_time_periods['periods'],
                       labels=self.skim_time_periods['labels'], right=True).astype(str)
-

@@ -112,8 +112,6 @@ def run_tour_mode_choice_simulate(
     choosers['in_period'] = network_los.skim_time_period_label(choosers[in_time])
     choosers['out_period'] = network_los.skim_time_period_label(choosers[out_time])
 
-    #FIXME - this may require chunking in 3-zone system
-
     expressions.annotate_preprocessors(
         choosers, locals_dict, skims,
         model_settings, trace_label)

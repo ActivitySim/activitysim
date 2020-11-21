@@ -26,7 +26,7 @@ EFFECTIVE_CHUNK_SIZE = []
 
 HWM = [{}]
 
-INITIAL_ROWS_PER_CHUNK = 10
+INITIAL_ROWS_PER_CHUNK = 100
 MAX_ROWSIZE_ERROR = 0.5  # estimated_row_size percentage error warning threshold
 INTERACTIVE_TRACE_CHUNKING = False
 INTERACTIVE_TRACE_CHUNK_WARNING = False
@@ -142,8 +142,8 @@ def log_open(trace_label, chunk_size=0, effective_chunk_size=0):
         assert chunk_size == 0
         assert trace_label not in CHUNK_LOG
 
-    logger.debug("#chunk log_open chunker %s chunk_size %s effective_chunk_size %s" %
-                 (trace_label, commas(chunk_size), commas(effective_chunk_size)))
+    # logger.debug("#chunk log_open chunker %s chunk_size %s effective_chunk_size %s" %
+    #              (trace_label, commas(chunk_size), commas(effective_chunk_size)))
 
     CHUNK_LOG[trace_label] = OrderedDict()
     CHUNK_SIZE.append(chunk_size)
@@ -158,7 +158,7 @@ def log_close(trace_label):
     assert CHUNK_LOG and next(reversed(CHUNK_LOG)) == trace_label
 
     hwm_elements = get_high_water_mark(tag='elements')
-    logger.debug(f"#chunk log_close elements {hwm_elements} {trace_label}")
+    # logger.debug(f"#chunk log_close elements {hwm_elements} {trace_label}")
 
     # if we are closing base level chunker
     if len(CHUNK_LOG) == 1:
@@ -219,10 +219,10 @@ def log_df(trace_label, table_name, df):
         CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
 
         # log this df
-        logger.debug(f"log_df {table_name} "
-                     f"elements: {commas(elements)} "
-                     f"bytes: {GB(bytes)} "
-                     f"shape: {shape} : {trace_label}")
+        # logger.debug(f"log_df {table_name} "
+        #              f"elements: {commas(elements)} "
+        #              f"bytes: {GB(bytes)} "
+        #              f"shape: {shape} : {trace_label}")
 
     total_elements, total_bytes = _chunk_totals()  # new chunk totals
     cur_mem = mem.get_memory_info()
@@ -313,6 +313,8 @@ def write_history(caller, history, trace_label):
                 f"observed_row_size: {observed_row_size} "
                 f"num_chunks: {num_chunks}")
 
+    logger.debug(f"#chunk_history {caller} {trace_label}\n{history}")
+
     initial_row_size = history.row_size.values[0]
     if initial_row_size > 0:
 
@@ -380,7 +382,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
         # grab the next chunk based on current rows_per_chunk
         chooser_chunk = choosers.iloc[offset: offset + rows_per_chunk]
 
-        logger.info(f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
+        logger.info(f"Running chunk {i+1} of {estimated_number_of_chunks or '?'} "
                     f"with {len(chooser_chunk)} of {num_choosers} choosers")
 
         with chunk_log(trace_label):
@@ -396,6 +398,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
 
         if CHUNK_HISTORY or chunk_size > 0:
 
+            history.setdefault('chunk', []).append(i)
             history.setdefault('row_size', []).append(row_size)
             history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
             history.setdefault('observed_chunk_size', []).append(observed_chunk_size)
@@ -521,7 +524,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
         assert len(chooser_chunk.index) == len(np.unique(alternative_chunk.index.values))
         assert (chooser_chunk.index == np.unique(alternative_chunk.index.values)).all()
 
-        logger.info(f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
+        logger.info(f"Running chunk {i+1} of {estimated_number_of_chunks or '?'} "
                     f"with {len(chooser_chunk)} of {num_choosers} choosers")
 
         with chunk_log(trace_label):
@@ -539,6 +542,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
 
         if CHUNK_HISTORY or chunk_size > 0:
 
+            history.setdefault('chunk', []).append(i)
             history.setdefault('row_size', []).append(row_size)
             history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
             history.setdefault('observed_chunk_size', []).append(observed_chunk_size)
@@ -612,7 +616,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
 
         chooser_chunk = choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
 
-        logger.info(f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
+        logger.info(f"Running chunk {i+1} of {estimated_number_of_chunks or '?'} "
                     f"with {rows_per_chunk} of {num_choosers} choosers")
 
         with chunk_log(trace_label):
@@ -628,6 +632,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
 
         if CHUNK_HISTORY or chunk_size > 0:
 
+            history.setdefault('chunk', []).append(i)
             history.setdefault('row_size', []).append(row_size)
             history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
             history.setdefault('observed_chunk_size', []).append(observed_chunk_size)

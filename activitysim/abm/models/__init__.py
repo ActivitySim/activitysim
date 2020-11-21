@@ -30,3 +30,4 @@ from . import trip_purpose
 from . import trip_purpose_and_destination
 from . import trip_scheduling
 from . import trip_matrices
+from . import summarize

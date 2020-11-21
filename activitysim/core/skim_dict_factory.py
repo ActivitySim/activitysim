@@ -364,7 +364,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         dtype_name = skim_info.dtype_name
         dtype = np.dtype(dtype_name)
 
-        # buffer_size must be int, not np.int64
+        # multiprocessing.RawArray argument buffer_size must be int, not np.int64
         buffer_size = int(np.prod(skim_info.skim_data_shape))
 
         csz = buffer_size * dtype.itemsize

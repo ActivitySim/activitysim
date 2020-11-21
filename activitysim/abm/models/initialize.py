@@ -58,8 +58,8 @@ def annotate_tables(model_settings, trace_label):
         if column_map:
 
             warnings.warn(f"{trace_label} - annotate_tables option 'column_map' renamed 'rename_columns' "
-                          f"and moved to settings.yaml. Support for 'column_map' in annotate_tables will be "
-                          "removed in future versions.",
+                          f"and moved to global settings file. Support for 'column_map' in annotate_tables "
+                          f"will be removed in future versions.",
                           FutureWarning)
 
             logger.info(f"{trace_label} - renaming {tablename} columns {column_map}")

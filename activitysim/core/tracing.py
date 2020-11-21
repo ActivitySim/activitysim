@@ -259,12 +259,7 @@ def register_traceable_table(table_name, df):
     Nothing
     """
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
-
-    new_traced_ids = []
-
-    if trace_hh_id is None:
-        return
+    # add index name to traceable_table_indexes
 
     traceable_tables = inject.get_injectable('traceable_tables', [])
     if table_name not in traceable_tables:
@@ -284,6 +279,19 @@ def register_traceable_table(table_name, df):
                      (table_name, idx_name, traceable_table_indexes[idx_name]))
         return
 
+    # update traceable_table_indexes with this traceable_table's idx_name
+    if idx_name not in traceable_table_indexes:
+        traceable_table_indexes[idx_name] = table_name
+        print("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
+        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
+
+    # add any new indexes associated with trace_hh_id to traceable_table_ids
+
+    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    if trace_hh_id is None:
+        return
+
+    new_traced_ids = []
     if table_name == 'households':
         if trace_hh_id not in df.index:
             logger.warning("trace_hh_id %s not in dataframe" % trace_hh_id)
@@ -313,12 +321,6 @@ def register_traceable_table(table_name, df):
         if len(new_traced_ids) == 0:
             logger.warning("register %s: no rows with %s in %s." %
                            (table_name, ref_col, ref_col_traced_ids))
-
-    # update traceable_table_indexes with this traceable_table's idx_name
-    if idx_name not in traceable_table_indexes:
-        traceable_table_indexes[idx_name] = table_name
-        print("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
-        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
 
     # update the list of trace_ids for this table
     prior_traced_ids = traceable_table_ids.get(table_name, [])

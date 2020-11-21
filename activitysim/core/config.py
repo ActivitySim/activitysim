@@ -63,14 +63,18 @@ def rng_base_seed():
 
 
 @inject.injectable(cache=True)
-def settings():
-    settings_dict = read_settings_file('settings.yaml', mandatory=True)
+def settings_file_name():
+    return 'settings.yaml'
+
+
+@inject.injectable(cache=True)
+def settings(settings_file_name):
+    settings_dict = read_settings_file(settings_file_name, mandatory=True)
 
     return settings_dict
 
 
 def setting(key, default=None):
-
     return inject.get_injectable('settings').get(key, default)
 
 
@@ -263,7 +267,7 @@ class SettingsFileNotFound(Exception):
         return repr(f"Settings file '{self.file_name}' not found in {self.configs_dir}")
 
 
-def read_settings_file(file_name, mandatory=True, include_stack=[]):
+def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_list=None):
     """
 
     look for first occurence of yaml file named <file_name> in directories in configs_dir list,
@@ -274,7 +278,7 @@ def read_settings_file(file_name, mandatory=True, include_stack=[]):
     inherit_settings: boolean
         backfill settings in the current file with values from the next settings file in configs_dir list
     include_settings: string <include_file_name>
-        read settings from specified include_file in placd of the current file settings
+        read settings from specified include_file in place of the current file settings
         (to avoid confusion, this directive must appea ALONE in fiel, without any additional settings or directives.)
 
     Parameters
@@ -296,18 +300,23 @@ def read_settings_file(file_name, mandatory=True, include_stack=[]):
         new_settings.update(settings)
         return new_settings
 
-    configs_dir = inject.get_injectable('configs_dir')
-    configs_dir = [configs_dir] if isinstance(configs_dir, str) else configs_dir
-    assert isinstance(configs_dir, list)
+    if configs_dir_list is None:
+        configs_dir_list = inject.get_injectable('configs_dir')
+        configs_dir_list = [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
+        assert isinstance(configs_dir_list, list)
+        assert len(configs_dir_list) == len(set(configs_dir_list)), \
+            f"repeating file names not allowed in config_dir list: {configs_dir_list}"
 
+    inheriting = False
     settings = {}
     source_file_paths = include_stack.copy()
-    for dir in configs_dir:
+    for dir in configs_dir_list:
         file_path = os.path.join(dir, file_name)
         if os.path.exists(file_path):
-            if settings:
+            if inheriting:
                 # we must be inheriting
                 logger.debug("inheriting additional settings for %s from %s" % (file_name, file_path))
+                inheriting = True
 
             assert file_path not in source_file_paths, \
                 f"read_settings_file - recursion in reading 'file_path' after loading: {source_file_paths}"
@@ -346,15 +355,38 @@ def read_settings_file(file_name, mandatory=True, include_stack=[]):
 
             # we are done as soon as we read one file successfully
             # unless if inherit_settings is set to true in this file
-            # if inheriting, continue and backfill settings from the next existing settings file configs_dir list
+
             if not s.get('inherit_settings', False):
                 break
+
+            # if inheriting, continue and backfill settings from the next existing settings file configs_dir_list
+
+            #BUG should we truncate configs_dir list to our current position?
+            inherit_settings = s.get('inherit_settings')
+            if isinstance(inherit_settings, str):
+                inherit_file_name = inherit_settings
+                assert os.path.join(dir, inherit_file_name) not in source_file_paths, \
+                    f"circular inheritance of {inherit_file_name}: {source_file_paths}: "
+                # make a recursive call to switch inheritance chain to specified file
+                #FIXME start at current position in configs_dir_list as loopbacks would be confusing and inconsistent
+                #configs_dir_list = configs_dir_list[configs_dir_list.index(dir):]
+                configs_dir_list = None
+
+                logger.debug("inheriting additional settings for %s from %s" % (file_name, inherit_file_name))
+                s, source_file_paths = \
+                    read_settings_file(inherit_file_name, mandatory=True,
+                                       include_stack=source_file_paths,
+                                       configs_dir_list=configs_dir_list)
+
+                # backfill with the inherited file
+                settings = backfill_settings(settings, s)
+                break  # break the current inheritance chain (not as bad luck as breaking a chain-letter chain?...)
 
     if len(source_file_paths) > 0:
         settings['source_file_paths'] = source_file_paths
 
     if mandatory and not settings:
-        raise SettingsFileNotFound(file_name, configs_dir)
+        raise SettingsFileNotFound(file_name, configs_dir_list)
 
     if include_stack:
         # if we were called recursively, return an updated list of source_file_paths

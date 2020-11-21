@@ -389,6 +389,7 @@ def load_checkpoint(checkpoint_name):
 
     # register for tracing in order that tracing.register_traceable_table wants us to register them
     traceable_tables = inject.get_injectable('traceable_tables', [])
+
     for table_name in traceable_tables:
         if table_name in loaded_tables:
             tracing.register_traceable_table(table_name, loaded_tables[table_name])
@@ -462,16 +463,15 @@ def run_model(model_name):
     inject.set_step_args(args)
 
     t0 = print_elapsed_time()
-    logger.debug(f"running step {step_name}")
+    logger.info(f"#run_model running step {step_name}")
     orca.run([step_name])
-    t0 = print_elapsed_time("run_model step '%s'" % model_name, t0, debug=True)
+    t0 = print_elapsed_time("#run_model completed step '%s'" % model_name, t0, debug=True)
 
     inject.set_step_args(None)
 
     _PIPELINE.rng().end_step(model_name)
     if checkpoint:
         add_checkpoint(model_name)
-        t0 = print_elapsed_time("run_model add_checkpoint '%s'" % model_name, t0, debug=True)
     else:
         logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 

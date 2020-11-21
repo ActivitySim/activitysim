@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def read_input_table(tablename):
     """Reads input table name and returns cleaned DataFrame.
 
-    Uses settings found in input_table_list in settings.yaml
+    Uses settings found in input_table_list in global settings file
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ def read_input_table(tablename):
             table_info = info
 
     assert table_info is not None, \
-        'could not find info for for tablename %s in settings.yaml' % tablename
+        f"could not find info for for tablename {tablename} in settings file"
 
     return read_from_table_info(table_info)
 
@@ -87,7 +87,7 @@ def read_from_table_info(table_info):
 
     df = _read_input_file(data_file_path, h5_tablename=h5_tablename)
 
-    logger.debug('raw %s table columns: %s' % (tablename, df.columns.values))
+    # logger.debug('raw %s table columns: %s' % (tablename, df.columns.values))
     logger.debug('raw %s table size: %s' % (tablename, util.df_size(df)))
 
     if create_input_store:
@@ -113,7 +113,7 @@ def read_from_table_info(table_info):
 
     # rename columns first, so keep_columns can be a stable list of expected/required columns
     if rename_columns:
-        logger.info("renaming columns: %s" % rename_columns)
+        logger.debug("renaming columns: %s" % rename_columns)
         df.rename(columns=rename_columns, inplace=True)
 
     # set index
@@ -123,13 +123,13 @@ def read_from_table_info(table_info):
             df.set_index(index_col, inplace=True)
         else:
             #FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?
-            #df.index.names = [index_col]
+            # df.index.names = [index_col]
             logger.error(f"index_col '{index_col}' specified in configs but not in {tablename} table!")
             logger.error(f"{tablename} columns are: {list(df.columns)}")
             raise RuntimeError(f"index_col '{index_col}' not in {tablename} table!")
 
     if keep_columns:
-        logger.info("keeping columns: %s" % keep_columns)
+        logger.debug("keeping columns: %s" % keep_columns)
         if not set(keep_columns).issubset(set(df.columns)):
             logger.error(f"Required columns missing from {tablename} table: "
                          f"{list(set(keep_columns).difference(set(df.columns)))}")

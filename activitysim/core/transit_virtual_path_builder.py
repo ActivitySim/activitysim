@@ -31,6 +31,8 @@ ERR_CHECK = True
 
 UNAVAILABLE = -999
 
+# used as base file name for cached files and as shared buffer tag
+CACHE_TAG = 'tap_tap_utilities'
 
 
 def compute_utilities(network_los, model_settings, choosers, model_constants,
@@ -73,7 +75,6 @@ def compute_utilities(network_los, model_settings, choosers, model_constants,
                 trace_label=trace_label,
                 trace_column_names=trace_column_names)
 
-
     return utilities
 
 
@@ -84,7 +85,7 @@ class TransitVirtualPathBuilder(object):
         self.network_los = network_los
 
         self.uid_calculator = cache.TapTapUidCalculator(network_los)
-        self.tap_cache = cache.TVPBCache(self.network_los, self.uid_calculator)  # lightweight until opened
+        self.tap_cache = cache.TVPBCache(self.network_los, self.uid_calculator, CACHE_TAG)  # lightweight until opened
 
         assert network_los.zone_system == los.THREE_ZONE, \
             f"TransitVirtualPathBuilder: network_los zone_system not THREE_ZONE"
@@ -187,17 +188,16 @@ class TransitVirtualPathBuilder(object):
         trace_label = tracing.extend_trace_label(trace_label, 'all_transit_paths')
 
         # deduped transit_df has one row per chooser for each boarding (btap) and alighting (atap) pair
-        with memo("#TVPB all_transit_paths transit_df"):
-            transit_df = pd.merge(
-                access_df[['idx', 'btap']],
-                egress_df[['idx', 'atap']],
-                on='idx').drop_duplicates()
+        transit_df = pd.merge(
+            access_df[['idx', 'btap']],
+            egress_df[['idx', 'atap']],
+            on='idx').drop_duplicates()
 
-            # don't want transit trips that start and stop in same tap
-            transit_df = transit_df[transit_df.atap != transit_df.btap]
+        # don't want transit trips that start and stop in same tap
+        transit_df = transit_df[transit_df.atap != transit_df.btap]
 
-            for c in list(chooser_attributes.columns):
-                transit_df[c] = reindex(chooser_attributes[c], transit_df['idx'])
+        for c in list(chooser_attributes.columns):
+            transit_df[c] = reindex(chooser_attributes[c], transit_df['idx'])
 
         transit_df = transit_df.reset_index(drop=True)
 
@@ -233,7 +233,6 @@ class TransitVirtualPathBuilder(object):
 
             attribute_segments = \
                 self.network_los.setting('TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attribute_segments')
-            #scalar_attributes = {k: locals_dict[k] for k in attribute_segments.keys() if k in locals_dict}
             scalar_attributes = {k: locals_dict[k] for k in attribute_segments.keys() if k not in transit_df}
 
             transit_df['uid'] = self.uid_calculator.get_unique_ids(transit_df, scalar_attributes)
@@ -247,9 +246,10 @@ class TransitVirtualPathBuilder(object):
             transit_df = transit_df[['idx', 'btap', 'atap', 'uid']]  # don't need chooser columns
             chunk.log_df(trace_label, "transit_df", transit_df)
 
-        logger.debug(f"#TVPB CACHE compute_tap_tap_utilities dedupe transit_df from {len(transit_df)} to {len(unique_transit_df)} rows")
+        logger.debug(f"#TVPB CACHE compute_tap_tap_utilities dedupe transit_df "
+                     f"from {len(transit_df)} to {len(unique_transit_df)} rows")
 
-        num_unique_transit_rows = len(unique_transit_df)  #errcheck
+        num_unique_transit_rows = len(unique_transit_df)  # errcheck
 
         # identify any cached utilities and remove them from unique_transit_df
         if USE_CACHE:
@@ -267,8 +267,7 @@ class TransitVirtualPathBuilder(object):
                         unique_transit_df = unique_transit_df[~unique_transit_df.index.isin(cached_utilities_df.index)]
                         chunk.log_df(trace_label, "unique_transit_df", unique_transit_df)
 
-                        assert num_unique_transit_rows == len(unique_transit_df) + len(cached_utilities_df)  #errcheck
-                        logger.debug(f"#TVPB CACHE compute_tap_tap_utilities cached_utilities_df: {len(cached_utilities_df)} unique_transit_df: {len(unique_transit_df)} rows")
+                        assert num_unique_transit_rows == len(unique_transit_df) + len(cached_utilities_df)  # errcheck
                     else:
                         cached_utilities_df = None
         else:
@@ -303,7 +302,7 @@ class TransitVirtualPathBuilder(object):
                 # if there were also some cached utilities, add them and their utilities back into unique_transit_df
                 if cached_utilities_df is not None:
                     assert len(cached_utilities_df) > 0
-                    assert num_unique_transit_rows == len(unique_utilities_df) + len(cached_utilities_df)  #errcheck
+                    assert num_unique_transit_rows == len(unique_utilities_df) + len(cached_utilities_df)  # errcheck
                     unique_utilities_df = pd.concat([unique_utilities_df, cached_utilities_df], axis=0)
                     chunk.log_df(trace_label, "unique_utilities_df", unique_utilities_df)
         else:
@@ -311,7 +310,7 @@ class TransitVirtualPathBuilder(object):
             assert cached_utilities_df is not None
             unique_utilities_df = cached_utilities_df
 
-        assert num_unique_transit_rows == len(unique_utilities_df)  #errcheck
+        assert num_unique_transit_rows == len(unique_utilities_df)  # errcheck
 
         # redupe unique_transit_df back into transit_df
         with memo("#TVPB compute_tap_tap_utilities redupe transit_df"):
@@ -320,7 +319,8 @@ class TransitVirtualPathBuilder(object):
             transit_df = pd.merge(transit_df, unique_utilities_df, left_on='uid', right_index=True)
             del transit_df['uid']
             # transit_df.index = idx
-            # note: left merge on columns does not preserve index, but transit_df index is arbitrary so no need to restore
+            # note: left merge on columns does not preserve index,
+            # but transit_df index is arbitrary so no need to restore
 
             chunk.log_df(trace_label, "transit_df", transit_df)
 
@@ -369,7 +369,7 @@ class TransitVirtualPathBuilder(object):
             utilities_df = utilities_df[utilities_df.index.isin(transit_uids)]
 
         # redupe unique_transit_df back into transit_df
-        with memo("#TVPB compute_tap_tap_utilities redupe transit_df"):
+        with memo("#TVPB lookup_tap_tap_utilities redupe transit_df"):
             transit_df = pd.merge(transit_df, utilities_df, left_index=True, right_index=True)
             chunk.log_df(trace_label, "transit_df", transit_df)
 
@@ -422,9 +422,13 @@ class TransitVirtualPathBuilder(object):
                 self.tap_cache.open()
 
             if not trace and self.tap_cache.is_fully_populated:
-                result = self.lookup_tap_tap_utilities(recipe, access_df, egress_df, chooser_attributes, path_info, trace_label)
+                result = \
+                    self.lookup_tap_tap_utilities(recipe, access_df, egress_df, chooser_attributes,
+                                                  path_info, trace_label)
             else:
-                result = self.compute_tap_tap_utilities(recipe, access_df, egress_df, chooser_attributes, path_info, trace_label, trace)
+                result = \
+                    self.compute_tap_tap_utilities(recipe, access_df, egress_df, chooser_attributes,
+                                                   path_info, trace_label, trace)
             return result
         else:
             assert self.units_for_recipe(recipe) == 'time'

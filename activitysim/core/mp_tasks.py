@@ -449,7 +449,7 @@ def build_slice_rules(slice_info, pipeline_tables):
         slice_rules[table_name] = rule
 
     for table_name in slice_rules:
-        debug(f"table_name: {slice_rules[table_name]}")
+        debug(f"table_name: {table_name} slice_rules: {slice_rules[table_name]}")
 
     return slice_rules
 
@@ -1041,11 +1041,11 @@ def run_sub_simulations(
                            step_info=step_info,
                            resume_after=resume_after)
 
-        debug(f"create_process {process_name} target={mp_run_simulation}")
-        for k in args:
-            debug(f"create_process {process_name} arg {k}={args[k]}")
-        for k in shared_data_buffers:
-            debug(f"create_process {process_name} shared_data_buffers {k}={shared_data_buffers[k]}")
+        # debug(f"create_process {process_name} target={mp_run_simulation}")
+        # for k in args:
+        #     debug(f"create_process {process_name} arg {k}={args[k]}")
+        # for k in shared_data_buffers:
+        #     debug(f"create_process {process_name} shared_data_buffers {k}={shared_data_buffers[k]}")
 
         p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
                                     args=(spokesman, q, injectables, step_info, resume_after,),
@@ -1110,7 +1110,7 @@ def run_sub_task(p):
     ----------
     p : multiprocessing.Process
     """
-    info(f"running sub_process {p.name}")
+    info(f"#run_model running sub_process {p.name}")
 
     mem.trace_memory_info("%s.start" % p.name)
 
@@ -1124,10 +1124,10 @@ def run_sub_task(p):
     # no need to join explicitly since multiprocessing.active_children joins completed procs
     # p.join()
 
-    t0 = tracing.print_elapsed_time('sub_process %s' % p.name, t0)
+    t0 = tracing.print_elapsed_time('#run_model sub_process %s' % p.name, t0)
     # info(f'{p.name}.exitcode = {p.exitcode}')
 
-    mem.trace_memory_info("%s.completed" % p.name)
+    mem.trace_memory_info(f"#run_model {p.name} completed")
 
     if p.exitcode:
         error(f"Process {p.name} returned exitcode {p.exitcode}")
@@ -1412,7 +1412,7 @@ def get_run_list():
     multiprocess = inject.get_injectable('multiprocess', False) or setting('multiprocess', False)
 
     # default settings that can be overridden by settings in individual steps
-    global_chunk_size = setting('chunk_size', 0)
+    global_chunk_size = setting('chunk_size', 0) or 0
     default_mp_processes = setting('num_processes', 0) or int(1 + multiprocessing.cpu_count() / 2.0)
 
     if multiprocess and multiprocessing.cpu_count() == 1:

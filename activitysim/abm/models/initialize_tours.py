@@ -81,7 +81,7 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
     # FIXME could just always slice...
     slice_happened = \
         inject.get_injectable('households_sample_size', 0) > 0 \
-        or len(inject.get_injectable('override_hh_ids', [])) > 0
+        or inject.get_injectable('households_sample_size', 0) > 0
     if slice_happened:
         logger.info("slicing tours %s" % (tours.shape,))
         # keep all persons in the sampled households

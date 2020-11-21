@@ -14,10 +14,10 @@ from activitysim.core import pipeline
 from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import inject
-from activitysim.core import cache
+from activitysim.core import pathbuilder_cache
 from activitysim.core import los
 
-from activitysim.core import transit_virtual_path_builder as tvpb
+from activitysim.core import pathbuilder
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ def lock_data(lock):
 
 def any_uninitialized(data, lock):
     with lock_data(lock):
-        return np.any(data == cache.UNINITIALIZED)
+        return np.any(data == pathbuilder_cache.UNINITIALIZED)
 
 
 @inject.step()
@@ -123,18 +123,18 @@ def initialize_tvpb(network_los, attribute_combinations):
         return
 
     attribute_combinations_df = attribute_combinations.to_frame()
-    multiprocess = cache.multiprocess()
+    multiprocess = pathbuilder_cache.multiprocess()
 
     tap_cache = network_los.tvpb.tap_cache
     uid_calculator = network_los.tvpb.uid_calculator
     assert not tap_cache.is_open
 
     # if cache already exists,
-    if os.path.isfile(tap_cache.cache_path(cache.STATIC)):
+    if os.path.isfile(tap_cache.cache_path(pathbuilder_cache.STATIC)):
         # otherwise should have been deleted by TVPBCache.cleanup at start of run
         assert not network_los.rebuild_tvpb_cache
         logger.info(f"{trace_label} skipping rebuild of STATIC cache because rebuild_tvpb_cache setting is False"
-                    f" and cache already exists: {tap_cache.cache_path(cache.STATIC)}")
+                    f" and cache already exists: {tap_cache.cache_path(pathbuilder_cache.STATIC)}")
         return
 
     if multiprocess:
@@ -177,11 +177,11 @@ def initialize_tvpb(network_los, attribute_combinations):
             model_constants.update(scalar_attributes)
 
             utilities_df = \
-                tvpb.compute_utilities(network_los,
-                                       model_settings=model_settings,
-                                       choosers=choosers_df,
-                                       model_constants=model_constants,
-                                       trace_label=chunk_trace_label)
+                pathbuilder.compute_utilities(network_los,
+                                              model_settings=model_settings,
+                                              choosers=choosers_df,
+                                              model_constants=model_constants,
+                                              trace_label=chunk_trace_label)
 
             chunk.log_df(chunk_trace_label, f'{trace_attributes} utilities_df', utilities_df)
 
@@ -196,7 +196,7 @@ def initialize_tvpb(network_los, attribute_combinations):
     if multiprocess:
         while any_uninitialized(data, lock):
             assert multiprocess  # if single_process, we should have fully populated data
-            print(f"{trace_label}  waiting for other process to fully populate cache...")
+            print(f"{trace_label}  waiting for other process to fully populate pathbuilder_cache..")
             time.sleep(1)
 
     if write_results:

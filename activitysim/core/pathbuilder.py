@@ -14,7 +14,7 @@ from activitysim.core import chunk
 from activitysim.core import logit
 from activitysim.core import simulate
 from activitysim.core import los
-from activitysim.core import cache
+from activitysim.core import pathbuilder_cache
 
 from activitysim.core.util import reindex
 
@@ -84,8 +84,8 @@ class TransitVirtualPathBuilder(object):
 
         self.network_los = network_los
 
-        self.uid_calculator = cache.TapTapUidCalculator(network_los)
-        self.tap_cache = cache.TVPBCache(self.network_los, self.uid_calculator, CACHE_TAG)  # lightweight until opened
+        self.uid_calculator = pathbuilder_cache.TapTapUidCalculator(network_los)
+        self.tap_cache = pathbuilder_cache.TVPBCache(self.network_los, self.uid_calculator, CACHE_TAG)  # lightweight until opened
 
         assert network_los.zone_system == los.THREE_ZONE, \
             f"TransitVirtualPathBuilder: network_los zone_system not THREE_ZONE"
@@ -769,11 +769,11 @@ class TransitVirtualPathBuilder(object):
 
 class TransitVirtualPathLogsumWrapper(object):
 
-    def __init__(self, transit_virtual_path_builder, orig_key, dest_key, tod_key, segment_key,
+    def __init__(self, pathbuilder, orig_key, dest_key, tod_key, segment_key,
                  cache_choices, trace_label, tag):
 
-        self.tvpb = transit_virtual_path_builder
-        assert hasattr(transit_virtual_path_builder, 'get_tvpb_logsum')
+        self.tvpb = pathbuilder
+        assert hasattr(pathbuilder, 'get_tvpb_logsum')
 
         self.orig_key = orig_key
         self.dest_key = dest_key

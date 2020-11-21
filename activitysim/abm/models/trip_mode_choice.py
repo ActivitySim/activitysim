@@ -20,7 +20,7 @@ from activitysim.core import los
 
 from activitysim.core.util import assign_in_place
 
-from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)

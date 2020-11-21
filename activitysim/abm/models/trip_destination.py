@@ -21,7 +21,7 @@ from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
-from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 

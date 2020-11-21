@@ -18,7 +18,7 @@ from . import util
 from . import assign
 from . import chunk
 
-from . import transit_virtual_path_builder as tvpb
+from . import pathbuilder
 
 logger = logging.getLogger(__name__)
 
@@ -1019,7 +1019,7 @@ def tvpb_skims(skims):
             else [skims] if skims is not None \
             else []
 
-    return [skim for skim in list_of_skims(skims) if isinstance(skim, tvpb.TransitVirtualPathLogsumWrapper)]
+    return [skim for skim in list_of_skims(skims) if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)]
 
 
 def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):

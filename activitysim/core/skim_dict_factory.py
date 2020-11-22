@@ -9,6 +9,7 @@ import numpy as np
 import openmatrix as omx
 from abc import ABC, abstractmethod
 
+from activitysim.core import util
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import tracing
@@ -365,7 +366,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         dtype = np.dtype(dtype_name)
 
         # multiprocessing.RawArray argument buffer_size must be int, not np.int64
-        buffer_size = int(np.prod(skim_info.skim_data_shape))
+        buffer_size = util.iprod(skim_info.skim_data_shape)
 
         csz = buffer_size * dtype.itemsize
         logger.info(f"allocating shared buffer {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
@@ -400,7 +401,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         """
 
         dtype = np.dtype(skim_info.dtype_name)
-        assert len(skim_buffer) == np.prod(skim_info.skim_data_shape)
+        assert len(skim_buffer) == util.iprod(skim_info.skim_data_shape)
         skim_data = np.frombuffer(skim_buffer, dtype=dtype).reshape(skim_info.skim_data_shape)
         return skim_data
 

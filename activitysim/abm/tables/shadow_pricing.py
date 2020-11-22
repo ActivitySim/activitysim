@@ -364,7 +364,7 @@ class ShadowPriceCalculator(object):
         total_fails = (rel_diff > 0).values.sum()
 
         # FIXME - should not count zones where desired_size < threshold? (could calc in init)
-        max_fail = (fail_threshold / 100.0) * np.prod(desired_size.shape)
+        max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
 
         converged = (total_fails <= max_fail)
 
@@ -638,8 +638,8 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     data_buffers = {}
     for block_key, block_shape in block_shapes.items():
 
-        # buffer_size must be int (or p2.7 long), not np.int64
-        buffer_size = int(np.prod(block_shape, dtype=np.int64))
+        # buffer_size must be int, not np.int64
+        buffer_size = util.iprod(block_shape)
 
         csz = buffer_size * np.dtype(dtype).itemsize
         logger.info("allocating shared buffer %s %s buffer_size %s bytes %s (%s)" %

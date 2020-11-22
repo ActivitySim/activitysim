@@ -47,6 +47,10 @@ def to_csv(df, file_name):
 
 mazs = read_csv("maz_data_asim.csv")
 
+# print(f"max maz {mazs.MAZ.max()}")
+# print(f"num maz {len(mazs.MAZ.unique())}")
+# print(f"num taz {len(mazs.TAZ.unique())}")
+# bug
 
 mazs = mazs[mazs["CountyName"].isin(counties)]
 to_csv(mazs, "maz_data_asim.csv")

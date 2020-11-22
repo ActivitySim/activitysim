@@ -10,6 +10,7 @@ import multiprocessing
 import numpy as np
 import pandas as pd
 
+from activitysim.core import util
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import simulate
@@ -213,7 +214,7 @@ class TVPBCache(object):
 
         # multiprocessing.RawArray argument buffer_size must be int, not np.int64
         shape = self.uid_calculator.fully_populated_shape
-        buffer_size = int(np.prod(self.uid_calculator.fully_populated_shape))
+        buffer_size = util.iprod(self.uid_calculator.fully_populated_shape)
 
         csz = buffer_size * dtype.itemsize
         logger.info(f"allocating data buffer shape {shape} buffer_size {buffer_size} "

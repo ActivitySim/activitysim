@@ -202,8 +202,7 @@ def log_df(trace_label, table_name, df):
                      f"elements: {0} : {trace_label}")
     else:
 
-        shape = df.shape
-        elements = np.prod(shape, dtype=np.int64)
+        elements = util.iprod(df.shape)
         op = 'add'
 
         if isinstance(df, pd.Series):
@@ -222,7 +221,7 @@ def log_df(trace_label, table_name, df):
         # logger.debug(f"log_df {table_name} "
         #              f"elements: {commas(elements)} "
         #              f"bytes: {GB(bytes)} "
-        #              f"shape: {shape} : {trace_label}")
+        #              f"shape: {df.shapeshape} : {trace_label}")
 
     total_elements, total_bytes = _chunk_totals()  # new chunk totals
     cur_mem = mem.get_memory_info()

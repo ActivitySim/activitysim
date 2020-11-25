@@ -28,6 +28,9 @@ def add_canonical_dirs(configs_dir_name):
     data_dir = os.path.join(os.path.dirname(__file__), f'los/data')
     inject.add_injectable("data_dir", data_dir)
 
+    output_dir = os.path.join(os.path.dirname(__file__), f'output')
+    inject.add_injectable("output_dir", output_dir)
+
 
 def test_legacy_configs():
 

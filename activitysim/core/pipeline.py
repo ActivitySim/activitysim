@@ -16,6 +16,9 @@ from . import config
 from . import random
 from . import tracing
 
+#MEM
+from . import mem
+
 
 from . import util
 from .tracing import print_elapsed_time
@@ -579,15 +582,23 @@ def run(models, resume_after=None):
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
 
+    #MEM
+    mem.init_trace(config.setting('mem_tick'), write_header=True)
+    mem.trace_memory_info('#MEM pipeline.run before preload_injectables')
+
     # preload any bulky injectables (e.g. skims) not in pipeline
     if orca.is_injectable('preload_injectables'):
         orca.get_injectable('preload_injectables')
         t0 = print_elapsed_time('preload_injectables', t0)
 
+    mem.trace_memory_info('#MEM pipeline.run before run_models')
+
     t0 = print_elapsed_time()
     for model in models:
-
         run_model(model)
+        mem.trace_memory_info(f"pipeline.run after {model}")
+
+    mem.trace_memory_info('#MEM pipeline.run after run_models')
 
     t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 

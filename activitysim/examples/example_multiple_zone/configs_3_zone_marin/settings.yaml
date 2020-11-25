@@ -5,7 +5,7 @@ inherit_settings: True
 households_sample_size: 500
 
 #chunk_size: 4000000000
-chunk_size:
+chunk_size: 0
 
 #trace_hh_id: 662398
 trace_hh_id:

@@ -217,7 +217,7 @@ class TransitVirtualPathBuilder(object):
         with memo("#TVPB CACHE compute_tap_tap_utilities all_transit_paths"):
             transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace)
             # note: transit_df index is arbitrary
-            chunk.log_df(trace_label, "transit_df", transit_df)
+        chunk.log_df(trace_label, "transit_df", transit_df)
 
         USE_CACHE = not trace  # disable cache when tracing so utility calculations will be traced
 

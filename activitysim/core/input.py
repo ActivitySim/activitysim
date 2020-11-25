@@ -10,8 +10,9 @@ import pandas as pd
 from activitysim.core import (
     inject,
     config,
-    util
+    util,
 )
+from activitysim.core import mem
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +171,7 @@ def _read_csv_with_fallback_encoding(filepath):
     but try alternate Windows-compatible cp1252 if unicode fails
 
     """
+
     try:
         logger.info('Reading CSV file %s' % filepath)
         return pd.read_csv(filepath, comment='#')

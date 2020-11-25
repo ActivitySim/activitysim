@@ -51,22 +51,20 @@ def si_units(x, kind='B', f="{}{:.3g} {}{}"):
 
 
 @contextmanager
-def memo(tag, gc=True, console=False):
+def memo(tag, gc=False, console=False):
     t0 = time.time()
+
+    _gc.collect()
     previous_mem = psutil.Process(os.getpid()).memory_info().rss
-    if gc:
-        _gc.collect()
-        _gc.disable()
     try:
         yield
     finally:
         elapsed_time = time.time() - t0
+
+        _gc.collect()
         current_mem = (psutil.Process(os.getpid()).memory_info().rss)
         marginal_mem = current_mem - previous_mem
         mem_str = f"net {si_units(marginal_mem)} ({str(marginal_mem)}) total {si_units(current_mem)}"
-        if gc:
-            _gc.enable()
-            _gc.collect()
 
         if console:
             print(f"MEMO {tag} Time: {si_units(elapsed_time, kind='s')} Memory: {mem_str} ")

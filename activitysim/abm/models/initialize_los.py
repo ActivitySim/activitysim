@@ -3,6 +3,7 @@
 import logging
 import os
 import time
+import multiprocessing
 
 from contextlib import contextmanager
 
@@ -81,7 +82,15 @@ def initialize_los(network_los):
         pipeline.replace_table('attribute_combinations', attribute_combinations_df)
 
         # clean up any unwanted cache files from previous run
-        tap_cache.cleanup()
+        network_los.tvpb.tap_cache.cleanup()
+
+        # if multiprocessing make sure shred cache was filled with pathbuilder_cache.UNINITIALIZED
+        # so that initialize_tvpb subprocesses can detect when cache is fully populated
+        if network_los.multiprocess():
+            data, lock = tap_cache.get_data_and_lock_from_buffers()
+            with lock:
+                assert np.all(data == pathbuilder_cache.UNINITIALIZED)
+
 
 
 @contextmanager
@@ -123,7 +132,7 @@ def initialize_tvpb(network_los, attribute_combinations):
         return
 
     attribute_combinations_df = attribute_combinations.to_frame()
-    multiprocess = pathbuilder_cache.multiprocess()
+    multiprocess = network_los.multiprocess()
 
     tap_cache = network_los.tvpb.tap_cache
     uid_calculator = network_los.tvpb.uid_calculator
@@ -131,7 +140,7 @@ def initialize_tvpb(network_los, attribute_combinations):
 
     # if cache already exists,
     if os.path.isfile(tap_cache.cache_path(pathbuilder_cache.STATIC)):
-        # otherwise should have been deleted by TVPBCache.cleanup at start of run
+        # otherwise should have been deleted by TVPBCache.cleanup in initialize_los step
         assert not network_los.rebuild_tvpb_cache
         logger.info(f"{trace_label} skipping rebuild of STATIC cache because rebuild_tvpb_cache setting is False"
                     f" and cache already exists: {tap_cache.cache_path(pathbuilder_cache.STATIC)}")
@@ -141,6 +150,9 @@ def initialize_tvpb(network_los, attribute_combinations):
         # we will compute 'skim' chunks at offsets specified by our slice of attribute_combinations_df
         data, lock = tap_cache.get_data_and_lock_from_buffers()
         write_results = inject.get_injectable('locutor', False)
+
+        # possible (though unlikely) timing bug here
+        #assert np.all(data == pathbuilder_cache.UNINITIALIZED)
     else:
         data = tap_cache.allocate_data_buffer(shared=False)
         lock = None
@@ -149,14 +161,14 @@ def initialize_tvpb(network_los, attribute_combinations):
     data = data.reshape(uid_calculator.skim_shape)
 
     logger.debug(f"{trace_label} processing {len(attribute_combinations_df)} {data[0].shape} attribute_combinations")
-    #logger.debug(f"{trace_label} compute utilities for attribute_combinations_df\n{attribute_combinations_df}")
+    logger.debug(f"{trace_label} compute utilities for attribute_combinations_df\n{attribute_combinations_df}")
 
     with chunk.chunk_log(trace_label):
 
         for offset, scalar_attributes in attribute_combinations_df.to_dict('index').items():
             # compute utilities for this 'skim' with a single full set of scalar attributes
 
-            logger.debug(f"{trace_label} compute utilities for offset {offset} scalar_attributes: {scalar_attributes}")
+            logger.info(f"{trace_label} compute utilities for offset {offset} scalar_attributes: {scalar_attributes}")
 
             assert (offset == uid_calculator.get_skim_offset(scalar_attributes))
 
@@ -186,18 +198,24 @@ def initialize_tvpb(network_los, attribute_combinations):
             chunk.log_df(chunk_trace_label, f'{trace_attributes} utilities_df', utilities_df)
 
             assert utilities_df.values.shape == data[offset].shape
+            assert not np.any(utilities_df.values == pathbuilder_cache.UNINITIALIZED)
             with lock_data(lock):
                 data[offset, :, :] = utilities_df.values
 
             # FIXME do we care about offset?
             assert (uid_calculator.get_skim_offset(scalar_attributes) == offset)
 
+            logger.debug(f"{trace_label} updated utilities for offset {offset}")
+
     # if multiprocessing, we have to wait for all processes to fully populate share data
     if multiprocess:
+        logger.info(f"{trace_label} Waiting for other processes to fully populate cache.")
         while any_uninitialized(data, lock):
             assert multiprocess  # if single_process, we should have fully populated data
-            print(f"{trace_label}  waiting for other process to fully populate pathbuilder_cache..")
-            time.sleep(1)
+            print(f"{trace_label}.{multiprocessing.current_process().name} "
+                  f" waiting for other process to fully populate pathbuilder_cache..")
+            logger.debug(f"{trace_label}. waiting for other process to complete..")
+            time.sleep(5)
 
     if write_results:
 

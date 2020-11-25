@@ -37,3 +37,13 @@ which should be copied and renamed to somewhere more appropriate (or you can spe
 
 python simulation.py -c configs_3_zone_marin -c configs -d data_3_marin -o output_3_marin
 
+
+
+
+# num maz 5952
+# num taz 4735
+# num tap 6216 * 6216
+6216 * 6216  = 38638656
+
+
+python simulation.py -c configs_3_zone_marin_full -c configs_3_zone_marin -c configs -d data_3_marin_full -o output_3_marin_full

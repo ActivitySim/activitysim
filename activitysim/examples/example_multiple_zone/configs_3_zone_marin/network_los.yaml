@@ -10,11 +10,9 @@ read_skim_cache: True
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
 write_skim_cache: True
 
-# rebuild and overwrite existing cache or skip step if cache already exists?
+# rebuild and overwrite existing tap_tap_utilities cache
 rebuild_tvpb_cache: True
 
-# checkpoint dynamic cache to speed subsequent runs/resume?
-write_tvpb_dynamic_cache: False
 
 # when checkpointing cache. also write a csv version of tvpb cache for tracing
 # (writes csv file when writing/checkpointing cache (i.e. when cached changed) even if rebuild_tvpb_cache is False)

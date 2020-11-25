@@ -159,18 +159,6 @@ urban_threshold: 4
 cbd_threshold: 2
 rural_threshold: 6
 
-# upperEA	Upper limit on time of day for the Early morning time period		5
-# upperAM	Upper limit on time of day for the AM peak time period		10
-# upperMD	Upper limit on time of day for the Midday time period		15
-# upperPM	Upper limit on time of day for the PM time peak period		19
-
-skim_time_periods:
-    time_window: 1440
-    period_minutes: 60
-    periods: [0, 6, 11, 16, 20, 24]
-    labels: ['EA', 'AM', 'MD', 'PM', 'EV']
-
-# - value of time
 
 # value_of_time = lognormal(np.log(median_value_of_time * mu), sigma).clip(min_vot, max_vot)
 

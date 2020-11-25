@@ -13,6 +13,7 @@ from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
 from activitysim.core import pathbuilder
+from activitysim.core import mem
 
 #
 from activitysim.core.skim_dict_factory import NumpyArraySkimFactory
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 LOS_SETTINGS_FILE_NAME = 'network_los.yaml'
 
-REBUILD_TVPB_CACHE_DEFAULT = False
+REBUILD_TVPB_CACHE_DEFAULT = True
 
 ONE_ZONE = 1
 TWO_ZONE = 2
@@ -104,7 +105,7 @@ class Network_LOS(object):
     @property
     def rebuild_tvpb_cache(self):
         # setting as property here so others don't need to know default
-        assert self.zone_system == THREE_ZONE, f"Should'nt even be asking about rebuild_tvpb_cache if not THREE_ZONE"
+        assert self.zone_system == THREE_ZONE, f"Should not even be asking about rebuild_tvpb_cache if not THREE_ZONE"
         return self.setting('rebuild_tvpb_cache', REBUILD_TVPB_CACHE_DEFAULT)
 
     def setting(self, keys, default='<REQUIRED>'):
@@ -292,6 +293,8 @@ class Network_LOS(object):
                 assert mode not in self.maz_to_tap_dfs
                 self.maz_to_tap_dfs[mode] = df
 
+        mem.trace_memory_info('#MEM network_los.load_data before create_skim_dicts')
+
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
@@ -313,6 +316,8 @@ class Network_LOS(object):
             self.skim_dicts['tap'] = self.create_skim_dict('tap')
             # make sure skim has all tap_ids
             assert set(self.tap_df['TAP'].values).issubset(set(self.skim_dicts['tap'].zone_ids))
+
+        mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
     def create_skim_dict(self, skim_tag):
         """
@@ -375,23 +380,35 @@ class Network_LOS(object):
         file_names = [file_names] if isinstance(file_names, str) else file_names
         return file_names
 
+    def multiprocess(self):
+        is_multiprocess = config.setting('multiprocess')
+        return is_multiprocess
+
     def load_shared_data(self, shared_data_buffers):
         """
         Load omx skim data into shared_data buffers
-        Only called when multiprocessing - BEFORE load_data()
+        Only called when multiprocessing - BEFORE any models are run or any call to load_data()
 
         Parameters
         ----------
         shared_data_buffers: dict of multiprocessing.RawArray keyed by skim_tag
         """
 
-        assert self.skim_dict_factory.share_data_for_multiprocessing
+        assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
+        assert self.multiprocess()
+
         for skim_tag in self.skims_info.keys():
             assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
             self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
 
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
+
+            if self.rebuild_tvpb_cache and not config.setting('resume_after', None):
+                # delete old cache at start of new run so that stale cache is not loaded by load_data_to_buffer
+                # when singleprocess, this call is made (later in program flow) in the initialize_los step
+                self.tvpb.tap_cache.cleanup()
+
             self.tvpb.tap_cache.load_data_to_buffer(shared_data_buffers[self.tvpb.tap_cache.cache_tag])
 
     def allocate_shared_skim_buffers(self):
@@ -411,7 +428,7 @@ class Network_LOS(object):
 
         skim_buffers = {}
 
-        assert self.skim_dict_factory.share_data_for_multiprocessing
+        assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
 
         for skim_tag in self.skims_info.keys():
             skim_buffers[skim_tag] = \

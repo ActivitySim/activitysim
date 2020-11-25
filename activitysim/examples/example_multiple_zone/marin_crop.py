@@ -43,14 +43,24 @@ def to_csv(df, file_name):
     df.to_csv(output_path(file_name), index=False)
 
 
-# 0 - get county zones
-
-mazs = read_csv("maz_data_asim.csv")
-
+#########
+# mazs = read_csv("maz_data_asim.csv")
+# taps = read_csv("tap_data.csv")
+#
 # print(f"max maz {mazs.MAZ.max()}")
 # print(f"num maz {len(mazs.MAZ.unique())}")
 # print(f"num taz {len(mazs.TAZ.unique())}")
-# bug
+# print(f"num tap {len(taps.TAP.unique())}")
+#
+# num maz 5952
+# num taz 4735
+# num tap 6216
+#########
+
+
+# 0 - get county zones
+
+mazs = read_csv("maz_data_asim.csv")
 
 mazs = mazs[mazs["CountyName"].isin(counties)]
 to_csv(mazs, "maz_data_asim.csv")

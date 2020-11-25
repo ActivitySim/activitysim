@@ -28,16 +28,6 @@ TRACE = 'trace'
 UNINITIALIZED = -1
 
 
-def multiprocess():
-    is_multiprocess = inject.get_injectable('num_processes', 1) > 1
-    print(f"is_multiprocess {is_multiprocess}")
-    return is_multiprocess
-
-
-def resume_after():
-    return config.setting('resume_after', None)
-
-
 class TVPBCache(object):
     def __init__(self, network_los, uid_calculator, cache_tag):
 
@@ -64,7 +54,9 @@ class TVPBCache(object):
         return os.path.join(self.network_los.get_cache_dir(), f'{self.cache_tag}.{file_type}')
 
     def cleanup(self):
-        #assert not resume_after()
+        """
+        Called prior to
+        """
         if self.network_los.rebuild_tvpb_cache:
             for cache_type in [STATIC, DYNAMIC, TRACE]:
                 if os.path.isfile(self.cache_path(cache_type)):
@@ -83,25 +75,21 @@ class TVPBCache(object):
 
         data = None
 
-        if multiprocess():
+        if self.network_los.multiprocess():
             # use preloaded fully_populated shared data buffer
             data, _ = self.get_data_and_lock_from_buffers()
             assert not np.any(data == UNINITIALIZED)
             logger.info(f"TVBPCache.open {self.cache_tag} STATIC cache using existing data_buffers")
 
         elif os.path.isfile(self.cache_path(STATIC)):
-            # read precomputed fully_populated data array from mmap file
-            assert not multiprocess()  # expect mp_tasks should have created shared data buffers if multiprocess
-
+            # read precomputed fully_populated STATIC cache from mmap file
             data = np.memmap(self.cache_path(STATIC),
                              dtype=DTYPE_NAME,
                              mode='r')
             logger.info(f"TVBPCache.open {self.cache_tag} read fully_populated data array from mmap file")
 
         elif os.path.isfile(self.cache_path(DYNAMIC)):
-            assert not multiprocess(), \
-                f"TVBPCache.open {self.cache_tag} STATIC cache not count. Did you forget to run initializae_los?"
-
+            # read DYNAMIC cache from feather file
             df = pd.read_feather(self.cache_path(DYNAMIC))
             df.set_index(df.columns[0], inplace=True)
             assert not df.index.duplicated().any()
@@ -151,13 +139,13 @@ class TVPBCache(object):
             else:
 
                 if self.network_los.rebuild_tvpb_cache:
-                    logger.debug(f"Not flushing dynamic tvpb cache because rebuild_tvpb_cache flag is False"
-                                 f" is not set to True in network_los settings")
-                else:
                     self._df.reset_index().to_feather(self.cache_path(DYNAMIC))
                     self.is_changed = False
                     logger.debug(f"#TVPB CACHE wrote dynamic cache table "
                                  f"({self._df.shape}) to {self.cache_path(DYNAMIC)}")
+                else:
+                    logger.debug(f"Not flushing dynamic tvpb cache because rebuild_tvpb_cache flag is False"
+                                 f" is not set to True in network_los settings")
 
             if self.network_los.setting('trace_tvpb_cache_as_csv', False):
                 csv_path = self.cache_path(TRACE)
@@ -217,8 +205,8 @@ class TVPBCache(object):
         buffer_size = util.iprod(self.uid_calculator.fully_populated_shape)
 
         csz = buffer_size * dtype.itemsize
-        logger.info(f"allocating data buffer shape {shape} buffer_size {buffer_size} "
-                    f"total size: {csz} ({tracing.si_units(csz)})")
+        logger.info(f"TVPBCache.allocate_data_buffer allocating data buffer "
+                    f"shape {shape} buffer_size {buffer_size} total size: {csz} ({tracing.si_units(csz)})")
 
         if shared:
             if dtype_name == 'float64':
@@ -230,8 +218,10 @@ class TVPBCache(object):
 
             #buffer = multiprocessing.RawArray(typecode, buffer_size)
             buffer = multiprocessing.Array(typecode, buffer_size)
+            logger.info(f"TVPBCache.allocate_data_buffer allocated shared multiprocessing.Array as buffer")
         else:
             buffer = np.zeros(buffer_size, dtype=dtype)
+            logger.info(f"TVPBCache.allocate_data_buffer allocating non-shared numpy array as buffer")
 
         return buffer
 
@@ -260,6 +250,7 @@ class TVPBCache(object):
     def get_data_and_lock_from_buffers(self):
         data_buffers = inject.get_injectable('data_buffers', None)
         assert self.cache_tag in data_buffers  # internal error
+        logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
         data = data_buffers[self.cache_tag]
         return np.frombuffer(data.get_obj(), dtype=np.dtype(DTYPE_NAME)), data.get_lock()
 

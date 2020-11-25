@@ -2,8 +2,6 @@
 # See full license in LICENSE.txt.
 import logging
 
-import gc
-
 import numpy as np
 import pandas as pd
 

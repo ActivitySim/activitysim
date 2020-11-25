@@ -231,7 +231,7 @@ class AbstractSkimFactory(ABC):
         self.network_los = network_los
 
     @property
-    def share_data_for_multiprocessing(self):
+    def supports_shared_data_for_multiprocessing(self):
         """
         Does subclass support shareable data for multiprocessing
 
@@ -344,7 +344,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         super().__init__(network_los)
 
     @property
-    def share_data_for_multiprocessing(self):
+    def supports_shared_data_for_multiprocessing(self):
         return True
 
     def allocate_skim_buffer(self, skim_info, shared=False):
@@ -463,7 +463,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         data_buffers = inject.get_injectable('data_buffers', None)
         if data_buffers:
             # we assume any existing skim buffers will already have skim data loaded into them
-            logger.info(f"get_skim_data {skim_tag} using existing skim_buffers for skims")
+            logger.info(f"get_skim_data {skim_tag} using existing shared skim_buffers for skims")
             skim_buffer = data_buffers[skim_tag]
         else:
             skim_buffer = self.allocate_skim_buffer(skim_info, shared=False)

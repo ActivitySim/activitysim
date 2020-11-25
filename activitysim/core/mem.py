@@ -19,7 +19,12 @@ DEFAULT_TICK_LEN = 30
 
 
 def force_garbage_collect():
+    was_disabled = not gc.isenabled()
+    if was_disabled:
+        gc.enable()
     gc.collect()
+    if was_disabled:
+        gc.disable()
 
 
 def GB(bytes):
@@ -80,6 +85,9 @@ def trace_memory_info(event=''):
     t = time.time()
     if (t - last_tick < tick_len) and not event:
         return
+
+    #bug
+    force_garbage_collect()
 
     vmi = psutil.virtual_memory()
 

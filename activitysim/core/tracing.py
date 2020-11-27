@@ -51,7 +51,7 @@ def si_units(x, kind='B', f="{}{:.3g} {}{}"):
 
 
 @contextmanager
-def memo(tag, gc=False, console=False):
+def memo(tag, console=False):
     t0 = time.time()
 
     _gc.collect()

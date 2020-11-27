@@ -47,3 +47,5 @@ python simulation.py -c configs_3_zone_marin -c configs -d data_3_marin -o outpu
 
 
 python simulation.py -c configs_3_zone_marin_full -c configs_3_zone_marin -c configs -d data_3_marin_full -o output_3_marin_full
+
+

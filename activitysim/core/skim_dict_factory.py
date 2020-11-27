@@ -362,6 +362,9 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         multiprocessing.RawArray or numpy.ndarray
         """
 
+        assert shared == self.network_los.multiprocess(), \
+            f"NumpyArraySkimFactory.allocate_skim_buffer shared {shared} multiprocess {not shared}"
+
         dtype_name = skim_info.dtype_name
         dtype = np.dtype(dtype_name)
 

@@ -254,8 +254,11 @@ class TVPBCache(object):
         data_buffers = inject.get_injectable('data_buffers', None)
         assert self.cache_tag in data_buffers  # internal error
         logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
-        data = data_buffers[self.cache_tag]
-        return np.frombuffer(data.get_obj(), dtype=np.dtype(DTYPE_NAME)), data.get_lock()
+        data_buffer = data_buffers[self.cache_tag]
+        data = np.frombuffer(data_buffer.get_obj(), dtype=np.dtype(DTYPE_NAME))
+        lock = data_buffer.get_lock()
+
+        return data, lock
 
 
 class TapTapUidCalculator(object):

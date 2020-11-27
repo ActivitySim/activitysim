@@ -835,6 +835,8 @@ def mp_setup_skims(injectables, **kwargs):
 
     setup_injectables_and_logging(injectables)
 
+    info("mp_setup_skims")
+
     try:
         shared_data_buffer = kwargs
 
@@ -877,6 +879,8 @@ def mp_coalesce_pipelines(injectables, sub_proc_names, slice_info):
 def allocate_shared_skim_buffers():
     """
     This is called by the main process to allocate shared memory buffer to share with subprocs
+
+    Note: Buffers must be allocated BEFORE network_los.load_data
 
     Returns
     -------

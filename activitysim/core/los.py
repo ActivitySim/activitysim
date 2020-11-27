@@ -276,7 +276,7 @@ class Network_LOS(object):
                         # 6020   GG_068_RT
                         # 6020   GG_228_WB
                         self.tap_lines_df = \
-                            self.tap_lines_df.set_index('TAP').LINES.str.split(expand=True) \
+                            self.tap_lines_df.set_index('TAP').LINES.str.split(expand=True)\
                                 .stack().droplevel(1).to_frame('line')
 
                     old_len = len(df)
@@ -352,6 +352,7 @@ class Network_LOS(object):
         assert skim_tag not in self.skim_dicts  # avoid inadvertently creating multiple copies
 
         if skim_tag == 'maz':
+            #bug should pass in tap skim dict so MazSkimDict can share skim data rather than creating 2nd copy
             skim_dict = skim_dictionary.MazSkimDict('maz', self)
         else:
             skim_info = self.skims_info[skim_tag]
@@ -399,6 +400,12 @@ class Network_LOS(object):
         return file_names
 
     def multiprocess(self):
+        """
+        return True if this is a multiprocessing run (even if it is a main or single-process subprocess)
+        Returns
+        -------
+            bool
+        """
         is_multiprocess = config.setting('multiprocess')
         return is_multiprocess
 
@@ -443,6 +450,9 @@ class Network_LOS(object):
         -------
         dict of multiprocessing.RawArray keyed by skim_tag
         """
+
+        assert self.multiprocess()
+        assert not self.skim_dicts, f"allocate_shared_skim_buffers must be called BEFORE, not after, load_data"
 
         skim_buffers = {}
 

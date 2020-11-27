@@ -429,7 +429,9 @@ class TransitVirtualPathBuilder(object):
         if self.units_for_recipe(recipe) == 'utility':
 
             if not self.tap_cache.is_open:
-                self.tap_cache.open()
+                with memo("#TVPB compute_tap_tap tap_cache.open"):
+                    self.tap_cache.open()
+                bug
 
             if not trace and self.tap_cache.is_fully_populated:
                 result = \

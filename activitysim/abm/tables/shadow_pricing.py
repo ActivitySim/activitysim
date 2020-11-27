@@ -642,7 +642,7 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
         buffer_size = util.iprod(block_shape)
 
         csz = buffer_size * np.dtype(dtype).itemsize
-        logger.info("allocating shared buffer %s %s buffer_size %s bytes %s (%s)" %
+        logger.info("allocating shared shadow pricing buffer %s %s buffer_size %s bytes %s (%s)" %
                     (block_key, buffer_size, block_shape, csz, util.GB(csz)))
 
         if np.issubdtype(dtype, np.int64):

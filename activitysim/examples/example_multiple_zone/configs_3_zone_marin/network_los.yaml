@@ -74,6 +74,7 @@ maz_to_tap:
     # if provided, this column will be used (together with tap_lines table) to trim the near tap set
     # to only include the nearest tap to origin when more than one tap serves the same line
     tap_line_distance_col: WALK_TRANSIT_DIST
+    #max_dist: 3
   drive:
     table: maz_taz_tap_drive.csv
     # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost

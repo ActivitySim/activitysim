@@ -355,7 +355,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise type(err)(f'{str(err)} evaluating: "{str(expr)}"').with_traceback(err.__traceback__)
+            raise err
 
     if estimator:
         df = pd.DataFrame(
@@ -493,7 +493,7 @@ def eval_variables(exprs, df, locals_d=None):
 
         except Exception as err:
             logger.exception(f"Variable evaluation failed {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise type(err)(f'{str(err)} evaluating: "{str(expr)}"').with_traceback(err.__traceback__)
+            raise err
 
     values = util.df_from_dict(values, index=df.index)
 

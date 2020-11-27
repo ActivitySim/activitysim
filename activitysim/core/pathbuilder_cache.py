@@ -25,8 +25,6 @@ DYNAMIC = 'dynamic'
 STATIC = 'static'
 TRACE = 'trace'
 
-UNINITIALIZED = -1
-
 
 class TVPBCache(object):
     def __init__(self, network_los, uid_calculator, cache_tag):
@@ -77,8 +75,10 @@ class TVPBCache(object):
 
         if self.network_los.multiprocess():
             # use preloaded fully_populated shared data buffer
-            data, _ = self.get_data_and_lock_from_buffers()
-            assert not np.any(data == UNINITIALIZED)
+            with tracing.memo("TVPBCache.open get_data_and_lock_from_buffers"):
+                data, lock = self.get_data_and_lock_from_buffers()
+            with tracing.memo("TVPBCache.open assert not np.any"):
+                assert not np.isnan(data).any()
             logger.info(f"TVBPCache.open {self.cache_tag} STATIC cache using existing data_buffers")
 
         elif os.path.isfile(self.cache_path(STATIC)):
@@ -100,14 +100,17 @@ class TVPBCache(object):
         if data is not None:
             # create no-copy pandas DataFrame from numpy wrapped RawArray or Memmap buffer
             column_names = self.uid_calculator.set_names
-            data = data.reshape((-1, len(column_names)))  # reshape so there is one column per set
+            with tracing.memo("TVPBCache.open data.reshape"):
+                data = data.reshape((-1, len(column_names)))  # reshape so there is one column per set
             # data should be fully_populated and in canonical order - so we can assign canonical uid index
-            fully_populated_uids = self.uid_calculator.fully_populated_uids
+            with tracing.memo("TVPBCache.open uid_calculator.fully_populated_uids"):
+                fully_populated_uids = self.uid_calculator.fully_populated_uids
             # check fully_populated, but we have to take order on faith (internal error if it is not)
             assert data.shape[0] == len(fully_populated_uids)
 
             # whether shared data buffer or memmap, we can use it as no-copy backing store for DataFrame
-            df = pd.DataFrame(data=data, columns=column_names, index=fully_populated_uids, copy=False)
+            with tracing.memo("TVPBCache.open DataFrame"):
+                df = pd.DataFrame(data=data, columns=column_names, index=fully_populated_uids, copy=False)
             df.index.name = 'uid'
             self._df = df
             logger.debug(f"TVBPCache.open initialized STATIC cache table")
@@ -244,8 +247,8 @@ class TVPBCache(object):
 
             logger.debug(f"TVPBCache.load_data_to_buffer loaded data from {self.cache_path(STATIC)}")
         else:
-            np.copyto(data_buffer, UNINITIALIZED)
-            logger.debug(f"TVPBCache.load_data_to_buffer saved cache file not found. Filled cache with {UNINITIALIZED}")
+            np.copyto(data_buffer, np.nan)
+            logger.debug(f"TVPBCache.load_data_to_buffer saved cache file not found. Filled cache with np.nan")
 
     def get_data_and_lock_from_buffers(self):
         data_buffers = inject.get_injectable('data_buffers', None)

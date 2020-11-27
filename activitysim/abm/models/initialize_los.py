@@ -10,7 +10,7 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 
-from activitysim.core import config
+from activitysim.core import util
 from activitysim.core import pipeline
 from activitysim.core import tracing
 from activitysim.core import chunk
@@ -82,15 +82,22 @@ def initialize_los(network_los):
         pipeline.replace_table('attribute_combinations', attribute_combinations_df)
 
         # clean up any unwanted cache files from previous run
-        network_los.tvpb.tap_cache.cleanup()
+        if network_los.rebuild_tvpb_cache:
+            network_los.tvpb.tap_cache.cleanup()
 
-        # if multiprocessing make sure shred cache was filled with pathbuilder_cache.UNINITIALIZED
+        # if multiprocessing make sure shared cache was filled with np.nan
         # so that initialize_tvpb subprocesses can detect when cache is fully populated
         if network_los.multiprocess():
-            data, lock = tap_cache.get_data_and_lock_from_buffers()
-            with lock:
-                assert np.all(data == pathbuilder_cache.UNINITIALIZED)
+            data, _ = tap_cache.get_data_and_lock_from_buffers()  # don't need lock here since single process
 
+            if os.path.isfile(tap_cache.cache_path(pathbuilder_cache.STATIC)):
+                # fully populated cache should have been loaded from saved cache
+                assert not network_los.rebuild_tvpb_cache
+                assert not np.isnan(data).any()
+            else:
+                # shared cache should be filled with np.nan so that initialize_tvpb
+                # subprocesses can detect when cache is fully populated
+                assert np.isnan(data).all()
 
 
 @contextmanager
@@ -102,9 +109,16 @@ def lock_data(lock):
         yield
 
 
-def any_uninitialized(data, lock):
-    with lock_data(lock):
-        return np.any(data == pathbuilder_cache.UNINITIALIZED)
+def uninitialized(data, lock=None):
+    if lock is None:
+        return np.isnan(data)
+    else:
+        with lock_data(lock):
+            return np.isnan(data)
+
+
+def num_uninitialized(data, lock=None):
+    return np.sum(uninitialized(data, lock))
 
 
 @inject.step()
@@ -152,7 +166,7 @@ def initialize_tvpb(network_los, attribute_combinations):
         write_results = inject.get_injectable('locutor', False)
 
         # possible (though unlikely) timing bug here
-        #assert np.all(data == pathbuilder_cache.UNINITIALIZED)
+        #assert np.isnan(data).all()
     else:
         data = tap_cache.allocate_data_buffer(shared=False)
         lock = None
@@ -198,23 +212,30 @@ def initialize_tvpb(network_los, attribute_combinations):
             chunk.log_df(chunk_trace_label, f'{trace_attributes} utilities_df', utilities_df)
 
             assert utilities_df.values.shape == data[offset].shape
-            assert not np.any(utilities_df.values == pathbuilder_cache.UNINITIALIZED)
             with lock_data(lock):
                 data[offset, :, :] = utilities_df.values
+                assert not uninitialized(data[offset]).any()
+
 
             # FIXME do we care about offset?
             assert (uid_calculator.get_skim_offset(scalar_attributes) == offset)
 
             logger.debug(f"{trace_label} updated utilities for offset {offset}")
 
+            logger.debug(f"{trace_label} "
+                         f" {num_uninitialized(data, lock)} uninitialized "
+                         f"of {util.iprod(data.shape)} {data.shape} data values")
+
+            print(f"{trace_label}.{multiprocessing.current_process().name} "
+                  f" {num_uninitialized(data, lock)} uninitialized out of {util.iprod(data.shape)} data values")
+
     # if multiprocessing, we have to wait for all processes to fully populate share data
     if multiprocess:
-        logger.info(f"{trace_label} Waiting for other processes to fully populate cache.")
-        while any_uninitialized(data, lock):
+
+        while uninitialized(data, lock).any():
             assert multiprocess  # if single_process, we should have fully populated data
-            print(f"{trace_label}.{multiprocessing.current_process().name} "
-                  f" waiting for other process to fully populate pathbuilder_cache..")
-            logger.debug(f"{trace_label}. waiting for other process to complete..")
+            logger.debug(f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
+                         f" to populate {num_uninitialized(data, lock)} uninitialized data values")
             time.sleep(5)
 
     if write_results:

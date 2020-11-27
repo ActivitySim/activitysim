@@ -26,7 +26,7 @@ EFFECTIVE_CHUNK_SIZE = []
 
 HWM = [{}]
 
-INITIAL_ROWS_PER_CHUNK = 100
+INITIAL_ROWS_PER_CHUNK = 10
 MAX_ROWSIZE_ERROR = 0.5  # estimated_row_size percentage error warning threshold
 INTERACTIVE_TRACE_CHUNKING = False
 INTERACTIVE_TRACE_CHUNK_WARNING = False
@@ -218,10 +218,10 @@ def log_df(trace_label, table_name, df):
         CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
 
         # log this df
-        # logger.debug(f"log_df {table_name} "
-        #              f"elements: {commas(elements)} "
-        #              f"bytes: {GB(bytes)} "
-        #              f"shape: {df.shapeshape} : {trace_label}")
+        logger.debug(f"log_df {table_name} "
+                     f"elements: {commas(elements)} "
+                     f"bytes: {GB(bytes)} "
+                     f"shape: {df.shape} : {trace_label}")
 
     total_elements, total_bytes = _chunk_totals()  # new chunk totals
     cur_mem = mem.get_memory_info()

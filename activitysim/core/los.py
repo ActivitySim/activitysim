@@ -253,7 +253,8 @@ class Network_LOS(object):
                 assert 'table' in maz_to_tap_settings, \
                     f"Expected setting maz_to_tap.{mode}.table not found in in {LOS_SETTINGS_FILE_NAME}"
 
-                df = pd.read_csv(config.data_file_path(maz_to_tap_settings['table'], mandatory=True))
+                file_name = maz_to_tap_settings['table']
+                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
                 # trim tap set
                 # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
@@ -263,8 +264,8 @@ class Network_LOS(object):
 
                     if self.tap_lines_df is None:
                         # load tap_lines on demand (required if they specify tap_line_distance_col)
-                        file_name = self.setting('tap_lines',)
-                        self.tap_lines_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                        tap_lines_file_name = self.setting('tap_lines', )
+                        self.tap_lines_df = pd.read_csv(config.data_file_path(tap_lines_file_name, mandatory=True))
 
                         # csv file has one row per TAP with space-delimited list of lines served by that TAP
                         #  TAP                                      LINES
@@ -275,8 +276,10 @@ class Network_LOS(object):
                         # 6020   GG_068_RT
                         # 6020   GG_228_WB
                         self.tap_lines_df = \
-                            self.tap_lines_df.set_index('TAP').LINES.str.split(expand=True)\
+                            self.tap_lines_df.set_index('TAP').LINES.str.split(expand=True) \
                                 .stack().droplevel(1).to_frame('line')
+
+                    old_len = len(df)
 
                     # NOTE - merge will remove unused taps (not appearing in tap_lines)
                     df = pd.merge(df, self.tap_lines_df, left_on='TAP', right_index=True)
@@ -285,10 +288,25 @@ class Network_LOS(object):
                     df = df.sort_values(by=distance_col).drop_duplicates(subset=['MAZ', 'line'])
 
                     # we don't need to remember which lines are served by which TAPs
-                    df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP'])
+                    df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP']).sort_values(['MAZ', 'TAP'])
+
+                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows")
+                    logger.debug(f"maz_to_tap table {file_name} max {distance_col} {df[distance_col].max()}")
+                    #for dist in [3,2,1]:
+                    #    logger.debug(f"{(df[distance_col] < dist).sum()} taps less than {dist}")
+                    #print(df[df[distance_col] > 3])
+
+                    max_dist_setting = 'max_dist'
+                    if max_dist_setting in maz_to_tap_settings:
+                        old_len = len(df)
+                        max_dist = maz_to_tap_settings.get(max_dist_setting)
+                        df = df[df[distance_col] <= max_dist]
+                        logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows based on max_dist {max_dist}")
+                    df.to_csv(config.output_file_path(f"trimmed_{maz_to_tap_settings['table']}"), index=False)
+                    #bug
 
                 df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
-                logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
+                logger.debug(f"loaded maz_to_tap table {file_name} with {len(df)} rows")
 
                 assert mode not in self.maz_to_tap_dfs
                 self.maz_to_tap_dfs[mode] = df

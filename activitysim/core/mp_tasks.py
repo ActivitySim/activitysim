@@ -886,7 +886,7 @@ def allocate_shared_skim_buffers():
 
     info("allocate_shared_skim_buffer")
 
-    network_los = inject.get_injectable('network_los')
+    network_los = inject.get_injectable('network_los_preload')
     skim_buffers = network_los.allocate_shared_skim_buffers()
 
     return skim_buffers

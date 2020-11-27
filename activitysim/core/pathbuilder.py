@@ -339,7 +339,7 @@ class TransitVirtualPathBuilder(object):
 
         return transit_df
 
-    def lookup_tap_tap_utilities(self, recipe, access_df, egress_df, chooser_attributes, path_info, trace_label):
+    def lookup_tap_tap_utilities(self, recipe, maz_od_df, access_df, egress_df, chooser_attributes, path_info, trace_label):
 
         trace_label = tracing.extend_trace_label(trace_label, 'lookup_tap_tap_utilities')
 
@@ -349,6 +349,16 @@ class TransitVirtualPathBuilder(object):
             transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace=False)
             # note: transit_df index is arbitrary
             chunk.log_df(trace_label, "transit_df", transit_df)
+
+        #FIXME ##########
+        trace_complexity = True
+        if trace_complexity:
+            num_paths = transit_df.groupby(['idx']).size().to_frame('n')
+            num_paths = pd.merge(maz_od_df, num_paths, left_on='idx', right_index=True)
+            num_paths = num_paths[['omaz', 'dmaz', 'n']].drop_duplicates(subset=['omaz', 'dmaz'])
+            num_paths = num_paths.sort_values('n', ascending=False).reset_index(drop=True)
+            logger.debug(f"num_paths\n{num_paths.head(10)}")
+        ##########
 
         # FIXME some expressions may want to know access mode -
         locals_dict = path_info.copy()
@@ -414,7 +424,7 @@ class TransitVirtualPathBuilder(object):
 
         return transit_df
 
-    def compute_tap_tap(self, recipe, access_df, egress_df, chooser_attributes, path_info, trace_label, trace):
+    def compute_tap_tap(self, recipe, maz_od_df, access_df, egress_df, chooser_attributes, path_info, trace_label, trace):
 
         if self.units_for_recipe(recipe) == 'utility':
 
@@ -423,7 +433,7 @@ class TransitVirtualPathBuilder(object):
 
             if not trace and self.tap_cache.is_fully_populated:
                 result = \
-                    self.lookup_tap_tap_utilities(recipe, access_df, egress_df, chooser_attributes,
+                    self.lookup_tap_tap_utilities(recipe, maz_od_df, access_df, egress_df, chooser_attributes,
                                                   path_info, trace_label)
             else:
                 result = \
@@ -581,6 +591,7 @@ class TransitVirtualPathBuilder(object):
                 path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
                 transit_df = self.compute_tap_tap(
                     recipe,
+                    maz_od_df,
                     access_df,
                     egress_df,
                     chooser_attributes,

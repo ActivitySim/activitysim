@@ -43,7 +43,7 @@ def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
     logger.info("init_trace file_name %s" % file_name)
 
     # - check for optional process name prefix
-    MEM['prefix'] = inject.get_injectable('log_file_prefix', '')
+    MEM['prefix'] = inject.get_injectable('log_file_prefix', 'main')
 
     if write_header:
         with config.open_log_file(file_name, 'w') as log_file:

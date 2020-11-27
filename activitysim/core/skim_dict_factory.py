@@ -369,7 +369,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         buffer_size = util.iprod(skim_info.skim_data_shape)
 
         csz = buffer_size * dtype.itemsize
-        logger.info(f"allocating shared buffer {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
+        logger.info(f"allocate_skim_buffer shared {shared} {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
                     f"total size: {csz} ({tracing.si_units(csz)})")
 
         if shared:

@@ -287,7 +287,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
         except Exception as err:
             logger.exception(f"assign_variables - {type(err).__name__} ({str(err)}) evaluating: {str(expression)}")
-            raise type(err)(f'{str(err)} evaluating: "{str(expression)}"').with_traceback(err.__traceback__)
+            raise err
 
         if not is_temp(target):
             variables[target] = expr_values

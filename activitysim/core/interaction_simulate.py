@@ -172,7 +172,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise type(err)(f'{str(err)} evaluating: "{str(expr)}"').with_traceback(err.__traceback__)
+            raise err
 
         # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
 

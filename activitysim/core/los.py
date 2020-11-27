@@ -406,7 +406,7 @@ class Network_LOS(object):
         -------
             bool
         """
-        is_multiprocess = config.setting('multiprocess')
+        is_multiprocess = config.setting('multiprocess', False)
         return is_multiprocess
 
     def load_shared_data(self, shared_data_buffers):

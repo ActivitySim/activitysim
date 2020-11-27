@@ -18,6 +18,7 @@ from activitysim.core import tracing
 
 logger = logging.getLogger(__name__)
 
+RAWARRAY = False
 DTYPE_NAME = 'float32'
 RESCALE = 1000
 
@@ -76,7 +77,7 @@ class TVPBCache(object):
         if self.network_los.multiprocess():
             # use preloaded fully_populated shared data buffer
             with tracing.memo("TVPBCache.open get_data_and_lock_from_buffers"):
-                data, lock = self.get_data_and_lock_from_buffers()
+                data, _ = self.get_data_and_lock_from_buffers()
             with tracing.memo("TVPBCache.open assert not np.any"):
                 assert not np.isnan(data).any()
             logger.info(f"TVBPCache.open {self.cache_tag} STATIC cache using existing data_buffers")
@@ -105,6 +106,7 @@ class TVPBCache(object):
             # data should be fully_populated and in canonical order - so we can assign canonical uid index
             with tracing.memo("TVPBCache.open uid_calculator.fully_populated_uids"):
                 fully_populated_uids = self.uid_calculator.fully_populated_uids
+            logger.info(f"TVBPCache.open fully_populated_uids len {len(fully_populated_uids)}.")
             # check fully_populated, but we have to take order on faith (internal error if it is not)
             assert data.shape[0] == len(fully_populated_uids)
 
@@ -219,9 +221,14 @@ class TVPBCache(object):
             else:
                 raise RuntimeError("allocate_data_buffer unrecognized dtype %s" % dtype_name)
 
-            #buffer = multiprocessing.RawArray(typecode, buffer_size)
-            buffer = multiprocessing.Array(typecode, buffer_size)
-            logger.info(f"TVPBCache.allocate_data_buffer allocated shared multiprocessing.Array as buffer")
+            if RAWARRAY:
+                with tracing.memo("TVPBCache.allocate_data_buffer allocate RawArray"):
+                    buffer = multiprocessing.RawArray(typecode, buffer_size)
+                logger.info(f"TVPBCache.allocate_data_buffer allocated shared multiprocessing.RawArray as buffer")
+            else:
+                with tracing.memo("TVPBCache.allocate_data_buffer allocate Array"):
+                    buffer = multiprocessing.Array(typecode, buffer_size)
+                logger.info(f"TVPBCache.allocate_data_buffer allocated shared multiprocessing.Array as buffer")
         else:
             buffer = np.zeros(buffer_size, dtype=dtype)
             logger.info(f"TVPBCache.allocate_data_buffer allocating non-shared numpy array as buffer")
@@ -235,28 +242,40 @@ class TVPBCache(object):
 
         assert not self.is_open
 
-        # wrap multiprocessing.RawArray as a numpy array (might not be necessary for simple assignment?)
-        #data_buffer = np.frombuffer(data_buffer, dtype=np.dtype(DTYPE_NAME))
-        data_buffer = np.frombuffer(data_buffer.get_obj(), dtype=np.dtype(DTYPE_NAME))
+        # wrap multiprocessing.RawArray as a numpy array
+        with tracing.memo("TVPBCache.load_data_to_buffer frombuffer"):
+            if RAWARRAY:
+                #np_wrapped_data_buffer = np.frombuffer(data_buffer, dtype=np.dtype(DTYPE_NAME))
+                np_wrapped_data_buffer = np.ctypeslib.as_array(data_buffer)
+            else:
+                #np_wrapped_data_buffer = np.frombuffer(data_buffer.get_obj(), dtype=np.dtype(DTYPE_NAME))
+                np_wrapped_data_buffer = np.ctypeslib.as_array(data_buffer.get_obj())
 
         if os.path.isfile(self.cache_path(STATIC)):
-            data = np.memmap(self.cache_path(STATIC), dtype=DTYPE_NAME, mode='r')
-            np.copyto(data_buffer, data)
-            data._mmap.close()
-            del data
-
+            with tracing.memo("TVPBCache.load_data_to_buffer copy memmap"):
+                data = np.memmap(self.cache_path(STATIC), dtype=DTYPE_NAME, mode='r')
+                np.copyto(np_wrapped_data_buffer, data)
+                data._mmap.close()
+                del data
             logger.debug(f"TVPBCache.load_data_to_buffer loaded data from {self.cache_path(STATIC)}")
         else:
-            np.copyto(data_buffer, np.nan)
+            np.copyto(np_wrapped_data_buffer, np.nan)
             logger.debug(f"TVPBCache.load_data_to_buffer saved cache file not found. Filled cache with np.nan")
+
 
     def get_data_and_lock_from_buffers(self):
         data_buffers = inject.get_injectable('data_buffers', None)
         assert self.cache_tag in data_buffers  # internal error
         logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
         data_buffer = data_buffers[self.cache_tag]
-        data = np.frombuffer(data_buffer.get_obj(), dtype=np.dtype(DTYPE_NAME))
-        lock = data_buffer.get_lock()
+        if RAWARRAY:
+            data = np.ctypeslib.as_array(data_buffer)
+            #data = np.frombuffer(data_buffer, dtype=np.dtype(DTYPE_NAME))
+            lock = None
+        else:
+            data = np.ctypeslib.as_array(data_buffer.get_obj())
+            #data = np.frombuffer(data_buffer.get_obj(), dtype=np.dtype(DTYPE_NAME))
+            lock = data_buffer.get_lock()
 
         return data, lock
 

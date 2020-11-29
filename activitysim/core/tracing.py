@@ -10,10 +10,6 @@ import logging.config
 import sys
 import time
 import yaml
-import gc as _gc
-import psutil
-
-from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
@@ -48,28 +44,6 @@ def si_units(x, kind='B', f="{}{:.3g} {}{}"):
             x *= shift
             tier -= 1
     return f.format(sign, x, tiers[tier], kind)
-
-
-@contextmanager
-def memo(tag, console=False):
-    t0 = time.time()
-
-    _gc.collect()
-    previous_mem = psutil.Process(os.getpid()).memory_info().rss
-    try:
-        yield
-    finally:
-        elapsed_time = time.time() - t0
-
-        _gc.collect()
-        current_mem = (psutil.Process(os.getpid()).memory_info().rss)
-        marginal_mem = current_mem - previous_mem
-        mem_str = f"net {si_units(marginal_mem)} ({str(marginal_mem)}) total {si_units(current_mem)}"
-
-        if console:
-            print(f"MEMO {tag} Time: {si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
-        else:
-            logger.debug(f"MEM  {tag} {mem_str} in {si_units(elapsed_time, kind='s')}")
 
 
 def extend_trace_label(trace_label, extension):
@@ -259,6 +233,8 @@ def register_traceable_table(table_name, df):
 
     # add index name to traceable_table_indexes
 
+    logger.debug(f"register_traceable_table {table_name}")
+
     traceable_tables = inject.get_injectable('traceable_tables', [])
     if table_name not in traceable_tables:
         logger.error("table '%s' not in traceable_tables" % table_name)
@@ -280,7 +256,7 @@ def register_traceable_table(table_name, df):
     # update traceable_table_indexes with this traceable_table's idx_name
     if idx_name not in traceable_table_indexes:
         traceable_table_indexes[idx_name] = table_name
-        print("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
+        logger.debug("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
         inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
 
     # add any new indexes associated with trace_hh_id to traceable_table_ids

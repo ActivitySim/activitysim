@@ -227,6 +227,7 @@ def write_tables(output_dir):
             #FIXME undocumented feature
             if sort:
                 traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+
                 if df.index.name in traceable_table_indexes:
                     df = df.sort_index()
                     logger.debug(f"write_tables sorting {table_name} on index {df.index.name}")

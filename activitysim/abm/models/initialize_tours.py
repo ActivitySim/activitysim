@@ -102,8 +102,7 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
 
     pipeline.get_rn_generator().add_channel('tours', tours)
 
-    if trace_hh_id:
-        tracing.register_traceable_table('tours', tours)
+    tracing.register_traceable_table('tours', tours)
 
     print(f"{len(tours.household_id.unique())} unique household_ids in tours")
     print(f"{len(households.index.unique())} unique household_ids in households")

@@ -467,7 +467,7 @@ def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, mo
 
     if simulate.tvpb_skims(skims):
         #FIME
-        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
 
     #FIXME - broken - disable for now

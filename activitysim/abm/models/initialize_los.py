@@ -110,6 +110,8 @@ def lock_data(lock):
 
 
 def uninitialized(data, lock=None):
+    #uninitialized - EXPENSIVE!
+
     if lock is None:
         return np.isnan(data)
     else:
@@ -163,14 +165,12 @@ def initialize_tvpb(network_los, attribute_combinations):
     if multiprocess:
         # we will compute 'skim' chunks at offsets specified by our slice of attribute_combinations_df
         data, lock = tap_cache.get_data_and_lock_from_buffers()
-        write_results = inject.get_injectable('locutor', False)
 
         # possible (though unlikely) timing bug here
         #assert np.isnan(data).all()
     else:
         data = tap_cache.allocate_data_buffer(shared=False)
         lock = None
-        write_results = True
 
     data = data.reshape(uid_calculator.skim_shape)
 
@@ -188,12 +188,11 @@ def initialize_tvpb(network_los, attribute_combinations):
 
             # scalar_attributes is a dict of attribute name/value pairs for this combination
             # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
-            trace_attributes = ', '.join([f'{k}={v}' for k, v in scalar_attributes.items()])
-            chunk_trace_label = tracing.extend_trace_label(trace_label, trace_attributes)
+            chunk_trace_label = tracing.extend_trace_label(trace_label, f"offset{offset}")
 
             choosers_df = od_choosers(network_los, uid_calculator, scalar_attributes)
 
-            chunk.log_df('chunk_trace_label', 'choosers_df', choosers_df)
+            chunk.log_df(chunk_trace_label, 'choosers_df', choosers_df)
 
             assert (choosers_df.index.values == offset * len(choosers_df) + np.arange(len(choosers_df))).all()
 
@@ -209,38 +208,33 @@ def initialize_tvpb(network_los, attribute_combinations):
                                               model_constants=model_constants,
                                               trace_label=chunk_trace_label)
 
-            chunk.log_df(chunk_trace_label, f'{trace_attributes} utilities_df', utilities_df)
+            chunk.log_df(chunk_trace_label, 'utilities_df', utilities_df)
 
             assert utilities_df.values.shape == data[offset].shape
             with lock_data(lock):
+                assert not uninitialized(utilities_df.values).any()
                 data[offset, :, :] = utilities_df.values
-                assert not uninitialized(data[offset]).any()
 
+            logger.debug(f"{chunk_trace_label} updated utilities for offset {offset}")
 
-            # FIXME do we care about offset?
-            assert (uid_calculator.get_skim_offset(scalar_attributes) == offset)
+    if multiprocess and not inject.get_injectable('locutor', False):
+        return
 
-            logger.debug(f"{trace_label} updated utilities for offset {offset}")
-
-            logger.debug(f"{trace_label} "
-                         f" {num_uninitialized(data, lock)} uninitialized "
-                         f"of {util.iprod(data.shape)} {data.shape} data values")
-
-            print(f"{trace_label}.{multiprocessing.current_process().name} "
-                  f" {num_uninitialized(data, lock)} uninitialized out of {util.iprod(data.shape)} data values")
-
-    # if multiprocessing, we have to wait for all processes to fully populate share data
-    if multiprocess:
-
-        while uninitialized(data, lock).any():
-            assert multiprocess  # if single_process, we should have fully populated data
-            logger.debug(f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
-                         f" to populate {num_uninitialized(data, lock)} uninitialized data values")
-            time.sleep(5)
-
+    write_results = not multiprocess or inject.get_injectable('locutor', False)
     if write_results:
 
         logger.info(f"{trace_label} writing cache for_rebuild.")
+
+        if multiprocess:
+            # if multiprocessing, wait for all processes to fully populate share data before writing results
+            # (the other processes don't have to wait, since we were sliced by attribute combination
+            # and they must wait to coalesce at the end of the multiprocessing_step)
+
+            # note testing entire array is potentially costly in terms of RAM)
+            while uninitialized(data, lock).any():
+                logger.debug(f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
+                             f" to populate {num_uninitialized(data, lock)} uninitialized data values")
+                time.sleep(5)
 
         with lock_data(lock):
             final_df = \

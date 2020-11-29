@@ -28,7 +28,8 @@ def force_garbage_collect():
 
 
 def GB(bytes):
-    return (bytes / (1024 * 1024 * 1024.0))
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return round(gb, 2)
 
 
 def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
@@ -106,8 +107,8 @@ def trace_memory_info(event=''):
     trace_hwm('rss', GB(rss), timestamp, event)
     trace_hwm('used', GB(vmi.used), timestamp, event)
 
-    # logger.debug("memory_info: rss: %s available: %s percent: %s"
-    #              %  (GB(mi.rss), GB(vmi.available), GB(vmi.percent)))
+    if event:
+        logger.info(f"trace_memory_info {event} rss: {GB(rss)}GB used: {GB(vmi.used)} GB percent: {vmi.percent}%")
 
     with config.open_log_file(MEM['file_name'], 'a') as output_file:
 
@@ -121,7 +122,7 @@ def trace_memory_info(event=''):
                event), file=output_file)
 
 
-def get_memory_info():
+def get_rss():
 
     mi = psutil.Process().memory_info()
 

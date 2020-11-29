@@ -197,7 +197,6 @@ def log_df(trace_label, table_name, df):
         # remove table from log
         CHUNK_LOG.get(cur_chunker).pop(table_name)
         op = 'del'
-
         logger.debug(f"log_df {table_name} "
                      f"elements: {0} : {trace_label}")
     else:
@@ -224,19 +223,17 @@ def log_df(trace_label, table_name, df):
                      f"shape: {df.shape} : {trace_label}")
 
     total_elements, total_bytes = _chunk_totals()  # new chunk totals
-    cur_mem = mem.get_memory_info()
+    cur_rss = mem.get_rss()
     hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
-
-    # logger.debug(f"log_df total_elements: {total_elements}, total_bytes: {GB(total_bytes)} "
-    #              f"cur_mem: {GB(cur_mem)}: {hwm_trace_label}")
 
     mem.trace_memory_info(hwm_trace_label)
 
     # - check high_water_marks
-
-    info = "elements: %s bytes: %s mem: %s chunk_size: %s effective_chunk_size: %s" % \
-           (commas(total_elements), GB(total_bytes), GB(cur_mem),
-            commas(CHUNK_SIZE[0]), commas(EFFECTIVE_CHUNK_SIZE[0]))
+    info = f"elements: {commas(total_elements)} " \
+           f"bytes: {GB(total_bytes)} " \
+           f"mem (rss): {GB(cur_rss)} " \
+           f"chunk_size: {commas(CHUNK_SIZE[0])} " \
+           f"effective_chunk_size: {commas(EFFECTIVE_CHUNK_SIZE[0])}"
 
     if INTERACTIVE_TRACE_CHUNKING:
         print(f"table_name {table_name} {df.shape if df is not None else 0}")
@@ -245,7 +242,7 @@ def log_df(trace_label, table_name, df):
 
     check_hwm('elements', total_elements, info, hwm_trace_label)
     check_hwm('bytes', total_bytes, info, hwm_trace_label)
-    check_hwm('mem', cur_mem, info, hwm_trace_label)
+    check_hwm('mem', cur_rss, info, hwm_trace_label)
 
 
 def _chunk_totals():

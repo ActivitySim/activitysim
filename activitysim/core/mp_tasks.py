@@ -536,6 +536,11 @@ def apportion_pipeline(sub_proc_names, slice_info):
 
                 df = tables[table_name]
 
+                if num_sub_procs < len(df):
+                    error(f"multiprocess step {slice_info.get('name', '<noname>')} slice table {table_name}"
+                            f" has fewer rows than num_processes ({num_sub_procs}).")
+                    #FIXME raise error?
+
                 if rule['slice_by'] == 'primary':
                     # slice primary apportion table by num_sub_procs strides
                     # this hopefully yields a more random distribution

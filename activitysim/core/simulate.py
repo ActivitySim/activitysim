@@ -1036,7 +1036,7 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
     # (do this first to facilitate tracing of rowsize estimation below)
     #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
-        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
     else:
         skim_oh = None
@@ -1281,7 +1281,7 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
     #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
         # skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
-        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
     else:
         skim_oh = None

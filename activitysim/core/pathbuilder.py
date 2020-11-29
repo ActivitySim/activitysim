@@ -21,7 +21,7 @@ from activitysim.core.util import reindex
 from activitysim.core import expressions
 from activitysim.core import assign
 
-from activitysim.core.tracing import memo
+from activitysim.core.pathbuilder_cache import memo
 
 logger = logging.getLogger(__name__)
 
@@ -371,17 +371,28 @@ class TransitVirtualPathBuilder(object):
 
             transit_df.index = self.uid_calculator.get_unique_ids(transit_df, scalar_attributes)
             transit_df = transit_df[['idx', 'btap', 'atap']]  # just needed chooser_columns for uid calculation
+            chunk.log_df(trace_label, "transit_df add uid index", transit_df)
 
-        # get transit_df utilities from cache
-        with memo("#TVPB lookup_tap_tap_utilities cached_utilities_df"):
+        # if MERGE_UTILITIES:
+        #     with memo("#TVPB lookup_tap_tap_utilities get table"):
+        #         utilities_df = self.tap_cache.table()
+        #
+        #     with memo("#TVPB lookup_tap_tap_utilities merge utilities"):
+        #         # get transit_df utilities from cache
+        #         utilities_df = self.tap_cache.table()
+        #         transit_uids = transit_df.index.unique()
+        #         utilities_df = utilities_df[utilities_df.index.isin(transit_uids)]
+        #
+        #         # redupe unique_transit_df back into transit_df
+        #         transit_df = pd.merge(transit_df, utilities_df, left_index=True, right_index=True)
+        #         chunk.log_df(trace_label, "transit_df", transit_df)
+
+        with memo("#TVPB lookup_tap_tap_utilities reindex transit_df"):
             utilities_df = self.tap_cache.table()
-            transit_uids = transit_df.index.unique()
-            utilities_df = utilities_df[utilities_df.index.isin(transit_uids)]
-
-        # redupe unique_transit_df back into transit_df
-        with memo("#TVPB lookup_tap_tap_utilities redupe transit_df"):
-            transit_df = pd.merge(transit_df, utilities_df, left_index=True, right_index=True)
-            chunk.log_df(trace_label, "transit_df", transit_df)
+            utilities = utilities_df.values
+            for i in range(len(utilities_df.columns)):
+                c = utilities_df.columns[i]
+                transit_df[c] = utilities[transit_df.index.values, i]
 
         for c in utilities_df:
             assert ERR_CHECK and not transit_df[c].isnull().any()
@@ -726,15 +737,9 @@ class TransitVirtualPathBuilder(object):
 
         with chunk.chunk_log(trace_label):
 
-            with memo("#TVPB get_tvpb_logsum build_virtual_path"):
-                logsum_df = \
-                    self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
-                                            want_choices=want_choices, trace_label=trace_label)
-
-            # log number of elements allocated during this chunk from the high water mark dict
-            # oh = chunk.get_high_water_mark().get('elements').get('mark')
-            # row_size = math.ceil(oh / len(orig))
-            # logger.debug(f"#chunk_history get_tvpb_logsum {trace_label} oh: {oh} row_size: {row_size}")
+            logsum_df = \
+                self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,
+                                        want_choices=want_choices, trace_label=trace_label)
 
             trace_hh_id = inject.get_injectable("trace_hh_id", None)
             if trace_hh_id:
@@ -859,11 +864,10 @@ class TransitVirtualPathLogsumWrapper(object):
         tod = self.df[self.tod_key]
         segment = self.df[self.segment_key]
 
-        with memo("#TVPB get_tvpb_logsum"):
-            logsum_df = \
-                self.tvpb.get_tvpb_logsum(path_type, orig, dest, tod, segment,
-                                          want_choices=self.cache_choices,
-                                          trace_label=self.trace_label)
+        logsum_df = \
+            self.tvpb.get_tvpb_logsum(path_type, orig, dest, tod, segment,
+                                      want_choices=self.cache_choices,
+                                      trace_label=self.trace_label)
 
         if self.cache_choices:
 

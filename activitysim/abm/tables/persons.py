@@ -37,8 +37,8 @@ def persons(households, trace_hh_id):
 
     pipeline.get_rn_generator().add_channel('persons', df)
 
+    tracing.register_traceable_table('persons', df)
     if trace_hh_id:
-        tracing.register_traceable_table('persons', df)
         tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
     print(f"{len(df.household_id.unique())} unique household_ids in persons")

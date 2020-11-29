@@ -6,6 +6,11 @@ import logging
 import os
 import itertools
 import multiprocessing
+import gc as _gc
+import psutil
+import time
+
+from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
@@ -25,6 +30,46 @@ RESCALE = 1000
 DYNAMIC = 'dynamic'
 STATIC = 'static'
 TRACE = 'trace'
+
+
+MEMO_STACK = []
+
+@contextmanager
+def memo(tag, console=False, disable_gc=True):
+    t0 = time.time()
+
+    MEMO_STACK.append(tag)
+    if len(MEMO_STACK) > 1:
+        logger.debug(f"nested memo call: {MEMO_STACK}")
+        #bug
+
+    gc_was_enabled = _gc.isenabled()
+    if gc_was_enabled:
+        _gc.collect()
+        if disable_gc:
+            _gc.disable()
+
+    previous_mem = psutil.Process(os.getpid()).memory_info().rss
+    try:
+        yield
+    finally:
+        elapsed_time = time.time() - t0
+
+        current_mem = (psutil.Process(os.getpid()).memory_info().rss)
+        marginal_mem = current_mem - previous_mem
+        mem_str = f"net {tracing.si_units(marginal_mem)} ({str(marginal_mem)}) total {tracing.si_units(current_mem)}"
+
+        if gc_was_enabled and disable_gc:
+            _gc.enable()
+        if _gc.isenabled():
+            _gc.collect()
+
+        if console:
+            print(f"MEMO {tag} Time: {tracing.si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
+        else:
+            logger.debug(f"MEM  {tag} {mem_str} in {tracing.si_units(elapsed_time, kind='s')}")
+
+        MEMO_STACK.pop()
 
 
 class TVPBCache(object):
@@ -76,10 +121,13 @@ class TVPBCache(object):
 
         if self.network_los.multiprocess():
             # use preloaded fully_populated shared data buffer
-            with tracing.memo("TVPBCache.open get_data_and_lock_from_buffers"):
+            with memo("TVPBCache.open get_data_and_lock_from_buffers"):
                 data, _ = self.get_data_and_lock_from_buffers()
-            with tracing.memo("TVPBCache.open assert not np.any"):
-                assert not np.isnan(data).any()
+
+            #uninitialized - EXPENSIVE!
+            #with memo("TVPBCache.open assert not np.any"):
+            #    assert not np.isnan(data).any()
+
             logger.info(f"TVBPCache.open {self.cache_tag} STATIC cache using existing data_buffers")
 
         elif os.path.isfile(self.cache_path(STATIC)):
@@ -101,17 +149,18 @@ class TVPBCache(object):
         if data is not None:
             # create no-copy pandas DataFrame from numpy wrapped RawArray or Memmap buffer
             column_names = self.uid_calculator.set_names
-            with tracing.memo("TVPBCache.open data.reshape"):
+            with memo("TVPBCache.open data.reshape"):
                 data = data.reshape((-1, len(column_names)))  # reshape so there is one column per set
+
             # data should be fully_populated and in canonical order - so we can assign canonical uid index
-            with tracing.memo("TVPBCache.open uid_calculator.fully_populated_uids"):
+            with memo("TVPBCache.open uid_calculator.fully_populated_uids"):
                 fully_populated_uids = self.uid_calculator.fully_populated_uids
-            logger.info(f"TVBPCache.open fully_populated_uids len {len(fully_populated_uids)}.")
+
             # check fully_populated, but we have to take order on faith (internal error if it is not)
             assert data.shape[0] == len(fully_populated_uids)
 
             # whether shared data buffer or memmap, we can use it as no-copy backing store for DataFrame
-            with tracing.memo("TVPBCache.open DataFrame"):
+            with memo("TVPBCache.open DataFrame"):
                 df = pd.DataFrame(data=data, columns=column_names, index=fully_populated_uids, copy=False)
             df.index.name = 'uid'
             self._df = df
@@ -222,11 +271,11 @@ class TVPBCache(object):
                 raise RuntimeError("allocate_data_buffer unrecognized dtype %s" % dtype_name)
 
             if RAWARRAY:
-                with tracing.memo("TVPBCache.allocate_data_buffer allocate RawArray"):
+                with memo("TVPBCache.allocate_data_buffer allocate RawArray"):
                     buffer = multiprocessing.RawArray(typecode, buffer_size)
                 logger.info(f"TVPBCache.allocate_data_buffer allocated shared multiprocessing.RawArray as buffer")
             else:
-                with tracing.memo("TVPBCache.allocate_data_buffer allocate Array"):
+                with memo("TVPBCache.allocate_data_buffer allocate Array"):
                     buffer = multiprocessing.Array(typecode, buffer_size)
                 logger.info(f"TVPBCache.allocate_data_buffer allocated shared multiprocessing.Array as buffer")
         else:
@@ -243,7 +292,7 @@ class TVPBCache(object):
         assert not self.is_open
 
         # wrap multiprocessing.RawArray as a numpy array
-        with tracing.memo("TVPBCache.load_data_to_buffer frombuffer"):
+        with memo("TVPBCache.load_data_to_buffer frombuffer"):
             if RAWARRAY:
                 #np_wrapped_data_buffer = np.frombuffer(data_buffer, dtype=np.dtype(DTYPE_NAME))
                 np_wrapped_data_buffer = np.ctypeslib.as_array(data_buffer)
@@ -252,7 +301,7 @@ class TVPBCache(object):
                 np_wrapped_data_buffer = np.ctypeslib.as_array(data_buffer.get_obj())
 
         if os.path.isfile(self.cache_path(STATIC)):
-            with tracing.memo("TVPBCache.load_data_to_buffer copy memmap"):
+            with memo("TVPBCache.load_data_to_buffer copy memmap"):
                 data = np.memmap(self.cache_path(STATIC), dtype=DTYPE_NAME, mode='r')
                 np.copyto(np_wrapped_data_buffer, data)
                 data._mmap.close()

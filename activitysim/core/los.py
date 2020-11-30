@@ -14,6 +14,7 @@ from activitysim.core import util
 from activitysim.core import config
 from activitysim.core import pathbuilder
 from activitysim.core import mem
+from activitysim.core import tracing
 
 #
 from activitysim.core.skim_dict_factory import NumpyArraySkimFactory
@@ -309,8 +310,10 @@ class Network_LOS(object):
                         old_len = len(df)
                         max_dist = maz_to_tap_settings.get(max_dist_setting)
                         df = df[df[distance_col] <= max_dist]
-                        logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows based on max_dist {max_dist}")
-                    df.to_csv(config.output_file_path(f"trimmed_{maz_to_tap_settings['table']}"), index=False)
+                        logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows "
+                                     f"based on max_dist {max_dist}")
+
+                    tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
                     #bug
 
                 df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)

@@ -114,7 +114,7 @@ class SkimInfo(object):
 
             omx_file_path = config.data_file_path(omx_file_name)
 
-            logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
+            # logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
             with omx.open_file(omx_file_path) as omx_file:
 

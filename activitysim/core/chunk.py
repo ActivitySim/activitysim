@@ -337,30 +337,33 @@ def write_history(caller, history, trace_label):
                 input(f"{trace_label} type any key to continue")
 
 
-def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_label):
+def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
 
     # generator to iterate over choosers
 
     num_choosers = len(choosers.index)
     assert num_choosers > 0
     assert chunk_size >= 0
-    assert estimated_row_size >= 0
+    assert row_size >= 0
 
     logger.info(f"Running adaptive_chunked_choosers with chunk_size {chunk_size} and {num_choosers} choosers")
 
     # FIXME do we care if it is an int?
-    row_size = estimated_row_size = math.ceil(estimated_row_size)
+    row_size = math.ceil(row_size)
 
     if chunk_size == 0:
-        assert estimated_row_size == 0  # we ignore this but make sure caller realizes that
+        assert row_size == 0  # we ignore this but make sure caller realizes that
         rows_per_chunk = num_choosers
         estimated_number_of_chunks = 1
     else:
-        assert len(HWM) == 1
-        if estimated_row_size == 0:
+        assert len(HWM) == 1, f"len(HWM): {len(HWM)}"
+        if row_size == 0:
             rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
             estimated_number_of_chunks = None
         else:
+            max_rows_per_chunk = np.maximum(int(chunk_size / row_size), 1)
+            logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rows_per_chunk} based on row_size {row_size}")
+
             rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
 
@@ -424,7 +427,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, estimated_row_size, trace_la
         write_history('adaptive_chunked_choosers', history, trace_label)
 
 
-def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estimated_row_size, trace_label):
+def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_size, trace_label):
     """
     generator to iterate over choosers and alternatives in chunk_size chunks
 
@@ -480,19 +483,22 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
                 f"and {num_choosers} choosers and {num_alternatives} alternatives")
 
     # FIXME do we care if it is an int?
-    row_size = estimated_row_size = math.ceil(estimated_row_size)
+    row_size = math.ceil(row_size)
 
     if chunk_size == 0:
-        assert estimated_row_size == 0  # we ignore this but make sure caller realizes that
+        assert row_size == 0  # we ignore this but make sure caller realizes that
         rows_per_chunk = num_choosers
         estimated_number_of_chunks = 1
         row_size = 0
     else:
         assert len(HWM) == 1
-        if estimated_row_size == 0:
+        if row_size == 0:
             rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
             estimated_number_of_chunks = None
         else:
+            max_rows_per_chunk = np.maximum(int(chunk_size / row_size), 1)
+            logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rows_per_chunk} based on row_size {row_size}")
+
             rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
         logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
@@ -568,7 +574,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, estim
         write_history('adaptive_chunked_choosers_and_alts', history, trace_label)
 
 
-def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_size, trace_label):
+def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label):
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
     # (the presumption is that choosers has multiple rows with the same chunk_id that
@@ -579,27 +585,29 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, estimated_row_si
     assert num_choosers > 0
 
     # FIXME do we care if it is an int?
-    row_size = estimated_row_size = math.ceil(estimated_row_size)
+    row_size = math.ceil(row_size)
 
     if chunk_size == 0:
-        assert estimated_row_size == 0  # we ignore this but make sure caller realizes that
+        assert row_size == 0  # we ignore this but make sure caller realizes that
         rows_per_chunk = num_choosers
         estimated_number_of_chunks = 1
     else:
         assert len(HWM) == 1
 
-        if estimated_row_size == 0:
+        if row_size == 0:
             rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
             estimated_number_of_chunks = None
             logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} "
                          f"based on INITIAL_ROWS_PER_CHUNK {INITIAL_ROWS_PER_CHUNK}")
 
         else:
-            rows_per_chunk = np.clip(int(chunk_size / estimated_row_size), 1, num_choosers)
+            max_rpc = np.maximum(int(chunk_size / row_size), 1)
+            logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rpc} based on row_size {row_size}")
+
+            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
             estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
 
-            logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} "
-                         f"based on estimated_row_size {estimated_row_size}")
+            logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
 
     history = {}
     i = offset = 0

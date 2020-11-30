@@ -1038,8 +1038,6 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
     if tvpb_skims(skims):
         logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
-    else:
-        skim_oh = None
 
     #  expression_values for each spec row
     sizer.add_elements(spec.shape[0], 'expression_values')
@@ -1059,9 +1057,6 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
         sizer.add_elements(nest_size, 'nested_exp_utilities')
         # nested_probabilities less 1 since it lacks root
         sizer.add_elements(nest_size - 1, 'nested_probabilities')
-
-    if skim_oh:
-        sizer.add_elements(skim_oh, f'skim_oh for {skim_tag}')
 
     logger.debug(f"{trace_label} #chunk_calc row_size hwm after {sizer.hwm_tag} {sizer.hwm}")
 
@@ -1283,8 +1278,6 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
         # skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
         logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
-    else:
-        skim_oh = None
 
     sizer = chunk.RowSizeEstimator(trace_label)
 
@@ -1302,9 +1295,6 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
                        " so chunk sizing might be a bit off")
     else:
         sizer.add_elements(logit.count_nests(nest_spec), 'nested_exp_utilities')
-
-    if skim_oh:
-        sizer.add_elements(skim_oh, f'skim_oh for {skim_tag}')
 
     row_size = sizer.get_hwm()
 

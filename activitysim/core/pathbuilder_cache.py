@@ -107,6 +107,28 @@ class TVPBCache(object):
                     logger.debug(f"deleting cache {self.cache_path(cache_type)}")
                     os.unlink(self.cache_path(cache_type))
 
+    def write_static_cache(self, data):
+
+        assert not self.is_open
+        assert self._df is None
+        assert not self.is_changed
+
+        data = data.reshape(self.uid_calculator.fully_populated_shape)
+
+        logger.debug(f"#TVPB CACHE write_static_cache df {data.shape}")
+
+        mm_data = np.memmap(self.cache_path(STATIC),
+                            shape=data.shape,
+                            dtype=DTYPE_NAME,
+                            mode='w+')
+        np.copyto(mm_data, data)
+        mm_data._mmap.close()
+        del mm_data
+
+        logger.debug(f"#TVPB CACHE write_static_cache wrote static cache table "
+                     f"({data.shape}) to {self.cache_path(STATIC)}")
+
+
     def open(self, for_rebuild=False):
         # MMAP only supported for fully_populated_uids (STATIC)
         # otherwise we would have to store uid index as float, which has roundoff issues for float32
@@ -178,6 +200,9 @@ class TVPBCache(object):
 
             if self.is_fully_populated:
 
+                #BUG - remove this eventually. unlikely to accumulate via DYNAMIC, but still...
+                assert False
+
                 xdata = self._df.values
                 data = np.memmap(self.cache_path(STATIC),
                                  shape=xdata.shape,
@@ -248,6 +273,16 @@ class TVPBCache(object):
                      f" from {len(self._df)-len(new_rows)} to {len(self._df)} rows")
 
     def allocate_data_buffer(self, shared=False):
+        """
+        allocate data buffer for cached data and fill with np.nan
+        Parameters
+        ----------
+        shared
+
+        Returns
+        -------
+
+        """
 
         assert not self.is_open
 
@@ -278,8 +313,11 @@ class TVPBCache(object):
                 with memo("TVPBCache.allocate_data_buffer allocate Array"):
                     buffer = multiprocessing.Array(typecode, buffer_size)
                 logger.info(f"TVPBCache.allocate_data_buffer allocated shared multiprocessing.Array as buffer")
+
         else:
-            buffer = np.zeros(buffer_size, dtype=dtype)
+            buffer = np.empty(buffer_size, dtype=dtype)
+            np.copyto(buffer, np.nan)  # fill with np.nan
+
             logger.info(f"TVPBCache.allocate_data_buffer allocating non-shared numpy array as buffer")
 
         return buffer
@@ -294,10 +332,8 @@ class TVPBCache(object):
         # wrap multiprocessing.RawArray as a numpy array
         with memo("TVPBCache.load_data_to_buffer frombuffer"):
             if RAWARRAY:
-                #np_wrapped_data_buffer = np.frombuffer(data_buffer, dtype=np.dtype(DTYPE_NAME))
                 np_wrapped_data_buffer = np.ctypeslib.as_array(data_buffer)
             else:
-                #np_wrapped_data_buffer = np.frombuffer(data_buffer.get_obj(), dtype=np.dtype(DTYPE_NAME))
                 np_wrapped_data_buffer = np.ctypeslib.as_array(data_buffer.get_obj())
 
         if os.path.isfile(self.cache_path(STATIC)):
@@ -309,7 +345,7 @@ class TVPBCache(object):
             logger.debug(f"TVPBCache.load_data_to_buffer loaded data from {self.cache_path(STATIC)}")
         else:
             np.copyto(np_wrapped_data_buffer, np.nan)
-            logger.debug(f"TVPBCache.load_data_to_buffer saved cache file not found. Filled cache with np.nan")
+            logger.debug(f"TVPBCache.load_data_to_buffer - saved cache file not found.")
 
 
     def get_data_and_lock_from_buffers(self):
@@ -364,6 +400,7 @@ class TapTapUidCalculator(object):
 
     @property
     def fully_populated_shape(self):
+        # (num_combinations * num_orig_zones * num_dest_zones, num_sets)
         num_combinations = len(self.attribute_combination_tuples)
         num_orig_zones = num_dest_zones = len(self.tap_ids)
         num_rows = num_combinations * num_orig_zones * num_dest_zones
@@ -372,6 +409,7 @@ class TapTapUidCalculator(object):
 
     @property
     def skim_shape(self):
+        # (num_combinations, num_od_rows, num_sets)
         num_combinations = len(self.attribute_combination_tuples)
         num_orig_zones = num_dest_zones = len(self.tap_ids)
         num_od_rows = num_orig_zones * num_dest_zones
@@ -386,7 +424,7 @@ class TapTapUidCalculator(object):
 
     def get_unique_ids(self, df, scalar_attributes):
         """
-        assign a unique
+        compute canonical unique_id for each row in df
         btap and atap will be in dataframe, but the other attributes may be either df columns or scalar_attributes
 
         Parameters
@@ -395,9 +433,6 @@ class TapTapUidCalculator(object):
             with btap, atap, and optionally additional attribute columns
         scalar_attributes: dict
             dict of scalar attributes e.g. {'tod': 'AM', 'demographic_segment': 0}
-        ignore: list of str
-            list of attributes to ignore in the uid calculation
-            ignoring the od columns (ignore=['btaz', 'ataz']) returns the offset of the matrix in 'skim stack'
         Returns
         -------
         ndarray of integer uids
@@ -418,6 +453,34 @@ class TapTapUidCalculator(object):
                 uid = uid * cardinality + ordinalizer.at[scalar_attributes[name]]
 
         return uid
+
+    def get_od_dataframe(self, scalar_attributes):
+        """
+        return tap-tap od dataframe with unique_id index for 'skim_offset' for scalar_attributes
+
+        i.e. a dataframe which may be used to compute utilities, together with scalar or column attributes
+
+        Parameters
+        ----------
+        scalar_attributes: dict of scalar attribute name:value pairs
+
+        Returns
+        -------
+        pandas.Dataframe
+        """
+
+        # create OD dataframe in ROW_MAJOR_LAYOUT
+        num_taps = len(self.tap_ids)
+        od_choosers_df = pd.DataFrame(
+            data={
+                'btap': np.repeat(self.tap_ids, num_taps),
+                'atap': np.tile(self.tap_ids, num_taps)
+            }
+        )
+        od_choosers_df.index = self.get_unique_ids(od_choosers_df, scalar_attributes)
+        assert not od_choosers_df.index.duplicated().any()
+
+        return od_choosers_df
 
     def get_skim_offset(self, scalar_attributes):
         # return ordinal position of this set of attributes in the list of attribute_combination_tuples

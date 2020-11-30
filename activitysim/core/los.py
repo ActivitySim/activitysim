@@ -28,11 +28,15 @@ logger = logging.getLogger(__name__)
 
 LOS_SETTINGS_FILE_NAME = 'network_los.yaml'
 
-REBUILD_TVPB_CACHE_DEFAULT = True
-
 ONE_ZONE = 1
 TWO_ZONE = 2
 THREE_ZONE = 3
+
+DEFAULT_SETTINGS = {
+    'rebuild_tvpb_cache': True,
+    'zone_system': ONE_ZONE,
+    'skim_dict_factory': 'NumpyArraySkimFactory'
+}
 
 
 class Network_LOS(object):
@@ -93,7 +97,7 @@ class Network_LOS(object):
         self.load_settings()
 
         # dependency injection of skim factory (of type specified in skim_dict_factory setting)
-        skim_dict_factory_name = self.setting('skim_dict_factory', default='NumpyArraySkimFactory')
+        skim_dict_factory_name = self.setting('skim_dict_factory')
         assert skim_dict_factory_name in skim_factories, \
             f"Unrecognized skim_dict_factory setting '{skim_dict_factory_name}"
         self.skim_dict_factory = skim_factories[skim_dict_factory_name](network_los=self)
@@ -106,9 +110,13 @@ class Network_LOS(object):
     def rebuild_tvpb_cache(self):
         # setting as property here so others don't need to know default
         assert self.zone_system == THREE_ZONE, f"Should not even be asking about rebuild_tvpb_cache if not THREE_ZONE"
-        return self.setting('rebuild_tvpb_cache', REBUILD_TVPB_CACHE_DEFAULT)
+        return self.setting('rebuild_tvpb_cache')
 
     def setting(self, keys, default='<REQUIRED>'):
+
+        # if they dont specify a default, check the default defaults
+        default = DEFAULT_SETTINGS.get(keys, '<REQUIRED>') if default == '<REQUIRED>' else default
+
         # get setting value for single key or dot-delimited key path (e.g. 'maz_to_maz.tables')
         key_list = keys.split('.')
         s = self.los_settings
@@ -166,16 +174,16 @@ class Network_LOS(object):
         assert 'periods' in self.skim_time_periods, "'periods' key not found in network_los.skim_time_periods"
         assert 'labels' in self.skim_time_periods, "'labels' key not found in network_los.skim_time_periods"
 
-        self.zone_system = self.setting('zone_system', default=ONE_ZONE)
+        self.zone_system = self.setting('zone_system')
         assert self.zone_system in [ONE_ZONE, TWO_ZONE, THREE_ZONE], \
             f"Network_LOS: unrecognized zone_system: {self.zone_system}"
 
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
             # maz_to_maz_settings
-            self.max_blend_distance = self.setting('maz_to_maz.max_blend_distance', {})
+            self.max_blend_distance = self.setting('maz_to_maz.max_blend_distance', default={})
             if isinstance(self.max_blend_distance, int):
                 self.max_blend_distance = {'DEFAULT': self.max_blend_distance}
-            self.blend_distance_skim_name = self.setting('maz_to_maz.blend_distance_skim_name', None)
+            self.blend_distance_skim_name = self.setting('maz_to_maz.blend_distance_skim_name', default=None)
 
         # validate skim_time_periods
         self.skim_time_periods = self.setting('skim_time_periods')
@@ -375,7 +383,9 @@ class Network_LOS(object):
         -------
         str path
         """
-        cache_dir = self.setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
+        cache_dir = self.setting('cache_dir', default=None)
+        if cache_dir is None:
+            cache_dir = self.setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
 
         if not os.path.isdir(cache_dir):
             os.mkdir(cache_dir)

@@ -454,7 +454,7 @@ def build_slice_rules(slice_info, pipeline_tables):
     return slice_rules
 
 
-def apportion_pipeline(sub_proc_names, slice_info):
+def apportion_pipeline(sub_proc_names, step_info):
     """
     apportion pipeline for multiprocessing step
 
@@ -467,13 +467,16 @@ def apportion_pipeline(sub_proc_names, slice_info):
     ----------
     sub_proc_names : list of str
         names of the sub processes to apportion
-    slice_info : dict
-        slice_info from multiprocess_steps
+    step_info : dict
+        step_info from multiprocess_steps for step we are apportioning pipeline tables for
 
     Returns
     -------
     creates apportioned pipeline files for each sub job
     """
+
+    slice_info = step_info.get('slice', None)
+    multiprocess_step_name = step_info.get('name', None)
 
     pipeline_file_name = inject.get_injectable('pipeline_file_name')
 
@@ -536,9 +539,10 @@ def apportion_pipeline(sub_proc_names, slice_info):
 
                 df = tables[table_name]
 
-                if num_sub_procs < len(df):
-                    error(f"multiprocess step {slice_info.get('name', '<noname>')} slice table {table_name}"
-                            f" has fewer rows than num_processes ({num_sub_procs}).")
+                if rule['slice_by'] is not None and num_sub_procs > len(df):
+
+                    error(f"apportion_pipeline: multiprocess step {multiprocess_step_name} slice table {table_name}"
+                            f" has fewer rows {df.shape} than num_processes ({num_sub_procs}).")
                     #FIXME raise error?
 
                 if rule['slice_by'] == 'primary':
@@ -800,7 +804,7 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
         raise e
 
 
-def mp_apportion_pipeline(injectables, sub_proc_names, slice_info):
+def mp_apportion_pipeline(injectables, sub_proc_names, step_info):
     """
     mp entry point for apportion_pipeline
 
@@ -810,14 +814,14 @@ def mp_apportion_pipeline(injectables, sub_proc_names, slice_info):
         injectables from parent
     sub_proc_names : list of str
         names of the sub processes to apportion
-    slice_info : dict
-        slice_info from multiprocess_steps
+    step_info : dict
+        step_info for multiprocess_step we are apportioning
     """
 
     setup_injectables_and_logging(injectables)
 
     try:
-        apportion_pipeline(sub_proc_names, slice_info)
+        apportion_pipeline(sub_proc_names, step_info)
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_apportion_pipeline: {str(e)}")
         raise e
@@ -1257,7 +1261,7 @@ def run_multiprocess(run_list, injectables):
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_apportion_pipeline, name='%s_apportion' % step_name,
-                    args=(injectables, sub_proc_names, slice_info))
+                    args=(injectables, sub_proc_names, step_info))
             )
         drop_breadcrumb(step_name, 'apportion')
 

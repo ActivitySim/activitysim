@@ -392,6 +392,10 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     file_path = config.trace_file_path(file_name)
 
+    if os.name == 'nt':
+        abs_path = os.path.abspath(file_path)
+        assert len(abs_path) <= 255, f"Path length ({len(abs_path)}) exceeds maximum length for windows: {abs_path}"
+
     if os.path.isfile(file_path):
         logger.debug("write_csv file exists %s %s" % (type(df).__name__, file_name))
 

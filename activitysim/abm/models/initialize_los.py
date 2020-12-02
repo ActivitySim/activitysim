@@ -57,7 +57,7 @@ def initialize_los(network_los):
         if network_los.multiprocess():
             data, _ = tap_cache.get_data_and_lock_from_buffers()  # don't need lock here since single process
 
-            if os.path.isfile(tap_cache.cache_path(pathbuilder_cache.STATIC)):
+            if os.path.isfile(tap_cache.cache_path):
                 # fully populated cache should have been loaded from saved cache
                 assert not network_los.rebuild_tvpb_cache
                 assert not np.isnan(data).any()
@@ -219,11 +219,11 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
     assert not tap_cache.is_open
 
     # if cache already exists,
-    if os.path.isfile(tap_cache.cache_path(pathbuilder_cache.STATIC)):
+    if os.path.isfile(tap_cache.cache_path):
         # otherwise should have been deleted by TVPBCache.cleanup in initialize_los step
         assert not network_los.rebuild_tvpb_cache
         logger.info(f"{trace_label} skipping rebuild of STATIC cache because rebuild_tvpb_cache setting is False"
-                    f" and cache already exists: {tap_cache.cache_path(pathbuilder_cache.STATIC)}")
+                    f" and cache already exists: {tap_cache.cache_path}")
         return
 
     if multiprocess:

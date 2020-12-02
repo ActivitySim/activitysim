@@ -224,8 +224,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
                         choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
                     choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
 
-        #tvpb.flush_cache()  # flush changes (if any - which could only exist if cache is DYNAMIC)
-
     if estimator:
         estimator.write_choices(choices_df.tour_mode)
         choices_df.tour_mode = estimator.get_survey_values(choices_df.tour_mode, 'tours', 'tour_mode')

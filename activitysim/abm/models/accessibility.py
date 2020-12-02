@@ -190,7 +190,6 @@ def compute_accessibility(accessibility, network_los, land_use, trace_od):
     # - write table to pipeline
     pipeline.replace_table("accessibility", accessibility_df)
 
-
     if trace_od:
 
         if not trace_od_rows.any():

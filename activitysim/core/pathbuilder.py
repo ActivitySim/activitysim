@@ -39,7 +39,7 @@ def compute_utilities(network_los, model_settings, choosers, model_constants,
                       trace_label, trace=False, trace_column_names=None):
 
     with chunk.chunk_log(f'tvpb compute_utilities'):
-        trace_label = tracing.extend_trace_label(trace_label, 'compute_utilities')
+        trace_label = tracing.extend_trace_label(trace_label, 'compute_utils')
 
         logger.debug(f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers")
 
@@ -121,7 +121,7 @@ class TransitVirtualPathBuilder(object):
 
     def compute_maz_tap_utilities(self, recipe, maz_od_df, chooser_attributes, leg, mode, trace_label, trace):
 
-        trace_label = tracing.extend_trace_label(trace_label, f'compute_maz_tap_utilities.{leg}')
+        trace_label = tracing.extend_trace_label(trace_label, f'maz_tap_utils.{leg}')
 
         maz_tap_settings = \
             self.network_los.setting(f'TVPB_SETTINGS.{recipe}.maz_tap_settings.{mode}')
@@ -209,7 +209,7 @@ class TransitVirtualPathBuilder(object):
     def compute_tap_tap_utilities(self, recipe, access_df, egress_df, chooser_attributes, path_info,
                                   trace_label, trace):
 
-        trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_utilities')
+        trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_utils')
 
         model_constants = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.CONSTANTS')
         tap_tap_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.tap_tap_settings')
@@ -297,7 +297,7 @@ class TransitVirtualPathBuilder(object):
             # add newly newly computed utilities (including their chooser_columns) to cache
             if USE_CACHE:
                 with memo("#TVPB compute_tap_tap_utilities extend cached table"):
-                    self.tap_cache.extend_table(unique_utilities_df)
+                    self.tap_cache.extend_dynamic_cache(unique_utilities_df)
 
                 # if there were also some cached utilities, add them and their utilities back into unique_transit_df
                 if cached_utilities_df is not None:
@@ -341,9 +341,9 @@ class TransitVirtualPathBuilder(object):
 
     def lookup_tap_tap_utilities(self, recipe, maz_od_df, access_df, egress_df, chooser_attributes, path_info, trace_label):
 
-        trace_label = tracing.extend_trace_label(trace_label, 'lookup_tap_tap_utilities')
+        trace_label = tracing.extend_trace_label(trace_label, 'lookup_tap_tap_utils')
 
-        assert self.tap_cache.is_fully_populated
+        assert self.tap_cache.is_static
 
         with memo("#TVPB CACHE lookup_tap_tap_utilities all_transit_paths"):
             transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace=False)
@@ -403,7 +403,7 @@ class TransitVirtualPathBuilder(object):
 
     def compute_tap_tap_time(self, recipe, access_df, egress_df, chooser_attributes, trace_label, trace):
 
-        trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_utilities')
+        trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_time')
 
         model_constants = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.CONSTANTS')
         tap_tap_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.tap_tap_settings')
@@ -443,7 +443,7 @@ class TransitVirtualPathBuilder(object):
                 with memo("#TVPB compute_tap_tap tap_cache.open"):
                     self.tap_cache.open()
 
-            if not trace and self.tap_cache.is_fully_populated:
+            if not trace and self.tap_cache.is_static:
                 result = \
                     self.lookup_tap_tap_utilities(recipe, maz_od_df, access_df, egress_df, chooser_attributes,
                                                   path_info, trace_label)
@@ -757,7 +757,7 @@ class TransitVirtualPathBuilder(object):
 
         # FIXME lots of pathological knowledge here as we are only called by accessibility directly from expressions
 
-        trace_label = tracing.extend_trace_label('accessibility.get_tvpb_best_transit_time', tod)
+        trace_label = tracing.extend_trace_label('accessibility.tvpb_best_time', tod)
         recipe = 'accessibility'
         path_type = 'WTW'
 

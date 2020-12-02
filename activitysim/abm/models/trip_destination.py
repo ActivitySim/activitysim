@@ -268,7 +268,7 @@ def trip_destination_simulate(
     choices - pandas.Series
         destination alt chosen
     """
-    trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_simulate')
+    trace_label = tracing.extend_trace_label(trace_label, 'trip_dest_simulate')
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SPEC', primary_purpose)
 

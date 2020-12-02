@@ -85,6 +85,7 @@ class TVPBCache(object):
         self.is_open = False
         self.is_changed = False
         self._df = None
+        self.cache_type = None
 
     def cache_path(self, cache_type):
         if cache_type == DYNAMIC:
@@ -128,47 +129,45 @@ class TVPBCache(object):
         logger.debug(f"#TVPB CACHE write_static_cache wrote static cache table "
                      f"({data.shape}) to {self.cache_path(STATIC)}")
 
+        # we are not actually doing an open so no point to remembering this.
+        # self.cache_type = 'STATIC'
 
-    def open(self, for_rebuild=False):
+
+    def open(self):
+        """
+        open STATIC or DYNAMIC cache and populated with cached data, and created
+
+        if multiprocessing
+            always STATIC cache with data fully_populated preloaded shared data buffer
+        if singleprocess
+            load STATIC cache if saved cache file exists
+            otherwise DYNAMIC cache, loading (partially) prepopulated saved cache if exists
+
+
+        """
         # MMAP only supported for fully_populated_uids (STATIC)
         # otherwise we would have to store uid index as float, which has roundoff issues for float32
 
         assert not self.is_open, f"TVPBCache open called but already open"
         self.is_open = True
+        assert self.cache_type == None
 
-        if for_rebuild:
-            return
+        if self.network_los.multiprocess() or os.path.isfile(self.cache_path(STATIC)):
 
-        data = None
+            # multiprocessing always uses STATIC cache (unshared DYNAMIC cache would be redundant across processes)
+            # single process may have created a static cache in prior step
+            self.cache_type = STATIC
 
-        if self.network_los.multiprocess():
-            # use preloaded fully_populated shared data buffer
-            with memo("TVPBCache.open get_data_and_lock_from_buffers"):
-                data, _ = self.get_data_and_lock_from_buffers()
+            if self.network_los.multiprocess():
+                # use preloaded fully_populated shared data buffer
+                with memo("TVPBCache.open get_data_and_lock_from_buffers"):
+                    data, _ = self.get_data_and_lock_from_buffers()
+                logger.info(f"TVBPCache.open {self.cache_tag} STATIC cache using existing data_buffers")
+            else:
+                # read precomputed fully_populated STATIC cache from mmap file
+                data = np.memmap(self.cache_path(STATIC), dtype=DTYPE_NAME, mode='r')
+                logger.info(f"TVBPCache.open {self.cache_tag} read fully_populated data array from mmap file")
 
-            #uninitialized - EXPENSIVE!
-            #with memo("TVPBCache.open assert not np.any"):
-            #    assert not np.isnan(data).any()
-
-            logger.info(f"TVBPCache.open {self.cache_tag} STATIC cache using existing data_buffers")
-
-        elif os.path.isfile(self.cache_path(STATIC)):
-            # read precomputed fully_populated STATIC cache from mmap file
-            data = np.memmap(self.cache_path(STATIC),
-                             dtype=DTYPE_NAME,
-                             mode='r')
-            logger.info(f"TVBPCache.open {self.cache_tag} read fully_populated data array from mmap file")
-
-        elif os.path.isfile(self.cache_path(DYNAMIC)):
-            # read DYNAMIC cache from feather file
-            df = pd.read_feather(self.cache_path(DYNAMIC))
-            df.set_index(df.columns[0], inplace=True)
-            assert not df.index.duplicated().any()
-            self._df = df
-
-            logger.info(f"TVBPCache.open {self.cache_tag} loaded DYNAMIC cache.")
-
-        if data is not None:
             # create no-copy pandas DataFrame from numpy wrapped RawArray or Memmap buffer
             column_names = self.uid_calculator.set_names
             with memo("TVPBCache.open data.reshape"):
@@ -188,6 +187,17 @@ class TVPBCache(object):
             self._df = df
             logger.debug(f"TVBPCache.open initialized STATIC cache table")
 
+        else:
+            self.cache_type = DYNAMIC
+
+            if os.path.isfile(self.cache_path(DYNAMIC)):
+                # read DYNAMIC cache from feather file
+                df = pd.read_feather(self.cache_path(DYNAMIC))
+                df.set_index(df.columns[0], inplace=True)
+                assert not df.index.duplicated().any()
+                self._df = df
+                logger.info(f"TVBPCache.open {self.cache_tag} loaded DYNAMIC cache.")
+
     def flush(self):
         """
         write any changes
@@ -198,42 +208,21 @@ class TVPBCache(object):
 
         if self.is_changed:
 
-            if self.is_fully_populated:
+            assert self.cache_type == DYNAMIC
 
-                #BUG - remove this eventually. unlikely to accumulate via DYNAMIC, but still...
-                assert False
-
-                xdata = self._df.values
-                data = np.memmap(self.cache_path(STATIC),
-                                 shape=xdata.shape,
-                                 dtype=DTYPE_NAME,
-                                 mode='w+')
-                np.copyto(data, xdata)
-                data._mmap.close()
-                del data
+            if self.network_los.rebuild_tvpb_cache:
+                self._df.reset_index().to_feather(self.cache_path(DYNAMIC))
                 self.is_changed = False
-                logger.debug(f"#TVPB CACHE wrote static cache table "
-                             f"({self._df.shape}) to {self.cache_path(STATIC)}")
-
+                logger.debug(f"#TVPB CACHE wrote dynamic cache table "
+                             f"({self._df.shape}) to {self.cache_path(DYNAMIC)}")
             else:
-
-                if self.network_los.rebuild_tvpb_cache:
-                    self._df.reset_index().to_feather(self.cache_path(DYNAMIC))
-                    self.is_changed = False
-                    logger.debug(f"#TVPB CACHE wrote dynamic cache table "
-                                 f"({self._df.shape}) to {self.cache_path(DYNAMIC)}")
-                else:
-                    logger.debug(f"Not flushing dynamic tvpb cache because rebuild_tvpb_cache flag is False"
-                                 f" is not set to True in network_los settings")
+                logger.debug(f"Not flushing dynamic tvpb cache because rebuild_tvpb_cache flag is False"
+                             f" is not set to True in network_los settings")
 
             if self.network_los.setting('trace_tvpb_cache_as_csv', False):
                 csv_path = self.cache_path(TRACE)
                 self._df.to_csv(csv_path)
                 logger.debug(f"#TVPB CACHE wrote trace cache table ({self._df.shape}) to {csv_path}")
-
-        else:
-            # not self.is_changed
-            logger.debug(f"#TVPB CACHE not writing cache since unchanged.")
 
     def close(self, trace=False):
         """
@@ -245,20 +234,36 @@ class TVPBCache(object):
 
         self.is_open = False
         self._df = None
+        self.cache_type = None
 
     def table(self):
         return self._df
 
     @property
-    def is_fully_populated(self):
-        assert self.is_open
-        return self._df is not None and len(self._df) == self.uid_calculator.fully_populated_shape[0]
+    def is_static(self):
+        """
+        is cache open and fully populated?
+        (pathbuider wants to know if it can lookup_tap_tap_utilities instead of compute_tap_tap_utilities)
 
-    def extend_table(self, new_rows):
+        returns: boolean
+        """
+        assert self.is_open
+        return self.cache_type == STATIC
+
+    def extend_dynamic_cache(self, new_rows):
+        """
+        extend dynamic with NEW utility values (not already in cache)
+
+        Parameters
+        ----------
+        new_rows: pandas.DataFrame
+            utilities table with columns for set utilities, indexed by uid
+        """
 
         assert len(new_rows) > 0
         assert self.is_open
-        assert not self.is_fully_populated
+
+        assert self.cache_type == DYNAMIC
 
         self.is_changed = True
 
@@ -274,22 +279,27 @@ class TVPBCache(object):
 
     def allocate_data_buffer(self, shared=False):
         """
-        allocate data buffer for cached data and fill with np.nan
+        allocate fully_populated_shape data buffer for cached data
+
+        if shared, return a multiprocessing.Array that can be shared across subprocesses
+        if not shared, return a numpy ndarrray
+
         Parameters
         ----------
-        shared
+        shared: boolean
 
         Returns
         -------
-
+            multiprocessing.Array or numpy ndarray sized to hole fully_populated utility array
         """
 
         assert not self.is_open
+        assert shared == self.network_los.multiprocess()
 
         dtype_name = DTYPE_NAME
         dtype = np.dtype(DTYPE_NAME)
 
-        # multiprocessing.RawArray argument buffer_size must be int, not np.int64
+        # multiprocessing.Array argument buffer_size must be int, not np.int64
         shape = self.uid_calculator.fully_populated_shape
         buffer_size = util.iprod(self.uid_calculator.fully_populated_shape)
 
@@ -329,7 +339,7 @@ class TVPBCache(object):
 
         assert not self.is_open
 
-        # wrap multiprocessing.RawArray as a numpy array
+        # wrap multiprocessing.Array (or RawArray) as a numpy array
         with memo("TVPBCache.load_data_to_buffer frombuffer"):
             if RAWARRAY:
                 np_wrapped_data_buffer = np.ctypeslib.as_array(data_buffer)
@@ -347,19 +357,22 @@ class TVPBCache(object):
             np.copyto(np_wrapped_data_buffer, np.nan)
             logger.debug(f"TVPBCache.load_data_to_buffer - saved cache file not found.")
 
-
     def get_data_and_lock_from_buffers(self):
+        """
+        return shared data buffer previously allocated by allocate_data_buffer and injected mp_tasks.run_simulation
+        Returns
+        -------
+            either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
+        """
         data_buffers = inject.get_injectable('data_buffers', None)
         assert self.cache_tag in data_buffers  # internal error
         logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
         data_buffer = data_buffers[self.cache_tag]
         if RAWARRAY:
             data = np.ctypeslib.as_array(data_buffer)
-            #data = np.frombuffer(data_buffer, dtype=np.dtype(DTYPE_NAME))
             lock = None
         else:
             data = np.ctypeslib.as_array(data_buffer.get_obj())
-            #data = np.frombuffer(data_buffer.get_obj(), dtype=np.dtype(DTYPE_NAME))
             lock = data_buffer.get_lock()
 
         return data, lock
@@ -384,7 +397,7 @@ class TapTapUidCalculator(object):
 
         # ordinalizers - for mapping attribute values to canonical ordinal values for uid computation
         # (pandas series of ordinal position with attribute value index (e.g. map tod value 'AM' to 0, 'MD' to 1,...)
-        #FIXME dict might be faster than Series.map() and Series.at[]?
+        # FIXME dict might be faster than Series.map() and Series.at[]?
         self.ordinalizers = {}
         for k, v in self.segmentation.items():
             self.ordinalizers[k] = pd.Series(range(len(v)), index=v)

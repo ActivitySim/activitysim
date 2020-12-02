@@ -323,7 +323,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     # fixme - restore tracing and _check_for_variability
 
-    trace_label = tracing.extend_trace_label(trace_label, 'eval_utilities')
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_utils')
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
     locals_dict = assign.local_utilities()

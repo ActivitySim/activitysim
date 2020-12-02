@@ -224,7 +224,6 @@ def write_tables(output_dir):
                 continue
             df = pipeline.get_table(table_name)
 
-            #FIXME undocumented feature
             if sort:
                 traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
 

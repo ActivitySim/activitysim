@@ -262,7 +262,7 @@ def _interaction_sample(
     chunk.log_df(trace_label, 'interaction_utilities', None)
 
     if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
+        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utils'),
                          column_labels=['alternative', 'utility'])
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')

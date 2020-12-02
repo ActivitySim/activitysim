@@ -63,7 +63,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         Will have the index of `df` and a single column of utilities
 
     """
-    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utilities")
+    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     assert(len(spec.columns) == 1)
@@ -316,7 +316,7 @@ def _interaction_simulate(
                                                tracing.extend_trace_label(trace_label, 'eval'))
 
         tracing.trace_df(interaction_utilities[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_utilities'),
+                         tracing.extend_trace_label(trace_label, 'interaction_utils'),
                          slicer='NONE', transpose=False)
 
     # reshape utilities (one utility column and one row per row in model_design)
@@ -327,7 +327,7 @@ def _interaction_simulate(
     chunk.log_df(trace_label, 'utilities', utilities)
 
     if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
+        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utils'),
                          column_labels=['alternative', 'utility'])
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')

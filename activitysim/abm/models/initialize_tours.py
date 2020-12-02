@@ -83,6 +83,7 @@ def initialize_tours_cb(trace_hh_id):
     id_to_purpose = {i: purpose for i, purpose in enumerate(purpose_probs.keys())}
     lane_shares_by_purpose = model_settings['lane_shares_by_purpose']
 
+    
     tours = pd.DataFrame(
         index=range(model_settings['num_tours']),
         columns=['lane_type', 'lane_id', 'purpose', 'purpose_id'])

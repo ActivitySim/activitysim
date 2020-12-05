@@ -634,7 +634,8 @@ def coalesce_pipelines(sub_proc_names, slice_info):
             for table_name, hdf5_key in omnibus_keys.items():
                 omnibus_tables[table_name].append(pipeline_store[hdf5_key])
 
-    pipeline.open_pipeline()
+    # open pipeline, preserving existing checkpoints (so resume_after will work for prior steps)
+    pipeline.open_pipeline('_')
 
     # - add mirrored tables to pipeline
     for table_name in mirrored_tables:

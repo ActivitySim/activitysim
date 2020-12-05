@@ -25,49 +25,6 @@ from activitysim.core import pathbuilder
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def initialize_los(network_los):
-    """
-    Currently, this step is only needed for THREE_ZONE systems in which the tap_tap_utilities are precomputed
-    in the (presumably subsequent) initialize_tvpb step.
-
-    Adds attribute_combinations_df table to the pipeline so that it can be used to as the slicer
-    for multiprocessing the initialize_tvpb s.tep
-
-    FIXME - this step is only strictly necessary when multiprocessing, but initialize_tvpb would need to be tweaked
-    FIXME - to instantiate attribute_combinations_df if the pipeline table version were not available.
-    """
-
-    trace_label = 'initialize_los'
-
-    if network_los.zone_system == los.THREE_ZONE:
-
-        tap_cache = network_los.tvpb.tap_cache
-        uid_calculator = network_los.tvpb.uid_calculator
-        attribute_combinations_df = uid_calculator.scalar_attribute_combinations()
-
-        # - write table to pipeline (so we can slice it, when multiprocessing)
-        pipeline.replace_table('attribute_combinations', attribute_combinations_df)
-
-        # clean up any unwanted cache files from previous run
-        if network_los.rebuild_tvpb_cache:
-            network_los.tvpb.tap_cache.cleanup()
-
-        # if multiprocessing make sure shared cache was filled with np.nan
-        # so that initialize_tvpb subprocesses can detect when cache is fully populated
-        if network_los.multiprocess():
-            data, _ = tap_cache.get_data_and_lock_from_buffers()  # don't need lock here since single process
-
-            if os.path.isfile(tap_cache.cache_path):
-                # fully populated cache should have been loaded from saved cache
-                assert not network_los.rebuild_tvpb_cache
-                assert not np.isnan(data).any()
-            else:
-                # shared cache should be filled with np.nan so that initialize_tvpb
-                # subprocesses can detect when cache is fully populated
-                assert np.isnan(data).all()
-
-
 @contextmanager
 def lock_data(lock):
     if lock is not None:
@@ -109,6 +66,50 @@ def num_uninitialized(data, lock=None):
     with lock_data(lock):
         result = num_nans(data)
     return result
+
+
+@inject.step()
+def initialize_los(network_los):
+    """
+    Currently, this step is only needed for THREE_ZONE systems in which the tap_tap_utilities are precomputed
+    in the (presumably subsequent) initialize_tvpb step.
+
+    Adds attribute_combinations_df table to the pipeline so that it can be used to as the slicer
+    for multiprocessing the initialize_tvpb s.tep
+
+    FIXME - this step is only strictly necessary when multiprocessing, but initialize_tvpb would need to be tweaked
+    FIXME - to instantiate attribute_combinations_df if the pipeline table version were not available.
+    """
+
+    trace_label = 'initialize_los'
+
+    if network_los.zone_system == los.THREE_ZONE:
+
+        tap_cache = network_los.tvpb.tap_cache
+        uid_calculator = network_los.tvpb.uid_calculator
+        attribute_combinations_df = uid_calculator.scalar_attribute_combinations()
+
+        # - write table to pipeline (so we can slice it, when multiprocessing)
+        pipeline.replace_table('attribute_combinations', attribute_combinations_df)
+
+        # clean up any unwanted cache files from previous run
+        if network_los.rebuild_tvpb_cache:
+            network_los.tvpb.tap_cache.cleanup()
+
+        # if multiprocessing make sure shared cache is filled with np.nan
+        # so that initialize_tvpb subprocesses can detect when cache is fully populated
+        if network_los.multiprocess():
+            data, lock = tap_cache.get_data_and_lock_from_buffers()  # don't need lock here since single process
+
+            if os.path.isfile(tap_cache.cache_path):
+                # fully populated cache should have been loaded from saved cache
+                assert not network_los.rebuild_tvpb_cache
+                assert not any_uninitialized(data, lock=None)
+            else:
+                # shared cache should be filled with np.nan so that initialize_tvpb
+                # subprocesses can detect when cache is fully populated
+                with lock_data(lock):
+                    np.copyto(data, np.nan)
 
 
 def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):

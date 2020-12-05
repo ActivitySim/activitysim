@@ -256,8 +256,8 @@ class TVPBCache(object):
                 del data
             logger.debug(f"TVPBCache.load_data_to_buffer loaded data from {self.cache_path}")
         else:
-            np.copyto(np_wrapped_data_buffer, np.nan)
-            logger.debug(f"TVPBCache.load_data_to_buffer - saved cache file not found.")
+           np.copyto(np_wrapped_data_buffer, np.nan)
+           logger.debug(f"TVPBCache.load_data_to_buffer - saved cache file not found.")
 
     def get_data_and_lock_from_buffers(self):
         """

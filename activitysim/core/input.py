@@ -123,7 +123,7 @@ def read_from_table_info(table_info):
             assert not df.duplicated(index_col).any()
             df.set_index(index_col, inplace=True)
         else:
-            #FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?
+            # FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?
             # df.index.names = [index_col]
             logger.error(f"index_col '{index_col}' specified in configs but not in {tablename} table!")
             logger.error(f"{tablename} columns are: {list(df.columns)}")

@@ -86,7 +86,7 @@ class RowSizeEstimator(object):
         logger.debug(f"{self.trace_label} #chunk_calc {tag} <drop> ({self.row_size})")
 
     def get_hwm(self):
-        logger.debug(f"{self.trace_label} #chunk_calc hwm {self.row_size} after {self.hwm_tag}")
+        logger.debug(f"{self.trace_label} #chunk_calc hwm {self.hwm} after {self.hwm_tag}")
         input("get_hwm>") if INTERACTIVE_TRACE_CHUNKING else None
         return self.hwm
 
@@ -321,7 +321,7 @@ def write_history(caller, history, trace_label):
 
         logger.info(f"#chunk_history {caller} {trace_label} "
                     f"initial_row_size: {initial_row_size} "
-                    f"observed_row_size: {observed_row_size}"
+                    f"observed_row_size: {observed_row_size} "
                     f"percent_error: {percent_error}%")
 
         if abs(error) > MAX_ROWSIZE_ERROR:

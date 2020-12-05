@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 TIMING = True
 TRACE_CHUNK = True
 ERR_CHECK = True
+TRACE_COMPLEXITY = False  # diagnostic: log the omaz,dmaz pairs with the greatest number of virtual tap-tap paths
 
 UNAVAILABLE = -999
 
@@ -85,7 +86,9 @@ class TransitVirtualPathBuilder(object):
         self.network_los = network_los
 
         self.uid_calculator = pathbuilder_cache.TapTapUidCalculator(network_los)
-        self.tap_cache = pathbuilder_cache.TVPBCache(self.network_los, self.uid_calculator, CACHE_TAG)  # lightweight until opened
+
+        # note: pathbuilder_cache is lightweight until opened
+        self.tap_cache = pathbuilder_cache.TVPBCache(self.network_los, self.uid_calculator, CACHE_TAG)
 
         assert network_los.zone_system == los.THREE_ZONE, \
             f"TransitVirtualPathBuilder: network_los zone_system not THREE_ZONE"
@@ -325,7 +328,8 @@ class TransitVirtualPathBuilder(object):
 
         return transit_df
 
-    def lookup_tap_tap_utilities(self, recipe, maz_od_df, access_df, egress_df, chooser_attributes, path_info, trace_label):
+    def lookup_tap_tap_utilities(self, recipe, maz_od_df, access_df, egress_df, chooser_attributes,
+                                 path_info, trace_label):
         """
         create transit_df and compute utilities for all atap-btap pairs between omaz in access and dmaz in egress_df
         look up the utilities in the precomputed tap_cache data (which is indexed by uid_calculator unique_ids)
@@ -355,15 +359,13 @@ class TransitVirtualPathBuilder(object):
             # note: transit_df index is arbitrary
             chunk.log_df(trace_label, "transit_df", transit_df)
 
-        #FIXME ##########
-        trace_complexity = True
-        if trace_complexity:
+        if TRACE_COMPLEXITY:
+            # diagnostic: log the omaz,dmaz pairs with the greatest number of virtual tap-tap paths
             num_paths = transit_df.groupby(['idx']).size().to_frame('n')
             num_paths = pd.merge(maz_od_df, num_paths, left_on='idx', right_index=True)
             num_paths = num_paths[['omaz', 'dmaz', 'n']].drop_duplicates(subset=['omaz', 'dmaz'])
             num_paths = num_paths.sort_values('n', ascending=False).reset_index(drop=True)
             logger.debug(f"num_paths\n{num_paths.head(10)}")
-        ##########
 
         # FIXME some expressions may want to know access mode -
         locals_dict = path_info.copy()
@@ -426,7 +428,8 @@ class TransitVirtualPathBuilder(object):
 
         return transit_df
 
-    def compute_tap_tap(self, recipe, maz_od_df, access_df, egress_df, chooser_attributes, path_info, trace_label, trace):
+    def compute_tap_tap(self, recipe, maz_od_df, access_df, egress_df, chooser_attributes, path_info,
+                        trace_label, trace):
 
         if self.units_for_recipe(recipe) == 'utility':
 

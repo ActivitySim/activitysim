@@ -39,6 +39,8 @@ DEFAULT_SETTINGS = {
     'skim_dict_factory': 'NumpyArraySkimFactory'
 }
 
+TRACE_TRIMMED_MAZ_TO_TAP_TABLES = True
+
 
 class Network_LOS(object):
     """
@@ -301,20 +303,16 @@ class Network_LOS(object):
 
                     logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows")
                     logger.debug(f"maz_to_tap table {file_name} max {distance_col} {df[distance_col].max()}")
-                    #for dist in [3,2,1]:
-                    #    logger.debug(f"{(df[distance_col] < dist).sum()} taps less than {dist}")
-                    #print(df[df[distance_col] > 3])
 
-                    max_dist_setting = 'max_dist'
-                    if max_dist_setting in maz_to_tap_settings:
+                    max_dist = maz_to_tap_settings.get('max_dist', None)
+                    if max_dist:
                         old_len = len(df)
-                        max_dist = maz_to_tap_settings.get(max_dist_setting)
                         df = df[df[distance_col] <= max_dist]
                         logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows "
                                      f"based on max_dist {max_dist}")
 
-                    tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
-                    #bug
+                    if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
+                        tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
 
                 df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
                 logger.debug(f"loaded maz_to_tap table {file_name} with {len(df)} rows")
@@ -333,7 +331,7 @@ class Network_LOS(object):
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
             # create MazSkimDict facade skim_dict
-            # (need to have already loaded both taz skim and maz tables)
+            # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
             assert 'maz' not in self.skim_dicts
             self.skim_dicts['maz'] = self.create_skim_dict('maz')
             # make sure skim has all maz_ids
@@ -363,8 +361,13 @@ class Network_LOS(object):
         assert skim_tag not in self.skim_dicts  # avoid inadvertently creating multiple copies
 
         if skim_tag == 'maz':
-            #bug should pass in tap skim dict so MazSkimDict can share skim data rather than creating 2nd copy
-            skim_dict = skim_dictionary.MazSkimDict('maz', self)
+            # MazSkimDict gets a reference to self here, because it has dependencies on self.load_data
+            # (e.g. maz_to_maz_df, maz_taz_df...) We pass in taz_skim_dict as a parameter
+            # to hilight the fact that we do not want two copies of its (very large) data array in memory
+            assert 'taz' in self.skim_dicts, \
+                f"create_skim_dict 'maz': backing taz skim_dict not in skim_dicts"
+            taz_skim_dict = self.skim_dicts['taz']
+            skim_dict = skim_dictionary.MazSkimDict('maz', self, taz_skim_dict)
         else:
             skim_info = self.skims_info[skim_tag]
             skim_data = self.skim_dict_factory.get_skim_data(skim_tag, skim_info)
@@ -490,6 +493,9 @@ class Network_LOS(object):
         -------
         SkimDict or subclass (e.g. MazSkimDict)
         """
+
+        assert skim_tag in self.skim_dicts, \
+            f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
 
         return self.skim_dicts[skim_tag]
 

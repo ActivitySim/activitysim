@@ -361,15 +361,12 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
 
             # if inheriting, continue and backfill settings from the next existing settings file configs_dir_list
 
-            #BUG should we truncate configs_dir list to our current position?
             inherit_settings = s.get('inherit_settings')
             if isinstance(inherit_settings, str):
                 inherit_file_name = inherit_settings
                 assert os.path.join(dir, inherit_file_name) not in source_file_paths, \
                     f"circular inheritance of {inherit_file_name}: {source_file_paths}: "
                 # make a recursive call to switch inheritance chain to specified file
-                #FIXME start at current position in configs_dir_list as loopbacks would be confusing and inconsistent
-                #configs_dir_list = configs_dir_list[configs_dir_list.index(dir):]
                 configs_dir_list = None
 
                 logger.debug("inheriting additional settings for %s from %s" % (file_name, inherit_file_name))

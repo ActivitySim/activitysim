@@ -554,16 +554,33 @@ class MazSkimDict(SkimDict):
     MazSkimDict provides a facade that allows skim-like lookup by maz orig,dest zone_id
     when there are often too many maz zones to create maz skims.
 
+    Dependencies: network_los.load_data must have already loaded: taz skim_dict, maz_to_maz_df, and maz_taz_df
+
     It performs lookups from a sparse list of maz-maz od pairs on selected attributes (e.g. WALKDIST)
     where accuracy for nearby od pairs is critical. And is backed by a fallback taz skim dict
     to return values of for more distant pairs (or for skims that are not attributes in the maz-maz table.)
     """
 
-    def __init__(self, skim_tag, network_los):
+    def __init__(self, skim_tag, network_los, taz_skim_dict):
+        """
+        we need network_los because we have dependencies on network_los.load_data (e.g. maz_to_maz_df, maz_taz_df,
+        and the fallback taz skim_dict)
+
+        We require taz_skim_dict as an explicit parameter to emphasize that we are piggybacking on taz_skim_dict's
+        preexisting skim_data and skim_info, rather than instantiating duplicate copies thereof.
+
+        Note, however, that we override _offset_mapper (called by super.__init__) to create our own
+        custom self.offset_mapper that maps directly from MAZ zone_ids to TAZ skim array indexes
+
+        Parameters
+        ----------
+        skim_tag: str
+        network_los: Network_LOS
+        taz_skim_dict: SkimDict
+        """
 
         self.network_los = network_los
 
-        taz_skim_dict = network_los.get_skim_dict('taz')
         super().__init__(skim_tag, taz_skim_dict.skim_info, taz_skim_dict.skim_data)
         assert self.offset_mapper is not None  # should have been set with _init_offset_mapper
 
@@ -576,6 +593,8 @@ class MazSkimDict(SkimDict):
         """
         return an OffsetMapper to map maz zone_ids to taz skim indexes
         Specifically, an offset_series with MAZ zone_id index and TAZ skim array offset values
+
+        This is called by super().__init__ AFTER
 
         Returns
         -------

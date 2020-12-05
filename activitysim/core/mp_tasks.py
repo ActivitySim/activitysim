@@ -541,9 +541,10 @@ def apportion_pipeline(sub_proc_names, step_info):
 
                 if rule['slice_by'] is not None and num_sub_procs > len(df):
 
-                    error(f"apportion_pipeline: multiprocess step {multiprocess_step_name} slice table {table_name}"
-                            f" has fewer rows {df.shape} than num_processes ({num_sub_procs}).")
-                    #FIXME raise error?
+                    # almost certainly a configuration error
+                    raise RuntimeError(f"apportion_pipeline: multiprocess step {multiprocess_step_name} "
+                                       f"slice table {table_name} has fewer rows {df.shape} "
+                                       f"than num_processes ({num_sub_procs}).")
 
                 if rule['slice_by'] == 'primary':
                     # slice primary apportion table by num_sub_procs strides

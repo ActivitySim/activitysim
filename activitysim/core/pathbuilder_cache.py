@@ -31,17 +31,14 @@ DYNAMIC = 'dynamic'
 STATIC = 'static'
 TRACE = 'trace'
 
-
 MEMO_STACK = []
+
 
 @contextmanager
 def memo(tag, console=False, disable_gc=True):
     t0 = time.time()
 
     MEMO_STACK.append(tag)
-    if len(MEMO_STACK) > 1:
-        logger.debug(f"nested memo call: {MEMO_STACK}")
-        #bug
 
     gc_was_enabled = _gc.isenabled()
     if gc_was_enabled:
@@ -124,7 +121,6 @@ class TVPBCache(object):
 
         logger.debug(f"#TVPB CACHE write_static_cache wrote static cache table "
                      f"({data.shape}) to {self.cache_path}")
-
 
     def open(self):
         """

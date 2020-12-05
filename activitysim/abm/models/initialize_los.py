@@ -4,6 +4,7 @@ import logging
 import os
 import time
 import multiprocessing
+import numba
 
 from contextlib import contextmanager
 
@@ -17,12 +18,12 @@ from activitysim.core import pipeline
 from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import inject
-from activitysim.core import pathbuilder_cache
 from activitysim.core import los
 
 from activitysim.core import pathbuilder
 
 logger = logging.getLogger(__name__)
+
 
 @inject.step()
 def initialize_los(network_los):
@@ -76,18 +77,38 @@ def lock_data(lock):
         yield
 
 
-def uninitialized(data, lock=None):
-    #uninitialized - EXPENSIVE!
+@numba.njit(nogil=True)
+def any_nans(data):
+    # equivalent to np.isnan(x).any()
+    # short circuit in any nans - but the real point is to save memory (np.flat is a nop-copy iterator)
+    for x in data.flat:
+        if np.isnan(x):
+            return True
+    return False
 
-    if lock is None:
-        return np.isnan(data)
-    else:
-        with lock_data(lock):
-            return np.isnan(data)
+
+@numba.njit(nogil=True)
+def num_nans(data):
+    # equivalent to np.isnan(x).sum() but with no transient memory overhead (np.flat is a nop-copy iterator)
+    n = 0
+    for x in data.flat:
+        if np.isnan(x):
+            n += 1
+    return n
+
+
+def any_uninitialized(data, lock=None):
+
+    with lock_data(lock):
+        result = any_nans(data)
+    return result
 
 
 def num_uninitialized(data, lock=None):
-    return np.sum(uninitialized(data, lock))
+
+    with lock_data(lock):
+        result = num_nans(data)
+    return result
 
 
 def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):
@@ -178,13 +199,11 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
 
         assert len(utilities_df) == len(chooser_chunk)
         assert len(utilities_df.columns) == data.shape[1]
-        assert not uninitialized(utilities_df.values).any()
-        #print(utilities_df)
+        assert not any_uninitialized(utilities_df.values)
 
         data[chooser_chunk.index.values, :] = utilities_df.values
 
     logger.debug(f"{trace_label} updated utilities")
-
 
 
 @inject.step()
@@ -245,10 +264,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
         compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
 
         # make sure we populated the entire offset
-        assert not uninitialized(data.reshape(uid_calculator.skim_shape)[offset], lock).any()
-        #print(f"data\n{data}")
-        #print(f"data\n{data.reshape(uid_calculator.skim_shape)[offset]}")
-        #bug
+        assert not any_uninitialized(data.reshape(uid_calculator.skim_shape)[offset], lock)
 
     if multiprocess and not inject.get_injectable('locutor', False):
         return
@@ -261,13 +277,10 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
             # (the other processes don't have to wait, since we were sliced by attribute combination
             # and they must wait to coalesce at the end of the multiprocessing_step)
             # FIXME testing entire array is costly in terms of RAM)
-            while uninitialized(data, lock).any():
+            while any_uninitialized(data, lock):
                 logger.debug(f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
                              f" to populate {num_uninitialized(data, lock)} uninitialized data values")
                 time.sleep(5)
-
-        #FIXME
-        assert not uninitialized(data, lock).any()
 
         logger.info(f"{trace_label} writing static cache.")
         with lock_data(lock):

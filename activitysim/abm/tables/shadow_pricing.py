@@ -249,6 +249,7 @@ class ShadowPriceCalculator(object):
             first_in = self.shared_data[TALLY_CHECKIN] == 0
             # add local data from df to shared data buffer
             # final column is used for tallys, hence the negative index
+            # Ellipsis expands : to fill available dims so [..., 0:-1] is the whole array except for the tallys
             self.shared_data[..., 0:-1] += local_modeled_size.values
             self.shared_data[TALLY_CHECKIN] += 1
 

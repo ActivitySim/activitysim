@@ -391,8 +391,9 @@ def interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skim
     # interaction_df
     sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
 
+    # interaction_df is almost certainly the HWM - if so, no need to worry about the crumbs...
+
     # interaction_utilities utilities probs
-    #FIXME
     sizer.add_elements(0, 'interaction_utilities')
     sizer.add_elements(0, 'utilities')
     sizer.add_elements(0, 'probs')

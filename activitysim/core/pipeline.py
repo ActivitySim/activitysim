@@ -15,8 +15,6 @@ from . import inject
 from . import config
 from . import random
 from . import tracing
-
-#MEM
 from . import mem
 
 
@@ -582,7 +580,6 @@ def run(models, resume_after=None):
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
 
-    #MEM
     mem.init_trace(config.setting('mem_tick'), write_header=True)
     mem.trace_memory_info('#MEM pipeline.run before preload_injectables')
 

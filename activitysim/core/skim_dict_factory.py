@@ -548,7 +548,7 @@ class MemMapSkimFactory(AbstractSkimFactory):
         """
 
         # don't expect legacy shared memory buffers
-        assert inject.get_injectable('data_buffers', None) is None
+        assert not inject.get_injectable('data_buffers', {}).get(skim_tag)
 
         skim_cache_path = self._memmap_skim_data_path(skim_tag)
         if not os.path.isfile(skim_cache_path):

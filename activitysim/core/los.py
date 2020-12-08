@@ -435,12 +435,13 @@ class Network_LOS(object):
         shared_data_buffers: dict of multiprocessing.RawArray keyed by skim_tag
         """
 
-        assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
         assert self.multiprocess()
+        # assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
 
-        for skim_tag in self.skims_info.keys():
-            assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
-            self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
+        if self.skim_dict_factory.supports_shared_data_for_multiprocessing:
+            for skim_tag in self.skims_info.keys():
+                assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
+                self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
 
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
@@ -472,11 +473,12 @@ class Network_LOS(object):
 
         skim_buffers = {}
 
-        assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
+        #assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
 
-        for skim_tag in self.skims_info.keys():
-            skim_buffers[skim_tag] = \
-                self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
+        if self.skim_dict_factory.supports_shared_data_for_multiprocessing:
+            for skim_tag in self.skims_info.keys():
+                skim_buffers[skim_tag] = \
+                    self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
 
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None

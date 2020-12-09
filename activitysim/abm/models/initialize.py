@@ -92,6 +92,7 @@ def initialize_landuse():
     annotate_tables(model_settings, trace_label)
     land_use = pipeline.get_table('land_use')
 
+    # for cross-border model only
     if model_settings['colonias']:
         land_use['poe_id'] = None
         land_use['colonia_id'] = None
@@ -103,8 +104,7 @@ def initialize_landuse():
                 ignore_index=True)
         for i, poe in enumerate(poes):
             land_use = land_use.append({'poe_id': i}, ignore_index=True)
-
-    pipeline.replace_table("land_use", land_use)
+        pipeline.replace_table("land_use", land_use)
 
 
     # create accessibility (only required if multiprocessing wants to slice accessibility)    

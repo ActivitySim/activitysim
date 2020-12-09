@@ -157,7 +157,6 @@ output_tables:
 # area_types less than this are considered urban
 urban_threshold: 4
 cbd_threshold: 2
-rural_threshold: 6
 
 skim_time_periods:
     time_window: 1440

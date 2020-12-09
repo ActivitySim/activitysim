@@ -28,6 +28,6 @@ num_young_adults,num_young_adults,"_PERSON_COUNT('25 <= age <= 34', persons, hou
 non_family,non_family,households.HHT.isin(HHT_NONFAMILY)
 family,family,households.HHT.isin(HHT_FAMILY)
 home_is_urban,home_is_urban,"reindex(land_use.area_type, households.home_zone_id) < setting('urban_threshold')"
-home_is_rural,home_is_rural,"reindex(land_use.area_type, households.home_zone_id) > setting('rural_threshold')"
+home_is_rural,home_is_rural,"reindex(land_use.area_type, households.home_zone_id) > setting('urban_threshold')"
 
 

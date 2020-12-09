@@ -105,23 +105,21 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def compute_poe_accessibility(land_use):
     model_settings = config.read_model_settings('accessibility.yaml')
-    distance_param = model_settings['distance_parameter']
+    distance_param = model_settings['colonia_distance_parameter']
     colonia_to_poe_dists = pd.read_csv(
         os.path.join(config.data_dir(), model_settings['colonia_to_poe_dists']))
     colonia_pop_field = model_settings['colonia_pop_field']
-    lu_poe_pop_access_field = model_settings['lu_poe_pop_access_field']
-    poes = [col for col in colonia_to_poe_dists.columns if 'poe' in col]
+    lu_poe_pop_access_field = model_settings['colonia_pop_access_field']
+    poes = [col for col in colonia_to_poe_dists.columns if 'Distance_' in col]
     
     land_use_df = land_use.to_frame()
     land_use_df[lu_poe_pop_access_field] = None
-
     pop = colonia_to_poe_dists[colonia_pop_field]
     for i, poe in enumerate(poes):
         dists = colonia_to_poe_dists[poe]
-        dist_factors = dists * distance_param
-        weighted_pop = pop + pop * dist_factors
-        weighted_pop = np.clip(weighted_pop, 0, a_max=None)    
-        total_poe_pop_access = weighted_pop.sum()
+        dist_factors = np.exp(dists * distance_param)
+        weighted_pop = dist_factors * pop
+        total_poe_pop_access = np.log(weighted_pop.sum())
         land_use_df.loc[land_use_df['poe_id'] == i, lu_poe_pop_access_field] = total_poe_pop_access
 
     pipeline.replace_table('land_use', land_use_df)

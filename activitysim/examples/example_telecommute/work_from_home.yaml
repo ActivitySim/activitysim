@@ -1,0 +1,10 @@
+
+# borrowed from free parking model
+
+SPEC: work_from_home.csv
+COEFFICIENTS: work_from_home_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+
+WORK_FROM_HOME_ALT: 0

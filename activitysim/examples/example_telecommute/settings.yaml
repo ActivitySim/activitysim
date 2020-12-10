@@ -110,10 +110,10 @@ models:
   - initialize_households # read person occup field and add household.num_children_6_to_12 field
   - school_location
   - workplace_location
-  - work_away_from_home # add person (if worker) work_away_from_home T/F field and set work_zone to 0 if true
+  - work_from_home # add person (if worker) work_from_home T/F field and set work_zone to 0 if true
   - auto_ownership_simulate
   - free_parking
-  - telecommute_frequency # add person (if work_away_from_home) telecommute_frequency_days is 0, 1, 2.5, 4 field
+  - telecommute_frequency # add person (if work_from_home) telecommute_frequency_days is 0, 1, 2.5, 4 field
   - cdap_simulate # use telecommute_frequency_days field as well
   - mandatory_tour_frequency
   - mandatory_tour_scheduling

@@ -90,24 +90,9 @@ def initialize_landuse():
     model_settings = config.read_model_settings('initialize_landuse.yaml', mandatory=True)
 
     annotate_tables(model_settings, trace_label)
+    
+    # create accessibility (only required if multiprocessing wants to slice accessibility)
     land_use = pipeline.get_table('land_use')
-
-    # for cross-border model only
-    if model_settings['colonias']:
-        land_use['poe_id'] = None
-        land_use['colonia_id'] = None
-        colonias = pd.read_csv(os.path.join(config.data_dir(), model_settings['colonias']))
-        poes = [col for col in colonias.columns if 'poe' in col]
-        for i, row in colonias.iterrows():
-            land_use = land_use.append(
-                {'colonia_id': row['Supercolonia_ID'], 'pop': row['Population']},
-                ignore_index=True)
-        for i, poe in enumerate(poes):
-            land_use = land_use.append({'poe_id': i}, ignore_index=True)
-        pipeline.replace_table("land_use", land_use)
-
-
-    # create accessibility (only required if multiprocessing wants to slice accessibility)    
     accessibility_df = pd.DataFrame(index=land_use.index)
     pipeline.replace_table("accessibility", accessibility_df)
 

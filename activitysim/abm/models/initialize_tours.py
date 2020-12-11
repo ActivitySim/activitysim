@@ -73,55 +73,6 @@ def patch_tour_ids(tours):
 
 
 @inject.step()
-def initialize_tours_cb(trace_hh_id):
-
-    trace_label = 'initialize_tours'
-
-    model_settings = config.read_model_settings('initialize_tours.yaml', mandatory=True)
-    num_tours = model_settings['num_tours']
-    purpose_probs = OrderedDict(model_settings['purpose_shares'])
-    id_to_purpose = {i: purpose for i, purpose in enumerate(purpose_probs.keys())}
-    lane_shares_by_purpose = model_settings['lane_shares_by_purpose']
-
-    
-    tours = pd.DataFrame(
-        index=range(model_settings['num_tours']),
-        columns=['lane_type', 'lane_id', 'purpose', 'purpose_id'])
-    tours.index.name = 'tour_id'
-
-    purpose_cum_probs = np.array(list(purpose_probs.values())).cumsum()
-    purpose_scaled_probs = np.subtract(purpose_cum_probs, np.random.rand(num_tours, 1))
-    purpose = np.argmax((purpose_scaled_probs + 1.0).astype('i4'), axis=1)
-    tours['purpose_id'] = purpose
-    tours['purpose'] = tours['purpose_id'].map(id_to_purpose)
-
-    for purpose, df in tours.groupby('purpose'):
-        lane_probs = OrderedDict(lane_shares_by_purpose[purpose])
-        id_to_lane = {i: lane for i, lane in enumerate(lane_probs.keys())}
-        lane_cum_probs = np.array(list(lane_probs.values())).cumsum()
-        lane_scaled_probs = np.subtract(lane_cum_probs, np.random.rand(len(df), 1))
-        lane_id = np.argmax((lane_scaled_probs + 1.0).astype('i4'), axis=1)
-        df['lane_id'] = lane_id
-        df['lane_type'] = df['lane_id'].map(id_to_lane)
-        tours.loc[df.index, 'lane_id'] = df['lane_id']
-        tours.loc[df.index, 'lane_type'] = df['lane_type']
-
-    # replace table function with dataframe
-    inject.add_table('tours', tours)
-
-    pipeline.get_rn_generator().add_channel('tours', tours)
-
-    tracing.register_traceable_table('tours', tours)
-    
-    assert not tours.index.duplicated().any()
-
-    if trace_hh_id:
-        tracing.trace_df(tours,
-                         label='initialize_tours',
-                         warn_if_empty=True)
-
-
-@inject.step()
 def initialize_tours(network_los, households, persons, trace_hh_id):
 
     trace_label = 'initialize_tours'

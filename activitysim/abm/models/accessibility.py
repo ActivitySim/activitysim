@@ -19,110 +19,87 @@ from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 logger = logging.getLogger(__name__)
 
 
-# class AccessibilitySkims(object):
-#     """
-#     Wrapper for skim arrays to facilitate use of skims by accessibility model
-#
-#     Parameters
-#     ----------
-#     skims : 2D array
-#     omx: open omx file object
-#         this is only used to load skims on demand that were not preloaded
-#     length: int
-#         number of zones in skim to return in skim matrix
-#         in case the skims contain additional external zones that should be trimmed out so skim
-#         array is correct shape to match (flattened) O-D tiled columns in the od dataframe
-#     transpose: bool
-#         whether to transpose the matrix before flattening. (i.e. act as a D-O instead of O-D skim)
-#     """
-#
-#     def __init__(self, skim_dict, orig_zones, dest_zones, transpose=False):
-#
-#         logger.info(f"init AccessibilitySkims with {len(dest_zones)} dest zones {len(orig_zones)} orig zones")
-#
-#         assert len(orig_zones) <= len(dest_zones)
-#         assert np.isin(orig_zones, dest_zones).all()
-#         assert len(np.unique(orig_zones)) == len(orig_zones)
-#         assert len(np.unique(dest_zones)) == len(dest_zones)
-#
-#         self.skim_dict = skim_dict
-#         self.transpose = transpose
-#
-#         num_skim_zones = skim_dict.get_skim_info('omx_shape')[0]
-#         if num_skim_zones == len(orig_zones) and skim_dict.offset_mapper.offset_series is None:
-#             # no slicing required because whatever the offset_int, the skim data aligns with zone list
-#             self.map_data = False
-#         else:
-#
-#             logger.debug("AccessibilitySkims - applying offset_mapper")
-#
-#             skim_index = list(range(num_skim_zones))
-#             orig_map = skim_dict.offset_mapper.map(orig_zones)
-#             dest_map = skim_dict.offset_mapper.map(dest_zones)
-#
-#             # (we might be sliced multiprocessing)
-#             # assert np.isin(skim_index, orig_map).all()
-#
-#             out_of_bounds = ~np.isin(skim_index, dest_map)
-#             # if out_of_bounds.any():
-#             #    print(f"{(out_of_bounds).sum()} skim zones not in dest_map")
-#             #    print(f"dest_zones {dest_zones}")
-#             #    print(f"dest_map {dest_map}")
-#             #    print(f"skim_index {skim_index}")
-#             assert not out_of_bounds.any(), \
-#                 f"AccessibilitySkims {(out_of_bounds).sum()} skim zones not in dest_map: {np.ix_(out_of_bounds)[0]}"
-#
-#             self.map_data = True
-#             self.orig_map = orig_map
-#             self.dest_map = dest_map
-#
-#     def __getitem__(self, key):
-#         """
-#         accessor to return flattened skim array with specified key
-#         flattened array will have length length*length and will match tiled OD df used by assign
-#
-#         this allows the skim array to be accessed from expressions as
-#         skim['DISTANCE'] or skim[('SOVTOLL_TIME', 'MD')]
-#         """
-#
-#         data = self.skim_dict.get(key).data
-#
-#         if self.transpose:
-#             data = data.transpose()
-#
-#         if self.map_data:
-#             # slice skim to include only orig rows and dest columns
-#             # 2-d boolean slicing in numpy is a bit tricky
-#             # data = data[orig_map, dest_map]          # <- WRONG!
-#             # data = data[orig_map, :][:, dest_map]    # <- RIGHT
-#             # data = data[np.ix_(orig_map, dest_map)]  # <- ALSO RIGHT
-#
-#             data = data[self.orig_map, :][:, self.dest_map]
-#
-#         return data.flatten()
+class AccessibilitySkims(object):
+    """
+    Wrapper for skim arrays to facilitate use of skims by accessibility model
 
+    Parameters
+    ----------
+    skims : 2D array
+    omx: open omx file object
+        this is only used to load skims on demand that were not preloaded
+    length: int
+        number of zones in skim to return in skim matrix
+        in case the skims contain additional external zones that should be trimmed out so skim
+        array is correct shape to match (flattened) O-D tiled columns in the od dataframe
+    transpose: bool
+        whether to transpose the matrix before flattening. (i.e. act as a D-O instead of O-D skim)
+    """
 
-@inject.step()
-def compute_poe_accessibility(land_use):
-    model_settings = config.read_model_settings('accessibility.yaml')
-    distance_param = model_settings['colonia_distance_parameter']
-    colonia_to_poe_dists = pd.read_csv(
-        os.path.join(config.data_dir(), model_settings['colonia_to_poe_dists']))
-    colonia_pop_field = model_settings['colonia_pop_field']
-    lu_poe_pop_access_field = model_settings['colonia_pop_access_field']
-    poes = [col for col in colonia_to_poe_dists.columns if 'Distance_' in col]
-    
-    land_use_df = land_use.to_frame()
-    land_use_df[lu_poe_pop_access_field] = None
-    pop = colonia_to_poe_dists[colonia_pop_field]
-    for i, poe in enumerate(poes):
-        dists = colonia_to_poe_dists[poe]
-        dist_factors = np.exp(dists * distance_param)
-        weighted_pop = dist_factors * pop
-        total_poe_pop_access = np.log(weighted_pop.sum())
-        land_use_df.loc[land_use_df['poe_id'] == i, lu_poe_pop_access_field] = total_poe_pop_access
+    def __init__(self, skim_dict, orig_zones, dest_zones, transpose=False):
 
-    pipeline.replace_table('land_use', land_use_df)
+        logger.info(f"init AccessibilitySkims with {len(dest_zones)} dest zones {len(orig_zones)} orig zones")
+
+        assert len(orig_zones) <= len(dest_zones)
+        assert np.isin(orig_zones, dest_zones).all()
+        assert len(np.unique(orig_zones)) == len(orig_zones)
+        assert len(np.unique(dest_zones)) == len(dest_zones)
+
+        self.skim_dict = skim_dict
+        self.transpose = transpose
+
+        num_skim_zones = skim_dict.get_skim_info('omx_shape')[0]
+        if num_skim_zones == len(orig_zones) and skim_dict.offset_mapper.offset_series is None:
+            # no slicing required because whatever the offset_int, the skim data aligns with zone list
+            self.map_data = False
+        else:
+
+            logger.debug("AccessibilitySkims - applying offset_mapper")
+
+            skim_index = list(range(num_skim_zones))
+            orig_map = skim_dict.offset_mapper.map(orig_zones)
+            dest_map = skim_dict.offset_mapper.map(dest_zones)
+
+            # (we might be sliced multiprocessing)
+            # assert np.isin(skim_index, orig_map).all()
+
+            out_of_bounds = ~np.isin(skim_index, dest_map)
+            # if out_of_bounds.any():
+            #    print(f"{(out_of_bounds).sum()} skim zones not in dest_map")
+            #    print(f"dest_zones {dest_zones}")
+            #    print(f"dest_map {dest_map}")
+            #    print(f"skim_index {skim_index}")
+            assert not out_of_bounds.any(), \
+                f"AccessibilitySkims {(out_of_bounds).sum()} skim zones not in dest_map: {np.ix_(out_of_bounds)[0]}"
+
+            self.map_data = True
+            self.orig_map = orig_map
+            self.dest_map = dest_map
+
+    def __getitem__(self, key):
+        """
+        accessor to return flattened skim array with specified key
+        flattened array will have length length*length and will match tiled OD df used by assign
+
+        this allows the skim array to be accessed from expressions as
+        skim['DISTANCE'] or skim[('SOVTOLL_TIME', 'MD')]
+        """
+
+        data = self.skim_dict.get(key).data
+
+        if self.transpose:
+            data = data.transpose()
+
+        if self.map_data:
+            # slice skim to include only orig rows and dest columns
+            # 2-d boolean slicing in numpy is a bit tricky
+            # data = data[orig_map, dest_map]          # <- WRONG!
+            # data = data[orig_map, :][:, dest_map]    # <- RIGHT
+            # data = data[np.ix_(orig_map, dest_map)]  # <- ALSO RIGHT
+
+            data = data[self.orig_map, :][:, self.dest_map]
+
+        return data.flatten()
 
 
 @inject.step()

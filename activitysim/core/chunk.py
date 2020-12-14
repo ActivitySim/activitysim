@@ -306,6 +306,7 @@ def write_history(caller, history, trace_label):
                 print(history)
                 input(f"{trace_label} type any key to continue")
 
+
 def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
 
     # generator to iterate over choosers
@@ -320,7 +321,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
     # FIXME do we care if it is an int?
     row_size = math.ceil(row_size)
 
-    #CHUNK_RSS
+    # #CHUNK_RSS
     mem.force_garbage_collect()
     initial_rss = mem.get_rss()
     logger.debug(f"#CHUNK_RSS initial_rss: {initial_rss}")
@@ -365,10 +366,11 @@ def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
             # get number of elements allocated during this chunk from the high water mark dict
             observed_chunk_size = get_high_water_mark()
 
-            #CHUNK_RSS
+            # #CHUNK_RSS
             observed_rss_size = (get_high_water_mark('rss') - initial_rss)
             observed_rss_size = math.ceil(observed_rss_size / BYTES_PER_ELEMENT)
-            logger.debug(f"#CHUNK_RSS chunk {i+1} observed_chunk_size: {observed_chunk_size} observed_rss_size {observed_rss_size}")
+            logger.debug(f"#CHUNK_RSS chunk {i+1} observed_chunk_size: {observed_chunk_size} "
+                         f"observed_rss_size {observed_rss_size}")
             observed_rss_size = max(observed_rss_size, 0)
             if CHUNK_RSS:
                 observed_chunk_size = observed_rss_size
@@ -467,7 +469,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
     # FIXME do we care if it is an int?
     row_size = math.ceil(row_size)
 
-    #CHUNK_RSS
+    # #CHUNK_RSS
     mem.force_garbage_collect()
     initial_rss = mem.get_rss()
     logger.debug(f"#CHUNK_RSS initial_rss: {initial_rss}")
@@ -523,7 +525,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
             # get number of elements allocated during this chunk from the high water mark dict
             observed_chunk_size = get_high_water_mark()
 
-            #CHUNK_RSS
+            # #CHUNK_RSS
             observed_rss_size = (get_high_water_mark('rss') - initial_rss)
             observed_rss_size = math.ceil(observed_rss_size / BYTES_PER_ELEMENT)
             logger.debug(f"#CHUNK_RSS observed_chunk_size: {observed_chunk_size} observed_rss_size {observed_rss_size}")
@@ -582,7 +584,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_
     # FIXME do we care if it is an int?
     row_size = math.ceil(row_size)
 
-    #CHUNK_RSS
+    # #CHUNK_RSS
     mem.force_garbage_collect()
     initial_rss = mem.get_rss()
     logger.debug(f"#CHUNK_RSS initial_rss: {initial_rss}")
@@ -630,7 +632,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_
             # get number of elements allocated during this chunk from the high water mark dict
             observed_chunk_size = get_high_water_mark()
 
-            #CHUNK_RSS
+            # #CHUNK_RSS
             observed_rss_size = (get_high_water_mark('rss') - initial_rss)
             observed_rss_size = math.ceil(observed_rss_size / BYTES_PER_ELEMENT)
             logger.debug(f"#CHUNK_RSS observed_chunk_size: {observed_chunk_size} observed_rss_size {observed_rss_size}")

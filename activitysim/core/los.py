@@ -473,8 +473,6 @@ class Network_LOS(object):
 
         skim_buffers = {}
 
-        #assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
-
         if self.skim_dict_factory.supports_shared_data_for_multiprocessing:
             for skim_tag in self.skims_info.keys():
                 skim_buffers[skim_tag] = \

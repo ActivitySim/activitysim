@@ -10,6 +10,7 @@ from activitysim.core import inject
 from activitysim.core import mp_tasks
 
 from test_multi_zone import example_path
+from test_multi_zone import mtc_example_path
 from test_multi_zone import setup_dirs
 from test_multi_zone import regress_3_zone
 
@@ -19,7 +20,7 @@ HOUSEHOLDS_SAMPLE_SIZE = 100
 
 def test_mp_run():
 
-    configs_dir = [example_path('configs_3_zone'), example_path('configs')]
+    configs_dir = [example_path('configs_3_zone'), mtc_example_path('configs')]
     data_dir = example_path('data_3')
 
     setup_dirs(configs_dir, data_dir)

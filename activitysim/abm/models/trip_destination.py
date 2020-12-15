@@ -20,15 +20,14 @@ from activitysim.core.tracing import print_elapsed_time
 
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
-
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
-
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
 from activitysim.core.skim_dictionary import DataFrameMatrix
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
+
+from .util import estimation
 
 from activitysim.abm.models.util.trip import cleanup_failed_trips
 from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
@@ -39,17 +38,17 @@ logger = logging.getLogger(__name__)
 NO_DESTINATION = -1
 
 
-def get_spec_for_purpose(model_settings, spec_name, purpose):
-
-    omnibus_spec = simulate.read_model_spec(file_name=model_settings[spec_name])
-
-    spec = omnibus_spec[[purpose]]
-
-    # might as well ignore any spec rows with 0 utility
-    spec = spec[spec.iloc[:, 0] != 0]
-    assert spec.shape[0] > 0
-
-    return spec
+# def get_spec_for_purpose(model_settings, spec_name, purpose, estimator):
+#
+#     omnibus_spec = simulate.read_model_spec(file_name=model_settings[spec_name])
+#
+#     spec = omnibus_spec[[purpose]]
+#
+#     # might as well ignore any spec rows with 0 utility
+#     spec = spec[spec.iloc[:, 0] != 0]
+#     assert spec.shape[0] > 0
+#
+#     return spec
 
 
 def trip_destination_sample(
@@ -58,6 +57,7 @@ def trip_destination_sample(
         alternatives,
         model_settings,
         size_term_matrix, skims,
+        estimator,
         chunk_size, trace_hh_id,
         trace_label):
     """
@@ -78,10 +78,16 @@ def trip_destination_sample(
     """
     trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_sample')
 
-    spec = get_spec_for_purpose(model_settings, 'DESTINATION_SAMPLE_SPEC', primary_purpose)
+    spec = simulate.spec_for_segment(model_settings, spec_id='DESTINATION_SAMPLE_SPEC',
+                                     segment_name=primary_purpose, estimator=estimator)
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     sample_size = model_settings['SAMPLE_SIZE']
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    if estimator:
+        # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
+        logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
+        sample_size = 0
 
     logger.info("Running %s with %d trips", trace_label, trips.shape[0])
 
@@ -257,6 +263,7 @@ def trip_destination_simulate(
         model_settings,
         want_logsums,
         size_term_matrix, skims,
+        estimator,
         chunk_size, trace_hh_id,
         trace_label):
     """
@@ -270,7 +277,11 @@ def trip_destination_simulate(
     """
     trace_label = tracing.extend_trace_label(trace_label, 'trip_dest_simulate')
 
-    spec = get_spec_for_purpose(model_settings, 'DESTINATION_SPEC', primary_purpose)
+    spec = simulate.spec_for_segment(model_settings, spec_id='DESTINATION_SPEC',
+                                     segment_name=primary_purpose, estimator=estimator)
+
+    if estimator:
+        estimator.write_choosers(trips)
 
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
@@ -293,12 +304,19 @@ def trip_destination_simulate(
         locals_d=locals_dict,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='trip_dest')
+        trace_choice_name='trip_dest',
+        estimator=estimator)
 
     if not want_logsums:
         # for consistency, always return a dataframe with canonical column name
         assert isinstance(destinations, pd.Series)
         destinations = destinations.to_frame('choice')
+
+    if estimator:
+        # need to overwrite choices here before any failed choices are suppressed
+        estimator.write_choices(destinations.choice)
+        destinations.choice = estimator.get_survey_values(destinations.choice, 'trips', 'destination')
+        estimator.write_override_choices(destinations.choice)
 
     # drop any failed zero_prob destinations
     if (destinations.choice == NO_DESTINATION).any():
@@ -317,6 +335,7 @@ def choose_trip_destination(
         want_logsums,
         want_sample_table,
         size_term_matrix, skims,
+        estimator,
         chunk_size, trace_hh_id,
         trace_label):
 
@@ -331,6 +350,7 @@ def choose_trip_destination(
         alternatives=alternatives,
         model_settings=model_settings,
         size_term_matrix=size_term_matrix, skims=skims,
+        estimator=estimator,
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
         trace_label=trace_label)
 
@@ -367,6 +387,7 @@ def choose_trip_destination(
         model_settings=model_settings,
         want_logsums=want_logsums,
         size_term_matrix=size_term_matrix, skims=skims,
+        estimator=estimator,
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
         trace_label=trace_label)
 
@@ -458,6 +479,7 @@ def wrap_skims(model_settings, trace_label):
 def run_trip_destination(
         trips,
         tours_merged,
+        estimator,
         chunk_size, trace_hh_id,
         trace_label,
         fail_some_trips_for_testing=False):
@@ -484,7 +506,8 @@ def run_trip_destination(
 
     """
 
-    model_settings = config.read_model_settings('trip_destination.yaml')
+    model_settings_file_name = 'trip_destination.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
     preprocessor_settings = model_settings.get('preprocessor', None)
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
@@ -575,6 +598,7 @@ def run_trip_destination(
                     want_logsums,
                     want_sample_table,
                     size_term_matrix, skims,
+                    estimator,
                     chunk_size, trace_hh_id,
                     trace_label=tracing.extend_trace_label(nth_trace_label, primary_purpose))
 
@@ -638,22 +662,43 @@ def trip_destination(
 
     """
     trace_label = 'trip_destination'
-    model_settings = config.read_model_settings('trip_destination.yaml')
+
+    model_settings_file_name = 'trip_destination.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
+
     CLEANUP = model_settings.get('CLEANUP', True)
     fail_some_trips_for_testing = model_settings.get('fail_some_trips_for_testing', False)
 
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
 
+    estimator = estimation.manager.begin_estimation('trip_destination')
+
+    if estimator:
+        #estimator.write_coefficients(model_settings=model_settings)
+        # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
+        estimator.write_spec(model_settings, tag='SPEC')
+        estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
+        estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
+        estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     trips_df, save_sample_df = run_trip_destination(
         trips_df,
         tours_merged_df,
+        estimator=estimator,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
         fail_some_trips_for_testing=fail_some_trips_for_testing)
+
+    assert estimator.estimating
+    #bug
+
+    if estimator:
+        estimator.end_estimation()
 
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
     if config.setting('testing_fail_trip_destination', False) and not trips_df.failed.any():

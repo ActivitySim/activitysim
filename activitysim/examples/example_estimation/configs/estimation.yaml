@@ -23,8 +23,8 @@ bundles:
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
   - stop_frequency
-#  - trip_purpose
-#  - trip_destination
+  - trip_purpose
+  - trip_destination
 #  - trip_scheduling
 #  - trip_mode_choice
 
@@ -82,6 +82,16 @@ estimation_table_recipes:
         - choosers
     omnibus_tables_append_columns: [values_combined]
 
+  simple_probabilistic:
+    omnibus_tables:
+      values_combined:
+        - choices
+        - override_choices
+        - choosers
+        - probs
+    omnibus_tables_append_columns: [values_combined]
+
+
 model_estimation_table_types:
   school_location: interaction_sample_simulate
   workplace_location:  interaction_sample_simulate
@@ -104,3 +114,6 @@ model_estimation_table_types:
   atwork_subtour_scheduling: interaction_sample_simulate
   atwork_subtour_mode_choice: simple_simulate
   stop_frequency: simple_simulate
+  trip_purpose: simple_probabilistic
+  trip_destination: interaction_sample_simulate
+  #trip_scheduling: simple_probabilistic

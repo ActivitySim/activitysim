@@ -32,6 +32,7 @@ def run_trip_purpose_and_destination(
 
     choices = run_trip_purpose(
         trips_df,
+        estimator=None,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'purpose')
@@ -42,7 +43,9 @@ def run_trip_purpose_and_destination(
     trips_df, save_sample_df = run_trip_destination(
         trips_df,
         tours_merged_df,
-        chunk_size, trace_hh_id,
+        estimator=None,
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'destination'))
 
     return trips_df, save_sample_df

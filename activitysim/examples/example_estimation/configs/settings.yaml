@@ -11,9 +11,10 @@ input_table_list:
     index_col: person_id
   - tablename: land_use
     filename: land_use.csv
-    index_col: TAZ
     rename_columns:
-      ZONE: TAZ
+      # accept either TAZ or ZONE (but not both)
+      TAZ: zone_id
+      ZONE: zone_id
       COUNTY: county_id
     keep_columns:
       - DISTRICT
@@ -63,6 +64,7 @@ output_tables:
   h5_store: False
   action: include
   prefix: final_
+  sort: True
   tables:
     - checkpoints
     - accessibility

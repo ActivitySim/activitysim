@@ -1,3 +1,7 @@
+SAMPLE_SPEC: trip_destination_sample.csv
+SPEC: trip_destination.csv
+COEFFICIENTS: trip_destination_coefficients.csv
+
 SAMPLE_SIZE: 30
 
 DESTINATION_SAMPLE_SPEC: trip_destination_sample.csv

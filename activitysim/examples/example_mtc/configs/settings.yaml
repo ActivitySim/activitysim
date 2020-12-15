@@ -54,6 +54,8 @@ input_table_list:
   - tablename: land_use
     filename: land_use.csv
     rename_columns:
+      # accept either ZONE or TAZ index (but if both columns are present, will throw error)
+      ZONE: zone_id
       TAZ: zone_id
       COUNTY: county_id
     keep_columns:

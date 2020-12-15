@@ -203,7 +203,7 @@ class Estimator(object):
                 if t not in self.tables:
                     self.warning("write_omnibus_table: %s table '%s' not found" % (omnibus_table, t))
 
-            # ignore any ables not in cache
+            # ignore any tables not in cache
             table_names = [t for t in table_names if t in self.tables]
             concat_axis = 1 if omnibus_table in self.omnibus_tables_append_columns else 0
 
@@ -397,6 +397,10 @@ class EstimationManager(object):
         self.estimating = {}
 
     def initialize_settings(self):
+
+        #bug
+        if self.settings_initialized:
+            return
 
         assert not self.settings_initialized
         settings = config.read_model_settings(ESTIMATION_SETTINGS_FILE_NAME)

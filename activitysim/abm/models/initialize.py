@@ -151,8 +151,8 @@ def preload_injectables():
         table_names = [t['tablename'] for t in table_list]
         for t in table_names:
             df = inject.get_table(t).to_frame()
-            if t == 'households':
-                df.drop(columns='chunk_id', inplace=True)
+            #if t == 'households':
+            #    df.drop(columns='chunk_id', inplace=True)
             df.to_csv(os.path.join(csv_dir, '%s.csv' % t), index=True)
 
     t0 = tracing.print_elapsed_time()

@@ -89,7 +89,8 @@ def read_from_table_info(table_info):
     index_col = canonical_table_index_name(tablename)
     if index_col:
         # but if there is an index_col directive for a cononical table, it should be for canonical_table_index_name
-        assert table_info.get('index_col', index_col) == index_col
+        assert table_info.get('index_col', index_col) == index_col, \
+            f"{tablename} index_col {table_info.get('index_col')} should be {index_col}"
     else:
         # otherwise this is a table unknown to us, and they can set index or not as they please
         index_col = table_info.get('index_col', None)

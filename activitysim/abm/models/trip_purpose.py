@@ -12,6 +12,9 @@ from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import pipeline
 from activitysim.core import expressions
+from activitysim.core import simulate
+
+from .util import estimation
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +22,22 @@ logger = logging.getLogger(__name__)
 PROBS_JOIN_COLUMNS = ['primary_purpose', 'outbound', 'person_type']
 
 
-def trip_purpose_probs():
-    f = config.config_file_path('trip_purpose_probs.csv')
-    df = pd.read_csv(f, comment='#')
-    return df
+def map_coefficients(spec, coefficients):
+    if isinstance(coefficients, pd.DataFrame):
+        assert ('value' in coefficients.columns)
+        coefficients = coefficients['value'].to_dict()
 
+    assert isinstance(coefficients, dict), \
+        "map_coefficients doesn't grok type of coefficients: %s" % (type(coefficients))
+
+    for c in spec.columns:
+        if c == simulate.SPEC_LABEL_NAME:
+            continue
+        spec[c] = spec[c].map(coefficients).astype(np.float32)
+
+    assert not spec.isnull().any()
+
+    return spec
 
 def trip_purpose_calc_row_size(choosers, spec, trace_label):
     """
@@ -41,7 +55,7 @@ def trip_purpose_calc_row_size(choosers, spec, trace_label):
     return row_size
 
 
-def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label):
+def choose_intermediate_trip_purpose(trips, probs_spec, estimator, trace_hh_id, trace_label):
     """
     chose purpose for intermediate trips based on probs_spec
     which assigns relative weights (summing to 1) to the possible purpose choices
@@ -96,6 +110,11 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     # choosers should now match trips row for row
     assert choosers.index.identical(trips.index)
 
+    if estimator:
+        probs_cols = list(probs_spec.columns)
+        print(choosers[probs_cols])
+        estimator.write_table(choosers[probs_cols], 'probs', append=True)
+
     choices, rands = logit.make_choices(
         choosers[purpose_cols],
         trace_label=trace_label, trace_choosers=choosers)
@@ -110,6 +129,7 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
 
 def run_trip_purpose(
         trips_df,
+        estimator,
         chunk_size,
         trace_hh_id,
         trace_label):
@@ -127,8 +147,18 @@ def run_trip_purpose(
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
-    model_settings = config.read_model_settings('trip_purpose.yaml')
-    probs_spec = trip_purpose_probs()
+    model_settings_file_name = 'trip_purpose.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
+
+    spec_file_name = model_settings.get('PROBS_SPEC')
+    probs_spec = pd.read_csv(config.config_file_path(spec_file_name), comment='#')
+    #coefficients_df = simulate.read_model_coefficients(model_settings)
+    #probs_spec = map_coefficients(probs_spec, coefficients_df)
+
+    if estimator:
+        estimator.write_spec(model_settings, tag='PROBS_SPEC')
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        #estimator.write_coefficients(coefficients_df, model_settings)
 
     result_list = []
 
@@ -165,6 +195,7 @@ def run_trip_purpose(
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,
+            estimator,
             trace_hh_id,
             trace_label=chunk_trace_label)
 
@@ -191,12 +222,24 @@ def trip_purpose(
 
     trips_df = trips.to_frame()
 
+    estimator = estimation.manager.begin_estimation('trip_purpose')
+    if estimator:
+        chooser_cols_for_estimation =  ['person_id',  'household_id',  'tour_id',  'trip_num']
+        estimator.write_choosers(trips_df[chooser_cols_for_estimation])
+
     choices = run_trip_purpose(
         trips_df,
+        estimator,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label
     )
+
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'trips', 'purpose')  # override choices
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
 
     trips_df['purpose'] = choices
 
@@ -211,3 +254,4 @@ def trip_purpose(
                          slicer='trip_id',
                          index_label='trip_id',
                          warn_if_empty=True)
+

@@ -46,7 +46,7 @@ def cdap_simulate(persons_merged, persons, households,
     cdap_interaction_coefficients = \
         pd.read_csv(config.config_file_path('cdap_interaction_coefficients.csv'), comment='#')
 
-    # replace cdap_interaction_coefficients coefficient labels with nyumeric values
+    # replace cdap_interaction_coefficients coefficient labels with numeric values
     cdap_interaction_coefficients.coefficient = \
         cdap_interaction_coefficients.coefficient.map(coefficients_df.value.to_dict())
     assert not cdap_interaction_coefficients.coefficient.isnull().any()

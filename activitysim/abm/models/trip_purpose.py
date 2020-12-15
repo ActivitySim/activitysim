@@ -85,10 +85,10 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
 
         file_name = '%s.UNMATCHED_PROBS' % trace_label
         logger.error("%s %s of %s intermediate trips could not be matched to probs based on join columns  %s" %
-                     (trace_label, len(unmatched_choosers), len(choosers), probs_join_cols))
+                     (trace_label, len(unmatched_choosers), len(choosers), PROBS_JOIN_COLUMNS))
         logger.info("Writing %s unmatched choosers to %s" % (len(unmatched_choosers), file_name,))
         tracing.write_csv(unmatched_choosers, file_name=file_name, transpose=False)
-        raise RuntimeError("Some trips could not be matched to probs based on join columns %s." % probs_join_cols)
+        raise RuntimeError("Some trips could not be matched to probs based on join columns %s." % PROBS_JOIN_COLUMNS)
 
     # select the matching depart range (this should result on in exactly one chooser row per trip)
     choosers = choosers[chooser_probs]

@@ -17,6 +17,11 @@ from activitysim.core import mem
 logger = logging.getLogger(__name__)
 
 
+def canonical_table_index_name(table_name):
+    table_index_names = inject.get_injectable('canonical_table_index_names', None)
+    return table_index_names and table_index_names.get(table_name, None)
+
+
 def read_input_table(tablename):
     """Reads input table name and returns cleaned DataFrame.
 
@@ -79,7 +84,15 @@ def read_from_table_info(table_info):
     column_map = table_info.get('column_map', None)
     keep_columns = table_info.get('keep_columns', None)
     rename_columns = table_info.get('rename_columns', None)
-    index_col = table_info.get('index_col', None)
+
+    # don't require a redundant index_col directive for canonical tables
+    index_col = canonical_table_index_name(tablename)
+    if index_col:
+        # but if there is an index_col directive for a cononical table, it should be for canonical_table_index_name
+        assert table_info.get('index_col', index_col) == index_col
+    else:
+        # otherwise this is a table unknown to us, and they can set index or not as they please
+        index_col = table_info.get('index_col', None)
 
     assert tablename is not None, 'no tablename provided'
     assert data_filename is not None, 'no input file provided'

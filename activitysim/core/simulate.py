@@ -140,7 +140,11 @@ def read_model_coefficients(model_settings=None, file_name=None):
         file_name = model_settings['COEFFICIENTS']
 
     file_path = config.config_file_path(file_name)
-    coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    try:
+        coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient File Invalid: %s" % str(file_path))
+        raise
 
     return coefficients
 
@@ -185,10 +189,14 @@ def read_model_coefficient_template(model_settings):
     assert 'COEFFICIENT_TEMPLATE' in model_settings, \
         "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get('source_file_paths')
 
-    coeffs_file_name = model_settings['COEFFICIENT_TEMPLATE']
+    coefficients_file_name = model_settings['COEFFICIENT_TEMPLATE']
 
-    file_path = config.config_file_path(coeffs_file_name)
-    template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    file_path = config.config_file_path(coefficients_file_name)
+    try:
+        template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient Template File Invalid: %s" % str(file_path))
+        raise
 
     # by convention, an empty cell in the template indicates that
     # the coefficient name should be propogated to across all segments
@@ -335,7 +343,6 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     locals_dict['df'] = choosers
 
     # - eval spec expressions
-
     if isinstance(spec.index, pd.MultiIndex):
         # spec MultiIndex with expression and label
         exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
@@ -347,12 +354,10 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     for i, expr in enumerate(exprs):
         try:
-            # logger.debug(f"{trace_label} expr {expr}")
             if expr.startswith('@'):
                 expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
             else:
                 expression_values[i] = choosers.eval(expr)
-
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
             raise err

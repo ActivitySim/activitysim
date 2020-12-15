@@ -87,7 +87,7 @@ def write_estimation_specs(estimator, model_settings, settings_file):
     estimator.write_model_settings(model_settings, settings_file)
     # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
     estimator.write_spec(model_settings, tag='SPEC')
-    estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
+    estimator.write_coefficients(model_settings=model_settings)
 
     estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
     estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)

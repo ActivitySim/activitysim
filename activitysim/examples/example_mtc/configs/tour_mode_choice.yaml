@@ -55,8 +55,8 @@ NESTS:
           - TNC_SHARED
 
 SPEC: tour_mode_choice.csv
-COEFFICIENTS: tour_mode_choice_coeffs.csv
-COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
+COEFFICIENTS: tour_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coefficients_template.csv
 
 CONSTANTS:
     #valueOfTime: 8.00

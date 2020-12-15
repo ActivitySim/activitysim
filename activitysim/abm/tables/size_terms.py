@@ -17,7 +17,7 @@ def size_terms():
     return pd.read_csv(f, comment='#', index_col='segment')
 
 
-def size_term(land_use, destination_choice_coeffs):
+def size_term(land_use, destination_choice_coefficients):
     """
     This method takes the land use data and multiplies various columns of the
     land use data by coefficients from the spec table in order
@@ -27,8 +27,8 @@ def size_term(land_use, destination_choice_coeffs):
     ----------
     land_use : DataFrame
         A dataframe of land use attributes - the column names should match
-        the index of destination_choice_coeffs
-    destination_choice_coeffs : Series
+        the index of destination_choice_coefficients
+    destination_choice_coefficients : Series
         A series of coefficients for the land use attributes - the index
         describes the link to the land use table, and the values are floating
         points numbers used to do the linear combination
@@ -40,17 +40,17 @@ def size_term(land_use, destination_choice_coeffs):
         linear combination of the land use table columns specified by the
         coefficients series.
     """
-    coeffs = destination_choice_coeffs
+    coefficients = destination_choice_coefficients
 
     # first check for missing column in the land_use table
-    missing = coeffs[~coeffs.index.isin(land_use.columns)]
+    missing = coefficients[~coefficients.index.isin(land_use.columns)]
 
     if len(missing) > 0:
         logger.warning("%s  missing columns in land use" % len(missing.index))
         for v in missing.index.values:
             logger.warning("missing: %s" % v)
 
-    return land_use[coeffs.index].dot(coeffs)
+    return land_use[coefficients.index].dot(coefficients)
 
 
 def tour_destination_size_terms(land_use, size_terms, model_selector):

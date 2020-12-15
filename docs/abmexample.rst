@@ -435,30 +435,30 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - joint_tour_frequency_alternatives.csv                           |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_composition`                  |  - joint_tour_composition.yaml                                     |
-|                                                |  - joint_tour_composition_coeffs.csv                               |
+|                                                |  - joint_tour_composition_coefficients.csv                         |
 |                                                |  - joint_tour_composition_annotate_households_preprocessor.csv     |
 |                                                |  - joint_tour_composition.csv                                      |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_participation`                |  - joint_tour_participation.yaml                                   |
-|                                                |  - joint_tour_participation_coeffs.csv                             |
+|                                                |  - joint_tour_participation_coefficients.csv                       |
 |                                                |  - joint_tour_participation_annotate_participants_preprocessor.csv |
 |                                                |  - joint_tour_participation.csv                                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_destination_choice`           |  - joint_tour_destination.yaml                                     |
-|                                                |  - non_mandatory_tour_destination_coeffs.csv                       |
+|                                                |  - non_mandatory_tour_destination_coefficients.csv                 |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
 |                                                |  - non_mandatory_tour_destination.csv                              |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_scheduling`                   |  - joint_tour_scheduling.yaml                                      |
-|                                                |  - tour_scheduling_joint_coeffs.csv                                |
+|                                                |  - tour_scheduling_joint_coefficients.csv                          |
 |                                                |  - joint_tour_scheduling_annotate_tours_preprocessor.csv           |
 |                                                |  - tour_scheduling_joint.csv                                       |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.yaml                               |
-|                                                |  - non_mandatory_tour_frequency_coeffs_{ptype}.csv                 |
+|                                                |  - non_mandatory_tour_frequency_coefficients_{ptype}.csv           |
 |                                                |  - non_mandatory_tour_frequency.csv                                |
 |                                                |  - non_mandatory_tour_frequency_alternatives.csv                   |
 |                                                |  - non_mandatory_tour_frequency_annotate_persons_preprocessor.csv  |
@@ -466,14 +466,14 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - annotate_persons_nmtf.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_destination_choice`   |  - non_mandatory_tour_destination.yaml                             |
-|                                                |  - non_mandatory_tour_destination_coeffs.csv                       |
+|                                                |  - non_mandatory_tour_destination_coefficients.csv                 |
 |                                                |  - non_mandatory_tour_destination.csv                              |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_scheduling`           |  - non_mandatory_tour_scheduling.yaml                              |
-|                                                |  - tour_scheduling_nonmandatory_coeffs.csv                         |
+|                                                |  - tour_scheduling_nonmandatory_coefficients.csv                   |
 |                                                |  - non_mandatory_tour_scheduling_annotate_tours_preprocessor.csv   |
 |                                                |  - tour_scheduling_nonmandatory.csv                                |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
@@ -481,24 +481,24 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 | :ref:`tour_mode_choice`                        |  - tour_mode_choice.yaml                                           |
 |                                                |  - tour_mode_choice_annotate_choosers_preprocessor.csv             |
 |                                                |  - tour_mode_choice.csv                                            |
-|                                                |  - tour_mode_choice_coeffs.csv                                     |
+|                                                |  - tour_mode_choice_coefficients.csv                               |
 |                                                |  - tour_mode_choice_coeffs_template.csv                            |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`atwork_subtour_frequency`               |  - atwork_subtour_frequency.yaml                                   |
-|                                                |  - atwork_subtour_frequency_coeffs.csv                             |
+|                                                |  - atwork_subtour_frequency_coefficients.csv                       |
 |                                                |  - atwork_subtour_frequency.csv                                    |
 |                                                |  - atwork_subtour_frequency_alternatives.csv                       |
 |                                                |  - atwork_subtour_frequency_annotate_tours_preprocessor.csv        |
 +------------------------------------------------+--------------------------------------------------------------------+
 |   :ref:`atwork_subtour_destination`            |  - atwork_subtour_destination.yaml                                 |
-|                                                |  - atwork_subtour_destination_coeffs.csv                           |
+|                                                |  - atwork_subtour_destination_coefficients.csv                     |
 |                                                |  - atwork_subtour_destination_sample.csv                           |
 |                                                |  - atwork_subtour_destination.csv                                  |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`atwork_subtour_scheduling`               |  - tour_scheduling_atwork.yaml                                     |
-|                                                |  - tour_scheduling_atwork_coeffs.csv                               |
+|                                                |  - tour_scheduling_atwork_coefficients.csv                         |
 |                                                |  - tour_scheduling_atwork.csv                                      |
 |                                                |  - tour_scheduling_atwork_preprocessor.csv                         |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
@@ -536,7 +536,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`trip_mode_choice`                       |  - trip_mode_choice.yaml                                           |
 |                                                |  - trip_mode_choice_annotate_trips_preprocessor.csv                |
-|                                                |  - trip_mode_choice_coeffs.csv                                     |
+|                                                |  - trip_mode_choice_coefficients.csv                               |
 |                                                |  - trip_mode_choice.csv                                            |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`write_trip_matrices`                    |  - write_trip_matrices.yaml                                        |

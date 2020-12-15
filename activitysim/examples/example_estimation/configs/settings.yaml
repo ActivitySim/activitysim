@@ -97,7 +97,7 @@ models:
   - atwork_subtour_destination
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
-#  - stop_frequency
+  - stop_frequency
 #  - trip_purpose
 #  - trip_destination
 #  - trip_purpose_and_destination

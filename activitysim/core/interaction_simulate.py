@@ -100,7 +100,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         assert alt_id in df.columns
         expression_values_df = df[[alt_id]]
 
-        # FIXME estimation_requires_chooser_id_in_df_column
+        # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
         # estimation requires that chooser_id is either in index or a column of interaction_dataset
         # so it can be reformatted (melted) and indexed by chooser_id and alt_id
         # we assume caller has this under control if index is named

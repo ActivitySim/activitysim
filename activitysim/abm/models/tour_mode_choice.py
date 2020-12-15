@@ -154,8 +154,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
 
     estimator = estimation.manager.begin_estimation('tour_mode_choice')
     if estimator:
-        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
-        estimator.write_coefficients_template(simulate.read_model_coefficient_template(model_settings))
+        estimator.write_coefficients(model_settings=model_settings)
+        estimator.write_coefficients_template(model_settings=model_settings)
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
         # (run_tour_mode_choice_simulate writes choosers post-annotation)

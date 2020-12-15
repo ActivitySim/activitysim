@@ -76,7 +76,7 @@ def joint_tour_frequency(
     if estimator:
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(multi_person_households)
 
     choices = simulate.simple_simulate(

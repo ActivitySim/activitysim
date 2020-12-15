@@ -195,20 +195,21 @@ def non_mandatory_tour_frequency(persons, persons_merged,
             continue
 
         estimator = \
-            estimation.manager.begin_estimation(model_name='non_mandatory_tour_frequency_%s' % segment_name,
-                                                bundle_name='non_mandatory_tour_frequency')
+            estimation.manager.begin_estimation(model_name=segment_name, bundle_name='non_mandatory_tour_frequency')
 
-        coefficients_df = simulate.read_model_coefficients(file_name=segment_settings['COEFFICIENTS'])
+        coefficients_df = simulate.read_model_coefficients(segment_settings)
         segment_spec = simulate.eval_coefficients(segment_spec, coefficients_df, estimator)
 
         if estimator:
-            estimator.write_spec(model_settings)
-            estimator.write_model_settings(model_settings, model_settings_file_name)
-            estimator.write_coefficients(coefficients_df)
+            estimator.write_spec(model_settings, bundle_directory=True)
+            estimator.write_model_settings(model_settings, model_settings_file_name, bundle_directory=True)
+            # preserving coefficients file name makes bringing back updated coefficients more straightforward
+            estimator.write_coefficients(coefficients_df, segment_settings)
             estimator.write_choosers(chooser_segment)
-            estimator.write_alternatives(alternatives)
+            estimator.write_alternatives(alternatives, bundle_directory=True)
 
-            # FIXME estimation_requires_chooser_id_in_df_column do it here or have interaction_simulate do it?
+            # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
+            #  shuold we do it here or have interaction_simulate do it?
             # chooser index must be duplicated in column or it will be omitted from interaction_dataset
             # estimation requires that chooser_id is either in index or a column of interaction_dataset
             # so it can be reformatted (melted) and indexed by chooser_id and alt_id

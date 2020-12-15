@@ -36,7 +36,7 @@ def trip_mode_choice(
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
 
     Modes for each primary tour putpose are calculated separately because they have different
-    coefficient values (stored in trip_mode_choice_coeffs.csv coefficient file.)
+    coefficient values (stored in trip_mode_choice_coefficients.csv coefficient file.)
 
     Adds trip_mode column to trip table
     """

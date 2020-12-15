@@ -1,7 +1,7 @@
 
 SPEC: atwork_subtour_destination.csv
 SAMPLE_SPEC:  atwork_subtour_destination_sample.csv
-COEFFICIENTS: atwork_subtour_destination_coeffs.csv
+COEFFICIENTS: atwork_subtour_destination_coefficients.csv
 
 
 SAMPLE_SIZE: 30

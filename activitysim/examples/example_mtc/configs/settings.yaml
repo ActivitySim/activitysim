@@ -1,5 +1,3 @@
-
-
 # input tables
 #
 # activitysim uses "well-known" index and foreign key names for imported tables (e.g. households, persons, land_use)
@@ -10,10 +8,9 @@
 # in the same subprocess pipeline. The same strategy is also when chunking choosers, and to support tracing by
 # household_id.
 #
-# the input_table_list index_col directive instructs activitysim to set the imported table index to zone_id
-# you cannot change the well-known name of the index by modifying this directive. However, if your input file
-# has a different id column name, you can rename it to the required index name with the rename_columns directive.
-# In the settings below, the 'TAZ' column in the imported table is renamed 'zone_id' in the rename_columns settings.
+# you cannot change the well-known name of the index. However, if your input file has a different id column name,
+# you can rename it to the required index name with the rename_columns directive.
+# In the settings below, the 'TAZ' column in the imported table is renamed 'TAZ' in the rename_columns settings.
 #
 input_table_list:
   #
@@ -56,7 +53,6 @@ input_table_list:
   #
   - tablename: land_use
     filename: land_use.csv
-    index_col: zone_id
     rename_columns:
       TAZ: zone_id
       COUNTY: county_id

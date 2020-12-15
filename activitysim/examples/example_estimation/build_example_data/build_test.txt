@@ -33,9 +33,11 @@ EXAMPLE_OUTPUT=$ESTIMATION_DIR/output_$TAG
 python $ESTIMATION_DIR/simulation.py -d $BUILD_DATA -c $BUILD_DIR/configs_build_example -c $MTC_EXAMPLE_DIR/configs -o $BUILD_OUTPUT
 
 # create $EXAMPLE_DATA
+# rm -r $EXAMPLE_DATA
 cp -R $BUILD_DIR/data_template $EXAMPLE_DATA
 
 # create EXAMPLE_OUTPUT
+# rm -r $EXAMPLE_OUTPUT
 cp -R $BUILD_DIR/output_template $EXAMPLE_OUTPUT
 
 # copy raw tables to data directory DATA/*.csv
@@ -59,3 +61,8 @@ wc -l $EXAMPLE_DATA/survey_data/override_households.csv
 
 # verify that it all works by running in estimation mode
 python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
+
+# or, if you have local overrides to congigs:
+python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/override_configs -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
+
+

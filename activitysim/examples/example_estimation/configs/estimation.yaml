@@ -22,6 +22,11 @@ bundles:
   - atwork_subtour_destination
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
+  - stop_frequency
+#  - trip_purpose
+#  - trip_destination
+#  - trip_scheduling
+#  - trip_mode_choice
 
 #  - atwork_subtour_mode_choice  subtours.tour_mode
 
@@ -36,6 +41,8 @@ survey_tables:
     file_name:  survey_data/override_tours.csv
   joint_tour_participants:
     file_name:  survey_data/override_joint_tour_participants.csv
+  trips:
+    file_name:  survey_data/override_trips.csv
 
 estimation_table_recipes:
 
@@ -96,3 +103,4 @@ model_estimation_table_types:
   atwork_subtour_destination: interaction_sample_simulate
   atwork_subtour_scheduling: interaction_sample_simulate
   atwork_subtour_mode_choice: simple_simulate
+  stop_frequency: simple_simulate

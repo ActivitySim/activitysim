@@ -22,13 +22,15 @@ inputs = {
     'persons': 'final_persons.csv',
     'tours': 'final_tours.csv',
     'joint_tour_participants': 'final_joint_tour_participants.csv',
+    'trips': 'final_trips.csv',
 }
 
 surveys = {
     'households': 'survey_households.csv',
     'persons': 'survey_persons.csv',
     'tours': 'survey_tours.csv',
-    'joint_tour_participants': 'survey_joint_tour_participants.csv'
+    'joint_tour_participants': 'survey_joint_tour_participants.csv',
+    'trips': 'survey_trips.csv',
 }
 
 
@@ -46,6 +48,7 @@ households = pd.read_csv(os.path.join(input_dir, inputs['households']))
 persons = pd.read_csv(os.path.join(input_dir, inputs['persons']))
 tours = pd.read_csv(os.path.join(input_dir, inputs['tours']))
 joint_tour_participants = pd.read_csv(os.path.join(input_dir, inputs['joint_tour_participants']))
+trips = pd.read_csv(os.path.join(input_dir, inputs['trips']))
 
 households = households[
     ['household_id', 'home_zone_id', 'income', 'hhsize', 'HHT', 'auto_ownership', 'num_workers']
@@ -62,10 +65,20 @@ joint_tour_participants = joint_tour_participants[
     ['participant_id', 'tour_id', 'household_id', 'person_id', 'participant_num']
 ]
 
+OPTIONAL_TRIP_COLUMNS = []
+# FIXME trip order is ambiguous if two trips have same start time?
+# OPTIONAL_TRIP_COLUMNS = ['trip_num']
+
+trips = trips[
+    ['trip_id', 'person_id', 'household_id', 'tour_id', 'outbound', 'purpose',
+     'destination', 'origin', 'depart', 'trip_mode'] + OPTIONAL_TRIP_COLUMNS
+]
+
 households.to_csv(os.path.join(output_dir, surveys['households']), index=False)
 persons.to_csv(os.path.join(output_dir, surveys['persons']), index=False)
 tours.to_csv(os.path.join(output_dir, surveys['tours']), index=False)
 joint_tour_participants.to_csv(os.path.join(output_dir, surveys['joint_tour_participants']), index=False)
+trips.to_csv(os.path.join(output_dir, surveys['trips']), index=False)
 
 # household_id,home_zone_id,income,PERSONS,HHT,VEHICL,workers
 raw_households = households[

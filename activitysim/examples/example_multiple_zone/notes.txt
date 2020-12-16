@@ -35,7 +35,7 @@ the marin_crop.py script has been modified to work with the 'fixed' input files.
 marin_crop.py writes a complete data folder into the 'crop' folder (which you will need to create)
 which should be copied and renamed to somewhere more appropriate (or you can specify the marin_crop ouput_dir in script)
 
-python simulation.py -c configs_3_zone_marin -c configs -d data_3_marin -o output_3_marin
+python simulation.py -c configs_3_zone_marin -d data_3_marin -o output_3_marin
 
 
 
@@ -46,6 +46,6 @@ python simulation.py -c configs_3_zone_marin -c configs -d data_3_marin -o outpu
 6216 * 6216  = 38638656
 
 
-python simulation.py -c configs_3_zone_marin_full -c configs_3_zone_marin -c configs -d data_3_marin_full -o output_3_marin_full -s settings_mp.yaml
+python simulation.py -c configs_3_zone_marin_full -c configs_3_zone_marin -d data_3_marin_full -o output_3_marin_full -s settings_mp.yaml
 
 

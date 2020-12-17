@@ -11,7 +11,7 @@ read_skim_cache: True
 write_skim_cache: False
 
 # rebuild and overwrite existing tap_tap_utilities cache
-rebuild_tvpb_cache: False
+rebuild_tvpb_cache: True
 
 
 # when checkpointing cache. also write a csv version of tvpb cache for tracing
@@ -74,7 +74,7 @@ maz_to_tap:
     # if provided, this column will be used (together with tap_lines table) to trim the near tap set
     # to only include the nearest tap to origin when more than one tap serves the same line
     tap_line_distance_col: WALK_TRANSIT_DIST
-    max_dist: 3
+    max_dist: 1.2
   drive:
     table: maz_taz_tap_drive.csv
     # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost
@@ -104,16 +104,19 @@ TVPB_SETTINGS:
         egress: walk
         max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
+        paths_nest_nesting_coefficient: 0.24
       DTW:
         access: drive
         egress: walk
         max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
+        paths_nest_nesting_coefficient: 0.24
       WTD:
         access: walk
         egress: drive
         max_paths_across_tap_sets: 3
-        max_paths_per_tap_set: 1
+        max_paths_per_tap_set: 1       
+        paths_nest_nesting_coefficient: 0.24
     tap_tap_settings:
       SPEC: tvpb_utility_tap_tap.csv
       PREPROCESSOR:

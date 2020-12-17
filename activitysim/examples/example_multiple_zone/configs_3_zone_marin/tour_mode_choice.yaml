@@ -54,9 +54,9 @@ COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
 
 CONSTANTS:
     #valueOfTime: 8.00
-    costPerMile: 18.29
-    costShareSr2: 1.75
-    costShareSr3: 2.50
+    costPerMile: 17.23
+    costShareSr2: 1.11
+    costShareSr3: 1.25
 #    waitThresh: 10.00
     walkThresh: 3.0
 #    shortWalk: 0.333
@@ -149,7 +149,7 @@ CONSTANTS:
     joint_sr2_ASC_auto_deficient: 0
     joint_sr2_ASC_auto_sufficient: 0
     joint_drive_transit_ASC_no_auto: 0
-    c_auto_operating_cost_per_mile: 18.29
+    c_auto_operating_cost_per_mile: 17.23
 
 
 # so far, we can use the same spec as for non-joint tours

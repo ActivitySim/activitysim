@@ -8,7 +8,7 @@ households_sample_size: 500
 chunk_size: 0
 
 #trace_hh_id: 662398
-trace_hh_id: 1377
+# trace_hh_id: 479617
 
 # input tables
 input_table_list:

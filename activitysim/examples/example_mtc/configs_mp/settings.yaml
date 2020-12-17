@@ -12,7 +12,7 @@ fail_fast: True
 
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
-#chunk_size:  80000000000
+chunk_size:  80000000000
 
 #num_processes: 60
 
@@ -23,9 +23,9 @@ strict: False
 mem_tick: 30
 use_shadow_pricing: False
 
-households_sample_size:  2000
+# households_sample_size:  2000
 chunk_size: 0
-num_processes: 2
+num_processes: 24
 
 # - -------------------------
 

@@ -14,13 +14,13 @@ BUILD_DIR=$ESTIMATION_DIR/build_example_data
 
 # build example using example_mtc sf data set (190 zones)
 # data not in activitysim repo/distro
-#   TAG=sf
-#   BUILD_DATA=$MTC_SF_DATA_DIR
+   TAG=sf
+   BUILD_DATA=$MTC_SF_DATA_DIR
 
 # build example using example_mtc sf data set (190 zones)
 # data not in activitysim repo/distro
-  TAG=full
-  BUILD_DATA=$MTC_FULL_DATA_DIR
+#  TAG=full
+#  BUILD_DATA=$MTC_FULL_DATA_DIR
 
 # output dirs for run to create fake survey data
 BUILD_OUTPUT=$BUILD_DIR/output_build_$TAG
@@ -37,11 +37,15 @@ rm -r $EXAMPLE_DATA
 cp -R $BUILD_DIR/data_template $EXAMPLE_DATA
 
 # create EXAMPLE_OUTPUT
-# rm -r $EXAMPLE_OUTPUT
+rm -r $EXAMPLE_OUTPUT
 cp -R $BUILD_DIR/output_template $EXAMPLE_OUTPUT
 
 # copy raw tables to data directory DATA/*.csv
+# need ORIGINAL table data as input data, not downstream tables as some fields (e.g. auto_ownership) change during run
 cp $BUILD_OUTPUT/raw_tables/*.csv $EXAMPLE_DATA/
+
+# might as well use the exact same land_use file
+cp $BUILD_DATA/land_use.csv $EXAMPLE_DATA/
 
 # copy final_tables to DATA/survey_data/*.csv
 cp $BUILD_OUTPUT/final_*.csv $EXAMPLE_DATA/survey_data/
@@ -60,11 +64,23 @@ wc -l $EXAMPLE_DATA/households.csv
 wc -l $EXAMPLE_DATA/survey_data/override_households.csv
 
 # verify that it all works by running in estimation mode
-python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
+#python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
 
 # or, if you have local overrides to configs:
-python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/override_configs -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
+#python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/override_configs -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
+
+#########
+
+# copy build trace files and log
+rm -r $BUILD_DIR/scratch/$TAG/build/*
+cp $BUILD_OUTPUT/trace/school_location*university*.csv $BUILD_DIR/scratch/$TAG/build
+cp $BUILD_OUTPUT/log/activitysim.log $BUILD_DIR/scratch/$TAG/build
 
 TAG=sf
 python simulation.py -c override_configs -c configs -c ../example_mtc/configs -d data_$TAG -o output_$TAG
 
+
+EST_OUTPUT=output_$TAG
+rm -r $BUILD_DIR/scratch/$TAG/est/*
+cp $EST_OUTPUT/trace/school_location*university*.csv $BUILD_DIR/scratch/$TAG/est
+cp $EST_OUTPUT/log/activitysim.log $BUILD_DIR/scratch/$TAG/est

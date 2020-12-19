@@ -45,7 +45,7 @@ def atwork_subtour_destination_sample(
     constants = config.get_model_constants(model_settings)
 
     sample_size = model_settings['SAMPLE_SIZE']
-    if estimator:
+    if config.setting('disable_destination_sampling', False) or (estimator and estimator.want_unsampled_alternatives):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
         logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
         sample_size = 0

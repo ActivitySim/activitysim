@@ -8,7 +8,7 @@
 # in the same subprocess pipeline. The same strategy is also when chunking choosers, and to support tracing by
 # household_id.
 #
-# you cannot change the well-known name of the index. However, if your input file has a different id column name,
+# You cannot change the well-known name of the index. However, if your input file has a different id column name,
 # you can rename it to the required index name with the rename_columns directive.
 # In the settings below, the 'TAZ' column in the imported table is renamed 'TAZ' in the rename_columns settings.
 #
@@ -18,9 +18,8 @@ input_table_list:
   #
   - tablename: households
     filename: households.csv
-    index_col: household_id
     rename_columns:
-      HHID: household_id
+      HHID: household_id  # household_id is the required index column
       PERSONS: hhsize
       workers: num_workers
       VEHICL: auto_ownership
@@ -37,9 +36,8 @@ input_table_list:
   #
   - tablename: persons
     filename: persons.csv
-    index_col: person_id
     rename_columns:
-      PERID: person_id
+      PERID: person_id  # person_id is the required index column
     keep_columns:
       - household_id
       - age
@@ -54,7 +52,9 @@ input_table_list:
   - tablename: land_use
     filename: land_use.csv
     rename_columns:
-      # accept either ZONE or TAZ index (but if both columns are present, will throw error)
+      # zone_id is the required index column
+      # providing two possible mappings to zone_id allows accepts ZONE or TAZ column name in input file
+      # (but if both columns are present, will throw error)
       ZONE: zone_id
       TAZ: zone_id
       COUNTY: county_id

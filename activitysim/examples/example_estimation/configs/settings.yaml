@@ -3,12 +3,35 @@ inherit_settings: True
 
 # input tables
 input_table_list:
+  #
+  # households (table index 'household_id')
+  #
   - tablename: households
-    filename: survey_data/override_households.csv
+    filename: households.csv
     index_col: household_id
+    keep_columns:
+      - home_zone_id
+      - income
+      - hhsize
+      - HHT
+      - auto_ownership
+      - num_workers
+  #
+  # persons (table index 'person_id')
+  #
   - tablename: persons
-    filename: survey_data/override_persons.csv
-    index_col: person_id
+    filename: persons.csv
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+      - sex
+      - pemploy
+      - pstudent
+      - ptype
+  #
+  # land_use (table index 'zone_id')
+  #
   - tablename: land_use
     filename: land_use.csv
     rename_columns:
@@ -100,8 +123,8 @@ models:
   - atwork_subtour_scheduling
   - atwork_subtour_mode_choice
   - stop_frequency
-#  - trip_purpose
-#  - trip_destination
+  - trip_purpose
+  - trip_destination
 #  - trip_purpose_and_destination
 #  - trip_scheduling
 #  - trip_mode_choice

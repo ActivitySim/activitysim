@@ -109,7 +109,7 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
         ).set_index(maxed_tour_count_idx)
         assert choosers.index.name == tour_counts.index.name
 
-        # - random choice of extension magnituce based on relative probs
+        # - random choice of extension magnitude based on relative probs
         choices, rands = logit.make_choices(
             choosers[PROBABILITY_COLUMNS],
             trace_label=tour_type_trace_label,
@@ -311,8 +311,14 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
 
     if estimator:
-        # make sure they created tours with the expected tour_ids
 
+        # make sure they created the right tours
+        survey_tours = estimation.manager.get_survey_table('tours').sort_index()
+        non_mandatory_survey_tours = survey_tours[survey_tours.tour_category == 'non_mandatory']
+        assert len(non_mandatory_survey_tours) == len(non_mandatory_tours)
+        assert non_mandatory_survey_tours.index.equals(non_mandatory_tours.sort_index().index)
+
+        # make sure they created tours with the expected tour_ids
         columns = ['person_id', 'household_id', 'tour_type', 'tour_category']
         survey_tours = \
             estimation.manager.get_survey_values(non_mandatory_tours,

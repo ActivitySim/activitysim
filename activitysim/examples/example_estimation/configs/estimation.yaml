@@ -39,10 +39,13 @@ survey_tables:
     index_col: person_id
   tours:
     file_name:  survey_data/override_tours.csv
+    index_col: tour_id
   joint_tour_participants:
     file_name:  survey_data/override_joint_tour_participants.csv
+    index_col: participant_id
   trips:
     file_name:  survey_data/override_trips.csv
+    index_col: trip_id
 
 estimation_table_recipes:
 

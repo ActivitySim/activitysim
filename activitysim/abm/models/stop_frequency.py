@@ -268,6 +268,18 @@ def stop_frequency(
         # make sure they created trips with the expected tour_ids
         columns = ['person_id', 'household_id', 'tour_id', 'outbound']
 
+        survey_trips = estimation.manager.get_survey_table(table_name='trips')
+        different = False
+        survey_trips_not_in_trips = survey_trips[~survey_trips.index.isin(trips.index)]
+        if len(survey_trips_not_in_trips) > 0:
+            print(f"survey_trips_not_in_trips\n{survey_trips_not_in_trips}")
+            different = True
+        trips_not_in_survey_trips = trips[~trips.index.isin(survey_trips.index)]
+        if len(survey_trips_not_in_trips) > 0:
+            print(f"trips_not_in_survey_trips\n{trips_not_in_survey_trips}")
+            different = True
+        assert not different
+
         survey_trips = \
             estimation.manager.get_survey_values(trips,
                                                  table_name='trips',

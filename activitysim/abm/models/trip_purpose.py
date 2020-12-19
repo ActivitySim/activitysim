@@ -39,6 +39,7 @@ def map_coefficients(spec, coefficients):
 
     return spec
 
+
 def trip_purpose_calc_row_size(choosers, spec, trace_label):
     """
     rows_per_chunk calculator for trip_purpose
@@ -152,13 +153,15 @@ def run_trip_purpose(
 
     spec_file_name = model_settings.get('PROBS_SPEC')
     probs_spec = pd.read_csv(config.config_file_path(spec_file_name), comment='#')
-    #coefficients_df = simulate.read_model_coefficients(model_settings)
-    #probs_spec = map_coefficients(probs_spec, coefficients_df)
+    # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
+    # besides, it isn't clear that named coefficients would be helpful if we ahd some form of estimation
+    # coefficients_df = simulate.read_model_coefficients(model_settings)
+    # probs_spec = map_coefficients(probs_spec, coefficients_df)
 
     if estimator:
         estimator.write_spec(model_settings, tag='PROBS_SPEC')
         estimator.write_model_settings(model_settings, model_settings_file_name)
-        #estimator.write_coefficients(coefficients_df, model_settings)
+        # estimator.write_coefficients(coefficients_df, model_settings)
 
     result_list = []
 
@@ -224,7 +227,7 @@ def trip_purpose(
 
     estimator = estimation.manager.begin_estimation('trip_purpose')
     if estimator:
-        chooser_cols_for_estimation =  ['person_id',  'household_id',  'tour_id',  'trip_num']
+        chooser_cols_for_estimation = ['person_id',  'household_id',  'tour_id',  'trip_num']
         estimator.write_choosers(trips_df[chooser_cols_for_estimation])
 
     choices = run_trip_purpose(
@@ -254,4 +257,3 @@ def trip_purpose(
                          slicer='trip_id',
                          index_label='trip_id',
                          warn_if_empty=True)
-

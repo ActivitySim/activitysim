@@ -14,6 +14,7 @@ from activitysim.core import config
 from activitysim.core import simulate
 
 from activitysim.core.util import reindex
+from activitysim.abm.models.util import canonical_ids as cid
 
 logger = logging.getLogger('estimation')
 
@@ -65,6 +66,13 @@ class Estimator(object):
         self.tables_to_cache = [table_name for tables in self.omnibus_tables.values() for table_name in tables]
         self.alt_id_column_name = None
         self.chooser_id_column_name = None
+
+    @property
+    def want_unsampled_alternatives(self):
+        # use complete set of alternatives for estimation of interaction simulation (e.g. destination choice)
+        # WARNING location_choice expects unsample alts so it can retrieve mode choice logsums for overridden choice
+        # if we allow estimation based on sampled alternatives, location_choice may need to compute logsum
+        return True
 
     def log(self, msg, level=logging.INFO):
         logger.log(level, "%s: %s" % (self.model_name, msg))
@@ -398,7 +406,7 @@ class EstimationManager(object):
 
     def initialize_settings(self):
 
-        #bug
+        # FIXME - can't we just initialize in init and handle no-presence of settings file as not enabled
         if self.settings_initialized:
             return
 
@@ -411,6 +419,7 @@ class EstimationManager(object):
         self.estimation_table_recipes = settings.get('estimation_table_recipes', {})
 
         if self.enabled:
+
             self.survey_tables = settings.get('survey_tables', {})
             for table_name, table_info in self.survey_tables.items():
                 assert 'file_name' in table_info, \

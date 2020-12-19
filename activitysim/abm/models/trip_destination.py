@@ -84,7 +84,7 @@ def trip_destination_sample(
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     sample_size = model_settings['SAMPLE_SIZE']
-    if estimator:
+    if config.setting('disable_destination_sampling', False) or (estimator and estimator.want_unsampled_alternatives):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
         logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
         sample_size = 0
@@ -315,6 +315,7 @@ def trip_destination_simulate(
     if estimator:
         # need to overwrite choices here before any failed choices are suppressed
         estimator.write_choices(destinations.choice)
+
         destinations.choice = estimator.get_survey_values(destinations.choice, 'trips', 'destination')
         estimator.write_override_choices(destinations.choice)
 
@@ -521,6 +522,10 @@ def run_trip_destination(
     size_terms = inject.get_injectable('size_terms')
     network_los = inject.get_injectable('network_los')
 
+    trips = trips.sort_index()
+    trips['next_trip_id'] = np.roll(trips.index, -1)
+    trips.next_trip_id = trips.next_trip_id.where(trips.trip_num < trips.trip_count, 0)
+
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
     tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(np.int64)
@@ -529,9 +534,31 @@ def run_trip_destination(
     trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
     trips['failed'] = False
 
-    trips = trips.sort_index()
-    trips['next_trip_id'] = np.roll(trips.index, -1)
-    trips.next_trip_id = trips.next_trip_id.where(trips.trip_num < trips.trip_count, 0)
+    if estimator:
+        # need to check or override non-intermediate trip destination
+        # should check consistency of survey trips origin, destination with parent tour and subsequent/prior trip?
+        # FIXME if not consistent, do we fail or override? (seems weird to override them to bad values?)
+
+        # expect all the same trips
+        survey_trips = estimator.get_survey_table('trips').sort_index()
+        assert survey_trips.index.equals(trips.index)
+
+        first = (survey_trips.trip_num == 1)
+        last = (survey_trips.trip_num == trips.trip_count)
+
+        # expect survey's outbound first trip origin to be same as half tour origin
+        assert (survey_trips.origin[survey_trips.outbound & first]
+                == tour_origin[survey_trips.outbound & first]).all()
+        # expect outbound last trip destination to be same as half tour destination
+        assert (survey_trips.destination[survey_trips.outbound & last]
+                == tour_destination[survey_trips.outbound & last]).all()
+
+        # expect inbound first trip origin to be same as half tour destination
+        assert (survey_trips.origin[~survey_trips.outbound & first]
+                == tour_destination[~survey_trips.outbound & first]).all()
+        # expect inbound last trip destination to be same as half tour origin
+        assert (survey_trips.destination[~survey_trips.outbound & last]
+                == tour_origin[~survey_trips.outbound & last]).all()
 
     # - filter tours_merged (AFTER copying destination and origin columns to trips)
     # tours_merged is used for logsums, we filter it here upfront to save space and time
@@ -628,6 +655,8 @@ def run_trip_destination(
 
             if len(destinations_df) > 0:
                 # - assign choices to this trip's destinations
+                # if estimator, then the choices will already have been overridden by trip_destination_simulate
+                # because we need to overwrite choices before any failed choices are suppressed
                 assign_in_place(trips, destinations_df.choice.to_frame('destination'))
                 if want_logsums:
                     assert 'logsum' in destinations_df.columns
@@ -675,7 +704,7 @@ def trip_destination(
     estimator = estimation.manager.begin_estimation('trip_destination')
 
     if estimator:
-        #estimator.write_coefficients(model_settings=model_settings)
+        estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
         estimator.write_spec(model_settings, tag='SPEC')
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
@@ -694,12 +723,6 @@ def trip_destination(
         trace_label=trace_label,
         fail_some_trips_for_testing=fail_some_trips_for_testing)
 
-    assert estimator.estimating
-    #bug
-
-    if estimator:
-        estimator.end_estimation()
-
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
     if config.setting('testing_fail_trip_destination', False) and not trips_df.failed.any():
         fail_o = trips_df[trips_df.trip_num < trips_df.trip_count].origin.max()
@@ -711,6 +734,11 @@ def trip_destination(
         file_name = "%s_failed_trips" % trace_label
         logger.info("writing failed trips to %s", file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
+
+    if estimator:
+        estimator.end_estimation()
+        # no trips should have failed since we overwrite choices and sample should have not failed trips
+        assert not trips_df.failed.any()
 
     if CLEANUP:
 

@@ -32,6 +32,8 @@ def joint_tour_frequency(
     trace_label = 'joint_tour_frequency'
     model_settings_file_name = 'joint_tour_frequency.yaml'
 
+    estimator = estimation.manager.begin_estimation('joint_tour_frequency')
+
     model_settings = config.read_model_settings(model_settings_file_name)
 
     alternatives = simulate.read_model_alts('joint_tour_frequency_alternatives.csv', set_index='alt')
@@ -63,8 +65,6 @@ def joint_tour_frequency(
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
             trace_label=trace_label)
-
-    estimator = estimation.manager.begin_estimation('joint_tour_frequency')
 
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
@@ -138,3 +138,21 @@ def joint_tour_frequency(
         tracing.trace_df(joint_tours,
                          label="joint_tour_frequency.joint_tours",
                          slicer='household_id')
+
+    if estimator:
+        survey_tours = estimation.manager.get_survey_table('tours')
+        survey_tours = survey_tours[survey_tours.tour_category == 'joint']
+
+        print(f"len(survey_tours) {len(survey_tours)}")
+        print(f"len(joint_tours) {len(joint_tours)}")
+
+        different = False
+        survey_tours_not_in_tours = survey_tours[~survey_tours.index.isin(joint_tours.index)]
+        if len(survey_tours_not_in_tours) > 0:
+            print(f"survey_tours_not_in_tours\n{survey_tours_not_in_tours}")
+            different = True
+        tours_not_in_survey_tours = joint_tours[~joint_tours.index.isin(survey_tours.index)]
+        if len(survey_tours_not_in_tours) > 0:
+            print(f"tours_not_in_survey_tours\n{tours_not_in_survey_tours}")
+            different = True
+        assert not different

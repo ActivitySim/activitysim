@@ -78,14 +78,24 @@ def get_tour_satisfaction(candidates, participate):
         assert not ((candidates.composition == 'adults') & ~candidates.adult).any()
         assert not ((candidates.composition == 'children') & candidates.adult).any()
 
-        cols = ['tour_id', 'composition', 'adult']
+        # FIXME tour satisfaction - hack
+        # annotate_households_cdap.csv says there has to be at least one non-preschooler in household
+        # so presumably there also has to be at least one non-preschooler in joint tour
+        # participates_in_jtf_model,(num_travel_active > 1) & (num_travel_active_non_preschoolers > 0)
+        cols = ['tour_id', 'composition', 'adult', 'person_is_preschool']
 
-        # tour satisfaction
-        x = candidates[cols].groupby(['tour_id', 'composition']).adult.agg(['size', 'sum']).\
-            reset_index('composition').rename(columns={'size': 'participants', 'sum': 'adults'})
+        x = candidates[cols].groupby(['tour_id', 'composition'])\
+            .agg(participants=('adult', 'size'), adults=('adult', 'sum'), preschoolers=('person_is_preschool', 'sum'))\
+            .reset_index('composition')
 
-        satisfaction = (x.composition != 'mixed') & (x.participants > 1) | \
-                       (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
+        # satisfaction = \
+        #     (x.composition == 'adults') & (x.participants > 1) | \
+        #     (x.composition == 'children') & (x.participants > 1) & (x.preschoolers < x.participants) | \
+        #     (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
+
+        satisfaction = \
+            (x.composition != 'mixed') & (x.participants > 1) | \
+            (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
 
         satisfaction = satisfaction.reindex(tour_ids).fillna(False).astype(bool)
 
@@ -319,8 +329,8 @@ def joint_tour_participation(
 
         # we override the 'participate' boolean series, instead of raw alternative index in 'choices' series
         # its value depends on whether the candidate's 'participant_id' is in the joint_tour_participant index
-        survey_df = estimator.get_survey_table('joint_tour_participants')
-        participate = pd.Series(choices.index.isin(survey_df['participant_id']), index=choices.index)
+        survey_participants_df = estimator.get_survey_table('joint_tour_participants')
+        participate = pd.Series(choices.index.isin(survey_participants_df.index.values), index=choices.index)
 
         # but estimation software wants to know the choices value (alternative index)
         choices = participate.replace({True: PARTICIPATE_CHOICE, False: 1-PARTICIPATE_CHOICE})

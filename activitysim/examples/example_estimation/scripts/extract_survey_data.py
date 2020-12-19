@@ -79,14 +79,3 @@ persons.to_csv(os.path.join(output_dir, surveys['persons']), index=False)
 tours.to_csv(os.path.join(output_dir, surveys['tours']), index=False)
 joint_tour_participants.to_csv(os.path.join(output_dir, surveys['joint_tour_participants']), index=False)
 trips.to_csv(os.path.join(output_dir, surveys['trips']), index=False)
-
-# household_id,home_zone_id,income,PERSONS,HHT,VEHICL,workers
-raw_households = households[
-    ['household_id', 'home_zone_id', 'income', 'hhsize', 'HHT', 'auto_ownership', 'num_workers']
-]
-raw_households = raw_households.rename({'hhsize': 'PERSONS', 'num_workers': 'workers', 'auto_ownership': 'VEHICL'})
-raw_households.to_csv(os.path.join(data_dir, 'households.csv'), index=False)
-
-# person_id,household_id,age,PNUM,sex,pemploy,pstudent,ptype
-raw_persons = persons[['person_id', 'household_id', 'age', 'PNUM', 'sex', 'pemploy', 'pstudent', 'ptype']]
-raw_persons.to_csv(os.path.join(data_dir, 'persons.csv'), index=False)

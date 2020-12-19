@@ -11,7 +11,7 @@ read_skim_cache: True
 write_skim_cache: False
 
 # rebuild and overwrite existing tap_tap_utilities cache
-rebuild_tvpb_cache: True
+rebuild_tvpb_cache: False
 
 
 # when checkpointing cache. also write a csv version of tvpb cache for tracing
@@ -104,19 +104,19 @@ TVPB_SETTINGS:
         egress: walk
         max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
-        paths_nest_nesting_coefficient: 0.24
+        paths_nest_nesting_coefficient: 1
       DTW:
         access: drive
         egress: walk
         max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
-        paths_nest_nesting_coefficient: 0.24
+        paths_nest_nesting_coefficient: 1
       WTD:
         access: walk
         egress: drive
         max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1       
-        paths_nest_nesting_coefficient: 0.24
+        paths_nest_nesting_coefficient: 1
     tap_tap_settings:
       SPEC: tvpb_utility_tap_tap.csv
       PREPROCESSOR:

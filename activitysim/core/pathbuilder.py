@@ -548,7 +548,7 @@ class TransitVirtualPathBuilder(object):
 
         access_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.access')
         egress_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.egress')
-        paths_nest_nesting_coefficient = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.paths_nest_nesting_coefficient')
+        paths_nest_nesting_coefficient = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}').get('paths_nest_nesting_coefficient', 1)
 
         # maz od pairs requested
         with memo("#TVPB build_virtual_path maz_od_df"):

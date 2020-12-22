@@ -30,16 +30,14 @@ def people(data_dir):
 def teardown_function(func):
     inject.clear_cache()
     inject.reinject_decorated_tables()
+
+
 @pytest.fixture(scope='module')
-
-
 def model_settings(configs_dir):
     yml_file = os.path.join(configs_dir, 'cdap.yaml')
     with open(yml_file) as f:
         model_settings = yaml.load(f, Loader=yaml.loader.SafeLoader)
     return model_settings
-
-
 
 
 def setup_function():

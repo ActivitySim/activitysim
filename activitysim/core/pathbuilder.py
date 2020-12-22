@@ -548,7 +548,8 @@ class TransitVirtualPathBuilder(object):
 
         access_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.access')
         egress_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.egress')
-        paths_nest_nesting_coefficient = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}').get('paths_nest_nesting_coefficient', 1)
+        path_types_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}')
+        paths_nest_nesting_coefficient = path_types_settings.get('paths_nest_nesting_coefficient', 1)
 
         # maz od pairs requested
         with memo("#TVPB build_virtual_path maz_od_df"):
@@ -640,7 +641,8 @@ class TransitVirtualPathBuilder(object):
 
                 chunk.log_df(trace_label, "utilities_df", utilities_df)
 
-                logsums = np.maximum(np.log(np.nansum(np.exp(utilities_df.values/paths_nest_nesting_coefficient), axis=1)), UNAVAILABLE)
+                logsums = np.maximum(np.log(np.nansum(np.exp(utilities_df.values/paths_nest_nesting_coefficient),
+                                                      axis=1)), UNAVAILABLE)
 
             if want_choices:
 

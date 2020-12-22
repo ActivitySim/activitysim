@@ -104,6 +104,10 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
 
     locals_dict.update(skims)
 
+    # constrained coefficients can appear in expressions
+    coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)
+    locals_dict.update(coefficients)
+
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers
     preprocessor = model_settings.get('LOGSUM_PREPROCESSOR', 'preprocessor')
@@ -120,16 +124,11 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
             trace_label=trace_label)
 
     # - compute logsums
-
-    coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)
     logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
     logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients, estimator=None)
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
-
-    # constrained coefficients can appear in expressions
-    locals_dict.update(coefficients)
 
     logsums = simulate.simple_simulate_logsums(
         choosers,

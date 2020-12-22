@@ -21,4 +21,4 @@ def land_use():
     return df
 
 
-inject.broadcast('land_use', 'households', cast_index=True, onto_on='TAZ')
+inject.broadcast('land_use', 'households', cast_index=True, onto_on='home_zone_id')

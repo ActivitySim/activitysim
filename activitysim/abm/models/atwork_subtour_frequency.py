@@ -10,11 +10,11 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import expressions
 
 from .util import estimation
 
 from .util.tour_frequency import process_atwork_subtours
-from .util.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ def atwork_subtour_frequency(tours,
     preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
-        assign_columns(
+        expressions.assign_columns(
             df=work_tours,
             model_settings=preprocessor_settings,
             trace_label=trace_label)

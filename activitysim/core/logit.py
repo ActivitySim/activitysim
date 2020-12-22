@@ -181,7 +181,7 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     return probs
 
 
-def make_choices(probs, trace_label=None, trace_choosers=None):
+def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=False):
     """
     Make choices for each chooser from among a set of alternatives.
 
@@ -216,7 +216,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None):
         probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
         > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
-    if bad_probs.any():
+    if bad_probs.any() and not allow_bad_probs:
 
         report_bad_choices(bad_probs, probs,
                            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
@@ -243,8 +243,7 @@ def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=N
     Combine choosers and alternatives into one table for the purposes
     of creating interaction variables and/or sampling alternatives.
 
-    Any duplicate column names in alternatives table will be renamed with an '_r' suffix.
-    (e.g. TAZ field in alternatives will appear as TAZ_r so that it can be targeted in a skim)
+    Any duplicate column names in choosers table will be renamed with an '_chooser' suffix.
 
     Parameters
     ----------
@@ -457,8 +456,9 @@ def count_nests(nest_spec):
 
     def count_each_nest(spec, count):
         if isinstance(spec, dict):
-            return count + sum([count_each_nest(alt, count) for alt in spec['alternatives']])
+            return count + 1 + sum([count_each_nest(alt, count) for alt in spec['alternatives']])
         else:
+            assert isinstance(spec, str)
             return 1
 
     return count_each_nest(nest_spec, 0) if nest_spec is not None else 0

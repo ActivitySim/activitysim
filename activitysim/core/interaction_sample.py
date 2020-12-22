@@ -113,7 +113,7 @@ def make_sample_choices(
         choices_array[i] = np.take(alts, positions + offsets)
         choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
 
-    # explode to one row per chooser.index, alt_TAZ
+    # explode to one row per chooser.index, alt_zone_id
     choices_df = pd.DataFrame(
         {alt_col_name: choices_array.flatten(order='F'),
          'rand': rands.flatten(order='F'),
@@ -185,8 +185,9 @@ def _interaction_sample(
     """
 
     have_trace_targets = tracing.has_trace_targets(choosers)
+    num_choosers = len(choosers.index)
 
-    assert len(choosers.index) > 0
+    assert num_choosers > 0
 
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
@@ -235,6 +236,8 @@ def _interaction_sample(
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
+    # ########### HWM ############
+
     del interaction_df
     chunk.log_df(trace_label, 'interaction_df', None)
 
@@ -259,7 +262,7 @@ def _interaction_sample(
     chunk.log_df(trace_label, 'interaction_utilities', None)
 
     if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
+        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utils'),
                          column_labels=['alternative', 'utility'])
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
@@ -345,37 +348,33 @@ def _interaction_sample(
     return choices_df
 
 
-def calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label):
+def interaction_sample_calc_row_size(choosers, alternatives, trace_label):
 
-    num_choosers = choosers.shape[0]
-
-    # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers, 0
+    sizer = chunk.RowSizeEstimator(trace_label)
 
     # all columns from choosers
-    chooser_row_size = choosers.shape[1]
+    chooser_row_size = len(choosers.columns)
+    sample_size = len(alternatives)
 
-    # interaction_df has one column per alternative plus a skim column and a join column
-    alt_row_size = alternatives.shape[1] + 2
+    # interaction_df has one column per alternative plus a skim column
+    alt_row_size = len(alternatives.columns) + 1
+    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
 
     # interaction_utilities
-    alt_row_size += 1
+    sizer.add_elements(sample_size, 'interaction_utilities')
+    sizer.drop_elements('interaction_df')
 
-    # interaction_df includes all alternatives and is only afterwards sampled
-    row_size = (chooser_row_size + alt_row_size) * alternatives.shape[0]
+    # show is over once we delete interaction_df
 
-    # utilities and probs have one row per chooser and one column per alternative row
-    row_size += 2 * alternatives.shape[0]
+    sizer.add_elements(chooser_row_size, 'utilities')
+    sizer.drop_elements('interaction_utilities')
 
-    logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
+    sizer.add_elements(chooser_row_size, 'probs')
+    sizer.drop_elements('utilities')
 
-    logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
-    logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
-    logger.debug("%s #chunk_calc row_size %s" % (trace_label, row_size))
+    row_size = sizer.get_hwm()
 
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+    return row_size
 
 
 def interaction_sample(
@@ -449,25 +448,16 @@ def interaction_sample(
 
     sample_size = min(sample_size, len(alternatives.index))
 
-    rows_per_chunk, effective_chunk_size = \
-        calc_rows_per_chunk(chunk_size, choosers, alternatives, trace_label)
+    row_size = chunk_size and interaction_sample_calc_row_size(choosers, alternatives, trace_label)
 
     result_list = []
-    for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
-
-        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
-
-        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
-            if num_chunks > 1 else trace_label
-
-        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+    for i, chooser_chunk, chunk_trace_label \
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
 
         choices = _interaction_sample(chooser_chunk, alternatives,
                                       spec, sample_size, alt_col_name, allow_zero_probs,
                                       skims, locals_d,
                                       chunk_trace_label)
-
-        chunk.log_close(chunk_trace_label)
 
         if choices.shape[0] > 0:
             # might not be any if allow_zero_probs

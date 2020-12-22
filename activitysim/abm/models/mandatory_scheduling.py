@@ -10,10 +10,10 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import timetable as tt
+from activitysim.core import expressions
 
 from activitysim.core.util import reindex
 
-from .util import expressions
 from .util import estimation
 from .util import vectorize_tour_scheduling as vts
 

@@ -21,9 +21,9 @@ def test_mtf():
     persons = pd.DataFrame({
         "is_worker": [True, True, False, False],
         "mandatory_tour_frequency": ["work1", "work_and_school", "work_and_school", "school2"],
-        "school_taz": [1, 2, 3, 4],
-        "workplace_taz": [10, 20, 30, 40],
-        "home_taz": [100, 200, 300, 400],
+        "school_zone_id": [1, 2, 3, 4],
+        "workplace_zone_id": [10, 20, 30, 40],
+        "home_zone_id": [100, 200, 300, 400],
         "household_id": [1, 2, 2, 4]
     }, index=[10, 20, 30, 40])
 

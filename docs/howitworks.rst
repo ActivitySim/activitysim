@@ -546,8 +546,8 @@ is time period.  Setting up the 3D index for SkimStackWrapper is done as follows
 
   # setup three skim keys based on columns in the chooser table
   # origin, destination, time period; destination, origin, time period; origin, destination
-  odt_skim_stack_wrapper = skim_stack.wrap(left_key='TAZ', right_key='destination', skim_key="out_period")
-  dot_skim_stack_wrapper = skim_stack.wrap(left_key='destination', right_key='TAZ', skim_key="in_period")
+  odt_skim_stack_wrapper = skim_stack.wrap(orig_key='TAZ', dest_key='destination', skim_key="out_period")
+  dot_skim_stack_wrapper = skim_stack.wrap(orig_key='destination', dest_key='TAZ', skim_key="in_period")
   od_skims               = skim_dict.wrap('TAZ', 'destination')
 
   #pass these into simple_simulate so they can be used in expressions
@@ -1170,7 +1170,7 @@ uses the information stored in the pipeline file to create the table below for a
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | persons                    | workplace_in_cbd              | bool    | workplace_location           | 52   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
-| persons                    | work_taz_area_type            | float64 | workplace_location           | 52   | 271  |
+| persons                    | work_zone_area_type            | float64 | workplace_location           | 52   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+
 | persons                    | roundtrip_auto_time_to_work   | float32 | workplace_location           | 52   | 271  |
 +----------------------------+-------------------------------+---------+------------------------------+------+------+

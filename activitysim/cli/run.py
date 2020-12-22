@@ -14,7 +14,7 @@ from activitysim.core import chunk
 logger = logging.getLogger(__name__)
 
 
-INJECTABLES = ['data_dir', 'configs_dir', 'output_dir']
+INJECTABLES = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name']
 
 
 def add_run_args(parser, multiprocess=True):
@@ -46,6 +46,10 @@ def add_run_args(parser, multiprocess=True):
                         type=str,
                         metavar='FILE',
                         help='pipeline file name')
+    parser.add_argument('-s', '--settings_file',
+                        type=str,
+                        metavar='FILE',
+                        help='settings file name')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
@@ -65,8 +69,7 @@ def validate_injectable(name):
                  "containing 'configs', 'data', and 'output' folders "
                  'or all three of --config, --data, and --output')
 
-    if isinstance(dir_paths, str):
-        dir_paths = [dir_paths]
+    dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
 
     for dir_path in dir_paths:
         if not os.path.exists(dir_path):
@@ -87,6 +90,9 @@ def handle_standard_args(args, multiprocess=True):
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
+
+    if args.settings_file:
+        inject_arg('settings_file_name', args.settings_file)
 
     if args.config:
         inject_arg('configs_dir', args.config)
@@ -176,6 +182,8 @@ def run(args):
     # cleanup if not resuming
     if not resume_after:
         cleanup_output_files()
+    elif config.setting('cleanup_trace_files_on_resume', False):
+        tracing.delete_trace_files()
 
     if config.setting('multiprocess', False):
         logger.info('run multiprocess simulation')

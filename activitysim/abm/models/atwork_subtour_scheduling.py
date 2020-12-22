@@ -11,8 +11,9 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import timetable as tt
+from activitysim.core import expressions
+
 from .util.vectorize_tour_scheduling import vectorize_subtour_scheduling
-from .util.expressions import annotate_preprocessors
 
 from .util import estimation
 
@@ -60,12 +61,10 @@ def atwork_subtour_scheduling(
     # preprocessor
     constants = config.get_model_constants(model_settings)
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
-    do_skim_wrapper = skim_dict.wrap('destination', 'origin')
     skims = {
         "od_skims": od_skim_wrapper,
-        "do_skims": do_skim_wrapper,
     }
-    annotate_preprocessors(
+    expressions.annotate_preprocessors(
         subtours, constants, skims,
         model_settings, trace_label)
 

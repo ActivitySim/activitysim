@@ -12,6 +12,7 @@ import pandas as pd
 from activitysim.core import util
 from activitysim.core import config
 from activitysim.core import pipeline
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ def evaluate_constants(expressions, constants):
     return d
 
 
-def read_assignment_spec(fname,
+def read_assignment_spec(file_name,
                          description_name="Description",
                          target_name="Target",
                          expression_name="Expression"):
@@ -81,7 +82,7 @@ def read_assignment_spec(fname,
 
     Parameters
     ----------
-    fname : str
+    file_name : str
         Name of a CSV spec file.
     description_name : str, optional
         Name of the column in `fname` that contains the component description.
@@ -96,7 +97,12 @@ def read_assignment_spec(fname,
         dataframe with three columns: ['description' 'target' 'expression']
     """
 
-    cfg = pd.read_csv(fname, comment='#')
+    try:
+        cfg = pd.read_csv(file_name, comment='#')
+    except Exception as e:
+        logger.error(f"Error reading spec file: {file_name}")
+        logger.error(str(e))
+        raise e
 
     # drop null expressions
     # cfg = cfg.dropna(subset=[expression_name])
@@ -141,10 +147,13 @@ def local_utilities():
         'pd': pd,
         'np': np,
         'reindex': util.reindex,
+        'reindex_i': util.reindex_i,
         'setting': config.setting,
         'other_than': util.other_than,
         'rng': pipeline.get_rn_generator(),
     }
+
+    utility_dict.update(config.get_global_constants())
 
     return utility_dict
 
@@ -210,6 +219,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     trace_assigned_locals = trace_results = None
     if trace_rows is not None:
         # convert to numpy array so we can slice ndarrays as well as series
+
         trace_rows = np.asanyarray(trace_rows)
         if trace_rows.any():
             trace_results = OrderedDict()
@@ -270,9 +280,13 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             np.seterr(**save_err)
             np.seterrcall(saved_handler)
 
+        # except Exception as err:
+        #     logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
+        #     logger.error("assign_variables expression: %s = %s", str(target), str(expression))
+        #     raise err
+
         except Exception as err:
-            logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
-            logger.error("assign_variables expression: %s = %s", str(target), str(expression))
+            logger.exception(f"assign_variables - {type(err).__name__} ({str(err)}) evaluating: {str(expression)}")
             raise err
 
         if not is_temp(target):
@@ -292,6 +306,8 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
         # add df columns to trace_results
         trace_results = pd.concat([df[trace_rows], trace_results], axis=1)
+
+    assert variables, "No non-temp variables were assigned."
 
     # we stored result in dict - convert to df
     variables = util.df_from_dict(variables, index=df.index)

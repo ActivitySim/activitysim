@@ -9,8 +9,8 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import expressions
 
-from .util import expressions
 from .util import estimation
 
 from .util.vectorize_tour_scheduling import vectorize_joint_tour_scheduling

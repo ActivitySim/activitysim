@@ -342,7 +342,7 @@ is the main settings file for the model run.  This file includes:
 * ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models
 * ``read_skim_cache`` - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)
 * ``write_skim_cache`` - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
-* ``skim_cache_dir`` - alternate dir to read/write skim cache (defaults to output_dir)
+* ``cache_dir`` - alternate dir to read/write skim cache (defaults to output_dir)
 * global variables that can be used in expressions tables and Python code such as:
 
     * ``urban_threshold`` - urban threshold area type max value

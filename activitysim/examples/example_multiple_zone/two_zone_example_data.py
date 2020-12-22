@@ -40,9 +40,7 @@ else:
 
 land_use = pd.read_csv(os.path.join(input_data, 'land_use.csv'))
 
-land_use.insert(loc=0, column='MAZ', value=land_use.ZONE)
-land_use.insert(loc=1, column='TAZ', value=land_use.ZONE)
-land_use.drop(columns=['ZONE'], inplace=True)
+land_use.insert(loc=0, column='MAZ', value=land_use.TAZ)
 
 land_use.TAZ = land_use.TAZ.replace([1, 2, 3, 4], 2)
 land_use.TAZ = land_use.TAZ.replace([13, 14, 15], 14)

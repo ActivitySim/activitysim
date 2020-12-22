@@ -449,12 +449,12 @@ def build_slice_rules(slice_info, pipeline_tables):
         slice_rules[table_name] = rule
 
     for table_name in slice_rules:
-        debug(f"table_name: {slice_rules[table_name]}")
+        debug(f"table_name: {table_name} slice_rules: {slice_rules[table_name]}")
 
     return slice_rules
 
 
-def apportion_pipeline(sub_proc_names, slice_info):
+def apportion_pipeline(sub_proc_names, step_info):
     """
     apportion pipeline for multiprocessing step
 
@@ -467,13 +467,16 @@ def apportion_pipeline(sub_proc_names, slice_info):
     ----------
     sub_proc_names : list of str
         names of the sub processes to apportion
-    slice_info : dict
-        slice_info from multiprocess_steps
+    step_info : dict
+        step_info from multiprocess_steps for step we are apportioning pipeline tables for
 
     Returns
     -------
     creates apportioned pipeline files for each sub job
     """
+
+    slice_info = step_info.get('slice', None)
+    multiprocess_step_name = step_info.get('name', None)
 
     pipeline_file_name = inject.get_injectable('pipeline_file_name')
 
@@ -535,6 +538,13 @@ def apportion_pipeline(sub_proc_names, slice_info):
             for table_name, rule in slice_rules.items():
 
                 df = tables[table_name]
+
+                if rule['slice_by'] is not None and num_sub_procs > len(df):
+
+                    # almost certainly a configuration error
+                    raise RuntimeError(f"apportion_pipeline: multiprocess step {multiprocess_step_name} "
+                                       f"slice table {table_name} has fewer rows {df.shape} "
+                                       f"than num_processes ({num_sub_procs}).")
 
                 if rule['slice_by'] == 'primary':
                     # slice primary apportion table by num_sub_procs strides
@@ -624,7 +634,8 @@ def coalesce_pipelines(sub_proc_names, slice_info):
             for table_name, hdf5_key in omnibus_keys.items():
                 omnibus_tables[table_name].append(pipeline_store[hdf5_key])
 
-    pipeline.open_pipeline()
+    # open pipeline, preserving existing checkpoints (so resume_after will work for prior steps)
+    pipeline.open_pipeline('_')
 
     # - add mirrored tables to pipeline
     for table_name in mirrored_tables:
@@ -795,7 +806,7 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
         raise e
 
 
-def mp_apportion_pipeline(injectables, sub_proc_names, slice_info):
+def mp_apportion_pipeline(injectables, sub_proc_names, step_info):
     """
     mp entry point for apportion_pipeline
 
@@ -805,14 +816,14 @@ def mp_apportion_pipeline(injectables, sub_proc_names, slice_info):
         injectables from parent
     sub_proc_names : list of str
         names of the sub processes to apportion
-    slice_info : dict
-        slice_info from multiprocess_steps
+    step_info : dict
+        step_info for multiprocess_step we are apportioning
     """
 
     setup_injectables_and_logging(injectables)
 
     try:
-        apportion_pipeline(sub_proc_names, slice_info)
+        apportion_pipeline(sub_proc_names, step_info)
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_apportion_pipeline: {str(e)}")
         raise e
@@ -834,6 +845,8 @@ def mp_setup_skims(injectables, **kwargs):
     """
 
     setup_injectables_and_logging(injectables)
+
+    info("mp_setup_skims")
 
     try:
         shared_data_buffer = kwargs
@@ -878,6 +891,8 @@ def allocate_shared_skim_buffers():
     """
     This is called by the main process to allocate shared memory buffer to share with subprocs
 
+    Note: Buffers must be allocated BEFORE network_los.load_data
+
     Returns
     -------
     skim_buffers : dict {<skim_tag>: <multiprocessing.RawArray>}
@@ -886,7 +901,7 @@ def allocate_shared_skim_buffers():
 
     info("allocate_shared_skim_buffer")
 
-    network_los = inject.get_injectable('network_los')
+    network_los = inject.get_injectable('network_los_preload')
     skim_buffers = network_los.allocate_shared_skim_buffers()
 
     return skim_buffers
@@ -1041,11 +1056,11 @@ def run_sub_simulations(
                            step_info=step_info,
                            resume_after=resume_after)
 
-        debug(f"create_process {process_name} target={mp_run_simulation}")
-        for k in args:
-            debug(f"create_process {process_name} arg {k}={args[k]}")
-        for k in shared_data_buffers:
-            debug(f"create_process {process_name} shared_data_buffers {k}={shared_data_buffers[k]}")
+        # debug(f"create_process {process_name} target={mp_run_simulation}")
+        # for k in args:
+        #     debug(f"create_process {process_name} arg {k}={args[k]}")
+        # for k in shared_data_buffers:
+        #     debug(f"create_process {process_name} shared_data_buffers {k}={shared_data_buffers[k]}")
 
         p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
                                     args=(spokesman, q, injectables, step_info, resume_after,),
@@ -1110,7 +1125,7 @@ def run_sub_task(p):
     ----------
     p : multiprocessing.Process
     """
-    info(f"running sub_process {p.name}")
+    info(f"#run_model running sub_process {p.name}")
 
     mem.trace_memory_info("%s.start" % p.name)
 
@@ -1124,10 +1139,10 @@ def run_sub_task(p):
     # no need to join explicitly since multiprocessing.active_children joins completed procs
     # p.join()
 
-    t0 = tracing.print_elapsed_time('sub_process %s' % p.name, t0)
+    t0 = tracing.print_elapsed_time('#run_model sub_process %s' % p.name, t0)
     # info(f'{p.name}.exitcode = {p.exitcode}')
 
-    mem.trace_memory_info("%s.completed" % p.name)
+    mem.trace_memory_info(f"#run_model {p.name} completed")
 
     if p.exitcode:
         error(f"Process {p.name} returned exitcode {p.exitcode}")
@@ -1248,7 +1263,7 @@ def run_multiprocess(run_list, injectables):
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_apportion_pipeline, name='%s_apportion' % step_name,
-                    args=(injectables, sub_proc_names, slice_info))
+                    args=(injectables, sub_proc_names, step_info))
             )
         drop_breadcrumb(step_name, 'apportion')
 
@@ -1412,7 +1427,7 @@ def get_run_list():
     multiprocess = inject.get_injectable('multiprocess', False) or setting('multiprocess', False)
 
     # default settings that can be overridden by settings in individual steps
-    global_chunk_size = setting('chunk_size', 0)
+    global_chunk_size = setting('chunk_size', 0) or 0
     default_mp_processes = setting('num_processes', 0) or int(1 + multiprocessing.cpu_count() / 2.0)
 
     if multiprocess and multiprocessing.cpu_count() == 1:

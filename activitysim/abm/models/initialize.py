@@ -10,6 +10,7 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import expressions
+from activitysim.core import mem
 
 from activitysim.core.steps.output import write_data_dictionary
 from activitysim.core.steps.output import write_tables
@@ -51,6 +52,7 @@ def annotate_tables(model_settings, trace_label):
     for table_info in annotate_tables:
 
         tablename = table_info['tablename']
+
         df = inject.get_table(tablename).to_frame()
 
         # - rename columns
@@ -58,8 +60,8 @@ def annotate_tables(model_settings, trace_label):
         if column_map:
 
             warnings.warn(f"{trace_label} - annotate_tables option 'column_map' renamed 'rename_columns' "
-                          f"and moved to settings.yaml. Support for 'column_map' in annotate_tables will be "
-                          "removed in future versions.",
+                          f"and moved to global settings file. Support for 'column_map' in annotate_tables "
+                          f"will be removed in future versions.",
                           FutureWarning)
 
             logger.info(f"{trace_label} - renaming {tablename} columns {column_map}")
@@ -106,6 +108,7 @@ def initialize_households():
     # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
     shadow_pricing.add_size_tables()
+    mem.trace_memory_info(f"initialize_households after shadow_pricing.add_size_tables")
 
     # - preload person_windows
     t0 = tracing.print_elapsed_time()

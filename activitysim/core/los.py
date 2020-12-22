@@ -12,6 +12,8 @@ from activitysim.core import skim_dictionary
 from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
+from activitysim.core import pathbuilder
+from activitysim.core import mem
 from activitysim.core import tracing
 
 #
@@ -30,6 +32,14 @@ LOS_SETTINGS_FILE_NAME = 'network_los.yaml'
 ONE_ZONE = 1
 TWO_ZONE = 2
 THREE_ZONE = 3
+
+DEFAULT_SETTINGS = {
+    'rebuild_tvpb_cache': True,
+    'zone_system': ONE_ZONE,
+    'skim_dict_factory': 'NumpyArraySkimFactory'
+}
+
+TRACE_TRIMMED_MAZ_TO_TAP_TABLES = True
 
 
 class Network_LOS(object):
@@ -61,8 +71,7 @@ class Network_LOS(object):
                                         # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
     maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
                                         # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
-    tap_ceiling: int                    # max tap_id + 1 (to compute synthetic tap_tap index values)
-
+    tap_tap_uid: TapTapUidCalculator
 
     """
 
@@ -85,13 +94,13 @@ class Network_LOS(object):
         # THREE_ZONE only
         self.tap_lines_df = None
         self.maz_to_tap_dfs = {}
-        self.tap_ceiling = None
+        self.tvpb = None
 
         self.los_settings_file_name = los_settings_file_name
         self.load_settings()
 
         # dependency injection of skim factory (of type specified in skim_dict_factory setting)
-        skim_dict_factory_name = self.setting('skim_dict_factory', default='NumpyArraySkimFactory')
+        skim_dict_factory_name = self.setting('skim_dict_factory')
         assert skim_dict_factory_name in skim_factories, \
             f"Unrecognized skim_dict_factory setting '{skim_dict_factory_name}"
         self.skim_dict_factory = skim_factories[skim_dict_factory_name](network_los=self)
@@ -100,7 +109,17 @@ class Network_LOS(object):
         # load SkimInfo for all skims for this zone_system (TAZ for ONE_ZONE and TWO_ZONE, TAZ and MAZ for THREE_ZONE)
         self.load_skim_info()
 
+    @property
+    def rebuild_tvpb_cache(self):
+        # setting as property here so others don't need to know default
+        assert self.zone_system == THREE_ZONE, f"Should not even be asking about rebuild_tvpb_cache if not THREE_ZONE"
+        return self.setting('rebuild_tvpb_cache')
+
     def setting(self, keys, default='<REQUIRED>'):
+
+        # if they dont specify a default, check the default defaults
+        default = DEFAULT_SETTINGS.get(keys, '<REQUIRED>') if default == '<REQUIRED>' else default
+
         # get setting value for single key or dot-delimited key path (e.g. 'maz_to_maz.tables')
         key_list = keys.split('.')
         s = self.los_settings
@@ -158,16 +177,16 @@ class Network_LOS(object):
         assert 'periods' in self.skim_time_periods, "'periods' key not found in network_los.skim_time_periods"
         assert 'labels' in self.skim_time_periods, "'labels' key not found in network_los.skim_time_periods"
 
-        self.zone_system = self.setting('zone_system', default=ONE_ZONE)
+        self.zone_system = self.setting('zone_system')
         assert self.zone_system in [ONE_ZONE, TWO_ZONE, THREE_ZONE], \
             f"Network_LOS: unrecognized zone_system: {self.zone_system}"
 
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
             # maz_to_maz_settings
-            self.max_blend_distance = self.setting('maz_to_maz.max_blend_distance', {})
+            self.max_blend_distance = self.setting('maz_to_maz.max_blend_distance', default={})
             if isinstance(self.max_blend_distance, int):
                 self.max_blend_distance = {'DEFAULT': self.max_blend_distance}
-            self.blend_distance_skim_name = self.setting('maz_to_maz.blend_distance_skim_name', None)
+            self.blend_distance_skim_name = self.setting('maz_to_maz.blend_distance_skim_name', default=None)
 
         # validate skim_time_periods
         self.skim_time_periods = self.setting('skim_time_periods')
@@ -183,9 +202,15 @@ class Network_LOS(object):
         assert self.skim_dict_factory is not None
         # load taz skim_info
         self.skims_info['taz'] = self.skim_dict_factory.load_skim_info('taz')
+
         if self.zone_system == THREE_ZONE:
             # load tap skim_info
             self.skims_info['tap'] = self.skim_dict_factory.load_skim_info('tap')
+
+        if self.zone_system == THREE_ZONE:
+            # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
+            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            self.tvpb = pathbuilder.TransitVirtualPathBuilder(self)  # dependent on self.tap_df
 
     def load_data(self):
         """
@@ -228,11 +253,10 @@ class Network_LOS(object):
         # load tap tables
         if self.zone_system == THREE_ZONE:
 
-            # tap
-            file_name = self.setting('tap')
-            self.tap_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
-
-            self.tap_ceiling = self.tap_df.TAP.max() + 1
+            # tap_df should already have been loaded by load_skim_info because,
+            # during multiprocessing, it is required by TapTapUidCalculator to size TVPBCache
+            # self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            assert self.tap_df is not None
 
             # maz_to_tap_dfs - different sized sparse arrays with different columns, so we keep them seperate
             for mode, maz_to_tap_settings in self.setting('maz_to_tap').items():
@@ -240,7 +264,8 @@ class Network_LOS(object):
                 assert 'table' in maz_to_tap_settings, \
                     f"Expected setting maz_to_tap.{mode}.table not found in in {LOS_SETTINGS_FILE_NAME}"
 
-                df = pd.read_csv(config.data_file_path(maz_to_tap_settings['table'], mandatory=True))
+                file_name = maz_to_tap_settings['table']
+                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
                 # trim tap set
                 # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
@@ -250,8 +275,8 @@ class Network_LOS(object):
 
                     if self.tap_lines_df is None:
                         # load tap_lines on demand (required if they specify tap_line_distance_col)
-                        file_name = self.setting('tap_lines',)
-                        self.tap_lines_df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                        tap_lines_file_name = self.setting('tap_lines', )
+                        self.tap_lines_df = pd.read_csv(config.data_file_path(tap_lines_file_name, mandatory=True))
 
                         # csv file has one row per TAP with space-delimited list of lines served by that TAP
                         #  TAP                                      LINES
@@ -265,6 +290,8 @@ class Network_LOS(object):
                             self.tap_lines_df.set_index('TAP').LINES.str.split(expand=True)\
                                 .stack().droplevel(1).to_frame('line')
 
+                    old_len = len(df)
+
                     # NOTE - merge will remove unused taps (not appearing in tap_lines)
                     df = pd.merge(df, self.tap_lines_df, left_on='TAP', right_index=True)
 
@@ -272,13 +299,28 @@ class Network_LOS(object):
                     df = df.sort_values(by=distance_col).drop_duplicates(subset=['MAZ', 'line'])
 
                     # we don't need to remember which lines are served by which TAPs
-                    df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP'])
+                    df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP']).sort_values(['MAZ', 'TAP'])
+
+                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows")
+                    logger.debug(f"maz_to_tap table {file_name} max {distance_col} {df[distance_col].max()}")
+
+                    max_dist = maz_to_tap_settings.get('max_dist', None)
+                    if max_dist:
+                        old_len = len(df)
+                        df = df[df[distance_col] <= max_dist]
+                        logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows "
+                                     f"based on max_dist {max_dist}")
+
+                    if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
+                        tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
 
                 df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
-                logger.debug(f"loading maz_to_tap table {file_name} with {len(df)} rows")
+                logger.debug(f"loaded maz_to_tap table {file_name} with {len(df)} rows")
 
                 assert mode not in self.maz_to_tap_dfs
                 self.maz_to_tap_dfs[mode] = df
+
+        mem.trace_memory_info('#MEM network_los.load_data before create_skim_dicts')
 
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
@@ -289,11 +331,11 @@ class Network_LOS(object):
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
             # create MazSkimDict facade skim_dict
-            # (need to have already loaded both taz skim and maz tables)
+            # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
             assert 'maz' not in self.skim_dicts
             self.skim_dicts['maz'] = self.create_skim_dict('maz')
             # make sure skim has all maz_ids
-            assert set(self.maz_taz_df ['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
+            assert set(self.maz_taz_df['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
@@ -301,6 +343,8 @@ class Network_LOS(object):
             self.skim_dicts['tap'] = self.create_skim_dict('tap')
             # make sure skim has all tap_ids
             assert set(self.tap_df['TAP'].values).issubset(set(self.skim_dicts['tap'].zone_ids))
+
+        mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
     def create_skim_dict(self, skim_tag):
         """
@@ -317,7 +361,13 @@ class Network_LOS(object):
         assert skim_tag not in self.skim_dicts  # avoid inadvertently creating multiple copies
 
         if skim_tag == 'maz':
-            skim_dict = skim_dictionary.MazSkimDict('maz', self)
+            # MazSkimDict gets a reference to self here, because it has dependencies on self.load_data
+            # (e.g. maz_to_maz_df, maz_taz_df...) We pass in taz_skim_dict as a parameter
+            # to hilight the fact that we do not want two copies of its (very large) data array in memory
+            assert 'taz' in self.skim_dicts, \
+                f"create_skim_dict 'maz': backing taz skim_dict not in skim_dicts"
+            taz_skim_dict = self.skim_dicts['taz']
+            skim_dict = skim_dictionary.MazSkimDict('maz', self, taz_skim_dict)
         else:
             skim_info = self.skims_info[skim_tag]
             skim_data = self.skim_dict_factory.get_skim_data(skim_tag, skim_info)
@@ -339,7 +389,9 @@ class Network_LOS(object):
         -------
         str path
         """
-        cache_dir = self.setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
+        cache_dir = self.setting('cache_dir', default=None)
+        if cache_dir is None:
+            cache_dir = self.setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
 
         if not os.path.isdir(cache_dir):
             os.mkdir(cache_dir)
@@ -363,25 +415,48 @@ class Network_LOS(object):
         file_names = [file_names] if isinstance(file_names, str) else file_names
         return file_names
 
+    def multiprocess(self):
+        """
+        return True if this is a multiprocessing run (even if it is a main or single-process subprocess)
+        Returns
+        -------
+            bool
+        """
+        is_multiprocess = config.setting('multiprocess', False)
+        return is_multiprocess
+
     def load_shared_data(self, shared_data_buffers):
         """
         Load omx skim data into shared_data buffers
-        Only called when multiprocessing.
+        Only called when multiprocessing - BEFORE any models are run or any call to load_data()
 
         Parameters
         ----------
         shared_data_buffers: dict of multiprocessing.RawArray keyed by skim_tag
         """
 
-        if self.skim_dict_factory.share_data_for_multiprocessing:
+        assert self.multiprocess()
+        # assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
+
+        if self.skim_dict_factory.supports_shared_data_for_multiprocessing:
             for skim_tag in self.skims_info.keys():
                 assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
                 self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
 
+        if self.zone_system == THREE_ZONE:
+            assert self.tvpb is not None
+
+            if self.rebuild_tvpb_cache and not config.setting('resume_after', None):
+                # delete old cache at start of new run so that stale cache is not loaded by load_data_to_buffer
+                # when singleprocess, this call is made (later in program flow) in the initialize_los step
+                self.tvpb.tap_cache.cleanup()
+
+            self.tvpb.tap_cache.load_data_to_buffer(shared_data_buffers[self.tvpb.tap_cache.cache_tag])
+
     def allocate_shared_skim_buffers(self):
         """
         Allocate multiprocessing.RawArray shared data buffers sized to hold data for the omx skims.
-        Only called when multiprocessing.
+        Only called when multiprocessing - BEFORE load_data()
 
         Returns dict of allocated buffers so they can be added to mp_tasks can add them to dict of data
         to be shared with subprocesses.
@@ -393,12 +468,20 @@ class Network_LOS(object):
         dict of multiprocessing.RawArray keyed by skim_tag
         """
 
+        assert self.multiprocess()
+        assert not self.skim_dicts, f"allocate_shared_skim_buffers must be called BEFORE, not after, load_data"
+
         skim_buffers = {}
 
-        if self.skim_dict_factory.share_data_for_multiprocessing:
+        if self.skim_dict_factory.supports_shared_data_for_multiprocessing:
             for skim_tag in self.skims_info.keys():
                 skim_buffers[skim_tag] = \
                     self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
+
+        if self.zone_system == THREE_ZONE:
+            assert self.tvpb is not None
+            skim_buffers[self.tvpb.tap_cache.cache_tag] = \
+                self.tvpb.tap_cache.allocate_data_buffer(shared=True)
 
         return skim_buffers
 
@@ -410,6 +493,9 @@ class Network_LOS(object):
         -------
         SkimDict or subclass (e.g. MazSkimDict)
         """
+
+        assert skim_tag in self.skim_dicts, \
+            f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
 
         return self.skim_dicts[skim_tag]
 

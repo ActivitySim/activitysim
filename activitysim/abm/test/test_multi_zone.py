@@ -24,7 +24,7 @@ EXPECT_2_ZONE_TOUR_COUNT = 205
 
 # 3-zone is currently big and slow - so set this way low
 HOUSEHOLDS_SAMPLE_SIZE_3_ZONE = 10
-EXPECT_3_ZONE_TOUR_COUNT = 30
+EXPECT_3_ZONE_TOUR_COUNT = 26
 
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
@@ -39,6 +39,11 @@ HH_ID_3_ZONE = 2848373
 
 def example_path(dirname):
     resource = os.path.join('examples', 'example_multiple_zone', dirname)
+    return pkg_resources.resource_filename('activitysim', resource)
+
+
+def mtc_example_path(dirname):
+    resource = os.path.join('examples', 'example_mtc', dirname)
     return pkg_resources.resource_filename('activitysim', resource)
 
 
@@ -156,7 +161,7 @@ def regress_3_zone():
 
 def test_full_run_2_zone():
 
-    tour_count = full_run(configs_dir=[example_path('configs_2_zone'), example_path('configs')],
+    tour_count = full_run(configs_dir=[example_path('configs_2_zone'), mtc_example_path('configs')],
                           data_dir=example_path('data_2'),
                           trace_hh_id=HH_ID, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
@@ -173,7 +178,7 @@ def test_full_run_2_zone():
 
 def test_full_run_3_zone():
 
-    tour_count = full_run(configs_dir=[example_path('configs_3_zone'), example_path('configs')],
+    tour_count = full_run(configs_dir=[example_path('configs_3_zone'), mtc_example_path('configs')],
                           data_dir=example_path('data_3'),
                           trace_hh_id=HH_ID_3_ZONE, check_for_variability=True,
                           households_sample_size=HOUSEHOLDS_SAMPLE_SIZE_3_ZONE)

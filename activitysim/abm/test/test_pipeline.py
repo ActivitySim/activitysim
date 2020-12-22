@@ -40,6 +40,8 @@ def example_path(dirname):
 
 def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
+    # ancillary_configs_dir is used by run_mp to test multiprocess
+
     test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), 'configs_test_pipeline')
     example_configs_dir = example_path('configs')
     configs_dir = [test_pipeline_configs_dir, example_configs_dir]

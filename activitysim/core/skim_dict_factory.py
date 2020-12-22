@@ -9,6 +9,7 @@ import numpy as np
 import openmatrix as omx
 from abc import ABC, abstractmethod
 
+from activitysim.core import util
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import tracing
@@ -113,7 +114,7 @@ class SkimInfo(object):
 
             omx_file_path = config.data_file_path(omx_file_name)
 
-            logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
+            # logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
             with omx.open_file(omx_file_path) as omx_file:
 
@@ -230,7 +231,7 @@ class AbstractSkimFactory(ABC):
         self.network_los = network_los
 
     @property
-    def share_data_for_multiprocessing(self):
+    def supports_shared_data_for_multiprocessing(self):
         """
         Does subclass support shareable data for multiprocessing
 
@@ -343,7 +344,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         super().__init__(network_los)
 
     @property
-    def share_data_for_multiprocessing(self):
+    def supports_shared_data_for_multiprocessing(self):
         return True
 
     def allocate_skim_buffer(self, skim_info, shared=False):
@@ -361,14 +362,17 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         multiprocessing.RawArray or numpy.ndarray
         """
 
+        assert shared == self.network_los.multiprocess(), \
+            f"NumpyArraySkimFactory.allocate_skim_buffer shared {shared} multiprocess {not shared}"
+
         dtype_name = skim_info.dtype_name
         dtype = np.dtype(dtype_name)
 
-        # buffer_size must be int, not np.int64
-        buffer_size = int(np.prod(skim_info.skim_data_shape))
+        # multiprocessing.RawArray argument buffer_size must be int, not np.int64
+        buffer_size = util.iprod(skim_info.skim_data_shape)
 
         csz = buffer_size * dtype.itemsize
-        logger.info(f"allocating shared buffer {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
+        logger.info(f"allocate_skim_buffer shared {shared} {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
                     f"total size: {csz} ({tracing.si_units(csz)})")
 
         if shared:
@@ -400,7 +404,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         """
 
         dtype = np.dtype(skim_info.dtype_name)
-        assert len(skim_buffer) == np.prod(skim_info.skim_data_shape)
+        assert len(skim_buffer) == util.iprod(skim_info.skim_data_shape)
         skim_data = np.frombuffer(skim_buffer, dtype=dtype).reshape(skim_info.skim_data_shape)
         return skim_data
 
@@ -427,7 +431,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
             # copy memmapped cache to RAM numpy ndarray
             if cache_data is not None:
                 assert cache_data.shape == skim_data.shape
-                skim_data[::] = cache_data[::]
+                np.copyto(skim_data, cache_data)
                 cache_data._mmap.close()
                 del cache_data
                 return
@@ -437,7 +441,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
 
         if write_cache:
             cache_data = self._create_empty_writable_memmap_skim_cache(skim_info)
-            cache_data[::] = skim_data[::]
+            np.copyto(cache_data, skim_data)
             cache_data._mmap.close()
             del cache_data
 
@@ -462,7 +466,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         data_buffers = inject.get_injectable('data_buffers', None)
         if data_buffers:
             # we assume any existing skim buffers will already have skim data loaded into them
-            logger.info(f"get_skim_data {skim_tag} using existing skim_buffers for skims")
+            logger.info(f"get_skim_data {skim_tag} using existing shared skim_buffers for skims")
             skim_buffer = data_buffers[skim_tag]
         else:
             skim_buffer = self.allocate_skim_buffer(skim_info, shared=False)
@@ -544,7 +548,7 @@ class MemMapSkimFactory(AbstractSkimFactory):
         """
 
         # don't expect legacy shared memory buffers
-        assert inject.get_injectable('data_buffers', None) is None
+        assert not inject.get_injectable('data_buffers', {}).get(skim_tag)
 
         skim_cache_path = self._memmap_skim_data_path(skim_tag)
         if not os.path.isfile(skim_cache_path):

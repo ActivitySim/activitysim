@@ -11,7 +11,7 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
-from activitysim.core.mem import force_garbage_collect
+from activitysim.core import mem
 from activitysim.core import expressions
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -421,7 +421,7 @@ def run_location_choice(
 
         # FIXME - want to do this here?
         del location_sample_df
-        force_garbage_collect()
+        mem.force_garbage_collect()
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)

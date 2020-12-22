@@ -10,10 +10,6 @@ import logging.config
 import sys
 import time
 import yaml
-import gc as _gc
-import psutil
-
-from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
@@ -48,30 +44,6 @@ def si_units(x, kind='B', f="{}{:.3g} {}{}"):
             x *= shift
             tier -= 1
     return f.format(sign, x, tiers[tier], kind)
-
-
-@contextmanager
-def memo(tag, gc=True, console=False):
-    t0 = time.time()
-    previous_mem = psutil.Process(os.getpid()).memory_info().rss
-    if gc:
-        _gc.collect()
-        _gc.disable()
-    try:
-        yield
-    finally:
-        elapsed_time = time.time() - t0
-        current_mem = (psutil.Process(os.getpid()).memory_info().rss)
-        marginal_mem = current_mem - previous_mem
-        mem_str = f"net {si_units(marginal_mem)} ({str(marginal_mem)}) total {si_units(current_mem)}"
-        if gc:
-            _gc.enable()
-            _gc.collect()
-
-        if console:
-            print(f"MEMO {tag} Time: {si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
-        else:
-            logger.debug(f"MEM  {tag}{mem_str} in {si_units(elapsed_time, kind='s')}")
 
 
 def extend_trace_label(trace_label, extension):
@@ -259,12 +231,9 @@ def register_traceable_table(table_name, df):
     Nothing
     """
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    # add index name to traceable_table_indexes
 
-    new_traced_ids = []
-
-    if trace_hh_id is None:
-        return
+    logger.debug(f"register_traceable_table {table_name}")
 
     traceable_tables = inject.get_injectable('traceable_tables', [])
     if table_name not in traceable_tables:
@@ -284,6 +253,19 @@ def register_traceable_table(table_name, df):
                      (table_name, idx_name, traceable_table_indexes[idx_name]))
         return
 
+    # update traceable_table_indexes with this traceable_table's idx_name
+    if idx_name not in traceable_table_indexes:
+        traceable_table_indexes[idx_name] = table_name
+        logger.debug("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
+        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
+
+    # add any new indexes associated with trace_hh_id to traceable_table_ids
+
+    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    if trace_hh_id is None:
+        return
+
+    new_traced_ids = []
     if table_name == 'households':
         if trace_hh_id not in df.index:
             logger.warning("trace_hh_id %s not in dataframe" % trace_hh_id)
@@ -313,12 +295,6 @@ def register_traceable_table(table_name, df):
         if len(new_traced_ids) == 0:
             logger.warning("register %s: no rows with %s in %s." %
                            (table_name, ref_col, ref_col_traced_ids))
-
-    # update traceable_table_indexes with this traceable_table's idx_name
-    if idx_name not in traceable_table_indexes:
-        traceable_table_indexes[idx_name] = table_name
-        print("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
-        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
 
     # update the list of trace_ids for this table
     prior_traced_ids = traceable_table_ids.get(table_name, [])
@@ -415,6 +391,10 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
         file_name = '%s.%s' % (file_name, CSV_FILE_TYPE)
 
     file_path = config.trace_file_path(file_name)
+
+    if os.name == 'nt':
+        abs_path = os.path.abspath(file_path)
+        assert len(abs_path) <= 255, f"Path length ({len(abs_path)}) exceeds maximum length for windows: {abs_path}"
 
     if os.path.isfile(file_path):
         logger.debug("write_csv file exists %s %s" % (type(df).__name__, file_name))

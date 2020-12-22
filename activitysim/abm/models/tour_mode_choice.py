@@ -14,7 +14,7 @@ from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 from activitysim.core import los
-from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 from .util.mode import run_tour_mode_choice_simulate
 from .util import estimation
@@ -133,7 +133,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
 
-        tvpb = TransitVirtualPathBuilder(network_los)
+        tvpb = network_los.tvpb
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
                                            tod_key='out_period', segment_key='demographic_segment',
@@ -150,7 +150,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         })
 
         # TVPB constants can appear in expressions
-        constants.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
+        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     estimator = estimation.manager.begin_estimation('tour_mode_choice')
     if estimator:
@@ -223,8 +223,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
                     if dest_col not in choices_df:
                         choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
                     choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
-
-        tvpb.close_cache()  # close - and flush if write_tvpb_cache
 
     if estimator:
         estimator.write_choices(choices_df.tour_mode)

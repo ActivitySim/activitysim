@@ -7,6 +7,7 @@ import pandas as pd
 from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import tracing
+from activitysim.core import mem
 
 from activitysim.core.input import read_input_table
 
@@ -18,7 +19,7 @@ def read_raw_persons(households):
     df = read_input_table("persons")
 
     if inject.get_injectable('households_sliced', False):
-        # keep all persons in the sampled households
+        # keep only persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 
     return df
@@ -36,8 +37,8 @@ def persons(households, trace_hh_id):
 
     pipeline.get_rn_generator().add_channel('persons', df)
 
+    tracing.register_traceable_table('persons', df)
     if trace_hh_id:
-        tracing.register_traceable_table('persons', df)
         tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
     print(f"{len(df.household_id.unique())} unique household_ids in persons")

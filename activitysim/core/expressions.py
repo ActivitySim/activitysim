@@ -56,7 +56,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
 
     df_name = model_settings.get('DF')
     helper_table_names = model_settings.get('TABLES', [])
-    expressions_spec_name = model_settings.get('SPEC', model_settings_name)
+    expressions_spec_name = model_settings.get('SPEC', None)
 
     assert expressions_spec_name is not None, \
         "Expected to find 'SPEC' in %s" % model_settings_name

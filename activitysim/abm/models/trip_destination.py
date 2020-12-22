@@ -21,7 +21,7 @@ from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
-from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
@@ -202,7 +202,7 @@ def compute_logsums(
 
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions
-        locals_dict.update(network_los.setting('TRANSIT_VIRTUAL_PATH_SETTINGS.tour_mode_choice.CONSTANTS'))
+        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     # - od_logsums
     od_skims = {
@@ -268,7 +268,7 @@ def trip_destination_simulate(
     choices - pandas.Series
         destination alt chosen
     """
-    trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_simulate')
+    trace_label = tracing.extend_trace_label(trace_label, 'trip_dest_simulate')
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SPEC', primary_purpose)
 
@@ -430,7 +430,7 @@ def wrap_skims(model_settings, trace_label):
 
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
-        tvpb = TransitVirtualPathBuilder(network_los)
+        tvpb = network_los.tvpb
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
                                            tod_key='trip_period', segment_key='demographic_segment',

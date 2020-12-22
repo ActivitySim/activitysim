@@ -63,7 +63,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         Will have the index of `df` and a single column of utilities
 
     """
-    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utilities")
+    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     assert(len(spec.columns) == 1)
@@ -172,7 +172,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise type(err)(f'{str(err)} evaluating: "{str(expr)}"').with_traceback(err.__traceback__)
+            raise err
 
         # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
 
@@ -316,7 +316,7 @@ def _interaction_simulate(
                                                tracing.extend_trace_label(trace_label, 'eval'))
 
         tracing.trace_df(interaction_utilities[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_utilities'),
+                         tracing.extend_trace_label(trace_label, 'interaction_utils'),
                          slicer='NONE', transpose=False)
 
     # reshape utilities (one utility column and one row per row in model_design)
@@ -327,7 +327,7 @@ def _interaction_simulate(
     chunk.log_df(trace_label, 'utilities', utilities)
 
     if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
+        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utils'),
                          column_labels=['alternative', 'utility'])
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
@@ -391,8 +391,9 @@ def interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skim
     # interaction_df
     sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
 
+    # interaction_df is almost certainly the HWM - if so, no need to worry about the crumbs...
+
     # interaction_utilities utilities probs
-    #FIXME
     sizer.add_elements(0, 'interaction_utilities')
     sizer.add_elements(0, 'utilities')
     sizer.add_elements(0, 'probs')

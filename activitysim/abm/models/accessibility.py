@@ -10,9 +10,10 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import mem
 
 from activitysim.core import los
-from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 logger = logging.getLogger(__name__)
 

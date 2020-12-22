@@ -4,8 +4,6 @@ import logging
 import sys
 import pandas as pd
 
-from collections import OrderedDict
-
 from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import config
@@ -205,16 +203,16 @@ def write_tables(output_dir):
     tables = output_tables_settings.get('tables')
     prefix = output_tables_settings.get('prefix', 'final_')
     h5_store = output_tables_settings.get('h5_store', False)
-
-    if action not in ['include', 'skip']:
-        raise "expected %s action '%s' to be either 'include' or 'skip'" % \
-              (output_tables_settings_name, action)
+    sort = output_tables_settings.get('sort', False)
 
     checkpointed_tables = pipeline.checkpointed_tables()
     if action == 'include':
         output_tables_list = tables
     elif action == 'skip':
         output_tables_list = [t for t in checkpointed_tables if t not in tables]
+    else:
+        raise "expected %s action '%s' to be either 'include' or 'skip'" % \
+              (output_tables_settings_name, action)
 
     for table_name in output_tables_list:
 
@@ -225,6 +223,23 @@ def write_tables(output_dir):
                 logger.warning("Skipping '%s': Table not found." % table_name)
                 continue
             df = pipeline.get_table(table_name)
+
+            if sort:
+                traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+
+                if df.index.name in traceable_table_indexes:
+                    df = df.sort_index()
+                    logger.debug(f"write_tables sorting {table_name} on index {df.index.name}")
+                else:
+                    # find all registered columns we can use to sort this table
+                    # (they are ordered appropriately in traceable_table_indexes)
+                    sort_columns = [c for c in traceable_table_indexes if c in df.columns]
+                    if len(sort_columns) > 0:
+                        df = df.sort_values(by=sort_columns)
+                        logger.debug(f"write_tables sorting {table_name} on columns {sort_columns}")
+                    else:
+                        logger.debug(f"write_tables couldn't find a column or index to sort {table_name}"
+                                     f" in traceable_table_indexes: {traceable_table_indexes}")
 
         if h5_store:
             file_path = config.output_file_path('%soutput_tables.h5' % prefix)

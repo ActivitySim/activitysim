@@ -7,7 +7,7 @@ from activitysim.core import los
 from activitysim.core import inject
 
 
-from activitysim.core.transit_virtual_path_builder import TransitVirtualPathBuilder
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 
 logger = logging.getLogger(__name__)

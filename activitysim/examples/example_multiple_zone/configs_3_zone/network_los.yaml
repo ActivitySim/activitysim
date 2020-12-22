@@ -2,6 +2,21 @@ inherit_settings: True
 
 zone_system: 3
 
+skim_dict_factory: NumpyArraySkimFactory
+#skim_dict_factory: MemMapSkimFactory
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: True
+
+# rebuild and overwrite existing tap_tap_utilities cache
+rebuild_tvpb_cache: True
+
+# write a csv version of tvpb cache for tracing when checkpointing cache.
+# (writes csv file when writing/checkpointing cache i.e. when cached changed)
+# (n.b. csv file could be quite large if cache is STATIC!)
+trace_tvpb_cache_as_csv: False
 
 taz_skims: taz_skims.omx
 
@@ -36,14 +51,18 @@ maz_to_tap:
     table: maz_to_tap_drive.csv
 
 
-TRANSIT_VIRTUAL_PATH_SETTINGS:
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 60
+    periods: [0, 6, 11, 16, 20, 24]
+    labels: &skim_time_period_labels ['EA', 'AM', 'MD', 'PM', 'EV']
 
-  # FIXME we need to know demographic_segments and time_periods to pre-compute tap-tap utilities
-  # FIXME this has to be explicitly specified, since demographic_segments are assigned in expression files
-  # this should perhaps be reorganized to accomodate accessibility calculations
-  demographic_segments:
-    low_income: &low_income_segment_id 0
-    high_income: &high_income_segment_id 1
+demographic_segments: &demographic_segments
+  - &low_income_segment_id 0
+  - &high_income_segment_id 1
+
+# transit virtual path builder settings
+TVPB_SETTINGS:
 
   tour_mode_choice:
     units: utility
@@ -63,16 +82,20 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
         egress: drive
         max_paths_across_tap_sets: 3
         max_paths_per_tap_set: 1
-    tap_tap_expressions:
+    tap_tap_settings:
       SPEC: tvpb_utility_tap_tap.csv
       PREPROCESSOR:
         SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
         DF: df
-#      sets:  # this is redundant - should match alternative columns in spec
-#        - fastest
-#        - cheapest
-#        - shortest
-    maz_tap_expressions:
+      # FIXME this has to be explicitly specified, since e.g. attribute columns are assigned in expression files
+      attribute_segments:
+        demographic_segment: *demographic_segments
+        tod: *skim_time_period_labels
+        access_mode: ['drive', 'walk']
+      attributes_as_columns:
+        - demographic_segment
+        - tod
+    maz_tap_settings:
       walk:
         SPEC: tvpb_utility_walk_maz_tap.csv
         CHOOSER_COLUMNS:
@@ -119,11 +142,11 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
         egress: walk
         max_paths_across_tap_sets: 1
         max_paths_per_tap_set: 1
-    tap_tap_expressions:
+    tap_tap_settings:
       SPEC: tvpb_accessibility_tap_tap_.csv
 #      sets:
 #        - transit
-    maz_tap_expressions:
+    maz_tap_settings:
         walk:
           SPEC: tvpb_accessibility_walk_maz_tap.csv
           CHOOSER_COLUMNS:
@@ -132,8 +155,3 @@ TRANSIT_VIRTUAL_PATH_SETTINGS:
         out_of_vehicle_walk_time_weight: 1.5
         out_of_vehicle_wait_time_weight: 2.0
 
-skim_time_periods:
-    time_window: 1440
-    period_minutes: 60
-    periods: [0, 6, 11, 16, 20, 24]
-    labels: ['EA', 'AM', 'MD', 'PM', 'EV']

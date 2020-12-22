@@ -1,13 +1,14 @@
 inherit_settings: True
 
 # number of households to simulate
-households_sample_size: 100
+#households_sample_size: 200000
+households_sample_size: 500
 
-#chunk_size: 2500000000
+#chunk_size: 4000000000
 chunk_size: 0
 
-trace_hh_id: 662398
-
+#trace_hh_id: 662398
+# trace_hh_id: 479617
 
 # input tables
 input_table_list:
@@ -40,7 +41,7 @@ input_table_list:
       - type
       - value_of_time
       - fp_choice
-      #- SEX
+      - SEX
       #- SCHL
       #- OCCP
       #- WKHP
@@ -64,6 +65,10 @@ input_table_list:
       - hparkcost
       - TERMINALTIME
       - county_id
+      - TotInt
+      - EmpDen
+      - RetEmpDen
+      - DUDen
 #      - level_0
 #      - index
 #      - MAZ_ORIGINAL
@@ -124,10 +129,6 @@ input_table_list:
 #      - parkarea
 #      - MAZ_X
 #      - MAZ_Y
-#      - TotInt
-#      - EmpDen
-#      - RetEmpDen
-#      - DUDen
 #      - PopDen
 #      - IntDenBin
 #      - EmpDenBin
@@ -195,20 +196,31 @@ use_shadow_pricing: False
 # (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
 want_dest_choice_sample_tables: False
 
+#resume_after: initialize_tvpb
+
 models:
   - initialize_landuse
   - initialize_households
-  #- initialize_los
   - initialize_tours
+  # --- STATIC cache prebuild steps
+  # single-process step to create attribute_combination list
+  - initialize_los
+  # multi-processable step to build STATIC cache
+  # (this step is a NOP if cache already exists and network_los.rebuild_tvpb_cache setting is False)
+  - initialize_tvpb
+  # ---
   - tour_mode_choice_simulate
   - write_data_dictionary
   - track_skim_usage
   - write_tables
+  - write_summaries
 
 output_tables:
   h5_store: False
   action: include
   prefix: final_
+  # FIXME sort is an undocumented feature - sorts table by best index or ref_col according to traceable_table_indexes
+  sort: True
   tables:
     - checkpoints
     - accessibility
@@ -216,3 +228,10 @@ output_tables:
     - households
     - persons
     - tours
+    - attribute_combinations
+
+output_summaries:
+  tours:
+    - tour_mode
+    - od_path_set
+    - do_path_set

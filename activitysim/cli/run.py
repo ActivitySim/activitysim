@@ -14,7 +14,7 @@ from activitysim.core import chunk
 logger = logging.getLogger(__name__)
 
 
-INJECTABLES = ['data_dir', 'configs_dir', 'output_dir']
+INJECTABLES = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name']
 
 
 def add_run_args(parser, multiprocess=True):
@@ -46,6 +46,10 @@ def add_run_args(parser, multiprocess=True):
                         type=str,
                         metavar='FILE',
                         help='pipeline file name')
+    parser.add_argument('-s', '--settings_file',
+                        type=str,
+                        metavar='FILE',
+                        help='settings file name')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
@@ -86,6 +90,9 @@ def handle_standard_args(args, multiprocess=True):
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
+
+    if args.settings_file:
+        inject_arg('settings_file_name', args.settings_file)
 
     if args.config:
         inject_arg('configs_dir', args.config)

@@ -3,3 +3,4 @@ configs_build*/
 #data_*/
 output_*/
 simulation.py
+override_configs/

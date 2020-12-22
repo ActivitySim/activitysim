@@ -18,7 +18,7 @@ from . import util
 from . import assign
 from . import chunk
 
-from . import transit_virtual_path_builder as tvpb
+from . import pathbuilder
 
 logger = logging.getLogger(__name__)
 
@@ -295,7 +295,7 @@ def eval_coefficients(spec, coefficients, estimator):
 
 def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                    have_trace_targets=False, trace_all_rows=False,
-                   estimator=None, chooser_tag_col_name=None):
+                   estimator=None, trace_column_names=None):
     """
 
     Parameters
@@ -313,6 +313,8 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     trace_all_rows: boolean - trace all chooser rows, bypassing tracing.trace_targets
     estimator :
         called to report intermediate table results (used for estimation)
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -321,7 +323,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     # fixme - restore tracing and _check_for_variability
 
-    trace_label = tracing.extend_trace_label(trace_label, 'eval_utilities')
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_utils')
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
     locals_dict = assign.local_utilities()
@@ -353,7 +355,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise type(err)(f'{str(err)} evaluating: "{str(expr)}"').with_traceback(err.__traceback__)
+            raise err
 
     if estimator:
         df = pd.DataFrame(
@@ -390,10 +392,10 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
         expression_values_df = pd.DataFrame(data=data, index=index)
 
-        if chooser_tag_col_name is not None:
-            if isinstance(chooser_tag_col_name, str):
-                chooser_tag_col_name = [chooser_tag_col_name]
-            expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, chooser_tag_col_name])
+        if trace_column_names is not None:
+            if isinstance(trace_column_names, str):
+                trace_column_names = [trace_column_names]
+            expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, trace_column_names])
 
         tracing.trace_df(expression_values_df, tracing.extend_trace_label(trace_label, 'expression_values'),
                          slicer=None, transpose=False)
@@ -491,7 +493,7 @@ def eval_variables(exprs, df, locals_d=None):
 
         except Exception as err:
             logger.exception(f"Variable evaluation failed {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise type(err)(f'{str(err)} evaluating: "{str(expr)}"').with_traceback(err.__traceback__)
+            raise err
 
     values = util.df_from_dict(values, index=df.index)
 
@@ -713,7 +715,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 
 def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
              want_logsums=False, trace_label=None,
-             trace_choice_name=None, chooser_tag_col_name=None):
+             trace_choice_name=None, trace_column_names=None):
     """
     Run a simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -746,6 +748,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -765,7 +769,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 
     utilities = eval_utilities(spec, choosers, locals_d,
                                trace_label=trace_label, have_trace_targets=have_trace_targets,
-                               estimator=estimator, chooser_tag_col_name=chooser_tag_col_name)
+                               estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
@@ -803,7 +807,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 
 def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
             want_logsums=False, trace_label=None,
-            trace_choice_name=None, chooser_tag_col_name=None):
+            trace_choice_name=None, trace_column_names=None):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -831,6 +835,8 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -850,7 +856,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
 
     raw_utilities = eval_utilities(spec, choosers, locals_d,
                                    trace_label=trace_label, have_trace_targets=have_trace_targets,
-                                   estimator=estimator, chooser_tag_col_name=chooser_tag_col_name)
+                                   estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
@@ -938,7 +944,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                      custom_chooser=None,
                      want_logsums=False,
                      estimator=None,
-                     trace_label=None, trace_choice_name=None, chooser_tag_col_name=None,
+                     trace_label=None, trace_choice_name=None, trace_column_names=None,
                      ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -975,6 +981,8 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
 
     Returns
     -------
@@ -991,13 +999,13 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                            want_logsums=want_logsums,
                            estimator=estimator,
                            trace_label=trace_label,
-                           trace_choice_name=trace_choice_name, chooser_tag_col_name=chooser_tag_col_name)
+                           trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
     else:
         choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
                           want_logsums=want_logsums,
                           estimator=estimator,
                           trace_label=trace_label,
-                          trace_choice_name=trace_choice_name, chooser_tag_col_name=chooser_tag_col_name)
+                          trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
 
     return choices
 
@@ -1011,7 +1019,7 @@ def tvpb_skims(skims):
             else [skims] if skims is not None \
             else []
 
-    return [skim for skim in list_of_skims(skims) if isinstance(skim, tvpb.TransitVirtualPathLogsumWrapper)]
+    return [skim for skim in list_of_skims(skims) if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)]
 
 
 def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):
@@ -1026,12 +1034,10 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
     # if there are skims, and zone_system is THREE_ZONE, and there are any
     # then we want to estimate the per-row overhead tvpb skims
     # (do this first to facilitate tracing of rowsize estimation below)
-    #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
-        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        # DISABLE_TVPB_OVERHEAD
+        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
-    else:
-        skim_oh = None
 
     #  expression_values for each spec row
     sizer.add_elements(spec.shape[0], 'expression_values')
@@ -1052,9 +1058,6 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
         # nested_probabilities less 1 since it lacks root
         sizer.add_elements(nest_size - 1, 'nested_probabilities')
 
-    if skim_oh:
-        sizer.add_elements(skim_oh, f'skim_oh for {skim_tag}')
-
     logger.debug(f"{trace_label} #chunk_calc row_size hwm after {sizer.hwm_tag} {sizer.hwm}")
 
     row_size = sizer.get_hwm()
@@ -1066,7 +1069,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     chunk_size=0, custom_chooser=None,
                     want_logsums=False,
                     estimator=None,
-                    trace_label=None, trace_choice_name=None, chooser_tag_col_name=None):
+                    trace_label=None, trace_choice_name=None, trace_column_names=None):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -1093,7 +1096,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
             estimator=estimator,
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
-            chooser_tag_col_name=chooser_tag_col_name)
+            trace_column_names=trace_column_names)
 
         result_list.append(choices)
 
@@ -1270,13 +1273,11 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
     # if there are skims, and zone_system is THREE_ZONE, and there are any
     # then we want to estimate the per-row overhead tvpb skims
     # (do this first to facilitate tracing of rowsize estimation below)
-    #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
+        # DISABLE_TVPB_OVERHEAD
         # skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
-        logger.info("disable calc_row_size for THREE_ZONE with tap skims")
+        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
-    else:
-        skim_oh = None
 
     sizer = chunk.RowSizeEstimator(trace_label)
 
@@ -1294,9 +1295,6 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
                        " so chunk sizing might be a bit off")
     else:
         sizer.add_elements(logit.count_nests(nest_spec), 'nested_exp_utilities')
-
-    if skim_oh:
-        sizer.add_elements(skim_oh, f'skim_oh for {skim_tag}')
 
     row_size = sizer.get_hwm()
 

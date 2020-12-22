@@ -29,6 +29,26 @@ def df_size(df):
     return "%s %s" % (df.shape, GB(bytes))
 
 
+def iprod(ints):
+    """
+    Return the product of hte ints in the list or tuple as an unlimited precision python int
+
+    Specifically intended to compute arrray/buffer size for skims where np.proc might overflow for default dtypes.
+    (Narrowing rules for np.prod are different on Windows and linux)
+    an alternative to the unwieldy: int(np.prod(ints, dtype=np.int64))
+
+    Parameters
+    ----------
+    ints: list or tuple of ints or int wannabees
+
+    Returns
+    -------
+    returns python int
+    """
+    assert len(ints) > 0
+    return int(np.prod(ints, dtype=np.int64))
+
+
 def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):
     """
     like pandas left merge, but join on both index and a specified join_col

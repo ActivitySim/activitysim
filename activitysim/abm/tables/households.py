@@ -5,11 +5,11 @@ from builtins import range
 import logging
 
 import pandas as pd
-import numpy as np
 
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
+from activitysim.core import mem
 
 from activitysim.core.input import read_input_table
 
@@ -97,8 +97,8 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
 
     pipeline.get_rn_generator().add_channel('households', df)
 
+    tracing.register_traceable_table('households', df)
     if trace_hh_id:
-        tracing.register_traceable_table('households', df)
         tracing.trace_df(df, "raw.households", warn_if_empty=True)
 
     return df

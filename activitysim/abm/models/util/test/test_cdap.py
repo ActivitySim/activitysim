@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 
 import os.path
+import yaml
 
 import pandas as pd
 import pandas.testing as pdt
@@ -29,6 +30,16 @@ def people(data_dir):
 def teardown_function(func):
     inject.clear_cache()
     inject.reinject_decorated_tables()
+@pytest.fixture(scope='module')
+
+
+def model_settings(configs_dir):
+    yml_file = os.path.join(configs_dir, 'cdap.yaml')
+    with open(yml_file) as f:
+        model_settings = yaml.load(f, Loader=yaml.loader.SafeLoader)
+    return model_settings
+
+
 
 
 def setup_function():
@@ -48,9 +59,11 @@ def test_bad_coefficients():
     assert "Expect only M, N, or H" in str(excinfo.value)
 
 
-def test_assign_cdap_rank(people):
+def test_assign_cdap_rank(people, model_settings):
 
-    cdap.assign_cdap_rank(people)
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
+
+    cdap.assign_cdap_rank(people, person_type_map)
 
     expected = pd.Series(
         [1, 1, 1, 2, 2, 1, 3, 1, 2, 1, 3, 2, 1, 3, 2, 4, 1, 3, 4, 2],
@@ -60,11 +73,10 @@ def test_assign_cdap_rank(people):
     pdt.assert_series_equal(people['cdap_rank'], expected, check_dtype=False, check_names=False)
 
 
-def test_individual_utilities(people):
+def test_individual_utilities(people, cdap_indiv_and_hhsize1, model_settings):
 
-    cdap_indiv_and_hhsize1 = simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv')
-
-    cdap.assign_cdap_rank(people)
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
+    cdap.assign_cdap_rank(people, person_type_map)
     individual_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
     individual_utils = individual_utils[['M', 'N', 'H']]
@@ -96,15 +108,13 @@ def test_individual_utilities(people):
         individual_utils, expected, check_dtype=False, check_names=False)
 
 
-def test_build_cdap_spec_hhsize2(people):
+def test_build_cdap_spec_hhsize2(people, cdap_indiv_and_hhsize1, cdap_interaction_coefficients, model_settings):
 
     hhsize = 2
     cdap_indiv_and_hhsize1 = simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv')
 
-    interaction_coefficients = pd.read_csv(config.config_file_path('cdap_interaction_coefficients.csv'), comment='#')
-    interaction_coefficients = cdap.preprocess_interaction_coefficients(interaction_coefficients)
-
-    cdap.assign_cdap_rank(people)
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
+    cdap.assign_cdap_rank(people, person_type_map)
     indiv_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
     choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)

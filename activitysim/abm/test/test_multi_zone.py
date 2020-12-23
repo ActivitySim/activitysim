@@ -24,7 +24,7 @@ EXPECT_2_ZONE_TOUR_COUNT = 205
 
 # 3-zone is currently big and slow - so set this way low
 HOUSEHOLDS_SAMPLE_SIZE_3_ZONE = 10
-EXPECT_3_ZONE_TOUR_COUNT = 26
+EXPECT_3_ZONE_TOUR_COUNT = 30
 
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
@@ -85,9 +85,12 @@ def close_handlers():
 
 def inject_settings(**kwargs):
 
-    settings = config.read_settings_file('settings.yaml', mandatory=True)
-
     for k in kwargs:
+        if k == "two_zone":
+            if kwargs[k]:
+                settings = config.read_settings_file('settings.yaml', mandatory=True)
+            else:
+                settings = config.read_settings_file('settings_static.yaml', mandatory=True)
         settings[k] = kwargs[k]
 
     inject.add_injectable("settings", settings)
@@ -98,11 +101,12 @@ def inject_settings(**kwargs):
 def full_run(configs_dir, data_dir,
              resume_after=None, chunk_size=0,
              households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-             trace_hh_id=None, trace_od=None, check_for_variability=None):
+             trace_hh_id=None, trace_od=None, check_for_variability=None, two_zone=True):
 
     setup_dirs(configs_dir, data_dir)
 
     settings = inject_settings(
+        two_zone=two_zone,
         households_sample_size=households_sample_size,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
@@ -164,7 +168,7 @@ def test_full_run_2_zone():
     tour_count = full_run(configs_dir=[example_path('configs_2_zone'), mtc_example_path('configs')],
                           data_dir=example_path('data_2'),
                           trace_hh_id=HH_ID, check_for_variability=True,
-                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, two_zone=True)
 
     print("tour_count", tour_count)
 
@@ -181,7 +185,7 @@ def test_full_run_3_zone():
     tour_count = full_run(configs_dir=[example_path('configs_3_zone'), mtc_example_path('configs')],
                           data_dir=example_path('data_3'),
                           trace_hh_id=HH_ID_3_ZONE, check_for_variability=True,
-                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE_3_ZONE)
+                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE_3_ZONE, two_zone=False)
 
     print("tour_count", tour_count)
 

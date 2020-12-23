@@ -173,15 +173,18 @@ with \
 
                     tap_skim_name = f'{transit_mode}_{datum_name}_{suffix}__{tod}'
                     output_tap_skims_file[tap_skim_name] = new_skim * random_variation
-                    print(f"tap skim: {skim_name} tap_skim_name: {tap_skim_name}, "
-                          f"shape: {str(output_tap_skims_file.shape())}")
+                    # print(f"tap skim: {skim_name} tap_skim_name: {tap_skim_name}, "
+                    #       f"shape: {str(output_tap_skims_file.shape())}")
 
         if is_taz_mode:
             output_taz_skims_file[skim_name] = new_skim
-            print("taz skim:", skim_name, ": shape", str(output_taz_skims_file.shape()))
+            # print("taz skim:", skim_name, ": shape", str(output_taz_skims_file.shape()))
 
     output_taz_skims_file.create_mapping("taz", taz_zone_labels)
     output_tap_skims_file.create_mapping("tap", tap_zone_labels)
+
+print("taz skims created: " + os.path.join(output_data, 'taz_skims.omx'))
+print("tap skims created: " + os.path.join(output_data, 'tap_skims.omx'))
 
 # Create maz to tap distance file by mode
 

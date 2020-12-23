@@ -113,10 +113,11 @@ with omx.open_file(os.path.join(input_data, 'skims.omx'), 'r') as skims_file, \
         old_skim = skims_file[skim_name][:]
         new_skim = old_skim[new_zone_indexes, :][:, new_zone_indexes]
         output_skims_file[skim_name] = new_skim
-        print("skim:", skim_name, ": shape", str(new_skim.shape))
+        # print("skim:", skim_name, ": shape", str(new_skim.shape))
 
     output_skims_file.create_mapping("taz", new_zone_labels)
 
+print("taz skims created: " + os.path.join(output_data, 'taz_skims.omx'))
 
 # ### Create maz to maz time/distance
 

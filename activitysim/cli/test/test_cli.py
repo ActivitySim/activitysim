@@ -47,7 +47,7 @@ def test_create_copy():
     assert 'copying output ...' in str(cp.stdout)
 
     # replace slashes on windows
-    assert str(target).replace("\\\\","\\") in str(cp.stdout).replace("\\\\","\\")
+    assert str(target).replace("\\\\", "\\") in str(cp.stdout).replace("\\\\", "\\")
 
     assert os.path.exists(target)
     for folder in ['configs', 'configs_mp', 'data', 'output']:

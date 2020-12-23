@@ -39,13 +39,16 @@ def model_settings(configs_dir):
         model_settings = yaml.load(f, Loader=yaml.loader.SafeLoader)
     return model_settings
 
+
 @pytest.fixture(scope='module')
 def configs_dir():
     return os.path.join(os.path.dirname(__file__), 'configs')
 
+
 def setup_function():
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     inject.add_injectable("configs_dir", configs_dir)
+
 
 def test_bad_coefficients():
 

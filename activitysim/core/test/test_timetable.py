@@ -183,4 +183,4 @@ def test_basic(persons, tdd_alts):
     starts = pd.Series([9, 6, 9, 5])
     ends = pd.Series([10, 10, 10, 9])
     periods_available = timetable.remaining_periods_available(person_ids, starts, ends)
-    pdt.assert_series_equal(periods_available, pd.Series([6, 3, 4, 3]))
+    pdt.assert_series_equal(periods_available, pd.Series([6, 3, 4, 3]), check_dtype=False)

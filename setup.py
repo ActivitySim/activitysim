@@ -30,7 +30,7 @@ setup(
         'pyarrow >= 2.0',
         'numpy >= 1.16.1',
         'openmatrix >= 0.3.4.1',
-        'pandas >= 1.0.1',
+        'pandas >= 1.1.0',
         'pyyaml >= 5.1',
         'tables >= 3.5.1',
         'toolz >= 0.8.1',

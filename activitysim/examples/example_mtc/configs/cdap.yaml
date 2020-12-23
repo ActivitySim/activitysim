@@ -13,6 +13,15 @@ CONSTANTS:
   SCHOOL: 7
   PRESCHOOL: 8
 
+PERSON_TYPE_MAP:
+  WORKER:
+    - 1
+    - 2
+  CHILD:
+    - 6
+    - 7
+    - 8
+
 annotate_persons:
   SPEC: annotate_persons_cdap
   DF: persons

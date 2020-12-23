@@ -35,9 +35,6 @@ MAX_HHSIZE = 5
 
 MAX_INTERACTION_CARDINALITY = 3
 
-WORKER_PTYPES = [1, 2]
-CHILD_PTYPES = [6, 7, 8]
-
 
 def set_hh_index(df):
 
@@ -61,7 +58,7 @@ def add_pn(col, pnum):
         raise RuntimeError("add_pn col not list or str")
 
 
-def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
+def assign_cdap_rank(persons, person_type_map, trace_hh_id=None, trace_label=None):
     """
     Assign an integer index, cdap_rank, to each household member. (Starting with 1, not 0)
 
@@ -109,7 +106,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 
     # choose up to 2 workers, preferring full over part, older over younger
     workers = \
-        persons.loc[persons[_ptype_].isin(WORKER_PTYPES), [_hh_id_, _ptype_]]\
+        persons.loc[persons[_ptype_].isin(person_type_map['WORKER']), [_hh_id_, _ptype_]]\
         .sort_values(by=[_hh_id_, _ptype_], ascending=[True, True])\
         .groupby(_hh_id_).head(2)
     # tag the selected workers
@@ -118,7 +115,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 
     # choose up to 3, preferring youngest
     children = \
-        persons.loc[persons[_ptype_].isin(CHILD_PTYPES), [_hh_id_, _ptype_, _age_]]\
+        persons.loc[persons[_ptype_].isin(person_type_map['CHILD']), [_hh_id_, _ptype_, _age_]]\
         .sort_values(by=[_hh_id_, _ptype_], ascending=[True, True])\
         .groupby(_hh_id_).head(3)
     # tag the selected children
@@ -795,6 +792,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
 
 def _run_cdap(
         persons,
+        person_type_map,
         cdap_indiv_spec,
         interaction_coefficients,
         cdap_fixed_relative_proportions,
@@ -815,7 +813,7 @@ def _run_cdap(
     # assign integer cdap_rank to each household member
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model
     # extra household members, will have activities assigned by in fixed proportions
-    assign_cdap_rank(persons, trace_hh_id, trace_label)
+    assign_cdap_rank(persons, person_type_map, trace_hh_id, trace_label)
     chunk.log_df(trace_label, 'persons', persons)
 
     # Calculate CDAP utilities for each individual, ignoring interactions
@@ -904,6 +902,7 @@ def cdap_calc_row_size(choosers, cdap_indiv_spec, trace_label):
 
 def run_cdap(
         persons,
+        person_type_map,
         cdap_indiv_spec,
         cdap_interaction_coefficients,
         cdap_fixed_relative_proportions,
@@ -956,6 +955,7 @@ def run_cdap(
 
         cdap_results = \
             _run_cdap(persons_chunk,
+                      person_type_map,
                       cdap_indiv_spec,
                       cdap_interaction_coefficients,
                       cdap_fixed_relative_proportions,

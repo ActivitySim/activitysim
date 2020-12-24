@@ -19,9 +19,9 @@ install:
 - pip freeze
 script:
 # build 2 and 3 zone test data
-- python /home/travis/miniconda/envs/test-environment/lib/$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
-- python /home/travis/miniconda/envs/test-environment/lib/$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
-- ls /home/travis/miniconda/envs/test-environment/lib/$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/data_3
+- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
+- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
+- ls /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/data_3
 - travis_wait 90 py.test --cov activitysim --cov-report term-missing
 after_success:
 - coveralls

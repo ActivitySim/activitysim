@@ -2,6 +2,9 @@ inherit_settings: True
 
 zone_system: 2
 
+read_skim_cache: False
+write_skim_cache: False
+
 taz_skims: taz_skims.omx
 
 maz: maz.csv

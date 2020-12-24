@@ -23,7 +23,7 @@ script:
 - python activitysim/examples/example_multiple_zone/three_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
-- travis_wait 90 py.test --cov activitysim --cov-report term-missing
+- travis_wait 50 py.test --cov activitysim --cov-report term-missing --durations=0
 after_success:
 - coveralls
 # Build docs

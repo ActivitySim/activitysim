@@ -22,30 +22,31 @@ script:
 - python activitysim/examples/example_multiple_zone/three_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_cdap.py --durations=0
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_mandatory_tour_frequency.py --durations=0
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_non_mandatory_tour_frequency.py --durations=0
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_vectorize_tour_scheduling.py --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_misc.py --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_mp_pipeline.py --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_multi_zone.py --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_multi_zone_mp.py --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_pipeline.py --durations=0
-- travis_wait 50 py.test activitysim/cli/test/test_cli.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_assign.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_inject_defaults.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_input.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_logit.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_los.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_mergetables.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_orca.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_pipeline.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_random.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_simulate.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_skim.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_timetable.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_tracing.py --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_util.py --durations=0
+# be explicit about which tests to run to save runtime on travis
+- travis_wait 50 py.test activitysim/abm/models/util/test/test_cdap.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/models/util/test/test_mandatory_tour_frequency.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/models/util/test/test_non_mandatory_tour_frequency.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/models/util/test/test_vectorize_tour_scheduling.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/test/test_misc.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/test/test_mp_pipeline.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/test/test_multi_zone.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/test/test_multi_zone_mp.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/abm/test/test_pipeline.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/cli/test/test_cli.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_assign.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_inject_defaults.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_input.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_logit.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_los.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_mergetables.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_orca.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_pipeline.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_random.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_simulate.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_skim.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_timetable.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_tracing.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test activitysim/core/test/test_util.py --cov activitysim --cov-report term-missing --durations=0
 
 after_success:
 - coveralls

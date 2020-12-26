@@ -2,9 +2,22 @@ os: linux
 arch: arm64-graviton2
 group: edge
 language: python
+
+jobs:
+  include:
+    env: TEST_SUITE=activitysim/abm/models
+    env: TEST_SUITE=activitysim/abm/test/test_misc.py
+    env: TEST_SUITE=activitysim/abm/test/test_mp_pipeline.py
+    env: TEST_SUITE=activitysim/abm/test/test_multi_zone.py
+    env: TEST_SUITE=activitysim/abm/test/test_multi_zone_mp.py
+    env: TEST_SUITE=activitysim/abm/test/test_pipeline.py
+    env: TEST_SUITE=activitysim/cli
+    env: TEST_SUITE=activitysim/core
+
 python:
   - '3.7'
   - '3.8'
+
 install:
 - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
 - bash miniconda.sh -b -p $HOME/miniconda
@@ -18,6 +31,7 @@ install:
 - conda install pytest pytest-cov coveralls pycodestyle
 - pip install .
 - pip freeze
+
 script:
 # build 2 and 3 zone test data
 - python activitysim/examples/example_multiple_zone/two_zone_example_data.py
@@ -25,30 +39,7 @@ script:
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
 # be explicit about which tests to run to save runtime on travis
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_cdap.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_mandatory_tour_frequency.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_non_mandatory_tour_frequency.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/models/util/test/test_vectorize_tour_scheduling.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_misc.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_mp_pipeline.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_multi_zone.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_multi_zone_mp.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/abm/test/test_pipeline.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/cli/test/test_cli.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_assign.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_inject_defaults.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_input.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_logit.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_los.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_mergetables.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_orca.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_pipeline.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_random.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_simulate.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_skim.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_timetable.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_tracing.py --cov activitysim --cov-report term-missing --durations=0
-- travis_wait 50 py.test activitysim/core/test/test_util.py --cov activitysim --cov-report term-missing --durations=0
+- travis_wait 50 py.test $TEST_SUITE --cov activitysim --cov-report term-missing --durations=0
 
 after_success:
 - coveralls

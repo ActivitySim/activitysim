@@ -5,14 +5,14 @@ language: python
 
 jobs:
   include:
-    env: TEST_SUITE=activitysim/abm/models
-    env: TEST_SUITE=activitysim/abm/test/test_misc.py
-    env: TEST_SUITE=activitysim/abm/test/test_mp_pipeline.py
-    env: TEST_SUITE=activitysim/abm/test/test_multi_zone.py
-    env: TEST_SUITE=activitysim/abm/test/test_multi_zone_mp.py
-    env: TEST_SUITE=activitysim/abm/test/test_pipeline.py
-    env: TEST_SUITE=activitysim/cli
-    env: TEST_SUITE=activitysim/core
+  - env: TEST_SUITE=activitysim/abm/models
+  - env: TEST_SUITE=activitysim/abm/test/test_misc.py
+  - env: TEST_SUITE=activitysim/abm/test/test_mp_pipeline.py
+  - env: TEST_SUITE=activitysim/abm/test/test_multi_zone.py
+  - env: TEST_SUITE=activitysim/abm/test/test_multi_zone_mp.py
+  - env: TEST_SUITE=activitysim/abm/test/test_pipeline.py
+  - env: TEST_SUITE=activitysim/cli
+  - env: TEST_SUITE=activitysim/core
 
 python:
   - '3.7'

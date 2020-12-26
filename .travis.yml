@@ -1,5 +1,7 @@
+os: linux
+arch: arm64-graviton2
+group: edge
 language: python
-sudo: false
 python:
   - '3.7'
   - '3.8'

@@ -66,4 +66,3 @@ notifications:
     on_success: never # default: change
     on_failure: always # default: always
     secure: Dpp+zBrnPGBHXrYWjwHy/bnHvhINfepSIiViwKfBZizBvTDvzSJfu6gCH+/lQ3squF3D4qTWwxB+LQ9V6KTYhuma8vQVisyneI6ARjUI/qgX6aJjuvmDDGPk6DVeDow7+aCLZ8VEHRhSjwy+dv0Ij0rxI6I94xPVwXUkk7ZjcK0=
-env:

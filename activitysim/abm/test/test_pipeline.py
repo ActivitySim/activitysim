@@ -309,6 +309,7 @@ def full_run(resume_after=None, chunk_size=0,
         trace_od=trace_od,
         testing_fail_trip_destination=False,
         check_for_variability=check_for_variability,
+        want_dest_choice_sample_tables=False,
         use_shadow_pricing=False)  # shadow pricing breaks replicability when sample_size varies
 
     # FIXME should enable testing_fail_trip_destination?

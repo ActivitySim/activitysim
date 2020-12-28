@@ -154,7 +154,7 @@ def run_trip_purpose(
     spec_file_name = model_settings.get('PROBS_SPEC')
     probs_spec = pd.read_csv(config.config_file_path(spec_file_name), comment='#')
     # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
-    # besides, it isn't clear that named coefficients would be helpful if we ahd some form of estimation
+    # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
     # coefficients_df = simulate.read_model_coefficients(model_settings)
     # probs_spec = map_coefficients(probs_spec, coefficients_df)
 

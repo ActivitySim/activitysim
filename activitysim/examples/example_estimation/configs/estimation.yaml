@@ -25,7 +25,7 @@ bundles:
   - stop_frequency
   - trip_purpose
   - trip_destination
-#  - trip_scheduling
+  - trip_scheduling
 #  - trip_mode_choice
 
 #  - atwork_subtour_mode_choice  subtours.tour_mode
@@ -119,4 +119,4 @@ model_estimation_table_types:
   stop_frequency: simple_simulate
   trip_purpose: simple_probabilistic
   trip_destination: interaction_sample_simulate
-  #trip_scheduling: simple_probabilistic
+  trip_scheduling: simple_probabilistic

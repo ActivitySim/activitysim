@@ -1,4 +1,4 @@
-household_id,TAZ,income,hhsize,HHT,auto_ownership,num_workers,joint_tour_frequency
+household_id,home_zone_id,income,hhsize,HHT,auto_ownership,num_workers,joint_tour_frequency
 2223759,16,144100,2,1,0,2,1_Main
 990869,134,48000,2,1,2,2,0_tours
 125886,113,25900,1,4,1,1,0_tours

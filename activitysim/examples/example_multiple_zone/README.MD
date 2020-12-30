@@ -1,4 +1,4 @@
 
-### MTC Example
+### Multiple zone system setup examples
 
-The primary ActivitySim example model.  See https://activitysim.github.io/activitysim for more information.
+See the [examples manifest](https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml) for more information.

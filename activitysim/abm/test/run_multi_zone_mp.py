@@ -20,6 +20,7 @@ HOUSEHOLDS_SAMPLE_SIZE = 25
 # household with WALK_TRANSIT tours and trips
 HH_ID_3_ZONE = 2848373
 
+
 def test_mp_run():
 
     configs_dir = [example_path('configs_3_zone'), mtc_example_path('configs')]
@@ -34,7 +35,8 @@ def test_mp_run():
     mp_tasks.print_run_list(run_list)
 
     # do this after config.handle_standard_args, as command line args may override injectables
-    injectables = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name', 'households_sample_size', 'trace_hh_id']
+    injectables = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name',
+                   'households_sample_size', 'trace_hh_id']
     injectables = {k: inject.get_injectable(k) for k in injectables}
 
     mp_tasks.run_multiprocess(run_list, injectables)

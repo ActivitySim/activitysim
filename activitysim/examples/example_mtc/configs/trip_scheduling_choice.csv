@@ -33,7 +33,7 @@ Escort tour - Main Leg time,@df['tour_type']=='escort',-0.005499
 "Shopping tour,ASC for Legtime = 1",@(df['main_leg_duration'] == 1)&(df['tour_type']=='shopping'),-1.8461
 "Shopping tour,ASC for Legtime = 2",@(df['main_leg_duration'] == 2)&(df['tour_type']=='shopping'),-0.81101
 "Shopping tour,ASC for Legtime = 3",@(df['main_leg_duration'] == 3)&(df['tour_type']=='shopping'),-0.42265
-"Shopping tour,ASC for Legtime = 4",@(df['main_leg_duration'] == 4&(df['tour_type']=='shopping'),-0.25089
+"Shopping tour,ASC for Legtime = 4",@(df['main_leg_duration'] == 4)&(df['tour_type']=='shopping'),-0.25089
 Shopping tour - Main Leg time,@df['tour_type']=='shopping',-0.30597
 Social tour - Main Leg time,@df['tour_type']=='social',1.1482
 Social tour - Shift,@df['tour_type']=='social',-0.94185

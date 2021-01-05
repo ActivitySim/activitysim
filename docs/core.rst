@@ -371,8 +371,9 @@ Transit Virtual Path Builder
 ----------------------------
 
 Transit virtual path builder (TVPB) for three zone system (see :ref:`multiple_zone_systems`) transit path utility calculations.
-TAP to TAP skims (local bus only, all modes, etc.) and walk access and egress times between MAZs and TAPs are input to the 
-demand model.  ActivitySim then assembles the total transit path utility from the respective components:
+TAP to TAP skims and walk access and egress times between MAZs and TAPs are input to the 
+demand model.  ActivitySim then assembles the total transit path utility based on the user specified TVPB 
+expression files for the respective components:
 
 * from MAZ to first boarding TAP + 
 * from first boarding to final alighting TAP + 
@@ -388,7 +389,7 @@ which are typically demographic segment (for example household income bin), time
 run in both single process and multiprocess mode, with single process excellent for development/debugging and multiprocess excellent
 for application.  ActivitySim saves the pre-calculated TAP to TAP total utilities to a memory mapped cache file for reuse by downstream models 
 such as tour mode choice.  In tour mode choice, the pre-computed TAP to TAP total utilities for the attribute_segment, along with the 
-access and egress impedances, are used to evalute the best N TAP pairs for each origin MAZ destination MAZ pair being evaluated.  
+access and egress impedances, are used to evaluate the best N TAP pairs for each origin MAZ destination MAZ pair being evaluated.  
 Assembling the total transit path impedance and then picking the best N is quick since it is done in a de-duplicated manner within 
 each chunk of multiprocessed choosers.
 

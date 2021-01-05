@@ -1074,8 +1074,8 @@ Unlike the one and two zone system approach, the three zone system approach requ
 * ``TVPB_SETTINGS:tap_tap_settings:PREPROCESSOR:SPEC`` - TAP to TAP chooser preprocessor, e.g. tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
 * ``TVPB_SETTINGS:maz_tap_settings:walk:SPEC`` - MAZ to TAP {walk} expressions, e.g. tvpb_utility_walk_maz_tap.csv
 * ``TVPB_SETTINGS:maz_tap_settings:drive:SPEC`` - MAZ to TAP {drive} expressions, e.g. tvpb_utility_drive_maz_tap.csv
-* ``TVPB_SETTINGS:accessibility:tap_tap_settings:SPEC`` - TAP to TAP expresisons for the accessibility calculator, e.g. tvpb_accessibility_tap_tap.csv
-* ``TVPB_SETTINGS:accessibility:maz_tap_settings:walk:SPEC`` - MAz to TAP {walk} expresisons for the accessibility calculator, e.g. tvpb_accessibility_walk_maz_tap.csv
+* ``TVPB_SETTINGS:accessibility:tap_tap_settings:SPEC`` - TAP to TAP expressions for the accessibility calculator, e.g. tvpb_accessibility_tap_tap.csv
+* ``TVPB_SETTINGS:accessibility:maz_tap_settings:walk:SPEC`` - MAz to TAP {walk} expressions for the accessibility calculator, e.g. tvpb_accessibility_walk_maz_tap.csv
 
 Additional settings to configure the TVPB are:
 

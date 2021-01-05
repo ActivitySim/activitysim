@@ -362,6 +362,11 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
     # This slice should only include trip numbers greater than 2 since the
     side_trips = trips[(trips['trip_num'] != 1) & (trips['trip_count'] != trips['trip_num'])]
 
+    # No processing needs to be done because we have simple trips / tours
+    if side_trips.empty:
+        assert trips['depart'].notnull().all
+        return trips['depart'].astype(int)
+
     # Get the potential time windows
     time_windows = get_time_windows(side_trips[TRIP_DURATION].max(), side_trips[TRIP_COUNT].max() - 1)
 

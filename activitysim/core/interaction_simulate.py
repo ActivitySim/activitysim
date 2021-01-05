@@ -75,6 +75,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
     def to_series(x):
         if np.isscalar(x):
             return pd.Series([x] * len(df), index=df.index)
+        if isinstance(x, np.ndarray):
+            return pd.Series(x, index=df.index)
         return x
 
     if trace_rows is not None and trace_rows.any():

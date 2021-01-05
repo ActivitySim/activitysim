@@ -116,7 +116,7 @@ def regress_mini_auto():
 
     # regression test: these are among the middle households in households table
     # should be the same results as in run_mp (multiprocessing) test case
-    hh_ids = [1099626, 1173905, 1196298, 1286259] 
+    hh_ids = [1099626, 1173905, 1196298, 1286259]
     choices = [1, 1, 0, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')

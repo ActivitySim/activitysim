@@ -8,6 +8,7 @@ from activitysim.abm.models.util.trip import get_time_windows
 from activitysim.core import los
 from .test_pipeline import setup_dirs
 
+
 @pytest.fixture(scope='module')
 def trips():
     outbound_array = [True, True, False, False, False, True, True, False, False, True]

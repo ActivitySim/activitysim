@@ -70,6 +70,9 @@ def memo(tag, console=False, disable_gc=True):
 
 
 class TVPBCache(object):
+    """
+    Transit virtual path builder cache for three zone systems
+    """
     def __init__(self, network_los, uid_calculator, cache_tag):
 
         # lightweight until opened
@@ -262,9 +265,7 @@ class TVPBCache(object):
     def get_data_and_lock_from_buffers(self):
         """
         return shared data buffer previously allocated by allocate_data_buffer and injected mp_tasks.run_simulation
-        Returns
-        -------
-            either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
+        Returns either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
         """
         data_buffers = inject.get_injectable('data_buffers', None)
         assert self.cache_tag in data_buffers  # internal error
@@ -281,7 +282,9 @@ class TVPBCache(object):
 
 
 class TapTapUidCalculator(object):
-
+    """
+    Transit virtual path builder TAP to TAP unique ID calculator for three zone systems
+    """
     def __init__(self, network_los):
 
         self.network_los = network_los

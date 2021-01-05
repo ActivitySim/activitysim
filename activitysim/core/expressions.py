@@ -132,9 +132,11 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
 def skim_time_period_label(time_period):
     """
     convert time period times to skim time period labels (e.g. 9 -> 'AM')
+
     Parameters
     ----------
     time_period : pandas Series
+
     Returns
     -------
     pandas Series

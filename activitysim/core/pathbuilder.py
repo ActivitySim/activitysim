@@ -38,7 +38,9 @@ CACHE_TAG = 'tap_tap_utilities'
 
 def compute_utilities(network_los, model_settings, choosers, model_constants,
                       trace_label, trace=False, trace_column_names=None):
-
+    """
+    Compute utilities
+    """
     with chunk.chunk_log(f'tvpb compute_utilities'):
         trace_label = tracing.extend_trace_label(trace_label, 'compute_utils')
 
@@ -80,7 +82,9 @@ def compute_utilities(network_los, model_settings, choosers, model_constants,
 
 
 class TransitVirtualPathBuilder(object):
-
+    """
+    Transit virtual path builder for three zone systems
+    """
     def __init__(self, network_los):
 
         self.network_los = network_los
@@ -782,7 +786,9 @@ class TransitVirtualPathBuilder(object):
 
 
 class TransitVirtualPathLogsumWrapper(object):
-
+    """
+    Transit virtual path builder logsum wrapper for three zone systems
+    """
     def __init__(self, pathbuilder, orig_key, dest_key, tod_key, segment_key,
                  cache_choices, trace_label, tag):
 

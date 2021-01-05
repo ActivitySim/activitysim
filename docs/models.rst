@@ -10,6 +10,7 @@ model :ref:`sub-model-spec-files` for more information.
 
 .. _initialize_landuse:
 .. _initialize_households:
+.. _initialize_tours:
 
 Initialize
 ----------
@@ -22,11 +23,34 @@ they are initially loaded in.
 
 The main interface to the initialize land use step is the :py:func:`~activitysim.abm.models.initialize.initialize_landuse` 
 function. The main interface to the initialize household step is the :py:func:`~activitysim.abm.models.initialize.initialize_households` 
+function.  The main interface to the initialize tours step is the :py:func:`~activitysim.abm.models.initialize_tours.initialize_tours` 
 function.  These functions are registered as orca steps in the example Pipeline.
 
 .. automodule:: activitysim.abm.models.initialize
    :members:
-   
+ 
+.. automodule:: activitysim.abm.models.initialize_tours
+   :members:
+
+.. _initialize_los:
+.. _initialize_tvpb:
+
+Initialize LOS
+--------------
+
+The initialize LOS model isn't really a model, but rather a series of data processing steps in the data pipeline.  
+The initialize LOS model does two things:
+
+  * Loads skims and cache for later if desired
+  * Loads network LOS inputs for transit virtual path building (see :ref:`transit_virtual_path_builder`), pre-computes tap-to-tap total utilities and cache for later if desired
+
+The main interface to the initialize LOS step is the :py:func:`~activitysim.abm.models.initialize_los.initialize_los` 
+function.  The main interface to the initialize TVPB step is the :py:func:`~activitysim.abm.models.initialize_los.initialize_tvpb` 
+function.  These functions are registered as orca steps in the example Pipeline.
+
+.. automodule:: activitysim.abm.models.initialize_los
+   :members:
+
 .. _accessibility:
 
 Accessibility
@@ -804,17 +828,6 @@ Estimation
 See :ref:`estimation` for more information.
 
 .. automodule:: activitysim.abm.models.util.estimation
-   :members:
-
-Expressions
-~~~~~~~~~~~
-
-The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate 
-a number of additional table fields, and join the fields to the target table.  An example table annotation expressions 
-file is found in the example configuration files for households for the CDAP model - 
-`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
-
-.. automodule:: activitysim.abm.models.util.expressions
    :members:
 
 Logsums

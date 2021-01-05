@@ -29,6 +29,7 @@ from . import trip_destination
 from . import trip_mode_choice
 from . import trip_purpose
 from . import trip_purpose_and_destination
+from . import trip_scheduling
 from . import trip_departure_choice
 from . import trip_scheduling_choice
 from . import trip_matrices

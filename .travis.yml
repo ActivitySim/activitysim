@@ -6,6 +6,7 @@ env:
    # GH_TOKEN ActivitySim/activitysim public_repo token
   - secure: WZeCAmI08hBRgtVWUlerfizvSpOVlBxQDa/Z6HJiDUlIXdSAOIi7TAwnluOgs3lHbSqACegbLCU9CyIQa/ytwmmuwzltkSQN14EcnKea0bXyygd8DFdx4x8st8M3a4nh2svgp4BDM9PCu6T1XIZ1rYM46JsKzNk9X8GpWOVN498=
   jobs:
+   # Add new TEST_SUITE jobs as needed via Travis build matrix expansion
   - TEST_SUITE=activitysim/abm/models
   - TEST_SUITE=activitysim/abm/test/test_misc.py
   - TEST_SUITE=activitysim/abm/test/test_mp_pipeline.py
@@ -34,14 +35,14 @@ install:
 - pip freeze
 
 script:
-# build 2 and 3 zone test data
+# build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
 - python activitysim/examples/example_multiple_zone/two_zone_example_data.py
 - python activitysim/examples/example_multiple_zone/three_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
 # pycodestyle
 - pycodestyle activitysim
-# runs tests in parallel on travis to avoid job max time
+# run specific TEST_SUITE job on travis to avoid job max time
 - travis_wait 50 py.test $TEST_SUITE --cov activitysim --cov-report term-missing --durations=0
 
 after_success:

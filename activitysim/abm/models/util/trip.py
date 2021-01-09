@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 import logging
 
+import numpy as np
+
 from activitysim.core.util import assign_in_place
 
 
@@ -76,3 +78,47 @@ def cleanup_failed_trips(trips):
     del trips['failed']
 
     return trips
+
+
+def generate_alternative_sizes(max_duration, max_trips):
+    """
+    Builds a lookup Numpy array pattern sizes based on the
+    number of trips in the leg and the duration available
+    to the leg.
+    :param max_duration:
+    :param max_trips:
+    :return:
+    """
+    def np_shift(xs, n, fill_zero=True):
+        if n >= 0:
+            shift_array = np.concatenate((np.full(n, np.nan), xs[:-n]))
+        else:
+            shift_array = np.concatenate((xs[-n:], np.full(-n, np.nan)))
+        return np.nan_to_num(shift_array, np.nan).astype(np.int) if fill_zero else shift_array
+
+    levels = np.empty([max_trips, max_duration + max_trips])
+    levels[0] = np.arange(1, max_duration + max_trips + 1)
+
+    for level in np.arange(1, max_trips):
+        levels[level] = np_shift(np.cumsum(np_shift(levels[level - 1], 1)), -1, fill_zero=False)
+
+    return levels[:, :max_duration+1].astype(int)
+
+
+def get_time_windows(residual, level):
+    """
+
+    :param residual:
+    :param level:
+    :return:
+    """
+    ranges = []
+
+    for a in np.arange(residual + 1):
+        if level > 1:
+            windows = get_time_windows(residual - a, level - 1)
+            width_dim = len(windows.shape) - 1
+            ranges.append(np.vstack([np.repeat(a, windows.shape[width_dim]), windows]))
+        else:
+            return np.arange(residual + 1)
+    return np.concatenate(ranges, axis=1)

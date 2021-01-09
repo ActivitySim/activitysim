@@ -389,6 +389,15 @@ def _schedule_tours(
     if constants is not None:
         locals_d.update(constants)
 
+    preprocessor_settings = model_settings.get('ALTS_PREPROCESSOR', None)
+
+    if preprocessor_settings and preprocessor_settings.get(logsum_tour_purpose):
+        expressions.assign_columns(
+            df=alt_tdd,
+            model_settings=preprocessor_settings.get(logsum_tour_purpose),
+            locals_dict=locals_d,
+            trace_label=tour_trace_label)
+
     if estimator:
         # write choosers after annotation
         estimator.write_choosers(tours)

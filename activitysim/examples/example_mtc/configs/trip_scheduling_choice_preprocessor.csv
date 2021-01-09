@@ -1,0 +1,4 @@
+Description,Target,Expression
+,tour_outbound_dist,"od_skims['DIST']"
+,tour_inbound_dist,"do_skims['DIST']"
+,main_leg_dist,"obib_skims['DIST']"

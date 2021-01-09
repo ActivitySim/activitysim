@@ -31,6 +31,13 @@ def write_trip_matrices(trips, network_los):
     if bool(model_settings.get('SAVE_TRIPS_TABLE')):
         pipeline.replace_table('trips', trips_df)
 
+    if 'parking_location' in config.setting('models'):
+        parking_settings = config.read_model_settings('parking_location_choice.yaml')
+        parking_taz_col_name = parking_settings['ALT_DEST_COL_NAME']
+        if parking_taz_col_name in trips_df:
+            trips_df.loc[trips_df[parking_taz_col_name] > 0, 'destination'] = trips_df[parking_taz_col_name]
+        # Also need address the return trip
+
     logger.info('Aggregating trips...')
     aggregate_trips = trips_df.groupby(['origin', 'destination'], sort=False).sum()
 
@@ -72,8 +79,8 @@ def annotate_trips(trips, network_los, model_settings):
     skim_dict = network_los.get_default_skim_dict()
 
     # setup skim keys
-    assert ('trip_period' not in trips_df)
-    trips_df['trip_period'] = network_los.skim_time_period_label(trips_df.depart)
+    if 'trip_period' not in trips_df:
+        trips_df['trip_period'] = network_los.skim_time_period_label(trips_df.depart)
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
     odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='origin', dest_key='destination', dim3_key='trip_period')
     skims = {

@@ -732,7 +732,7 @@ Core Table: ``trips`` | Result Field: ``purpose, destination`` | Skims Keys: ``o
 .. _trip_scheduling:
 
 Trip Scheduling (Probablistic)
----------------
+------------------------------
 
 For each trip, assign a departure hour based on an input lookup table of percents by tour purpose, 
 direction (inbound/outbound), tour hour, and trip index.
@@ -766,6 +766,7 @@ Core Table: ``trips`` | Result Field: ``depart`` | Skims Keys: NA
 
 Trip Scheduling Choice (Logit Choice)
 -------------------------------------
+
 This model uses a logit-based formulation to determine potential trip windows for the three
 main components of a tour.
 
@@ -788,6 +789,7 @@ Core Table: ``tours`` | Result Field: ``outbound_duration``, ``main_leg_duration
 
 Trip Departure Choice (Logit Choice)
 -------------------------------------
+
 Used in conjuction with Trip Scheduling Choice (Logit Choice), this model chooses departure
 time periods consistent with the time windows for the appropriate leg of the trip.
 

@@ -527,10 +527,10 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - trip_mode_choice_coeffs.csv                                     |
 |                                                |  - trip_mode_choice.csv                                            |
 +------------------------------------------------+--------------------------------------------------------------------+
-|  :ref:`parking_location_choice`                |  - parking_location_choice.yaml                                           |
-|  (Optional Model)                              |  - parking_location_choice_annotate_trips_preprocessor.csv                |
-|  (Not Included in Example Pipeline             |  - parking_location_choice_coeffs.csv                                     |
-|                                                |  - parking_location_choice.csv                                            |
+|  :ref:`parking_location_choice`                |  - parking_location_choice.yaml                                    |
+|  (optional model)                              |  - parking_location_choice_annotate_trips_preprocessor.csv         |
+|                                                |  - parking_location_choice_coeffs.csv                              |
+|                                                |  - parking_location_choice.csv                                     |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`write_trip_matrices`                    |  - write_trip_matrices.yaml                                        |
 |                                                |  - write_trip_matrices_annotate_trips_preprocessor.csv             |

@@ -20,8 +20,9 @@ from activitysim.core import los
 
 from activitysim.core.util import assign_in_place
 
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
+from .util import estimation
 from .util.mode import mode_choice_simulate
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,23 +42,17 @@ def trip_mode_choice(
     Adds trip_mode column to trip table
     """
     trace_label = 'trip_mode_choice'
-    model_settings = config.read_model_settings('trip_mode_choice.yaml')
+    model_settings_file_name = 'trip_mode_choice.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
     mode_column_name = 'trip_mode'
-
-    model_spec = \
-        simulate.read_model_spec(file_name=model_settings['SPEC'])
-    omnibus_coefficients = \
-        assign.read_constant_spec(config.config_file_path(model_settings['COEFFICIENTS']))
 
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     tours_merged = tours_merged.to_frame()
     tours_merged = tours_merged[model_settings['TOURS_MERGED_CHOOSER_COLUMNS']]
-
-    nest_spec = config.get_logit_model_settings(model_settings)
 
     tracing.print_summary('primary_purpose',
                           trips_df.primary_purpose, value_counts=True)
@@ -115,6 +110,16 @@ def trip_mode_choice(
         # TVPB constants can appear in expressions
         constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
+    estimator = estimation.manager.begin_estimation('trip_mode_choice')
+    if estimator:
+        estimator.write_coefficients(model_settings=model_settings)
+        estimator.write_coefficients_template(model_settings=model_settings)
+        estimator.write_spec(model_settings)
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    nest_spec = config.get_logit_model_settings(model_settings)
+
     choices_list = []
     for primary_purpose, trips_segment in trips_merged.groupby('primary_purpose'):
 
@@ -130,27 +135,34 @@ def trip_mode_choice(
             tvpb_logsum_odt.extend_trace_label(primary_purpose)
             # tvpb_logsum_dot.extend_trace_label(primary_purpose)
 
-        locals_dict = assign.evaluate_constants(omnibus_coefficients[primary_purpose],
-                                                constants=constants)
+        coefficients = simulate.get_segment_coefficients(model_settings, primary_purpose)
+
+        locals_dict = {}
         locals_dict.update(constants)
+        locals_dict.update(coefficients)
 
         expressions.annotate_preprocessors(
             trips_segment, locals_dict, skims,
             model_settings, segment_trace_label)
 
+        if estimator:
+            # write choosers after annotation
+            estimator.write_choosers(trips_segment)
+
         locals_dict.update(skims)
 
         choices = mode_choice_simulate(
             choosers=trips_segment,
-            spec=model_spec,
-            nest_spec=nest_spec,
+            spec=simulate.eval_coefficients(model_spec, coefficients, estimator),
+            nest_spec=simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label),
             skims=skims,
             locals_d=locals_dict,
             chunk_size=chunk_size,
             mode_column_name=mode_column_name,
             logsum_column_name=logsum_column_name,
             trace_label=trace_label,
-            trace_choice_name='trip_mode_choice')
+            trace_choice_name='trip_mode_choice',
+            estimator=estimator)
 
         if trace_hh_id:
             # trace the coefficients
@@ -191,11 +203,17 @@ def trip_mode_choice(
                     choices_df[dest_col] = np.nan
                 choices_df[dest_col].where(choices_df[mode_column_name] != mode, skim_cache[c], inplace=True)
 
+    if estimator:
+        estimator.write_choices(choices_df.trip_mode)
+        choices_df.trip_mode = estimator.get_survey_values(choices_df.trip_mode, 'trips', 'trip_mode')
+        estimator.write_override_choices(choices_df.trip_mode)
+        estimator.end_estimation()
+
     # update trips table with choices (and otionally logssums)
     trips_df = trips.to_frame()
     assign_in_place(trips_df, choices_df)
 
-    tracing.print_summary('tour_modes',
+    tracing.print_summary('trip_modes',
                           trips_merged.tour_mode, value_counts=True)
 
     tracing.print_summary('trip_mode_choice choices',

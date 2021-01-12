@@ -13,7 +13,7 @@ trace_hh_id: 2848373
 
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: write_trip_matrices
+resume_after: trip_purpose
 
 #cleanup_trace_files_on_resume: True
 

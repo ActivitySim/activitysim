@@ -86,14 +86,30 @@ def read_from_table_info(table_info):
     rename_columns = table_info.get('rename_columns', None)
 
     # don't require a redundant index_col directive for canonical tables
-    index_col = canonical_table_index_name(tablename)
-    if index_col:
-        # but if there is an index_col directive for a cononical table, it should be for canonical_table_index_name
-        assert table_info.get('index_col', index_col) == index_col, \
-            f"{tablename} index_col {table_info.get('index_col')} should be {index_col}"
+    # but allow explicit disabling of assignment of index col for canonical tables, in which case, presumably,
+    # the canonical index will be assigned in a subsequent initialization step (e.g. initialize_tours)
+    canonical_index_col = canonical_table_index_name(tablename)
+
+    # if there is an explicit index_col entry in table_info
+    if 'index_col' in table_info:
+        # honor explicit index_col unless it conflicts with canonical name
+
+        index_col = table_info['index_col']
+
+        if canonical_index_col:
+            if index_col:
+                # if there is a non-empty index_col directive, it should be for canonical_table_index_name
+                assert index_col == canonical_index_col, \
+                    f"{tablename} index_col {table_info.get('index_col')} should be {index_col}"
+            else:
+                logger.info(f"Not assigning canonical index_col {tablename}.{canonical_index_col} "
+                            f"because settings file index_col directive is explicitly None.")
+
+        #  if there is an index_col directive for a canonical table, it should be for canonical_table_index_name
+
     else:
-        # otherwise this is a table unknown to us, and they can set index or not as they please
-        index_col = table_info.get('index_col', None)
+        # otherwise default is to use canonical index name for known tables, and no index for unknown tables
+        index_col = canonical_index_col
 
     assert tablename is not None, 'no tablename provided'
     assert data_filename is not None, 'no input file provided'

@@ -115,6 +115,7 @@ def trip_destination_sample(
 def compute_ood_logsums(
         choosers,
         logsum_settings,
+        nest_spec, logsum_spec,
         od_skims,
         locals_dict,
         chunk_size,
@@ -131,9 +132,6 @@ def compute_ood_logsums(
         choosers, locals_dict, od_skims,
         logsum_settings,
         trace_label)
-
-    nest_spec = config.get_logit_model_settings(logsum_settings)
-    logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
 
     logsums = simulate.simple_simulate_logsums(
         choosers,
@@ -196,15 +194,19 @@ def compute_logsums(
     assert choosers.index.equals(destination_sample.index)
 
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
+    coefficients = simulate.get_segment_coefficients(logsum_settings, primary_purpose)
 
-    omnibus_coefficient_spec = \
-        assign.read_constant_spec(config.config_file_path(logsum_settings['COEFFICIENTS']))
+    nest_spec = config.get_logit_model_settings(logsum_settings)
+    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
 
-    coefficient_spec = omnibus_coefficient_spec[primary_purpose]
+    logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
+    logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients, estimator=None)
 
-    constants = config.get_model_constants(logsum_settings)
-    locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
-    locals_dict.update(constants)
+    locals_dict = {}
+    locals_dict.update(config.get_model_constants(logsum_settings))
+
+    # coefficients can appear in expressions
+    locals_dict.update(coefficients)
 
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions
@@ -226,6 +228,7 @@ def compute_logsums(
     destination_sample['od_logsum'] = compute_ood_logsums(
         choosers,
         logsum_settings,
+        nest_spec, logsum_spec,
         od_skims,
         locals_dict,
         chunk_size,
@@ -248,6 +251,7 @@ def compute_logsums(
     destination_sample['dp_logsum'] = compute_ood_logsums(
         choosers,
         logsum_settings,
+        nest_spec, logsum_spec,
         dp_skims,
         locals_dict,
         chunk_size,

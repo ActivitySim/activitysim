@@ -32,11 +32,6 @@ def uniquify_key(dict, key, template="{} ({})"):
     return new_key
 
 
-def read_constant_spec(file_path):
-
-    return pd.read_csv(file_path, comment='#', index_col='Expression')
-
-
 def evaluate_constants(expressions, constants):
     """
     Evaluate a list of constant expressions - each one can depend on the one before
@@ -61,7 +56,11 @@ def evaluate_constants(expressions, constants):
     # FIXME why copy?
     d = {}
     for k, v in expressions.items():
-        d[k] = eval(str(v), d.copy(), constants)
+        try:
+            d[k] = eval(str(v), d.copy(), constants)
+        except Exception as err:
+            print(f"error evaluating {str(v)}")
+            raise err
 
     return d
 

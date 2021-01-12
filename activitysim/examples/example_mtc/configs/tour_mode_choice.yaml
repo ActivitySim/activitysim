@@ -1,5 +1,10 @@
+# tour_mode_choice.yaml
+
+SPEC: tour_mode_choice.csv
+COEFFICIENTS: tour_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coefficients_template.csv
+
 LOGIT_TYPE: NL
-#LOGIT_TYPE: MNL
 
 NESTS:
   name: root
@@ -53,10 +58,6 @@ NESTS:
           - TAXI
           - TNC_SINGLE
           - TNC_SHARED
-
-SPEC: tour_mode_choice.csv
-COEFFICIENTS: tour_mode_choice_coefficients.csv
-COEFFICIENT_TEMPLATE: tour_mode_choice_coefficients_template.csv
 
 CONSTANTS:
     #valueOfTime: 8.00
@@ -155,6 +156,7 @@ CONSTANTS:
 #    joint_sr2_ASC_auto_deficient: 0
 #    joint_sr2_ASC_auto_sufficient: 0
 #    joint_drive_transit_ASC_no_auto: 0
+    ridehail_wait_time_multiplier: 1.5
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor:

@@ -3,7 +3,7 @@
 
 from builtins import range
 
-import os
+import warnings
 import logging
 from collections import OrderedDict
 
@@ -146,6 +146,16 @@ def read_model_coefficients(model_settings=None, file_name=None):
         logger.exception("Coefficient File Invalid: %s" % str(file_path))
         raise
 
+    if coefficients.index.duplicated().any():
+        print(coefficients[coefficients.index.duplicated()])
+        bug
+    assert not coefficients.index.duplicated().any()
+
+    if coefficients.value.isnull().any():
+        print(coefficients[coefficients.value.isnull()])
+        bug
+    assert not coefficients.value.isnull().any()
+
     return coefficients
 
 
@@ -205,6 +215,8 @@ def read_model_coefficient_template(model_settings):
     # replace missing cell values with coefficient_name from index
     template = template.where(~template.isnull(), template.index)
 
+    assert not template.index.duplicated().any()
+
     return template
 
 
@@ -242,12 +254,30 @@ def get_segment_coefficients(model_settings, segment_name):
 
     coefficients_df = read_model_coefficients(model_settings)
     template_df = read_model_coefficient_template(model_settings)
-    coefficients_col = template_df[segment_name].map(coefficients_df.value)
+
+    DUMP = False
+    if DUMP:
+        for c in template_df.columns:
+            template_df[c] = template_df[c].map(coefficients_df.value)
+
+        coefficients_template_file_name = model_settings['COEFFICIENT_TEMPLATE']
+        file_path = config.output_file_path(coefficients_template_file_name)
+        template_df.to_csv(file_path, index=True)
+        print(template_df)
+        print(f"wrote {file_path}")
+
+        coefficients_file_name = model_settings['COEFFICIENTS']
+        file_path = config.output_file_path(coefficients_file_name)
+        coefficients_df.to_csv(file_path, index=True)
+        print(coefficients_df)
+        print(f"wrote {file_path}")
+
+    coefficients_col = template_df[segment_name].map(coefficients_df.value).astype(float)
 
     return coefficients_col.to_dict()
 
 
-def eval_nest_coefficients(nest_spec, coefficients):
+def eval_nest_coefficients(nest_spec, coefficients, trace_label):
 
     def replace_coefficients(nest):
         if isinstance(nest, dict):
@@ -268,6 +298,8 @@ def eval_nest_coefficients(nest_spec, coefficients):
         coefficients = coefficients['value'].to_dict()
 
     replace_coefficients(nest_spec)
+
+    logit.validate_nest_spec(nest_spec, trace_label)
 
     return nest_spec
 
@@ -354,10 +386,18 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     for i, expr in enumerate(exprs):
         try:
-            if expr.startswith('@'):
-                expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
-            else:
-                expression_values[i] = choosers.eval(expr)
+            with warnings.catch_warnings(record=True) as w:
+                # Cause all warnings to always be triggered.
+                warnings.simplefilter("always")
+                if expr.startswith('@'):
+                    expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
+                else:
+                    expression_values[i] = choosers.eval(expr)
+
+                if len(w) > 0:
+                    for wrn in w:
+                        logger.warning(f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}")
+
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
             raise err

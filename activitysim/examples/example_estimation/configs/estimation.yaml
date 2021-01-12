@@ -26,7 +26,7 @@ bundles:
   - trip_purpose
   - trip_destination
   - trip_scheduling
-#  - trip_mode_choice
+  - trip_mode_choice
 
 #  - atwork_subtour_mode_choice  subtours.tour_mode
 
@@ -120,3 +120,4 @@ model_estimation_table_types:
   trip_purpose: simple_probabilistic
   trip_destination: interaction_sample_simulate
   trip_scheduling: simple_probabilistic
+  trip_mode_choice: simple_simulate

@@ -128,7 +128,7 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
     logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients, estimator=None)
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
-    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
+    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
 
     logsums = simulate.simple_simulate_logsums(
         choosers,

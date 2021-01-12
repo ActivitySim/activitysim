@@ -76,7 +76,7 @@ def compute_logsums(choosers,
     logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients, estimator=None)
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
-    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
+    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
 
     locals_dict = {}
     # model_constants can appear in expressions
